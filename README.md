@@ -1,7 +1,7 @@
 # PowerAuth 2.0 Server
 
 [![Build Status](https://travis-ci.org/lime-company/lime-security-powerauth.svg?branch=master)](https://travis-ci.org/lime-company/powerauth-server)
-[Status](https://img.shields.io/coverity/scan/8967.svg)](https://scan.coverity.com/projects/powerauth-server)
+[![Status](https://img.shields.io/coverity/scan/8967.svg)](https://scan.coverity.com/projects/powerauth-server)
 [![GitHub issues](https://img.shields.io/github/issues/lime-company/lime-security-powerauth.svg?maxAge=2592000)](https://github.com/lime-company/lime-security-powerauth/issues)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 
