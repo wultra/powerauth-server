@@ -62,14 +62,14 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:https://github.com/lime-company/lime-security-powerauth.git</connection>
-		<developerConnection>scm:git:https://github.com/lime-company/lime-security-powerauth.git</developerConnection>
-		<url>https://github.com/lime-company/lime-security-powerauth</url>
+		<connection>scm:git:https://github.com/lime-company/powerauth-server.git</connection>
+		<developerConnection>scm:git:https://github.com/lime-company/powerauth-server.git</developerConnection>
+		<url>https://github.com/lime-company/powerauth-server</url>
 	</scm>
 
 	<issueManagement>
 		<system>Github</system>
-		<url>https://github.com/lime-company/lime-security-powerauth/issues</url>
+		<url>https://github.com/lime-company/powerauth-server/issues</url>
 	</issueManagement>
 
 	<modules>
