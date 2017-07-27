@@ -20,9 +20,14 @@ package io.getlime.security.powerauth.soap.axis.client;
 
 
 import io.getlime.powerauth.soap.PowerAuthPortServiceStub;
+import org.apache.axiom.om.OMAbstractFactory;
+import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.OMFactory;
 import org.apache.axis2.AxisFault;
 import org.apache.axis2.addressing.EndpointReference;
+import org.apache.axis2.client.Options;
 
+import javax.xml.namespace.QName;
 import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.Date;
@@ -39,6 +44,7 @@ import java.util.List;
 public class PowerAuthServiceClient {
 
     private PowerAuthPortServiceStub clientStub;
+    private boolean isAuthenticationEnabled;
 
     /**
      * Create a SOAP service client with the default URL:
@@ -90,6 +96,39 @@ public class PowerAuthServiceClient {
      */
     public void setServiceUri(String uri) {
         clientStub._getServiceClient().getOptions().setTo(new EndpointReference(uri));
+    }
+
+    /**
+     * Enable UsernameToken authentication of the SOAP client (WS-Security).
+     * @param username Username.
+     * @param password Password.
+     */
+    public void enableAuthentication(String username, String password) {
+
+        if (isAuthenticationEnabled) {
+            return;
+        }
+
+        isAuthenticationEnabled = true;
+
+        OMFactory omFactory = OMAbstractFactory.getOMFactory();
+        OMElement omSecurityElement = omFactory.createOMElement(new QName( "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd", "Security", "wsse"), null);
+
+        OMElement omUsernameToken = omFactory.createOMElement(new QName("", "UsernameToken", "wsse"), null);
+
+        OMElement omUsername = omFactory.createOMElement(new QName("", "Username", "wsse"), null);
+        omUsername.setText(username);
+
+        OMElement omPassword = omFactory.createOMElement(new QName("", "Password", "wsse"), null);
+        omPassword.addAttribute("Type","http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordText",null );
+        omPassword.setText(password);
+
+        omUsernameToken.addChild(omUsername);
+        omUsernameToken.addChild(omPassword);
+        omSecurityElement.addChild(omUsernameToken);
+
+        clientStub._getServiceClient().addHeader(omSecurityElement);
+
     }
 
     /**

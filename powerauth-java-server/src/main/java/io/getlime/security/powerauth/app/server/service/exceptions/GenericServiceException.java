@@ -31,7 +31,6 @@ public class GenericServiceException extends Exception {
     private static final long serialVersionUID = 7185138483623356230L;
 
     private String code;
-    private String message;
     private String localizedMessage;
 
     /**
@@ -42,9 +41,8 @@ public class GenericServiceException extends Exception {
      * @param localizedMessage Localized error message
      */
     public GenericServiceException(String code, String message, String localizedMessage) {
-        super();
+        super(message);
         this.code = code;
-        this.message = message;
         this.localizedMessage = localizedMessage;
     }
 
@@ -64,11 +62,6 @@ public class GenericServiceException extends Exception {
      */
     public void setCode(String code) {
         this.code = code;
-    }
-
-    @Override
-    public String getMessage() {
-        return this.message;
     }
 
     @Override
