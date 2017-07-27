@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.soap.spring.client;
 
 import io.getlime.powerauth.soap.*;
@@ -34,7 +33,7 @@ import java.util.List;
  * Class implementing a PowerAuth SOAP service client based on provided WSDL
  * service description.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  *
  */
 public class PowerAuthServiceClient extends WebServiceGatewaySupport {

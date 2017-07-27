@@ -61,7 +61,7 @@ import java.util.logging.Logger;
  * Behavior class implementing processes related with activations. Used to move the
  * implementation outside of the main service implementation.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public class ActivationServiceBehavior {

@@ -23,7 +23,7 @@ import io.getlime.security.powerauth.*;
  * Interface containing all methods that are published by the PowerAuth 2.0 Server
  * instance. These methods are then used to publish both SOAP and REST interface.
  *
- * @author Petr Dvorak.
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public interface PowerAuthService {
 

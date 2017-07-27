@@ -35,7 +35,7 @@ import java.util.List;
  * Exception resolver responsible for catching Spring errors and rendering them in
  * the same format as the application logics exceptions.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolver {

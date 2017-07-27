@@ -24,7 +24,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * PowerAuth 2.0 Server main application class.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @SpringBootApplication
 public class Application {

@@ -25,7 +25,7 @@ import java.io.Serializable;
  * Entity class representing an application version. Each activation is associated with a single application,
  * that may have multiple versions.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Entity(name = "pa_application_version")
 public class ApplicationVersionEntity implements Serializable {

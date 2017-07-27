@@ -48,7 +48,9 @@ import java.util.logging.Logger;
  * The implementation of this service is divided into "behaviors"
  * responsible for individual processes.
  *
- * @author Petr Dvorak
+ * @see io.getlime.security.powerauth.app.server.service.PowerAuthService
+ *
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public class PowerAuthServiceImpl implements PowerAuthService {

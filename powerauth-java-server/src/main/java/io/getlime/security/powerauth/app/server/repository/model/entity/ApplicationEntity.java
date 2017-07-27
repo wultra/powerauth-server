@@ -25,7 +25,7 @@ import java.util.List;
 /**
  * Entity class representing an application.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Entity(name = "pa_application")
 public class ApplicationEntity implements Serializable {

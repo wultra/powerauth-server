@@ -24,9 +24,8 @@ import org.springframework.data.repository.CrudRepository;
 /**
  * Database repository class for access to applications
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public interface ApplicationRepository extends CrudRepository<ApplicationEntity, Long> {
-
 
 }

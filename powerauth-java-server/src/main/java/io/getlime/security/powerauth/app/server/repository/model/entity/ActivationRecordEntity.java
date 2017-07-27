@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * Database entity for an "activation" objects.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Entity(name = "pa_activation")
 public class ActivationRecordEntity implements Serializable {

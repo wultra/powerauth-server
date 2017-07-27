@@ -47,7 +47,7 @@ import java.util.List;
  * Behavior class implementing the signature validation related processes. The class separates the
  * logics from the main service class.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public class SignatureServiceBehavior {

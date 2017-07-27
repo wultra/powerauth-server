@@ -21,6 +21,14 @@ package io.getlime.security.powerauth.app.server.service.util.model;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for representing a SOAP service errors. It has static string fields
+ * for all possible error codes and list that registers the error code.
+ * The {@link io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider}
+ * class is then used for looking up the displayable error message.
+ *
+ * @author Petr Dvorak, petr@lime-company.eu
+ */
 public class ServiceError {
 
     /**

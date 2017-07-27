@@ -29,7 +29,7 @@ import java.util.List;
 /**
  * Database repository for activation entities.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public interface ActivationRepository extends CrudRepository<ActivationRecordEntity, String> {

@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Database repository for accessing signature audit log data.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public interface SignatureAuditRepository extends CrudRepository<SignatureEntity, Long> {
 

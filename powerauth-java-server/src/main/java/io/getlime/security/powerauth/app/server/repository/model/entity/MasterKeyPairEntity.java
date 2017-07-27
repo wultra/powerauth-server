@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * Entity class representing Master Key Pair in the database.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Entity(name = "pa_master_keypair")
 public class MasterKeyPairEntity implements Serializable {

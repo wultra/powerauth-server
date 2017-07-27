@@ -32,7 +32,7 @@ import java.util.List;
  * at the moment is to assure proper handling of application exceptions (correct
  * order).
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Configuration
 public class WebApplicationConfig extends WebMvcConfigurerAdapter {

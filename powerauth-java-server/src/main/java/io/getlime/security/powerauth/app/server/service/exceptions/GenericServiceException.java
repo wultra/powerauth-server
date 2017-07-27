@@ -23,7 +23,7 @@ import org.springframework.ws.soap.server.endpoint.annotation.SoapFault;
 /**
  * Exception for any SOAP interface error.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @SoapFault(faultCode = FaultCode.SERVER)
 public class GenericServiceException extends Exception {

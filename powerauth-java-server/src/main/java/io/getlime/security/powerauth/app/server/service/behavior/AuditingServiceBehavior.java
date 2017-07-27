@@ -35,7 +35,7 @@ import java.util.List;
  * Behavior class associated with process of a server auditing. Every time server attempts to compute a signature,
  * a log record is created. This class separates logic from the main service class.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public class AuditingServiceBehavior {

@@ -28,7 +28,7 @@ import java.util.GregorianCalendar;
 /**
  * Utility class used for conversion between model data types.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public class ModelUtil {
 

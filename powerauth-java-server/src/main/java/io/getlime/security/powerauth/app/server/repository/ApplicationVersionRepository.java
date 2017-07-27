@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * Database repository for access to application versions.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public interface ApplicationVersionRepository extends CrudRepository<ApplicationVersionEntity, Long> {
 

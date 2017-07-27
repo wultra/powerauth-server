@@ -39,7 +39,7 @@ import java.security.spec.InvalidKeySpecException;
  * Behavior class implementing the vault unlock related processes. The class separates the
  * logic from the main service class.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Component
 public class VaultUnlockServiceBehavior {

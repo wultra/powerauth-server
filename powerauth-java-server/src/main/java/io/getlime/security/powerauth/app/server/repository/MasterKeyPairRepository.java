@@ -23,7 +23,7 @@ import org.springframework.data.repository.CrudRepository;
 /**
  * Database repository for accessing Master Key Pair data.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public interface MasterKeyPairRepository extends CrudRepository<MasterKeyPairEntity, Long> {
 

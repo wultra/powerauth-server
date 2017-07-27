@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
  * Base class for RESTful response object.
  *
  * @param <T> Type of the response object instance.
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public class RESTResponseWrapper<T> {
 

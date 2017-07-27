@@ -27,7 +27,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
  * Class holding the configuration data of this PowerAuth 2.0 Server
  * instance. Default values are in "application.properties" file.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Configuration
 public class PowerAuthServiceConfiguration {

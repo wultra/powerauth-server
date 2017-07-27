@@ -28,7 +28,7 @@ import io.getlime.security.powerauth.app.server.service.PowerAuthService;
  * - BLOCKED = 4
  * - REMOVED = 5
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public enum ActivationStatus {
 

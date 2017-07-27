@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 /**
  * Class used for handling RESTful service errors.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @ControllerAdvice
 public class RESTControllerAdvice {

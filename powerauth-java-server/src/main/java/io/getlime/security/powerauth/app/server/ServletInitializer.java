@@ -24,7 +24,7 @@ import org.springframework.boot.web.support.SpringBootServletInitializer;
 /**
  * PowerAuth 2.0 Server default servlet initializer.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 public class ServletInitializer extends SpringBootServletInitializer {
 

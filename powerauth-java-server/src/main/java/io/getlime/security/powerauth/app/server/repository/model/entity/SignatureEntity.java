@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * Entity representing a single signature audit log.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  */
 @Entity(name = "pa_signature_audit")
 public class SignatureEntity implements Serializable {
