@@ -38,7 +38,7 @@ import java.util.List;
  * Class implementing a PowerAuth SOAP service client based on provided WSDL
  * service description. This class uses Axis 2 under the hood.
  *
- * @author Petr Dvorak
+ * @author Petr Dvorak, petr@lime-company.eu
  *
  */
 public class PowerAuthServiceClient {
