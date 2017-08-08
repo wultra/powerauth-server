@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.app.server.repository.model.entity.Activati
 import io.getlime.security.powerauth.app.server.repository.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
@@ -115,10 +116,12 @@ public class SignatureServiceBehavior {
                 activation.setCounter(activation.getCounter() + 1);
 
                 // Update failed attempts and block the activation, if necessary
-                activation.setFailedAttempts(activation.getFailedAttempts() + 1);
-                Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-                if (remainingAttempts <= 0) {
-                    activation.setActivationStatus(ActivationStatus.BLOCKED);
+                if (notPossessionFactorSignature(signatureType)) {
+                    activation.setFailedAttempts(activation.getFailedAttempts() + 1);
+                    Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+                    if (remainingAttempts <= 0) {
+                        activation.setActivationStatus(ActivationStatus.BLOCKED);
+                    }
                 }
 
                 // Update the last used date
@@ -177,7 +180,9 @@ public class SignatureServiceBehavior {
                     activation.setCounter(lowestValidCounter + 1);
 
                     // Reset failed attempt count
-                    activation.setFailedAttempts(0L);
+                    if (notPossessionFactorSignature(signatureType)) {
+                        activation.setFailedAttempts(0L);
+                    }
 
                     // Update the last used date
                     activation.setTimestampLastUsed(currentTimestamp);
@@ -202,9 +207,11 @@ public class SignatureServiceBehavior {
                     // Increment the activation record counter
                     activation.setCounter(activation.getCounter() + 1);
 
-                    // Update failed attempts and block the activation, if
-                    // necessary
-                    activation.setFailedAttempts(activation.getFailedAttempts() + 1);
+                    // Update failed attempts and block the activation, if necessary
+                    if (notPossessionFactorSignature(signatureType)) {
+                        activation.setFailedAttempts(activation.getFailedAttempts() + 1);
+                    }
+
                     Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
                     if (remainingAttempts <= 0) {
                         activation.setActivationStatus(ActivationStatus.BLOCKED);
@@ -269,6 +276,10 @@ public class SignatureServiceBehavior {
             return response;
 
         }
+    }
+
+    private boolean notPossessionFactorSignature(String signatureType) {
+        return signatureType != null && !signatureType.equals(PowerAuthSignatureTypes.POSSESSION.toString());
     }
 
 }
