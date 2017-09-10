@@ -17,10 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.util;
 
-import io.getlime.security.powerauth.SignatureType;
-import io.getlime.security.powerauth.app.server.repository.model.ActivationStatus;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
-
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -33,67 +29,6 @@ import java.util.GregorianCalendar;
  * @author Petr Dvorak, petr@lime-company.eu
  */
 public class ModelUtil {
-
-    /**
-     * Convert between activation status repository and SOAP service enum.
-     *
-     * @param repositoryStatus Repository status representation.
-     * @return SOAP service status representation.
-     */
-    public static io.getlime.security.powerauth.ActivationStatus toServiceStatus(
-            ActivationStatus repositoryStatus) {
-        switch (repositoryStatus) {
-            case CREATED:
-                return io.getlime.security.powerauth.ActivationStatus.CREATED;
-            case OTP_USED:
-                return io.getlime.security.powerauth.ActivationStatus.OTP_USED;
-            case ACTIVE:
-                return io.getlime.security.powerauth.ActivationStatus.ACTIVE;
-            case BLOCKED:
-                return io.getlime.security.powerauth.ActivationStatus.BLOCKED;
-            case REMOVED:
-                return io.getlime.security.powerauth.ActivationStatus.REMOVED;
-        }
-        return io.getlime.security.powerauth.ActivationStatus.REMOVED;
-    }
-
-    public static SignatureType toServiceSignatureType(
-            PowerAuthSignatureTypes type
-    ) {
-        switch (type) {
-            case POSSESSION:
-                return SignatureType.POSSESSION;
-            case KNOWLEDGE:
-                return SignatureType.KNOWLEDGE;
-            case BIOMETRY:
-                return SignatureType.BIOMETRY;
-            case POSSESSION_KNOWLEDGE:
-                return SignatureType.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY:
-                return SignatureType.POSSESSION_BIOMETRY;
-            default:
-                return SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
-        }
-    }
-
-    public static PowerAuthSignatureTypes fromServiceSignatureType(
-            SignatureType type
-    ) {
-        switch (type) {
-            case POSSESSION:
-                return PowerAuthSignatureTypes.POSSESSION;
-            case KNOWLEDGE:
-                return PowerAuthSignatureTypes.KNOWLEDGE;
-            case BIOMETRY:
-                return PowerAuthSignatureTypes.BIOMETRY;
-            case POSSESSION_KNOWLEDGE:
-                return PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY:
-                return PowerAuthSignatureTypes.POSSESSION_BIOMETRY;
-            default:
-                return PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
-        }
-    }
 
     /**
      * Convert between Date and XMLGregorianCalendar.

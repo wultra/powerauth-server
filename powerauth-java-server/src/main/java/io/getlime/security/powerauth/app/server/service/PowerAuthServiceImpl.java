@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server.service;
 
 import io.getlime.security.powerauth.*;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviors;
+import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -56,7 +56,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
-    private ServiceBehaviors behavior;
+    private ServiceBehaviorCatalogue behavior;
 
     private LocalizationProvider localizationProvider;
 
@@ -66,7 +66,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Autowired
-    public void setBehavior(ServiceBehaviors behavior) {
+    public void setBehavior(ServiceBehaviorCatalogue behavior) {
         this.behavior = behavior;
     }
 
@@ -457,8 +457,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws Exception {
-        return behavior.getIntegrationBehavior().getIntegrationList(request);
+    public GetIntegrationListResponse getIntegrationList() throws Exception {
+        return behavior.getIntegrationBehavior().getIntegrationList();
     }
 
     @Override

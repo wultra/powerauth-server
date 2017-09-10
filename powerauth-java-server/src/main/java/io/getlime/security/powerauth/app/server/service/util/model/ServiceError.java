@@ -101,6 +101,11 @@ public class ServiceError {
      */
     public static final String UNABLE_TO_COMPUTE_SIGNATURE = "ERR0013";
 
+    /**
+     * Invalid URL format.
+     */
+    public static final String INVALID_URL_FORMAT = "ERR0014";
+
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(14);
         list.add(UNKNOWN_ERROR);
@@ -117,6 +122,7 @@ public class ServiceError {
         list.add(INVALID_INPUT_FORMAT);
         list.add(INVALID_SIGNATURE);
         list.add(UNABLE_TO_COMPUTE_SIGNATURE);
+        list.add(INVALID_URL_FORMAT);
         return list;
     }
 

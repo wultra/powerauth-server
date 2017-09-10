@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.integration;
 
-import io.getlime.security.powerauth.app.server.repository.IntegrationRepository;
-import io.getlime.security.powerauth.app.server.repository.model.entity.IntegrationEntity;
+import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
+import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -45,7 +45,7 @@ public class IntegrationUserDetailsService implements UserDetailsService {
 
     /**
      * Constructor to autowire {@link IntegrationRepository} instance.
-     * @param integrationRepository Autowired repository.
+     * @param integrationRepository Autowired database.
      */
     @Autowired
     public IntegrationUserDetailsService(IntegrationRepository integrationRepository) {

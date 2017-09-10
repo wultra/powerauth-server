@@ -393,17 +393,16 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#getIntegrationList(GetIntegrationListRequest)} method and
+     * Call {@link PowerAuthService#getIntegrationList()} method and
      * return the response.
      *
-     * @param request Get integration list request.
      * @return Get integration list response.
      * @throws Exception In case the service throws exception.
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetIntegrationListRequest")
     @ResponsePayload
-    public GetIntegrationListResponse getIntegrationList(@RequestPayload GetIntegrationListRequest request) throws Exception {
-        return powerAuthService.getIntegrationList(request);
+    public GetIntegrationListResponse getIntegrationList() throws Exception {
+        return powerAuthService.getIntegrationList();
     }
 
     /**
