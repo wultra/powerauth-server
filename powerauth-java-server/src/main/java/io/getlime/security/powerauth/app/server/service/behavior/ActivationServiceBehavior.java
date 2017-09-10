@@ -30,11 +30,11 @@ import io.getlime.security.powerauth.app.server.repository.model.entity.Applicat
 import io.getlime.security.powerauth.app.server.repository.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.repository.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.service.PowerAuthServiceImpl;
+import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
 import io.getlime.security.powerauth.app.server.service.util.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -53,6 +53,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -76,11 +77,14 @@ public class ActivationServiceBehavior {
 
     private LocalizationProvider localizationProvider;
 
+    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+
     @Autowired
-    public ActivationServiceBehavior(ActivationRepository powerAuthRepository, MasterKeyPairRepository masterKeyPairRepository, ApplicationVersionRepository applicationVersionRepository) {
+    public ActivationServiceBehavior(ActivationRepository powerAuthRepository, MasterKeyPairRepository masterKeyPairRepository, ApplicationVersionRepository applicationVersionRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.powerAuthRepository = powerAuthRepository;
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.applicationVersionRepository = applicationVersionRepository;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     @Autowired
@@ -124,7 +128,7 @@ public class ActivationServiceBehavior {
         // Generate timestamp in advance
         Date timestamp = new Date();
 
-        List<ActivationRecordEntity> activationsList = null;
+        List<ActivationRecordEntity> activationsList;
         if (applicationId == null) {
             activationsList = powerAuthRepository.findByUserId(userId);
         } else {
@@ -330,13 +334,13 @@ public class ActivationServiceBehavior {
         // Get number of max attempts from request or from constants, if not provided
         Long maxAttempt = maxFailedCount;
         if (maxAttempt == null) {
-            maxAttempt = PowerAuthConfiguration.SIGNATURE_MAX_FAILED_ATTEMPTS;
+            maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
         }
 
         // Get activation expiration date from request or from constants, if not provided
         Date timestampExpiration = activationExpireTimestamp;
         if (timestampExpiration == null) {
-            timestampExpiration = new Date(timestamp.getTime() + PowerAuthConfiguration.ACTIVATION_VALIDITY_BEFORE_ACTIVE);
+            timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
         }
 
         // Fetch the latest master private key
@@ -356,7 +360,7 @@ public class ActivationServiceBehavior {
 
         // Generate new activation data, generate a unique activation ID
         String activationId = null;
-        for (int i = 0; i < PowerAuthConfiguration.ACTIVATION_GENERATE_ACTIVATION_ID_ITERATIONS; i++) {
+        for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
             String tmpActivationId = powerAuthServerActivation.generateActivationId();
             ActivationRecordEntity record = powerAuthRepository.findFirstByActivationId(tmpActivationId);
             if (record == null) {
@@ -371,7 +375,7 @@ public class ActivationServiceBehavior {
         // Generate a unique short activation ID for created and OTP used states
         String activationIdShort = null;
         Set<io.getlime.security.powerauth.app.server.repository.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.OTP_USED);
-        for (int i = 0; i < PowerAuthConfiguration.ACTIVATION_GENERATE_ACTIVATION_SHORT_ID_ITERATIONS; i++) {
+        for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
             String tmpActivationIdShort = powerAuthServerActivation.generateActivationIdShort();
             ActivationRecordEntity record = powerAuthRepository.findFirstByApplicationIdAndActivationIdShortAndActivationStatusInAndTimestampActivationExpireAfter(applicationId, tmpActivationIdShort, states, timestamp);
             // this activation short ID has a collision, reset it and find
@@ -464,7 +468,7 @@ public class ActivationServiceBehavior {
 
         ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
         // if there is no such application, exit
-        if (applicationVersion == null || applicationVersion.getSupported() == false) {
+        if (applicationVersion == null || !applicationVersion.getSupported()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
         }
 
@@ -486,7 +490,7 @@ public class ActivationServiceBehavior {
         // if there is no such activation or application does not match the activation application, exit
         if (activation == null
                 || !io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.CREATED.equals(activation.getActivationStatus())
-                || activation.getApplication().getId() != application.getId()) {
+                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
         }
 
@@ -608,12 +612,9 @@ public class ActivationServiceBehavior {
             String applicationSignature,
             CryptoProviderUtil keyConversionUtilities) throws GenericServiceException, InvalidKeySpecException, InvalidKeyException, UnsupportedEncodingException {
 
-        // Get current timestamp
-        Date timestamp = new Date();
-
         ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
         // if there is no such application, exit
-        if (applicationVersion == null || applicationVersion.getSupported() == false) {
+        if (applicationVersion == null || !applicationVersion.getSupported()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
         }
 
@@ -731,17 +732,14 @@ public class ActivationServiceBehavior {
             }
 
             // Activation is in correct state
-            boolean activated = false;
             if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.OTP_USED)) {
-
-                activated = true;
                 activation.setActivationStatus(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.ACTIVE);
                 powerAuthRepository.save(activation);
                 callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
                 CommitActivationResponse response = new CommitActivationResponse();
                 response.setActivationId(activationId);
-                response.setActivated(activated);
+                response.setActivated(true);
                 return response;
             } else {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
@@ -762,15 +760,13 @@ public class ActivationServiceBehavior {
      */
     public RemoveActivationResponse removeActivation(String activationId) throws GenericServiceException {
         ActivationRecordEntity activation = powerAuthRepository.findFirstByActivationId(activationId);
-        boolean removed;
         if (activation != null) { // does the record even exist?
-            removed = true;
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.REMOVED);
             powerAuthRepository.save(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);
-            response.setRemoved(removed);
+            response.setRemoved(true);
             return response;
         } else {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -791,7 +787,8 @@ public class ActivationServiceBehavior {
         }
 
         // does the record even exist, is it in correct state?
-        if (activation != null && activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.ACTIVE)) {
+        // early null check done above, no null check needed here
+        if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.BLOCKED);
             powerAuthRepository.save(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
@@ -814,8 +811,10 @@ public class ActivationServiceBehavior {
         if (activation == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+
         // does the record even exist, is it in correct state?
-        if (activation != null && activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.BLOCKED)) {
+        // early null check done above, no null check needed here
+        if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.BLOCKED)) {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.repository.model.ActivationStatus.ACTIVE);
             activation.setFailedAttempts(0L);
             powerAuthRepository.save(activation);

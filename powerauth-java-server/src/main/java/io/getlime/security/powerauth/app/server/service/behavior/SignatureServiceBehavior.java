@@ -25,8 +25,8 @@ import io.getlime.security.powerauth.app.server.repository.ApplicationVersionRep
 import io.getlime.security.powerauth.app.server.repository.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.repository.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.repository.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
@@ -43,10 +43,11 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Behavior class implementing the signature validation related processes. The class separates the
- * logics from the main service class.
+ * logic from the main service class.
  *
  * @author Petr Dvorak, petr@lime-company.eu
  */
@@ -61,10 +62,13 @@ public class SignatureServiceBehavior {
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
+    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+
     @Autowired
-    public SignatureServiceBehavior(ActivationRepository powerAuthRepository, ApplicationVersionRepository applicationVersionRepository) {
+    public SignatureServiceBehavior(ActivationRepository powerAuthRepository, ApplicationVersionRepository applicationVersionRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.powerAuthRepository = powerAuthRepository;
         this.applicationVersionRepository = applicationVersionRepository;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     @Autowired
@@ -98,6 +102,9 @@ public class SignatureServiceBehavior {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
 
+        // Store flag in case callback listeners should be updated
+        boolean notifyCallbackListeners = false;
+
         // Fetch related activation
         ActivationRecordEntity activation = powerAuthRepository.findFirstByActivationId(activationId);
 
@@ -107,7 +114,7 @@ public class SignatureServiceBehavior {
             // Check the activation - application relationship and version support
             ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
 
-            if (applicationVersion == null || applicationVersion.getSupported() == false || applicationVersion.getApplication().getId() != activation.getApplication().getId()) {
+            if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getId(), activation.getApplication().getId())) {
 
                 // Get the data and append application KEY in this case, just for auditing reasons
                 byte[] data = (dataString + "&" + applicationKey).getBytes("UTF-8");
@@ -121,6 +128,7 @@ public class SignatureServiceBehavior {
                     Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
                     if (remainingAttempts <= 0) {
                         activation.setActivationStatus(ActivationStatus.BLOCKED);
+                        notifyCallbackListeners = true;
                     }
                 }
 
@@ -130,7 +138,13 @@ public class SignatureServiceBehavior {
                 // Save the activation
                 powerAuthRepository.save(activation);
 
+                // Create the audit log record.
                 auditingServiceBehavior.logSignatureAuditRecord(activation, signatureType, signature, data, false, "activation_invalid_application", currentTimestamp);
+
+                // Notify callback listeners, if needed
+                if (notifyCallbackListeners && applicationVersion != null) {
+                    callbackUrlBehavior.notifyCallbackListeners(applicationVersion.getId(), activationId);
+                }
 
                 // return the data
                 VerifySignatureResponse response = new VerifySignatureResponse();
@@ -164,15 +178,17 @@ public class SignatureServiceBehavior {
                 boolean signatureValid = false;
                 long ctr = activation.getCounter();
                 long lowestValidCounter = ctr;
-                for (long iterCtr = ctr; iterCtr < ctr + PowerAuthConfiguration.SIGNATURE_VALIDATION_LOOKAHEAD; iterCtr++) {
-                    signatureValid = powerAuthServerSignature.verifySignatureForData(data, signature, signatureKeys, iterCtr);
+                for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getSignatureValidationLookahead(); iteratedCounter++) {
+                    signatureValid = powerAuthServerSignature.verifySignatureForData(data, signature, signatureKeys, iteratedCounter);
                     if (signatureValid) {
                         // set the lowest valid counter and break at the lowest
                         // counter where signature validates
-                        lowestValidCounter = iterCtr;
+                        lowestValidCounter = iteratedCounter;
                         break;
                     }
                 }
+
+                // Check if the signature is valid
                 if (signatureValid) {
 
                     // Set the activation record counter to the lowest counter
@@ -190,6 +206,7 @@ public class SignatureServiceBehavior {
                     // Save the activation
                     powerAuthRepository.save(activation);
 
+                    // Create the audit log record.
                     auditingServiceBehavior.logSignatureAuditRecord(activation, signatureType, signature, data, true, "signature_ok", currentTimestamp);
 
                     // return the data
@@ -215,6 +232,7 @@ public class SignatureServiceBehavior {
                     Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
                     if (remainingAttempts <= 0) {
                         activation.setActivationStatus(ActivationStatus.BLOCKED);
+                        notifyCallbackListeners = true;
                     }
 
                     // Update the last used date
@@ -223,7 +241,13 @@ public class SignatureServiceBehavior {
                     // Save the activation
                     powerAuthRepository.save(activation);
 
+                    // Create the audit log record.
                     auditingServiceBehavior.logSignatureAuditRecord(activation, signatureType, signature, data, false, "signature_does_not_match", currentTimestamp);
+
+                    // Notify callback listeners, if needed
+                    if (notifyCallbackListeners) {
+                        callbackUrlBehavior.notifyCallbackListeners(applicationVersion.getId(), activationId);
+                    }
 
                     // return the data
                     VerifySignatureResponse response = new VerifySignatureResponse();

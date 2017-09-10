@@ -25,13 +25,13 @@
     <description>PowerAuth Server</description>
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-java-server</artifactId>
-    <version>0.16.0</version>
+    <version>0.16.1</version>
     <packaging>war</packaging>
 
     <parent>
 		<groupId>io.getlime.security</groupId>
 		<artifactId>powerauth-server-parent</artifactId>
-		<version>0.16.0</version>
+		<version>0.16.1</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -87,13 +87,13 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
-            <version>0.16.0</version>
+            <version>0.16.1</version>
         </dependency>
 
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.57</version>
+            <version>1.58</version>
         </dependency>
     </dependencies>
 
