@@ -519,7 +519,7 @@
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signatureType" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -530,11 +530,13 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="remainingAttempts" type="xs:integer"  minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remainingAttempts" type="xs:integer"  minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -601,7 +603,7 @@
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signatureType" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -680,7 +682,7 @@
                 			<xs:element name="activationCounter" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="dataBase64" type="xs:string"  minOccurs="0" maxOccurs="1"/>
-                			<xs:element name="signatureType" type="xs:string"  minOccurs="1" maxOccurs="1"/>
+                			<xs:element name="signatureType" type="tns:SignatureType"  minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="signature" type="xs:string"  minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="note" type="xs:string"  minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="valid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
@@ -932,6 +934,20 @@
             <xs:enumeration value="ACTIVE"/>
             <xs:enumeration value="BLOCKED"/>
             <xs:enumeration value="REMOVED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SignatureType">
+        <xs:annotation>
+            <xs:documentation>Enum representing the possible signatures types by the authentication factors used.</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="POSSESSION"/>
+            <xs:enumeration value="KNOWLEDGE"/>
+            <xs:enumeration value="BIOMETRY"/>
+            <xs:enumeration value="POSSESSION_KNOWLEDGE"/>
+            <xs:enumeration value="POSSESSION_BIOMETRY"/>
+            <xs:enumeration value="POSSESSION_KNOWLEDGE_BIOMETRY"/>
         </xs:restriction>
     </xs:simpleType>
 

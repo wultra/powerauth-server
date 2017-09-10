@@ -25,7 +25,6 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
 import io.getlime.security.powerauth.app.server.service.util.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -234,7 +233,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         String applicationKey = request.getApplicationKey();
         String dataString = request.getData();
         String signature = request.getSignature();
-        String signatureType = request.getSignatureType().toLowerCase();
+        SignatureType signatureType = request.getSignatureType();
 
         return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, dataString, applicationKey, keyConversionUtilities);
 
@@ -318,13 +317,13 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             String applicationKey = request.getApplicationKey();
             String signature = request.getSignature();
-            String signatureType = request.getSignatureType().toLowerCase();
+            SignatureType signatureType = request.getSignatureType();
             String data = request.getData();
 
             // Reject 1FA signatures.
-            if (signatureType.equals(PowerAuthSignatureTypes.BIOMETRY.toString())
-                    || signatureType.equals(PowerAuthSignatureTypes.KNOWLEDGE.toString())
-                    || signatureType.equals(PowerAuthSignatureTypes.POSSESSION.toString())) {
+            if (signatureType.equals(SignatureType.BIOMETRY)
+                    || signatureType.equals(SignatureType.KNOWLEDGE)
+                    || signatureType.equals(SignatureType.POSSESSION)) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
             }
 

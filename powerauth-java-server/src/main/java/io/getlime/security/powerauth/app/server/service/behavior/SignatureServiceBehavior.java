@@ -19,6 +19,7 @@
 package io.getlime.security.powerauth.app.server.service.behavior;
 
 import com.google.common.io.BaseEncoding;
+import io.getlime.security.powerauth.SignatureType;
 import io.getlime.security.powerauth.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.repository.ApplicationVersionRepository;
@@ -27,7 +28,6 @@ import io.getlime.security.powerauth.app.server.repository.model.entity.Activati
 import io.getlime.security.powerauth.app.server.repository.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
@@ -98,7 +98,7 @@ public class SignatureServiceBehavior {
      * @throws InvalidKeySpecException      In case invalid key is provided.
      * @throws InvalidKeyException          In case invalid key is provided.
      */
-    public VerifySignatureResponse verifySignature(String activationId, String signatureType, String signature, String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities) throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities) throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
 
@@ -148,11 +148,8 @@ public class SignatureServiceBehavior {
 
                 // return the data
                 VerifySignatureResponse response = new VerifySignatureResponse();
-                response.setActivationId(activationId);
                 response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.REMOVED));
-                response.setRemainingAttempts(BigInteger.valueOf(0));
                 response.setSignatureValid(false);
-                response.setUserId("UNKNOWN");
 
                 return response;
             }
@@ -172,7 +169,7 @@ public class SignatureServiceBehavior {
                 SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
 
                 // Get the signature keys according to the signature type
-                List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(signatureType, masterSecretKey);
+                List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(ModelUtil.fromServiceSignatureType(signatureType), masterSecretKey);
 
                 // Verify the signature with given lookahead
                 boolean signatureValid = false;
@@ -211,11 +208,13 @@ public class SignatureServiceBehavior {
 
                     // return the data
                     VerifySignatureResponse response = new VerifySignatureResponse();
-                    response.setActivationId(activationId);
-                    response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.ACTIVE));
-                    response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
                     response.setSignatureValid(true);
+                    response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.ACTIVE));
+                    response.setActivationId(activationId);
+                    response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
                     response.setUserId(activation.getUserId());
+                    response.setApplicationId(applicationVersion.getId());
+                    response.setSignatureType(signatureType);
 
                     return response;
 
@@ -251,11 +250,13 @@ public class SignatureServiceBehavior {
 
                     // return the data
                     VerifySignatureResponse response = new VerifySignatureResponse();
-                    response.setActivationId(activationId);
-                    response.setActivationStatus(ModelUtil.toServiceStatus(activation.getActivationStatus()));
-                    response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
                     response.setSignatureValid(false);
+                    response.setActivationStatus(ModelUtil.toServiceStatus(activation.getActivationStatus()));
+                    response.setActivationId(activationId);
+                    response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
                     response.setUserId(activation.getUserId());
+                    response.setApplicationId(applicationVersion.getId());
+                    response.setSignatureType(signatureType);
 
                     return response;
 
@@ -263,8 +264,7 @@ public class SignatureServiceBehavior {
 
             } else {
 
-                // Despite the fact activation is not in active state, increase
-                // the counter
+                // Activation is not in active state, increase the counter anyway
                 activation.setCounter(activation.getCounter() + 1);
 
                 // Update the last used date
@@ -273,15 +273,13 @@ public class SignatureServiceBehavior {
                 // Save the activation
                 powerAuthRepository.save(activation);
 
+                // Create the audit log record.
                 auditingServiceBehavior.logSignatureAuditRecord(activation, signatureType, signature, data, false, "activation_invalid_state", currentTimestamp);
 
                 // return the data
                 VerifySignatureResponse response = new VerifySignatureResponse();
-                response.setActivationId(activationId);
-                response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.REMOVED));
-                response.setRemainingAttempts(BigInteger.valueOf(0));
                 response.setSignatureValid(false);
-                response.setUserId("UNKNOWN");
+                response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.REMOVED));
 
                 return response;
 
@@ -289,21 +287,16 @@ public class SignatureServiceBehavior {
 
         } else { // Activation does not exist
 
-            // return the data
             VerifySignatureResponse response = new VerifySignatureResponse();
-            response.setActivationId(activationId);
-            response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.REMOVED));
-            response.setRemainingAttempts(BigInteger.valueOf(0));
             response.setSignatureValid(false);
-            response.setUserId("UNKNOWN");
-
+            response.setActivationStatus(ModelUtil.toServiceStatus(ActivationStatus.REMOVED));
             return response;
 
         }
     }
 
-    private boolean notPossessionFactorSignature(String signatureType) {
-        return signatureType != null && !signatureType.equals(PowerAuthSignatureTypes.POSSESSION.toString());
+    private boolean notPossessionFactorSignature(SignatureType signatureType) {
+        return signatureType != null && !signatureType.equals(SignatureType.POSSESSION);
     }
 
 }

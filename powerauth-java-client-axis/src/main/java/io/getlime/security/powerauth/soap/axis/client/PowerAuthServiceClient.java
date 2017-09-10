@@ -447,7 +447,7 @@ public class PowerAuthServiceClient {
      * @param signatureType Vault opening request signature type.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VaultUnlockResponse}
      */
-    public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, String signatureType) throws RemoteException {
+    public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortServiceStub.VaultUnlockRequest request = new PowerAuthPortServiceStub.VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -475,7 +475,7 @@ public class PowerAuthServiceClient {
      * @param signatureType Request signature type.
      * @return Verify signature and return SOAP response with the verification results.
      */
-    public PowerAuthPortServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, String signatureType) throws RemoteException {
+    public PowerAuthPortServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortServiceStub.VerifySignatureRequest request = new PowerAuthPortServiceStub.VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);

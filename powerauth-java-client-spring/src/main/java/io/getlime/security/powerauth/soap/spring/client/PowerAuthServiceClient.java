@@ -362,7 +362,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param signatureType Vault opening request signature type.
      * @return {@link VaultUnlockResponse}
      */
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, String signatureType) {
+    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType) {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -390,7 +390,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param signatureType Request signature type.
      * @return Verify signature and return SOAP response with the verification results.
      */
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, String signatureType) {
+    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType) {
         VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
