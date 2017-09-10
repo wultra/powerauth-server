@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.util.model;
+package io.getlime.security.powerauth.app.server.service.model;
 
 import java.util.ArrayList;
 import java.util.List;

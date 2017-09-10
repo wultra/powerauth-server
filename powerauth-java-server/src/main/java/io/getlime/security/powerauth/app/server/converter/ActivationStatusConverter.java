@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.converter;
+package io.getlime.security.powerauth.app.server.converter;
 
 /**
  * Converter class between {@link io.getlime.security.powerauth.ActivationStatus} and

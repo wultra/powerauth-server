@@ -21,7 +21,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
-import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

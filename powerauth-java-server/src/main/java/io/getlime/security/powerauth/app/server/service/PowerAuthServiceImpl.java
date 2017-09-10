@@ -19,11 +19,11 @@ package io.getlime.security.powerauth.app.server.service;
 
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
-import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
-import io.getlime.security.powerauth.app.server.service.util.model.ServiceError;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
@@ -89,7 +89,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         response.setApplicationName(powerAuthServiceConfiguration.getApplicationName());
         response.setApplicationDisplayName(powerAuthServiceConfiguration.getApplicationDisplayName());
         response.setApplicationEnvironment(powerAuthServiceConfiguration.getApplicationEnvironment());
-        response.setTimestamp(ModelUtil.calendarWithDate(new Date()));
+        response.setTimestamp(XMLGregorianCalendarConverter.convertFrom(new Date()));
         return response;
     }
 
@@ -145,7 +145,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String userId = request.getUserId();
             Long applicationId = request.getApplicationId();
             Long maxFailedCount = request.getMaxFailureCount();
-            Date activationExpireTimestamp = ModelUtil.dateWithCalendar(request.getTimestampActivationExpire());
+            Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
             return behavior.getActivationServiceBehavior().initActivation(applicationId, userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
         } catch (GenericServiceException ex) {
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
@@ -190,7 +190,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String applicationKey = request.getApplicationKey();
             String userId = request.getUserId();
             Long maxFailedCount = request.getMaxFailureCount();
-            Date activationExpireTimestamp = ModelUtil.dateWithCalendar(request.getTimestampActivationExpire());
+            Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
             String identity = request.getIdentity();
             String activationOtp = request.getActivationOtp();
             String activationNonceBase64 = request.getActivationNonce();
@@ -391,8 +391,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
             String userId = request.getUserId();
             Long applicationId = request.getApplicationId();
-            Date startingDate = ModelUtil.dateWithCalendar(request.getTimestampFrom());
-            Date endingDate = ModelUtil.dateWithCalendar(request.getTimestampTo());
+            Date startingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampFrom());
+            Date endingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampTo());
 
             return behavior.getAuditingServiceBehavior().getSignatureAuditLog(userId, applicationId, startingDate, endingDate);
 

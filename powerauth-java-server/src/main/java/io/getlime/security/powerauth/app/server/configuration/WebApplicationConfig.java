@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server;
+package io.getlime.security.powerauth.app.server.configuration;
 
-import io.getlime.security.powerauth.app.server.service.controller.RESTResponseExceptionResolver;
+import io.getlime.security.powerauth.app.server.controller.RESTResponseExceptionResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;

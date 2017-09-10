@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.service.controller;
+package io.getlime.security.powerauth.app.server.controller;
 
 /**
  * Class representing an error returned by RESTful API
@@ -27,7 +27,7 @@ public class RESTErrorModel {
     private String code;
     private String message;
     private String localizedMessage;
-
+    
     /**
      * Get error code.
      *

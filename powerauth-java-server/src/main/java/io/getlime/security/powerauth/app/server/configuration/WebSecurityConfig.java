@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server;
+package io.getlime.security.powerauth.app.server.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.service.controller.RESTResponseWrapper;
-import io.getlime.security.powerauth.app.server.service.integration.IntegrationUserDetailsService;
+import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
+import io.getlime.security.powerauth.app.server.integration.IntegrationUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

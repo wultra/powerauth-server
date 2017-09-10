@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.service.endpoint;
+package io.getlime.security.powerauth.app.server.endpoint;
 
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;

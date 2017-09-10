@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.service.util;
+package io.getlime.security.powerauth.app.server.converter;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -24,11 +24,12 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 
 /**
- * Utility class used for conversion between model data types.
+ * Utility class used for conversion between model data types {@link XMLGregorianCalendar}
+ * and {@link Date}.
  *
  * @author Petr Dvorak, petr@lime-company.eu
  */
-public class ModelUtil {
+public class XMLGregorianCalendarConverter {
 
     /**
      * Convert between Date and XMLGregorianCalendar.
@@ -37,7 +38,7 @@ public class ModelUtil {
      * @return XMLGregorianCalendar instance
      * @throws DatatypeConfigurationException In case data conversion fails
      */
-    public static XMLGregorianCalendar calendarWithDate(Date date) throws DatatypeConfigurationException {
+    public static XMLGregorianCalendar convertFrom(Date date) throws DatatypeConfigurationException {
         if (date == null) {
             return null;
         }
@@ -54,7 +55,7 @@ public class ModelUtil {
      * @return Date instance
      * @throws DatatypeConfigurationException In case data conversion fails
      */
-    public static Date dateWithCalendar(XMLGregorianCalendar calendar) throws DatatypeConfigurationException {
+    public static Date convertTo(XMLGregorianCalendar calendar) throws DatatypeConfigurationException {
         if (calendar == null) {
             return null;
         }

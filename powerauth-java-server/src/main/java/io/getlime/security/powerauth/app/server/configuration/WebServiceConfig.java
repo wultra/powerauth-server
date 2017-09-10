@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server;
+package io.getlime.security.powerauth.app.server.configuration;
 
-import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;

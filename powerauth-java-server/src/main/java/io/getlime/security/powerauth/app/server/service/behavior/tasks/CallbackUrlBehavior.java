@@ -23,7 +23,7 @@ import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlR
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import io.getlime.security.powerauth.app.server.service.util.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Component;

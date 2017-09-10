@@ -32,12 +32,12 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.service.PowerAuthServiceImpl;
-import io.getlime.security.powerauth.app.server.service.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.service.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
-import io.getlime.security.powerauth.app.server.service.util.model.ServiceError;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -168,8 +168,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
-                activationServiceItem.setTimestampCreated(ModelUtil.calendarWithDate(activation.getTimestampCreated()));
-                activationServiceItem.setTimestampLastUsed(ModelUtil.calendarWithDate(activation.getTimestampLastUsed()));
+                activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+                activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 activationServiceItem.setApplicationName(activation.getApplication().getName());
@@ -235,8 +235,8 @@ public class ActivationServiceBehavior {
                 response.setActivationName(activation.getActivationName());
                 response.setExtras(activation.getExtras());
                 response.setApplicationId(activation.getApplication().getId());
-                response.setTimestampCreated(ModelUtil.calendarWithDate(activation.getTimestampCreated()));
-                response.setTimestampLastUsed(ModelUtil.calendarWithDate(activation.getTimestampLastUsed()));
+                response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+                response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
                 response.setActivationIdShort(activation.getActivationIdShort());
                 response.setActivationOTP(activation.getActivationOTP());
@@ -291,8 +291,8 @@ public class ActivationServiceBehavior {
                 response.setUserId(activation.getUserId());
                 response.setExtras(activation.getExtras());
                 response.setApplicationId(activation.getApplication().getId());
-                response.setTimestampCreated(ModelUtil.calendarWithDate(activation.getTimestampCreated()));
-                response.setTimestampLastUsed(ModelUtil.calendarWithDate(activation.getTimestampLastUsed()));
+                response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+                response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 response.setEncryptedStatusBlob(BaseEncoding.base64().encode(C_statusBlob));
                 response.setActivationIdShort(null);
                 response.setActivationOTP(null);
@@ -309,7 +309,7 @@ public class ActivationServiceBehavior {
             byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(16);
 
             // Generate date
-            XMLGregorianCalendar zeroDate = ModelUtil.calendarWithDate(new Date(0));
+            XMLGregorianCalendar zeroDate = XMLGregorianCalendarConverter.convertFrom(new Date(0));
 
             // return the data
             GetActivationStatusResponse response = new GetActivationStatusResponse();

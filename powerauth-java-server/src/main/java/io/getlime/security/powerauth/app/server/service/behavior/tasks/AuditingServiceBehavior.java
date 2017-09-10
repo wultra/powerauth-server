@@ -24,8 +24,8 @@ import io.getlime.security.powerauth.SignatureType;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
-import io.getlime.security.powerauth.app.server.service.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.service.util.ModelUtil;
+import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -86,7 +86,7 @@ public class AuditingServiceBehavior {
                 item.setSignature(signatureEntity.getSignature());
                 item.setSignatureType(SignatureType.fromValue(signatureEntity.getSignatureType()));
                 item.setValid(signatureEntity.getValid());
-                item.setTimestampCreated(ModelUtil.calendarWithDate(signatureEntity.getTimestampCreated()));
+                item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(signatureEntity.getTimestampCreated()));
                 item.setNote(signatureEntity.getNote());
                 item.setUserId(signatureEntity.getActivation().getUserId());
 
