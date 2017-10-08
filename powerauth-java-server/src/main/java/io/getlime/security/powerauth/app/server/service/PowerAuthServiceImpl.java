@@ -274,7 +274,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         final String data = request.getData();
         final String signature = request.getSignature();
         final SignatureType signatureType = request.getSignatureType();
-        return behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, data, signature, signatureType);
+        return behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, signatureType, signature, data, keyConversionUtilities);
     }
 
     @Override
