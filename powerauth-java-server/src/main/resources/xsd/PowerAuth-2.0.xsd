@@ -541,6 +541,69 @@
         </xs:complexType>
     </xs:element>
 
+
+    <!-- Create offline signature payload //-->
+
+    <xs:element name="CreateOfflineSignaturePayloadRequest">
+        <xs:annotation>
+            <xs:documentation>Request for generating signature payload for the offline signature.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="message" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateOfflineSignaturePayloadResponse">
+        <xs:annotation>
+            <xs:documentation>Response for generating signature payload for the offline signature.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="message" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="dataHash" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Verify offline signature //-->
+
+    <xs:element name="VerifyOfflineSignatureRequest">
+        <xs:annotation>
+            <xs:documentation>Request for the offline signature verification process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="VerifyOfflineSignatureResponse">
+        <xs:annotation>
+            <xs:documentation>Response for the signature verification process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remainingAttempts" type="xs:integer"  minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- Block Activation //-->
     
     <xs:element name="BlockActivationRequest">
