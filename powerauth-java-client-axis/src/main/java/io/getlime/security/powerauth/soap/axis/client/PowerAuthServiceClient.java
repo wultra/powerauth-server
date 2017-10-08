@@ -145,6 +145,7 @@ public class PowerAuthServiceClient {
      * Call the getSystemStatus method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetSystemStatusRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetSystemStatusResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetSystemStatusResponse getSystemStatus(PowerAuthPortServiceStub.GetSystemStatusRequest request) throws RemoteException {
         return clientStub.getSystemStatus(request);
@@ -153,6 +154,7 @@ public class PowerAuthServiceClient {
     /**
      * Call the getSystemStatus method of the PowerAuth 2.0 Server SOAP interface.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetSystemStatusResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetSystemStatusResponse getSystemStatus() throws RemoteException {
         PowerAuthPortServiceStub.GetSystemStatusRequest request = new PowerAuthPortServiceStub.GetSystemStatusRequest();
@@ -163,6 +165,7 @@ public class PowerAuthServiceClient {
      * Call the initActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.InitActivationRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.InitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.InitActivationResponse initActivation(PowerAuthPortServiceStub.InitActivationRequest request) throws RemoteException {
         return clientStub.initActivation(request);
@@ -173,6 +176,7 @@ public class PowerAuthServiceClient {
      * @param userId User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.InitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.InitActivationResponse initActivation(String userId, Long applicationId) throws RemoteException {
         return this.initActivation(userId, applicationId, null, null);
@@ -185,6 +189,7 @@ public class PowerAuthServiceClient {
      * @param maxFailureCount How many failed attempts should be allowed for this activation.
      * @param timestampActivationExpire Timestamp until when the activation can be committed.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.InitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws RemoteException {
         PowerAuthPortServiceStub.InitActivationRequest request = new PowerAuthPortServiceStub.InitActivationRequest();
@@ -203,6 +208,7 @@ public class PowerAuthServiceClient {
      * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.PrepareActivationRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.PrepareActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.PrepareActivationResponse prepareActivation(PowerAuthPortServiceStub.PrepareActivationRequest request) throws RemoteException {
         return clientStub.prepareActivation(request);
@@ -218,6 +224,7 @@ public class PowerAuthServiceClient {
      * @param cDevicePublicKey Device public key encrypted with activation OTP.
      * @param extras Additional, application specific information.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.PrepareActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws RemoteException {
         PowerAuthPortServiceStub.PrepareActivationRequest request = new PowerAuthPortServiceStub.PrepareActivationRequest();
@@ -237,6 +244,7 @@ public class PowerAuthServiceClient {
      * SOAP interface.
      * @param request Create activation request.
      * @return Create activation response.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateActivationResponse createActivation(PowerAuthPortServiceStub.CreateActivationRequest request) throws RemoteException {
         return clientStub.createActivation(request);
@@ -254,6 +262,7 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
      * @param extras Additional, application specific information.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws RemoteException {
         return this.createActivation(
@@ -287,6 +296,7 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
      * @param extras Additional, application specific information.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws RemoteException {
         PowerAuthPortServiceStub.CreateActivationRequest request = new PowerAuthPortServiceStub.CreateActivationRequest();
@@ -313,6 +323,7 @@ public class PowerAuthServiceClient {
      * Call the commitActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CommitActivationRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CommitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CommitActivationResponse commitActivation(PowerAuthPortServiceStub.CommitActivationRequest request) throws RemoteException {
         return clientStub.commitActivation(request);
@@ -322,6 +333,7 @@ public class PowerAuthServiceClient {
      * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be committed.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CommitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CommitActivationResponse commitActivation(String activationId) throws RemoteException {
         PowerAuthPortServiceStub.CommitActivationRequest request = new PowerAuthPortServiceStub.CommitActivationRequest();
@@ -333,6 +345,7 @@ public class PowerAuthServiceClient {
      * Call the getActivationStatus method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetActivationStatusRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetActivationStatusResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetActivationStatusResponse getActivationStatus(PowerAuthPortServiceStub.GetActivationStatusRequest request) throws RemoteException {
         return clientStub.getActivationStatus(request);
@@ -342,6 +355,7 @@ public class PowerAuthServiceClient {
      * Call the getActivationStatus method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation Id to lookup information for.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetActivationStatusResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetActivationStatusResponse getActivationStatus(String activationId) throws RemoteException {
         PowerAuthPortServiceStub.GetActivationStatusRequest request = new PowerAuthPortServiceStub.GetActivationStatusRequest();
@@ -353,6 +367,7 @@ public class PowerAuthServiceClient {
      * Call the getActivationListForUser method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetActivationListForUserRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetActivationListForUserResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetActivationListForUserResponse getActivationListForUser(PowerAuthPortServiceStub.GetActivationListForUserRequest request) throws RemoteException {
         return clientStub.getActivationListForUser(request);
@@ -362,6 +377,7 @@ public class PowerAuthServiceClient {
      * Call the getActivationListForUser method of the PowerAuth 2.0 Server SOAP interface.
      * @param userId User ID to fetch the activations for.
      * @return List of activation instances for given user.
+     * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortServiceStub.Activations_type0> getActivationListForUser(String userId) throws RemoteException {
         PowerAuthPortServiceStub.GetActivationListForUserRequest request = new PowerAuthPortServiceStub.GetActivationListForUserRequest();
@@ -373,6 +389,7 @@ public class PowerAuthServiceClient {
      * Call the removeActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.RemoveActivationRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.RemoveActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.RemoveActivationResponse removeActivation(PowerAuthPortServiceStub.RemoveActivationRequest request) throws RemoteException {
         return clientStub.removeActivation(request);
@@ -382,6 +399,7 @@ public class PowerAuthServiceClient {
      * Call the removeActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be removed.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.RemoveActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.RemoveActivationResponse removeActivation(String activationId) throws RemoteException {
         PowerAuthPortServiceStub.RemoveActivationRequest request = new PowerAuthPortServiceStub.RemoveActivationRequest();
@@ -393,6 +411,7 @@ public class PowerAuthServiceClient {
      * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.BlockActivationRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.BlockActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.BlockActivationResponse blockActivation(PowerAuthPortServiceStub.BlockActivationRequest request) throws RemoteException {
         return clientStub.blockActivation(request);
@@ -402,6 +421,7 @@ public class PowerAuthServiceClient {
      * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.BlockActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.BlockActivationResponse blockActivation(String activationId) throws RemoteException {
         PowerAuthPortServiceStub.BlockActivationRequest request = new PowerAuthPortServiceStub.BlockActivationRequest();
@@ -413,6 +433,7 @@ public class PowerAuthServiceClient {
      * Call the unblockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.UnblockActivationRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.UnblockActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.UnblockActivationResponse unblockActivation(PowerAuthPortServiceStub.UnblockActivationRequest request) throws RemoteException {
         return clientStub.unblockActivation(request);
@@ -422,6 +443,7 @@ public class PowerAuthServiceClient {
      * Call the unblockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be unblocked.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.UnblockActivationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.UnblockActivationResponse unblockActivation(String activationId) throws RemoteException {
         PowerAuthPortServiceStub.UnblockActivationRequest request = new PowerAuthPortServiceStub.UnblockActivationRequest();
@@ -433,6 +455,7 @@ public class PowerAuthServiceClient {
      * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VaultUnlockRequest} instance
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VaultUnlockResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(PowerAuthPortServiceStub.VaultUnlockRequest request) throws RemoteException {
         return clientStub.vaultUnlock(request);
@@ -446,6 +469,7 @@ public class PowerAuthServiceClient {
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VaultUnlockResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortServiceStub.VaultUnlockRequest request = new PowerAuthPortServiceStub.VaultUnlockRequest();
@@ -458,9 +482,64 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param activationId Activation ID.
+     * @param data Data for offline signature.
+     * @param message Message displayed to the user during offline signature authentication.
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message) throws RemoteException {
+        PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest request = new PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest();
+        request.setActivationId(activationId);
+        request.setData(data);
+        request.setMessage(message);
+        return createOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest request) throws RemoteException {
+        return clientStub.createOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
+     * @param activationId Activation ID.
+     * @param data Data for signature.
+     * @param signature Signature value.
+     * @param signatureType Signature type (used factors).
+     * @return Offline signature verification response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortServiceStub.VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
+        PowerAuthPortServiceStub.VerifyOfflineSignatureRequest request = new PowerAuthPortServiceStub.VerifyOfflineSignatureRequest();
+        request.setActivationId(activationId);
+        request.setData(data);
+        request.setSignature(signature);
+        request.setSignatureType(signatureType);
+        return verifyOfflineSignature(request);
+    }
+
+    /**
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VerifyOfflineSignatureRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VerifyOfflineSignatureResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortServiceStub.VerifyOfflineSignatureResponse verifyOfflineSignature(PowerAuthPortServiceStub.VerifyOfflineSignatureRequest request) throws RemoteException {
+        return clientStub.verifyOfflineSignature(request);
+    }
+
+    /**
      * Call the verifySignature method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VerifySignatureRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VerifySignatureResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.VerifySignatureResponse verifySignature(PowerAuthPortServiceStub.VerifySignatureRequest request) throws RemoteException {
         return clientStub.verifySignature(request);
@@ -474,6 +553,7 @@ public class PowerAuthServiceClient {
      * @param signature Request signature.
      * @param signatureType Request signature type.
      * @return Verify signature and return SOAP response with the verification results.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortServiceStub.VerifySignatureRequest request = new PowerAuthPortServiceStub.VerifySignatureRequest();
@@ -489,6 +569,7 @@ public class PowerAuthServiceClient {
      * Call the verifyECDSASignature method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VerifyECDSASignatureRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VerifyECDSASignatureResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.VerifyECDSASignatureResponse verifyECDSASignature(PowerAuthPortServiceStub.VerifyECDSASignatureRequest request) throws RemoteException {
         return clientStub.verifyECDSASignature(request);
@@ -500,6 +581,7 @@ public class PowerAuthServiceClient {
      * @param data Data that were signed by ECDSA algorithm.
      * @param signature Request signature.
      * @return Verify ECDSA signature and return SOAP response with the verification results.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws RemoteException {
         PowerAuthPortServiceStub.VerifyECDSASignatureRequest request = new PowerAuthPortServiceStub.VerifyECDSASignatureRequest();
@@ -513,6 +595,7 @@ public class PowerAuthServiceClient {
      * Call the generateE2EPersonalziedEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyRequest request) throws RemoteException {
         return clientStub.getPersonalizedEncryptionKey(request);
@@ -523,6 +606,7 @@ public class PowerAuthServiceClient {
      * newly generated derived encryption key.
      * @param activationId Activation ID used for the key generation.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws RemoteException {
         PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyRequest request = new PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyRequest();
@@ -535,6 +619,7 @@ public class PowerAuthServiceClient {
      * Call the generateE2ENonPersonalizedEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyRequest request) throws RemoteException {
         return clientStub.getNonPersonalizedEncryptionKey(request);
@@ -547,6 +632,7 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKeyBase64 Ephemeral public key.
      * @param sessionIndex Session index.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws RemoteException {
         PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyRequest request = new PowerAuthPortServiceStub.GetNonPersonalizedEncryptionKeyRequest();
@@ -560,6 +646,7 @@ public class PowerAuthServiceClient {
      * Call the getSignatureAuditLog method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.SignatureAuditRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.SignatureAuditResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.SignatureAuditResponse getSignatureAuditLog(PowerAuthPortServiceStub.SignatureAuditRequest request) throws RemoteException {
         return clientStub.signatureAudit(request);
@@ -572,6 +659,7 @@ public class PowerAuthServiceClient {
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
      * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type0}
+     * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortServiceStub.Items_type0> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws RemoteException {
         PowerAuthPortServiceStub.SignatureAuditRequest request = new PowerAuthPortServiceStub.SignatureAuditRequest();
@@ -589,6 +677,7 @@ public class PowerAuthServiceClient {
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
      * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type0}
+     * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortServiceStub.Items_type0> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws RemoteException {
         PowerAuthPortServiceStub.SignatureAuditRequest request = new PowerAuthPortServiceStub.SignatureAuditRequest();
@@ -603,6 +692,7 @@ public class PowerAuthServiceClient {
      * Get the list of all applications that are registered in PowerAuth 2.0 Server.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetApplicationListRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetApplicationListResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetApplicationListResponse getApplicationList(PowerAuthPortServiceStub.GetApplicationListRequest request) throws RemoteException {
         return clientStub.getApplicationList(request);
@@ -611,6 +701,7 @@ public class PowerAuthServiceClient {
     /**
      * Get the list of all applications that are registered in PowerAuth 2.0 Server.
      * @return List of applications.
+     * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortServiceStub.Applications_type0> getApplicationList() throws RemoteException {
         PowerAuthPortServiceStub.GetApplicationListRequest request = new PowerAuthPortServiceStub.GetApplicationListRequest();
@@ -621,6 +712,7 @@ public class PowerAuthServiceClient {
      * Return the detail of given application, including all application versions.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetApplicationDetailRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetApplicationDetailResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetApplicationDetailResponse getApplicationDetail(PowerAuthPortServiceStub.GetApplicationDetailRequest request) throws RemoteException {
         return clientStub.getApplicationDetail(request);
@@ -630,6 +722,7 @@ public class PowerAuthServiceClient {
      * Get the detail of an application with given ID, including the version list.
      * @param applicationId ID of an application to fetch.
      * @return Application with given ID, including the version list.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws RemoteException {
         PowerAuthPortServiceStub.GetApplicationDetailRequest request = new PowerAuthPortServiceStub.GetApplicationDetailRequest();
@@ -641,6 +734,7 @@ public class PowerAuthServiceClient {
      * Create a new application with given name.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateApplicationRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateApplicationResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateApplicationResponse createApplication(PowerAuthPortServiceStub.CreateApplicationRequest request) throws RemoteException {
         return clientStub.createApplication(request);
@@ -650,6 +744,7 @@ public class PowerAuthServiceClient {
      * Create a new application with given name.
      * @param name Name of the new application.
      * @return Application with a given name.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateApplicationResponse createApplication(String name) throws RemoteException {
         PowerAuthPortServiceStub.CreateApplicationRequest request = new PowerAuthPortServiceStub.CreateApplicationRequest();
@@ -661,6 +756,7 @@ public class PowerAuthServiceClient {
      * Create a version with a given name for an application with given ID.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateApplicationVersionRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateApplicationVersionResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateApplicationVersionResponse createApplicationVersion(PowerAuthPortServiceStub.CreateApplicationVersionRequest request) throws RemoteException {
         return clientStub.createApplicationVersion(request);
@@ -671,6 +767,7 @@ public class PowerAuthServiceClient {
      * @param applicationId ID of an application to create a version for.
      * @param versionName Name of the version. The value should follow some well received conventions (such as "1.0.3", for example).
      * @return A new version with a given name and application key / secret.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws RemoteException {
         PowerAuthPortServiceStub.CreateApplicationVersionRequest request = new PowerAuthPortServiceStub.CreateApplicationVersionRequest();
@@ -683,6 +780,7 @@ public class PowerAuthServiceClient {
      * Cancel the support for a given application version.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.UnsupportApplicationVersionRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.UnsupportApplicationVersionResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.UnsupportApplicationVersionResponse unsupportApplicationVersion(PowerAuthPortServiceStub.UnsupportApplicationVersionRequest request) throws RemoteException {
         return clientStub.unsupportApplicationVersion(request);
@@ -692,6 +790,7 @@ public class PowerAuthServiceClient {
      * Cancel the support for a given application version.
      * @param versionId Version to be unsupported.
      * @return Information about success / failure.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws RemoteException {
         PowerAuthPortServiceStub.UnsupportApplicationVersionRequest request = new PowerAuthPortServiceStub.UnsupportApplicationVersionRequest();
@@ -703,6 +802,7 @@ public class PowerAuthServiceClient {
      * Renew the support for a given application version.
      * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.SupportApplicationVersionRequest} instance.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.SupportApplicationVersionResponse}
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.SupportApplicationVersionResponse supportApplicationVersion(PowerAuthPortServiceStub.SupportApplicationVersionRequest request) throws RemoteException {
         return clientStub.supportApplicationVersion(request);
@@ -712,6 +812,7 @@ public class PowerAuthServiceClient {
      * Renew the support for a given application version.
      * @param versionId Version to be supported again.
      * @return Information about success / failure.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws RemoteException {
         PowerAuthPortServiceStub.SupportApplicationVersionRequest request = new PowerAuthPortServiceStub.SupportApplicationVersionRequest();
@@ -723,6 +824,7 @@ public class PowerAuthServiceClient {
      * Create a new integration with given name.
      * @param request Request specifying the integration name.
      * @return New integration information.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateIntegrationResponse createIntegration(PowerAuthPortServiceStub.CreateIntegrationRequest request) throws RemoteException {
         return clientStub.createIntegration(request);
@@ -732,6 +834,7 @@ public class PowerAuthServiceClient {
      * Create a new integration with given name.
      * @param name Integration name.
      * @return New integration information.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateIntegrationResponse createIntegration(String name) throws RemoteException {
         PowerAuthPortServiceStub.CreateIntegrationRequest request = new PowerAuthPortServiceStub.CreateIntegrationRequest();
@@ -743,6 +846,7 @@ public class PowerAuthServiceClient {
      * Get the list of integrations.
      * @param request SOAP request object.
      * @return List of integrations.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetIntegrationListResponse getIntegrationList(PowerAuthPortServiceStub.GetIntegrationListRequest request) throws RemoteException {
         return clientStub.getIntegrationList(request);
@@ -751,6 +855,7 @@ public class PowerAuthServiceClient {
     /**
      * Get the list of integrations.
      * @return List of integrations.
+     * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortServiceStub.Items_type1> getIntegrationList() throws RemoteException {
         PowerAuthPortServiceStub.GetIntegrationListRequest request = new PowerAuthPortServiceStub.GetIntegrationListRequest();
@@ -761,6 +866,7 @@ public class PowerAuthServiceClient {
      * Remove integration with given ID.
      * @param request SOAP object with integration ID to be removed.
      * @return Removal status.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.RemoveIntegrationResponse removeIntegration(PowerAuthPortServiceStub.RemoveIntegrationRequest request) throws RemoteException {
         return clientStub.removeIntegration(request);
@@ -770,6 +876,7 @@ public class PowerAuthServiceClient {
      * Remove integration with given ID.
      * @param id ID of integration to be removed.
      * @return Removal status.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.RemoveIntegrationResponse removeIntegration(String id) throws RemoteException {
         PowerAuthPortServiceStub.RemoveIntegrationRequest request = new PowerAuthPortServiceStub.RemoveIntegrationRequest();
@@ -782,6 +889,7 @@ public class PowerAuthServiceClient {
      * Create a new callback URL with given request object.
      * @param request SOAP request object with callback URL details.
      * @return Information about new callback URL object.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateCallbackUrlResponse createCallbackUrl(PowerAuthPortServiceStub.CreateCallbackUrlRequest request) throws RemoteException {
         return clientStub.createCallbackUrl(request);
@@ -793,6 +901,7 @@ public class PowerAuthServiceClient {
      * @param name Callback URL display name.
      * @param callbackUrl Callback URL value.
      * @return Information about new callback URL object.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws RemoteException {
         PowerAuthPortServiceStub.CreateCallbackUrlRequest request = new PowerAuthPortServiceStub.CreateCallbackUrlRequest();
@@ -806,6 +915,7 @@ public class PowerAuthServiceClient {
      * Get the response with list of callback URL objects.
      * @param request SOAP request object with application ID.
      * @return Response with the list of all callback URLs for given application.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.GetCallbackUrlListResponse getCallbackUrlList(PowerAuthPortServiceStub.GetCallbackUrlListRequest request) throws RemoteException {
         return clientStub.getCallbackUrlList(request);
@@ -815,6 +925,7 @@ public class PowerAuthServiceClient {
      * Get the list of callback URL objects.
      * @param applicationId Application ID.
      * @return List of all callback URLs for given application.
+     * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortServiceStub.CallbackUrlList_type0> getCallbackUrlList(Long applicationId) throws RemoteException {
         PowerAuthPortServiceStub.GetCallbackUrlListRequest request = new PowerAuthPortServiceStub.GetCallbackUrlListRequest();
@@ -826,6 +937,7 @@ public class PowerAuthServiceClient {
      * Remove callback URL.
      * @param request Remove callback URL request.
      * @return Information about removal status.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.RemoveCallbackUrlResponse removeCallbackUrl(PowerAuthPortServiceStub.RemoveCallbackUrlRequest request) throws RemoteException {
         return clientStub.removeCallbackUrl(request);
@@ -835,6 +947,7 @@ public class PowerAuthServiceClient {
      * Remove callback URL.
      * @param callbackUrlId Callback URL ID.
      * @return Information about removal status.
+     * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortServiceStub.RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) throws RemoteException {
         PowerAuthPortServiceStub.RemoveCallbackUrlRequest request = new PowerAuthPortServiceStub.RemoveCallbackUrlRequest();

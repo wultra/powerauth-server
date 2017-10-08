@@ -373,6 +373,56 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param activationId Activation ID.
+     * @param data Data for offline signature.
+     * @param message Message displayed to the user during offline signature authentication.
+     * @return {@link io.getlime.powerauth.soap.CreateOfflineSignaturePayloadResponse}
+     */
+    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message) {
+        CreateOfflineSignaturePayloadRequest request = new CreateOfflineSignaturePayloadRequest();
+        request.setActivationId(activationId);
+        request.setData(data);
+        request.setMessage(message);
+        return createOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.CreateOfflineSignaturePayloadRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.CreateOfflineSignaturePayloadResponse}
+     */
+    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest request) {
+        return (CreateOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
+     * @param activationId Activation ID.
+     * @param data Data for signature.
+     * @param signature Signature value.
+     * @param signatureType Signature type (used factors).
+     * @return Offline signature verification response.
+     */
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, SignatureType signatureType) {
+        VerifyOfflineSignatureRequest request = new VerifyOfflineSignatureRequest();
+        request.setActivationId(activationId);
+        request.setData(data);
+        request.setSignature(signature);
+        request.setSignatureType(signatureType);
+        return verifyOfflineSignature(request);
+    }
+
+    /**
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.VerifyOfflineSignatureRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.VerifyOfflineSignatureResponse}
+     */
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) {
+        return (VerifyOfflineSignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
      * Call the verifySignature method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link VerifySignatureRequest} instance.
      * @return {@link VerifySignatureResponse}
