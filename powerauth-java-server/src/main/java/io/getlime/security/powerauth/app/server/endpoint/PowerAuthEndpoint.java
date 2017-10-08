@@ -183,6 +183,34 @@ public class PowerAuthEndpoint {
     }
 
     /**
+     * Call {@link PowerAuthService#createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest)} method and
+     * return the response.
+     *
+     * @param request Create offline signature data request.
+     * @return Create offline signature response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateOfflineSignaturePayloadRequest")
+    @ResponsePayload
+    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(@RequestPayload CreateOfflineSignaturePayloadRequest request) throws Exception {
+        return powerAuthService.createOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#verifyOfflineSignature(VerifyOfflineSignatureRequest)} method and
+     * return the response.
+     *
+     * @param request Verify offline signature request.
+     * @return Verify offline signature response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "VerifyOfflineSignatureRequest")
+    @ResponsePayload
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(@RequestPayload VerifyOfflineSignatureRequest request) throws Exception {
+        return powerAuthService.verifyOfflineSignature(request);
+    }
+
+    /**
      * Call {@link PowerAuthService#vaultUnlock(VaultUnlockRequest)} method and
      * return the response.
      *

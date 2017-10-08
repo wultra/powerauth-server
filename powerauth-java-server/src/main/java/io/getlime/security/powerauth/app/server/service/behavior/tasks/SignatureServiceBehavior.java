@@ -19,8 +19,11 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.google.common.io.BaseEncoding;
+import io.getlime.security.powerauth.CreateOfflineSignaturePayloadResponse;
 import io.getlime.security.powerauth.SignatureType;
+import io.getlime.security.powerauth.VerifyOfflineSignatureResponse;
 import io.getlime.security.powerauth.VerifySignatureResponse;
+import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
@@ -30,7 +33,14 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.PowerAuthSignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.util.Hash;
+import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
@@ -43,6 +53,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
@@ -65,14 +76,17 @@ public class SignatureServiceBehavior {
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
+    private LocalizationProvider localizationProvider;
+
     // Prepare converters
     private PowerAuthSignatureTypeConverter powerAuthSignatureTypeConverter = new PowerAuthSignatureTypeConverter();
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public SignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public SignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.localizationProvider = localizationProvider;
     }
 
     @Autowired
@@ -304,8 +318,67 @@ public class SignatureServiceBehavior {
         }
     }
 
+    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+
+        // Fetch activation details from the repository
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final ActivationRecordEntity activation = activationRepository.findFirstByActivationId(activationId);
+        if (activation == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
+
+        // Fetch associated master key pair data from the repository
+        final Long applicationId = activation.getApplication().getId();
+        final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+        final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+        if (masterKeyPair == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+        }
+
+        // Proceed and compute the results
+        try {
+
+            // Generate nonce
+            final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
+            String nonce = BaseEncoding.base64().encode(nonceBytes);
+
+            // Compute data hash
+            final byte[] dataHashBytes = Hash.sha256(data);
+            String dataHash = BaseEncoding.base64().encode(dataHashBytes);
+
+            // Prepare the private key
+            final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
+            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
+
+            // Compute ECDSA signature of 'dataHash + "&" + nonce + "&" + message'
+            final SignatureUtils signatureUtils = new SignatureUtils();
+            final byte[] signatureBase = (dataHash + "&" + nonce + "&" + message).getBytes("UTF-8");
+            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
+            final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
+
+            // Return the result
+            CreateOfflineSignaturePayloadResponse response = new CreateOfflineSignaturePayloadResponse();
+            response.setData(data);
+            response.setMessage(message);
+            response.setDataHash(dataHash);
+            response.setNonce(nonce);
+            response.setSignature(ecdsaSignature);
+            return response;
+
+        } catch (InvalidKeyException | InvalidKeySpecException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
+        } catch (SignatureException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
+        } catch (UnsupportedEncodingException e) {
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, e.getMessage(), e.getLocalizedMessage());
+        }
+    }
+
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, SignatureType signatureType) {
+        throw new UnsupportedOperationException();
+    }
+
     private boolean notPossessionFactorSignature(SignatureType signatureType) {
         return signatureType != null && !signatureType.equals(SignatureType.POSSESSION);
     }
-
 }

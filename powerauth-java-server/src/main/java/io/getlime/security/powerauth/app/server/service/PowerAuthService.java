@@ -111,6 +111,29 @@ public interface PowerAuthService {
     VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws Exception;
 
     /**
+     * Generate data that is used as a challenge when computing offline signatures. It takes "data" and
+     * displayable message and computes data hash, nonce and ECDSA signature of the data.
+     *
+     * @param request Request with data and message to generate signature from.
+     * @return Resposne with offline signature data.
+     * @throws Exception In case of a business logic error.
+     */
+    CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest request) throws Exception;
+
+    /**
+     * Verify offline signature. Each call to this method
+     * increments a counter associated with an activation with given ID. In case too many failed
+     * verification attempts occur (max. fail count is a property of an activation, default is 5),
+     * activation is moved to BLOCKED state. In case a successful verification occurs, the fail counter
+     * is reset back to zero.
+     *
+     * @param request Request for verification of a provided signature.
+     * @return Signature verification response.
+     * @throws Exception In case of a business logic error.
+     */
+    VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws Exception;
+
+    /**
      * Commit a created activation. Only activations in OTP_USED state can be committed - in case activation
      * is in other state, exception is raised. In case of successful call of this method, activation with
      * provided ID is in ACTIVE state.
