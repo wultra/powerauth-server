@@ -106,8 +106,13 @@ public class ServiceError {
      */
     public static final String INVALID_URL_FORMAT = "ERR0014";
 
+    /**
+     * Application or application version does not exist.
+     */
+    public static final String INVALID_APPLICATION = "ERR0015";
+
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(14);
+        List<String> list = new ArrayList<>(15);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -123,6 +128,7 @@ public class ServiceError {
         list.add(INVALID_SIGNATURE);
         list.add(UNABLE_TO_COMPUTE_SIGNATURE);
         list.add(INVALID_URL_FORMAT);
+        list.add(INVALID_APPLICATION);
         return list;
     }
 
