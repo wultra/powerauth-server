@@ -252,6 +252,33 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
+    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest request) throws Exception {
+        try {
+            String activationId = request.getActivationId();
+            String data = request.getData();
+            String message = request.getMessage();
+            return behavior.getSignatureServiceBehavior().createOfflineSignaturePayload(activationId, data, message, keyConversionUtilities);
+        } catch (GenericServiceException ex) {
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            throw ex;
+        } catch (Exception ex) {
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            throw new GenericServiceException(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws Exception {
+        final String activationId = request.getActivationId();
+        final String data = request.getData();
+        final String signature = request.getSignature();
+        final SignatureType signatureType = request.getSignatureType();
+        return behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, signatureType, signature, data, keyConversionUtilities);
+    }
+
+    @Override
+    @Transactional
     public CommitActivationResponse commitActivation(CommitActivationRequest request) throws Exception {
         try {
             String activationId = request.getActivationId();

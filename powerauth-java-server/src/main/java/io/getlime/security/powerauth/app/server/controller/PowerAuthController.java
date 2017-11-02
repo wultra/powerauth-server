@@ -173,6 +173,32 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest)} method and
+     * return the response.
+     *
+     * @param request Create offline signature data request.
+     * @return Create offline signature data response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/signature/offline/create", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<CreateOfflineSignaturePayloadResponse> createOfflineSignaturePayload(@RequestBody RESTRequestWrapper<CreateOfflineSignaturePayloadRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createOfflineSignaturePayload(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#verifyOfflineSignature(VerifyOfflineSignatureRequest)} method and
+     * return the response.
+     *
+     * @param request Verify offline signature request.
+     * @return Verify offline signature response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/signature/offline/verify", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<VerifyOfflineSignatureResponse> verifyOfflineSignature(@RequestBody RESTRequestWrapper<VerifyOfflineSignatureRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.verifyOfflineSignature(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#vaultUnlock(VaultUnlockRequest)} method and
      * return the response.
      *
