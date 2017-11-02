@@ -24,6 +24,9 @@ import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,10 +49,12 @@ import java.util.List;
 public class ApplicationServiceBehavior {
 
     private RepositoryCatalogue repositoryCatalogue;
+    private LocalizationProvider localizationProvider;
 
     @Autowired
-    public ApplicationServiceBehavior(RepositoryCatalogue repositoryCatalogue) {
+    public ApplicationServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider) {
         this.repositoryCatalogue = repositoryCatalogue;
+        this.localizationProvider = localizationProvider;
     }
 
     /**
@@ -58,9 +63,12 @@ public class ApplicationServiceBehavior {
      * @param applicationId Application ID
      * @return Response with application details
      */
-    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) {
+    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws GenericServiceException {
 
         ApplicationEntity application = repositoryCatalogue.getApplicationRepository().findOne(applicationId);
+        if (application == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
 
         GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(application.getId());
@@ -89,9 +97,15 @@ public class ApplicationServiceBehavior {
      * @param appKey Application version key (APP_KEY).
      * @return Response with application details
      */
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String appKey) {
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String appKey) throws GenericServiceException {
         ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
+        if (applicationVersion == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
         ApplicationEntity application = repositoryCatalogue.getApplicationRepository().findOne(applicationVersion.getApplication().getId());
+        if (application == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
         LookupApplicationByAppKeyResponse response = new LookupApplicationByAppKeyResponse();
         response.setApplicationId(application.getId());
         return response;
@@ -171,9 +185,13 @@ public class ApplicationServiceBehavior {
      * @param versionName   Application version name
      * @return Response with new version information
      */
-    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) {
+    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws GenericServiceException {
 
         ApplicationEntity application = repositoryCatalogue.getApplicationRepository().findOne(applicationId);
+
+        if (application == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
 
         KeyGenerator keyGen = new KeyGenerator();
         byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
@@ -203,9 +221,14 @@ public class ApplicationServiceBehavior {
      * @param versionId Version ID
      * @return Response confirming the operation
      */
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) {
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws GenericServiceException {
 
         ApplicationVersionEntity version = repositoryCatalogue.getApplicationVersionRepository().findOne(versionId);
+
+        if (version == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+
         version.setSupported(false);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
@@ -222,9 +245,14 @@ public class ApplicationServiceBehavior {
      * @param versionId Version ID
      * @return Response confirming the operation
      */
-    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) {
+    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws GenericServiceException {
 
         ApplicationVersionEntity version = repositoryCatalogue.getApplicationVersionRepository().findOne(versionId);
+
+        if (version == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+
         version.setSupported(true);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
