@@ -844,14 +844,9 @@ public class ActivationServiceBehavior {
         // does the record even exist, is it in correct state?
         // early null check done above, no null check needed here
         if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED)) {
-            // Use number of failed attempts to fast-forward the counter,
-            // since counter does not increment on failed validations
-            final Long failedAttempts = activation.getFailedAttempts();
-
             // Update and store new activation
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
             activation.setFailedAttempts(0L);
-            activation.setCounter(activation.getCounter() + failedAttempts);
             repositoryCatalogue.getActivationRepository().save(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
