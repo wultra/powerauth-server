@@ -328,9 +328,6 @@ public class SignatureServiceBehavior {
         // By default do not notify listeners
         boolean notifyCallbackListeners = false;
 
-        // Increment the counter
-        activation.setCounter(activation.getCounter() + 1);
-
         // Update failed attempts and block the activation, if necessary
         if (notPossessionFactorSignature(signatureRequest.getSignatureType())) {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
@@ -385,9 +382,6 @@ public class SignatureServiceBehavior {
 
         // By default do not notify listeners
         boolean notifyCallbackListeners = false;
-
-        // Increment the activation record counter
-        activation.setCounter(activation.getCounter() + 1);
 
         // Update failed attempts and block the activation, if necessary
         if (notPossessionFactorSignature(signatureRequest.getSignatureType())) {
@@ -476,9 +470,6 @@ public class SignatureServiceBehavior {
     private void handleInactiveActivationSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, Date currentTimestamp) {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
-        // Activation is not in active state, increase the counter anyway
-        activation.setCounter(activation.getCounter() + 1);
 
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);

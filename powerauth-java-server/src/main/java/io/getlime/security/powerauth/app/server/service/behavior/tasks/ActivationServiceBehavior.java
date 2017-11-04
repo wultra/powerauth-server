@@ -844,6 +844,7 @@ public class ActivationServiceBehavior {
         // does the record even exist, is it in correct state?
         // early null check done above, no null check needed here
         if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED)) {
+            // Update and store new activation
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
             activation.setFailedAttempts(0L);
             repositoryCatalogue.getActivationRepository().save(activation);
