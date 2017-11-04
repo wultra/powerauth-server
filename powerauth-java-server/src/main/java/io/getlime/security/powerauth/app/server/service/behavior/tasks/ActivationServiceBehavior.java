@@ -279,7 +279,7 @@ public class ActivationServiceBehavior {
                     );
 
                     // Assign the activation fingerprint
-                    activationFingerPrint = String.valueOf(powerAuthServerActivation.computeDevicePublicKeyFingerprint(devicePublicKey));
+                    activationFingerPrint = powerAuthServerActivation.computeDevicePublicKeyFingerprint(devicePublicKey);
 
                 }
 
