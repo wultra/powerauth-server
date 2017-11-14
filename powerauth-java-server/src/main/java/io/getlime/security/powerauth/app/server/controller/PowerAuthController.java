@@ -457,4 +457,30 @@ public class PowerAuthController {
         return new RESTResponseWrapper<>("OK", powerAuthService.removeCallbackUrl(request.getRequestObject()));
     }
 
+    /**
+     * Call {@link PowerAuthService#createToken(CreateTokenRequest)} method and
+     * return the response.
+     *
+     * @param request Create a new token for a simple token-based authentication.
+     * @return Response with the new token information.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/token/create", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<CreateTokenResponse> createToken(@RequestBody RESTRequestWrapper<CreateTokenRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createToken(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#validateToken(ValidateTokenRequest)} method and
+     * return the response.
+     *
+     * @param request Validate token during token-based authentication.
+     * @return Token validation result.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/token/validate", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<ValidateTokenResponse> validateToken(@RequestBody RESTRequestWrapper<ValidateTokenRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.validateToken(request.getRequestObject()));
+    }
+
 }

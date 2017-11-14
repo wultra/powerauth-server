@@ -44,6 +44,8 @@ public class RepositoryCatalogue {
 
     private final SignatureAuditRepository signatureAuditRepository;
 
+    private final TokenRepository tokenRepository;
+
     @Autowired
     public RepositoryCatalogue(
             ActivationRepository activationRepository,
@@ -52,7 +54,8 @@ public class RepositoryCatalogue {
             CallbackUrlRepository callbackUrlRepository,
             IntegrationRepository integrationRepository,
             MasterKeyPairRepository masterKeyPairRepository,
-            SignatureAuditRepository signatureAuditRepository) {
+            SignatureAuditRepository signatureAuditRepository,
+            TokenRepository tokenRepository) {
 
         this.activationRepository = activationRepository;
         this.applicationRepository = applicationRepository;
@@ -61,11 +64,10 @@ public class RepositoryCatalogue {
         this.integrationRepository = integrationRepository;
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.signatureAuditRepository = signatureAuditRepository;
-
+        this.tokenRepository = tokenRepository;
     }
 
     // Getters
-
 
     public ActivationRepository getActivationRepository() {
         return activationRepository;
@@ -93,5 +95,9 @@ public class RepositoryCatalogue {
 
     public SignatureAuditRepository getSignatureAuditRepository() {
         return signatureAuditRepository;
+    }
+
+    public TokenRepository getTokenRepository() {
+        return tokenRepository;
     }
 }

@@ -956,4 +956,55 @@ public class PowerAuthServiceClient {
     }
 
 
+    /**
+     * Create a new token for basic token-based authentication.
+     * @param request Request with token information.
+     * @return Response with created token.
+     */
+    public PowerAuthPortServiceStub.CreateTokenResponse createToken(PowerAuthPortServiceStub.CreateTokenRequest request) throws RemoteException {
+        return clientStub.createToken(request);
+    }
+
+    /**
+     * Create a new token for basic token-based authentication.
+     * @param activationId Activation ID for the activation that is associated with the token.
+     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param signatureType Type of the signature used for validating the create request.
+     * @return Response with created token.
+     */
+    public PowerAuthPortServiceStub.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
+        PowerAuthPortServiceStub.CreateTokenRequest request = new PowerAuthPortServiceStub.CreateTokenRequest();
+        request.setActivationId(activationId);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setSignatureType(signatureType);
+        return createToken(request);
+    }
+
+    /**
+     * Validate credentials used for basic token-based authentication.
+     * @param request Credentials to validate.
+     * @return Response with the credentials validation status.
+     */
+    public PowerAuthPortServiceStub.ValidateTokenResponse validateToken(PowerAuthPortServiceStub.ValidateTokenRequest request) throws RemoteException {
+        return clientStub.validateToken(request);
+    }
+
+    /**
+     * Validate credentials used for basic token-based authentication.
+     * @param tokenId Token ID.
+     * @param nonce Random token nonce.
+     * @param timestamp Token timestamp.
+     * @param tokenDigest Token digest.
+     * @return Response with the credentials validation status.
+     */
+    public PowerAuthPortServiceStub.ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws RemoteException {
+        PowerAuthPortServiceStub.ValidateTokenRequest request = new PowerAuthPortServiceStub.ValidateTokenRequest();
+        request.setTokenId(tokenId);
+        request.setNonce(nonce);
+        request.setTimestamp(timestamp);
+        request.setTokenDigest(tokenDigest);
+        return validateToken(request);
+    }
+
+
 }

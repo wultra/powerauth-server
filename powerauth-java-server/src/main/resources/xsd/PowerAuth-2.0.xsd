@@ -986,6 +986,62 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Token Based Authentication Support //-->
+
+    <xs:element name="CreateTokenRequest">
+        <xs:annotation>
+            <xs:documentation>Request for obtaining a new token for simple authentication.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateTokenResponse">
+        <xs:annotation>
+            <xs:documentation>Request for obtaining a new token for simple authentication.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ValidateTokenRequest">
+        <xs:annotation>
+            <xs:documentation>Request for validating the request authenticated with a token..</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tokenId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="tokenDigest" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestamp" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ValidateTokenResponse">
+        <xs:annotation>
+            <xs:documentation>Response for validating the request authenticated with a token.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tokenValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- PowerAuth 2.0 Enumerations //-->
     
     <xs:simpleType name="ActivationStatus">

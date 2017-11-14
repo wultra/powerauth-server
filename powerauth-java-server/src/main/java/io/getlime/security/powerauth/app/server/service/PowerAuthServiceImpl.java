@@ -512,4 +512,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         return behavior.getCallbackUrlBehavior().removeIntegration(request);
     }
 
+    @Override
+    @Transactional
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws Exception {
+        return behavior.getTokenBehavior().createToken(request, keyConversionUtilities);
+    }
+
+    @Override
+    @Transactional
+    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws Exception {
+        return behavior.getTokenBehavior().validateToken(request);
+    }
+
 }

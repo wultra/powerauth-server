@@ -489,4 +489,32 @@ public class PowerAuthEndpoint {
         return powerAuthService.removeCallbackUrl(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#createToken(CreateTokenRequest)}  method and
+     * return the response.
+     *
+     * @param request Create a new token.
+     * @return Get response with the new token.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateTokenRequest")
+    @ResponsePayload
+    public CreateTokenResponse createToken(@RequestPayload CreateTokenRequest request) throws Exception {
+        return powerAuthService.createToken(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#validateToken(ValidateTokenRequest)} method and
+     * return the response.
+     *
+     * @param request Validate token during authentication.
+     * @return Response with the token validation result.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ValidateTokenRequest")
+    @ResponsePayload
+    public ValidateTokenResponse validateToken(@RequestPayload ValidateTokenRequest request) throws Exception {
+        return powerAuthService.validateToken(request);
+    }
+
 }
