@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.*;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -58,15 +59,17 @@ public class TokenBehavior {
 
     private RepositoryCatalogue repositoryCatalogue;
     private LocalizationProvider localizationProvider;
+    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
     private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     /**
@@ -102,13 +105,29 @@ public class TokenBehavior {
             final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKeyBase64);
             final PublicKey ephemeralPublicKey = keyConversion.convertBytesToPublicKey(ephemeralPublicKeyBytes);
 
+            // Generate unique token ID.
+            String tokenId = null;
+            for (int i = 0; i < powerAuthServiceConfiguration.getGenerateTokenIdIterations(); i++) {
+                String tmpTokenId = tokenGenerator.generateTokenId();
+                final TokenEntity tmpToken = repositoryCatalogue.getTokenRepository().findOne(tmpTokenId);
+                if (tmpToken == null) {
+                    tokenId = tmpTokenId;
+                    break;
+                } // ... else this token ID has a collision, reset it and try to find another one
+            }
+            if (tokenId == null) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
+            }
+
+            // Prepare calendar information
             final Calendar cal = Calendar.getInstance();
             final Date today = cal.getTime();
             cal.add(Calendar.YEAR, 1);
             final Date nextYear = cal.getTime();
 
+            // Create a new token
             TokenEntity token = new TokenEntity();
-            token.setTokenId(tokenGenerator.generateTokenId());
+            token.setTokenId(tokenId);
             token.setTokenSecret(BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret()));
             token.setActivation(activation);
             token.setTimestampCreated(today);

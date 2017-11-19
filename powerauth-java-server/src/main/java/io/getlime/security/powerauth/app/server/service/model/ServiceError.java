@@ -126,8 +126,13 @@ public class ServiceError {
      */
     public static final String DECRYPTION_FAILED = "ERR0018";
 
+    /**
+     * Token was not successfully generated
+     */
+    public static final String UNABLE_TO_GENERATE_TOKEN = "ERR0019";
+
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(15);
+        List<String> list = new ArrayList<>(20);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -147,6 +152,7 @@ public class ServiceError {
         list.add(INVALID_TOKEN);
         list.add(ENCRYPTION_FAILED);
         list.add(DECRYPTION_FAILED);
+        list.add(UNABLE_TO_GENERATE_TOKEN);
         return list;
     }
 
