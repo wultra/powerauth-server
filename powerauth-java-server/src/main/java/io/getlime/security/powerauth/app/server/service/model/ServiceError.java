@@ -111,8 +111,28 @@ public class ServiceError {
      */
     public static final String INVALID_APPLICATION = "ERR0015";
 
+    /**
+     * Token with given token ID does not exist.
+     */
+    public static final String INVALID_TOKEN = "ERR0016";
+
+    /**
+     * Data encryption failed.
+     */
+    public static final String ENCRYPTION_FAILED = "ERR0017";
+
+    /**
+     * Data decryption failed.
+     */
+    public static final String DECRYPTION_FAILED = "ERR0018";
+
+    /**
+     * Token was not successfully generated
+     */
+    public static final String UNABLE_TO_GENERATE_TOKEN = "ERR0019";
+
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(15);
+        List<String> list = new ArrayList<>(20);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -129,6 +149,10 @@ public class ServiceError {
         list.add(UNABLE_TO_COMPUTE_SIGNATURE);
         list.add(INVALID_URL_FORMAT);
         list.add(INVALID_APPLICATION);
+        list.add(INVALID_TOKEN);
+        list.add(ENCRYPTION_FAILED);
+        list.add(DECRYPTION_FAILED);
+        list.add(UNABLE_TO_GENERATE_TOKEN);
         return list;
     }
 

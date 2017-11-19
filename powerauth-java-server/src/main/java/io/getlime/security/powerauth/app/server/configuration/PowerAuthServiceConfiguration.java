@@ -69,6 +69,13 @@ public class PowerAuthServiceConfiguration {
     private int activationGenerateActivationIdIterations;
 
     /**
+     * When a duplicate token ID is encountered during the token generation, how
+     * many times generate a new one.
+     */
+    @Value("${powerauth.service.crypto.generateTokenIdIterations}")
+    private int generateTokenIdIterations;
+
+    /**
      * When a duplicate activation short ID is encountered during the
      * activation, how many times generate a new one.
      */
@@ -185,6 +192,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setActivationGenerateActivationIdIterations(int activationGenerateActivationIdIterations) {
         this.activationGenerateActivationIdIterations = activationGenerateActivationIdIterations;
+    }
+
+    /**
+     * Get number of token ID generation attempts in case of collision.
+     * @return Retry iteration count (10, by default).
+     */
+    public int getGenerateTokenIdIterations() {
+        return generateTokenIdIterations;
+    }
+
+    /**
+     * Set number of token ID generation attempts in case of collision.
+     * @param generateTokenIdIterations Retry iteration count (10, by default).
+     */
+    public void setGenerateTokenIdIterations(int generateTokenIdIterations) {
+        this.generateTokenIdIterations = generateTokenIdIterations;
     }
 
     /**

@@ -332,4 +332,20 @@ public interface PowerAuthService {
      */
     RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws Exception;
 
+    /**
+     * Creates a new token for simple token-based device authentication.
+     * @param request Request with information required to issue the token.
+     * @return Response with the token information.
+     * @throws Exception In case of a business logic error.
+     */
+    CreateTokenResponse createToken(CreateTokenRequest request) throws Exception;
+
+    /**
+     * Validate token during the simple token-based device authentication.
+     * @param request Request with the token-based authentication credentials.
+     * @return Response with the authentication result.
+     * @throws Exception In case of a business logic error.
+     */
+    ValidateTokenResponse validateToken(ValidateTokenRequest request) throws Exception;
+
 }

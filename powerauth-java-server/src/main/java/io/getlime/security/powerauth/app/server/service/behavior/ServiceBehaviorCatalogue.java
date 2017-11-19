@@ -48,6 +48,8 @@ public class ServiceBehaviorCatalogue {
 
     private AsymmetricSignatureServiceBehavior asymmetricSignatureServiceBehavior;
 
+    private TokenBehavior tokenBehavior;
+
     public ActivationServiceBehavior getActivationServiceBehavior() {
         return activationServiceBehavior;
     }
@@ -96,6 +98,11 @@ public class ServiceBehaviorCatalogue {
         this.asymmetricSignatureServiceBehavior = asymmetricSignatureServiceBehavior;
     }
 
+    @Autowired
+    public void setTokenBehavior(TokenBehavior tokenBehavior) {
+        this.tokenBehavior = tokenBehavior;
+    }
+
     public ApplicationServiceBehavior getApplicationServiceBehavior() {
         return applicationServiceBehavior;
     }
@@ -128,4 +135,7 @@ public class ServiceBehaviorCatalogue {
         return asymmetricSignatureServiceBehavior;
     }
 
+    public TokenBehavior getTokenBehavior() {
+        return tokenBehavior;
+    }
 }

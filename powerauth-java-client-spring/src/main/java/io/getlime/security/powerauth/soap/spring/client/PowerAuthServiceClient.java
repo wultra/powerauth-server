@@ -802,4 +802,55 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return removeCallbackUrl(request);
     }
 
+    /**
+     * Create a new token for basic token-based authentication.
+     * @param request Request with token information.
+     * @return Response with created token.
+     */
+    public CreateTokenResponse createToken(CreateTokenRequest request) {
+        return (CreateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Create a new token for basic token-based authentication.
+     * @param activationId Activation ID for the activation that is associated with the token.
+     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param signatureType Type of the signature used for validating the create request.
+     * @return Response with created token.
+     */
+    public CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, SignatureType signatureType) {
+        CreateTokenRequest request = new CreateTokenRequest();
+        request.setActivationId(activationId);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setSignatureType(signatureType);
+        return createToken(request);
+    }
+
+    /**
+     * Validate credentials used for basic token-based authentication.
+     * @param request Credentials to validate.
+     * @return Response with the credentials validation status.
+     */
+    public ValidateTokenResponse validateToken(ValidateTokenRequest request) {
+        return (ValidateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Validate credentials used for basic token-based authentication.
+     * @param tokenId Token ID.
+     * @param nonce Random token nonce.
+     * @param timestamp Token timestamp.
+     * @param tokenDigest Token digest.
+     * @return Response with the credentials validation status.
+     */
+    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) {
+        ValidateTokenRequest request = new ValidateTokenRequest();
+        request.setTokenId(tokenId);
+        request.setNonce(nonce);
+        request.setTimestamp(timestamp);
+        request.setTokenDigest(tokenDigest);
+        return validateToken(request);
+    }
+
+
 }
