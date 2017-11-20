@@ -1049,6 +1049,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="tokenId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

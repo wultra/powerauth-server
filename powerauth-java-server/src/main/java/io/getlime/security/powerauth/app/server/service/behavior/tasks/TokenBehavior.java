@@ -210,7 +210,9 @@ public class TokenBehavior {
         boolean removed = false;
 
         final TokenEntity token = repositoryCatalogue.getTokenRepository().findOne(tokenId);
-        if (token != null) {
+
+        // Token was found and activation ID corresponds to the correct user.
+        if (token != null && token.getActivation().getActivationId().equals(request.getActivationId())) {
             repositoryCatalogue.getTokenRepository().delete(tokenId);
             removed = true;
         }

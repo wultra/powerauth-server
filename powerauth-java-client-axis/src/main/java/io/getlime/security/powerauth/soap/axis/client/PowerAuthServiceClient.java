@@ -1018,11 +1018,13 @@ public class PowerAuthServiceClient {
     /**
      * Remove token with given token ID.
      * @param tokenId Token ID.
+     * @param activationId ActivationId ID.
      * @return Response token removal result.
      */
-    public PowerAuthPortServiceStub.RemoveTokenResponse removeToken(String tokenId) throws RemoteException {
+    public PowerAuthPortServiceStub.RemoveTokenResponse removeToken(String tokenId, String activationId) throws RemoteException {
         PowerAuthPortServiceStub.RemoveTokenRequest request = new PowerAuthPortServiceStub.RemoveTokenRequest();
         request.setTokenId(tokenId);
+        request.setActivationId(activationId);
         return removeToken(request);
     }
 
