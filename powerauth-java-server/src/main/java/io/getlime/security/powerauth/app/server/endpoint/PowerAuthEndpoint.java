@@ -517,4 +517,18 @@ public class PowerAuthEndpoint {
         return powerAuthService.validateToken(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#removeToken(RemoveTokenRequest)} method and
+     * return the response.
+     *
+     * @param request Remove token with given ID.
+     * @return Response with the token removal result.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveTokenRequest")
+    @ResponsePayload
+    public RemoveTokenResponse removeToken(@RequestPayload RemoveTokenRequest request) throws Exception {
+        return powerAuthService.removeToken(request);
+    }
+
 }

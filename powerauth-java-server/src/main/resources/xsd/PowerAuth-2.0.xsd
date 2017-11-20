@@ -1042,6 +1042,28 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="RemoveTokenRequest">
+        <xs:annotation>
+            <xs:documentation>Request for removing the token with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tokenId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveTokenResponse">
+        <xs:annotation>
+            <xs:documentation>Response for removing the token with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="removed" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- PowerAuth 2.0 Enumerations //-->
     
     <xs:simpleType name="ActivationStatus">

@@ -46,9 +46,6 @@ public class TokenEntity {
     @Column(name = "timestamp_created", nullable = false, updatable = false)
     private Date timestampCreated;
 
-    @Column(name = "timestamp_expires", nullable = false, updatable = false)
-    private Date timestampExpires;
-
     /**
      * Get token ID.
      * @return Token ID.
@@ -129,19 +126,4 @@ public class TokenEntity {
         this.timestampCreated = timestampCreated;
     }
 
-    /**
-     * Get the timestamp when the token expires.
-     * @return Timestamp of expiration.
-     */
-    public Date getTimestampExpires() {
-        return timestampExpires;
-    }
-
-    /**
-     * Set the timestamp when the token expires.
-     * @param timestampExpires Timestamp of expiration.
-     */
-    public void setTimestampExpires(Date timestampExpires) {
-        this.timestampExpires = timestampExpires;
-    }
 }

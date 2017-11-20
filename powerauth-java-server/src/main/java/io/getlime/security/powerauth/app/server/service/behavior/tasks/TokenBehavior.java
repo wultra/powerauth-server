@@ -119,26 +119,18 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
 
-            // Prepare calendar information
-            final Calendar cal = Calendar.getInstance();
-            final Date today = cal.getTime();
-            cal.add(Calendar.YEAR, 1);
-            final Date nextYear = cal.getTime();
-
             // Create a new token
             TokenEntity token = new TokenEntity();
             token.setTokenId(tokenId);
             token.setTokenSecret(BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret()));
             token.setActivation(activation);
-            token.setTimestampCreated(today);
-            token.setTimestampExpires(nextYear);
+            token.setTimestampCreated(Calendar.getInstance().getTime());
             token.setSignatureTypeCreated(signatureType.value());
             token = repositoryCatalogue.getTokenRepository().save(token);
 
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(token.getTokenId());
             tokenInfo.setTokenSecret(token.getTokenSecret());
-            tokenInfo.setExpires(token.getTimestampExpires().getTime());
 
             final ObjectMapper mapper = new ObjectMapper();
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
@@ -207,4 +199,25 @@ public class TokenBehavior {
 
     }
 
+    /**
+     * Remove token with provided ID.
+     *
+     * @param request Request with token ID.
+     * @return Token removal response.
+     */
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
+        String tokenId = request.getTokenId();
+        boolean removed = false;
+
+        final TokenEntity token = repositoryCatalogue.getTokenRepository().findOne(tokenId);
+        if (token != null) {
+            repositoryCatalogue.getTokenRepository().delete(tokenId);
+            removed = true;
+        }
+
+        RemoveTokenResponse response = new RemoveTokenResponse();
+        response.setRemoved(removed);
+
+        return response;
+    }
 }
