@@ -1006,5 +1006,27 @@ public class PowerAuthServiceClient {
         return validateToken(request);
     }
 
+    /**
+     * Remove token with given token ID.
+     * @param request Request with token ID.
+     * @return Response token removal result.
+     */
+    public PowerAuthPortServiceStub.RemoveTokenResponse removeToken(PowerAuthPortServiceStub.RemoveTokenRequest request) throws RemoteException {
+        return clientStub.removeToken(request);
+    }
+
+    /**
+     * Remove token with given token ID.
+     * @param tokenId Token ID.
+     * @param activationId ActivationId ID.
+     * @return Response token removal result.
+     */
+    public PowerAuthPortServiceStub.RemoveTokenResponse removeToken(String tokenId, String activationId) throws RemoteException {
+        PowerAuthPortServiceStub.RemoveTokenRequest request = new PowerAuthPortServiceStub.RemoveTokenRequest();
+        request.setTokenId(tokenId);
+        request.setActivationId(activationId);
+        return removeToken(request);
+    }
+
 
 }

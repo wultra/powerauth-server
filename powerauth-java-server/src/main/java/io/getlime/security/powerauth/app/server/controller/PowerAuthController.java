@@ -483,4 +483,17 @@ public class PowerAuthController {
         return new RESTResponseWrapper<>("OK", powerAuthService.validateToken(request.getRequestObject()));
     }
 
+    /**
+     * Call {@link PowerAuthService#removeToken(RemoveTokenRequest)} method and
+     * return the response.
+     *
+     * @param request Remove token with given token ID.
+     * @return Token removal result.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/token/remove", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<RemoveTokenResponse> removeToken(@RequestBody RESTRequestWrapper<RemoveTokenRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.removeToken(request.getRequestObject()));
+    }
+
 }

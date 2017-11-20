@@ -348,4 +348,12 @@ public interface PowerAuthService {
      */
     ValidateTokenResponse validateToken(ValidateTokenRequest request) throws Exception;
 
+    /**
+     * Remove token with provided ID.
+     * @param request Request with token ID.
+     * @return Response with the token removal result.
+     * @throws Exception In case of a business logic error.
+     */
+    RemoveTokenResponse removeToken(RemoveTokenRequest request) throws Exception;
+
 }

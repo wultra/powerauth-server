@@ -1038,6 +1038,29 @@
                 </xs:complexType>
             </xs:element>
 
+            <xs:element name="RemoveTokenRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for removing the token with given ID.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="tokenId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="RemoveTokenResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for removing the token with given ID.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="removed" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
             <!-- PowerAuth 2.0 Enumerations //-->
 
             <xs:simpleType name="ActivationStatus">
@@ -1149,6 +1172,10 @@
         <wsdl:part element="tns:ValidateTokenResponse" name="ValidateTokenResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="RemoveTokenRequest">
+        <wsdl:part element="tns:RemoveTokenRequest" name="RemoveTokenRequest">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="GetActivationStatusRequest">
         <wsdl:part element="tns:GetActivationStatusRequest" name="GetActivationStatusRequest">
         </wsdl:part>
@@ -1167,6 +1194,10 @@
     </wsdl:message>
     <wsdl:message name="VerifyOfflineSignatureRequest">
         <wsdl:part element="tns:VerifyOfflineSignatureRequest" name="VerifyOfflineSignatureRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="RemoveTokenResponse">
+        <wsdl:part element="tns:RemoveTokenResponse" name="RemoveTokenResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="GetApplicationListResponse">
@@ -1444,6 +1475,12 @@
             <wsdl:output message="tns:CreateApplicationResponse" name="CreateApplicationResponse">
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="RemoveToken">
+            <wsdl:input message="tns:RemoveTokenRequest" name="RemoveTokenRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:RemoveTokenResponse" name="RemoveTokenResponse">
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="CreateApplicationVersion">
             <wsdl:input message="tns:CreateApplicationVersionRequest" name="CreateApplicationVersionRequest">
             </wsdl:input>
@@ -1699,6 +1736,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="CreateApplicationResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveToken">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="RemoveTokenRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="RemoveTokenResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

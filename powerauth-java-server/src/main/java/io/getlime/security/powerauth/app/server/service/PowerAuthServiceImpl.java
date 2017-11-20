@@ -524,4 +524,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         return behavior.getTokenBehavior().validateToken(request);
     }
 
+    @Override
+    @Transactional
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws Exception {
+        return behavior.getTokenBehavior().removeToken(request);
+    }
+
 }
