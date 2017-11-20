@@ -852,5 +852,25 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return validateToken(request);
     }
 
+    /**
+     * Remove token with given token ID.
+     * @param request Request with token ID.
+     * @return Response token removal result.
+     */
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
+        return (RemoveTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Remove token with given token ID.
+     * @param tokenId Token ID.
+     * @return Response token removal result.
+     */
+    public RemoveTokenResponse removeToken(String tokenId) {
+        RemoveTokenRequest request = new RemoveTokenRequest();
+        request.setTokenId(tokenId);
+        return removeToken(request);
+    }
+
 
 }
