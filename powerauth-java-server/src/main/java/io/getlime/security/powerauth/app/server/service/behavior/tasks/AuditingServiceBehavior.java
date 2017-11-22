@@ -21,6 +21,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.SignatureAuditResponse;
 import io.getlime.security.powerauth.SignatureType;
+import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
@@ -46,6 +47,7 @@ public class AuditingServiceBehavior {
 
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     @Autowired
     public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository) {
@@ -84,7 +86,7 @@ public class AuditingServiceBehavior {
                 item.setActivationId(signatureEntity.getActivation().getActivationId());
                 item.setDataBase64(signatureEntity.getDataBase64());
                 item.setSignature(signatureEntity.getSignature());
-                item.setSignatureType(SignatureType.fromValue(signatureEntity.getSignatureType()));
+                item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
                 item.setValid(signatureEntity.getValid());
                 item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(signatureEntity.getTimestampCreated()));
                 item.setNote(signatureEntity.getNote());

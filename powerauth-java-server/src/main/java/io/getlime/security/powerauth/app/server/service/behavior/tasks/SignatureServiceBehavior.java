@@ -27,7 +27,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyP
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.PowerAuthSignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -80,7 +80,7 @@ public class SignatureServiceBehavior {
     private LocalizationProvider localizationProvider;
 
     // Prepare converters
-    private PowerAuthSignatureTypeConverter powerAuthSignatureTypeConverter = new PowerAuthSignatureTypeConverter();
+    private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
@@ -302,7 +302,7 @@ public class SignatureServiceBehavior {
         SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
 
         // Get the signature keys according to the signature type
-        final PowerAuthSignatureTypes powerAuthSignatureTypes = powerAuthSignatureTypeConverter.convertFrom(signatureRequest.getSignatureType());
+        final PowerAuthSignatureTypes powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureRequest.getSignatureType());
         List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
         // Verify the signature with given lookahead
