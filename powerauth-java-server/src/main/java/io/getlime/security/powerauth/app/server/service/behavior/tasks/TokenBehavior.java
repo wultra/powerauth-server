@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -47,7 +48,6 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
-import java.util.Date;
 
 /**
  * Behavior that contains methods related to simple token-based authentication.
@@ -64,6 +64,9 @@ public class TokenBehavior {
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
     private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
+
+    // Helper classes
+    private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     @Autowired
     public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
@@ -189,7 +192,7 @@ public class TokenBehavior {
             response.setActivationId(activation.getActivationId());
             response.setApplicationId(activation.getApplication().getId());
             response.setUserId(activation.getUserId());
-            response.setSignatureType(SignatureType.fromValue(token.getSignatureTypeCreated()));
+            response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
             return response;
         } else {
             final ValidateTokenResponse response = new ValidateTokenResponse();

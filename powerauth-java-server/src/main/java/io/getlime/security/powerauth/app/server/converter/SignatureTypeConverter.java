@@ -26,7 +26,7 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
  *
  * @author Petr Dvorak, petr@lime-company.eu
  */
-final public class PowerAuthSignatureTypeConverter {
+final public class SignatureTypeConverter {
 
     public PowerAuthSignatureTypes convertFrom(SignatureType signatureType) {
         switch (signatureType) {
@@ -43,6 +43,10 @@ final public class PowerAuthSignatureTypeConverter {
             default:
                 return PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
         }
+    }
+
+    public SignatureType convertFrom(String signatureType) {
+        return SignatureType.fromValue(signatureType.toUpperCase());
     }
 
     public SignatureType convertTo(PowerAuthSignatureTypes powerAuthSignatureTypes) {
