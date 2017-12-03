@@ -26,13 +26,13 @@
 
 	<groupId>io.getlime.security</groupId>
 	<artifactId>powerauth-server-parent</artifactId>
-	<version>0.17.0</version>
+	<version>0.18.0</version>
 	<packaging>pom</packaging>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.8.RELEASE</version>
+		<version>1.5.9.RELEASE</version>
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 
