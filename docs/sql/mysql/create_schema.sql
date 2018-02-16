@@ -118,7 +118,7 @@ CREATE TABLE pa_token (
 	`token_secret` VARCHAR(255) NOT NULL,
 	`activation_id` VARCHAR(37) NOT NULL,
 	`signature_type` VARCHAR(255) NOT NULL,
-	`timestamp_created` DATETIME NOT NULL
+	`timestamp_created` DATETIME NOT NULL,
   PRIMARY KEY (`token_id`),
   KEY `K_TOKEN_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_TOKEN_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
