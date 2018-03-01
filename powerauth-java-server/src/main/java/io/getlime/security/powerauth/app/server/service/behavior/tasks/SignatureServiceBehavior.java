@@ -441,7 +441,7 @@ public class SignatureServiceBehavior {
 
             // Compute ECDSA signature of 'dataHash + "&" + nonce + "&" + message'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (dataHash + "&" + nonce + "&" + message).getBytes("UTF-8");
+            final byte[] signatureBase = (activationId + "&" + dataHash + "&" + nonce + "&" + message).getBytes("UTF-8");
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
