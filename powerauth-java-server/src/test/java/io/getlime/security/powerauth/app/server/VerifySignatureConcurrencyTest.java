@@ -9,6 +9,7 @@ import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
 public class VerifySignatureConcurrencyTest {
@@ -35,12 +34,7 @@ public class VerifySignatureConcurrencyTest {
         this.powerAuthService = powerAuthService;
     }
 
-    @Test
-    public void testPowerAuthSystemStatus() throws Exception {
-        GetSystemStatusRequest request = new GetSystemStatusRequest();
-        assertEquals("OK", powerAuthService.getSystemStatus(request).getStatus());
-    }
-
+    @Ignore("The test requires running MySQL database.")
     @Test
     public void testVerifySignatureConcurrent() throws Exception {
 
