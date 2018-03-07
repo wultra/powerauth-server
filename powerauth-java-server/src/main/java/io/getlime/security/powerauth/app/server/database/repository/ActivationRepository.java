@@ -67,6 +67,8 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     /**
      * Find the first activation associated with given application by the activation ID short.
      * Filter the results by activation state and make sure to apply activation time window.
+     * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
+     * (DB deadlock, invalid counter value in second transaction, etc.).
      *
      * @param applicationId     Application ID
      * @param activationIdShort Short activation ID
@@ -74,6 +76,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param currentTimestamp  Current timestamp
      * @return Activation matching the search criteria or null if not found
      */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     ActivationRecordEntity findFirstByApplicationIdAndActivationIdShortAndActivationStatusInAndTimestampActivationExpireAfter(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
 }
