@@ -19,9 +19,11 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 
+import javax.persistence.LockModeType;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -35,11 +37,14 @@ import java.util.List;
 public interface ActivationRepository extends CrudRepository<ActivationRecordEntity, String> {
 
     /**
-     * Find a first activation with given activation ID
+     * Find a first activation with given activation ID.
+     * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
+     * (DB deadlock, invalid counter value in second transaction, etc.).
      *
      * @param activationId Activation ID
      * @return Activation with given ID or null if not found
      */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     ActivationRecordEntity findFirstByActivationId(String activationId);
 
     /**

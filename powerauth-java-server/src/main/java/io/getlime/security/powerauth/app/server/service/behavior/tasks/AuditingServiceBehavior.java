@@ -21,12 +21,12 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.SignatureAuditResponse;
 import io.getlime.security.powerauth.SignatureType;
+import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -68,9 +68,9 @@ public class AuditingServiceBehavior {
 
         List<SignatureEntity> signatureAuditEntityList;
         if (applicationId == null) {
-            signatureAuditEntityList = signatureAuditRepository.findByActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDesc(userId, startingDate, endingDate);
+            signatureAuditEntityList = signatureAuditRepository.findByActivation_UserIdAndTimestampCreatedBetweenOrderByIdDesc(userId, startingDate, endingDate);
         } else {
-            signatureAuditEntityList = signatureAuditRepository.findByActivation_ApplicationIdAndActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDesc(applicationId, userId, startingDate, endingDate);
+            signatureAuditEntityList = signatureAuditRepository.findByActivation_ApplicationIdAndActivation_UserIdAndTimestampCreatedBetweenOrderByIdDesc(applicationId, userId, startingDate, endingDate);
         }
 
         SignatureAuditResponse response = new SignatureAuditResponse();
