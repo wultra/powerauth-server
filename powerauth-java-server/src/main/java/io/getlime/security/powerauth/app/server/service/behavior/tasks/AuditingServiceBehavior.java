@@ -141,7 +141,6 @@ public class AuditingServiceBehavior {
     }
 
     private KeyValueMap stringToKeyValueMap(String data) {
-        System.out.println("convert: "+data);
         KeyValueMap keyValueMap = new KeyValueMap();
         if (data == null || data.equals("")) {
             return keyValueMap;
