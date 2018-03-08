@@ -155,7 +155,7 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#getActivatioListForUser(GetActivationListForUserRequest)} method and
+     * Call {@link PowerAuthService#getActivationListForUser(GetActivationListForUserRequest)} method and
      * return the response.
      *
      * @param request Activation list request.
@@ -165,7 +165,7 @@ public class PowerAuthEndpoint {
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetActivationListForUserRequest")
     @ResponsePayload
     public GetActivationListForUserResponse getActivatioListForUser(@RequestPayload GetActivationListForUserRequest request) throws Exception {
-        return powerAuthService.getActivatioListForUser(request);
+        return powerAuthService.getActivationListForUser(request);
     }
 
     /**

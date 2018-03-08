@@ -147,7 +147,7 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getActivatioListForUser(GetActivationListForUserRequest)} method and
+     * Call {@link PowerAuthService#getActivationListForUser(GetActivationListForUserRequest)} method and
      * return the response.
      *
      * @param request Activation list request.
@@ -156,7 +156,7 @@ public class PowerAuthController {
      */
     @RequestMapping(value = "/activation/list", method = RequestMethod.POST)
     public @ResponseBody RESTResponseWrapper<GetActivationListForUserResponse> getActivatioListForUser(@RequestBody RESTRequestWrapper<GetActivationListForUserRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getActivatioListForUser(request.getRequestObject()));
+        return new RESTResponseWrapper<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
     }
 
     /**

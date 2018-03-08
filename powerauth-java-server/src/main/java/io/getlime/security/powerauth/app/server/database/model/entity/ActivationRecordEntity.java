@@ -85,6 +85,9 @@ public class ActivationRecordEntity implements Serializable {
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
+    @Column(name = "blocked_reason", nullable = true)
+    private String blockedReason;
+
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
     private ApplicationEntity application;
@@ -137,6 +140,7 @@ public class ActivationRecordEntity implements Serializable {
                                   Date timestampActivationExpire,
                                   Date timestampLastUsed,
                                   ActivationStatus activationStatus,
+                                  String blockedReason,
                                   MasterKeyPairEntity masterKeyPair,
                                   ApplicationEntity application) {
         super();
@@ -156,6 +160,7 @@ public class ActivationRecordEntity implements Serializable {
         this.timestampActivationExpire = timestampActivationExpire;
         this.timestampLastUsed = timestampLastUsed;
         this.activationStatus = activationStatus;
+        this.blockedReason = blockedReason;
         this.masterKeyPair = masterKeyPair;
         this.application = application;
     }
@@ -453,6 +458,22 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
+     * Get reason why activation is blocked.
+     * @return Reason why activation is blocked.
+     */
+    public String getBlockedReason() {
+        return blockedReason;
+    }
+
+    /**
+     * Set reason why activation is blocked.
+     * @param blockedReason Reason why activation is blocked.
+     */
+    public void setBlockedReason(String blockedReason) {
+        this.blockedReason = blockedReason;
+    }
+
+    /**
      * Get associated application instance. Each activation is strongly associated with
      * a single application.
      *
@@ -512,6 +533,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.timestampActivationExpire);
         hash = 71 * hash + Objects.hashCode(this.timestampLastUsed);
         hash = 71 * hash + Objects.hashCode(this.activationStatus);
+        hash = 71 * hash + Objects.hashCode(this.blockedReason);
         hash = 71 * hash + Objects.hashCode(this.application);
         hash = 71 * hash + Objects.hashCode(this.masterKeyPair);
         return hash;
@@ -574,6 +596,9 @@ public class ActivationRecordEntity implements Serializable {
         if (this.activationStatus != other.activationStatus) {
             return false;
         }
+        if (!Objects.equals(this.blockedReason, other.blockedReason)) {
+            return false;
+        }
         if (!Objects.equals(this.application, other.application)) {
             return false;
         }
@@ -601,6 +626,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", timestampActivationExpire=" + timestampActivationExpire
                 + ", timestampLastUsed=" + timestampLastUsed
                 + ", status=" + activationStatus
+                + ", blockedReason=" + blockedReason
                 + ", masterKeyPair=" + masterKeyPair
                 + ", application=" + application
                 + '}';

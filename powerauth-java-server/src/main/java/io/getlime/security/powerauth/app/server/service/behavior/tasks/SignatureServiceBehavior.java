@@ -19,19 +19,17 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.CreateOfflineSignaturePayloadResponse;
-import io.getlime.security.powerauth.SignatureType;
-import io.getlime.security.powerauth.VerifyOfflineSignatureResponse;
-import io.getlime.security.powerauth.VerifySignatureResponse;
-import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -109,6 +107,7 @@ public class SignatureServiceBehavior {
      * @param activationId           Activation ID.
      * @param signatureType          Provided signature type.
      * @param signature              Provided signature.
+     * @param additionalInfo         Additional information about operation.
      * @param dataString             String with data used to compute the signature.
      * @param applicationKey         Associated application key.
      * @param keyConversionUtilities Conversion utility class.
@@ -117,10 +116,10 @@ public class SignatureServiceBehavior {
      * @throws InvalidKeySpecException      In case invalid key is provided.
      * @throws InvalidKeyException          In case invalid key is provided.
      */
-    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature,
+    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                    String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
-        return verifySignature(activationId, signatureType, signature, dataString, applicationKey, keyConversionUtilities, false);
+        return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities, false);
     }
 
     /**
@@ -140,10 +139,12 @@ public class SignatureServiceBehavior {
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
 
-        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, dataString, null, keyConversionUtilities, true);
+        KeyValueMap additionalInfo = new KeyValueMap();
+        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, additionalInfo, dataString, null, keyConversionUtilities, true);
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setActivationId(verifySignatureResponse.getActivationId());
         response.setActivationStatus(verifySignatureResponse.getActivationStatus());
+        response.setBlockedReason(verifySignatureResponse.getBlockedReason());
         response.setApplicationId(verifySignatureResponse.getApplicationId());
         response.setRemainingAttempts(verifySignatureResponse.getRemainingAttempts());
         response.setSignatureType(verifySignatureResponse.getSignatureType());
@@ -152,7 +153,7 @@ public class SignatureServiceBehavior {
         return response;
     }
 
-    private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature,
+    private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                     String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
         // Prepare current timestamp in advance
@@ -180,7 +181,7 @@ public class SignatureServiceBehavior {
 
                     // Get the data and append application KEY in this case, just for auditing reasons
                     byte[] data = (dataString + "&" + applicationKey).getBytes("UTF-8");
-                    SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType);
+                    SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo);
                     boolean notifyCallbackListeners = handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
                     // Notify callback listeners, if needed
@@ -196,7 +197,7 @@ public class SignatureServiceBehavior {
             }
 
             byte[] data = (dataString + "&" + applicationSecret).getBytes("UTF-8");
-            SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType);
+            SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
@@ -262,6 +263,7 @@ public class SignatureServiceBehavior {
         VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(true);
         response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
+        response.setBlockedReason(null);
         response.setActivationId(activation.getActivationId());
         response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
         response.setUserId(activation.getUserId());
@@ -283,6 +285,7 @@ public class SignatureServiceBehavior {
         VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+        response.setBlockedReason(activation.getBlockedReason());
         response.setActivationId(activation.getActivationId());
         response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
         response.setUserId(activation.getUserId());
@@ -334,6 +337,12 @@ public class SignatureServiceBehavior {
             Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
+                activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
+                KeyValueMap.Entry entry = new KeyValueMap.Entry();
+                entry.setKey(AdditionalInformation.BLOCKED_REASON);
+                entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                additionalInfo.getEntry().add(entry);
                 // notify callback listeners
                 notifyCallbackListeners = true;
             }
@@ -346,7 +355,7 @@ public class SignatureServiceBehavior {
         activationRepository.save(activation);
 
         // Create the audit log record
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getData(),
+        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
                 false, "activation_invalid_application", currentTimestamp);
 
         return notifyCallbackListeners;
@@ -372,7 +381,7 @@ public class SignatureServiceBehavior {
         activationRepository.save(activation);
 
         // Create the audit log record.
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(),
+        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(),
                 signatureRequest.getData(), true, "signature_ok", currentTimestamp);
     }
 
@@ -391,6 +400,12 @@ public class SignatureServiceBehavior {
         Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
+            activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
+            KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            entry.setKey(AdditionalInformation.BLOCKED_REASON);
+            entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            additionalInfo.getEntry().add(entry);
             notifyCallbackListeners = true;
         }
 
@@ -401,7 +416,7 @@ public class SignatureServiceBehavior {
         activationRepository.save(activation);
 
         // Create the audit log record.
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getData(),
+        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
                 false, "signature_does_not_match", currentTimestamp);
 
         return notifyCallbackListeners;
@@ -478,7 +493,7 @@ public class SignatureServiceBehavior {
         activationRepository.save(activation);
 
         // Create the audit log record.
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getData(),
+        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
                 false, "activation_invalid_state", currentTimestamp);
     }
 
@@ -487,11 +502,13 @@ public class SignatureServiceBehavior {
         private final byte[] data;
         private final String signature;
         private final SignatureType signatureType;
+        private final KeyValueMap additionalInfo;
 
-        SignatureRequest(byte[] data, String signature, SignatureType signatureType) {
+        SignatureRequest(byte[] data, String signature, SignatureType signatureType, KeyValueMap additionalInfo) {
             this.data = data;
             this.signature = signature;
             this.signatureType = signatureType;
+            this.additionalInfo = additionalInfo;
         }
 
         byte[] getData() {
@@ -504,6 +521,10 @@ public class SignatureServiceBehavior {
 
         SignatureType getSignatureType() {
             return signatureType;
+        }
+
+        KeyValueMap getAdditionalInfo() {
+            return additionalInfo;
         }
     }
 

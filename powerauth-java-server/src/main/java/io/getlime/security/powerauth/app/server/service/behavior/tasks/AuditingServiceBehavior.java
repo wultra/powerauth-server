@@ -19,18 +19,20 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.google.common.io.BaseEncoding;
+import io.getlime.security.powerauth.KeyValueMap;
 import io.getlime.security.powerauth.SignatureAuditResponse;
 import io.getlime.security.powerauth.SignatureType;
+import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.DatatypeConfigurationException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -83,6 +85,7 @@ public class AuditingServiceBehavior {
                 item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
                 item.setActivationCounter(signatureEntity.getActivationCounter());
                 item.setActivationStatus(activationStatusConverter.convert(signatureEntity.getActivationStatus()));
+                item.setAdditionalInfo(stringToKeyValueMap(signatureEntity.getAdditionalInfo()));
                 item.setActivationId(signatureEntity.getActivation().getActivationId());
                 item.setDataBase64(signatureEntity.getDataBase64());
                 item.setSignature(signatureEntity.getSignature());
@@ -110,12 +113,13 @@ public class AuditingServiceBehavior {
      * @param note             Record additional info (for example, reason for signature validation failure)
      * @param currentTimestamp Record timestamp
      */
-    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, byte[] data, Boolean valid, String note, Date currentTimestamp) {
+    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, KeyValueMap additionalInfo, byte[] data, Boolean valid, String note, Date currentTimestamp) {
         // Audit the signature
         SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
+        signatureAuditRecord.setAdditionalInfo(keyValueMapToString(additionalInfo));
         signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(data));
         signatureAuditRecord.setSignature(signature);
         signatureAuditRecord.setSignatureType(signatureType.value());
@@ -123,6 +127,36 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setNote(note);
         signatureAuditRecord.setTimestampCreated(currentTimestamp);
         signatureAuditRepository.save(signatureAuditRecord);
+    }
+
+    private String keyValueMapToString(KeyValueMap keyValueMap) {
+        if (keyValueMap == null) {
+            return "";
+        }
+        List<String> entries = new ArrayList<>();
+        for (KeyValueMap.Entry entry: keyValueMap.getEntry()) {
+            entries.add(entry.getKey() + ": " + entry.getValue());
+        }
+        return String.join("\n", entries);
+    }
+
+    private KeyValueMap stringToKeyValueMap(String data) {
+        System.out.println("convert: "+data);
+        KeyValueMap keyValueMap = new KeyValueMap();
+        if (data == null || data.equals("")) {
+            return keyValueMap;
+        }
+        String[] rows = data.split("\n");
+        for (String row: rows) {
+            KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            String[] parts = row.split(": ");
+            if (parts.length == 2) {
+                entry.setKey(parts[0]);
+                entry.setValue(parts[1]);
+                keyValueMap.getEntry().add(entry);
+            }
+        }
+        return keyValueMap;
     }
 
 }

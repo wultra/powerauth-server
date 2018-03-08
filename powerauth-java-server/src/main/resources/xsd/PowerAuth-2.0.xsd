@@ -427,6 +427,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -493,6 +494,7 @@
                         <xs:sequence>
                             <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
@@ -532,6 +534,7 @@
             <xs:sequence>
                 <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
@@ -596,6 +599,7 @@
             <xs:sequence>
                 <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
@@ -614,6 +618,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -626,6 +631,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -668,6 +674,7 @@
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="vaultUnlockReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -681,6 +688,7 @@
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remainingAttempts" type="xs:integer"  minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedVaultEncryptionKey" type="xs:string"  minOccurs="1" maxOccurs="1"/>
@@ -745,6 +753,7 @@
                 			<xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="activationCounter" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="additionalInfo" type="tns:KeyValueMap" minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="dataBase64" type="xs:string"  minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="signatureType" type="tns:SignatureType"  minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="signature" type="xs:string"  minOccurs="1" maxOccurs="1"/>
@@ -1093,5 +1102,18 @@
             <xs:enumeration value="POSSESSION_KNOWLEDGE_BIOMETRY"/>
         </xs:restriction>
     </xs:simpleType>
+
+    <xs:complexType name="KeyValueMap">
+        <xs:sequence>
+            <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="key" type="xs:string"/>
+                        <xs:element name="value" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
 
 </xs:schema>
