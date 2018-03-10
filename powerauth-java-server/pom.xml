@@ -97,6 +97,21 @@
             <artifactId>bcprov-jdk15on</artifactId>
             <version>1.58</version>
         </dependency>
+
+        <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.0.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.41</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <build>
