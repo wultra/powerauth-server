@@ -71,9 +71,9 @@ public class AuditingServiceBehavior {
 
         List<SignatureEntity> signatureAuditEntityList;
         if (applicationId == null) {
-            signatureAuditEntityList = signatureAuditRepository.findByActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDesc(userId, startingDate, endingDate);
+            signatureAuditEntityList = signatureAuditRepository.findByActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDescIdDesc(userId, startingDate, endingDate);
         } else {
-            signatureAuditEntityList = signatureAuditRepository.findByActivation_ApplicationIdAndActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDesc(applicationId, userId, startingDate, endingDate);
+            signatureAuditEntityList = signatureAuditRepository.findByActivation_ApplicationIdAndActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDescIdDesc(applicationId, userId, startingDate, endingDate);
         }
 
         SignatureAuditResponse response = new SignatureAuditResponse();
