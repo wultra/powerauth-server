@@ -139,8 +139,7 @@ public class SignatureServiceBehavior {
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
 
-        KeyValueMap additionalInfo = new KeyValueMap();
-        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, additionalInfo, dataString, null, keyConversionUtilities, true);
+        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, keyConversionUtilities, true);
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setActivationId(verifySignatureResponse.getActivationId());
         response.setActivationStatus(verifySignatureResponse.getActivationStatus());
@@ -508,7 +507,11 @@ public class SignatureServiceBehavior {
             this.data = data;
             this.signature = signature;
             this.signatureType = signatureType;
-            this.additionalInfo = additionalInfo;
+            if (additionalInfo == null) {
+                this.additionalInfo = new KeyValueMap();
+            } else {
+                this.additionalInfo = additionalInfo;
+            }
         }
 
         byte[] getData() {

@@ -244,7 +244,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws Exception {
         try {
-            return this.verifySignatureImplNonTransaction(request, new KeyValueMap());
+            return this.verifySignatureImplNonTransaction(request, null);
         } catch (Exception ex) {
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
