@@ -348,7 +348,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String signature = request.getSignature();
             SignatureType signatureType = request.getSignatureType();
             String data = request.getData();
-            String vaultUnlockReason = request.getVaultUnlockReason();
+            String vaultUnlockedReason = request.getVaultUnlockedReason();
 
             // Reject 1FA signatures.
             if (signatureType.equals(SignatureType.BIOMETRY)
@@ -362,10 +362,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             KeyValueMap additionalInfo = new KeyValueMap();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
             entry.setKey(AdditionalInformation.VAULT_UNLOCKED_REASON);
-            if (vaultUnlockReason == null) {
+            if (vaultUnlockedReason == null) {
                 entry.setValue(AdditionalInformation.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
             } else {
-                entry.setValue(vaultUnlockReason);
+                entry.setValue(vaultUnlockedReason);
             }
             additionalInfo.getEntry().add(entry);
 

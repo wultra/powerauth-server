@@ -420,12 +420,14 @@ public class PowerAuthServiceClient {
     /**
      * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
+     * @param blockedReason Reason why activation is blocked.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.BlockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortServiceStub.BlockActivationResponse blockActivation(String activationId) throws RemoteException {
+    public PowerAuthPortServiceStub.BlockActivationResponse blockActivation(String activationId, String blockedReason) throws RemoteException {
         PowerAuthPortServiceStub.BlockActivationRequest request = new PowerAuthPortServiceStub.BlockActivationRequest();
         request.setActivationId(activationId);
+        request.setBlockedReason(blockedReason);
         return this.blockActivation(request);
     }
 
@@ -468,16 +470,18 @@ public class PowerAuthServiceClient {
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param vaultUnlockedReason Reason why vault is unlocked.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
+    public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType, String vaultUnlockedReason) throws RemoteException {
         PowerAuthPortServiceStub.VaultUnlockRequest request = new PowerAuthPortServiceStub.VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setVaultUnlockedReason(vaultUnlockedReason);
         return this.unlockVault(request);
     }
 

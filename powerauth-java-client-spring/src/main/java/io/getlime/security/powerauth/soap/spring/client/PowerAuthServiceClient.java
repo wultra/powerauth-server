@@ -316,11 +316,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
+     * @param blockedReason Reason why activation is blocked.
      * @return {@link BlockActivationResponse}
      */
-    public BlockActivationResponse blockActivation(String activationId) {
+    public BlockActivationResponse blockActivation(String activationId, String blockedReason) {
         BlockActivationRequest request = new BlockActivationRequest();
         request.setActivationId(activationId);
+        request.setBlockedReason(blockedReason);
         return this.blockActivation(request);
     }
 
@@ -360,15 +362,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param vaultUnlockedReason Reason why vault is unlocked.
      * @return {@link VaultUnlockResponse}
      */
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType) {
+    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String vaultUnlockedReason) {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setVaultUnlockedReason(vaultUnlockedReason);
         return this.unlockVault(request);
     }
 
