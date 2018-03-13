@@ -32,6 +32,8 @@ public class RepositoryCatalogue {
 
     private final ActivationRepository activationRepository;
 
+    private final ActivationHistoryRepository activationHistoryRepository;
+
     private final ApplicationRepository applicationRepository;
 
     private final ApplicationVersionRepository applicationVersionRepository;
@@ -49,6 +51,7 @@ public class RepositoryCatalogue {
     @Autowired
     public RepositoryCatalogue(
             ActivationRepository activationRepository,
+            ActivationHistoryRepository activationHistoryRepository,
             ApplicationRepository applicationRepository,
             ApplicationVersionRepository applicationVersionRepository,
             CallbackUrlRepository callbackUrlRepository,
@@ -58,6 +61,7 @@ public class RepositoryCatalogue {
             TokenRepository tokenRepository) {
 
         this.activationRepository = activationRepository;
+        this.activationHistoryRepository = activationHistoryRepository;
         this.applicationRepository = applicationRepository;
         this.applicationVersionRepository = applicationVersionRepository;
         this.callbackUrlRepository = callbackUrlRepository;
@@ -71,6 +75,10 @@ public class RepositoryCatalogue {
 
     public ActivationRepository getActivationRepository() {
         return activationRepository;
+    }
+
+    public ActivationHistoryRepository getActivationHistoryRepository() {
+        return activationHistoryRepository;
     }
 
     public ApplicationRepository getApplicationRepository() {
