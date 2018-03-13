@@ -7,10 +7,10 @@ package io.getlime.security.powerauth.app.server.database.model;
  */
 public class AdditionalInformation {
 
-    public static String BLOCKED_REASON = "BLOCKED_REASON";
-    public static String VAULT_UNLOCKED_REASON = "VAULT_UNLOCKED_REASON";
-    public static String BLOCKED_REASON_MAX_FAILED_ATTEMPTS = "MAX_FAILED_ATTEMPTS";
-    public static String BLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
-    public static String VAULT_UNLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
+    public static final String BLOCKED_REASON = "BLOCKED_REASON";
+    public static final String VAULT_UNLOCKED_REASON = "VAULT_UNLOCKED_REASON";
+    public static final String BLOCKED_REASON_MAX_FAILED_ATTEMPTS = "MAX_FAILED_ATTEMPTS";
+    public static final String BLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
+    public static final String VAULT_UNLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
 
 }
