@@ -74,7 +74,7 @@ public class ActivationHistoryServiceBehavior {
      */
     public ActivationHistoryResponse getActivationHistory(String activationId, Date startingDate, Date endingDate) throws DatatypeConfigurationException {
 
-        List<ActivationHistoryEntity> activationHistoryEntityList = activationHistoryRepository.findByActivation_ActivationIdAndTimestampCreatedBetweenOrderByTimestampCreatedDesc(activationId, startingDate, endingDate);
+        List<ActivationHistoryEntity> activationHistoryEntityList = activationHistoryRepository.findActivationHistory(activationId, startingDate, endingDate);
 
         ActivationHistoryResponse response = new ActivationHistoryResponse();
         if (activationHistoryEntityList != null) {

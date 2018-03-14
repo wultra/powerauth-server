@@ -30,11 +30,13 @@ import java.util.Objects;
  *
  * @author Roman Strobl, roman.strobl@lime-company.eu
  */
-@Entity(name = "pa_activation_history")
+@Entity
+@Table(name = "pa_activation_history")
 public class ActivationHistoryEntity implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(name = "activation_history", sequenceName = "activation_history_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "activation_history")
     @Column(name = "id")
     private Long id;
 
