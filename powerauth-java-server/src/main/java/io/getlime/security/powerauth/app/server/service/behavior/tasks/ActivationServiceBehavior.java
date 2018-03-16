@@ -811,10 +811,11 @@ public class ActivationServiceBehavior {
      * Block activation with given ID
      *
      * @param activationId Activation ID
+     * @param reason Reason why activation is being blocked.
      * @return Response confirming that activation was blocked
      * @throws GenericServiceException In case activation does not exist.
      */
-    public BlockActivationResponse blockActivation(String activationId, String blockedReason) throws GenericServiceException {
+    public BlockActivationResponse blockActivation(String activationId, String reason) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findFirstByActivationId(activationId);
         if (activation == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -824,10 +825,10 @@ public class ActivationServiceBehavior {
         // early null check done above, no null check needed here
         if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED);
-            if (blockedReason == null) {
+            if (reason == null) {
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_NOT_SPECIFIED);
             } else {
-                activation.setBlockedReason(blockedReason);
+                activation.setBlockedReason(reason);
             }
             repositoryCatalogue.getActivationRepository().save(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());

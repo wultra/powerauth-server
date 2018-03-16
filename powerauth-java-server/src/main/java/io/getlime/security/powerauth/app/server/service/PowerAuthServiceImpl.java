@@ -310,8 +310,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     public BlockActivationResponse blockActivation(BlockActivationRequest request) throws Exception {
         try {
             String activationId = request.getActivationId();
-            String blockedReason = request.getBlockedReason();
-            return behavior.getActivationServiceBehavior().blockActivation(activationId, blockedReason);
+            String reason = request.getReason();
+            return behavior.getActivationServiceBehavior().blockActivation(activationId, reason);
         } catch (GenericServiceException ex) {
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
@@ -348,7 +348,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String signature = request.getSignature();
             SignatureType signatureType = request.getSignatureType();
             String data = request.getData();
-            String vaultUnlockedReason = request.getVaultUnlockedReason();
+            String reason = request.getReason();
 
             // Reject 1FA signatures.
             if (signatureType.equals(SignatureType.BIOMETRY)
@@ -362,10 +362,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             KeyValueMap additionalInfo = new KeyValueMap();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
             entry.setKey(AdditionalInformation.VAULT_UNLOCKED_REASON);
-            if (vaultUnlockedReason == null) {
+            if (reason == null) {
                 entry.setValue(AdditionalInformation.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
             } else {
-                entry.setValue(vaultUnlockedReason);
+                entry.setValue(reason);
             }
             additionalInfo.getEntry().add(entry);
 

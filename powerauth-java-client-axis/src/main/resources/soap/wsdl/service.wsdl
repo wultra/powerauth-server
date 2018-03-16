@@ -616,7 +616,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="reason" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -672,7 +672,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="vaultUnlockedReason" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="reason" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
