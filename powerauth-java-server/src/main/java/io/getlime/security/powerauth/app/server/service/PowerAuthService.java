@@ -219,6 +219,15 @@ public interface PowerAuthService {
     SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws Exception;
 
     /**
+     * Get activation history.
+     *
+     * @param request Signature audit log request.
+     * @return Signature audit log response.
+     * @throws Exception In case of a business logic error.
+     */
+    ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws Exception;
+
+    /**
      * Get all applications in the system.
      *
      * @param request Application list request object.

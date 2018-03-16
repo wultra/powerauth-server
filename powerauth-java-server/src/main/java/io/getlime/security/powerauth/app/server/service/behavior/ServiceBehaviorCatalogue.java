@@ -32,6 +32,8 @@ public class ServiceBehaviorCatalogue {
 
     private ActivationServiceBehavior activationServiceBehavior;
 
+    private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+
     private ApplicationServiceBehavior applicationServiceBehavior;
 
     private AuditingServiceBehavior auditingServiceBehavior;
@@ -57,6 +59,11 @@ public class ServiceBehaviorCatalogue {
     @Autowired
     public void setActivationServiceBehavior(ActivationServiceBehavior activationServiceBehavior) {
         this.activationServiceBehavior = activationServiceBehavior;
+    }
+
+    @Autowired
+    public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
 
     @Autowired
@@ -105,6 +112,10 @@ public class ServiceBehaviorCatalogue {
 
     public ApplicationServiceBehavior getApplicationServiceBehavior() {
         return applicationServiceBehavior;
+    }
+
+    public ActivationHistoryServiceBehavior getActivationHistoryServiceBehavior() {
+        return activationHistoryServiceBehavior;
     }
 
     public AuditingServiceBehavior getAuditingServiceBehavior() {

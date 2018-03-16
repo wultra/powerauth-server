@@ -71,6 +71,8 @@ public class SignatureServiceBehavior {
 
     private AuditingServiceBehavior auditingServiceBehavior;
 
+    private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+
     private CallbackUrlBehavior callbackUrlBehavior;
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -91,6 +93,11 @@ public class SignatureServiceBehavior {
     @Autowired
     public void setAuditingServiceBehavior(AuditingServiceBehavior auditingServiceBehavior) {
         this.auditingServiceBehavior = auditingServiceBehavior;
+    }
+
+    @Autowired
+    public void setActivationServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
 
     @Autowired
@@ -336,6 +343,7 @@ public class SignatureServiceBehavior {
             Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
+                activationHistoryServiceBehavior.logActivationStatusChange(activation);
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
                 KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
                 KeyValueMap.Entry entry = new KeyValueMap.Entry();
@@ -399,12 +407,14 @@ public class SignatureServiceBehavior {
         Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
             entry.setKey(AdditionalInformation.BLOCKED_REASON);
             entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             additionalInfo.getEntry().add(entry);
+            // notify callback listeners
             notifyCallbackListeners = true;
         }
 

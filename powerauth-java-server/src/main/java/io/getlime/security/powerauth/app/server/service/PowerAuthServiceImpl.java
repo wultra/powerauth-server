@@ -446,6 +446,19 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws Exception {
+        try {
+            String activationId = request.getActivationId();
+            Date startingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampFrom());
+            Date endingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampTo());
+            return behavior.getActivationHistoryServiceBehavior().getActivationHistory(activationId, startingDate, endingDate);
+        } catch (Exception ex) {
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
     @Transactional
     public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws Exception {
         return behavior.getApplicationServiceBehavior().getApplicationList();

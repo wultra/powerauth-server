@@ -20,5 +20,5 @@
 .mvn
 dist/
 
-## JRebel
+### JRebel
 rebel.xml

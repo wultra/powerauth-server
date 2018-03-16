@@ -767,6 +767,41 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Activation Status Change Log //-->
+
+    <xs:element name="ActivationHistoryRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the activation status change log.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampFrom" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampTo" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ActivationHistoryResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the activation status change log.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="items" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="timestampCreated" type="xs:dateTime"  minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- Create a new integration //-->
 
     <xs:element name="CreateIntegrationRequest">

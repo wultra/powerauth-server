@@ -765,6 +765,41 @@
                 </xs:complexType>
             </xs:element>
 
+            <!-- Activation Status Change Log //-->
+
+            <xs:element name="ActivationHistoryRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for getting the activation status change log.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="timestampFrom" type="xs:dateTime"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="timestampTo" type="xs:dateTime"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ActivationHistoryResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for getting the activation status change log.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="items">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="id" type="xs:long"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
             <!-- Create a new integration //-->
 
             <xs:element name="CreateIntegrationRequest">
@@ -1280,6 +1315,10 @@
         <wsdl:part element="tns:SignatureAuditResponse" name="SignatureAuditResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="ActivationHistoryResponse">
+        <wsdl:part element="tns:ActivationHistoryResponse" name="ActivationHistoryResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="RemoveCallbackUrlRequest">
         <wsdl:part element="tns:RemoveCallbackUrlRequest" name="RemoveCallbackUrlRequest">
         </wsdl:part>
@@ -1342,6 +1381,10 @@
     </wsdl:message>
     <wsdl:message name="SignatureAuditRequest">
         <wsdl:part element="tns:SignatureAuditRequest" name="SignatureAuditRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="ActivationHistoryRequest">
+        <wsdl:part element="tns:ActivationHistoryRequest" name="ActivationHistoryRequest">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="SupportApplicationVersionResponse">
@@ -1569,6 +1612,12 @@
             <wsdl:input message="tns:SignatureAuditRequest" name="SignatureAuditRequest">
             </wsdl:input>
             <wsdl:output message="tns:SignatureAuditResponse" name="SignatureAuditResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ActivationHistory">
+            <wsdl:input message="tns:ActivationHistoryRequest" name="ActivationHistoryRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:ActivationHistoryResponse" name="ActivationHistoryResponse">
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="RemoveCallbackUrl">
