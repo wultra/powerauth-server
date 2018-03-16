@@ -658,10 +658,10 @@ public class PowerAuthServiceClient {
      * @param userId User ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type0}
+     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type1}
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortServiceStub.Items_type0> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws RemoteException {
+    public List<PowerAuthPortServiceStub.Items_type1> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws RemoteException {
         PowerAuthPortServiceStub.SignatureAuditRequest request = new PowerAuthPortServiceStub.SignatureAuditRequest();
         request.setUserId(userId);
         request.setTimestampFrom(calendarWithDate(startingDate));
@@ -676,10 +676,10 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type0}
+     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type1}
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortServiceStub.Items_type0> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws RemoteException {
+    public List<PowerAuthPortServiceStub.Items_type1> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws RemoteException {
         PowerAuthPortServiceStub.SignatureAuditRequest request = new PowerAuthPortServiceStub.SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -857,7 +857,7 @@ public class PowerAuthServiceClient {
      * @return List of integrations.
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortServiceStub.Items_type1> getIntegrationList() throws RemoteException {
+    public List<PowerAuthPortServiceStub.Items_type2> getIntegrationList() throws RemoteException {
         PowerAuthPortServiceStub.GetIntegrationListRequest request = new PowerAuthPortServiceStub.GetIntegrationListRequest();
         return Arrays.asList(this.getIntegrationList(request).getItems());
     }

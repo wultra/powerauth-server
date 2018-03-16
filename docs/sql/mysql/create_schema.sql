@@ -124,3 +124,16 @@ CREATE TABLE pa_token (
   CONSTRAINT `FK_TOKEN_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Create table for activation changes
+--
+
+CREATE TABLE `pa_activation_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `activation_id` varchar(37) NOT NULL,
+  `activation_status` int(11) NOT NULL,
+  `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `K_HISTORY_ACTIVATION_ID` (`activation_id`),
+  CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

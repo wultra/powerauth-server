@@ -23,8 +23,6 @@ import io.getlime.security.powerauth.CreateOfflineSignaturePayloadResponse;
 import io.getlime.security.powerauth.SignatureType;
 import io.getlime.security.powerauth.VerifyOfflineSignatureResponse;
 import io.getlime.security.powerauth.VerifySignatureResponse;
-import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
@@ -32,6 +30,8 @@ import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -73,6 +73,8 @@ public class SignatureServiceBehavior {
 
     private AuditingServiceBehavior auditingServiceBehavior;
 
+    private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+
     private CallbackUrlBehavior callbackUrlBehavior;
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -93,6 +95,11 @@ public class SignatureServiceBehavior {
     @Autowired
     public void setAuditingServiceBehavior(AuditingServiceBehavior auditingServiceBehavior) {
         this.auditingServiceBehavior = auditingServiceBehavior;
+    }
+
+    @Autowired
+    public void setActivationServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
 
     @Autowired
@@ -334,6 +341,7 @@ public class SignatureServiceBehavior {
             Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
+                activationHistoryServiceBehavior.logActivationStatusChange(activation);
                 // notify callback listeners
                 notifyCallbackListeners = true;
             }
@@ -391,6 +399,7 @@ public class SignatureServiceBehavior {
         Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             notifyCallbackListeners = true;
         }
 

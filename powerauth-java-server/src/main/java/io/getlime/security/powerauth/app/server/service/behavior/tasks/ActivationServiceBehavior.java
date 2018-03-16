@@ -22,21 +22,21 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.GetActivationListForUserResponse.Activations;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.PowerAuthServiceImpl;
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
@@ -74,6 +74,8 @@ public class ActivationServiceBehavior {
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
+    private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+
     private LocalizationProvider localizationProvider;
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -97,6 +99,11 @@ public class ActivationServiceBehavior {
         this.localizationProvider = localizationProvider;
     }
 
+    @Autowired
+    public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
+    }
+
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
 
@@ -111,6 +118,7 @@ public class ActivationServiceBehavior {
         if ((activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED) || activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             repositoryCatalogue.getActivationRepository().save(activation);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
     }
@@ -127,6 +135,7 @@ public class ActivationServiceBehavior {
         if (devicePublicKey == null) { // invalid key was sent, return error
             activation.setActivationStatus(ActivationStatus.REMOVED);
             repositoryCatalogue.getActivationRepository().save(activation);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
@@ -457,6 +466,7 @@ public class ActivationServiceBehavior {
         activation.setTimestampLastUsed(timestamp);
         activation.setUserId(userId);
         activationRepository.save(activation);
+        activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
         // Return the server response
@@ -570,6 +580,7 @@ public class ActivationServiceBehavior {
         activation.setActivationName(activationName);
         activation.setExtras(extras);
         activationRepository.save(activation);
+        activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
         // Generate response data
@@ -703,6 +714,7 @@ public class ActivationServiceBehavior {
         activation.setActivationName(activationName);
         activation.setExtras(extras);
         activationRepository.save(activation);
+        activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
         // Generate response data
@@ -764,6 +776,7 @@ public class ActivationServiceBehavior {
             if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) {
                 activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
                 activationRepository.save(activation);
+                activationHistoryServiceBehavior.logActivationStatusChange(activation);
                 callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
                 CommitActivationResponse response = new CommitActivationResponse();
@@ -792,6 +805,7 @@ public class ActivationServiceBehavior {
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             repositoryCatalogue.getActivationRepository().save(activation);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);
@@ -820,6 +834,7 @@ public class ActivationServiceBehavior {
         if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED);
             repositoryCatalogue.getActivationRepository().save(activation);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
         BlockActivationResponse response = new BlockActivationResponse();
@@ -848,6 +863,7 @@ public class ActivationServiceBehavior {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
             activation.setFailedAttempts(0L);
             repositoryCatalogue.getActivationRepository().save(activation);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
         UnblockActivationResponse response = new UnblockActivationResponse();

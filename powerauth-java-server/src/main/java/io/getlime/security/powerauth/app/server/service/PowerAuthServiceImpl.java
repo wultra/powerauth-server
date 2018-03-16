@@ -18,11 +18,11 @@
 package io.getlime.security.powerauth.app.server.service;
 
 import io.getlime.security.powerauth.*;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
-import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
@@ -428,6 +428,19 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
+    }
+
+    @Override
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws Exception {
+        try {
+            String activationId = request.getActivationId();
+            Date startingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampFrom());
+            Date endingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampTo());
+            return behavior.getActivationHistoryServiceBehavior().getActivationHistory(activationId, startingDate, endingDate);
+        } catch (Exception ex) {
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override

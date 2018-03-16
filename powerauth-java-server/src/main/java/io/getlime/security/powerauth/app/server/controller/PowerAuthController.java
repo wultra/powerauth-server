@@ -264,6 +264,19 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#getActivationHistory(ActivationHistoryRequest)} method and
+     * return the response.
+     *
+     * @param request Activation history request.
+     * @return Activation history response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/history", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<ActivationHistoryResponse> getActivationHistory(@RequestBody RESTRequestWrapper<ActivationHistoryRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.getActivationHistory(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#blockActivation(BlockActivationRequest)} method and
      * return the response.
      *
