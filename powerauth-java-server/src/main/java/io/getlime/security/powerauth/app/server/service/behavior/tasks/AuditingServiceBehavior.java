@@ -19,9 +19,11 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.google.common.io.BaseEncoding;
+import io.getlime.security.powerauth.KeyValueMap;
 import io.getlime.security.powerauth.SignatureAuditResponse;
 import io.getlime.security.powerauth.SignatureType;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -48,6 +50,7 @@ public class AuditingServiceBehavior {
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private KeyValueMapConverter keyValueMapConverter = new KeyValueMapConverter();
 
     @Autowired
     public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository) {
@@ -83,6 +86,7 @@ public class AuditingServiceBehavior {
                 item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
                 item.setActivationCounter(signatureEntity.getActivationCounter());
                 item.setActivationStatus(activationStatusConverter.convert(signatureEntity.getActivationStatus()));
+                item.setAdditionalInfo(keyValueMapConverter.fromString(signatureEntity.getAdditionalInfo()));
                 item.setActivationId(signatureEntity.getActivation().getActivationId());
                 item.setDataBase64(signatureEntity.getDataBase64());
                 item.setSignature(signatureEntity.getSignature());
@@ -110,12 +114,13 @@ public class AuditingServiceBehavior {
      * @param note             Record additional info (for example, reason for signature validation failure)
      * @param currentTimestamp Record timestamp
      */
-    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, byte[] data, Boolean valid, String note, Date currentTimestamp) {
+    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, KeyValueMap additionalInfo, byte[] data, Boolean valid, String note, Date currentTimestamp) {
         // Audit the signature
         SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
+        signatureAuditRecord.setAdditionalInfo(keyValueMapConverter.toString(additionalInfo));
         signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(data));
         signatureAuditRecord.setSignature(signature);
         signatureAuditRecord.setSignatureType(signatureType.value());

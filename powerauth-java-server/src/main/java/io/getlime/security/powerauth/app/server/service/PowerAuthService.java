@@ -43,7 +43,7 @@ public interface PowerAuthService {
      * @return Activation list.
      * @throws Exception In case of a business logic error.
      */
-    GetActivationListForUserResponse getActivatioListForUser(GetActivationListForUserRequest request) throws Exception;
+    GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws Exception;
 
     /**
      * Get activation status for given activation ID.

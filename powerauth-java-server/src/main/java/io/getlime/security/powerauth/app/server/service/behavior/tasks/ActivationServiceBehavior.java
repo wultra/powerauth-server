@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.app.server.converter.ActivationStatusConver
 import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -175,6 +176,7 @@ public class ActivationServiceBehavior {
                 Activations activationServiceItem = new Activations();
                 activationServiceItem.setActivationId(activation.getActivationId());
                 activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                activationServiceItem.setBlockedReason(activation.getBlockedReason());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
@@ -241,6 +243,7 @@ public class ActivationServiceBehavior {
                 response.setActivationId(activationId);
                 response.setUserId(activation.getUserId());
                 response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                response.setBlockedReason(activation.getBlockedReason());
                 response.setActivationName(activation.getActivationName());
                 response.setExtras(activation.getExtras());
                 response.setApplicationId(activation.getApplication().getId());
@@ -296,6 +299,7 @@ public class ActivationServiceBehavior {
                 GetActivationStatusResponse response = new GetActivationStatusResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                response.setBlockedReason(activation.getBlockedReason());
                 response.setActivationName(activation.getActivationName());
                 response.setUserId(activation.getUserId());
                 response.setExtras(activation.getExtras());
@@ -324,6 +328,7 @@ public class ActivationServiceBehavior {
             GetActivationStatusResponse response = new GetActivationStatusResponse();
             response.setActivationId(activationId);
             response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+            response.setBlockedReason(null);
             response.setActivationName("unknown");
             response.setUserId("unknown");
             response.setApplicationId(0L);
@@ -820,10 +825,11 @@ public class ActivationServiceBehavior {
      * Block activation with given ID
      *
      * @param activationId Activation ID
+     * @param reason Reason why activation is being blocked.
      * @return Response confirming that activation was blocked
      * @throws GenericServiceException In case activation does not exist.
      */
-    public BlockActivationResponse blockActivation(String activationId) throws GenericServiceException {
+    public BlockActivationResponse blockActivation(String activationId, String reason) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findFirstByActivationId(activationId);
         if (activation == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -833,6 +839,11 @@ public class ActivationServiceBehavior {
         // early null check done above, no null check needed here
         if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED);
+            if (reason == null) {
+                activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_NOT_SPECIFIED);
+            } else {
+                activation.setBlockedReason(reason);
+            }
             repositoryCatalogue.getActivationRepository().save(activation);
             activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
@@ -840,6 +851,7 @@ public class ActivationServiceBehavior {
         BlockActivationResponse response = new BlockActivationResponse();
         response.setActivationId(activationId);
         response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+        response.setBlockedReason(activation.getBlockedReason());
         return response;
     }
 
@@ -861,6 +873,7 @@ public class ActivationServiceBehavior {
         if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED)) {
             // Update and store new activation
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
+            activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
             repositoryCatalogue.getActivationRepository().save(activation);
             activationHistoryServiceBehavior.logActivationStatusChange(activation);

@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service;
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -114,7 +115,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public GetActivationListForUserResponse getActivatioListForUser(GetActivationListForUserRequest request) throws Exception {
+    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws Exception {
         try {
             String userId = request.getUserId();
             Long applicationId = request.getApplicationId();
@@ -226,7 +227,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
     }
 
-    private VerifySignatureResponse verifySignatureImplNonTransaction(VerifySignatureRequest request) throws Exception {
+    private VerifySignatureResponse verifySignatureImplNonTransaction(VerifySignatureRequest request, KeyValueMap additionalInfo) throws Exception {
 
         // Get request data
         String activationId = request.getActivationId();
@@ -235,7 +236,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         String signature = request.getSignature();
         SignatureType signatureType = request.getSignatureType();
 
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, dataString, applicationKey, keyConversionUtilities);
+        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities);
 
     }
 
@@ -243,7 +244,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws Exception {
         try {
-            return this.verifySignatureImplNonTransaction(request);
+            return this.verifySignatureImplNonTransaction(request, null);
         } catch (Exception ex) {
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -309,7 +310,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     public BlockActivationResponse blockActivation(BlockActivationRequest request) throws Exception {
         try {
             String activationId = request.getActivationId();
-            return behavior.getActivationServiceBehavior().blockActivation(activationId);
+            String reason = request.getReason();
+            return behavior.getActivationServiceBehavior().blockActivation(activationId, reason);
         } catch (GenericServiceException ex) {
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
             throw ex;
@@ -346,6 +348,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String signature = request.getSignature();
             SignatureType signatureType = request.getSignatureType();
             String data = request.getData();
+            String reason = request.getReason();
 
             // Reject 1FA signatures.
             if (signatureType.equals(SignatureType.BIOMETRY)
@@ -354,6 +357,18 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
             }
 
+            // Save vault unlock reason into additional info which is logged in signature audit log.
+            // If value unlock reason is missing, use default NOT_SPECIFIED value.
+            KeyValueMap additionalInfo = new KeyValueMap();
+            KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            entry.setKey(AdditionalInformation.VAULT_UNLOCKED_REASON);
+            if (reason == null) {
+                entry.setValue(AdditionalInformation.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
+            } else {
+                entry.setValue(reason);
+            }
+            additionalInfo.getEntry().add(entry);
+
             // Verify the signature
             VerifySignatureRequest verifySignatureRequest = new VerifySignatureRequest();
             verifySignatureRequest.setActivationId(activationId);
@@ -361,7 +376,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             verifySignatureRequest.setData(data);
             verifySignatureRequest.setSignature(signature);
             verifySignatureRequest.setSignatureType(signatureType);
-            VerifySignatureResponse verifySignatureResponse = this.verifySignatureImplNonTransaction(verifySignatureRequest);
+            VerifySignatureResponse verifySignatureResponse = this.verifySignatureImplNonTransaction(verifySignatureRequest, additionalInfo);
 
             return behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, verifySignatureResponse.isSignatureValid(), keyConversionUtilities);
         } catch (GenericServiceException ex) {

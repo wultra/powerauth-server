@@ -20,10 +20,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.VaultUnlockResponse;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,6 +94,7 @@ public class VaultUnlockServiceBehavior {
                 VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
+                response.setBlockedReason(null);
                 response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
                 response.setSignatureValid(true);
                 response.setUserId(activation.getUserId());
@@ -112,6 +113,7 @@ public class VaultUnlockServiceBehavior {
                 VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                response.setBlockedReason(activation.getBlockedReason());
                 response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts() - activation.getFailedAttempts()));
                 response.setSignatureValid(false);
                 response.setUserId(activation.getUserId());
@@ -126,6 +128,7 @@ public class VaultUnlockServiceBehavior {
             VaultUnlockResponse response = new VaultUnlockResponse();
             response.setActivationId(activationId);
             response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+            response.setBlockedReason(null);
             response.setRemainingAttempts(BigInteger.valueOf(0));
             response.setSignatureValid(false);
             response.setUserId("UNKNOWN");
