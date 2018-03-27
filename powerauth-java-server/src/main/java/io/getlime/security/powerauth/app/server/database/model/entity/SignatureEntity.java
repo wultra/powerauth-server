@@ -51,6 +51,9 @@ public class SignatureEntity implements Serializable {
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
+    @Column(name = "additional_info", nullable = true)
+    private String additionalInfo;
+
     @Column(name = "data_base64", updatable = false)
     private String dataBase64;
 
@@ -85,11 +88,12 @@ public class SignatureEntity implements Serializable {
      * @param dataBase64        Data that were sent alongside the signature.
      * @param signatureType     Requested signature type.
      * @param signature         Signature value.
+     * @param additionalInfo    Additional information related to this signature.
      * @param note              Signature audit log note, with more information about the log reason.
      * @param valid             True if the signature was valid, false otherwise.
      * @param timestampCreated  Created timestapm.
      */
-    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String note, Boolean valid, Date timestampCreated) {
+    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String additionalInfo, String note, Boolean valid, Date timestampCreated) {
         super();
         this.id = id;
         this.activation = activation;
@@ -98,6 +102,7 @@ public class SignatureEntity implements Serializable {
         this.dataBase64 = dataBase64;
         this.signatureType = signatureType;
         this.signature = signature;
+        this.additionalInfo = additionalInfo;
         this.note = note;
         this.valid = valid;
         this.timestampCreated = timestampCreated;
@@ -248,6 +253,22 @@ public class SignatureEntity implements Serializable {
     }
 
     /**
+     * Get additional information related to this signature.
+     * @return Additional information.
+     */
+    public String getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    /**
+     * Set additional information related to this signature.
+     * @param additionalInfo Additional information.
+     */
+    public void setAdditionalInfo(String additionalInfo) {
+        this.additionalInfo = additionalInfo;
+    }
+
+    /**
      * Get if the signature was valid or not.
      *
      * @return Signature evaluation result.
@@ -293,6 +314,7 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.dataBase64);
         hash = 23 * hash + Objects.hashCode(this.signatureType);
         hash = 23 * hash + Objects.hashCode(this.signature);
+        hash = 23 * hash + Objects.hashCode(this.additionalInfo);
         hash = 23 * hash + Objects.hashCode(this.note);
         hash = 23 * hash + Objects.hashCode(this.valid);
         hash = 23 * hash + Objects.hashCode(this.timestampCreated);
@@ -318,6 +340,9 @@ public class SignatureEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.signature, other.signature)) {
+            return false;
+        }
+        if (!Objects.equals(this.additionalInfo, other.additionalInfo)) {
             return false;
         }
         if (!Objects.equals(this.id, other.id)) {
@@ -346,7 +371,7 @@ public class SignatureEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", valid=" + valid + ", note=" + note + ", timestampCreated=" + timestampCreated + '}';
+        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", note=" + note + ", timestampCreated=" + timestampCreated + '}';
     }
 
 }

@@ -420,12 +420,14 @@ public class PowerAuthServiceClient {
     /**
      * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
+     * @param reason Reason why activation is being blocked.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.BlockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortServiceStub.BlockActivationResponse blockActivation(String activationId) throws RemoteException {
+    public PowerAuthPortServiceStub.BlockActivationResponse blockActivation(String activationId, String reason) throws RemoteException {
         PowerAuthPortServiceStub.BlockActivationRequest request = new PowerAuthPortServiceStub.BlockActivationRequest();
         request.setActivationId(activationId);
+        request.setReason(reason);
         return this.blockActivation(request);
     }
 
@@ -468,16 +470,18 @@ public class PowerAuthServiceClient {
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param reason Reason why vault is being unlocked.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType) throws RemoteException {
+    public PowerAuthPortServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortServiceStub.SignatureType signatureType, String reason) throws RemoteException {
         PowerAuthPortServiceStub.VaultUnlockRequest request = new PowerAuthPortServiceStub.VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setReason(reason);
         return this.unlockVault(request);
     }
 
@@ -658,10 +662,10 @@ public class PowerAuthServiceClient {
      * @param userId User ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type0}
+     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type1}
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortServiceStub.Items_type0> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws RemoteException {
+    public List<PowerAuthPortServiceStub.Items_type1> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws RemoteException {
         PowerAuthPortServiceStub.SignatureAuditRequest request = new PowerAuthPortServiceStub.SignatureAuditRequest();
         request.setUserId(userId);
         request.setTimestampFrom(calendarWithDate(startingDate));
@@ -676,10 +680,10 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type0}
+     * @return List of signature audit items {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.Items_type1}
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortServiceStub.Items_type0> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws RemoteException {
+    public List<PowerAuthPortServiceStub.Items_type1> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws RemoteException {
         PowerAuthPortServiceStub.SignatureAuditRequest request = new PowerAuthPortServiceStub.SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -857,7 +861,7 @@ public class PowerAuthServiceClient {
      * @return List of integrations.
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortServiceStub.Items_type1> getIntegrationList() throws RemoteException {
+    public List<PowerAuthPortServiceStub.Items_type2> getIntegrationList() throws RemoteException {
         PowerAuthPortServiceStub.GetIntegrationListRequest request = new PowerAuthPortServiceStub.GetIntegrationListRequest();
         return Arrays.asList(this.getIntegrationList(request).getItems());
     }

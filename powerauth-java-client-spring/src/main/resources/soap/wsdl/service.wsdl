@@ -16,7 +16,9 @@
   ~ You should have received a copy of the GNU Affero General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
-<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:sch="http://getlime.io/security/powerauth" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://getlime.io/security/powerauth" targetNamespace="http://getlime.io/security/powerauth">
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:tns="http://getlime.io/security/powerauth"
+                  targetNamespace="http://getlime.io/security/powerauth">
     <wsdl:types>
         <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://getlime.io/security/powerauth" version="1.0">
 
@@ -424,6 +426,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="activationName" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
@@ -490,6 +493,7 @@
                                 <xs:sequence>
                                     <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="activationName" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
@@ -529,6 +533,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureValid" type="xs:boolean"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
@@ -592,6 +597,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureValid" type="xs:boolean"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
@@ -610,6 +616,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="reason" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -622,6 +629,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -664,6 +672,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="reason" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -677,6 +686,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="remainingAttempts" type="xs:integer"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureValid" type="xs:boolean"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedVaultEncryptionKey" type="xs:string"/>
@@ -741,11 +751,47 @@
                                     <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="activationCounter" type="xs:long"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="activationStatus" type="tns:ActivationStatus"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="additionalInfo" type="tns:KeyValueMap"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="dataBase64" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="note" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="valid" type="xs:boolean"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <!-- Activation Status Change Log //-->
+
+            <xs:element name="ActivationHistoryRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for getting the activation status change log.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="timestampFrom" type="xs:dateTime"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="timestampTo" type="xs:dateTime"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ActivationHistoryResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for getting the activation status change log.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="items">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="id" type="xs:long"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                 </xs:sequence>
                             </xs:complexType>
@@ -1090,6 +1136,19 @@
                 </xs:restriction>
             </xs:simpleType>
 
+            <xs:complexType name="KeyValueMap">
+                <xs:sequence>
+                    <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+                        <xs:complexType>
+                            <xs:sequence>
+                                <xs:element name="key" type="xs:string"/>
+                                <xs:element name="value" type="xs:string"/>
+                            </xs:sequence>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:sequence>
+            </xs:complexType>
+
         </xs:schema>
     </wsdl:types>
     <wsdl:message name="UnsupportApplicationVersionResponse">
@@ -1256,6 +1315,10 @@
         <wsdl:part element="tns:SignatureAuditResponse" name="SignatureAuditResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="ActivationHistoryResponse">
+        <wsdl:part element="tns:ActivationHistoryResponse" name="ActivationHistoryResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="RemoveCallbackUrlRequest">
         <wsdl:part element="tns:RemoveCallbackUrlRequest" name="RemoveCallbackUrlRequest">
         </wsdl:part>
@@ -1318,6 +1381,10 @@
     </wsdl:message>
     <wsdl:message name="SignatureAuditRequest">
         <wsdl:part element="tns:SignatureAuditRequest" name="SignatureAuditRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="ActivationHistoryRequest">
+        <wsdl:part element="tns:ActivationHistoryRequest" name="ActivationHistoryRequest">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="SupportApplicationVersionResponse">
@@ -1545,6 +1612,12 @@
             <wsdl:input message="tns:SignatureAuditRequest" name="SignatureAuditRequest">
             </wsdl:input>
             <wsdl:output message="tns:SignatureAuditResponse" name="SignatureAuditResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ActivationHistory">
+            <wsdl:input message="tns:ActivationHistoryRequest" name="ActivationHistoryRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:ActivationHistoryResponse" name="ActivationHistoryResponse">
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="RemoveCallbackUrl">
@@ -1844,6 +1917,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="SignatureAuditResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ActivationHistory">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="ActivationHistoryRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="ActivationHistoryResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

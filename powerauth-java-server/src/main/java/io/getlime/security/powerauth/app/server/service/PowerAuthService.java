@@ -43,7 +43,7 @@ public interface PowerAuthService {
      * @return Activation list.
      * @throws Exception In case of a business logic error.
      */
-    GetActivationListForUserResponse getActivatioListForUser(GetActivationListForUserRequest request) throws Exception;
+    GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws Exception;
 
     /**
      * Get activation status for given activation ID.
@@ -217,6 +217,15 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws Exception;
+
+    /**
+     * Get activation history.
+     *
+     * @param request Signature audit log request.
+     * @return Signature audit log response.
+     * @throws Exception In case of a business logic error.
+     */
+    ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws Exception;
 
     /**
      * Get all applications in the system.

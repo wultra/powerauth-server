@@ -155,7 +155,7 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#getActivatioListForUser(GetActivationListForUserRequest)} method and
+     * Call {@link PowerAuthService#getActivationListForUser(GetActivationListForUserRequest)} method and
      * return the response.
      *
      * @param request Activation list request.
@@ -165,7 +165,7 @@ public class PowerAuthEndpoint {
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetActivationListForUserRequest")
     @ResponsePayload
     public GetActivationListForUserResponse getActivatioListForUser(@RequestPayload GetActivationListForUserRequest request) throws Exception {
-        return powerAuthService.getActivatioListForUser(request);
+        return powerAuthService.getActivationListForUser(request);
     }
 
     /**
@@ -276,8 +276,22 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "SignatureAuditRequest")
     @ResponsePayload
-    public SignatureAuditResponse vaultUnlock(@RequestPayload SignatureAuditRequest request) throws Exception {
+    public SignatureAuditResponse getSignatureAuditLog(@RequestPayload SignatureAuditRequest request) throws Exception {
         return powerAuthService.getSignatureAuditLog(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#getActivationHistory(ActivationHistoryRequest)} method and
+     * return the response.
+     *
+     * @param request Activation history request.
+     * @return Activation history response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ActivationHistoryRequest")
+    @ResponsePayload
+    public ActivationHistoryResponse getActivationHistory(@RequestPayload ActivationHistoryRequest request) throws Exception {
+        return powerAuthService.getActivationHistory(request);
     }
 
     /**

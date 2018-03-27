@@ -46,6 +46,7 @@ CREATE TABLE `pa_activation` (
   `activation_id_short` varchar(255) NOT NULL,
   `activation_otp` varchar(255) NOT NULL,
   `activation_status` int(11) NOT NULL,
+  `blocked_reason` varchar(255) DEFAULT NULL,
   `activation_name` varchar(255) DEFAULT NULL,
   `application_id` bigint(20) NOT NULL,
   `user_id` varchar(255) NOT NULL,
@@ -74,6 +75,7 @@ CREATE TABLE `pa_signature_audit` (
   `activation_id` varchar(37) NOT NULL,
   `activation_counter` bigint(20) NOT NULL,
   `activation_status` int(11) NOT NULL,
+  `additional_info` varchar(255) DEFAULT NULL,
   `data_base64` text,
   `signature_type` varchar(255) NOT NULL,
   `signature` varchar(255) NOT NULL,
@@ -118,9 +120,22 @@ CREATE TABLE pa_token (
 	`token_secret` VARCHAR(255) NOT NULL,
 	`activation_id` VARCHAR(37) NOT NULL,
 	`signature_type` VARCHAR(255) NOT NULL,
-	`timestamp_created` DATETIME NOT NULL
+	`timestamp_created` DATETIME NOT NULL,
   PRIMARY KEY (`token_id`),
   KEY `K_TOKEN_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_TOKEN_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Create table for activation changes
+--
+
+CREATE TABLE `pa_activation_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `activation_id` varchar(37) NOT NULL,
+  `activation_status` int(11) NOT NULL,
+  `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `K_HISTORY_ACTIVATION_ID` (`activation_id`),
+  CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.soap.spring.client;
 
 import io.getlime.powerauth.soap.*;
 import io.getlime.powerauth.soap.GetActivationListForUserResponse.Activations;
-import io.getlime.powerauth.soap.SignatureAuditResponse.Items;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -316,11 +315,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
+     * @param reason Reason why activation is being blocked.
      * @return {@link BlockActivationResponse}
      */
-    public BlockActivationResponse blockActivation(String activationId) {
+    public BlockActivationResponse blockActivation(String activationId, String reason) {
         BlockActivationRequest request = new BlockActivationRequest();
         request.setActivationId(activationId);
+        request.setReason(reason);
         return this.blockActivation(request);
     }
 
@@ -360,15 +361,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param reason Reason why vault is being unlocked.
      * @return {@link VaultUnlockResponse}
      */
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType) {
+    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String reason) {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setReason(reason);
         return this.unlockVault(request);
     }
 
@@ -534,7 +537,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param userId User ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link Items}
+     * @return List of signature audit items {@link SignatureAuditResponse.Items}
      */
     public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) {
         SignatureAuditRequest request = new SignatureAuditRequest();
@@ -551,7 +554,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param applicationId Application ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link Items}
+     * @return List of signature audit items {@link SignatureAuditResponse.Items}
      */
     public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) {
         SignatureAuditRequest request = new SignatureAuditRequest();
@@ -560,6 +563,30 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setTimestampFrom(calendarWithDate(startingDate));
         request.setTimestampTo(calendarWithDate(endingDate));
         return this.getSignatureAuditLog(request).getItems();
+    }
+
+    /**
+     * Call the getActivationHistory method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link ActivationHistoryRequest} instance.
+     * @return {@link ActivationHistoryResponse}
+     */
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) {
+        return (ActivationHistoryResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Call the getActivationHistory method of the PowerAuth 2.0 Server SOAP interface.
+     * @param activationId Activation ID.
+     * @param startingDate Limit the results to given starting date (= "newer than")
+     * @param endingDate Limit the results to given ending date (= "older than")
+     * @return List of activation history items {@link ActivationHistoryResponse.Items}
+     */
+    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) {
+        ActivationHistoryRequest request = new ActivationHistoryRequest();
+        request.setActivationId(activationId);
+        request.setTimestampFrom(calendarWithDate(startingDate));
+        request.setTimestampTo(calendarWithDate(endingDate));
+        return this.getActivationHistory(request).getItems();
     }
 
     /**
