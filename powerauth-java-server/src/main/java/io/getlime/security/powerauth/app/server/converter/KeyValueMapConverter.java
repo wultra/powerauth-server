@@ -40,7 +40,7 @@ public class KeyValueMapConverter {
      * @return Constructed KeyValueMap.
      */
     public KeyValueMap fromString(String s) {
-        if (s == null) {
+        if (s == null || s.isEmpty()) {
             return new KeyValueMap();
         }
         try {
