@@ -470,7 +470,8 @@ public class ActivationServiceBehavior {
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
         activation.setUserId(userId);
-        activationRepository.save(activation);
+        // A reference to saved ActivationRecordEntity is required when logging activation status change, otherwise issue #57 occurs on Oracle.
+        activation = activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
