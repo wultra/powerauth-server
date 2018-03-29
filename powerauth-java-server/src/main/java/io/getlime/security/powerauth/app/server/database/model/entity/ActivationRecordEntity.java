@@ -30,7 +30,8 @@ import java.util.Objects;
  *
  * @author Petr Dvorak, petr@lime-company.eu
  */
-@Entity(name = "pa_activation")
+@Entity
+@Table(name = "pa_activation")
 public class ActivationRecordEntity implements Serializable {
 
     private static final long serialVersionUID = 7512286634644851705L;
