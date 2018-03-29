@@ -90,7 +90,7 @@ public class TokenBehavior {
             final SignatureType signatureType = request.getSignatureType();
 
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findFirstByActivationId(activationId);
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
             if (activation == null) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }

@@ -22,13 +22,13 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.GetNonPersonalizedEncryptionKeyResponse;
 import io.getlime.security.powerauth.GetPersonalizedEncryptionKeyResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -78,7 +78,7 @@ public class EncryptionServiceBehavior {
     public GetPersonalizedEncryptionKeyResponse generateEncryptionKeyForActivation(String activationId, String sessionIndex, CryptoProviderUtil keyConversionUtilities) throws Exception {
 
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ActivationRecordEntity activation = activationRepository.findFirstByActivationId(activationId);
+        final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
 
         // If there is no such activation or activation is not active, return error
         if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {

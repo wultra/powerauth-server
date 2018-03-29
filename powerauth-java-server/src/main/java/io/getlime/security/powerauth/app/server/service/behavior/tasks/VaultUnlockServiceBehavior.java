@@ -71,7 +71,7 @@ public class VaultUnlockServiceBehavior {
      */
     public VaultUnlockResponse unlockVault(String activationId, boolean isSignatureValid, CryptoProviderUtil keyConversionUtilities) throws InvalidKeySpecException, InvalidKeyException {
         // Find related activation record
-        ActivationRecordEntity activation = powerAuthRepository.findFirstByActivationId(activationId);
+        ActivationRecordEntity activation = powerAuthRepository.findActivation(activationId);
 
         if (activation != null && activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
