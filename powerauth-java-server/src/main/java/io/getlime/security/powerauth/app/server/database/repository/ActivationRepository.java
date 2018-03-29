@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 
@@ -45,7 +46,8 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation with given ID or null if not found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    ActivationRecordEntity findFirstByActivationId(String activationId);
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    ActivationRecordEntity findActivation(String activationId);
 
     /**
      * Find all activations for given user ID
@@ -77,6 +79,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation matching the search criteria or null if not found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    ActivationRecordEntity findFirstByApplicationIdAndActivationIdShortAndActivationStatusInAndTimestampActivationExpireAfter(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationIdShort = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    ActivationRecordEntity findCreatedActivation(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
 }

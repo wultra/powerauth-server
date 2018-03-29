@@ -209,7 +209,7 @@ public class ActivationServiceBehavior {
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
-        ActivationRecordEntity activation = activationRepository.findFirstByActivationId(activationId);
+        ActivationRecordEntity activation = activationRepository.findActivation(activationId);
 
         // Check if the activation exists
         if (activation != null) {
@@ -404,7 +404,7 @@ public class ActivationServiceBehavior {
         String activationId = null;
         for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
             String tmpActivationId = powerAuthServerActivation.generateActivationId();
-            ActivationRecordEntity record = activationRepository.findFirstByActivationId(tmpActivationId);
+            ActivationRecordEntity record = activationRepository.findActivation(tmpActivationId);
             if (record == null) {
                 activationId = tmpActivationId;
                 break;
@@ -419,7 +419,7 @@ public class ActivationServiceBehavior {
         Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED);
         for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
             String tmpActivationIdShort = powerAuthServerActivation.generateActivationIdShort();
-            ActivationRecordEntity record = activationRepository.findFirstByApplicationIdAndActivationIdShortAndActivationStatusInAndTimestampActivationExpireAfter(applicationId, tmpActivationIdShort, states, timestamp);
+            ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationIdShort, states, timestamp);
             // this activation short ID has a collision, reset it and find
             // another one
             if (record == null) {
@@ -528,7 +528,7 @@ public class ActivationServiceBehavior {
 
         // Fetch the current activation by short activation ID
         Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED);
-        ActivationRecordEntity activation = activationRepository.findFirstByApplicationIdAndActivationIdShortAndActivationStatusInAndTimestampActivationExpireAfter(application.getId(), activationIdShort, states, timestamp);
+        ActivationRecordEntity activation = activationRepository.findCreatedActivation(application.getId(), activationIdShort, states, timestamp);
 
         // Make sure to deactivate the activation if it is expired
         if (activation != null) {
@@ -674,7 +674,7 @@ public class ActivationServiceBehavior {
 
         // Create an activation record and obtain the activation database record
         InitActivationResponse initActivationResponse = this.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
-        ActivationRecordEntity activation = activationRepository.findFirstByActivationId(initActivationResponse.getActivationId());
+        ActivationRecordEntity activation = activationRepository.findActivation(initActivationResponse.getActivationId());
 
         // Get master private key
         String masterPrivateKeyBase64 = activation.getMasterKeyPair().getMasterKeyPrivateBase64();
@@ -764,7 +764,7 @@ public class ActivationServiceBehavior {
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        ActivationRecordEntity activation = activationRepository.findFirstByActivationId(activationId);
+        ActivationRecordEntity activation = activationRepository.findActivation(activationId);
 
         // Get current timestamp
         Date timestamp = new Date();
@@ -807,7 +807,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist
      */
     public RemoveActivationResponse removeActivation(String activationId) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findFirstByActivationId(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             repositoryCatalogue.getActivationRepository().save(activation);
@@ -831,7 +831,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public BlockActivationResponse blockActivation(String activationId, String reason) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findFirstByActivationId(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
         if (activation == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
@@ -864,7 +864,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public UnblockActivationResponse unblockActivation(String activationId) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findFirstByActivationId(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
         if (activation == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }

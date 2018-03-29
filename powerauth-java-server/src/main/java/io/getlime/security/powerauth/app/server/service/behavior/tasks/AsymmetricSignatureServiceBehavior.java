@@ -19,8 +19,8 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +60,7 @@ public class AsymmetricSignatureServiceBehavior {
      * @throws InvalidKeyException In case public key was corrupt.
      */
     public boolean verifyECDSASignature(String activationId, String data, String signature, CryptoProviderUtil keyConversionUtilities) throws InvalidKeySpecException, SignatureException, InvalidKeyException {
-        final ActivationRecordEntity activation = activationRepository.findFirstByActivationId(activationId);
+        final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
         byte[] devicePublicKeyData = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
         return signatureUtils.validateECDSASignature(BaseEncoding.base64().decode(data), BaseEncoding.base64().decode(signature), devicePublicKey);
