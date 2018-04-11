@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.Date;
@@ -38,7 +39,8 @@ public interface SignatureAuditRepository extends CrudRepository<SignatureEntity
      * @param endingDate   Ending date (date "to").
      * @return List of {@link SignatureEntity} instances.
      */
-    List<SignatureEntity> findByActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDescIdDesc(String userId, Date startingDate, Date endingDate);
+    @Query("SELECT s FROM SignatureEntity s WHERE s.activation.userId = ?1 AND s.timestampCreated BETWEEN ?2 AND ?3 ORDER BY s.timestampCreated DESC")
+    List<SignatureEntity> findSignatureAutitRecordsForUser(String userId, Date startingDate, Date endingDate);
 
     /**
      * Return signature audit records for given user, application and date range.
@@ -49,6 +51,7 @@ public interface SignatureAuditRepository extends CrudRepository<SignatureEntity
      * @param endingDate    Ending date (date "to").
      * @return List of {@link SignatureEntity} instances.
      */
-    List<SignatureEntity> findByActivation_ApplicationIdAndActivation_UserIdAndTimestampCreatedBetweenOrderByTimestampCreatedDescIdDesc(Long applicationId, String userId, Date startingDate, Date endingDate);
+    @Query("SELECT s FROM SignatureEntity s WHERE s.activation.application.id = ?1 AND s.activation.userId = ?2 AND s.timestampCreated BETWEEN ?3 AND ?4 ORDER BY s.timestampCreated DESC")
+    List<SignatureEntity> findSignatureAutitRecordsForApplicationAndUser(Long applicationId, String userId, Date startingDate, Date endingDate);
 
 }
