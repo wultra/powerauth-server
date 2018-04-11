@@ -30,7 +30,8 @@ import java.util.Objects;
  *
  * @author Petr Dvorak, petr@lime-company.eu
  */
-@Entity(name = "pa_signature_audit")
+@Entity
+@Table(name = "pa_signature_audit")
 public class SignatureEntity implements Serializable {
 
     private static final long serialVersionUID = 1930424474990335368L;
