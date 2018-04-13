@@ -30,6 +30,7 @@ import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +62,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     private LocalizationProvider localizationProvider;
 
+    private BuildProperties buildProperties;
+
     @Autowired
     public void setPowerAuthServiceConfiguration(PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
@@ -74,6 +77,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Autowired
     public void setLocalizationProvider(LocalizationProvider localizationProvider) {
         this.localizationProvider = localizationProvider;
+    }
+
+    @Autowired
+    public void setBuildProperties(BuildProperties buildProperties) {
+        this.buildProperties = buildProperties;
     }
 
     private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
@@ -90,6 +98,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         response.setApplicationName(powerAuthServiceConfiguration.getApplicationName());
         response.setApplicationDisplayName(powerAuthServiceConfiguration.getApplicationDisplayName());
         response.setApplicationEnvironment(powerAuthServiceConfiguration.getApplicationEnvironment());
+        response.setVersion(buildProperties.getVersion());
+        response.setBuildTime(XMLGregorianCalendarConverter.convertFrom(buildProperties.getTime()));
         response.setTimestamp(XMLGregorianCalendarConverter.convertFrom(new Date()));
         return response;
     }
