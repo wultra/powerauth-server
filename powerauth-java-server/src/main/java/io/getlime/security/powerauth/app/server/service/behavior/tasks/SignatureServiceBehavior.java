@@ -448,7 +448,7 @@ public class SignatureServiceBehavior {
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             String nonce = BaseEncoding.base64().encode(nonceBytes);
 
-            // Prepare the private key
+            // Prepare the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
             final String keyPrivateBase64 = activation.getServerPrivateKeyBase64();
             final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
 
@@ -491,7 +491,7 @@ public class SignatureServiceBehavior {
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             String nonce = BaseEncoding.base64().encode(nonceBytes);
 
-            // Prepare the private key
+            // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
 
