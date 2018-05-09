@@ -111,14 +111,24 @@ public interface PowerAuthService {
     VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws Exception;
 
     /**
-     * Generate data that is used as a challenge when computing offline signatures. It takes "data" and
-     * displayable message and computes data hash, nonce and ECDSA signature of the data.
+     * Generate data that is used as a challenge when computing personalized offline signatures. It takes "data" and
+     * generates nonce and ECDSA signature of the data.
      *
      * @param request Request with data and message to generate signature from.
-     * @return Resposne with offline signature data.
+     * @return Response with offline signature data.
      * @throws Exception In case of a business logic error.
      */
-    CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest request) throws Exception;
+    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws Exception;
+
+    /*
+     * Generate data that is used as a challenge when computing non-personalized offline signatures. It takes "data" and
+     * generates nonce and ECDSA signature of the data.
+     *
+     * @param request Request with data and message to generate signature from.
+     * @return Response with offline signature data.
+     * @throws Exception In case of a business logic error.
+     */
+    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws Exception;
 
     /**
      * Verify offline signature. Each call to this method

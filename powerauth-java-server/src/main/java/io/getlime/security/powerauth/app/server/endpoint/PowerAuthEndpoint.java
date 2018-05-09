@@ -183,17 +183,31 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest)} method and
+     * Call {@link PowerAuthService#createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest)} method and
      * return the response.
      *
-     * @param request Create offline signature data request.
-     * @return Create offline signature response.
+     * @param request Create personalized offline signature data request.
+     * @return Create personalized offline signature response.
      * @throws Exception In case the service throws exception.
      */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateOfflineSignaturePayloadRequest")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreatePersonalizedOfflineSignaturePayloadRequest")
     @ResponsePayload
-    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(@RequestPayload CreateOfflineSignaturePayloadRequest request) throws Exception {
-        return powerAuthService.createOfflineSignaturePayload(request);
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(@RequestPayload CreatePersonalizedOfflineSignaturePayloadRequest request) throws Exception {
+        return powerAuthService.createPersonalizedOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest)} method and
+     * return the response.
+     *
+     * @param request Create non-personalized offline signature data request.
+     * @return Create non-personalized offline signature response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateNonPersonalizedOfflineSignaturePayloadRequest")
+    @ResponsePayload
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(@RequestPayload CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws Exception {
+        return powerAuthService.createNonPersonalizedOfflineSignaturePayload(request);
     }
 
     /**

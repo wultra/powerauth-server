@@ -36,7 +36,6 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
@@ -66,6 +65,8 @@ import java.util.Objects;
 public class SignatureServiceBehavior {
 
     private static final String OFFLINE_MODE = "offline";
+    private static final String KEY_MASTER_SERVER_PRIVATE = "0";
+    private static final String KEY_SERVER_PRIVATE = "1";
 
     private RepositoryCatalogue repositoryCatalogue;
 
@@ -431,7 +432,7 @@ public class SignatureServiceBehavior {
         return notifyCallbackListeners;
     }
 
-    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
 
         // Fetch activation details from the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -440,8 +441,43 @@ public class SignatureServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
+        // Proceed and compute the results
+        try {
+
+            // Generate nonce
+            final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
+            String nonce = BaseEncoding.base64().encode(nonceBytes);
+
+            // Prepare the private key
+            final String keyPrivateBase64 = activation.getServerPrivateKeyBase64();
+            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
+
+            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE}'
+            final SignatureUtils signatureUtils = new SignatureUtils();
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE).getBytes("UTF-8");
+            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
+            final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
+
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE}{ECDSA_SIGNATURE}'
+            final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE + ecdsaSignature);
+
+            // Return the result
+            CreatePersonalizedOfflineSignaturePayloadResponse response = new CreatePersonalizedOfflineSignaturePayloadResponse();
+            response.setOfflineData(offlineData);
+            response.setNonce(nonce);
+            return response;
+
+        } catch (InvalidKeyException | InvalidKeySpecException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (SignatureException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
+        } catch (UnsupportedEncodingException e) {
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, e.getMessage(), e.getLocalizedMessage());
+        }
+    }
+
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         // Fetch associated master key pair data from the repository
-        final Long applicationId = activation.getApplication().getId();
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
         final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPair == null) {
@@ -455,27 +491,23 @@ public class SignatureServiceBehavior {
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             String nonce = BaseEncoding.base64().encode(nonceBytes);
 
-            // Compute data hash
-            final byte[] dataHashBytes = Hash.sha256(data);
-            String dataHash = BaseEncoding.base64().encode(dataHashBytes);
-
             // Prepare the private key
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
 
-            // Compute ECDSA signature of 'dataHash + "&" + nonce + "&" + message'
+            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (activationId + "&" + dataHash + "&" + nonce + "&" + message).getBytes("UTF-8");
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE).getBytes("UTF-8");
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE}{ECDSA_SIGNATURE}'
+            final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE + ecdsaSignature);
+
             // Return the result
-            CreateOfflineSignaturePayloadResponse response = new CreateOfflineSignaturePayloadResponse();
-            response.setData(data);
-            response.setMessage(message);
-            response.setDataHash(dataHash);
+            CreateNonPersonalizedOfflineSignaturePayloadResponse response = new CreateNonPersonalizedOfflineSignaturePayloadResponse();
+            response.setOfflineData(offlineData);
             response.setNonce(nonce);
-            response.setSignature(ecdsaSignature);
             return response;
 
         } catch (InvalidKeyException | InvalidKeySpecException e) {
