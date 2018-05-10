@@ -486,29 +486,51 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param data Data for offline signature.
-     * @param message Message displayed to the user during offline signature authentication.
-     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse}
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message) throws RemoteException {
-        PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest request = new PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest();
+    public PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws RemoteException {
+        PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest request = new PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(activationId);
         request.setData(data);
-        request.setMessage(message);
-        return createOfflineSignaturePayload(request);
+        return createPersonalizedOfflineSignaturePayload(request);
     }
 
     /**
-     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse}
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortServiceStub.CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(PowerAuthPortServiceStub.CreateOfflineSignaturePayloadRequest request) throws RemoteException {
-        return clientStub.createOfflineSignaturePayload(request);
+    public PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(PowerAuthPortServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest request) throws RemoteException {
+        return clientStub.createPersonalizedOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param applicationId Application ID.
+     * @param data Data for offline signature.
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws RemoteException {
+        PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest request = new PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest();
+        request.setApplicationId(applicationId);
+        request.setData(data);
+        return createNonPersonalizedOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(PowerAuthPortServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws RemoteException {
+        return clientStub.createNonPersonalizedOfflineSignaturePayload(request);
     }
 
     /**

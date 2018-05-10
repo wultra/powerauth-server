@@ -545,32 +545,54 @@
                 </xs:complexType>
             </xs:element>
 
-            <!-- Create offline signature payload //-->
+            <!-- Create personalized offline signature payload //-->
 
-            <xs:element name="CreateOfflineSignaturePayloadRequest">
+            <xs:element name="CreatePersonalizedOfflineSignaturePayloadRequest">
                 <xs:annotation>
-                    <xs:documentation>Request for generating signature payload for the offline signature.</xs:documentation>
+                    <xs:documentation>Request for generating personalized signature payload for the offline signature.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="message" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="CreateOfflineSignaturePayloadResponse">
+            <xs:element name="CreatePersonalizedOfflineSignaturePayloadResponse">
                 <xs:annotation>
-                    <xs:documentation>Response for generating signature payload for the offline signature.</xs:documentation>
+                    <xs:documentation>Response for generating personalized signature payload for the offline signature.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="message" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="dataHash" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="offlineData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="nonce" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <!-- Create non-personalized offline signature payload //-->
+
+            <xs:element name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for generating non-personalized signature payload for the offline signature.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for generating non-personalized signature payload for the offline signature.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="offlineData" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1249,8 +1271,12 @@
         <wsdl:part element="tns:GetErrorCodeListResponse" name="GetErrorCodeListResponse">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="CreateOfflineSignaturePayloadRequest">
-        <wsdl:part element="tns:CreateOfflineSignaturePayloadRequest" name="CreateOfflineSignaturePayloadRequest">
+    <wsdl:message name="CreatePersonalizedOfflineSignaturePayloadRequest">
+        <wsdl:part element="tns:CreatePersonalizedOfflineSignaturePayloadRequest" name="CreatePersonalizedOfflineSignaturePayloadRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
+        <wsdl:part element="tns:CreateNonPersonalizedOfflineSignaturePayloadRequest" name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="VerifyOfflineSignatureRequest">
@@ -1293,8 +1319,12 @@
         <wsdl:part element="tns:BlockActivationResponse" name="BlockActivationResponse">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="CreateOfflineSignaturePayloadResponse">
-        <wsdl:part element="tns:CreateOfflineSignaturePayloadResponse" name="CreateOfflineSignaturePayloadResponse">
+    <wsdl:message name="CreatePersonalizedOfflineSignaturePayloadResponse">
+        <wsdl:part element="tns:CreatePersonalizedOfflineSignaturePayloadResponse" name="CreatePersonalizedOfflineSignaturePayloadResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
+        <wsdl:part element="tns:CreateNonPersonalizedOfflineSignaturePayloadResponse" name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="VerifyECDSASignatureRequest">
@@ -1562,10 +1592,16 @@
             <wsdl:output message="tns:GetErrorCodeListResponse" name="GetErrorCodeListResponse">
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="CreateOfflineSignaturePayload">
-            <wsdl:input message="tns:CreateOfflineSignaturePayloadRequest" name="CreateOfflineSignaturePayloadRequest">
+        <wsdl:operation name="CreatePersonalizedOfflineSignaturePayload">
+            <wsdl:input message="tns:CreatePersonalizedOfflineSignaturePayloadRequest" name="CreatePersonalizedOfflineSignaturePayloadRequest">
             </wsdl:input>
-            <wsdl:output message="tns:CreateOfflineSignaturePayloadResponse" name="CreateOfflineSignaturePayloadResponse">
+            <wsdl:output message="tns:CreatePersonalizedOfflineSignaturePayloadResponse" name="CreatePersonalizedOfflineSignaturePayloadResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateNonPersonalizedOfflineSignaturePayload">
+            <wsdl:input message="tns:CreateNonPersonalizedOfflineSignaturePayloadRequest" name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:CreateNonPersonalizedOfflineSignaturePayloadResponse" name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="GetApplicationDetail">
@@ -1841,12 +1877,21 @@
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="CreateOfflineSignaturePayload">
+        <wsdl:operation name="CreatePersonalizedOfflineSignaturePayload">
             <soap:operation soapAction=""/>
-            <wsdl:input name="CreateOfflineSignaturePayloadRequest">
+            <wsdl:input name="CreatePersonalizedOfflineSignaturePayloadRequest">
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:output name="CreateOfflineSignaturePayloadResponse">
+            <wsdl:output name="CreatePersonalizedOfflineSignaturePayloadResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateNonPersonalizedOfflineSignaturePayload">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

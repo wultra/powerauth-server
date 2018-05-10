@@ -376,27 +376,47 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param data Data for offline signature.
-     * @param message Message displayed to the user during offline signature authentication.
-     * @return {@link io.getlime.powerauth.soap.CreateOfflineSignaturePayloadResponse}
+     * @return {@link io.getlime.powerauth.soap.CreatePersonalizedOfflineSignaturePayloadResponse}
      */
-    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message) {
-        CreateOfflineSignaturePayloadRequest request = new CreateOfflineSignaturePayloadRequest();
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) {
+        CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(activationId);
         request.setData(data);
-        request.setMessage(message);
-        return createOfflineSignaturePayload(request);
+        return createPersonalizedOfflineSignaturePayload(request);
     }
 
     /**
-     * Call the createOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.CreateOfflineSignaturePayloadRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.CreateOfflineSignaturePayloadResponse}
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.CreatePersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.CreatePersonalizedOfflineSignaturePayloadResponse}
      */
-    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest request) {
-        return (CreateOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) {
+        return (CreatePersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param applicationId Application ID.
+     * @param data Data for offline signature.
+     * @return {@link io.getlime.powerauth.soap.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     */
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) {
+        CreateNonPersonalizedOfflineSignaturePayloadRequest request = new CreateNonPersonalizedOfflineSignaturePayloadRequest();
+        request.setApplicationId(applicationId);
+        request.setData(data);
+        return createNonPersonalizedOfflineSignaturePayload(request);
+    }
+
+    /**
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     */
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) {
+        return (CreateNonPersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
     /**

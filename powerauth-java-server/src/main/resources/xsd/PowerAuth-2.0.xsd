@@ -547,32 +547,54 @@
     </xs:element>
 
 
-    <!-- Create offline signature payload //-->
+    <!-- Create personalized offline signature payload //-->
 
-    <xs:element name="CreateOfflineSignaturePayloadRequest">
+    <xs:element name="CreatePersonalizedOfflineSignaturePayloadRequest">
         <xs:annotation>
-            <xs:documentation>Request for generating signature payload for the offline signature.</xs:documentation>
+            <xs:documentation>Request for generating personalized signature payload for the offline signature.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="message" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="CreateOfflineSignaturePayloadResponse">
+    <xs:element name="CreatePersonalizedOfflineSignaturePayloadResponse">
         <xs:annotation>
-            <xs:documentation>Response for generating signature payload for the offline signature.</xs:documentation>
+            <xs:documentation>Response for generating personalized signature payload for the offline signature.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="message" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="dataHash" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="offlineData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create offline signature payload //-->
+
+    <xs:element name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
+        <xs:annotation>
+            <xs:documentation>Request for generating non-personalized signature payload for the offline signature.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
+        <xs:annotation>
+            <xs:documentation>Response for generating non-personalized signature payload for the offline signature.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="offlineData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

@@ -173,16 +173,29 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#createOfflineSignaturePayload(CreateOfflineSignaturePayloadRequest)} method and
+     * Call {@link PowerAuthService#createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest)} method and
      * return the response.
      *
-     * @param request Create offline signature data request.
-     * @return Create offline signature data response.
+     * @param request Create personalized offline signature data request.
+     * @return Create personalized offline signature data response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/signature/offline/create", method = RequestMethod.POST)
-    public @ResponseBody RESTResponseWrapper<CreateOfflineSignaturePayloadResponse> createOfflineSignaturePayload(@RequestBody RESTRequestWrapper<CreateOfflineSignaturePayloadRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createOfflineSignaturePayload(request.getRequestObject()));
+    @RequestMapping(value = "/signature/offline/personalized/create", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@RequestBody RESTRequestWrapper<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest)} method and
+     * return the response.
+     *
+     * @param request Create non-personalized offline signature data request.
+     * @return Create non-personalized offline signature data response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/signature/offline/non-personalized/create", method = RequestMethod.POST)
+    public @ResponseBody RESTResponseWrapper<CreateNonPersonalizedOfflineSignaturePayloadResponse> createNonPersonalizedOfflineSignaturePayload(@RequestBody RESTRequestWrapper<CreateNonPersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createNonPersonalizedOfflineSignaturePayload(request.getRequestObject()));
     }
 
     /**
