@@ -19,12 +19,13 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import io.getlime.security.powerauth.*;
-import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
-import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
+import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -95,12 +96,13 @@ public class IntegrationBehavior {
     public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) {
         RemoveIntegrationResponse response = new RemoveIntegrationResponse();
         response.setId(request.getId());
-        if (integrationRepository.findOne(request.getId()) != null) {
+        final Optional<IntegrationEntity> integrationEntityOptional = integrationRepository.findById(request.getId());
+        if (integrationEntityOptional.isPresent()) {
+            integrationRepository.delete(integrationEntityOptional.get());
             response.setRemoved(true);
         } else {
             response.setRemoved(false);
         }
-        integrationRepository.delete(request.getId());
         return response;
     }
 

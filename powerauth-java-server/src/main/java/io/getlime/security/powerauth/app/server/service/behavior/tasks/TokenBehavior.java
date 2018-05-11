@@ -48,6 +48,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
+import java.util.Optional;
 
 /**
  * Behavior that contains methods related to simple token-based authentication.
@@ -112,8 +113,8 @@ public class TokenBehavior {
             String tokenId = null;
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateTokenIdIterations(); i++) {
                 String tmpTokenId = tokenGenerator.generateTokenId();
-                final TokenEntity tmpToken = repositoryCatalogue.getTokenRepository().findOne(tmpTokenId);
-                if (tmpToken == null) {
+                final Optional<TokenEntity> tmpTokenOptional = repositoryCatalogue.getTokenRepository().findById(tmpTokenId);
+                if (!tmpTokenOptional.isPresent()) {
                     tokenId = tmpTokenId;
                     break;
                 } // ... else this token ID has a collision, reset it and try to find another one
@@ -171,10 +172,11 @@ public class TokenBehavior {
         final byte[] tokenDigest = BaseEncoding.base64().decode(request.getTokenDigest());
 
         // Lookup the token.
-        final TokenEntity token = repositoryCatalogue.getTokenRepository().findOne(tokenId);
-        if (token == null) {
+        final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
+        if (!tokenEntityOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_TOKEN);
         }
+        final TokenEntity token = tokenEntityOptional.get();
 
         // Check if the activation is in correct state
         final ActivationRecordEntity activation = token.getActivation();
@@ -212,12 +214,15 @@ public class TokenBehavior {
         String tokenId = request.getTokenId();
         boolean removed = false;
 
-        final TokenEntity token = repositoryCatalogue.getTokenRepository().findOne(tokenId);
+        final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
 
         // Token was found and activation ID corresponds to the correct user.
-        if (token != null && token.getActivation().getActivationId().equals(request.getActivationId())) {
-            repositoryCatalogue.getTokenRepository().delete(tokenId);
-            removed = true;
+        if (tokenEntityOptional.isPresent()) {
+            final TokenEntity token = tokenEntityOptional.get();
+            if (token.getActivation().getActivationId().equals(request.getActivationId())) {
+                repositoryCatalogue.getTokenRepository().delete(token);
+                removed = true;
+            }
         }
 
         RemoveTokenResponse response = new RemoveTokenResponse();

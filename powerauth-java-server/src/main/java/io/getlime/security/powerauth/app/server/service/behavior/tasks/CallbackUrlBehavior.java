@@ -19,21 +19,26 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import io.getlime.security.powerauth.*;
-import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
+import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
+import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.AsyncRestTemplate;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.time.Duration;
+import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Class that manages the service logic related to callback URL management.
@@ -42,6 +47,8 @@ import java.util.UUID;
  */
 @Component
 public class CallbackUrlBehavior {
+
+    private static final long NOTIFICATION_TIMEOUT_SECONDS = 600;
 
     private CallbackUrlRepository callbackUrlRepository;
 
@@ -61,6 +68,7 @@ public class CallbackUrlBehavior {
      * Creates a new callback URL record for application with given ID.
      * @param request Instance specifying parameters of the callback URL.
      * @return Newly created callback URL record.
+     * @throws GenericServiceException Thrown when callback URL in request is malformed.
      */
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
 
@@ -112,12 +120,13 @@ public class CallbackUrlBehavior {
     public RemoveCallbackUrlResponse removeIntegration(RemoveCallbackUrlRequest request) {
         RemoveCallbackUrlResponse response = new RemoveCallbackUrlResponse();
         response.setId(request.getId());
-        if (callbackUrlRepository.findOne(request.getId()) != null) {
+        final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
+        if (callbackUrlEntityOptional.isPresent()) {
+            callbackUrlRepository.delete(callbackUrlEntityOptional.get());
             response.setRemoved(true);
         } else {
             response.setRemoved(false);
         }
-        callbackUrlRepository.delete(request.getId());
         return response;
     }
 
@@ -126,14 +135,31 @@ public class CallbackUrlBehavior {
      * @param applicationId Application for the callbacks to be used.
      * @param activationId Activation ID to be notified about.
      */
+    @Async
     public void notifyCallbackListeners(Long applicationId, String activationId) {
         final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(applicationId);
         Map<String, String> callbackData = new HashMap<>();
         callbackData.put("activationId", activationId);
-        AsyncRestTemplate template = new AsyncRestTemplate();
+        List<Mono<ClientResponse>> responses = new ArrayList<>();
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
-            HttpEntity<Map<String,String>> request = new HttpEntity<>(callbackData);
-            template.postForEntity(callbackUrl.getCallbackUrl(), request, Map.class, new HashMap<>());
+            responses.add(WebClient
+                    .create()
+                    .post()
+                    .uri(callbackUrl.getCallbackUrl())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(BodyInserters.fromObject(callbackData))
+                    .exchange()
+                    .doOnSuccess(response -> {
+                        if (response.statusCode().isError()) {
+                            Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", status code: "+response.statusCode());
+                        }
+                    })
+                    .doOnError(error -> {
+                        Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", error: "+error.getMessage());
+                    }));
+        }
+        for (Mono<ClientResponse> response: responses) {
+            response.block(Duration.ofSeconds(NOTIFICATION_TIMEOUT_SECONDS));
         }
     }
 

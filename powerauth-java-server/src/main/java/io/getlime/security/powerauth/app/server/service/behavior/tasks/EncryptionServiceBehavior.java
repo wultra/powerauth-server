@@ -71,6 +71,7 @@ public class EncryptionServiceBehavior {
      * This method generates a derived transport key for the purpose of end-to-end encryption.
      * The response contains a derived key and index used to deduce it.
      * @param activationId Activation that is supposed to use encryption key.
+     * @param sessionIndex Optional session index.
      * @param keyConversionUtilities Key conversion utility class.
      * @return Response with a generated encryption key details.
      * @throws Exception In activation with given ID was not found or other business logic error.
@@ -125,6 +126,8 @@ public class EncryptionServiceBehavior {
      * This method generates a derived transport key for the purpose of end-to-end encryption.
      * The response contains a derived key and index used to deduce it.
      * @param applicationKey Application that is supposed to use encryption key.
+     * @param sessionIndexBase64 Optional base64-encoded session index.
+     * @param ephemeralPublicKeyBase64 Base64-encoded ephemeral public key.
      * @param keyConversionUtilities Key conversion utility class.
      * @return Response with a generated encryption key details.
      * @throws Exception In activation with given ID was not found or other business logic error.

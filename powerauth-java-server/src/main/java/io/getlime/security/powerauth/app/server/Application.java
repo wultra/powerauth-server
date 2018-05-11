@@ -20,6 +20,11 @@ package io.getlime.security.powerauth.app.server;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+
+import java.util.concurrent.Executor;
 
 /**
  * PowerAuth 2.0 Server main application class.
@@ -27,6 +32,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Petr Dvorak, petr@lime-company.eu
  */
 @SpringBootApplication
+@EnableAsync
 public class Application {
 
     /**
@@ -36,5 +42,13 @@ public class Application {
      */
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
+    }
+
+    @Bean
+    public Executor asyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setMaxPoolSize(5);
+        executor.initialize();
+        return executor;
     }
 }

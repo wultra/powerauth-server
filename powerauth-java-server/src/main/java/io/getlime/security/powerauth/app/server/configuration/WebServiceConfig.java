@@ -18,7 +18,6 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
