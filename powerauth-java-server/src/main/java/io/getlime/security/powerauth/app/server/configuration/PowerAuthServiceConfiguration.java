@@ -103,6 +103,24 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * Async task executor core pool size.
+     */
+    @Value("${powerauth.service.asyncExecutor.corePoolSize}")
+    private int corePoolSize;
+
+    /**
+     * Async task executor maximum pool size.
+     */
+    @Value("${powerauth.service.asyncExecutor.maxPoolSize}")
+    private int maxPoolSize;
+
+    /**
+     * Async task executor queue capacity.
+     */
+    @Value("${powerauth.service.asyncExecutor.queueCapacity}")
+    private int queueCapacity;
+
+    /**
      * Get application name, usually used as a "unique code" for the application within
      * a server infrastructure.
      *
@@ -272,6 +290,54 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSignatureValidationLookahead(long signatureValidationLookahead) {
         this.signatureValidationLookahead = signatureValidationLookahead;
+    }
+
+    /**
+     * Get async task executor core pool size.
+     * @return Core pool size.
+     */
+    public int getCorePoolSize() {
+        return corePoolSize;
+    }
+
+    /**
+     * Set async task executore core pool size.
+     * @param corePoolSize Core pool size.
+     */
+    public void setCorePoolSize(int corePoolSize) {
+        this.corePoolSize = corePoolSize;
+    }
+
+    /**
+     * Get async task executor maximum pool size.
+     * @return Maximum pool size.
+     */
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    /**
+     * Set async task executor maximum pool size.
+     * @param maxPoolSize Maximum pool size.
+     */
+    public void setMaxPoolSize(int maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    /**
+     * Get async task executor queue capacity.
+     * @return Async task executor queue capacity.
+     */
+    public int getQueueCapacity() {
+        return queueCapacity;
+    }
+
+    /**
+     * Set async task executor queue capacity.
+     * @param queueCapacity Async task executor queue capacity.
+     */
+    public void setQueueCapacity(int queueCapacity) {
+        this.queueCapacity = queueCapacity;
     }
 
     @Bean

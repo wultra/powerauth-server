@@ -219,6 +219,7 @@ public class PowerAuthServiceClient {
      * @param activationIdShort Short activation ID.
      * @param activationName Name of this activation.
      * @param activationNonce Activation nonce.
+     * @param ephemeralPublicKey Ephemeral public key.
      * @param applicationKey Application key of a given application.
      * @param applicationSignature Signature proving a correct application is sending the data.
      * @param cDevicePublicKey Device public key encrypted with activation OTP.
@@ -631,6 +632,7 @@ public class PowerAuthServiceClient {
      * Call the generateE2EPersonalziedEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
      * newly generated derived encryption key.
      * @param activationId Activation ID used for the key generation.
+     * @param sessionIndex Session index.
      * @return {@link io.getlime.powerauth.soap.PowerAuthPortServiceStub.GetPersonalizedEncryptionKeyResponse}
      * @throws RemoteException In case of a business logic error.
      */

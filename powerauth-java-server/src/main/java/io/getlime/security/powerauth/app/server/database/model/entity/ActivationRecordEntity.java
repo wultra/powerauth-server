@@ -122,6 +122,7 @@ public class ActivationRecordEntity implements Serializable {
      * @param timestampActivationExpire Activation completion expiration timestamp.
      * @param timestampLastUsed         Last signature timestamp.
      * @param activationStatus          Activation status.
+     * @param blockedReason             Reason why activation is blocked.
      * @param masterKeyPair             Associated master keypair.
      * @param application               Associated application.
      */

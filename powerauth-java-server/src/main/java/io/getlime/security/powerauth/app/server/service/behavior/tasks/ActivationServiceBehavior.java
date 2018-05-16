@@ -196,9 +196,10 @@ public class ActivationServiceBehavior {
      * @param activationId           Activation ID
      * @param keyConversionUtilities Key conversion utility class
      * @return Activation status response
-     * @throws DatatypeConfigurationException If calendar convert fails
-     * @throws InvalidKeySpecException        If invalid key is provided
-     * @throws InvalidKeyException            If invalid key is provided
+     * @throws DatatypeConfigurationException Thrown when calendar conversion fails.
+     * @throws InvalidKeySpecException        Thrown when invalid key is provided.
+     * @throws InvalidKeyException            Thrown when invalid key is provided.
+     * @throws GenericServiceException        Thrown when any other error occurs.
      */
     public GetActivationStatusResponse getActivationStatus(String activationId, CryptoProviderUtil keyConversionUtilities) throws DatatypeConfigurationException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
 
