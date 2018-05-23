@@ -139,10 +139,19 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
-            <plugin>
+
+            <!-- JAXB Maven plug-in does not work on JDK 9 yet. See: https://github.com/highsource/maven-jaxb2-plugin/issues/120 -->
+            <!--plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>1.6</version>
+                <version>2.4</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>javax.activation</groupId>
+                        <artifactId>javax.activation-api</artifactId>
+                        <version>1.2.0</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <id>xjc</id>
@@ -152,9 +161,74 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <schemaDirectory>${project.basedir}/src/main/resources/xsd/</schemaDirectory>
+                    <sources>
+                        <source>${project.basedir}/src/main/resources/xsd/</source>
+                    </sources>
+                </configuration>
+            </plugin-->
+
+            <!-- Workaround for generating sources from JAXB classes on JDK9 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <target>
+                                <echo message="Classes will be generated in ${project.build.directory}/generated-sources/jaxb"/>
+                                <mkdir dir="${project.build.directory}/generated-sources/jaxb"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>generate-schema-types</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <executable>xjc</executable>
+                    <arguments>
+                        <argument>-extension</argument>
+                        <argument>-d</argument>
+                        <argument>${project.build.directory}/generated-sources/jaxb</argument>
+                        <argument>${project.basedir}/src/main/resources/xsd/PowerAuth-2.0.xsd</argument>
+                    </arguments>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>include-generated-sources</id>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${project.basedir}/target/generated-sources/jaxb</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- End of JDK 9 JAXB class generation workaround -->
+
         </plugins>
     </build>
 
