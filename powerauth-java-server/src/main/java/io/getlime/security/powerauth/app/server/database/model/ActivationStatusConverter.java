@@ -33,7 +33,18 @@ public class ActivationStatusConverter implements AttributeConverter<ActivationS
 
     @Override
     public Integer convertToDatabaseColumn(ActivationStatus status) {
-        return new Integer(status.getByte());
+        switch (status) {
+            case CREATED:
+                return 1;
+            case OTP_USED:
+                return 2;
+            case ACTIVE:
+                return 3;
+            case BLOCKED:
+                return 4;
+            default:
+                return 5;
+        }
     }
 
     @Override

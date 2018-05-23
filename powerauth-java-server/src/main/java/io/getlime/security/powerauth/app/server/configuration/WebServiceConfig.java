@@ -113,11 +113,11 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @return New servlet registration with correct context.
      */
     @Bean
-    public ServletRegistrationBean messageDispatcherServlet(ApplicationContext applicationContext) {
+    public ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext applicationContext) {
         MessageDispatcherServlet servlet = new MessageDispatcherServlet();
         servlet.setApplicationContext(applicationContext);
         servlet.setTransformWsdlLocations(true);
-        return new ServletRegistrationBean(servlet, "/soap/*");
+        return new ServletRegistrationBean<>(servlet, "/soap/*");
     }
 
     /**
