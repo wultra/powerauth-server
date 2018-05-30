@@ -79,7 +79,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         this.localizationProvider = localizationProvider;
     }
 
-    @Autowired
+    @Autowired(required = false)
     public void setBuildProperties(BuildProperties buildProperties) {
         this.buildProperties = buildProperties;
     }
@@ -98,8 +98,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         response.setApplicationName(powerAuthServiceConfiguration.getApplicationName());
         response.setApplicationDisplayName(powerAuthServiceConfiguration.getApplicationDisplayName());
         response.setApplicationEnvironment(powerAuthServiceConfiguration.getApplicationEnvironment());
-        response.setVersion(buildProperties.getVersion());
-        response.setBuildTime(XMLGregorianCalendarConverter.convertFrom(Date.from(buildProperties.getTime())));
+        if (buildProperties != null) {
+            response.setVersion(buildProperties.getVersion());
+            response.setBuildTime(XMLGregorianCalendarConverter.convertFrom(Date.from(buildProperties.getTime())));
+        }
         response.setTimestamp(XMLGregorianCalendarConverter.convertFrom(new Date()));
         return response;
     }

@@ -121,6 +121,12 @@ public class PowerAuthServiceConfiguration {
     private int queueCapacity;
 
     /**
+     * Master DB encryption key.
+     */
+    @Value("${powerauth.server.db.master.encryption.key:#{null}}")
+    private String masterDbEncryptionKey;
+
+    /**
      * Get application name, usually used as a "unique code" for the application within
      * a server infrastructure.
      *
@@ -338,6 +344,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setQueueCapacity(int queueCapacity) {
         this.queueCapacity = queueCapacity;
+    }
+
+    /**
+     * Get master DB encryption key.
+     * @return Master DB encryption key.
+     */
+    public String getMasterDbEncryptionKey() {
+        return masterDbEncryptionKey;
+    }
+
+    /**
+     * Set master DB encryption key.
+     * @param masterDbEncryptionKey Master DB encryption key.
+     */
+    public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
+        this.masterDbEncryptionKey = masterDbEncryptionKey;
     }
 
     @Bean

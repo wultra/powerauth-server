@@ -22,10 +22,12 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -83,6 +85,7 @@ public class SignatureServiceBehavior {
     // Prepare converters
     private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
     public SignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {
@@ -106,6 +109,11 @@ public class SignatureServiceBehavior {
         this.callbackUrlBehavior = callbackUrlBehavior;
     }
 
+    @Autowired
+    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
     private final PowerAuthServerSignature powerAuthServerSignature = new PowerAuthServerSignature();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
@@ -123,10 +131,11 @@ public class SignatureServiceBehavior {
      * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
      * @throws InvalidKeySpecException      In case invalid key is provided.
      * @throws InvalidKeyException          In case invalid key is provided.
+     * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                    String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities, false);
     }
 
@@ -142,10 +151,11 @@ public class SignatureServiceBehavior {
      * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
      * @throws InvalidKeySpecException      In case invalid key is provided.
      * @throws InvalidKeyException          In case invalid key is provided.
+     * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, SignatureType signatureType, String signature,
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
 
         final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, keyConversionUtilities, true);
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
@@ -162,7 +172,7 @@ public class SignatureServiceBehavior {
 
     private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                     String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
 
@@ -301,9 +311,16 @@ public class SignatureServiceBehavior {
         return response;
     }
 
-    private ValidateSignatureResponse validateSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException {
+    private ValidateSignatureResponse validateSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException {
         // Get the server private and device public keys
-        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(activation.getServerPrivateKeyBase64());
+
+        // Decrypt server private key (depending on encryption mode)
+        String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+        KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+        String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+
+        // Decode the keys to byte[]
+        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
         byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
         PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -448,9 +465,13 @@ public class SignatureServiceBehavior {
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             String nonce = BaseEncoding.base64().encode(nonceBytes);
 
-            // Prepare the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
-            final String keyPrivateBase64 = activation.getServerPrivateKeyBase64();
-            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
+            // Decrypt server private key (depending on encryption mode)
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
+
+            // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
+            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE}'
             final SignatureUtils signatureUtils = new SignatureUtils();

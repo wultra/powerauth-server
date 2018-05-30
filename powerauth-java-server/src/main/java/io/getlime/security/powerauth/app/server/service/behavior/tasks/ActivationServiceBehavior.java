@@ -24,10 +24,13 @@ import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.GetActivationListForUserResponse.Activations;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -84,6 +87,8 @@ public class ActivationServiceBehavior {
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
+    private ServerPrivateKeyConverter serverPrivateKeyConverter;
+
     @Autowired
     public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
@@ -103,6 +108,11 @@ public class ActivationServiceBehavior {
     @Autowired
     public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
+    }
+
+    @Autowired
+    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -259,10 +269,13 @@ public class ActivationServiceBehavior {
 
             } else {
 
-                // Get the server private and device public keys to compute
-                // the transport key
-                String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
+                // Get the server private and device public keys to compute the transport key
                 String devicePublicKeyBase64 = activation.getDevicePublicKeyBase64();
+
+                // Decrypt server private key (depending on encryption mode)
+                String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+                KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+                String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
 
                 // If an activation was turned to REMOVED directly from CREATED state,
                 // there is not device public key in the database - we need to handle
@@ -465,12 +478,17 @@ public class ActivationServiceBehavior {
         activation.setApplication(masterKeyPair.getApplication());
         activation.setMasterKeyPair(masterKeyPair);
         activation.setMaxFailedAttempts(maxAttempt);
-        activation.setServerPrivateKeyBase64(BaseEncoding.base64().encode(serverKeyPrivateBytes));
         activation.setServerPublicKeyBase64(BaseEncoding.base64().encode(serverKeyPublicBytes));
         activation.setTimestampActivationExpire(timestampExpiration);
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
         activation.setUserId(userId);
+
+        // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
+        ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
+        activation.setServerPrivateKeyEncryption(serverPrivateKey.getKeyEncryptionMode());
+        activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
+
         // A reference to saved ActivationRecordEntity is required when logging activation status change, otherwise issue #57 occurs on Oracle.
         activation = activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);

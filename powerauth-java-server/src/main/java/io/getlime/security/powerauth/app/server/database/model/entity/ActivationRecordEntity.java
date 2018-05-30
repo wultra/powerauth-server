@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -89,6 +90,10 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "blocked_reason", nullable = true)
     private String blockedReason;
 
+    @Column(name = "server_private_key_encryption", nullable = false)
+    @Enumerated
+    private KeyEncryptionMode serverPrivateKeyEncryption;
+
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
     private ApplicationEntity application;
@@ -106,25 +111,26 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Constructor with all parameters.
      *
-     * @param activationId              Activation ID
-     * @param activationIdShort         Activation Id Short
-     * @param activationOTP             Activation OTP
-     * @param userId                    User Id
-     * @param activationName            Activation name
-     * @param extras                    Extra parameter
-     * @param serverPrivateKeyBase64    Server private key encoded as Base64
-     * @param serverPublicKeyBase64     Server public key encoded as Base64.
-     * @param devicePublicKeyBase64     device public key encoded as Base64.
-     * @param counter                   Counter
-     * @param failedAttempts            Current failed attempt count.
-     * @param maxFailedAttempts         Maximum allowed failed attempt count.
-     * @param timestampCreated          Created timestamp.
-     * @param timestampActivationExpire Activation completion expiration timestamp.
-     * @param timestampLastUsed         Last signature timestamp.
-     * @param activationStatus          Activation status.
-     * @param blockedReason             Reason why activation is blocked.
-     * @param masterKeyPair             Associated master keypair.
-     * @param application               Associated application.
+     * @param activationId               Activation ID
+     * @param activationIdShort          Activation Id Short
+     * @param activationOTP              Activation OTP
+     * @param userId                     User Id
+     * @param activationName             Activation name
+     * @param extras                     Extra parameter
+     * @param serverPrivateKeyBase64     Server private key encoded as Base64
+     * @param serverPublicKeyBase64      Server public key encoded as Base64.
+     * @param devicePublicKeyBase64      Device public key encoded as Base64.
+     * @param counter                    Counter
+     * @param failedAttempts             Current failed attempt count.
+     * @param maxFailedAttempts          Maximum allowed failed attempt count.
+     * @param timestampCreated           Created timestamp.
+     * @param timestampActivationExpire  Activation completion expiration timestamp.
+     * @param timestampLastUsed          Last signature timestamp.
+     * @param activationStatus           Activation status.
+     * @param blockedReason              Reason why activation is blocked.
+     * @param serverPrivateKeyEncryption Mode of server private key encryption (null = none, 1 = AES).
+     * @param masterKeyPair              Associated master keypair.
+     * @param application                Associated application.
      */
     public ActivationRecordEntity(String activationId,
                                   String activationIdShort,
@@ -143,6 +149,7 @@ public class ActivationRecordEntity implements Serializable {
                                   Date timestampLastUsed,
                                   ActivationStatus activationStatus,
                                   String blockedReason,
+                                  KeyEncryptionMode serverPrivateKeyEncryption,
                                   MasterKeyPairEntity masterKeyPair,
                                   ApplicationEntity application) {
         super();
@@ -163,6 +170,7 @@ public class ActivationRecordEntity implements Serializable {
         this.timestampLastUsed = timestampLastUsed;
         this.activationStatus = activationStatus;
         this.blockedReason = blockedReason;
+        this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
         this.masterKeyPair = masterKeyPair;
         this.application = application;
     }
@@ -473,6 +481,22 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setBlockedReason(String blockedReason) {
         this.blockedReason = blockedReason;
+    }
+
+    /**
+     * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES).
+     * @return Mode of server private key encryption.
+     */
+    public KeyEncryptionMode getServerPrivateKeyEncryption() {
+        return serverPrivateKeyEncryption;
+    }
+
+    /**
+     * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES).
+     * @param serverPrivateKeyEncryption Mode of server private key encryption.
+     */
+    public void setServerPrivateKeyEncryption(KeyEncryptionMode serverPrivateKeyEncryption) {
+        this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
     }
 
     /**
