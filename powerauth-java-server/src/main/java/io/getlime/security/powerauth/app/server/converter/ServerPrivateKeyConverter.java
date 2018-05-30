@@ -101,6 +101,12 @@ public class ServerPrivateKeyConverter {
                     // Base64-decode server private key
                     byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
 
+                    // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
+                    if (serverPrivateKey == null || serverPrivateKey.length < 16) {
+                        Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error("Invalid encrypted private key format - the byte array is too short.");
+                        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+                    }
+
                     // IV is present in first 16 bytes
                     byte[] iv = Arrays.copyOfRange(serverPrivateKey, 0, 16);
 
@@ -113,12 +119,13 @@ public class ServerPrivateKeyConverter {
                     // Base64-encode decrypted serverPrivateKey
                     return BaseEncoding.base64().encode(decryptedServerPrivateKey);
 
-                } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException ex) {
+                } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException | IllegalArgumentException ex) {
                     Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
                     throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
                 }
 
             default:
+                Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error("Unknown encryption mode provided: " + keyEncryptionMode.getValue());
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
     }
@@ -165,14 +172,17 @@ public class ServerPrivateKeyConverter {
             // Return encrypted record including encryption mode
             return new ServerPrivateKey(KeyEncryptionMode.AES, encryptedKeyBase64);
 
-        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IOException ex) {
+        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException | IOException ex) {
             Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         }
     }
 
     /**
-     * Derive secret key from master DB encryption key, user ID and activation ID.
+     * Derive secret key from master DB encryption key, user ID and activation ID.<br/>
+     * <br/>
+     * See: https://github.com/lime-company/powerauth-server/wiki/Encrypting-Records-in-Database
+     *
      * @param masterDbEncryptionKey Master DB encryption key.
      * @param userId User ID used for secret key derivation as salt.
      * @param activationId Activation ID used for secret key derivation as password.
@@ -180,15 +190,18 @@ public class ServerPrivateKeyConverter {
      */
     private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
         try {
-            // See: https://github.com/lime-company/powerauth-server/issues/39
-            // activationId is used as base for PBKDF2 function
-            String base = activationId;
-            // userId is used as salt
+            // Use user ID as a salt
             byte[] salt = userId.getBytes("UTF-8");
+
             // Derive index using PBKDF2 function
-            byte[] index = keyGenerator.deriveSecretKeyFromPassword(base, salt).getEncoded();
+            final SecretKey secretKey = keyGenerator.deriveSecretKeyFromPassword(activationId, salt);
+
+            // Convert the key to byte[] to obtain KDF index
+            byte[] index = keyConversionUtilities.convertSharedSecretKeyToBytes(secretKey);
+
             // Derive secretKey from master DB encryption key using KDF_INTERNAL with previously derived index
             return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);
+
         } catch (UnsupportedEncodingException ex) {
             Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
             return null;
