@@ -127,9 +127,19 @@ public class ServiceError {
     public static final String DECRYPTION_FAILED = "ERR0018";
 
     /**
-     * Token was not successfully generated
+     * Token was not successfully generated.
      */
     public static final String UNABLE_TO_GENERATE_TOKEN = "ERR0019";
+
+    /**
+     * Master DB encryption key is not configured.
+     */
+    public static final String MISSING_MASTER_DB_ENCRYPTION_KEY = "ERR0020";
+
+    /**
+     * Unsupported encryption mode.
+     */
+    public static final String UNSUPPORTED_ENCRYPTION_MODE = "ERR0021";
 
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);
@@ -153,6 +163,8 @@ public class ServiceError {
         list.add(ENCRYPTION_FAILED);
         list.add(DECRYPTION_FAILED);
         list.add(UNABLE_TO_GENERATE_TOKEN);
+        list.add(MISSING_MASTER_DB_ENCRYPTION_KEY);
+        list.add(UNSUPPORTED_ENCRYPTION_MODE);
         return list;
     }
 
