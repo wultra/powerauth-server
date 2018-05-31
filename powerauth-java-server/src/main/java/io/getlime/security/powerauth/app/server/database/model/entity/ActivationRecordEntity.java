@@ -128,7 +128,7 @@ public class ActivationRecordEntity implements Serializable {
      * @param timestampLastUsed          Last signature timestamp.
      * @param activationStatus           Activation status.
      * @param blockedReason              Reason why activation is blocked.
-     * @param serverPrivateKeyEncryption Mode of server private key encryption (null = none, 1 = AES).
+     * @param serverPrivateKeyEncryption Mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_PBKDF2_500000).
      * @param masterKeyPair              Associated master keypair.
      * @param application                Associated application.
      */
@@ -484,7 +484,7 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
-     * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES).
+     * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_PBKDF2_500000).
      * @return Mode of server private key encryption.
      */
     public KeyEncryptionMode getServerPrivateKeyEncryption() {
@@ -492,7 +492,7 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
-     * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES).
+     * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_PBKDF2_500000).
      * @param serverPrivateKeyEncryption Mode of server private key encryption.
      */
     public void setServerPrivateKeyEncryption(KeyEncryptionMode serverPrivateKeyEncryption) {
@@ -560,6 +560,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.timestampLastUsed);
         hash = 71 * hash + Objects.hashCode(this.activationStatus);
         hash = 71 * hash + Objects.hashCode(this.blockedReason);
+        hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyEncryption);
         hash = 71 * hash + Objects.hashCode(this.application);
         hash = 71 * hash + Objects.hashCode(this.masterKeyPair);
         return hash;
@@ -625,6 +626,9 @@ public class ActivationRecordEntity implements Serializable {
         if (!Objects.equals(this.blockedReason, other.blockedReason)) {
             return false;
         }
+        if (!Objects.equals(this.serverPrivateKeyEncryption, other.serverPrivateKeyEncryption)) {
+            return false;
+        }
         if (!Objects.equals(this.application, other.application)) {
             return false;
         }
@@ -642,7 +646,6 @@ public class ActivationRecordEntity implements Serializable {
                 + ", activationOTP=" + activationOTP
                 + ", userId=" + userId
                 + ", clientName=" + activationName
-                + ", serverPrivateKeyBase64=" + serverPrivateKeyBase64
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter

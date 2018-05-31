@@ -22,7 +22,7 @@ package io.getlime.security.powerauth.app.server.database.model;
  * Enum representing server private key encryption modes. Following values are supported:
  * <p>
  * - NO_ENCRYPTION = 0
- * - AES = 1
+ * - AES_PBKDF2_500000 = 1
  * </p>
  *
  * @author Roman Strobl, roman.strobl@lime-company.eu
@@ -35,9 +35,9 @@ public enum KeyEncryptionMode {
     NO_ENCRYPTION((byte) 0),
 
     /**
-     * AES encryption.
+     * AES encryption with PBKDF2 using 500000 iterations.
      */
-    AES((byte) 1);
+    AES_PBKDF2_500000((byte) 1);
 
     /**
      * Byte value of key encryption mode.

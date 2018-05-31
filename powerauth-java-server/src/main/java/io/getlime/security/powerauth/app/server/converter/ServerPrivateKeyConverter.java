@@ -83,7 +83,7 @@ public class ServerPrivateKeyConverter {
             case NO_ENCRYPTION:
                 return serverPrivateKeyBase64;
 
-            case AES:
+            case AES_PBKDF2_500000:
                 String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
                 // In case master DB encryption key does not exist, do not encrypt the server private key
@@ -170,7 +170,7 @@ public class ServerPrivateKeyConverter {
             String encryptedKeyBase64 = BaseEncoding.base64().encode(record);
 
             // Return encrypted record including encryption mode
-            return new ServerPrivateKey(KeyEncryptionMode.AES, encryptedKeyBase64);
+            return new ServerPrivateKey(KeyEncryptionMode.AES_PBKDF2_500000, encryptedKeyBase64);
 
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException | IOException ex) {
             Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
@@ -194,7 +194,7 @@ public class ServerPrivateKeyConverter {
             byte[] salt = userId.getBytes("UTF-8");
 
             // Derive index using PBKDF2 function
-            final SecretKey secretKey = keyGenerator.deriveSecretKeyFromPassword(activationId, salt);
+            final SecretKey secretKey = keyGenerator.deriveSecretKeyFromPassword(activationId, salt, powerAuthServiceConfiguration.getPbkdf2Iterations());
 
             // Convert the key to byte[] to obtain KDF index
             byte[] index = keyConversionUtilities.convertSharedSecretKeyToBytes(secretKey);

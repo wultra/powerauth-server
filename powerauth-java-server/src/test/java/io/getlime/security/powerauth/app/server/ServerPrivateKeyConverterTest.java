@@ -42,7 +42,7 @@ public class ServerPrivateKeyConverterTest {
     public void testEncryptionAndDecryptionSuccess() throws Exception {
         byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
         ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes,"test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-        String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+        String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES_PBKDF2_500000, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         assertEquals(SERVER_PRIVATE_KEY_PLAIN, serverPrivateKeyActual);
     }
 
@@ -51,7 +51,7 @@ public class ServerPrivateKeyConverterTest {
         assertThrows(GenericServiceException.class, ()-> {
             byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
             ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-            serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test2", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+            serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES_PBKDF2_500000, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test2", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         });
     }
 
@@ -60,7 +60,7 @@ public class ServerPrivateKeyConverterTest {
         assertThrows(GenericServiceException.class, ()-> {
             byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
             ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-            serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test", "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+            serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES_PBKDF2_500000, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test", "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         });
     }
 

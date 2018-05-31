@@ -123,8 +123,14 @@ public class PowerAuthServiceConfiguration {
     /**
      * Master DB encryption key.
      */
-    @Value("${powerauth.server.db.master.encryption.key:#{null}}")
+    @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
+
+    /**
+     * PBKDF2 iteration count for deriving encryption secret key.
+     */
+    @Value("${powerauth.server.crypto.pbkdf2.iterations}")
+    private int pbkdf2Iterations;
 
     /**
      * Get application name, usually used as a "unique code" for the application within
@@ -360,6 +366,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
+    }
+
+    /**
+     * Get number of iterations for PBKDF2 key derivation function.
+     * @return Number of iterations for PBKDF2 key derivation function.
+     */
+    public int getPbkdf2Iterations() {
+        return pbkdf2Iterations;
+    }
+
+    /**
+     * Set number of interations for PBKDF2 key derivation function.
+     * @param pbkdf2Iterations Number of iterations for PBKDF2 key derivation function.
+     */
+    public void setPbkdf2Iterations(int pbkdf2Iterations) {
+        this.pbkdf2Iterations = pbkdf2Iterations;
     }
 
     @Bean
