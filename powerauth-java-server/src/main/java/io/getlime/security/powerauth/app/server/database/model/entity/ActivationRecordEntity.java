@@ -128,7 +128,7 @@ public class ActivationRecordEntity implements Serializable {
      * @param timestampLastUsed          Last signature timestamp.
      * @param activationStatus           Activation status.
      * @param blockedReason              Reason why activation is blocked.
-     * @param serverPrivateKeyEncryption Mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_PBKDF2_500000).
+     * @param serverPrivateKeyEncryption Mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
      * @param masterKeyPair              Associated master keypair.
      * @param application                Associated application.
      */
@@ -484,7 +484,7 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
-     * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_PBKDF2_500000).
+     * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
      * @return Mode of server private key encryption.
      */
     public KeyEncryptionMode getServerPrivateKeyEncryption() {
@@ -492,7 +492,7 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
-     * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_PBKDF2_500000).
+     * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
      * @param serverPrivateKeyEncryption Mode of server private key encryption.
      */
     public void setServerPrivateKeyEncryption(KeyEncryptionMode serverPrivateKeyEncryption) {
