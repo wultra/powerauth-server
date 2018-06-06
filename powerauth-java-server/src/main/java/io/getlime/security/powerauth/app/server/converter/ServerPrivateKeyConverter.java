@@ -38,7 +38,6 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -83,7 +82,7 @@ public class ServerPrivateKeyConverter {
             case NO_ENCRYPTION:
                 return serverPrivateKeyBase64;
 
-            case AES_PBKDF2_500000:
+            case AES_HMAC:
                 String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
                 // In case master DB encryption key does not exist, do not encrypt the server private key
@@ -170,7 +169,7 @@ public class ServerPrivateKeyConverter {
             String encryptedKeyBase64 = BaseEncoding.base64().encode(record);
 
             // Return encrypted record including encryption mode
-            return new ServerPrivateKey(KeyEncryptionMode.AES_PBKDF2_500000, encryptedKeyBase64);
+            return new ServerPrivateKey(KeyEncryptionMode.AES_HMAC, encryptedKeyBase64);
 
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException | IOException ex) {
             Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
@@ -184,28 +183,16 @@ public class ServerPrivateKeyConverter {
      * See: https://github.com/lime-company/powerauth-server/wiki/Encrypting-Records-in-Database
      *
      * @param masterDbEncryptionKey Master DB encryption key.
-     * @param userId User ID used for secret key derivation as salt.
-     * @param activationId Activation ID used for secret key derivation as password.
+     * @param userId User ID.
+     * @param activationId Activation ID.
      * @return Derived secret key.
      */
     private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
-        try {
-            // Use user ID as a salt
-            byte[] salt = userId.getBytes("UTF-8");
+        // Use concatenated user ID and activation ID bytes as index for KDF_INTERNAL
+        byte[] index = (userId + "&" + activationId).getBytes();
 
-            // Derive index using PBKDF2 function
-            final SecretKey secretKey = keyGenerator.deriveSecretKeyFromPassword(activationId, salt, powerAuthServiceConfiguration.getPbkdf2Iterations());
-
-            // Convert the key to byte[] to obtain KDF index
-            byte[] index = keyConversionUtilities.convertSharedSecretKeyToBytes(secretKey);
-
-            // Derive secretKey from master DB encryption key using KDF_INTERNAL with previously derived index
-            return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);
-
-        } catch (UnsupportedEncodingException ex) {
-            Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
-            return null;
-        }
+        // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
+        return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);
     }
 
 
