@@ -103,34 +103,10 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
-     * Async task executor core pool size.
-     */
-    @Value("${powerauth.service.asyncExecutor.corePoolSize}")
-    private int corePoolSize;
-
-    /**
-     * Async task executor maximum pool size.
-     */
-    @Value("${powerauth.service.asyncExecutor.maxPoolSize}")
-    private int maxPoolSize;
-
-    /**
-     * Async task executor queue capacity.
-     */
-    @Value("${powerauth.service.asyncExecutor.queueCapacity}")
-    private int queueCapacity;
-
-    /**
      * Master DB encryption key.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
-
-    /**
-     * PBKDF2 iteration count for deriving encryption secret key.
-     */
-    @Value("${powerauth.server.crypto.pbkdf2.iterations}")
-    private int pbkdf2Iterations;
 
     /**
      * Get application name, usually used as a "unique code" for the application within
@@ -305,54 +281,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get async task executor core pool size.
-     * @return Core pool size.
-     */
-    public int getCorePoolSize() {
-        return corePoolSize;
-    }
-
-    /**
-     * Set async task executore core pool size.
-     * @param corePoolSize Core pool size.
-     */
-    public void setCorePoolSize(int corePoolSize) {
-        this.corePoolSize = corePoolSize;
-    }
-
-    /**
-     * Get async task executor maximum pool size.
-     * @return Maximum pool size.
-     */
-    public int getMaxPoolSize() {
-        return maxPoolSize;
-    }
-
-    /**
-     * Set async task executor maximum pool size.
-     * @param maxPoolSize Maximum pool size.
-     */
-    public void setMaxPoolSize(int maxPoolSize) {
-        this.maxPoolSize = maxPoolSize;
-    }
-
-    /**
-     * Get async task executor queue capacity.
-     * @return Async task executor queue capacity.
-     */
-    public int getQueueCapacity() {
-        return queueCapacity;
-    }
-
-    /**
-     * Set async task executor queue capacity.
-     * @param queueCapacity Async task executor queue capacity.
-     */
-    public void setQueueCapacity(int queueCapacity) {
-        this.queueCapacity = queueCapacity;
-    }
-
-    /**
      * Get master DB encryption key.
      * @return Master DB encryption key.
      */
@@ -366,22 +294,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
-    }
-
-    /**
-     * Get number of iterations for PBKDF2 key derivation function.
-     * @return Number of iterations for PBKDF2 key derivation function.
-     */
-    public int getPbkdf2Iterations() {
-        return pbkdf2Iterations;
-    }
-
-    /**
-     * Set number of interations for PBKDF2 key derivation function.
-     * @param pbkdf2Iterations Number of iterations for PBKDF2 key derivation function.
-     */
-    public void setPbkdf2Iterations(int pbkdf2Iterations) {
-        this.pbkdf2Iterations = pbkdf2Iterations;
     }
 
     @Bean

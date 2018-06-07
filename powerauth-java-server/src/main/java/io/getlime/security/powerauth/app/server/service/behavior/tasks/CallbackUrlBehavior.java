@@ -26,17 +26,18 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Duration;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,15 +49,16 @@ import java.util.logging.Logger;
 @Component
 public class CallbackUrlBehavior {
 
-    private static final long NOTIFICATION_TIMEOUT_SECONDS = 600;
-
     private CallbackUrlRepository callbackUrlRepository;
 
     private LocalizationProvider localizationProvider;
 
+    private WebClient webClient;
+
     @Autowired
     public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
         this.callbackUrlRepository = callbackUrlRepository;
+        webClient = WebClient.create();
     }
 
     @Autowired
@@ -135,31 +137,25 @@ public class CallbackUrlBehavior {
      * @param applicationId Application for the callbacks to be used.
      * @param activationId Activation ID to be notified about.
      */
-    @Async
     public void notifyCallbackListeners(Long applicationId, String activationId) {
         final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(applicationId);
         Map<String, String> callbackData = new HashMap<>();
         callbackData.put("activationId", activationId);
-        List<Mono<ClientResponse>> responses = new ArrayList<>();
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
-            responses.add(WebClient
-                    .create()
+            Consumer<ClientResponse> onSuccess = response -> {
+                if (response.statusCode().isError()) {
+                    Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", status code: "+response.statusCode());
+                }
+            };
+            Consumer<Throwable> onError = error -> Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", error: "+error.getMessage());
+            webClient
                     .post()
                     .uri(callbackUrl.getCallbackUrl())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(BodyInserters.fromObject(callbackData))
-                    .exchange()
-                    .doOnSuccess(response -> {
-                        if (response.statusCode().isError()) {
-                            Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", status code: "+response.statusCode());
-                        }
-                    })
-                    .doOnError(error -> {
-                        Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", error: "+error.getMessage());
-                    }));
-        }
-        for (Mono<ClientResponse> response: responses) {
-            response.block(Duration.ofSeconds(NOTIFICATION_TIMEOUT_SECONDS));
+                    .retrieve()
+                    .bodyToMono(ClientResponse.class)
+                    .subscribe(onSuccess, onError);
         }
     }
 
