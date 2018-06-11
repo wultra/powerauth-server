@@ -54,7 +54,7 @@ public enum KeyEncryptionMode {
 
     /**
      * Get byte value of encryption mode.
-     * @return
+     * @return Byte value of encryption mode.
      */
     public byte getValue() {
         return value;
