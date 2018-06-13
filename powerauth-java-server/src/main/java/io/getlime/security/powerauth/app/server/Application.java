@@ -18,9 +18,13 @@
 
 package io.getlime.security.powerauth.app.server;
 
+import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.security.Security;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.LogManager;
@@ -47,6 +51,12 @@ public class Application {
                 rootLogger.removeHandler(handler);
             }
         }
+
+        // Initialize Bouncy Castle provider
+        Security.addProvider(new BouncyCastleProvider());
+        // Set key convertor
+        PowerAuthConfiguration.INSTANCE.setKeyConvertor(CryptoProviderUtilFactory.getCryptoProviderUtils());
+
     }
 
     /**
