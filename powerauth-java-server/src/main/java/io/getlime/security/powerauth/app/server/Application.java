@@ -21,6 +21,11 @@ package io.getlime.security.powerauth.app.server;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
+
 /**
  * PowerAuth 2.0 Server main application class.
  *
@@ -28,6 +33,21 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @SpringBootApplication
 public class Application {
+
+    static {
+        // TODO temporary workaround for Spring boot duplicate logging issue on Tomcat:
+        // https://github.com/spring-projects/spring-boot/issues/13470
+        Logger rootLogger = LogManager.getLogManager().getLogger("");
+        Handler[] handlers = rootLogger.getHandlers();
+        for (Handler handler : handlers) {
+            // By default Tomcat adds ConsoleHandler to root logger which needs to be removed to avoid duplicate logging.
+            // Removal of handlers during SLF4J initialization does not happen automatically after migration to Spring boot 2.0.0.
+            // Once the issue is fixed in Spring boot project, we should remove this workaround.
+            if (handler instanceof ConsoleHandler) {
+                rootLogger.removeHandler(handler);
+            }
+        }
+    }
 
     /**
      * Main application method.
