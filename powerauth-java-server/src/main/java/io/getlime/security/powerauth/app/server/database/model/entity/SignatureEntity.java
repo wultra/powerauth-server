@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -38,9 +37,8 @@ public class SignatureEntity implements Serializable {
     private static final long serialVersionUID = 1930424474990335368L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "hibernate_sequence")
-    // Native strategy is set to support multiple databases. Default native generator for Oracle is SEQUENCE, for MySQL the default is AUTO_INCREMENT.
-    @GenericGenerator(name = "hibernate_sequence", strategy = "native")
+    @SequenceGenerator(name = "pa_signature_audit", sequenceName = "pa_signature_audit_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_signature_audit")
     @Column(name = "id")
     private Long id;
 

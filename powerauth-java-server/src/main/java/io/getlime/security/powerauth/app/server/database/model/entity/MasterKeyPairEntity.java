@@ -17,8 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import org.hibernate.annotations.GenericGenerator;
-
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
@@ -35,9 +33,8 @@ public class MasterKeyPairEntity implements Serializable {
     private static final long serialVersionUID = 1507932260603647825L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "hibernate_sequence")
-    // Native strategy is set to support multiple databases. Default native generator for Oracle is SEQUENCE, for MySQL the default is AUTO_INCREMENT.
-    @GenericGenerator(name = "hibernate_sequence", strategy = "native")
+    @SequenceGenerator(name = "pa_master_keypair", sequenceName = "pa_master_keypair_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_master_keypair")
     @Column(name = "id")
     private Long id;
 
