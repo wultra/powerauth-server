@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
-import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -36,10 +35,8 @@ import java.util.Objects;
 public class ActivationHistoryEntity implements Serializable {
 
     @Id
-    @SequenceGenerator(name = "activation_history", sequenceName = "activation_history_seq")
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "activation_history")
-    // Native strategy is set to support multiple databases. Default native generator for Oracle is SEQUENCE, for MySQL the default is AUTO_INCREMENT.
-    @GenericGenerator(name = "activation_history", strategy = "native")
+    @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_activation_history")
     @Column(name = "id")
     private Long id;
 

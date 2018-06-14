@@ -3,13 +3,13 @@
 --
 
 CREATE TABLE `pa_application` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE `pa_application_version` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `application_id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `application_key` varchar(255) DEFAULT NULL,
@@ -19,14 +19,14 @@ CREATE TABLE `pa_application_version` (
   KEY `KEY_APPLICATION_ID` (`application_id`),
   KEY `KEY_APPLICATION_KEY` (`application_key`),
   CONSTRAINT `FK_APPLICATION_VERSION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Create table for application related master keypair
 --
 
 CREATE TABLE `pa_master_keypair` (
-  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL,
   `application_id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `master_key_private_base64` varchar(255) NOT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE `pa_master_keypair` (
   PRIMARY KEY (`id`),
   KEY `FK_APPLICATION_KEYPAIR_idx` (`application_id`),
   CONSTRAINT `FK_APPLICATION_KEYPAIR` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Create table for activation records
@@ -72,7 +72,7 @@ CREATE TABLE `pa_activation` (
 --
 
 CREATE TABLE `pa_signature_audit` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `activation_id` varchar(37) NOT NULL,
   `activation_counter` bigint(20) NOT NULL,
   `activation_status` int(11) NOT NULL,
@@ -86,7 +86,7 @@ CREATE TABLE `pa_signature_audit` (
   PRIMARY KEY (`id`),
   KEY `K_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Create a table for integration credentials
@@ -132,7 +132,7 @@ CREATE TABLE pa_token (
 --
 
 CREATE TABLE `pa_activation_history` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `activation_id` varchar(37) NOT NULL,
   `activation_status` int(11) NOT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -140,3 +140,32 @@ CREATE TABLE `pa_activation_history` (
   KEY `K_HISTORY_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Sequence tables for GenerationType.TABLE style id generators used by default in Hibernate 5 for MySQL
+--
+CREATE TABLE `pa_application_seq` (
+  next_val INTEGER NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `pa_application_version_seq` (
+  next_val INTEGER NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `pa_master_keypair_seq` (
+  next_val INTEGER NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `pa_signature_audit_seq` (
+  next_val INTEGER NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE `pa_activation_history_seq` (
+  next_val INTEGER NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+INSERT INTO pa_application_seq values (1);
+INSERT INTO pa_application_version_seq values (1);
+INSERT INTO pa_master_keypair_seq values (1);
+INSERT INTO pa_signature_audit_seq values (1);
+INSERT INTO pa_activation_history_seq values (1);
