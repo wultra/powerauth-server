@@ -671,9 +671,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws Exception {
-        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateTokenRequest received, tokenId: {0}", request.getTokenId());
+        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "ValidateTokenRequest received, tokenId: {0}", request.getTokenId());
         ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
-        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateTokenRequest succeeded");
+        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "ValidateTokenRequest succeeded");
         return response;
     }
 
