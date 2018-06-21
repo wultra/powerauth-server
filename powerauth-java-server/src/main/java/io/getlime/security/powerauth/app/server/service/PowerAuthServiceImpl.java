@@ -488,11 +488,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             String signedData = request.getData();
             String signature  = request.getSignature();
-            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetNonPersonalizedEncryptionKeyRequest received, activationId: {0}", activationId);
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "VerifyECDSASignatureRequest received, activationId: {0}", activationId);
             boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConversionUtilities);
             VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
             response.setSignatureValid(matches);
-            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetNonPersonalizedEncryptionKeyRequest succeeded");
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "VerifyECDSASignatureRequest succeeded");
             return response;
         } catch (Exception ex) {
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.SEVERE, null, ex);
