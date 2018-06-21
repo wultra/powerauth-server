@@ -60,12 +60,10 @@
 
 	<build>
 		<plugins>
-			<!-- JAXB Maven plug-in does not work on JDK 9 yet. See: https://github.com/highsource/maven-jaxb2-plugin/issues/120 -->
-			<!-- tag::wsdl[] -->
-			<!--plugin>
+			<plugin>
 				<groupId>org.jvnet.jaxb2.maven2</groupId>
 				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.13.3</version>
+				<version>0.14.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -75,84 +73,15 @@
 				</executions>
 				<configuration>
 					<schemaLanguage>WSDL</schemaLanguage>
+					<schemaDirectory>${basedir}/src/main/resources/soap/wsdl</schemaDirectory>
+					<schemaIncludes>
+						<include>service.wsdl</include>
+					</schemaIncludes>
 					<generatePackage>io.getlime.powerauth.soap</generatePackage>
-					<schemas>
-						<schema>
-							<fileset>
-								<directory>${basedir}/src/main/resources/soap/wsdl</directory>
-								<include>*.wsdl</include>
-							</fileset>
-						</schema>
-					</schemas>
-				</configuration>
-			</plugin-->
-			<!-- end::wsdl[] -->
-
-			<!-- Workaround for generating sources from JAXB classes on JDK9 -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<executions>
-					<execution>
-						<phase>generate-sources</phase>
-						<configuration>
-							<target>
-								<echo message="Classes will be generated in ${project.build.directory}/generated-sources/jaxb"/>
-								<mkdir dir="${project.build.directory}/generated-sources/jaxb"/>
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>generate-schema-types</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<executable>xjc</executable>
-					<arguments>
-						<argument>-wsdl</argument>
-						<argument>-extension</argument>
-						<argument>-d</argument>
-						<argument>${project.build.directory}/generated-sources/jaxb</argument>
-						<argument>-p</argument>
-						<argument>io.getlime.powerauth.soap</argument>
-						<argument>${project.basedir}/src/main/resources/soap/wsdl/service.wsdl</argument>
-					</arguments>
+					<episode>false</episode>
+					<addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
 				</configuration>
 			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>build-helper-maven-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>include-generated-sources</id>
-						<goals>
-							<goal>add-source</goal>
-						</goals>
-						<configuration>
-							<sources>
-								<source>${project.basedir}/target/generated-sources/jaxb</source>
-							</sources>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<!-- End of JDK 9 JAXB class generation workaround -->
-
 		</plugins>
 	</build>
 
