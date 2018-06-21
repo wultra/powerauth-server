@@ -72,7 +72,7 @@ public class ServiceError {
     public static final String ACTIVATION_EXPIRED = "ERR0007";
 
     /**
-     * Only activations in OTP_USED state can be committed.
+     * Incorrect activation state.
      */
     public static final String ACTIVATION_INCORRECT_STATE = "ERR0008";
 
