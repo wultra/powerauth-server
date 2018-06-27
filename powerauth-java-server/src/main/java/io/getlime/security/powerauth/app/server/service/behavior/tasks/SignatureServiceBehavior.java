@@ -67,8 +67,8 @@ import java.util.Objects;
 public class SignatureServiceBehavior {
 
     private static final String OFFLINE_MODE = "offline";
-    private static final String KEY_MASTER_SERVER_PRIVATE = "0";
-    private static final String KEY_SERVER_PRIVATE = "1";
+    private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
+    private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
 
     private RepositoryCatalogue repositoryCatalogue;
 
@@ -473,14 +473,14 @@ public class SignatureServiceBehavior {
             // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
             final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
 
-            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE}'
+            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE).getBytes("UTF-8");
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes("UTF-8");
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
-            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE}{ECDSA_SIGNATURE}'
-            final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE + ecdsaSignature);
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
+            final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
 
             // Return the result
             CreatePersonalizedOfflineSignaturePayloadResponse response = new CreatePersonalizedOfflineSignaturePayloadResponse();
@@ -516,14 +516,14 @@ public class SignatureServiceBehavior {
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
 
-            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE}'
+            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE).getBytes("UTF-8");
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes("UTF-8");
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
-            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE}{ECDSA_SIGNATURE}'
-            final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE + ecdsaSignature);
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
+            final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
 
             // Return the result
             CreateNonPersonalizedOfflineSignaturePayloadResponse response = new CreateNonPersonalizedOfflineSignaturePayloadResponse();
