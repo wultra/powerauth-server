@@ -127,7 +127,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             String userId = request.getUserId();
             Long applicationId = request.getApplicationId();
-            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetActivationListForUserRequest received, userId: {0}, applicationId: {1}", new Object[] {userId, applicationId});
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetActivationListForUserRequest received, userId: {0}, applicationId: {1}", new String[] {userId, String.valueOf(applicationId)});
             GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId);
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetActivationListForUserRequest succeeded");
             return response;
@@ -161,7 +161,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Long applicationId = request.getApplicationId();
             Long maxFailedCount = request.getMaxFailureCount();
             Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
-            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "InitActivationRequest received, userId: {0}, applicationId: {1}", new Object[] {userId, applicationId});
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "InitActivationRequest received, userId: {0}, applicationId: {1}", new String[] {userId, String.valueOf(applicationId)});
             InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(applicationId, userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "InitActivationRequest succeeded");
             return response;
@@ -302,7 +302,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             long applicationId = request.getApplicationId();
             String data = request.getData();
-            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateNonPersonalizedOfflineSignaturePayloadRequest received, applicationId: {0}", applicationId);
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateNonPersonalizedOfflineSignaturePayloadRequest received, applicationId: {0}", String.valueOf(applicationId));
             CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
@@ -510,7 +510,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Date startingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampFrom());
             Date endingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampTo());
 
-            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "SignatureAuditRequest received, userId: {0}, applicationId: {1}", new Object[]{userId, applicationId});
+            Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "SignatureAuditRequest received, userId: {0}, applicationId: {1}", new String[]{userId, String.valueOf(applicationId)});
             SignatureAuditResponse response = behavior.getAuditingServiceBehavior().getSignatureAuditLog(userId, applicationId, startingDate, endingDate);
             Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "SignatureAuditRequest succeeded");
             return response;
@@ -550,7 +550,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws Exception {
-        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetApplicationDetailRequest received, applicationId: {0}", request.getApplicationId());
+        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetApplicationDetailRequest received, applicationId: {0}", String.valueOf(request.getApplicationId()));
         GetApplicationDetailResponse response = behavior.getApplicationServiceBehavior().getApplicationDetail(request.getApplicationId());
         Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetApplicationDetailRequest succeeded");
         return response;
@@ -581,7 +581,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws Exception {
-        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateApplicationVersionRequest received, applicationId: {0}, applicationVersionName: {1}", new Object[]{request.getApplicationId(), request.getApplicationVersionName()});
+        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateApplicationVersionRequest received, applicationId: {0}, applicationVersionName: {1}", new String[]{String.valueOf(request.getApplicationId()), request.getApplicationVersionName()});
         CreateApplicationVersionResponse response = behavior.getApplicationServiceBehavior().createApplicationVersion(request.getApplicationId(), request.getApplicationVersionName());
         Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "CreateApplicationVersionRequest succeeded");
         return response;
@@ -644,7 +644,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws Exception {
-        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetCallbackUrlListRequest received, applicationId: {0}", request.getApplicationId());
+        Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetCallbackUrlListRequest received, applicationId: {0}", String.valueOf(request.getApplicationId()));
         GetCallbackUrlListResponse response = behavior.getCallbackUrlBehavior().getCallbackUrlList(request);
         Logger.getLogger(PowerAuthServiceImpl.class.getName()).log(Level.INFO, "GetCallbackUrlListRequest succeeded");
         return response;
