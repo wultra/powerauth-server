@@ -56,7 +56,7 @@ CREATE TABLE `pa_activation` (
   `failed_attempts` bigint(20) DEFAULT NULL,
   `max_failed_attempts` bigint(20) NOT NULL DEFAULT 5,
   `server_private_key_base64` text NOT NULL,
-  `server_private_key_encryption` int(11) DEFAULT 0,
+  `server_private_key_encryption` int(11) NOT NULL DEFAULT 0,
   `server_public_key_base64` text NOT NULL,
   `master_keypair_id` bigint(20) DEFAULT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
