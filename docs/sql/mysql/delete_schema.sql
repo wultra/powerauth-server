@@ -2,6 +2,7 @@
 -- Drop old tables if they exist.
 --
 
+DROP TABLE IF EXISTS `pa_activation_history`;
 DROP TABLE IF EXISTS `pa_application_version`;
 DROP TABLE IF EXISTS `pa_master_keypair`;
 DROP TABLE IF EXISTS `pa_signature_audit`;
