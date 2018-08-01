@@ -19,7 +19,7 @@
 package io.getlime.security.powerauth.app.server;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
-import org.springframework.boot.web.support.SpringBootServletInitializer;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
  * PowerAuth 2.0 Server default servlet initializer.

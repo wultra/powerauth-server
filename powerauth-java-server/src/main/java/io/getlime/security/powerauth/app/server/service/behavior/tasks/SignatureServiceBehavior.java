@@ -22,10 +22,12 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -36,7 +38,6 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
@@ -66,6 +67,8 @@ import java.util.Objects;
 public class SignatureServiceBehavior {
 
     private static final String OFFLINE_MODE = "offline";
+    private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
+    private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
 
     private RepositoryCatalogue repositoryCatalogue;
 
@@ -82,6 +85,7 @@ public class SignatureServiceBehavior {
     // Prepare converters
     private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
     public SignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {
@@ -105,6 +109,11 @@ public class SignatureServiceBehavior {
         this.callbackUrlBehavior = callbackUrlBehavior;
     }
 
+    @Autowired
+    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
     private final PowerAuthServerSignature powerAuthServerSignature = new PowerAuthServerSignature();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
@@ -122,10 +131,11 @@ public class SignatureServiceBehavior {
      * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
      * @throws InvalidKeySpecException      In case invalid key is provided.
      * @throws InvalidKeyException          In case invalid key is provided.
+     * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                    String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities, false);
     }
 
@@ -141,10 +151,11 @@ public class SignatureServiceBehavior {
      * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
      * @throws InvalidKeySpecException      In case invalid key is provided.
      * @throws InvalidKeyException          In case invalid key is provided.
+     * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, SignatureType signatureType, String signature,
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
 
         final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, keyConversionUtilities, true);
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
@@ -161,7 +172,7 @@ public class SignatureServiceBehavior {
 
     private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                     String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException {
+            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
 
@@ -300,9 +311,16 @@ public class SignatureServiceBehavior {
         return response;
     }
 
-    private ValidateSignatureResponse validateSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException {
+    private ValidateSignatureResponse validateSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException {
         // Get the server private and device public keys
-        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(activation.getServerPrivateKeyBase64());
+
+        // Decrypt server private key (depending on encryption mode)
+        String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+        KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+        String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+
+        // Decode the keys to byte[]
+        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
         byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
         PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -431,7 +449,7 @@ public class SignatureServiceBehavior {
         return notifyCallbackListeners;
     }
 
-    public CreateOfflineSignaturePayloadResponse createOfflineSignaturePayload(String activationId, String data, String message, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
 
         // Fetch activation details from the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -440,8 +458,47 @@ public class SignatureServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
+        // Proceed and compute the results
+        try {
+
+            // Generate nonce
+            final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
+            String nonce = BaseEncoding.base64().encode(nonceBytes);
+
+            // Decrypt server private key (depending on encryption mode)
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
+
+            // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
+            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
+
+            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
+            final SignatureUtils signatureUtils = new SignatureUtils();
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes("UTF-8");
+            final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
+            final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
+
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
+            final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
+
+            // Return the result
+            CreatePersonalizedOfflineSignaturePayloadResponse response = new CreatePersonalizedOfflineSignaturePayloadResponse();
+            response.setOfflineData(offlineData);
+            response.setNonce(nonce);
+            return response;
+
+        } catch (InvalidKeyException | InvalidKeySpecException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (SignatureException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
+        } catch (UnsupportedEncodingException e) {
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, e.getMessage(), e.getLocalizedMessage());
+        }
+    }
+
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         // Fetch associated master key pair data from the repository
-        final Long applicationId = activation.getApplication().getId();
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
         final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPair == null) {
@@ -455,27 +512,23 @@ public class SignatureServiceBehavior {
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             String nonce = BaseEncoding.base64().encode(nonceBytes);
 
-            // Compute data hash
-            final byte[] dataHashBytes = Hash.sha256(data);
-            String dataHash = BaseEncoding.base64().encode(dataHashBytes);
-
-            // Prepare the private key
+            // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
 
-            // Compute ECDSA signature of 'dataHash + "&" + nonce + "&" + message'
+            // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (activationId + "&" + dataHash + "&" + nonce + "&" + message).getBytes("UTF-8");
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes("UTF-8");
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
+            // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
+            final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
+
             // Return the result
-            CreateOfflineSignaturePayloadResponse response = new CreateOfflineSignaturePayloadResponse();
-            response.setData(data);
-            response.setMessage(message);
-            response.setDataHash(dataHash);
+            CreateNonPersonalizedOfflineSignaturePayloadResponse response = new CreateNonPersonalizedOfflineSignaturePayloadResponse();
+            response.setOfflineData(offlineData);
             response.setNonce(nonce);
-            response.setSignature(ecdsaSignature);
             return response;
 
         } catch (InvalidKeyException | InvalidKeySpecException e) {

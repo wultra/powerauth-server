@@ -30,13 +30,15 @@ import java.util.Objects;
  *
  * @author Petr Dvorak, petr@lime-company.eu
  */
-@Entity(name = "pa_signature_audit")
+@Entity
+@Table(name = "pa_signature_audit")
 public class SignatureEntity implements Serializable {
 
     private static final long serialVersionUID = 1930424474990335368L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(name = "pa_signature_audit", sequenceName = "pa_signature_audit_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_signature_audit")
     @Column(name = "id")
     private Long id;
 

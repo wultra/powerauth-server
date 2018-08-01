@@ -21,7 +21,7 @@ package io.getlime.security.powerauth.app.server.configuration;
 import io.getlime.security.powerauth.app.server.controller.RESTResponseExceptionResolver;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.mvc.annotation.ResponseStatusExceptionResolver;
 import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver;
 
@@ -35,11 +35,10 @@ import java.util.List;
  * @author Petr Dvorak, petr@lime-company.eu
  */
 @Configuration
-public class WebApplicationConfig extends WebMvcConfigurerAdapter {
+public class WebApplicationConfig implements WebMvcConfigurer {
 
     @Override
     public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
-        super.configureHandlerExceptionResolvers(exceptionResolvers);
         exceptionResolvers.add(new RESTResponseExceptionResolver());
         exceptionResolvers.add(new ExceptionHandlerExceptionResolver());
         exceptionResolvers.add(new ResponseStatusExceptionResolver());

@@ -25,13 +25,13 @@
     <description>PowerAuth Server</description>
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-java-server</artifactId>
-    <version>0.18.0</version>
+    <version>0.19.0</version>
     <packaging>war</packaging>
 
     <parent>
 		<groupId>io.getlime.security</groupId>
 		<artifactId>powerauth-server-parent</artifactId>
-		<version>0.18.0</version>
+		<version>0.19.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -68,12 +68,16 @@
             <artifactId>spring-ws-security</artifactId>
             <version>2.2.4.RELEASE</version> <!-- 2.3.0 seems a bit buggy, SWS-972 and SWS-972 -->
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
 
         <!-- PowerAuth Dependencies -->
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
-            <version>0.18.0</version>
+            <version>0.19.0</version>
         </dependency>
 
         <!-- Other Dependencies -->
@@ -87,15 +91,9 @@
             <artifactId>wsdl4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>2.11.0</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
-            <version>1.59</version>
+            <version>1.60</version>
         </dependency>
 
         <!-- Test Dependencies -->
@@ -106,12 +104,24 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.41</version>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>1.4.197</version>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- JAXB dependency for tests running on JDK 9 -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.0</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -119,6 +129,14 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>build-info</id>
+                        <goals>
+                            <goal>build-info</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -127,22 +145,30 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>1.6</version>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.14.0</version>
                 <executions>
                     <execution>
-                        <id>xjc</id>
                         <goals>
-                            <goal>xjc</goal>
+                            <goal>generate</goal>
                         </goals>
                     </execution>
                 </executions>
                 <configuration>
-                    <schemaDirectory>${project.basedir}/src/main/resources/xsd/</schemaDirectory>
+                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                    <schemaDirectory>${basedir}/src/main/resources/xsd</schemaDirectory>
+                    <schemaIncludes>
+                        <include>PowerAuth-2.0.xsd</include>
+                    </schemaIncludes>
+                    <generatePackage>io.getlime.security.powerauth</generatePackage>
+                    <episode>false</episode>
+                    <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
                 </configuration>
             </plugin>
+
         </plugins>
     </build>
 

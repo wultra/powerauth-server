@@ -54,8 +54,9 @@ CREATE TABLE `pa_activation` (
   `counter` bigint(20) NOT NULL,
   `device_public_key_base64` text,
   `failed_attempts` bigint(20) DEFAULT NULL,
-  `max_failed_attempts` bigint(20) NOT NULL DEFAULT '5',
+  `max_failed_attempts` bigint(20) NOT NULL DEFAULT 5,
   `server_private_key_base64` text NOT NULL,
+  `server_private_key_encryption` int(11) NOT NULL DEFAULT 0,
   `server_public_key_base64` text NOT NULL,
   `master_keypair_id` bigint(20) DEFAULT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -79,7 +80,7 @@ CREATE TABLE `pa_signature_audit` (
   `data_base64` text,
   `signature_type` varchar(255) NOT NULL,
   `signature` varchar(255) NOT NULL,
-  `valid` int(11) NOT NULL DEFAULT '0',
+  `valid` int(11) NOT NULL DEFAULT 0,
   `note` text NOT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
@@ -138,4 +139,4 @@ CREATE TABLE `pa_activation_history` (
   PRIMARY KEY (`id`),
   KEY `K_HISTORY_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;

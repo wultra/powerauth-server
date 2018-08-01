@@ -18,8 +18,13 @@
 
 package io.getlime.security.powerauth.app.server;
 
+import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.security.Security;
 
 /**
  * PowerAuth 2.0 Server main application class.
@@ -29,6 +34,14 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class Application {
 
+    static {
+        // Initialize Bouncy Castle provider
+        Security.addProvider(new BouncyCastleProvider());
+        // Set key convertor
+        PowerAuthConfiguration.INSTANCE.setKeyConvertor(CryptoProviderUtilFactory.getCryptoProviderUtils());
+
+    }
+
     /**
      * Main application method.
      *
@@ -37,4 +50,5 @@ public class Application {
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
+
 }

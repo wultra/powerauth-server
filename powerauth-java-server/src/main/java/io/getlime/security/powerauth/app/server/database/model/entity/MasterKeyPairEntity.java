@@ -33,7 +33,8 @@ public class MasterKeyPairEntity implements Serializable {
     private static final long serialVersionUID = 1507932260603647825L;
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @SequenceGenerator(name = "pa_master_keypair", sequenceName = "pa_master_keypair_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_master_keypair")
     @Column(name = "id")
     private Long id;
 

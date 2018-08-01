@@ -21,14 +21,14 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>powerauth-java-client-axis</artifactId>
-	<version>0.18.0</version>
+	<version>0.19.0</version>
 	<name>powerauth-java-client-axis</name>
 	<description>PowerAuth Server SOAP Service Client - Axis</description>
 
 	<parent>
 		<groupId>io.getlime.security</groupId>
 		<artifactId>powerauth-server-parent</artifactId>
-		<version>0.18.0</version>
+		<version>0.19.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 
@@ -36,23 +36,23 @@
         <dependency>
             <groupId>org.apache.axis2</groupId>
             <artifactId>axis2</artifactId>
-            <version>1.7.7</version>
+            <version>${axis2.version}</version>
 			<type>pom</type>
         </dependency>
 		<dependency>
 		    <groupId>org.apache.axis2</groupId>
 		    <artifactId>axis2-adb</artifactId>
-		    <version>1.7.7</version>
+		    <version>${axis2.version}</version>
 		</dependency>
         <dependency>
             <groupId>org.apache.axis2</groupId>
             <artifactId>axis2-transport-http</artifactId>
-            <version>1.7.7</version>
+            <version>${axis2.version}</version>
         </dependency>
 		<dependency>
 			<groupId>org.apache.axis2</groupId>
 			<artifactId>axis2-transport-local</artifactId>
-			<version>1.7.7</version>
+			<version>${axis2.version}</version>
 		</dependency>
 	</dependencies>
 
@@ -62,7 +62,7 @@
 			<plugin>
 				<groupId>org.apache.axis2</groupId>
 				<artifactId>axis2-wsdl2code-maven-plugin</artifactId>
-				<version>1.7.7</version>
+				<version>${axis2.version}</version>
 				<executions>
 					<execution>
 						<goals>

@@ -38,6 +38,7 @@ import java.security.PublicKey;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Behavior class implementing the application management related processes. The class separates the
@@ -62,13 +63,11 @@ public class ApplicationServiceBehavior {
      *
      * @param applicationId Application ID
      * @return Response with application details
+     * @throws GenericServiceException Thrown when application does not exist.
      */
     public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws GenericServiceException {
 
-        ApplicationEntity application = repositoryCatalogue.getApplicationRepository().findOne(applicationId);
-        if (application == null) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
+        ApplicationEntity application = findApplicationById(applicationId);
 
         GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(application.getId());
@@ -96,16 +95,14 @@ public class ApplicationServiceBehavior {
      *
      * @param appKey Application version key (APP_KEY).
      * @return Response with application details
+     * @throws GenericServiceException Thrown when application does not exist.
      */
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String appKey) throws GenericServiceException {
         ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
         if (applicationVersion == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-        ApplicationEntity application = repositoryCatalogue.getApplicationRepository().findOne(applicationVersion.getApplication().getId());
-        if (application == null) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
+        ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
         LookupApplicationByAppKeyResponse response = new LookupApplicationByAppKeyResponse();
         response.setApplicationId(application.getId());
         return response;
@@ -123,7 +120,7 @@ public class ApplicationServiceBehavior {
         GetApplicationListResponse response = new GetApplicationListResponse();
 
         for (Iterator<ApplicationEntity> iterator = result.iterator(); iterator.hasNext(); ) {
-            ApplicationEntity application = (ApplicationEntity) iterator.next();
+            ApplicationEntity application = iterator.next();
             GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
             app.setId(application.getId());
             app.setApplicationName(application.getName());
@@ -184,14 +181,11 @@ public class ApplicationServiceBehavior {
      * @param applicationId Application ID
      * @param versionName   Application version name
      * @return Response with new version information
+     * @throws GenericServiceException Thrown when application does not exist.
      */
     public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws GenericServiceException {
 
-        ApplicationEntity application = repositoryCatalogue.getApplicationRepository().findOne(applicationId);
-
-        if (application == null) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
+        ApplicationEntity application = findApplicationById(applicationId);
 
         KeyGenerator keyGen = new KeyGenerator();
         byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
@@ -220,14 +214,11 @@ public class ApplicationServiceBehavior {
      *
      * @param versionId Version ID
      * @return Response confirming the operation
+     * @throws GenericServiceException Thrown when application version does not exist.
      */
     public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws GenericServiceException {
 
-        ApplicationVersionEntity version = repositoryCatalogue.getApplicationVersionRepository().findOne(versionId);
-
-        if (version == null) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
+        ApplicationVersionEntity version = findApplicationVersionById(versionId);
 
         version.setSupported(false);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
@@ -244,14 +235,11 @@ public class ApplicationServiceBehavior {
      *
      * @param versionId Version ID
      * @return Response confirming the operation
+     * @throws GenericServiceException Thrown when application version does not exist.
      */
     public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws GenericServiceException {
 
-        ApplicationVersionEntity version = repositoryCatalogue.getApplicationVersionRepository().findOne(versionId);
-
-        if (version == null) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
+        ApplicationVersionEntity version = findApplicationVersionById(versionId);
 
         version.setSupported(true);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
@@ -261,6 +249,34 @@ public class ApplicationServiceBehavior {
         response.setSupported(version.getSupported());
 
         return response;
+    }
+
+    /**
+     * Find application entity by ID.
+     * @param applicationId Application ID.
+     * @return Application entity.
+     * @throws GenericServiceException Thrown when application does not exist.
+     */
+    private ApplicationEntity findApplicationById(Long applicationId) throws GenericServiceException {
+        final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
+        if (!applicationOptional.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+        return applicationOptional.get();
+    }
+
+    /**
+     * Find application version entity by ID.
+     * @param versionId Application version ID.
+     * @return Application version entity.
+     * @throws GenericServiceException Thrown when application version does not exist.
+     */
+    private ApplicationVersionEntity findApplicationVersionById(Long versionId) throws GenericServiceException {
+        final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().findById(versionId);
+        if (!applicationVersionOptional.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+        return applicationVersionOptional.get();
     }
 
 }

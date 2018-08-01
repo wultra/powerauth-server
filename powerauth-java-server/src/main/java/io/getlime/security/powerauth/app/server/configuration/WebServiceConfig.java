@@ -18,7 +18,6 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
@@ -114,11 +113,11 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @return New servlet registration with correct context.
      */
     @Bean
-    public ServletRegistrationBean messageDispatcherServlet(ApplicationContext applicationContext) {
+    public ServletRegistrationBean<MessageDispatcherServlet> messageDispatcherServlet(ApplicationContext applicationContext) {
         MessageDispatcherServlet servlet = new MessageDispatcherServlet();
         servlet.setApplicationContext(applicationContext);
         servlet.setTransformWsdlLocations(true);
-        return new ServletRegistrationBean(servlet, "/soap/*");
+        return new ServletRegistrationBean<>(servlet, "/soap/*");
     }
 
     /**

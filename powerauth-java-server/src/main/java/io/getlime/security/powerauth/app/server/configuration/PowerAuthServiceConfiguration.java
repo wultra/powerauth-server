@@ -103,6 +103,12 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * Master DB encryption key.
+     */
+    @Value("${powerauth.server.db.master.encryption.key}")
+    private String masterDbEncryptionKey;
+
+    /**
      * Get application name, usually used as a "unique code" for the application within
      * a server infrastructure.
      *
@@ -272,6 +278,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSignatureValidationLookahead(long signatureValidationLookahead) {
         this.signatureValidationLookahead = signatureValidationLookahead;
+    }
+
+    /**
+     * Get master DB encryption key.
+     * @return Master DB encryption key.
+     */
+    public String getMasterDbEncryptionKey() {
+        return masterDbEncryptionKey;
+    }
+
+    /**
+     * Set master DB encryption key.
+     * @param masterDbEncryptionKey Master DB encryption key.
+     */
+    public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
+        this.masterDbEncryptionKey = masterDbEncryptionKey;
     }
 
     @Bean

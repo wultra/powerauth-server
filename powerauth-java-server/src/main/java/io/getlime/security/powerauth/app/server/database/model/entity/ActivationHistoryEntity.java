@@ -35,8 +35,8 @@ import java.util.Objects;
 public class ActivationHistoryEntity implements Serializable {
 
     @Id
-    @SequenceGenerator(name = "activation_history", sequenceName = "activation_history_seq")
-    @GeneratedValue(strategy = GenerationType.AUTO, generator = "activation_history")
+    @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq")
+    @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_activation_history")
     @Column(name = "id")
     private Long id;
 

@@ -21,9 +21,12 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.VaultUnlockResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +58,12 @@ public class VaultUnlockServiceBehavior {
 
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private ServerPrivateKeyConverter serverPrivateKeyConverter;
+
+    @Autowired
+    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
 
     /**
      * Method to retrieve the vault unlock key. Before calling this method, it is assumed that
@@ -68,8 +77,9 @@ public class VaultUnlockServiceBehavior {
      * @return Vault unlock response with a properly encrypted vault unlock key.
      * @throws InvalidKeySpecException In case invalid key is provided.
      * @throws InvalidKeyException     In case invalid key is provided.
+     * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VaultUnlockResponse unlockVault(String activationId, boolean isSignatureValid, CryptoProviderUtil keyConversionUtilities) throws InvalidKeySpecException, InvalidKeyException {
+    public VaultUnlockResponse unlockVault(String activationId, boolean isSignatureValid, CryptoProviderUtil keyConversionUtilities) throws InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         // Find related activation record
         ActivationRecordEntity activation = powerAuthRepository.findActivation(activationId);
 
@@ -78,8 +88,13 @@ public class VaultUnlockServiceBehavior {
             // Check if the signature is valid
             if (isSignatureValid) {
 
-                // Get the server private and device public keys
-                byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(activation.getServerPrivateKeyBase64());
+                // Decrypt server private key (depending on encryption mode)
+                String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+                KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+                String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
+
+                // Get the server private and device public keys as byte[]
+                byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
                 byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
                 PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
                 PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);

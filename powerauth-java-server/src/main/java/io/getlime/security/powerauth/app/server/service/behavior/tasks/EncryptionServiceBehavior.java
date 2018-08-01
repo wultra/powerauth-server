@@ -21,8 +21,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.GetNonPersonalizedEncryptionKeyResponse;
 import io.getlime.security.powerauth.GetPersonalizedEncryptionKeyResponse;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
@@ -57,6 +59,8 @@ public class EncryptionServiceBehavior {
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
+    private ServerPrivateKeyConverter serverPrivateKeyConverter;
+
     @Autowired
     public EncryptionServiceBehavior(RepositoryCatalogue repositoryCatalogue) {
         this.repositoryCatalogue = repositoryCatalogue;
@@ -67,10 +71,16 @@ public class EncryptionServiceBehavior {
         this.localizationProvider = localizationProvider;
     }
 
+    @Autowired
+    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
     /**
      * This method generates a derived transport key for the purpose of end-to-end encryption.
      * The response contains a derived key and index used to deduce it.
      * @param activationId Activation that is supposed to use encryption key.
+     * @param sessionIndex Optional session index.
      * @param keyConversionUtilities Key conversion utility class.
      * @return Response with a generated encryption key details.
      * @throws Exception In activation with given ID was not found or other business logic error.
@@ -86,7 +96,13 @@ public class EncryptionServiceBehavior {
         }
 
         String devicePublicKeyBase64 = activation.getDevicePublicKeyBase64();
-        String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
+
+        // Decrypt server private key (depending on encryption mode)
+        String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+        KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+        String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
+
+        // Convert the keys
         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(devicePublicKeyBase64));
         PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
 
@@ -125,6 +141,8 @@ public class EncryptionServiceBehavior {
      * This method generates a derived transport key for the purpose of end-to-end encryption.
      * The response contains a derived key and index used to deduce it.
      * @param applicationKey Application that is supposed to use encryption key.
+     * @param sessionIndexBase64 Optional base64-encoded session index.
+     * @param ephemeralPublicKeyBase64 Base64-encoded ephemeral public key.
      * @param keyConversionUtilities Key conversion utility class.
      * @return Response with a generated encryption key details.
      * @throws Exception In activation with given ID was not found or other business logic error.
