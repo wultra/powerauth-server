@@ -19,6 +19,7 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +29,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ws.config.annotation.EnableWs;
 import org.springframework.ws.config.annotation.WsConfigurerAdapter;
 import org.springframework.ws.server.EndpointInterceptor;
-import org.springframework.ws.soap.security.wss4j.Wss4jSecurityInterceptor;
-import org.springframework.ws.soap.security.wss4j.callback.SpringSecurityPasswordValidationCallbackHandler;
+import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
+import org.springframework.ws.soap.security.wss4j2.callback.SpringSecurityPasswordValidationCallbackHandler;
 import org.springframework.ws.transport.http.MessageDispatcherServlet;
 import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
@@ -66,7 +67,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @param userDetailsService UserDetailsService instance.
      */
     @Autowired
-    public WebServiceConfig(UserDetailsService userDetailsService) {
+    public WebServiceConfig(@Qualifier("integrationUserDetailsService") UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
@@ -121,7 +122,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     }
 
     /**
-     * Specify SOAP service parameters from WSDL file. Map service WSDP to
+     * Specify SOAP service parameters from WSDL file. Map service WSDL to
      * ${CONTEXT_PATH}/soap/service.wsdl address.
      *
      * @param powerAuthSchema XSD schema with PowerAuth service objects.

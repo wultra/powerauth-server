@@ -23,7 +23,6 @@
 
     <name>powerauth-java-server</name>
     <description>PowerAuth Server</description>
-    <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-java-server</artifactId>
     <version>0.21.0</version>
     <packaging>war</packaging>
@@ -59,14 +58,8 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-ws-security</artifactId>
-            <version>2.2.4.RELEASE</version> <!-- 2.3.0 seems a bit buggy, SWS-972 and SWS-972 -->
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -82,11 +75,6 @@
 
         <!-- Other Dependencies -->
         <dependency>
-            <groupId>org.apache.ws.security</groupId>
-            <artifactId>wss4j</artifactId>
-            <version>1.6.19</version>
-        </dependency>
-        <dependency>
             <groupId>wsdl4j</groupId>
             <artifactId>wsdl4j</artifactId>
         </dependency>
@@ -97,6 +85,11 @@
         </dependency>
 
         <!-- Test Dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
@@ -109,12 +102,7 @@
             <version>1.4.197</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-            <version>2.11.0</version>
-            <scope>test</scope>
-        </dependency>
+
         <!-- JAXB dependency for tests running on JDK 9 -->
         <dependency>
             <groupId>javax.xml.bind</groupId>
