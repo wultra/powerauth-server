@@ -28,11 +28,11 @@
     <packaging>war</packaging>
 
     <parent>
-		<groupId>io.getlime.security</groupId>
-		<artifactId>powerauth-server-parent</artifactId>
-		<version>0.21.0</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+        <groupId>io.getlime.security</groupId>
+        <artifactId>powerauth-server-parent</artifactId>
+        <version>0.21.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
     <dependencies>
         <!-- Spring Dependencies -->

@@ -17,65 +17,65 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-	<artifactId>powerauth-java-client-spring</artifactId>
-	<version>0.21.0</version>
-	<name>powerauth-java-client-spring</name>
-	<description>PowerAuth Server SOAP Service Client</description>
+    <artifactId>powerauth-java-client-spring</artifactId>
+    <version>0.21.0</version>
+    <name>powerauth-java-client-spring</name>
+    <description>PowerAuth Server SOAP Service Client</description>
 
-	<parent>
-		<groupId>io.getlime.security</groupId>
-		<artifactId>powerauth-server-parent</artifactId>
-		<version>0.21.0</version>
-		<relativePath>../pom.xml</relativePath>
-	</parent>
+    <parent>
+        <groupId>io.getlime.security</groupId>
+        <artifactId>powerauth-server-parent</artifactId>
+        <version>0.21.0</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
 
-	<dependencies>
+    <dependencies>
         <!-- Spring Dependencies -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.ws</groupId>
-			<artifactId>spring-ws-core</artifactId>
-		</dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.ws</groupId>
+            <artifactId>spring-ws-core</artifactId>
+        </dependency>
 
         <!-- Other Dependencies -->
-		<dependency>
-			<groupId>wsdl4j</groupId>
-			<artifactId>wsdl4j</artifactId>
-			<version>1.6.3</version>
-		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>wsdl4j</groupId>
+            <artifactId>wsdl4j</artifactId>
+            <version>1.6.3</version>
+        </dependency>
+    </dependencies>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.14.0</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<schemaLanguage>WSDL</schemaLanguage>
-					<schemaDirectory>${basedir}/src/main/resources/soap/wsdl</schemaDirectory>
-					<schemaIncludes>
-						<include>service.wsdl</include>
-					</schemaIncludes>
-					<generatePackage>io.getlime.powerauth.soap</generatePackage>
-					<episode>false</episode>
-					<addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
+                <version>0.14.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <schemaLanguage>WSDL</schemaLanguage>
+                    <schemaDirectory>${basedir}/src/main/resources/soap/wsdl</schemaDirectory>
+                    <schemaIncludes>
+                        <include>service.wsdl</include>
+                    </schemaIncludes>
+                    <generatePackage>io.getlime.powerauth.soap</generatePackage>
+                    <episode>false</episode>
+                    <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
