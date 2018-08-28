@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.integration;
 import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -39,6 +40,7 @@ import java.util.List;
  * @author Petr Dvorak, petr@lime-company.eu
  */
 @Service
+@Qualifier("integrationUserDetailsService")
 public class IntegrationUserDetailsService implements UserDetailsService {
 
     private IntegrationRepository integrationRepository;
