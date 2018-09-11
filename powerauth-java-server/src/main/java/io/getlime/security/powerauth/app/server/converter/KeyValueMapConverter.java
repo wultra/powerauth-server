@@ -21,10 +21,10 @@ package io.getlime.security.powerauth.app.server.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.KeyValueMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Converter for {@link KeyValueMap} to {@link String}.
@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 public class KeyValueMapConverter {
 
     private static final ObjectMapper mapper = new ObjectMapper();
+    private static final Logger logger = LoggerFactory.getLogger(KeyValueMapConverter.class);
 
     /**
      * Convert {@link KeyValueMap} to {@link String}.
@@ -47,7 +48,7 @@ public class KeyValueMapConverter {
         try {
             return mapper.writeValueAsString(keyValueMap);
         } catch (JsonProcessingException ex) {
-            Logger.getLogger(KeyValueMapConverter.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            logger.error("Unable to serialize JSON payload.", ex);
             return null;
         }
     }
@@ -64,7 +65,7 @@ public class KeyValueMapConverter {
         try {
             return mapper.readValue(s, KeyValueMap.class);
         } catch (IOException ex) {
-            Logger.getLogger(KeyValueMapConverter.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            logger.error("Unable to parse JSON payload.", ex);
             return new KeyValueMap();
         }
     }
