@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.soap.spring.client;
 
 import io.getlime.powerauth.soap.*;
 import io.getlime.powerauth.soap.GetActivationListForUserResponse.Activations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
 
 import javax.xml.datatype.DatatypeConfigurationException;
@@ -37,11 +39,12 @@ import java.util.List;
  */
 public class PowerAuthServiceClient extends WebServiceGatewaySupport {
 
+    private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceClient.class);
+
     /**
      * Convert date to XMLGregorianCalendar
      * @param date Date to be converted.
      * @return A new instance of {@link XMLGregorianCalendar}.
-     * @throws DatatypeConfigurationException
      */
     private XMLGregorianCalendar calendarWithDate(Date date) {
         try {
@@ -50,7 +53,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
             return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
         } catch (DatatypeConfigurationException e) {
             // Unless there is a terrible configuration error, this should not happen
-            e.printStackTrace();
+            logger.error("Unable to prepare a new calendar instance", e);
         }
         return null;
     }
