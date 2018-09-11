@@ -36,7 +36,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 
@@ -119,8 +118,7 @@ public class ApplicationServiceBehavior {
 
         GetApplicationListResponse response = new GetApplicationListResponse();
 
-        for (Iterator<ApplicationEntity> iterator = result.iterator(); iterator.hasNext(); ) {
-            ApplicationEntity application = iterator.next();
+        for (ApplicationEntity application : result) {
             GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
             app.setId(application.getId());
             app.setApplicationName(application.getName());

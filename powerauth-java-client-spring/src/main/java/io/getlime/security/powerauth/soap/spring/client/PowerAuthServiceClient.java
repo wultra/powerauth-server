@@ -201,7 +201,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param activationNonce Activation nonce.
      * @param applicationSignature Signature proving a correct application is sending the data.
      * @param cDevicePublicKey Device public key encrypted with activation OTP.
-     * @param ephemeralPublicKey
+     * @param ephemeralPublicKey Ephemeral public key.
      * @param extras Additional, application specific information.
      * @return {@link io.getlime.powerauth.soap.CreateActivationResponse}
      */

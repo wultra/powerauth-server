@@ -44,8 +44,7 @@ public class XMLGregorianCalendarConverter {
         }
         GregorianCalendar c = new GregorianCalendar();
         c.setTime(date);
-        XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-        return date2;
+        return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
     }
 
     /**

@@ -224,10 +224,7 @@ public class MasterKeyPairEntity implements Serializable {
         if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
             return false;
         }
-        if (!Objects.equals(this.application, other.application)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.application, other.application);
     }
 
     @Override

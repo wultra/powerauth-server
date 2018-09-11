@@ -116,13 +116,10 @@ public class RESTResponseWrapper<T> {
             return false;
         }
         if (status == null) {
-            if (other.status != null) {
-                return false;
-            }
-        } else if (!status.equals(other.status)) {
-            return false;
+            return other.status == null;
+        } else {
+            return status.equals(other.status);
         }
-        return true;
     }
 
 }

@@ -86,13 +86,10 @@ public class RESTRequestWrapper<T> {
         @SuppressWarnings("rawtypes")
         RESTRequestWrapper other = (RESTRequestWrapper) obj;
         if (requestObject == null) {
-            if (other.requestObject != null) {
-                return false;
-            }
-        } else if (!requestObject.equals(other.requestObject)) {
-            return false;
+            return other.requestObject == null;
+        } else {
+            return requestObject.equals(other.requestObject);
         }
-        return true;
     }
 
 }
