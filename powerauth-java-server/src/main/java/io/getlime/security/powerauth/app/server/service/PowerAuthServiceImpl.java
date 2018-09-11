@@ -135,7 +135,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -150,7 +150,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("GetActivationStatusResponse succeeded");
             return response;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
@@ -169,10 +169,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("InitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         }
     }
@@ -195,13 +195,13 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (IllegalArgumentException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -242,13 +242,13 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("CreateActivationRequest succeeded");
             return response;
         } catch (IllegalArgumentException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -275,7 +275,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("VerifySignatureRequest succeeded");
             return response;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -291,7 +291,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
@@ -310,7 +310,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
@@ -341,10 +341,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("CommitActivationRequest succeeded", request.getActivationId());
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -359,7 +359,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("RemoveActivationRequest succeeded");
             return response;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -375,10 +375,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("BlockActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -393,10 +393,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("UnblockActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
@@ -449,10 +449,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -498,7 +498,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("VerifyECDSASignatureRequest succeeded");
             return response;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
@@ -519,7 +519,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             return response;
 
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
@@ -536,7 +536,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("ActivationHistoryRequest succeeded");
             return response;
         } catch (Exception ex) {
-            logger.error(null, ex);
+            logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
