@@ -405,14 +405,18 @@ public class ActivationServiceBehavior {
         MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPair == null) {
             GenericServiceException ex = localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            logger.error("No master key pair found for application ID: " + applicationId, ex);
+            if (logger.isErrorEnabled()) {
+                logger.error("No master key pair found for application ID: " + applicationId, ex);
+            }
             throw ex;
         }
         byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterKeyPair.getMasterKeyPrivateBase64());
         PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes);
         if (masterPrivateKey == null) {
             GenericServiceException ex = localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-            logger.error("Master private key is invalid for application ID: " + applicationId, ex);
+            if (logger.isErrorEnabled()) {
+                logger.error("Master private key is invalid for application ID: " + applicationId, ex);
+            }
             throw ex;
         }
 
