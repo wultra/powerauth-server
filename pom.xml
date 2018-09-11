@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ PowerAuth Server and related software components
-  ~ Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+  ~ Copyright (C) 2018 Wultra s.r.o.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU Affero General Public License as published
@@ -40,8 +40,8 @@
 	<url>http://powerauth.com/</url>
 
 	<organization>
-		<name>Lime - HighTech Solutions Inc.</name>
-		<url>http://getlime.io/</url>
+		<name>Wultra s.r.o.</name>
+		<url>https://wultra.com/</url>
 	</organization>
 
 	<licenses>
@@ -54,7 +54,7 @@
 	<developers>
 		<developer>
 			<name>Petr Dvorak</name>
-			<email>petr@lime-company.eu</email>
+			<email>petr@wultra.com</email>
 			<roles>
 				<role>developer</role>
 			</roles>
@@ -62,14 +62,14 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:https://github.com/lime-company/powerauth-server.git</connection>
-		<developerConnection>scm:git:https://github.com/lime-company/powerauth-server.git</developerConnection>
-		<url>https://github.com/lime-company/powerauth-server</url>
+		<connection>scm:git:https://github.com/wultra/powerauth-server.git</connection>
+		<developerConnection>scm:git:https://github.com/wultra/powerauth-server.git</developerConnection>
+		<url>https://github.com/wultra/powerauth-server</url>
 	</scm>
 
 	<issueManagement>
 		<system>Github</system>
-		<url>https://github.com/lime-company/powerauth-server/issues</url>
+		<url>https://github.com/wultra/powerauth-server/issues</url>
 	</issueManagement>
 
 	<modules>
