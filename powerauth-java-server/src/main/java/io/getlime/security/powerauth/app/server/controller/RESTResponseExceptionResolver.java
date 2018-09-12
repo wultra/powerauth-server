@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.DefaultHandlerExceptionResolver;
@@ -48,7 +50,8 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
     }
 
     @Override
-    protected ModelAndView doResolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception exception) {
+    @Nullable
+    protected ModelAndView doResolveException(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @Nullable Object handler, @NonNull Exception exception) {
         try {
             // Build the error list
             RESTErrorModel error = new RESTErrorModel();

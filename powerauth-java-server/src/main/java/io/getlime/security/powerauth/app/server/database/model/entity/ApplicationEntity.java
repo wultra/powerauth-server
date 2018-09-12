@@ -100,4 +100,11 @@ public class ApplicationEntity implements Serializable {
         this.name = name;
     }
 
+    /**
+     * Get list of versions associated with given application.
+     * @return Application versions.
+     */
+    public List<ApplicationVersionEntity> getVersions() {
+        return versions;
+    }
 }

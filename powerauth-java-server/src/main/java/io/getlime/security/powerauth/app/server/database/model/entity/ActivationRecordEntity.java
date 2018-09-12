@@ -632,10 +632,7 @@ public class ActivationRecordEntity implements Serializable {
         if (!Objects.equals(this.application, other.application)) {
             return false;
         }
-        if (!Objects.equals(this.masterKeyPair, other.masterKeyPair)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.masterKeyPair, other.masterKeyPair);
     }
 
     @Override

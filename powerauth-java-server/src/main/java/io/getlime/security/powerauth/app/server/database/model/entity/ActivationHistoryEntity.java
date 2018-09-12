@@ -176,10 +176,7 @@ public class ActivationHistoryEntity implements Serializable {
         if (!Objects.equals(this.activationStatus, other.activationStatus)) {
             return false;
         }
-        if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.timestampCreated, other.timestampCreated);
     }
 
     @Override

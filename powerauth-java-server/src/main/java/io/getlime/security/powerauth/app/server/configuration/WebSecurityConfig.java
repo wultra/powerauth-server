@@ -28,14 +28,10 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Class that implements configuration of the Spring Security for RESTful interface
@@ -87,15 +83,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
-        return new AuthenticationEntryPoint() {
-            @Override public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
-                RESTResponseWrapper<String> errorResponse = new RESTResponseWrapper<>("ERROR", "Authentication failed");
-                httpServletResponse.setContentType("application/json");
-                httpServletResponse.setCharacterEncoding("UTF-8");
-                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                httpServletResponse.getOutputStream().println(new ObjectMapper().writeValueAsString(errorResponse));
-                httpServletResponse.getOutputStream().flush();
-            }
+        return (httpServletRequest, httpServletResponse, e) -> {
+            RESTResponseWrapper<String> errorResponse = new RESTResponseWrapper<>("ERROR", "Authentication failed");
+            httpServletResponse.setContentType("application/json");
+            httpServletResponse.setCharacterEncoding("UTF-8");
+            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            httpServletResponse.getOutputStream().println(new ObjectMapper().writeValueAsString(errorResponse));
+            httpServletResponse.getOutputStream().flush();
         };
     }
 

@@ -365,10 +365,7 @@ public class SignatureEntity implements Serializable {
         if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
             return false;
         }
-        if (!Objects.equals(this.note, other.note)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.note, other.note);
     }
 
     @Override
