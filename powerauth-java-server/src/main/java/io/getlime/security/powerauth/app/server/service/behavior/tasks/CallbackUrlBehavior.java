@@ -24,6 +24,8 @@ import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlR
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -38,8 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class that manages the service logic related to callback URL management.
@@ -54,6 +54,9 @@ public class CallbackUrlBehavior {
     private LocalizationProvider localizationProvider;
 
     private WebClient webClient;
+
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
 
     @Autowired
     public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
@@ -144,10 +147,10 @@ public class CallbackUrlBehavior {
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
             Consumer<ClientResponse> onSuccess = response -> {
                 if (response.statusCode().isError()) {
-                    Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", status code: "+response.statusCode());
+                    logger.warn( "Callback failed, URL: {}, status code: {}", callbackUrl.getCallbackUrl(), response.statusCode().toString());
                 }
             };
-            Consumer<Throwable> onError = error -> Logger.getLogger(CallbackUrlBehavior.class.getName()).log(Level.WARNING, "Callback failed, URL: "+callbackUrl.getCallbackUrl()+", error: "+error.getMessage());
+            Consumer<Throwable> onError = error -> logger.warn( "Callback failed, URL: {}, error: {}", callbackUrl.getCallbackUrl(), error.getMessage());
             webClient
                     .post()
                     .uri(callbackUrl.getCallbackUrl())

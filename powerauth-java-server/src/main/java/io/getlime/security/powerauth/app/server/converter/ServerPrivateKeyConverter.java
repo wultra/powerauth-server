@@ -29,7 +29,8 @@ import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import org.jboss.logging.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -56,6 +57,9 @@ public class ServerPrivateKeyConverter {
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
     private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(ServerPrivateKeyConverter.class);
 
     @Autowired
     public ServerPrivateKeyConverter(PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {
@@ -102,7 +106,7 @@ public class ServerPrivateKeyConverter {
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (serverPrivateKey == null || serverPrivateKey.length < 16) {
-                        Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error("Invalid encrypted private key format - the byte array is too short.");
+                        logger.error("Invalid encrypted private key format - the byte array is too short.");
                         throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
                     }
 
@@ -119,12 +123,12 @@ public class ServerPrivateKeyConverter {
                     return BaseEncoding.base64().encode(decryptedServerPrivateKey);
 
                 } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException | IllegalArgumentException ex) {
-                    Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
+                    logger.error(ex.getMessage(), ex);
                     throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
                 }
 
             default:
-                Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error("Unknown encryption mode provided: " + keyEncryptionMode.getValue());
+                logger.error("Unknown encryption mode provided: {}", Byte.toString(keyEncryptionMode.getValue()));
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
     }
@@ -172,7 +176,7 @@ public class ServerPrivateKeyConverter {
             return new ServerPrivateKey(KeyEncryptionMode.AES_HMAC, encryptedKeyBase64);
 
         } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException | IOException ex) {
-            Logger.getLogger(ServerPrivateKeyConverter.class.getName()).error(ex.getMessage(), ex);
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         }
     }
