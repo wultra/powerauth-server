@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -29,7 +29,7 @@ import java.security.Security;
 /**
  * PowerAuth 2.0 Server main application class.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @SpringBootApplication
 public class Application {

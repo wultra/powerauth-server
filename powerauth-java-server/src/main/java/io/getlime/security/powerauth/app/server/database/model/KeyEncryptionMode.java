@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -25,7 +25,7 @@ package io.getlime.security.powerauth.app.server.database.model;
  * - AES_HMAC = 1
  * </p>
  *
- * @author Roman Strobl, roman.strobl@lime-company.eu
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 public enum KeyEncryptionMode {
 

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -45,7 +45,7 @@ import java.util.Arrays;
 /**
  * Converter for server private key which handles key encryption and decryption in case it is configured.
  *
- * @author Roman Strobl, roman.strobl@lime-company.eu
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
 public class ServerPrivateKeyConverter {
@@ -184,7 +184,7 @@ public class ServerPrivateKeyConverter {
     /**
      * Derive secret key from master DB encryption key, user ID and activation ID.<br/>
      * <br/>
-     * See: https://github.com/lime-company/powerauth-server/wiki/Encrypting-Records-in-Database
+     * See: https://github.com/wultra/powerauth-server/wiki/Encrypting-Records-in-Database
      *
      * @param masterDbEncryptionKey Master DB encryption key.
      * @param userId User ID.
