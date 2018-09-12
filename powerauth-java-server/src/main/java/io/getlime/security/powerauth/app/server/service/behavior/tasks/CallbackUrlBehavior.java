@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlR
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -39,8 +40,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class that manages the service logic related to callback URL management.
@@ -57,7 +56,7 @@ public class CallbackUrlBehavior {
     private WebClient webClient;
 
     // Prepare logger
-    private static final org.slf4j.Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
+    private static final Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
 
     @Autowired
     public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
