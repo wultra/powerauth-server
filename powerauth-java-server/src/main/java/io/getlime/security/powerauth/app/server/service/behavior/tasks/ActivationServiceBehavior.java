@@ -74,9 +74,9 @@ import java.util.Set;
 public class ActivationServiceBehavior {
 
     /**
-     * Current PowerAuth protocol version. Activations created with lower version will be upgraded to this version.
+     * Current PowerAuth protocol major version. Activations created with lower version will be upgraded to this version.
      */
-    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x03;
+    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
 
     private RepositoryCatalogue repositoryCatalogue;
 
