@@ -62,6 +62,7 @@ CREATE TABLE `pa_activation` (
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `timestamp_activation_expire` datetime NOT NULL,
   `timestamp_last_used` datetime NOT NULL,
+  `version` int(2) NOT NULL DEFAULT 2,
   PRIMARY KEY (`activation_id`),
   KEY `FK_ACTIVATION_APPLICATION_idx` (`application_id`),
   CONSTRAINT `FK_ACTIVATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
