@@ -490,6 +490,8 @@ public class ActivationServiceBehavior {
         activation.setTimestampActivationExpire(timestampExpiration);
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
+        // PowerAuth protocol version 2.0
+        activation.setVersion(2);
         activation.setUserId(userId);
 
         // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.

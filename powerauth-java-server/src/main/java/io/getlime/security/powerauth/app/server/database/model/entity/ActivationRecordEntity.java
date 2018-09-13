@@ -95,7 +95,7 @@ public class ActivationRecordEntity implements Serializable {
     private KeyEncryptionMode serverPrivateKeyEncryption;
 
     @Column(name = "version", nullable = false)
-    private Long version;
+    private Integer version;
 
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
@@ -153,7 +153,7 @@ public class ActivationRecordEntity implements Serializable {
                                   ActivationStatus activationStatus,
                                   String blockedReason,
                                   KeyEncryptionMode serverPrivateKeyEncryption,
-                                  Long version,
+                                  Integer version,
                                   MasterKeyPairEntity masterKeyPair,
                                   ApplicationEntity application) {
         super();
@@ -508,7 +508,7 @@ public class ActivationRecordEntity implements Serializable {
      * Get PowerAuth protocol major version for activation.
      * @return PowerAuth protocol major version.
      */
-    public Long getVersion() {
+    public Integer getVersion() {
         return version;
     }
 
@@ -516,7 +516,7 @@ public class ActivationRecordEntity implements Serializable {
      * Set PowerAuth protocol major version for activation.
      * @param version PowerAuth protocol major version.
      */
-    public void setVersion(Long version) {
+    public void setVersion(Integer version) {
         this.version = version;
     }
 
