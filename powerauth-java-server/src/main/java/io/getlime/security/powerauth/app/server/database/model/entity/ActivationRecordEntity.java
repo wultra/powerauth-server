@@ -94,6 +94,9 @@ public class ActivationRecordEntity implements Serializable {
     @Enumerated
     private KeyEncryptionMode serverPrivateKeyEncryption;
 
+    @Column(name = "version", nullable = false)
+    private Integer version;
+
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
     private ApplicationEntity application;
@@ -150,6 +153,7 @@ public class ActivationRecordEntity implements Serializable {
                                   ActivationStatus activationStatus,
                                   String blockedReason,
                                   KeyEncryptionMode serverPrivateKeyEncryption,
+                                  Integer version,
                                   MasterKeyPairEntity masterKeyPair,
                                   ApplicationEntity application) {
         super();
@@ -171,6 +175,7 @@ public class ActivationRecordEntity implements Serializable {
         this.activationStatus = activationStatus;
         this.blockedReason = blockedReason;
         this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
+        this.version = version;
         this.masterKeyPair = masterKeyPair;
         this.application = application;
     }
@@ -500,6 +505,22 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
+     * Get PowerAuth protocol major version for activation.
+     * @return PowerAuth protocol major version.
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * Set PowerAuth protocol major version for activation.
+     * @param version PowerAuth protocol major version.
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    /**
      * Get associated application instance. Each activation is strongly associated with
      * a single application.
      *
@@ -563,6 +584,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyEncryption);
         hash = 71 * hash + Objects.hashCode(this.application);
         hash = 71 * hash + Objects.hashCode(this.masterKeyPair);
+        hash = 71 * hash + Objects.hashCode(this.version);
         return hash;
     }
 
@@ -632,7 +654,10 @@ public class ActivationRecordEntity implements Serializable {
         if (!Objects.equals(this.application, other.application)) {
             return false;
         }
-        return Objects.equals(this.masterKeyPair, other.masterKeyPair);
+        if (!Objects.equals(this.masterKeyPair, other.masterKeyPair)) {
+            return false;
+        }
+        return Objects.equals(this.version, other.version);
     }
 
     @Override
@@ -654,6 +679,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", status=" + activationStatus
                 + ", blockedReason=" + blockedReason
                 + ", masterKeyPair=" + masterKeyPair
+                + ", version=" + version
                 + ", application=" + application
                 + '}';
     }

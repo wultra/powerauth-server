@@ -73,6 +73,11 @@ import java.util.Set;
 @Component
 public class ActivationServiceBehavior {
 
+    /**
+     * Current PowerAuth protocol major version. Activations created with lower version will be upgraded to this version.
+     */
+    private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
+
     private RepositoryCatalogue repositoryCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
@@ -300,7 +305,8 @@ public class ActivationServiceBehavior {
                     // Encrypt the status blob
                     C_statusBlob = powerAuthServerActivation.encryptedStatusBlob(
                             activation.getActivationStatus().getByte(),
-                            activation.getCounter(),
+                            activation.getVersion().byteValue(),
+                            POWERAUTH_PROTOCOL_VERSION,
                             activation.getFailedAttempts().byteValue(),
                             activation.getMaxFailedAttempts().byteValue(),
                             transportKey
@@ -484,6 +490,8 @@ public class ActivationServiceBehavior {
         activation.setTimestampActivationExpire(timestampExpiration);
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
+        // PowerAuth protocol version 2.0
+        activation.setVersion(2);
         activation.setUserId(userId);
 
         // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
