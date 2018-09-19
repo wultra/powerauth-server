@@ -48,6 +48,12 @@ import java.security.PublicKey;
  * Behavior class implementing the end-to-end encryption related processes. The
  * class separates the logic from the main service class.
  *
+ * <h5>PowerAuth protocol versions:</h5>
+ * <ul>
+ *     <li>2.0</li>
+ *     <li>2.1</li>
+ * </ul>
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component

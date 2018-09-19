@@ -483,7 +483,7 @@ public class ActivationServiceBehavior {
         activation.setTimestampActivationExpire(timestampExpiration);
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
-        // PowerAuth protocol version 3.0
+        // TODO: version is not known at this point, make it optional in entity
         activation.setVersion(3);
         activation.setUserId(userId);
 
@@ -510,7 +510,12 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Prepare activation with given parameters
+     * Prepare activation with given parameters.
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
      *
      * @param activationIdShort              Short activation ID
      * @param activationNonceBase64          Activation nonce encoded as Base64
@@ -532,7 +537,12 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Prepare activation with given parameters
+     * Create activation with given parameters.
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
      *
      * @param userId                         User ID
      * @param maxFailedCount                 Maximum failed attempt count (5)

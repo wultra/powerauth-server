@@ -77,6 +77,11 @@ public interface PowerAuthService {
      * Receive a PowerAuth 3.0 Client public key and return own PowerAuth 3.0 Server public key. The
      * activation with provided ID is in OTP_USED state after calling this method.
      *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+
      * @param request Prepare activation request object.
      * @return Prepare activation response.
      * @throws Exception In case of a business logic error.
@@ -90,6 +95,11 @@ public interface PowerAuthService {
      *
      * Note: This method should be used in case of activation performed directly, without the external
      * master front end application.
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
      *
      * @param request Create activation request object.
      * @return Create activation response.
@@ -120,7 +130,7 @@ public interface PowerAuthService {
      */
     CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws Exception;
 
-    /*
+    /**
      * Generate data that is used as a challenge when computing non-personalized offline signatures. It takes "data" and
      * generates nonce and ECDSA signature of the data.
      *
@@ -188,6 +198,11 @@ public interface PowerAuthService {
      * validation - the rules for blocking activation and counter increment are therefore similar as for the
      * {@link PowerAuthService#verifySignature(VerifySignatureRequest)} method. For vaultUnlock, however,
      * counter is incremented by 2 - one for signature validation, second for the transport key derivation.
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
      *
      * @param request Vault unlock request object.
      * @return Vault unlock response.

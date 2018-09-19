@@ -35,6 +35,11 @@ import java.security.spec.InvalidKeySpecException;
  * Behavior class implementing the vault unlock related processes. The class separates the
  * logic from the main service class.
  *
+ * <h5>PowerAuth protocol versions:</h5>
+ * <ul>
+ *     <li>3.0</li>
+ * </ul>
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component("VaultUnlockServiceBehavior")
