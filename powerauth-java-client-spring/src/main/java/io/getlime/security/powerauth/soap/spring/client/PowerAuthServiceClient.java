@@ -846,7 +846,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Get the PowerAuth 2.0 client.
+     * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      * @return PowerAuth 2.0 client.
      */
     public PowerAuthServiceClientV2 v2() {
