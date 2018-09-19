@@ -346,7 +346,7 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
-    <wsdl:binding name="PowerAuthPortSoapV2" type="tns:PowerAuthPortV2">
+    <wsdl:binding name="PowerAuthPortV2Soap11" type="tns:PowerAuthPortV2">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
         <wsdl:operation name="PrepareActivation">
             <soap:operation soapAction=""/>
@@ -403,8 +403,8 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
-    <wsdl:service name="PowerAuthPortServiceV2">
-        <wsdl:port binding="tns:PowerAuthPortSoapV2" name="PowerAuthPortV2">
+    <wsdl:service name="PowerAuthPortV2Service">
+        <wsdl:port binding="tns:PowerAuthPortV2Soap11" name="PowerAuthPortV2Soap11">
             <soap:address location="http://localhost:8080/powerauth-java-server/soap"/>
         </wsdl:port>
     </wsdl:service>

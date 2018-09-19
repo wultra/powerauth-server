@@ -1649,7 +1649,7 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
-    <wsdl:binding name="PowerAuthPortSoapV3" type="tns:PowerAuthPortV3">
+    <wsdl:binding name="PowerAuthPortV3Soap11" type="tns:PowerAuthPortV3">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
         <wsdl:operation name="UnsupportApplicationVersion">
             <soap:operation soapAction=""/>
@@ -1967,8 +1967,8 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
-    <wsdl:service name="PowerAuthPortServiceV3">
-        <wsdl:port binding="tns:PowerAuthPortSoapV3" name="PowerAuthPortV3">
+    <wsdl:service name="PowerAuthPortV3Service">
+        <wsdl:port binding="tns:PowerAuthPortV3Soap11" name="PowerAuthPortV3Soap11">
             <soap:address location="http://localhost:8080/powerauth-java-server/soap"/>
         </wsdl:port>
     </wsdl:service>
