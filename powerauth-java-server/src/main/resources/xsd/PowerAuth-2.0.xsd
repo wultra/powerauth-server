@@ -207,7 +207,7 @@
 
     <xs:element name="CreateTokenResponse">
         <xs:annotation>
-            <xs:documentation>Request for obtaining a new token for simple authentication.</xs:documentation>
+            <xs:documentation>Response for obtaining a new token for simple authentication.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>

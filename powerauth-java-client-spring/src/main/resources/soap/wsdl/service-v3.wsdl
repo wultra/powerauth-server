@@ -1061,6 +1061,35 @@
                 </xs:complexType>
             </xs:element>
 
+            <!-- ECIES //-->
+
+            <xs:element name="GetEciesEncryptorRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for obtaining ECIES encryptor.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <!-- activationId is optional -->
+                        <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                        <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="ephemeralKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="GetEciesEncryptorResponse">
+                <xs:annotation>
+                    <xs:documentation>Response containing setup for ECIES encryptor.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="encKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="macKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="sharedInfo2" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
             <!-- Migration to version 3.0 //-->
 
             <xs:element name="MigrationStartRequest">
