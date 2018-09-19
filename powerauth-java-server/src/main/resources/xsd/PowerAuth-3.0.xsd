@@ -426,7 +426,6 @@
                 <xs:element name="activationCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationSignature" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="devicePublicKeyFingerprint" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <!-- new attribute: defines version of protocol, currently in use -->
                 <xs:element name="protocolVersion" type="xs:long" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
