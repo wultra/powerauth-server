@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("RestControllerV2")
-@RequestMapping(value = "/rest")
+@RequestMapping(value = "/rest/v2")
 public class PowerAuthController {
 
     private PowerAuthService powerAuthService;
