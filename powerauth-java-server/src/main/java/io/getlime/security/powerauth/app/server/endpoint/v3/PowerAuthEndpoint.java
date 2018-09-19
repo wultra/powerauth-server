@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.endpoint;
+package io.getlime.security.powerauth.app.server.endpoint.v3;
 
-import io.getlime.security.powerauth.*;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
+import io.getlime.security.powerauth.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
@@ -30,10 +30,10 @@ import org.springframework.ws.server.endpoint.annotation.ResponsePayload;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Endpoint
+@Endpoint(value = "PowerAuth 3.0")
 public class PowerAuthEndpoint {
 
-    private static final String NAMESPACE_URI = "http://getlime.io/security/powerauth";
+    private static final String NAMESPACE_URI = "http://getlime.io/security/powerauth/v3";
 
     private PowerAuthService powerAuthService;
 
@@ -236,34 +236,6 @@ public class PowerAuthEndpoint {
     @ResponsePayload
     public VaultUnlockResponse vaultUnlock(@RequestPayload VaultUnlockRequest request) throws Exception {
         return powerAuthService.vaultUnlock(request);
-    }
-
-    /**
-     * Call {@link PowerAuthService#generateE2EPersonalizedEncryptionKey(GetPersonalizedEncryptionKeyRequest)} method and
-     * return the response.
-     *
-     * @param request E2E encryption key request.
-     * @return E2E encryption key response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetPersonalizedEncryptionKeyRequest")
-    @ResponsePayload
-    public GetPersonalizedEncryptionKeyResponse generateE2EPersonalizedEncryptionKey(@RequestPayload GetPersonalizedEncryptionKeyRequest request) throws Exception {
-        return powerAuthService.generateE2EPersonalizedEncryptionKey(request);
-    }
-
-    /**
-     * Call {@link PowerAuthService#generateE2ENonPersonalizedEncryptionKey(GetNonPersonalizedEncryptionKeyRequest)} method and
-     * return the response.
-     *
-     * @param request E2E encryption key request.
-     * @return E2E encryption key response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetNonPersonalizedEncryptionKeyRequest")
-    @ResponsePayload
-    public GetNonPersonalizedEncryptionKeyResponse generateE2ENonPersonalizedEncryptionKey(@RequestPayload GetNonPersonalizedEncryptionKeyRequest request) throws Exception {
-        return powerAuthService.generateE2ENonPersonalizedEncryptionKey(request);
     }
 
     /**

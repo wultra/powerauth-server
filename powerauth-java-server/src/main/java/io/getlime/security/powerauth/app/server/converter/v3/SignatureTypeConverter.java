@@ -16,10 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.converter;
+package io.getlime.security.powerauth.app.server.converter.v3;
 
-import io.getlime.security.powerauth.SignatureType;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.v3.SignatureType;
 
 /**
  * Converter from {@link SignatureType} to {@link PowerAuthSignatureTypes}.
@@ -47,6 +47,23 @@ final public class SignatureTypeConverter {
 
     public SignatureType convertFrom(String signatureType) {
         return SignatureType.fromValue(signatureType.toUpperCase());
+    }
+
+    public io.getlime.security.powerauth.v3.SignatureType convertFrom(io.getlime.security.powerauth.v2.SignatureType signatureType) {
+        switch (signatureType) {
+            case POSSESSION:
+                return SignatureType.POSSESSION;
+            case KNOWLEDGE:
+                return SignatureType.KNOWLEDGE;
+            case BIOMETRY:
+                return SignatureType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE:
+                return SignatureType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY:
+                return SignatureType.POSSESSION_BIOMETRY;
+            default:
+                return SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
+        }
     }
 
     public SignatureType convertTo(PowerAuthSignatureTypes powerAuthSignatureTypes) {

@@ -201,8 +201,11 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Get short activation ID
      *
+     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
+     *
      * @return Short activation ID
      */
+    @Deprecated
     public String getActivationIdShort() {
         return activationIdShort;
     }
@@ -210,8 +213,11 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Set short activation ID
      *
+     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
+     *
      * @param activationIdShort Short activation ID
      */
+    @Deprecated
     public void setActivationIdShort(String activationIdShort) {
         this.activationIdShort = activationIdShort;
     }
@@ -219,8 +225,11 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Get activation OTP
      *
+     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
+     *
      * @return Activation OTP
      */
+    @Deprecated
     public String getActivationOTP() {
         return activationOTP;
     }
@@ -228,8 +237,11 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Set activation OTP
      *
+     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
+     *
      * @param activationOTP Activation OTP
      */
+    @Deprecated
     public void setActivationOTP(String activationOTP) {
         this.activationOTP = activationOTP;
     }

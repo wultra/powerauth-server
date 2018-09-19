@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.service;
+package io.getlime.security.powerauth.app.server.service.v3;
 
-import io.getlime.security.powerauth.*;
+import io.getlime.security.powerauth.v3.*;
 
 /**
- * Interface containing all methods that are published by the PowerAuth 2.0 Server
+ * Interface containing all methods that are published by the PowerAuth 3.0 Server
  * instance. These methods are then used to publish both SOAP and REST interface.
  *
  * @author Petr Dvorak, petr@wultra.com
@@ -28,7 +28,7 @@ import io.getlime.security.powerauth.*;
 public interface PowerAuthService {
 
     /**
-     * Get PowerAuth 2.0 Server system status.
+     * Get PowerAuth 3.0 Server system status.
      *
      * @param request Empty object.
      * @return System status.
@@ -74,7 +74,7 @@ public interface PowerAuthService {
     InitActivationResponse initActivation(InitActivationRequest request) throws Exception;
 
     /**
-     * Receive a PowerAuth 2.0 Client public key and return own PowerAuth 2.0 Server public key. The
+     * Receive a PowerAuth 3.0 Client public key and return own PowerAuth 3.0 Server public key. The
      * activation with provided ID is in OTP_USED state after calling this method.
      *
      * @param request Prepare activation request object.
@@ -85,7 +85,7 @@ public interface PowerAuthService {
 
     /**
      * Create a new activation in OTP_USED state, without the InitActivation / PrepareActivation cycle.
-     * This method receives a PowerAuth 2.0 Client public key and returns own PowerAuth 2.0 Server public key.
+     * This method receives a PowerAuth 3.0 Client public key and returns own PowerAuth 3.0 Server public key.
      * The activation with is in OTP_USED state after calling this method.
      *
      * Note: This method should be used in case of activation performed directly, without the external
@@ -194,22 +194,6 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws Exception;
-
-    /**
-     * Generate an activation specific transport key with given index for the purpose of personalized end-to-end encryption.
-     * @param request Request with an activation ID and optional session index.
-     * @return Response with derived transport key and its session index.
-     * @throws Exception In case of a business logic error.
-     */
-    GetPersonalizedEncryptionKeyResponse generateE2EPersonalizedEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws Exception;
-
-    /**
-     * Generate an application specific transport key with given index for the purpose of non-personalized end-to-end encryption.
-     * @param request Request with application ID and optional session index.
-     * @return Response with derived transport key and its session index.
-     * @throws Exception In case of a business logic error.
-     */
-    GetNonPersonalizedEncryptionKeyResponse generateE2ENonPersonalizedEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws Exception;
 
     /**
      * Validate incoming ECDSA signature for provided data using a public device key associated with given activation.
@@ -353,6 +337,12 @@ public interface PowerAuthService {
 
     /**
      * Creates a new token for simple token-based device authentication.
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+     *
      * @param request Request with information required to issue the token.
      * @return Response with the token information.
      * @throws Exception In case of a business logic error.

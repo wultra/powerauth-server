@@ -16,30 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.converter;
+package io.getlime.security.powerauth.app.server.converter.v2;
 
 /**
- * Converter class between {@link io.getlime.security.powerauth.ActivationStatus} and
+ * Converter class between {@link io.getlime.security.powerauth.v2.ActivationStatus} and
  * {@link io.getlime.security.powerauth.app.server.database.model.ActivationStatus}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 public class ActivationStatusConverter {
 
-    public io.getlime.security.powerauth.ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.ActivationStatus activationStatus) {
+    public io.getlime.security.powerauth.v2.ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.ActivationStatus activationStatus) {
         switch (activationStatus) {
             case CREATED:
-                return io.getlime.security.powerauth.ActivationStatus.CREATED;
+                return io.getlime.security.powerauth.v2.ActivationStatus.CREATED;
             case OTP_USED:
-                return io.getlime.security.powerauth.ActivationStatus.OTP_USED;
+                return io.getlime.security.powerauth.v2.ActivationStatus.OTP_USED;
             case ACTIVE:
-                return io.getlime.security.powerauth.ActivationStatus.ACTIVE;
+                return io.getlime.security.powerauth.v2.ActivationStatus.ACTIVE;
             case BLOCKED:
-                return io.getlime.security.powerauth.ActivationStatus.BLOCKED;
+                return io.getlime.security.powerauth.v2.ActivationStatus.BLOCKED;
             case REMOVED:
-                return io.getlime.security.powerauth.ActivationStatus.REMOVED;
+                return io.getlime.security.powerauth.v2.ActivationStatus.REMOVED;
         }
-        return io.getlime.security.powerauth.ActivationStatus.REMOVED;
+        return io.getlime.security.powerauth.v2.ActivationStatus.REMOVED;
     }
 
 }

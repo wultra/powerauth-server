@@ -150,21 +150,40 @@
                 <version>0.14.0</version>
                 <executions>
                     <execution>
+                        <id>PowerAuth 2.0</id>
                         <goals>
                             <goal>generate</goal>
                         </goals>
+                        <configuration>
+                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                            <schemaDirectory>${basedir}/src/main/resources/xsd</schemaDirectory>
+                            <schemaIncludes>
+                                <include>PowerAuth-2.0.xsd</include>
+                            </schemaIncludes>
+                            <generatePackage>io.getlime.security.powerauth.v2</generatePackage>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjc/v2</generateDirectory>
+                            <episode>false</episode>
+                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>PowerAuth 3.0</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
+                            <schemaDirectory>${basedir}/src/main/resources/xsd</schemaDirectory>
+                            <schemaIncludes>
+                                <include>PowerAuth-3.0.xsd</include>
+                            </schemaIncludes>
+                            <generatePackage>io.getlime.security.powerauth.v3</generatePackage>
+                            <generateDirectory>${project.build.directory}/generated-sources/xjc/v3</generateDirectory>
+                            <episode>false</episode>
+                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
+                        </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                    <schemaDirectory>${basedir}/src/main/resources/xsd</schemaDirectory>
-                    <schemaIncludes>
-                        <include>PowerAuth-2.0.xsd</include>
-                    </schemaIncludes>
-                    <generatePackage>io.getlime.security.powerauth</generatePackage>
-                    <episode>false</episode>
-                    <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                </configuration>
             </plugin>
 
         </plugins>

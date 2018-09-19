@@ -17,10 +17,10 @@
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
 <wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
-                  xmlns:tns="http://getlime.io/security/powerauth"
-                  targetNamespace="http://getlime.io/security/powerauth">
+                  xmlns:tns="http://getlime.io/security/powerauth/v3"
+                  targetNamespace="http://getlime.io/security/powerauth/v3">
     <wsdl:types>
-        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://getlime.io/security/powerauth" version="1.0">
+        <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://getlime.io/security/powerauth/v3" version="1.0">
 
             <!-- Status method //-->
 
@@ -297,12 +297,11 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationIdShort" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationOTP" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationSignature" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationCode" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationSignature" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -315,14 +314,11 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationIdShort" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="activationName" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationNonce" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="ephemeralPublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedDevicePublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationSignature" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationCode" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -333,11 +329,9 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationNonce" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedServerPublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedServerPublicKeySignature" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -350,19 +344,13 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="timestampActivationExpire" type="xs:dateTime"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="maxFailureCount" type="xs:long"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="identity" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationOtp" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="activationName" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationNonce" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="ephemeralPublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedDevicePublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationSignature" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="timestampActivationExpire" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="maxFailureCount" type="xs:long"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -373,11 +361,9 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationNonce" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedServerPublicKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedServerPublicKeySignature" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -440,6 +426,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="activationOTP" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="activationSignature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="devicePublicKeyFingerprint" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="protocolVersion" type="xs:long"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -523,6 +510,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="signatureVersion" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -691,12 +679,14 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="reason" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="signedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="signature" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="signatureType" type="tns:SignatureType"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -707,13 +697,8 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="remainingAttempts" type="xs:integer"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="signatureValid" type="xs:boolean"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedVaultEncryptionKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -995,63 +980,6 @@
                 </xs:complexType>
             </xs:element>
 
-            <!-- Non-personalized End-to-End Encryption Support //-->
-
-            <xs:element name="GetNonPersonalizedEncryptionKeyRequest">
-                <xs:annotation>
-                    <xs:documentation>Request for obtaining a derived end-to-end encryption key for non-personalized encryption.</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="sessionIndex" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-
-            <xs:element name="GetNonPersonalizedEncryptionKeyResponse">
-                <xs:annotation>
-                    <xs:documentation>Response for obtaining a derived end-to-end encryption key for non-personalized encryption.</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptionKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptionKeyIndex" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-
-            <!-- End-to-End Encryption Support //-->
-
-            <xs:element name="GetPersonalizedEncryptionKeyRequest">
-                <xs:annotation>
-                    <xs:documentation>Request for obtaining a derived personalized end-to-end encryption key.</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="sessionIndex" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-
-            <xs:element name="GetPersonalizedEncryptionKeyResponse">
-                <xs:annotation>
-                    <xs:documentation>Response for obtaining a derived personalized end-to-end encryption key.</xs:documentation>
-                </xs:annotation>
-                <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptionKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptionKeyIndex" type="xs:string"/>
-                    </xs:sequence>
-                </xs:complexType>
-            </xs:element>
-
             <!-- Token Based Authentication Support //-->
 
             <xs:element name="CreateTokenRequest">
@@ -1061,8 +989,11 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1127,6 +1058,58 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="removed" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <!-- Migration to version 3.0 //-->
+
+            <xs:element name="MigrationStartRequest">
+                <xs:annotation>
+                    <xs:documentation>Request to start migration.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="MigrationStartResponse">
+                <xs:annotation>
+                    <xs:documentation>Response to start migration.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="encryptedData" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="mac" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="MigrationCommitRequest">
+                <xs:annotation>
+                    <xs:documentation>Migration commit request</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationKey" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="MigrationCommitResponse">
+                <xs:annotation>
+                    <xs:documentation>Migration commit response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="result" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1239,10 +1222,6 @@
         <wsdl:part element="tns:VerifyOfflineSignatureResponse" name="VerifyOfflineSignatureResponse">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="GetPersonalizedEncryptionKeyResponse">
-        <wsdl:part element="tns:GetPersonalizedEncryptionKeyResponse" name="GetPersonalizedEncryptionKeyResponse">
-        </wsdl:part>
-    </wsdl:message>
     <wsdl:message name="GetApplicationListRequest">
         <wsdl:part element="tns:GetApplicationListRequest" name="GetApplicationListRequest">
         </wsdl:part>
@@ -1335,10 +1314,6 @@
         <wsdl:part element="tns:CreateActivationRequest" name="CreateActivationRequest">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="GetNonPersonalizedEncryptionKeyRequest">
-        <wsdl:part element="tns:GetNonPersonalizedEncryptionKeyRequest" name="GetNonPersonalizedEncryptionKeyRequest">
-        </wsdl:part>
-    </wsdl:message>
     <wsdl:message name="GetApplicationDetailRequest">
         <wsdl:part element="tns:GetApplicationDetailRequest" name="GetApplicationDetailRequest">
         </wsdl:part>
@@ -1357,10 +1332,6 @@
     </wsdl:message>
     <wsdl:message name="GetActivationListForUserRequest">
         <wsdl:part element="tns:GetActivationListForUserRequest" name="GetActivationListForUserRequest">
-        </wsdl:part>
-    </wsdl:message>
-    <wsdl:message name="GetNonPersonalizedEncryptionKeyResponse">
-        <wsdl:part element="tns:GetNonPersonalizedEncryptionKeyResponse" name="GetNonPersonalizedEncryptionKeyResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="LookupApplicationByAppKeyResponse">
@@ -1427,10 +1398,6 @@
         <wsdl:part element="tns:GetCallbackUrlListRequest" name="GetCallbackUrlListRequest">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="GetPersonalizedEncryptionKeyRequest">
-        <wsdl:part element="tns:GetPersonalizedEncryptionKeyRequest" name="GetPersonalizedEncryptionKeyRequest">
-        </wsdl:part>
-    </wsdl:message>
     <wsdl:message name="CreateTokenRequest">
         <wsdl:part element="tns:CreateTokenRequest" name="CreateTokenRequest">
         </wsdl:part>
@@ -1471,7 +1438,7 @@
         <wsdl:part element="tns:RemoveCallbackUrlResponse" name="RemoveCallbackUrlResponse">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:portType name="PowerAuthPort">
+    <wsdl:portType name="PowerAuthPortV3">
         <wsdl:operation name="UnsupportApplicationVersion">
             <wsdl:input message="tns:UnsupportApplicationVersionRequest" name="UnsupportApplicationVersionRequest">
             </wsdl:input>
@@ -1556,12 +1523,6 @@
             <wsdl:output message="tns:VerifyOfflineSignatureResponse" name="VerifyOfflineSignatureResponse">
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="GetPersonalizedEncryptionKey">
-            <wsdl:input message="tns:GetPersonalizedEncryptionKeyRequest" name="GetPersonalizedEncryptionKeyRequest">
-            </wsdl:input>
-            <wsdl:output message="tns:GetPersonalizedEncryptionKeyResponse" name="GetPersonalizedEncryptionKeyResponse">
-            </wsdl:output>
-        </wsdl:operation>
         <wsdl:operation name="GetApplicationList">
             <wsdl:input message="tns:GetApplicationListRequest" name="GetApplicationListRequest">
             </wsdl:input>
@@ -1640,12 +1601,6 @@
             <wsdl:output message="tns:CreateActivationResponse" name="CreateActivationResponse">
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="GetNonPersonalizedEncryptionKey">
-            <wsdl:input message="tns:GetNonPersonalizedEncryptionKeyRequest" name="GetNonPersonalizedEncryptionKeyRequest">
-            </wsdl:input>
-            <wsdl:output message="tns:GetNonPersonalizedEncryptionKeyResponse" name="GetNonPersonalizedEncryptionKeyResponse">
-            </wsdl:output>
-        </wsdl:operation>
         <wsdl:operation name="SignatureAudit">
             <wsdl:input message="tns:SignatureAuditRequest" name="SignatureAuditRequest">
             </wsdl:input>
@@ -1695,7 +1650,7 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
-    <wsdl:binding name="PowerAuthPortSoap11" type="tns:PowerAuthPort">
+    <wsdl:binding name="PowerAuthPortSoapV3" type="tns:PowerAuthPortV3">
         <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
         <wsdl:operation name="UnsupportApplicationVersion">
             <soap:operation soapAction=""/>
@@ -1823,15 +1778,6 @@
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="GetPersonalizedEncryptionKey">
-            <soap:operation soapAction=""/>
-            <wsdl:input name="GetPersonalizedEncryptionKeyRequest">
-                <soap:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output name="GetPersonalizedEncryptionKeyResponse">
-                <soap:body use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
         <wsdl:operation name="GetApplicationList">
             <soap:operation soapAction=""/>
             <wsdl:input name="GetApplicationListRequest">
@@ -1949,15 +1895,6 @@
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="GetNonPersonalizedEncryptionKey">
-            <soap:operation soapAction=""/>
-            <wsdl:input name="GetNonPersonalizedEncryptionKeyRequest">
-                <soap:body use="literal"/>
-            </wsdl:input>
-            <wsdl:output name="GetNonPersonalizedEncryptionKeyResponse">
-                <soap:body use="literal"/>
-            </wsdl:output>
-        </wsdl:operation>
         <wsdl:operation name="SignatureAudit">
             <soap:operation soapAction=""/>
             <wsdl:input name="SignatureAuditRequest">
@@ -2031,8 +1968,8 @@
             </wsdl:output>
         </wsdl:operation>
     </wsdl:binding>
-    <wsdl:service name="PowerAuthPortService">
-        <wsdl:port binding="tns:PowerAuthPortSoap11" name="PowerAuthPortSoap11">
+    <wsdl:service name="PowerAuthPortServiceV3">
+        <wsdl:port binding="tns:PowerAuthPortSoapV3" name="PowerAuthPortV3">
             <soap:address location="http://localhost:8080/powerauth-java-server/soap"/>
         </wsdl:port>
     </wsdl:service>
