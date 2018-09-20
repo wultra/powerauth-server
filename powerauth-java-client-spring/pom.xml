@@ -70,7 +70,8 @@
                                 <include>service-v2.wsdl</include>
                             </schemaIncludes>
                             <generatePackage>io.getlime.powerauth.soap.v2</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc/v2</generateDirectory>                            <episode>false</episode>
+                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v2</generateDirectory>
+                            <episode>false</episode>
                             <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
                         </configuration>
                     </execution>
@@ -86,7 +87,7 @@
                                 <include>service-v3.wsdl</include>
                             </schemaIncludes>
                             <generatePackage>io.getlime.powerauth.soap.v3</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc/v3</generateDirectory>                            <episode>false</episode>
+                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v3</generateDirectory>
                             <episode>false</episode>
                             <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
                         </configuration>

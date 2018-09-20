@@ -161,7 +161,7 @@
                                 <include>PowerAuth-2.0.xsd</include>
                             </schemaIncludes>
                             <generatePackage>io.getlime.security.powerauth.v2</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc/v2</generateDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v2</generateDirectory>
                             <episode>false</episode>
                             <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
                         </configuration>
@@ -178,7 +178,7 @@
                                 <include>PowerAuth-3.0.xsd</include>
                             </schemaIncludes>
                             <generatePackage>io.getlime.security.powerauth.v3</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/xjc/v3</generateDirectory>
+                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v3</generateDirectory>
                             <episode>false</episode>
                             <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
                         </configuration>
