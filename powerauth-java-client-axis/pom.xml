@@ -58,25 +58,37 @@
 
 	<build>
 		<plugins>
-			<!-- tag::wsdl[] -->
 			<plugin>
 				<groupId>org.apache.axis2</groupId>
 				<artifactId>axis2-wsdl2code-maven-plugin</artifactId>
 				<version>${axis2.version}</version>
 				<executions>
 					<execution>
+						<id>PowerAuth 2.0</id>
 						<goals>
 							<goal>wsdl2code</goal>
 						</goals>
 						<configuration>
-							<packageName>io.getlime.powerauth.soap</packageName>
-							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/service.wsdl</wsdlFile>
+							<packageName>io.getlime.powerauth.soap.v2</packageName>
+							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/service-v2.wsdl</wsdlFile>
 							<databindingName>adb</databindingName>
+							<outputDirectory>${project.build.directory}/generated-sources/axis2/wsdl2code/v2</outputDirectory>
+						</configuration>
+					</execution>
+					<execution>
+						<id>PowerAuth 3.0</id>
+						<goals>
+							<goal>wsdl2code</goal>
+						</goals>
+						<configuration>
+							<packageName>io.getlime.powerauth.soap.v3</packageName>
+							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/service-v3.wsdl</wsdlFile>
+							<databindingName>adb</databindingName>
+							<outputDirectory>${project.build.directory}/generated-sources/axis2/wsdl2code/v3</outputDirectory>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
-			<!-- end::wsdl[] -->
 		</plugins>
 	</build>
 

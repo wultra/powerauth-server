@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.behavior.tasks;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.*;
+import com.google.common.primitives.Bytes;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -39,9 +39,11 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesPaylo
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
@@ -55,7 +57,7 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Component("TokenBehavior")
 public class TokenBehavior {
 
     private RepositoryCatalogue repositoryCatalogue;
@@ -79,17 +81,41 @@ public class TokenBehavior {
     /**
      * Method that creates a new token provided activation.
      *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+     *
      * @param request Request with the activation ID, signature type and ephemeral public key.
      * @param keyConversion Key conversion utility class.
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
     public CreateTokenResponse createToken(CreateTokenRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
-        try {
-            final String activationId = request.getActivationId();
-            final String ephemeralPublicKeyBase64 = request.getEphemeralPublicKey();
-            final SignatureType signatureType = request.getSignatureType();
+        final String activationId = request.getActivationId();
+        final String ephemeralPublicKeyBase64 = request.getEphemeralKey();
+        final SignatureType signatureType = request.getSignatureType();
 
+        EciesPayload encryptedPayload = createToken(activationId, ephemeralPublicKeyBase64, signatureType.value(), keyConversion);
+
+        final CreateTokenResponse response = new io.getlime.security.powerauth.v3.CreateTokenResponse();
+        response.setMac(BaseEncoding.base64().encode(encryptedPayload.getMac()));
+        response.setEncryptedData(BaseEncoding.base64().encode(encryptedPayload.getEncryptedData()));
+        return response;
+    }
+
+    /**
+     * Create a new token implementation.
+     *
+     * @param activationId Activation ID.
+     * @param ephemeralPublicKeyBase64 Base-64 encoded ephemeral public key.
+     * @param signatureType Signature type.
+     * @param keyConversion Key conversion utility class.
+     * @return Response with a newly created token information (ECIES encrypted).
+     * @throws GenericServiceException In case a business error occurs.
+     */
+    private EciesPayload createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
+        try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
             if (activation == null) {
@@ -129,7 +155,7 @@ public class TokenBehavior {
             token.setTokenSecret(BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret()));
             token.setActivation(activation);
             token.setTimestampCreated(Calendar.getInstance().getTime());
-            token.setSignatureTypeCreated(signatureType.value());
+            token.setSignatureTypeCreated(signatureType);
             token = repositoryCatalogue.getTokenRepository().save(token);
 
             final TokenInfo tokenInfo = new TokenInfo();
@@ -140,13 +166,8 @@ public class TokenBehavior {
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
 
             final BasicEciesDecryptor decryptor = new BasicEciesDecryptor((ECPrivateKey) privateKey);
-            final EciesPayload encryptedPayload = decryptor.encrypt(tokenBytes, (ECPublicKey) ephemeralPublicKey, ephemeralPublicKeyBytes);
-
-            final CreateTokenResponse response = new CreateTokenResponse();
-            response.setMac(BaseEncoding.base64().encode(encryptedPayload.getMac()));
-            response.setEncryptedData(BaseEncoding.base64().encode(encryptedPayload.getEncryptedData()));
-            return response;
-
+            final byte[] sharedInfo1 = "/pa/token/create".getBytes(StandardCharsets.UTF_8);
+            return decryptor.encrypt(tokenBytes, (ECPublicKey) ephemeralPublicKey, Bytes.concat(sharedInfo1, ephemeralPublicKeyBytes));
         } catch (InvalidKeySpecException e) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (EciesException e) {
@@ -154,7 +175,6 @@ public class TokenBehavior {
         } catch (JsonProcessingException e) {
             throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
         }
-
     }
 
     /**

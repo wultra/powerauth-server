@@ -16,12 +16,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.behavior.tasks;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.VaultUnlockResponse;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.converter.v2.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -29,6 +28,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ActivationRe
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.v2.VaultUnlockResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,9 +42,15 @@ import java.security.spec.InvalidKeySpecException;
  * Behavior class implementing the vault unlock related processes. The class separates the
  * logic from the main service class.
  *
+ * <h5>PowerAuth protocol versions:</h5>
+ * <ul>
+ *     <li>2.0</li>
+ *     <li>2.1</li>
+ * </ul>
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Component("VaultUnlockServiceBehaviorV2")
 public class VaultUnlockServiceBehavior {
 
     private ActivationRepository powerAuthRepository;

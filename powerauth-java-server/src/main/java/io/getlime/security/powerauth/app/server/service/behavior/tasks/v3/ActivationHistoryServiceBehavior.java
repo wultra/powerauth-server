@@ -16,15 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.behavior.tasks;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import io.getlime.security.powerauth.ActivationHistoryResponse;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
+import io.getlime.security.powerauth.v3.ActivationHistoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

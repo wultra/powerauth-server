@@ -16,12 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.behavior.tasks;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.GetNonPersonalizedEncryptionKeyResponse;
-import io.getlime.security.powerauth.GetPersonalizedEncryptionKeyResponse;
-import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
@@ -37,6 +35,8 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.v2.GetNonPersonalizedEncryptionKeyResponse;
+import io.getlime.security.powerauth.v2.GetPersonalizedEncryptionKeyResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +47,12 @@ import java.security.PublicKey;
 /**
  * Behavior class implementing the end-to-end encryption related processes. The
  * class separates the logic from the main service class.
+ *
+ * <h5>PowerAuth protocol versions:</h5>
+ * <ul>
+ *     <li>2.0</li>
+ *     <li>2.1</li>
+ * </ul>
  *
  * @author Petr Dvorak, petr@wultra.com
  */

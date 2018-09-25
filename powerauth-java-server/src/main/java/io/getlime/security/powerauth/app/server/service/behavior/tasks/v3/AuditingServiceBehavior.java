@@ -16,19 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package io.getlime.security.powerauth.app.server.service.behavior.tasks;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.KeyValueMap;
-import io.getlime.security.powerauth.SignatureAuditResponse;
-import io.getlime.security.powerauth.SignatureType;
-import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
-import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.converter.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
+import io.getlime.security.powerauth.v3.KeyValueMap;
+import io.getlime.security.powerauth.v3.SignatureAuditResponse;
+import io.getlime.security.powerauth.v3.SignatureType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.converter;
+package io.getlime.security.powerauth.app.server.converter.v3;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -52,9 +52,8 @@ public class XMLGregorianCalendarConverter {
      *
      * @param calendar XMLGregorianCalendar instance
      * @return Date instance
-     * @throws DatatypeConfigurationException In case data conversion fails
      */
-    public static Date convertTo(XMLGregorianCalendar calendar) throws DatatypeConfigurationException {
+    public static Date convertTo(XMLGregorianCalendar calendar) {
         if (calendar == null) {
             return null;
         }

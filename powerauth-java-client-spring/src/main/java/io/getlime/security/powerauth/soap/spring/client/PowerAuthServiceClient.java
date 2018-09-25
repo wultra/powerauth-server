@@ -17,8 +17,7 @@
  */
 package io.getlime.security.powerauth.soap.spring.client;
 
-import io.getlime.powerauth.soap.*;
-import io.getlime.powerauth.soap.GetActivationListForUserResponse.Activations;
+import io.getlime.powerauth.soap.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
@@ -137,16 +136,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @return {@link PrepareActivationResponse}
      */
     public PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) {
-        PrepareActivationRequest request = new PrepareActivationRequest();
-        request.setActivationIdShort(activationIdShort);
-        request.setActivationName(activationName);
-        request.setActivationNonce(activationNonce);
-        request.setEphemeralPublicKey(ephemeralPublicKey);
-        request.setEncryptedDevicePublicKey(cDevicePublicKey);
-        request.setExtras(extras);
-        request.setApplicationKey(applicationKey);
-        request.setApplicationSignature(applicationSignature);
-        return this.prepareActivation(request);
+        throw new IllegalStateException("Not implemented yet");
     }
 
     /**
@@ -170,7 +160,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param cDevicePublicKey Device public key encrypted with activation OTP.
      * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
      * @param extras Additional, application specific information.
-     * @return {@link io.getlime.powerauth.soap.CreateActivationResponse}
+     * @return {@link CreateActivationResponse}
      */
     public CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
         return this.createActivation(
@@ -203,27 +193,10 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param cDevicePublicKey Device public key encrypted with activation OTP.
      * @param ephemeralPublicKey Ephemeral public key.
      * @param extras Additional, application specific information.
-     * @return {@link io.getlime.powerauth.soap.CreateActivationResponse}
+     * @return {@link CreateActivationResponse}
      */
     public CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
-        CreateActivationRequest request = new CreateActivationRequest();
-        request.setApplicationKey(applicationKey);
-        request.setUserId(userId);
-        if (maxFailureCount != null) {
-            request.setMaxFailureCount(maxFailureCount);
-        }
-        if (timestampActivationExpire != null) {
-            request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
-        }
-        request.setIdentity(identity);
-        request.setActivationOtp(activationOtp);
-        request.setActivationName(activationName);
-        request.setActivationNonce(activationNonce);
-        request.setEphemeralPublicKey(ephemeralPublicKey);
-        request.setEncryptedDevicePublicKey(cDevicePublicKey);
-        request.setExtras(extras);
-        request.setApplicationSignature(applicationSignature);
-        return this.createActivation(request);
+        throw new IllegalStateException("Not implemented yet");
     }
 
     /**
@@ -280,7 +253,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param userId User ID to fetch the activations for.
      * @return List of activation instances for given user.
      */
-    public List<Activations> getActivationListForUser(String userId) {
+    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) {
         GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId(userId);
         return this.getActivationListForUser(request).getActivations();
@@ -368,21 +341,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @return {@link VaultUnlockResponse}
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String reason) {
-        VaultUnlockRequest request = new VaultUnlockRequest();
-        request.setActivationId(activationId);
-        request.setApplicationKey(applicationKey);
-        request.setData(data);
-        request.setSignature(signature);
-        request.setSignatureType(signatureType);
-        request.setReason(reason);
-        return this.unlockVault(request);
+        throw new IllegalStateException("Not implemented yet");
     }
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param data Data for offline signature.
-     * @return {@link io.getlime.powerauth.soap.CreatePersonalizedOfflineSignaturePayloadResponse}
+     * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
      */
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) {
         CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
@@ -393,8 +359,8 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.CreatePersonalizedOfflineSignaturePayloadRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.CreatePersonalizedOfflineSignaturePayloadResponse}
+     * @param request {@link CreatePersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
      */
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) {
         return (CreatePersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
@@ -404,7 +370,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
      * @param applicationId Application ID.
      * @param data Data for offline signature.
-     * @return {@link io.getlime.powerauth.soap.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      */
     public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) {
         CreateNonPersonalizedOfflineSignaturePayloadRequest request = new CreateNonPersonalizedOfflineSignaturePayloadRequest();
@@ -415,8 +381,8 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
 
     /**
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     * @param request {@link CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      */
     public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) {
         return (CreateNonPersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
@@ -441,8 +407,8 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
 
     /**
      * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.VerifyOfflineSignatureRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.VerifyOfflineSignatureResponse}
+     * @param request {@link VerifyOfflineSignatureRequest} instance.
+     * @return {@link VerifyOfflineSignatureResponse}
      */
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) {
         return (VerifyOfflineSignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
@@ -501,51 +467,6 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link GetPersonalizedEncryptionKeyRequest} instance.
-     * @return {@link GetPersonalizedEncryptionKeyResponse}
-     */
-    public GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request) {
-        return (GetPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
-    }
-
-    /**
-     * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
-     * newly generated derived encryption key.
-     * @param activationId Activation ID used for the key generation.
-     * @return {@link GetPersonalizedEncryptionKeyResponse}
-     */
-    public GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) {
-        GetPersonalizedEncryptionKeyRequest request = new GetPersonalizedEncryptionKeyRequest();
-        request.setActivationId(activationId);
-        request.setSessionIndex(sessionIndex);
-        return this.generatePersonalizedE2EEncryptionKey(request);
-    }
-
-    /**
-     * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
-     * @param request {@link GetNonPersonalizedEncryptionKeyRequest} instance.
-     * @return {@link GetNonPersonalizedEncryptionKeyResponse}
-     */
-    public GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) {
-        return (GetNonPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
-    }
-
-    /**
-     * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
-     * newly generated derived encryption key.
-     * @param applicationKey Application key of application used for the key generation.
-     * @return {@link GetNonPersonalizedEncryptionKeyResponse}
-     */
-    public GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) {
-        GetNonPersonalizedEncryptionKeyRequest request = new GetNonPersonalizedEncryptionKeyRequest();
-        request.setApplicationKey(applicationKey);
-        request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
-        request.setSessionIndex(sessionIndex);
-        return this.generateNonPersonalizedE2EEncryptionKey(request);
-    }
-
-    /**
      * Call the getSignatureAuditLog method of the PowerAuth 2.0 Server SOAP interface.
      * @param request {@link SignatureAuditRequest} instance.
      * @return {@link SignatureAuditResponse}
@@ -560,7 +481,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param userId User ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than").
      * @param endingDate Limit the results to given ending date (= "older than").
-     * @return List of signature audit items. See: {@link io.getlime.powerauth.soap.SignatureAuditResponse.Items}.
+     * @return List of signature audit items. See: {@link io.getlime.powerauth.soap.v3.SignatureAuditResponse.Items}.
      */
     public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) {
         SignatureAuditRequest request = new SignatureAuditRequest();
@@ -577,7 +498,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param applicationId Application ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than").
      * @param endingDate Limit the results to given ending date (= "older than").
-     * @return List of signature audit items. See: {@link io.getlime.powerauth.soap.SignatureAuditResponse.Items}.
+     * @return List of signature audit items. See: {@link io.getlime.powerauth.soap.v3.SignatureAuditResponse.Items}.
      */
     public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) {
         SignatureAuditRequest request = new SignatureAuditRequest();
@@ -602,7 +523,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param activationId Activation ID.
      * @param startingDate Limit the results to given starting date (= "newer than").
      * @param endingDate Limit the results to given ending date (= "older than").
-     * @return List of activation history items. See: {@link io.getlime.powerauth.soap.ActivationHistoryResponse.Items}.
+     * @return List of activation history items. See: {@link io.getlime.powerauth.soap.v3.ActivationHistoryResponse.Items}.
      */
     public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) {
         ActivationHistoryRequest request = new ActivationHistoryRequest();
@@ -871,7 +792,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     public CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, SignatureType signatureType) {
         CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
-        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEphemeralKey(ephemeralPublicKey);
         request.setSignatureType(signatureType);
         return createToken(request);
     }
@@ -924,5 +845,229 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return removeToken(request);
     }
 
+    /**
+     * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
+     * @return PowerAuth 2.0 client.
+     */
+    public PowerAuthServiceClientV2 v2() {
+        return new PowerAuthServiceClientV2();
+    }
+
+    /**
+     * Client with PowerAuth version 2.0 methods. This client will be deprecated in future release.
+     */
+    public class PowerAuthServiceClientV2 {
+
+        /**
+         * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
+         * @param request {@link io.getlime.powerauth.soap.v2.PrepareActivationRequest} instance
+         * @return {@link io.getlime.powerauth.soap.v2.PrepareActivationResponse}
+         */
+        public io.getlime.powerauth.soap.v2.PrepareActivationResponse prepareActivation(io.getlime.powerauth.soap.v2.PrepareActivationRequest request) {
+            return (io.getlime.powerauth.soap.v2.PrepareActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        }
+
+        /**
+         * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
+         * @param activationIdShort Short activation ID.
+         * @param activationName Name of this activation.
+         * @param activationNonce Activation nonce.
+         * @param applicationKey Application key of a given application.
+         * @param applicationSignature Signature proving a correct application is sending the data.
+         * @param cDevicePublicKey Device public key encrypted with activation OTP.
+         * @param extras Additional, application specific information.
+         * @return {@link io.getlime.powerauth.soap.v2.PrepareActivationResponse}
+         */
+        public io.getlime.powerauth.soap.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) {
+            io.getlime.powerauth.soap.v2.PrepareActivationRequest request = new io.getlime.powerauth.soap.v2.PrepareActivationRequest();
+            request.setActivationIdShort(activationIdShort);
+            request.setActivationName(activationName);
+            request.setActivationNonce(activationNonce);
+            request.setEphemeralPublicKey(ephemeralPublicKey);
+            request.setEncryptedDevicePublicKey(cDevicePublicKey);
+            request.setExtras(extras);
+            request.setApplicationKey(applicationKey);
+            request.setApplicationSignature(applicationSignature);
+            return this.prepareActivation(request);
+        }
+
+        /**
+         * Create a new activation directly, using the createActivation method of the PowerAuth 2.0 Server
+         * SOAP interface.
+         * @param request Create activation request.
+         * @return Create activation response.
+         */
+        public io.getlime.powerauth.soap.v2.CreateActivationResponse createActivation(io.getlime.powerauth.soap.v2.CreateActivationRequest request) {
+            return (io.getlime.powerauth.soap.v2.CreateActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        }
+
+        /**
+         * Call the createActivation method of the PowerAuth 2.0 Server SOAP interface.
+         * @param userId User ID.
+         * @param applicationKey Application key of a given application.
+         * @param identity Identity fingerprint used during activation.
+         * @param activationName Name of this activation.
+         * @param activationNonce Activation nonce.
+         * @param applicationSignature Signature proving a correct application is sending the data.
+         * @param cDevicePublicKey Device public key encrypted with activation OTP.
+         * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
+         * @param extras Additional, application specific information.
+         * @return {@link io.getlime.powerauth.soap.v2.CreateActivationResponse}
+         */
+        public io.getlime.powerauth.soap.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
+            return this.createActivation(
+                    applicationKey,
+                    userId,
+                    null,
+                    null,
+                    identity,
+                    "00000-00000",
+                    activationName,
+                    activationNonce,
+                    ephemeralPublicKey,
+                    cDevicePublicKey,
+                    extras,
+                    applicationSignature
+            );
+        }
+
+        /**
+         * Call the createActivation method of the PowerAuth 2.0 Server SOAP interface.
+         * @param userId User ID.
+         * @param maxFailureCount Maximum failure count.
+         * @param timestampActivationExpire Timestamp this activation should expire.
+         * @param applicationKey Application key of a given application.
+         * @param identity Identity fingerprint used during activation.
+         * @param activationOtp Activation OTP.
+         * @param activationName Name of this activation.
+         * @param activationNonce Activation nonce.
+         * @param applicationSignature Signature proving a correct application is sending the data.
+         * @param cDevicePublicKey Device public key encrypted with activation OTP.
+         * @param ephemeralPublicKey Ephemeral public key.
+         * @param extras Additional, application specific information.
+         * @return {@link io.getlime.powerauth.soap.v2.CreateActivationResponse}
+         */
+        public io.getlime.powerauth.soap.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
+            io.getlime.powerauth.soap.v2.CreateActivationRequest request = new io.getlime.powerauth.soap.v2.CreateActivationRequest();
+            request.setApplicationKey(applicationKey);
+            request.setUserId(userId);
+            if (maxFailureCount != null) {
+                request.setMaxFailureCount(maxFailureCount);
+            }
+            if (timestampActivationExpire != null) {
+                request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
+            }
+            request.setIdentity(identity);
+            request.setActivationOtp(activationOtp);
+            request.setActivationName(activationName);
+            request.setActivationNonce(activationNonce);
+            request.setEphemeralPublicKey(ephemeralPublicKey);
+            request.setEncryptedDevicePublicKey(cDevicePublicKey);
+            request.setExtras(extras);
+            request.setApplicationSignature(applicationSignature);
+            return this.createActivation(request);
+        }
+
+        /**
+         * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
+         * @param request {@link io.getlime.powerauth.soap.v2.VaultUnlockRequest} instance
+         * @return {@link io.getlime.powerauth.soap.v2.VaultUnlockResponse}
+         */
+        public io.getlime.powerauth.soap.v2.VaultUnlockResponse unlockVault(io.getlime.powerauth.soap.v2.VaultUnlockRequest request) {
+            return (io.getlime.powerauth.soap.v2.VaultUnlockResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        }
+
+        /**
+         * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
+         * @param activationId Activation Id of an activation to be used for authentication.
+         * @param applicationKey Application Key of an application related to the activation.
+         * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
+         * @param signature Vault opening request signature.
+         * @param signatureType Vault opening request signature type.
+         * @param reason Reason why vault is being unlocked.
+         * @return {@link io.getlime.powerauth.soap.v2.VaultUnlockResponse}
+         */
+        public io.getlime.powerauth.soap.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, io.getlime.powerauth.soap.v2.SignatureType signatureType, String reason) {
+            io.getlime.powerauth.soap.v2.VaultUnlockRequest request = new io.getlime.powerauth.soap.v2.VaultUnlockRequest();
+            request.setActivationId(activationId);
+            request.setApplicationKey(applicationKey);
+            request.setData(data);
+            request.setSignature(signature);
+            request.setSignatureType(signatureType);
+            request.setReason(reason);
+            return this.unlockVault(request);
+        }
+
+        /**
+         * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
+         * @param request {@link io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest} instance.
+         * @return {@link io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse}
+         */
+        public io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest request) {
+            return (io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        }
+
+        /**
+         * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
+         * newly generated derived encryption key.
+         * @param activationId Activation ID used for the key generation.
+         * @return {@link io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse}
+         */
+        public io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) {
+            io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest request = new io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest();
+            request.setActivationId(activationId);
+            request.setSessionIndex(sessionIndex);
+            return this.generatePersonalizedE2EEncryptionKey(request);
+        }
+
+        /**
+         * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
+         * @param request {@link io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest} instance.
+         * @return {@link io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse}
+         */
+        public io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest request) {
+            return (io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        }
+
+        /**
+         * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
+         * newly generated derived encryption key.
+         * @param applicationKey Application key of application used for the key generation.
+         * @return {@link io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse}
+         */
+        public io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) {
+            io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest request = new io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest();
+            request.setApplicationKey(applicationKey);
+            request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
+            request.setSessionIndex(sessionIndex);
+            return this.generateNonPersonalizedE2EEncryptionKey(request);
+        }
+
+
+        /**
+         * Create a new token for basic token-based authentication.
+         * @param request Request with token information.
+         * @return Response with created token.
+         */
+        public io.getlime.powerauth.soap.v2.CreateTokenResponse createToken(io.getlime.powerauth.soap.v2.CreateTokenRequest request) {
+            return (io.getlime.powerauth.soap.v2.CreateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        }
+
+        /**
+         * Create a new token for basic token-based authentication.
+         * @param activationId Activation ID for the activation that is associated with the token.
+         * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+         * @param signatureType Type of the signature used for validating the create request.
+         * @return Response with created token.
+         */
+        public io.getlime.powerauth.soap.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, io.getlime.powerauth.soap.v2.SignatureType signatureType) {
+            io.getlime.powerauth.soap.v2.CreateTokenRequest request = new io.getlime.powerauth.soap.v2.CreateTokenRequest();
+            request.setActivationId(activationId);
+            request.setEphemeralPublicKey(ephemeralPublicKey);
+            request.setSignatureType(signatureType);
+            return createToken(request);
+        }
+
+    }
 
 }
