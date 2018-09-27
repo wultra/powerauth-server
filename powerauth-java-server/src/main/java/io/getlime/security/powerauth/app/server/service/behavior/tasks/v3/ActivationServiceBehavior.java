@@ -267,7 +267,8 @@ public class ActivationServiceBehavior {
                 response.setActivationCode(activation.getActivationIdShort() + "-" + activation.getActivationOTP());
                 response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
                 response.setDevicePublicKeyFingerprint(null);
-                response.setProtocolVersion(activation.getVersion());
+                // Unknown version is converted to 0 in SOAP
+                response.setProtocolVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 return response;
 
             } else {
@@ -328,7 +329,8 @@ public class ActivationServiceBehavior {
                 response.setActivationCode(null);
                 response.setActivationSignature(null);
                 response.setDevicePublicKeyFingerprint(activationFingerPrint);
-                response.setProtocolVersion(activation.getVersion());
+                // Unknown version is converted to 0 in SOAP
+                response.setProtocolVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 return response;
 
             }
