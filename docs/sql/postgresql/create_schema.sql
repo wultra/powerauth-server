@@ -15,9 +15,8 @@ CREATE TABLE "pa_activation"
     "activation_id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
     "application_id"                INTEGER NOT NULL,
     "user_id"                       VARCHAR(255) NOT NULL,
-    "activation_id_short"           VARCHAR(255) NOT NULL,
     "activation_name"               VARCHAR(255),
-    "activation_otp"                VARCHAR(255) NOT NULL,
+    "activation_code"               VARCHAR(255) NOT NULL,
     "activation_status"             INTEGER NOT NULL,
     "blocked_reason"                VARCHAR(255),
     "counter"                       INTEGER NOT NULL,
@@ -31,7 +30,8 @@ CREATE TABLE "pa_activation"
     "timestamp_activation_expire"   TIMESTAMP (6) NOT NULL,
     "timestamp_created"             TIMESTAMP (6) NOT NULL,
     "timestamp_last_used"           TIMESTAMP (6) NOT NULL,
-    "master_keypair_id"             INTEGER
+    "master_keypair_id"             INTEGER,
+    "version"                       INTEGER DEFAULT 2
 );
 
 --

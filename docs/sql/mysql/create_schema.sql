@@ -43,8 +43,7 @@ CREATE TABLE `pa_master_keypair` (
 
 CREATE TABLE `pa_activation` (
   `activation_id` varchar(37) NOT NULL,
-  `activation_id_short` varchar(255) NOT NULL,
-  `activation_otp` varchar(255) NOT NULL,
+  `activation_code` varchar(255) NOT NULL,
   `activation_status` int(11) NOT NULL,
   `blocked_reason` varchar(255) DEFAULT NULL,
   `activation_name` varchar(255) DEFAULT NULL,
@@ -62,7 +61,7 @@ CREATE TABLE `pa_activation` (
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `timestamp_activation_expire` datetime NOT NULL,
   `timestamp_last_used` datetime NOT NULL,
-  `version` int(2) NOT NULL DEFAULT 2,
+  `version` int(2) DEFAULT 2,
   PRIMARY KEY (`activation_id`),
   KEY `FK_ACTIVATION_APPLICATION_idx` (`application_id`),
   CONSTRAINT `FK_ACTIVATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
