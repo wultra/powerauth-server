@@ -939,13 +939,20 @@ public class PowerAuthServiceClient {
     /**
      * Create a new token for basic token-based authentication.
      * @param activationId Activation ID for the activation that is associated with the token.
+     * @param applicationKey Application key.
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param encryptedData Encrypted request data.
+     * @param mac MAC computed for request key and data.
      * @param signatureType Type of the signature used for validating the create request.
      * @return Response with created token.
      */
-    public PowerAuthPortV3ServiceStub.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                                      String encryptedData, String mac, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateTokenRequest request = new PowerAuthPortV3ServiceStub.CreateTokenRequest();
         request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
         request.setEphemeralKey(ephemeralPublicKey);
         request.setSignatureType(signatureType);
         return createToken(request);

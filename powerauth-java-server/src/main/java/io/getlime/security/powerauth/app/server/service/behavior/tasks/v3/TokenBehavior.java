@@ -21,21 +21,24 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
-import com.google.common.primitives.Bytes;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntity;
+import io.getlime.security.powerauth.app.server.service.behavior.common.KeyDerivationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.BasicEciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesPayload;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
@@ -43,11 +46,9 @@ import io.getlime.security.powerauth.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Optional;
@@ -60,22 +61,25 @@ import java.util.Optional;
 @Component("TokenBehavior")
 public class TokenBehavior {
 
-    private RepositoryCatalogue repositoryCatalogue;
-    private LocalizationProvider localizationProvider;
-    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final RepositoryCatalogue repositoryCatalogue;
+    private final LocalizationProvider localizationProvider;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final KeyDerivationService keyDerivationService;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
     private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
+    private final EciesFactory eciesFactory = new EciesFactory();
 
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, KeyDerivationService keyDerivationService) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.keyDerivationService = keyDerivationService;
     }
 
     /**
@@ -93,14 +97,20 @@ public class TokenBehavior {
      */
     public CreateTokenResponse createToken(CreateTokenRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
         final String activationId = request.getActivationId();
-        final String ephemeralPublicKeyBase64 = request.getEphemeralKey();
+        final String applicationKey = request.getApplicationKey();
+        final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralKey());
+        final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
+        final byte[] mac = BaseEncoding.base64().decode(request.getMac());
         final SignatureType signatureType = request.getSignatureType();
 
-        EciesPayload encryptedPayload = createToken(activationId, ephemeralPublicKeyBase64, signatureType.value(), keyConversion);
+        // Convert received ECIES request data to cryptogram
+        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
 
-        final CreateTokenResponse response = new io.getlime.security.powerauth.v3.CreateTokenResponse();
-        response.setMac(BaseEncoding.base64().encode(encryptedPayload.getMac()));
-        response.setEncryptedData(BaseEncoding.base64().encode(encryptedPayload.getEncryptedData()));
+        EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.value(), keyConversion);
+
+        final CreateTokenResponse response = new CreateTokenResponse();
+        response.setMac(BaseEncoding.base64().encode(encryptedCryptogram.getMac()));
+        response.setEncryptedData(BaseEncoding.base64().encode(encryptedCryptogram.getEncryptedData()));
         return response;
     }
 
@@ -108,13 +118,14 @@ public class TokenBehavior {
      * Create a new token implementation.
      *
      * @param activationId Activation ID.
-     * @param ephemeralPublicKeyBase64 Base-64 encoded ephemeral public key.
+     * @param applicationKey Application key.
+     * @param cryptogram ECIES cryptogram.
      * @param signatureType Signature type.
      * @param keyConversion Key conversion utility class.
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EciesPayload createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private EciesCryptogram createToken(String activationId, String applicationKey, EciesCryptogram cryptogram, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
@@ -132,8 +143,21 @@ public class TokenBehavior {
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
 
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
-            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKeyBase64);
-            final PublicKey ephemeralPublicKey = keyConversion.convertBytesToPublicKey(ephemeralPublicKeyBytes);
+
+            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
+            final byte[] transportKey = keyDerivationService.deriveTransportKey(activation);
+
+            // Get decryptor for the activation
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey,
+                    applicationSecret, transportKey, EciesSharedInfo1.CREATE_TOKEN);
+
+            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
+            final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+            if (decryptedData.length == 0) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+            }
 
             // Generate unique token ID.
             String tokenId = null;
@@ -165,13 +189,12 @@ public class TokenBehavior {
             final ObjectMapper mapper = new ObjectMapper();
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
 
-            final BasicEciesDecryptor decryptor = new BasicEciesDecryptor((ECPrivateKey) privateKey);
-            final byte[] sharedInfo1 = "/pa/token/create".getBytes(StandardCharsets.UTF_8);
-            return decryptor.encrypt(tokenBytes, (ECPublicKey) ephemeralPublicKey, Bytes.concat(sharedInfo1, ephemeralPublicKeyBytes));
+            // Encrypt response using previously created ECIES decryptor
+            return decryptor.encryptResponse(tokenBytes);
         } catch (InvalidKeySpecException e) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (EciesException e) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
+        } catch (EciesException | InvalidKeyException e) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (JsonProcessingException e) {
             throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
         }

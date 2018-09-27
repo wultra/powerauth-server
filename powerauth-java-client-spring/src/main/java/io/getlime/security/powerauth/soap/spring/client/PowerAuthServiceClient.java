@@ -785,13 +785,20 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Create a new token for basic token-based authentication.
      * @param activationId Activation ID for the activation that is associated with the token.
+     * @param applicationKey Application key.
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param encryptedData Encrypted request data.
+     * @param mac MAC computed for request key and data.
      * @param signatureType Type of the signature used for validating the create request.
      * @return Response with created token.
      */
-    public CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, SignatureType signatureType) {
+    public CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
+                                           String encryptedData, String mac, SignatureType signatureType) {
         CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
         request.setEphemeralKey(ephemeralPublicKey);
         request.setSignatureType(signatureType);
         return createToken(request);
