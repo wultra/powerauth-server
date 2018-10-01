@@ -32,9 +32,9 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.BasicEciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesPayload;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
@@ -45,9 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
-import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Optional;
@@ -103,11 +101,11 @@ public class TokenBehavior {
         final String ephemeralPublicKeyBase64 = request.getEphemeralPublicKey();
         final SignatureType signatureType = request.getSignatureType();
 
-        EciesPayload encryptedPayload = createToken(activationId, ephemeralPublicKeyBase64, signatureType.value(), keyConversion);
+        EciesCryptogram eciesCryptogram = createToken(activationId, ephemeralPublicKeyBase64, signatureType.value(), keyConversion);
 
         final CreateTokenResponse response = new CreateTokenResponse();
-        response.setMac(BaseEncoding.base64().encode(encryptedPayload.getMac()));
-        response.setEncryptedData(BaseEncoding.base64().encode(encryptedPayload.getEncryptedData()));
+        response.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
+        response.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
         return response;
     }
 
@@ -121,7 +119,7 @@ public class TokenBehavior {
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EciesPayload createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private EciesCryptogram createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
@@ -140,7 +138,6 @@ public class TokenBehavior {
 
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
             final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKeyBase64);
-            final PublicKey ephemeralPublicKey = keyConversion.convertBytesToPublicKey(ephemeralPublicKeyBytes);
 
             // Generate unique token ID.
             String tokenId = null;
@@ -172,8 +169,9 @@ public class TokenBehavior {
             final ObjectMapper mapper = new ObjectMapper();
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
 
-            final BasicEciesDecryptor decryptor = new BasicEciesDecryptor((ECPrivateKey) privateKey);
-            return decryptor.encrypt(tokenBytes, (ECPublicKey) ephemeralPublicKey, ephemeralPublicKeyBytes);
+            final EciesDecryptor decryptor = new EciesDecryptor((ECPrivateKey) privateKey);
+            // The encryptResponseDirect() method is only used in version 2.0, because there is no incoming data to decrypt.
+            return decryptor.encryptResponseDirect(tokenBytes, ephemeralPublicKeyBytes);
         } catch (InvalidKeySpecException e) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (EciesException e) {
