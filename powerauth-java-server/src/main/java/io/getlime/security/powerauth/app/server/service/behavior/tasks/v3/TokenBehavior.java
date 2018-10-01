@@ -22,14 +22,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntity;
-import io.getlime.security.powerauth.app.server.service.behavior.common.KeyDerivationService;
+import io.getlime.security.powerauth.app.server.service.behavior.util.KeyDerivationUtil;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -64,7 +66,7 @@ public class TokenBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-    private final KeyDerivationService keyDerivationService;
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -73,13 +75,14 @@ public class TokenBehavior {
 
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private final KeyDerivationUtil keyDerivationUtil = new KeyDerivationUtil();
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, KeyDerivationService keyDerivationService) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.keyDerivationService = keyDerivationService;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
     /**
@@ -144,10 +147,17 @@ public class TokenBehavior {
 
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
 
+            // Get the server private key, decrypt it if required
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+            final byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
             final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
-            final byte[] transportKey = keyDerivationService.deriveTransportKey(activation);
+            final byte[] devicePublicKey = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            final byte[] transportKey = keyDerivationUtil.deriveTransportKey(serverPrivateKey, devicePublicKey);
 
             // Get decryptor for the activation
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey,
