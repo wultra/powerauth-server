@@ -150,6 +150,28 @@ public class ActivationServiceBehavior {
     }
 
     /**
+     * Validate activation in prepare activation step: it should be in CREATED state, it should be linked to correct
+     * application and the activation code should have valid length.
+     *
+     * @param activation Activation used in prepare activation step.
+     * @param application Application used in prepare activation step.
+     * @throws GenericServiceException In case activation state is invalid.
+     */
+    private void validateActivationInPrepareStep(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+        // If there is no such activation or application does not match the activation application, fail validation
+        if (activation == null
+                || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
+                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+
+        // Make sure activation code has 23 characters
+        if (activation.getActivationCode().length() != 23) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+    }
+
+    /**
      * Prepare activation with given parameters
      *
      * @param activationIdShort              Short activation ID
@@ -190,19 +212,18 @@ public class ActivationServiceBehavior {
 
         // Fetch the current activation by short activation ID
         Set<ActivationStatus> states = ImmutableSet.of(ActivationStatus.CREATED);
-        ActivationRecordEntity activation = activationRepository.findCreatedActivation(application.getId(), activationIdShort, states, timestamp);
+        ActivationRecordEntity activation = activationRepository.findCreatedActivationWithShortId(application.getId(), activationIdShort, states, timestamp);
 
         // Make sure to deactivate the activation if it is expired
         if (activation != null) {
             deactivatePendingActivation(timestamp, activation);
         }
 
-        // if there is no such activation or application does not match the activation application, exit
-        if (activation == null
-                || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
-                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-        }
+        // Validate that the activation is in correct state for the prepare step
+        validateActivationInPrepareStep(activation, application);
+
+        // Extract activation OTP from activation code
+        String activationOtp = activation.getActivationCode().substring(12);
 
         // Get master private key
         String masterPrivateKeyBase64 = activation.getMasterKeyPair().getMasterKeyPrivateBase64();
@@ -224,7 +245,7 @@ public class ActivationServiceBehavior {
                 activationIdShort,
                 masterPrivateKey,
                 clientEphemeralPublicKey,
-                activation.getActivationOTP(),
+                activationOtp,
                 activationNonce
         );
 
@@ -247,6 +268,8 @@ public class ActivationServiceBehavior {
         activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
         activation.setActivationName(activationName);
         activation.setExtras(extras);
+        // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version
+        activation.setVersion(2);
         activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
@@ -259,7 +282,6 @@ public class ActivationServiceBehavior {
         PrivateKey ephemeralPrivateKey = ephemeralKeyPair.getPrivate();
         PublicKey ephemeralPublicKey = ephemeralKeyPair.getPublic();
         byte[] ephemeralPublicKeyBytes = keyConversionUtilities.convertPublicKeyToBytes(ephemeralPublicKey);
-        String activationOtp = activation.getActivationOTP();
 
         // Encrypt the public key
         byte[] C_serverPublicKey = powerAuthServerActivation.encryptServerPublicKey(serverPublicKey, devicePublicKey, ephemeralPrivateKey, activationOtp, activationIdShort, activationNonceServer);
@@ -381,6 +403,8 @@ public class ActivationServiceBehavior {
         activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
         activation.setActivationName(activationName);
         activation.setExtras(extras);
+        // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version
+        activation.setVersion(2);
         activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
@@ -472,27 +496,24 @@ public class ActivationServiceBehavior {
         }
 
         // Generate a unique short activation ID for created and OTP used states
-        String activationIdShort = null;
+        String activationCode = null;
         Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED);
         for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
-            String tmpActivationIdShort = powerAuthServerActivation.generateActivationIdShort();
-            ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationIdShort, states, timestamp);
+            String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
+            ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationCode, states, timestamp);
             // this activation short ID has a collision, reset it and find
             // another one
             if (record == null) {
-                activationIdShort = tmpActivationIdShort;
+                activationCode = tmpActivationCode;
                 break;
             }
         }
-        if (activationIdShort == null) {
+        if (activationCode == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
         }
 
-        // Generate activation OTP
-        String activationOtp = powerAuthServerActivation.generateActivationOTP();
-
         // Compute activation signature
-        byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationIdShort, activationOtp, masterPrivateKey);
+        byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationCode, masterPrivateKey);
 
         // Happens only when there is a crypto provider setup issue (SignatureException).
         if (activationSignature == null) {
@@ -510,9 +531,8 @@ public class ActivationServiceBehavior {
         // Store the new activation
         ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setActivationId(activationId);
-        activation.setActivationIdShort(activationIdShort);
+        activation.setActivationCode(activationCode);
         activation.setActivationName(null);
-        activation.setActivationOTP(activationOtp);
         activation.setActivationStatus(ActivationStatus.CREATED);
         activation.setCounter(0L);
         activation.setDevicePublicKeyBase64(null);
@@ -525,8 +545,8 @@ public class ActivationServiceBehavior {
         activation.setTimestampActivationExpire(timestampExpiration);
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
-        // PowerAuth protocol version 2.0
-        activation.setVersion(2);
+        // Activation version is not known yet
+        activation.setVersion(null);
         activation.setUserId(userId);
 
         // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.

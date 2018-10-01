@@ -41,11 +41,8 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "activation_id", length = 37)
     private String activationId;
 
-    @Column(name = "activation_id_short", nullable = false, updatable = false)
-    private String activationIdShort;
-
-    @Column(name = "activation_otp", nullable = false, updatable = false)
-    private String activationOTP;
+    @Column(name = "activation_code", nullable = false, updatable = false)
+    private String activationCode;
 
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
@@ -94,7 +91,8 @@ public class ActivationRecordEntity implements Serializable {
     @Enumerated
     private KeyEncryptionMode serverPrivateKeyEncryption;
 
-    @Column(name = "version", nullable = false)
+    // Version must be nullable, it is not known yet during init activation step
+    @Column(name = "version", nullable = true)
     private Integer version;
 
     @ManyToOne
@@ -115,8 +113,7 @@ public class ActivationRecordEntity implements Serializable {
      * Constructor with all parameters.
      *
      * @param activationId               Activation ID
-     * @param activationIdShort          Activation Id Short
-     * @param activationOTP              Activation OTP
+     * @param activationCode             Activation code
      * @param userId                     User Id
      * @param activationName             Activation name
      * @param extras                     Extra parameter
@@ -136,8 +133,7 @@ public class ActivationRecordEntity implements Serializable {
      * @param application                Associated application.
      */
     public ActivationRecordEntity(String activationId,
-                                  String activationIdShort,
-                                  String activationOTP,
+                                  String activationCode,
                                   String userId,
                                   String activationName,
                                   String extras,
@@ -158,8 +154,7 @@ public class ActivationRecordEntity implements Serializable {
                                   ApplicationEntity application) {
         super();
         this.activationId = activationId;
-        this.activationIdShort = activationIdShort;
-        this.activationOTP = activationOTP;
+        this.activationCode = activationCode;
         this.userId = userId;
         this.activationName = activationName;
         this.extras = extras;
@@ -199,51 +194,21 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
-     * Get short activation ID
+     * Get activation code.
      *
-     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
-     *
-     * @return Short activation ID
+     * @return Activation code.
      */
-    @Deprecated
-    public String getActivationIdShort() {
-        return activationIdShort;
+    public String getActivationCode() {
+        return activationCode;
     }
 
     /**
-     * Set short activation ID
+     * Set activation code.
      *
-     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
-     *
-     * @param activationIdShort Short activation ID
+     * @param activationCode Activation code.
      */
-    @Deprecated
-    public void setActivationIdShort(String activationIdShort) {
-        this.activationIdShort = activationIdShort;
-    }
-
-    /**
-     * Get activation OTP
-     *
-     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
-     *
-     * @return Activation OTP
-     */
-    @Deprecated
-    public String getActivationOTP() {
-        return activationOTP;
-    }
-
-    /**
-     * Set activation OTP
-     *
-     * @deprecated See: https://github.com/wultra/powerauth-server/issues/173
-     *
-     * @param activationOTP Activation OTP
-     */
-    @Deprecated
-    public void setActivationOTP(String activationOTP) {
-        this.activationOTP = activationOTP;
+    public void setActivationCode(String activationCode) {
+        this.activationCode = activationCode;
     }
 
     /**
@@ -578,8 +543,7 @@ public class ActivationRecordEntity implements Serializable {
     public int hashCode() {
         int hash = 5;
         hash = 71 * hash + Objects.hashCode(this.activationId);
-        hash = 71 * hash + Objects.hashCode(this.activationIdShort);
-        hash = 71 * hash + Objects.hashCode(this.activationOTP);
+        hash = 71 * hash + Objects.hashCode(this.activationCode);
         hash = 71 * hash + Objects.hashCode(this.userId);
         hash = 71 * hash + Objects.hashCode(this.activationName);
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyBase64);
@@ -612,10 +576,7 @@ public class ActivationRecordEntity implements Serializable {
             return false;
         }
         final ActivationRecordEntity other = (ActivationRecordEntity) obj;
-        if (!Objects.equals(this.activationIdShort, other.activationIdShort)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationOTP, other.activationOTP)) {
+        if (!Objects.equals(this.activationCode, other.activationCode)) {
             return false;
         }
         if (!Objects.equals(this.userId, other.userId)) {
@@ -676,8 +637,7 @@ public class ActivationRecordEntity implements Serializable {
     public String toString() {
         return "ActivationRecordEntity{"
                 + "activationId=" + activationId
-                + ", activationIdShort=" + activationIdShort
-                + ", activationOTP=" + activationOTP
+                + ", activationCode=" + activationCode
                 + ", userId=" + userId
                 + ", clientName=" + activationName
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64

@@ -67,10 +67,37 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     List<ActivationRecordEntity> findByApplicationIdAndUserId(Long applicationId, String userId);
 
     /**
+     * Find the first activation associated with given application by the activation code (or first half of it for version 2.0).
+     * Filter the results by activation state and make sure to apply activation time window.
+     * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
+     * (DB deadlock, invalid counter value in second transaction, etc.).
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+     *
+     * @param applicationId     Application ID
+     * @param activationCode    Activation code
+     * @param states            Allowed activation states
+     * @param currentTimestamp  Current timestamp
+     * @return Activation matching the search criteria or null if not found
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    ActivationRecordEntity findCreatedActivation(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+
+    /**
      * Find the first activation associated with given application by the activation ID short.
      * Filter the results by activation state and make sure to apply activation time window.
      * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
      * (DB deadlock, invalid counter value in second transaction, etc.).
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>2.0</li>
+     *     <li>2.1</li>
+     * </ul>
      *
      * @param applicationId     Application ID
      * @param activationIdShort Short activation ID
@@ -79,7 +106,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation matching the search criteria or null if not found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationIdShort = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
-    ActivationRecordEntity findCreatedActivation(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2% AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    ActivationRecordEntity findCreatedActivationWithShortId(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
 }

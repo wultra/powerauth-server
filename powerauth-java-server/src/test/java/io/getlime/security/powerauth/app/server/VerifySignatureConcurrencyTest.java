@@ -60,8 +60,9 @@ public class VerifySignatureConcurrencyTest {
         PowerAuthServerActivation serverActivation = new PowerAuthServerActivation();
         byte[] activationNonce = serverActivation.generateActivationNonce();
         String activationNonceBase64 = BaseEncoding.base64().encode(activationNonce);
-        String activationOtp = serverActivation.generateActivationOTP();
-        String activationIdShort = serverActivation.generateActivationIdShort();
+        String activationCode = serverActivation.generateActivationCode();
+        String activationIdShort = activationCode.substring(0, 11);
+        String activationOtp = activationCode.substring(12);
 
         // Derive and encrypt non-existent device public key
         SecretKey otpBasedSymmetricKey = new KeyGenerator().deriveSecretKeyFromPassword(activationOtp, activationIdShort.getBytes());

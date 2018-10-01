@@ -241,8 +241,7 @@ public class ActivationServiceBehavior {
                 String masterPrivateKeyBase64 = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(activation.getApplication().getId()).getMasterKeyPrivateBase64();
                 byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterPrivateKeyBase64);
                 byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(
-                        activation.getActivationIdShort(),
-                        activation.getActivationOTP(),
+                        activation.getActivationCode(),
                         keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes)
                 );
 
@@ -263,8 +262,7 @@ public class ActivationServiceBehavior {
                 response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
-                // TODO: https://github.com/wultra/powerauth-server/issues/173
-                response.setActivationCode(activation.getActivationIdShort() + "-" + activation.getActivationOTP());
+                response.setActivationCode(activation.getActivationCode());
                 response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
                 response.setDevicePublicKeyFingerprint(null);
                 // Unknown version is converted to 0 in SOAP
@@ -435,27 +433,25 @@ public class ActivationServiceBehavior {
         }
 
         // Generate a unique short activation ID for created and OTP used states
-        String activationIdShort = null;
+        String activationCode = null;
         Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED);
         for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
-            String tmpActivationIdShort = powerAuthServerActivation.generateActivationIdShort();
-            ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationIdShort, states, timestamp);
+            String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
+            ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationCode, states, timestamp);
             // this activation short ID has a collision, reset it and find
             // another one
             if (record == null) {
-                activationIdShort = tmpActivationIdShort;
+                activationCode = tmpActivationCode;
                 break;
             }
         }
-        if (activationIdShort == null) {
+        if (activationCode == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
         }
 
-        // Generate activation OTP
-        String activationOtp = powerAuthServerActivation.generateActivationOTP();
 
         // Compute activation signature
-        byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationIdShort, activationOtp, masterPrivateKey);
+        byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationCode, masterPrivateKey);
 
         // Happens only when there is a crypto provider setup issue (SignatureException).
         if (activationSignature == null) {
@@ -473,9 +469,8 @@ public class ActivationServiceBehavior {
         // Store the new activation
         ActivationRecordEntity activation = new ActivationRecordEntity();
         activation.setActivationId(activationId);
-        activation.setActivationIdShort(activationIdShort);
+        activation.setActivationCode(activationCode);
         activation.setActivationName(null);
-        activation.setActivationOTP(activationOtp);
         activation.setActivationStatus(ActivationStatus.CREATED);
         activation.setCounter(0L);
         activation.setDevicePublicKeyBase64(null);
@@ -488,8 +483,8 @@ public class ActivationServiceBehavior {
         activation.setTimestampActivationExpire(timestampExpiration);
         activation.setTimestampCreated(timestamp);
         activation.setTimestampLastUsed(timestamp);
-        // TODO: version is not known at this point, make it optional in entity
-        activation.setVersion(3);
+        // Activation version is not known yet
+        activation.setVersion(null);
         activation.setUserId(userId);
 
         // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
@@ -505,8 +500,7 @@ public class ActivationServiceBehavior {
         // Return the server response
         InitActivationResponse response = new InitActivationResponse();
         response.setActivationId(activationId);
-        // TODO: https://github.com/wultra/powerauth-server/issues/173
-        response.setActivationCode(activationIdShort + "-" + activationOtp);
+        response.setActivationCode(activationCode);
         response.setUserId(userId);
         response.setActivationSignature(activationSignatureBase64);
         response.setApplicationId(activation.getApplication().getId());
