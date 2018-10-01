@@ -24,8 +24,8 @@ public class KeyDerivationUtil {
     /**
      * Derive transport key for an activation.
      *
-     * @param serverPrivateKey Server private key bytes.
-     * @param devicePublicKey Device public key bytes.
+     * @param serverPrivateKeyBytes Server private key bytes.
+     * @param devicePublicKeyBytes Device public key bytes.
      * @return Derived transport key.
      * @throws GenericServiceException Thrown when server private key could not be loaded from database.
      * @throws InvalidKeySpecException Thrown when key spec is invalid.
