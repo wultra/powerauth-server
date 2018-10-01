@@ -106,7 +106,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation matching the search criteria or null if not found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND SUBSTRING(a.activationCode, 1, 11) = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2% AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
     ActivationRecordEntity findCreatedActivationWithShortId(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
 }

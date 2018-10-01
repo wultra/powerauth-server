@@ -150,6 +150,28 @@ public class ActivationServiceBehavior {
     }
 
     /**
+     * Validate activation in prepare activation step: it should be in CREATED state, it should be linked to correct
+     * application and the activation code should have valid length.
+     *
+     * @param activation Activation used in prepare activation step.
+     * @param application Application used in prepare activation step.
+     * @throws GenericServiceException In case activation state is invalid.
+     */
+    private void validateActivationInPrepareStep(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+        // If there is no such activation or application does not match the activation application, fail validation
+        if (activation == null
+                || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
+                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+
+        // Make sure activation code has 23 characters
+        if (activation.getActivationCode().length() != 23) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+    }
+
+    /**
      * Prepare activation with given parameters
      *
      * @param activationIdShort              Short activation ID
@@ -197,17 +219,8 @@ public class ActivationServiceBehavior {
             deactivatePendingActivation(timestamp, activation);
         }
 
-        // if there is no such activation or application does not match the activation application, exit
-        if (activation == null
-                || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
-                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-        }
-
-        // Make sure activation code has 23 characters
-        if (activation.getActivationCode().length() != 23) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
-        }
+        // Validate that the activation is in correct state for the prepare step
+        validateActivationInPrepareStep(activation, application);
 
         // Extract activation OTP from activation code
         String activationOtp = activation.getActivationCode().substring(12);
