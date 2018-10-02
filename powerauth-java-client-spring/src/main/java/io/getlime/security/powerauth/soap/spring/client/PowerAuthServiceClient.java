@@ -853,6 +853,30 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Get ECIES decryptor parameters.
+     * @param request Request for ECIES decryptor parameters.
+     * @return ECIES decryptor parameters.
+     */
+    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) {
+        return (GetEciesDecryptorResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Get ECIES decryptor parameters.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @return ECIES decryptor parameters.
+     */
+    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) {
+        GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralKey(ephemeralPublicKey);
+        return getEciesDecryptor(request);
+    }
+
+    /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      * @return PowerAuth 2.0 client.
      */

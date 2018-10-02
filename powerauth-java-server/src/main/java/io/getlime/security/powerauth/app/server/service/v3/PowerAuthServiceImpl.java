@@ -548,4 +548,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         return response;
     }
 
+    @Override
+    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws Exception {
+        logger.info("GetEciesDecryptorRequest received, applicationKey: {}, activationId: {}", new String[]{request.getApplicationKey(), request.getActivationId()});
+        GetEciesDecryptorResponse response = behavior.getEciesEncryptionBehavior().getEciesDecryptorParameters(request);
+        logger.info("GetEciesDecryptorRequest succeeded");
+        return response;
+    }
+
 }
