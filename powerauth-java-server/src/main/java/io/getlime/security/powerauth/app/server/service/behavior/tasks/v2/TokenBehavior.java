@@ -136,6 +136,7 @@ public class TokenBehavior {
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
 
+            // KEY_SERVER_MASTER_PRIVATE is used in Crypto version 2.0 for ECIES, note that in version 3.0 KEY_SERVER_PRIVATE is used
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
             final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKeyBase64);
 

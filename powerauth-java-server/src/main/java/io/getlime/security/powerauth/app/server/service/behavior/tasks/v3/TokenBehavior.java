@@ -29,7 +29,6 @@ import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntity;
 import io.getlime.security.powerauth.app.server.service.behavior.util.KeyDerivationUtil;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -141,17 +140,14 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            final Long applicationId = activation.getApplication().getId();
-            final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-
-            final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
-
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
             final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
             final byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+
+            // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
+            final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKey);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
