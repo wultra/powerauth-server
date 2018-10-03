@@ -133,7 +133,11 @@ public class EciesEncryptionBehavior {
             // Get decryptor for the application
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret);
 
-            // Extract envelope key and sharedInfo2 for response
+            // Initialize decryptor with ephemeral public key
+            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralKey());
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+
+            // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
             final EciesEnvelopeKey envelopeKey = decryptor.getEnvelopeKey();
             GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
             response.setSecretKey(BaseEncoding.base64().encode(envelopeKey.getSecretKey()));
@@ -191,7 +195,11 @@ public class EciesEncryptionBehavior {
             // Get decryptor for the activation
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey, applicationSecret, transportKey, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC);
 
-            // Extract envelope key with parameters for ECIES
+            // Initialize decryptor with ephemeral public key
+            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralKey());
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+
+            // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
             final EciesEnvelopeKey envelopeKey = decryptor.getEnvelopeKey();
             GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
             response.setSecretKey(BaseEncoding.base64().encode(envelopeKey.getSecretKey()));
