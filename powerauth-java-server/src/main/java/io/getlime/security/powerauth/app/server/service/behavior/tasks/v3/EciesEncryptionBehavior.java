@@ -115,17 +115,22 @@ public class EciesEncryptionBehavior {
         }
 
         try {
-            // Lookup the application
+            // Lookup the application version and check that it is supported
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
-            if (applicationVersion == null) {
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
-            final ApplicationEntity application = applicationVersion.getApplication();
 
             // Get master private key
+            final ApplicationEntity application = applicationVersion.getApplication();
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+
+            // Check that private key was succesfully converted
+            if (privateKey == null) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+            }
 
             // Get application secret
             final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
@@ -173,12 +178,16 @@ public class EciesEncryptionBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Lookup the application
+            // Lookup the application version and check that it is supported
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
-            if (applicationVersion == null) {
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
-            final ApplicationEntity application = applicationVersion.getApplication();
+
+            // Check that application key from request belongs to same application as activation ID from request
+            if (!applicationVersion.getApplication().getId().equals(activation.getApplication().getId())) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -186,6 +195,11 @@ public class EciesEncryptionBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
             final byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
             final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKey);
+
+            // Check that private key was succesfully converted
+            if (privateKey == null) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+            }
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
