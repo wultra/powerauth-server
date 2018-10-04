@@ -100,7 +100,7 @@ public class TokenBehavior {
     public CreateTokenResponse createToken(CreateTokenRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String applicationKey = request.getApplicationKey();
-        final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralKey());
+        final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
         final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
         final byte[] mac = BaseEncoding.base64().decode(request.getMac());
         final SignatureType signatureType = request.getSignatureType();
