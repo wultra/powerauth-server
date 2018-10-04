@@ -994,6 +994,32 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Get ECIES decryptor parameters.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @return ECIES decryptor parameters.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest request = new PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralKey(ephemeralPublicKey);
+        return getEciesDecryptor(request);
+    }
+
+    /**
+     * Get ECIES decryptor parameters.
+     * @param request Request for ECIES decryptor parameters.
+     * @return ECIES decryptor parameters.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetEciesDecryptorResponse getEciesDecryptor(PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest request) throws RemoteException {
+        return clientStubV3.getEciesDecryptor(request);
+    }
+
+    /**
      * Remove token with given token ID.
      * @param tokenId Token ID.
      * @param activationId ActivationId ID.

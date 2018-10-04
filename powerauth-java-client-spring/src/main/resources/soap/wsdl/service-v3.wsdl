@@ -1063,9 +1063,9 @@
 
             <!-- ECIES //-->
 
-            <xs:element name="GetEciesEncryptorRequest">
+            <xs:element name="GetEciesDecryptorRequest">
                 <xs:annotation>
-                    <xs:documentation>Request for obtaining ECIES encryptor.</xs:documentation>
+                    <xs:documentation>Request for obtaining ECIES decryptor.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1077,14 +1077,13 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="GetEciesEncryptorResponse">
+            <xs:element name="GetEciesDecryptorResponse">
                 <xs:annotation>
-                    <xs:documentation>Response containing setup for ECIES encryptor.</xs:documentation>
+                    <xs:documentation>Response containing setup for ECIES decryptor.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="encKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                        <xs:element name="macKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element name="secretKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                         <xs:element name="sharedInfo2" type="xs:string" minOccurs="1" maxOccurs="1"/>
                     </xs:sequence>
                 </xs:complexType>
@@ -1466,6 +1465,14 @@
         <wsdl:part element="tns:RemoveCallbackUrlResponse" name="RemoveCallbackUrlResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="GetEciesDecryptorRequest">
+        <wsdl:part element="tns:GetEciesDecryptorRequest" name="GetEciesDecryptorRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="GetEciesDecryptorResponse">
+        <wsdl:part element="tns:GetEciesDecryptorResponse" name="GetEciesDecryptorResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="PowerAuthPortV3">
         <wsdl:operation name="UnsupportApplicationVersion">
             <wsdl:input message="tns:UnsupportApplicationVersionRequest" name="UnsupportApplicationVersionRequest">
@@ -1675,6 +1682,12 @@
             <wsdl:input message="tns:VerifySignatureRequest" name="VerifySignatureRequest">
             </wsdl:input>
             <wsdl:output message="tns:VerifySignatureResponse" name="VerifySignatureResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetEciesDecryptor">
+            <wsdl:input message="tns:GetEciesDecryptorRequest" name="GetEciesDecryptorRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:GetEciesDecryptorResponse" name="GetEciesDecryptorResponse">
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
@@ -1992,6 +2005,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="VerifySignatureResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetEciesDecryptor">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="GetEciesDecryptorRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="GetEciesDecryptorResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

@@ -51,6 +51,8 @@ public class ServiceBehaviorCatalogue {
 
     private TokenBehavior tokenBehavior;
 
+    private EciesEncryptionBehavior eciesEncryptionBehavior;
+
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
     public ActivationServiceBehavior getActivationServiceBehavior() {
@@ -108,6 +110,11 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
+    public void setEciesEncryptionBehavior(EciesEncryptionBehavior eciesEncryptionBehavior) {
+        this.eciesEncryptionBehavior = eciesEncryptionBehavior;
+    }
+
+    @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
@@ -146,6 +153,10 @@ public class ServiceBehaviorCatalogue {
 
     public TokenBehavior getTokenBehavior() {
         return tokenBehavior;
+    }
+
+    public EciesEncryptionBehavior getEciesEncryptionBehavior() {
+        return eciesEncryptionBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

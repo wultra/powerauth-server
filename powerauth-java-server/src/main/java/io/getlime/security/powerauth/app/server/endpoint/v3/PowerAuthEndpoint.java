@@ -531,4 +531,18 @@ public class PowerAuthEndpoint {
         return powerAuthService.removeToken(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#getEciesDecryptor(GetEciesDecryptorRequest)} method and
+     * return the response.
+     *
+     * @param request Get ECIES decryptor parameters for given request.
+     * @return Response with ECIES decryptor parameters.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetEciesDecryptorRequest")
+    @ResponsePayload
+    public GetEciesDecryptorResponse getEciesDecryptor(@RequestPayload GetEciesDecryptorRequest request) throws Exception {
+        return powerAuthService.getEciesDecryptor(request);
+    }
+
 }

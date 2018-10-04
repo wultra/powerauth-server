@@ -1065,9 +1065,9 @@
 
     <!-- ECIES //-->
 
-    <xs:element name="GetEciesEncryptorRequest">
+    <xs:element name="GetEciesDecryptorRequest">
         <xs:annotation>
-            <xs:documentation>Request for obtaining ECIES encryptor.</xs:documentation>
+            <xs:documentation>Request for obtaining ECIES decryptor.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -1079,14 +1079,13 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="GetEciesEncryptorResponse">
+    <xs:element name="GetEciesDecryptorResponse">
         <xs:annotation>
-            <xs:documentation>Response containing setup for ECIES encryptor.</xs:documentation>
+            <xs:documentation>Response containing setup for ECIES decryptor.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="encKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="macKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="secretKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="sharedInfo2" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>

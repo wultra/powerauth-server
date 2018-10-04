@@ -171,8 +171,9 @@ public class TokenBehavior {
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
 
             final EciesDecryptor decryptor = new EciesDecryptor((ECPrivateKey) privateKey);
-            // The encryptResponseDirect() method is only used in version 2.0, because there is no incoming data to decrypt.
-            return decryptor.encryptResponseDirect(tokenBytes, ephemeralPublicKeyBytes);
+            // There is no encrypted request data to decrypt, the envelope key in needs to be initialized before encryption
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+            return decryptor.encryptResponse(tokenBytes);
         } catch (InvalidKeySpecException e) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (EciesException e) {

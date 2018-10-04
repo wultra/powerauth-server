@@ -380,4 +380,12 @@ public interface PowerAuthService {
      */
     RemoveTokenResponse removeToken(RemoveTokenRequest request) throws Exception;
 
+    /**
+     * Get ECIES decyptor parameters for decryption of request on intermediate server.
+     * @param request Request to get ECIES decryptor parameters.
+     * @return ECIES decryptor parameters.
+     * @throws Exception In case of a business logic error.
+     */
+    GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws Exception;
+
 }
