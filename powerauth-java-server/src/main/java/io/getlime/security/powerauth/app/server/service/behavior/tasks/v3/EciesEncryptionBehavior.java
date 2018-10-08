@@ -136,7 +136,7 @@ public class EciesEncryptionBehavior {
             final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
 
             // Get decryptor for the application
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.APPLICATION_SCOPE_GENERIC);
 
             // Initialize decryptor with ephemeral public key
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());

@@ -51,6 +51,7 @@ CREATE TABLE `pa_activation` (
   `user_id` varchar(255) NOT NULL,
   `extras` text,
   `counter` bigint(20) NOT NULL,
+  `ctr_data` varchar(255) NOT NULL,
   `device_public_key_base64` text,
   `failed_attempts` bigint(20) DEFAULT NULL,
   `max_failed_attempts` bigint(20) NOT NULL DEFAULT 5,

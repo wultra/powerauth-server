@@ -244,19 +244,22 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationIdShort Short activation ID.
-     * @param activationName Name of this activation.
-     * @param activationNonce Activation nonce.
-     * @param ephemeralPublicKey Ephemeral public key.
-     * @param applicationKey Application key of a given application.
-     * @param applicationSignature Signature proving a correct application is sending the data.
-     * @param cDevicePublicKey Device public key encrypted with activation OTP.
-     * @param extras Additional, application specific information.
+     * @param activationCode Activation code.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac Mac of key and data for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws RemoteException {
-        throw new IllegalStateException("Not implemented yet.");
+    public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+        PowerAuthPortV3ServiceStub.PrepareActivationRequest request = new PowerAuthPortV3ServiceStub.PrepareActivationRequest();
+        request.setActivationCode(activationCode);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return this.prepareActivation(request);
     }
 
     /**

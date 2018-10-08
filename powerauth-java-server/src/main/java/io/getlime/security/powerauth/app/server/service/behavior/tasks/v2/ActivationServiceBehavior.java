@@ -268,8 +268,9 @@ public class ActivationServiceBehavior {
         activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
         activation.setActivationName(activationName);
         activation.setExtras(extras);
-        // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version
+        // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version in activation status
         activation.setVersion(2);
+        // Counter data is null, numeric counter is used in this version
         activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());

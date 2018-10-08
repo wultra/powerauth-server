@@ -58,7 +58,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getSystemStatus method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getSystemStatus method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link GetSystemStatusRequest} instance
      * @return {@link GetSystemStatusResponse}
      */
@@ -67,7 +67,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getSystemStatus method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getSystemStatus method of the PowerAuth 3.0 Server SOAP interface.
      * @return {@link GetSystemStatusResponse}
      */
     public GetSystemStatusResponse getSystemStatus() {
@@ -76,7 +76,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the initActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link InitActivationRequest} instance
      * @return {@link InitActivationResponse}
      */
@@ -85,7 +85,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the initActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
      * @return {@link InitActivationResponse}
@@ -95,7 +95,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the initActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
      * @param maxFailureCount How many failed attempts should be allowed for this activation.
@@ -116,7 +116,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link PrepareActivationRequest} instance
      * @return {@link PrepareActivationResponse}
      */
@@ -125,18 +125,22 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
-     * @param activationIdShort Short activation ID.
-     * @param activationName Name of this activation.
-     * @param activationNonce Activation nonce.
-     * @param applicationKey Application key of a given application.
-     * @param applicationSignature Signature proving a correct application is sending the data.
-     * @param cDevicePublicKey Device public key encrypted with activation OTP.
-     * @param extras Additional, application specific information.
+     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationCode Activation code.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac Mac of key and data for ECIES.
      * @return {@link PrepareActivationResponse}
      */
-    public PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) {
-        throw new IllegalStateException("Not implemented yet");
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) {
+        PrepareActivationRequest request = new PrepareActivationRequest();
+        request.setActivationCode(activationCode);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return prepareActivation(request);
     }
 
     /**
@@ -150,7 +154,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID.
      * @param applicationKey Application key of a given application.
      * @param identity Identity fingerprint used during activation.
@@ -180,7 +184,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID.
      * @param maxFailureCount Maximum failure count.
      * @param timestampActivationExpire Timestamp this activation should expire.
@@ -200,7 +204,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the commitActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link CommitActivationRequest} instance
      * @return {@link CommitActivationResponse}
      */
@@ -209,7 +213,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be commited.
      * @return {@link CommitActivationResponse}
      */
@@ -220,7 +224,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link GetActivationStatusRequest} instance
      * @return {@link GetActivationStatusResponse}
      */
@@ -229,7 +233,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation Id to lookup information for.
      * @return {@link GetActivationStatusResponse}
      */
@@ -240,7 +244,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationListForUser method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link GetActivationListForUserRequest} instance
      * @return {@link GetActivationListForUserResponse}
      */
@@ -249,7 +253,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationListForUser method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID to fetch the activations for.
      * @return List of activation instances for given user.
      */
@@ -260,7 +264,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the removeActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link RemoveActivationRequest} instance.
      * @return {@link RemoveActivationResponse}
      */
@@ -269,7 +273,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the removeActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be removed.
      * @return {@link RemoveActivationResponse}
      */
@@ -280,7 +284,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link BlockActivationRequest} instance.
      * @return {@link BlockActivationResponse}
      */
@@ -289,7 +293,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the blockActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
      * @param reason Reason why activation is being blocked.
      * @return {@link BlockActivationResponse}
@@ -302,7 +306,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the unblockActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link UnblockActivationRequest} instance.
      * @return {@link UnblockActivationResponse}
      */
@@ -311,7 +315,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the unblockActivation method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be unblocked.
      * @return {@link UnblockActivationResponse}
      */
@@ -322,7 +326,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link VaultUnlockRequest} instance
      * @return {@link VaultUnlockResponse}
      */
@@ -331,7 +335,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation Id of an activation to be used for authentication.
      * @param applicationKey Application Key of an application related to the activation.
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
@@ -345,7 +349,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param data Data for offline signature.
      * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
@@ -358,7 +362,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link CreatePersonalizedOfflineSignaturePayloadRequest} instance.
      * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
      */
@@ -367,7 +371,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
      * @param applicationId Application ID.
      * @param data Data for offline signature.
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
@@ -380,7 +384,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      */
@@ -389,7 +393,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param data Data for signature.
      * @param signature Signature value.
@@ -406,7 +410,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 2.0 Server SOAP interface.
+     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link VerifyOfflineSignatureRequest} instance.
      * @return {@link VerifyOfflineSignatureResponse}
      */
@@ -415,7 +419,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the verifySignature method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link VerifySignatureRequest} instance.
      * @return {@link VerifySignatureResponse}
      */
@@ -424,7 +428,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the verifySignature method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be used for authentication.
      * @param applicationKey Application Key of an application related to the activation.
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
@@ -443,7 +447,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the verifyECDSASignature method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link VerifyECDSASignatureRequest} instance.
      * @return {@link VerifyECDSASignatureResponse}
      */
@@ -452,7 +456,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the verifyECDSASignature method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be used for authentication.
      * @param data Data that were signed by ECDSA algorithm.
      * @param signature Request signature.
@@ -467,7 +471,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getSignatureAuditLog method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getSignatureAuditLog method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link SignatureAuditRequest} instance.
      * @return {@link SignatureAuditResponse}
      */
@@ -476,7 +480,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the verifySignature method of the PowerAuth 2.0 Server SOAP interface and get
+     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface and get
      * signature audit log for all application of a given user.
      * @param userId User ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than").
@@ -492,7 +496,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the verifySignature method of the PowerAuth 2.0 Server SOAP interface and get
+     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface and get
      * signature audit log for a single application.
      * @param userId User ID to query the audit log against.
      * @param applicationId Application ID to query the audit log against.
@@ -510,7 +514,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationHistory method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getActivationHistory method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link ActivationHistoryRequest} instance.
      * @return {@link ActivationHistoryResponse}
      */
@@ -519,7 +523,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationHistory method of the PowerAuth 2.0 Server SOAP interface.
+     * Call the getActivationHistory method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param startingDate Limit the results to given starting date (= "newer than").
      * @param endingDate Limit the results to given ending date (= "older than").
@@ -890,7 +894,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     public class PowerAuthServiceClientV2 {
 
         /**
-         * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
+         * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
          * @param request {@link io.getlime.powerauth.soap.v2.PrepareActivationRequest} instance
          * @return {@link io.getlime.powerauth.soap.v2.PrepareActivationResponse}
          */
