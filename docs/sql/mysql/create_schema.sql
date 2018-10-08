@@ -75,6 +75,7 @@ CREATE TABLE `pa_signature_audit` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `activation_id` varchar(37) NOT NULL,
   `activation_counter` bigint(20) NOT NULL,
+  `activation_ctr_data` varchar(255),
   `activation_status` int(11) NOT NULL,
   `additional_info` varchar(255) DEFAULT NULL,
   `data_base64` text,

@@ -36,6 +36,7 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -48,6 +49,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -332,12 +334,38 @@ public class SignatureServiceBehavior {
         final PowerAuthSignatureTypes powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureRequest.getSignatureType());
         List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
+        // Get activation version and validate it
+        Integer version = activation.getVersion();
+        if (version == null || version < 2 || version > 3) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
         // Verify the signature with given lookahead
         boolean signatureValid = false;
         long ctr = activation.getCounter();
         long lowestValidCounter = ctr;
+        byte[] ctrData = null;
+        HashBasedCounter hashBasedCounter = null;
+        // Get counter data from activation for version 3
+        if (version == 3) {
+            ctrData = BaseEncoding.base64().decode(activation.getCtrDataBase64());
+            hashBasedCounter = new HashBasedCounter();
+        }
+
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getSignatureValidationLookahead(); iteratedCounter++) {
-            signatureValid = powerAuthServerSignature.verifySignatureForData(signatureRequest.getData(), signatureRequest.getSignature(), signatureKeys, iteratedCounter);
+            switch (version) {
+                case 2:
+                    // Use numeric counter for counter data
+                    ctrData = ByteBuffer.allocate(16).putLong(8, iteratedCounter).array();
+                    break;
+                case 3:
+                    // Increment counter in case iterated counter is bigger than current counter
+                    if (iteratedCounter > ctr) {
+                        ctrData = hashBasedCounter.next(ctrData);
+                    }
+                    break;
+            }
+            signatureValid = powerAuthServerSignature.verifySignatureForData(signatureRequest.getData(), signatureRequest.getSignature(), signatureKeys, ctrData);
             if (signatureValid) {
                 // set the lowest valid counter and break at the lowest
                 // counter where signature validates
@@ -389,6 +417,19 @@ public class SignatureServiceBehavior {
     private void handleValidSignature(ActivationRecordEntity activation, ValidateSignatureResponse validationResponse, SignatureRequest signatureRequest, Date currentTimestamp) {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        if (activation.getVersion() == 3) {
+            HashBasedCounter hashBasedCounter = new HashBasedCounter();
+            // Number of ctr_data increments is the lowest counter + 1 - current counter
+            // (+1, since the client has incremented the counter)
+            long incrementCount = validationResponse.getLowestValidCounter() + 1 - activation.getCounter();
+            byte[] ctrData = BaseEncoding.base64().decode(activation.getCtrDataBase64());
+            // Increment hash based counter incrementCount times
+            for (int i = 0; i < incrementCount; i++) {
+                ctrData = hashBasedCounter.next(ctrData);
+            }
+            activation.setCtrDataBase64(BaseEncoding.base64().encode(ctrData));
+        }
 
         // Set the activation record counter to the lowest counter
         // (+1, since the client has incremented the counter)
