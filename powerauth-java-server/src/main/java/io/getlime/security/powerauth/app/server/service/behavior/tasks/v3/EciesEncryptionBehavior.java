@@ -110,7 +110,7 @@ public class EciesEncryptionBehavior {
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
     private GetEciesDecryptorResponse getEciesDecryptorParametersForApplication(GetEciesDecryptorRequest request) throws GenericServiceException {
-        if (request.getApplicationKey() == null || request.getEphemeralKey() == null) {
+        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -139,7 +139,7 @@ public class EciesEncryptionBehavior {
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret);
 
             // Initialize decryptor with ephemeral public key
-            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralKey());
+            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
@@ -162,7 +162,7 @@ public class EciesEncryptionBehavior {
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
     private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request) throws GenericServiceException {
-        if (request.getApplicationKey() == null || request.getEphemeralKey() == null) {
+        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -210,7 +210,7 @@ public class EciesEncryptionBehavior {
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey, applicationSecret, transportKey, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC);
 
             // Initialize decryptor with ephemeral public key
-            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralKey());
+            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server

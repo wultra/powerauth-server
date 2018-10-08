@@ -316,7 +316,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationCode" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
@@ -348,7 +348,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="timestampActivationExpire" type="xs:dateTime"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="maxFailureCount" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
@@ -683,7 +683,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="signedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>
@@ -989,7 +989,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
@@ -1069,10 +1069,10 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <!-- activationId is optional -->
-                        <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                        <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                        <xs:element name="ephemeralKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <!--  activationId is optional  -->
+                        <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1083,8 +1083,8 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element name="secretKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                        <xs:element name="sharedInfo2" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="secretKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="sharedInfo2" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1099,7 +1099,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                     </xs:sequence>

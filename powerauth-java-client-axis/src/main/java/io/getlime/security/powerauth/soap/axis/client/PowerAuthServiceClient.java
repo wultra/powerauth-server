@@ -953,7 +953,7 @@ public class PowerAuthServiceClient {
         request.setApplicationKey(applicationKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
-        request.setEphemeralKey(ephemeralPublicKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setSignatureType(signatureType);
         return createToken(request);
     }
@@ -1005,7 +1005,7 @@ public class PowerAuthServiceClient {
         PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest request = new PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
-        request.setEphemeralKey(ephemeralPublicKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
         return getEciesDecryptor(request);
     }
 
