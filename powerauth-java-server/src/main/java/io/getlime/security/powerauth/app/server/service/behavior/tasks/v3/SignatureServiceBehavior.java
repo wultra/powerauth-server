@@ -342,13 +342,20 @@ public class SignatureServiceBehavior {
 
         // Verify the signature with given lookahead
         boolean signatureValid = false;
+        // Current numeric counter value
         long ctr = activation.getCounter();
-        long lowestValidCounter = ctr;
+        // Next numeric counter value used in case signature is valid
+        long ctrNext = ctr;
+        // Current hash based counter value
         byte[] ctrData = null;
+        // Hash of current counter data (incremented value)
+        byte[] ctrHash = null;
+        // Next hash based counter value used in case signature is valid
+        byte[] ctrDataNext = null;
         HashBasedCounter hashBasedCounter = null;
         // Get counter data from activation for version 3
         if (version == 3) {
-            ctrData = BaseEncoding.base64().decode(activation.getCtrDataBase64());
+            ctrHash = BaseEncoding.base64().decode(activation.getCtrDataBase64());
             hashBasedCounter = new HashBasedCounter();
         }
 
@@ -359,21 +366,22 @@ public class SignatureServiceBehavior {
                     ctrData = ByteBuffer.allocate(16).putLong(8, iteratedCounter).array();
                     break;
                 case 3:
-                    // Increment counter in case iterated counter is bigger than current counter
-                    if (iteratedCounter > ctr) {
-                        ctrData = hashBasedCounter.next(ctrData);
-                    }
+                    // Set ctrData for current iteration
+                    ctrData = ctrHash;
+                    // Increment the hash based counter
+                    ctrHash = hashBasedCounter.next(ctrHash);
                     break;
             }
             signatureValid = powerAuthServerSignature.verifySignatureForData(signatureRequest.getData(), signatureRequest.getSignature(), signatureKeys, ctrData);
             if (signatureValid) {
-                // set the lowest valid counter and break at the lowest
-                // counter where signature validates
-                lowestValidCounter = iteratedCounter;
+                // Set the next valid value of numeric counter based on current iteration counter +1
+                ctrNext = iteratedCounter + 1;
+                // Set the next valid value of hash based counter (ctrHash is already incremented by +1)
+                ctrDataNext = ctrHash;
                 break;
             }
         }
-        return new ValidateSignatureResponse(signatureValid, lowestValidCounter);
+        return new ValidateSignatureResponse(signatureValid, ctrNext, ctrDataNext);
     }
 
     private boolean handleInvalidApplicationVersion(ActivationRecordEntity activation, SignatureRequest signatureRequest, Date currentTimestamp) {
@@ -419,21 +427,12 @@ public class SignatureServiceBehavior {
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
         if (activation.getVersion() == 3) {
-            HashBasedCounter hashBasedCounter = new HashBasedCounter();
-            // Number of ctr_data increments is the lowest counter + 1 - current counter
-            // (+1, since the client has incremented the counter)
-            long incrementCount = validationResponse.getLowestValidCounter() + 1 - activation.getCounter();
-            byte[] ctrData = BaseEncoding.base64().decode(activation.getCtrDataBase64());
-            // Increment hash based counter incrementCount times
-            for (int i = 0; i < incrementCount; i++) {
-                ctrData = hashBasedCounter.next(ctrData);
-            }
-            activation.setCtrDataBase64(BaseEncoding.base64().encode(ctrData));
+            // Set the ctrData to next valid ctrData value
+            activation.setCtrDataBase64(BaseEncoding.base64().encode(validationResponse.getCtrDataNext()));
         }
 
-        // Set the activation record counter to the lowest counter
-        // (+1, since the client has incremented the counter)
-        activation.setCounter(validationResponse.getLowestValidCounter() + 1);
+        // Set the activation record counter to next valid counter value
+        activation.setCounter(validationResponse.getCtrNext());
 
         // Reset failed attempt count
         if (notPossessionFactorSignature(signatureRequest.getSignatureType())) {
@@ -607,6 +606,13 @@ public class SignatureServiceBehavior {
         private final SignatureType signatureType;
         private final KeyValueMap additionalInfo;
 
+        /**
+         * Signature request constructur.
+         * @param data Signed data.
+         * @param signature Data signature.
+         * @param signatureType Signature type.
+         * @param additionalInfo Additional information related to the signature.
+         */
         SignatureRequest(byte[] data, String signature, SignatureType signatureType, KeyValueMap additionalInfo) {
             this.data = data;
             this.signature = signature;
@@ -618,18 +624,34 @@ public class SignatureServiceBehavior {
             }
         }
 
+        /**
+         * Get signed data.
+         * @return Signed data.
+         */
         byte[] getData() {
             return data;
         }
 
+        /**
+         * Get data signature.
+         * @return Data signature.
+         */
         String getSignature() {
             return signature;
         }
 
+        /**
+         * Get signature type.
+         * @return Signature type.
+         */
         SignatureType getSignatureType() {
             return signatureType;
         }
 
+        /**
+         * Get additional information related to the signature.
+         * @return Additional information related to the signature.
+         */
         KeyValueMap getAdditionalInfo() {
             return additionalInfo;
         }
@@ -638,19 +660,43 @@ public class SignatureServiceBehavior {
     private class ValidateSignatureResponse {
 
         private final boolean signatureValid;
-        private final long lowestValidCounter;
+        private final long ctrNext;
+        private final byte[] ctrDataNext;
 
-        ValidateSignatureResponse(boolean signatureValid, long lowestValidCounter) {
+        /**
+         * Validate signature response constructor.
+         * @param signatureValid Whether signature is valid.
+         * @param ctrNext Next numeric counter value in case signature is valid.
+         * @param ctrDataNext Next hash based counter data in case signature is valid.
+         */
+        ValidateSignatureResponse(boolean signatureValid, long ctrNext, byte[] ctrDataNext) {
             this.signatureValid = signatureValid;
-            this.lowestValidCounter = lowestValidCounter;
+            this.ctrNext = ctrNext;
+            this.ctrDataNext = ctrDataNext;
         }
 
+        /**
+         * Get whether signature is valid.
+         * @return Whether signature is valid.
+         */
         boolean isSignatureValid() {
             return signatureValid;
         }
 
-        long getLowestValidCounter() {
-            return lowestValidCounter;
+        /**
+         * Get next numeric counter value in case signature is valid.
+         * @return Next numeric counter value.
+         */
+        long getCtrNext() {
+            return ctrNext;
+        }
+
+        /**
+         * Get next hash based counter value in case signature is valid.
+         * @return Next hash based counter value.
+         */
+        byte[] getCtrDataNext() {
+            return ctrDataNext;
         }
     }
 }
