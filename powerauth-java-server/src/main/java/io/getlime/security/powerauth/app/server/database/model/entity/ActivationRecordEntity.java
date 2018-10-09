@@ -65,6 +65,9 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "counter", nullable = false)
     private Long counter;
 
+    @Column(name = "ctr_data", nullable = true)
+    private String ctrDataBase64;
+
     @Column(name = "failed_attempts", nullable = false)
     private Long failedAttempts;
 
@@ -141,6 +144,7 @@ public class ActivationRecordEntity implements Serializable {
                                   String serverPublicKeyBase64,
                                   String devicePublicKeyBase64,
                                   Long counter,
+                                  String ctrDataBase64,
                                   Long failedAttempts,
                                   Long maxFailedAttempts,
                                   Date timestampCreated,
@@ -162,6 +166,7 @@ public class ActivationRecordEntity implements Serializable {
         this.serverPublicKeyBase64 = serverPublicKeyBase64;
         this.devicePublicKeyBase64 = devicePublicKeyBase64;
         this.counter = counter;
+        this.ctrDataBase64 = ctrDataBase64;
         this.failedAttempts = failedAttempts;
         this.maxFailedAttempts = maxFailedAttempts;
         this.timestampCreated = timestampCreated;
@@ -335,6 +340,24 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setCounter(Long counter) {
         this.counter = counter;
+    }
+
+    /**
+     * Get Base64 encoded counter data.
+     *
+     * @return Counter data.
+     */
+    public String getCtrDataBase64() {
+        return ctrDataBase64;
+    }
+
+    /**
+     * Set Base64 encoded counter data.
+     *
+     * @param ctrDataBase64 Counter data.
+     */
+    public void setCtrDataBase64(String ctrDataBase64) {
+        this.ctrDataBase64 = ctrDataBase64;
     }
 
     /**
@@ -550,6 +573,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.serverPublicKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.devicePublicKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.counter);
+        hash = 71 * hash + Objects.hashCode(this.ctrDataBase64);
         hash = 71 * hash + Objects.hashCode(this.failedAttempts);
         hash = 71 * hash + Objects.hashCode(this.maxFailedAttempts);
         hash = 71 * hash + Objects.hashCode(this.timestampCreated);
@@ -600,6 +624,9 @@ public class ActivationRecordEntity implements Serializable {
         if (!Objects.equals(this.counter, other.counter)) {
             return false;
         }
+        if (!Objects.equals(this.ctrDataBase64, other.ctrDataBase64)) {
+            return false;
+        }
         if (!Objects.equals(this.failedAttempts, other.failedAttempts)) {
             return false;
         }
@@ -643,6 +670,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter
+                + ", ctrDataBase64=" + ctrDataBase64
                 + ", failedAttempts=" + failedAttempts
                 + ", maxFailedAttempts=" + maxFailedAttempts
                 + ", timestampCreated=" + timestampCreated

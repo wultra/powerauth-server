@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
@@ -30,12 +31,24 @@ import io.getlime.security.powerauth.app.server.database.model.AdditionalInforma
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import io.getlime.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -49,14 +62,17 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -85,8 +101,12 @@ public class ActivationServiceBehavior {
 
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
+
+    // Helper classes
+    private final EciesFactory eciesFactory = new EciesFactory();
+    private final CryptoProviderUtil keyConversion = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
@@ -151,6 +171,28 @@ public class ActivationServiceBehavior {
             activationHistoryServiceBehavior.logActivationStatusChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
+    }
+
+    /**
+     * Validate activation in prepare activation step: it should be in CREATED state, it should be linked to correct
+     * application and the activation code should have valid length.
+     *
+     * @param activation Activation used in prepare activation step.
+     * @param application Application used in prepare activation step.
+     * @throws GenericServiceException In case activation state is invalid.
+     */
+    private void validateActivationInPrepareStep(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+        // If there is no such activation or application does not match the activation application, fail validation
+        if (activation == null
+                || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
+                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+
+        // Make sure activation code has 23 characters
+        if (activation.getActivationCode().length() != 23) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
         }
     }
 
@@ -516,23 +558,110 @@ public class ActivationServiceBehavior {
      *     <li>3.0</li>
      * </ul>
      *
-     * @param activationIdShort              Short activation ID
-     * @param activationNonceBase64          Activation nonce encoded as Base64
-     * @param clientEphemeralPublicKeyBase64 Client ephemeral public key encoded as Base64
-     * @param cDevicePublicKeyBase64         Encrypted device public key encoded as Base64
-     * @param activationName                 Activation name
-     * @param extras                         Extra parameter
-     * @param applicationKey                 Application key
-     * @param applicationSignature           Application signature
-     * @param keyConversionUtilities         Utility class for key conversion
-     * @return Prepared activation information
-     * @throws GenericServiceException      In case invalid data is provided
-     * @throws InvalidKeySpecException      If invalid key was provided
-     * @throws InvalidKeyException          If invalid key was provided
-     * @throws UnsupportedEncodingException If UTF-8 is not supported on the system
+     * @param activationCode Activation code.
+     * @param applicationKey Application key.
+     * @param eciesCryptogram Ecies cryptogram.
+     * @return ECIES encrypted activation information.
      */
-    public PrepareActivationResponse prepareActivation(String activationIdShort, String activationNonceBase64, String clientEphemeralPublicKeyBase64, String cDevicePublicKeyBase64, String activationName, String extras, String applicationKey, String applicationSignature, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException, InvalidKeySpecException, InvalidKeyException, UnsupportedEncodingException {
-        throw new IllegalStateException("Not implemented yet.");
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram) throws GenericServiceException, InvalidKeySpecException, EciesException, IOException {
+        // Get current timestamp
+        Date timestamp = new Date();
+
+        // Get required repositories
+        final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
+        final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        // Find application by application key
+        ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
+        if (applicationVersion == null || !applicationVersion.getSupported()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+        ApplicationEntity application = applicationVersion.getApplication();
+        if (application == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
+
+        // Get master server private key
+        MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+        String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+        if (privateKey == null) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
+        }
+
+        // Get application secret
+        byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
+
+        // Get ecies decryptor
+        EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2);
+
+        // Decrypt activation data
+        byte[] activationData = eciesDecryptor.decryptRequest(eciesCryptogram);
+
+        // Convert JSON data to activation layer 2 request object
+        ActivationLayer2Request request;
+        try {
+            request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
+        } catch (IOException ex) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+        }
+
+        // Fetch the current activation by activation code
+        Set<ActivationStatus> states = ImmutableSet.of(ActivationStatus.CREATED);
+        ActivationRecordEntity activation = activationRepository.findCreatedActivation(application.getId(), activationCode, states, timestamp);
+
+        // Make sure to deactivate the activation if it is expired
+        if (activation != null) {
+            deactivatePendingActivation(timestamp, activation);
+        }
+
+        // Validate that the activation is in correct state for the prepare step
+        validateActivationInPrepareStep(activation, application);
+
+        // Extract the device public key from request
+        byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
+        PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+
+        // Validate that public key is not null
+        validateNotNullPublicKey(activation, devicePublicKey);
+
+        // Initialize hash based counter
+        HashBasedCounter counter = new HashBasedCounter();
+        byte[] ctrData = counter.init();
+        String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
+
+        // Update and persist the activation record
+        activation.setActivationStatus(ActivationStatus.OTP_USED);
+        activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
+        activation.setActivationName(request.getActivationName());
+        activation.setExtras(request.getExtras());
+        // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
+        activation.setVersion(3);
+        // Set initial data
+        activation.setCtrDataBase64(ctrDataBase64);
+        activationRepository.save(activation);
+        activationHistoryServiceBehavior.logActivationStatusChange(activation);
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
+        // Generate activation layer 2 response
+        ActivationLayer2Response response = new ActivationLayer2Response();
+        response.setActivationId(activation.getActivationId());
+        response.setCtrData(ctrDataBase64);
+        response.setServerPublicKey(activation.getServerPublicKeyBase64());
+        byte[] responseData = objectMapper.writeValueAsBytes(response);
+
+        // Encrypt response data
+        EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
+        String encryptedData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
+        String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
+
+        // Generate encrypted response
+        PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
+        encryptedResponse.setActivationId(activation.getActivationId());
+        encryptedResponse.setEncryptedData(encryptedData);
+        encryptedResponse.setMac(mac);
+        return encryptedResponse;
     }
 
     /**

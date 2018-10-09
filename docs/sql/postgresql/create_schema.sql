@@ -20,6 +20,7 @@ CREATE TABLE "pa_activation"
     "activation_status"             INTEGER NOT NULL,
     "blocked_reason"                VARCHAR(255),
     "counter"                       INTEGER NOT NULL,
+    "ctr_data"                      VARCHAR(255),
     "device_public_key_base64"      VARCHAR(255),
     "extras"                        VARCHAR(255),
     "failed_attempts"               INTEGER NOT NULL,

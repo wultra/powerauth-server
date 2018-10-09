@@ -19,6 +19,7 @@ CREATE TABLE "PA_ACTIVATION"
     "ACTIVATION_STATUS"             NUMBER(10,0) NOT NULL,
     "BLOCKED_REASON"                VARCHAR2(255 CHAR),
     "COUNTER"                       NUMBER(19,0) NOT NULL,
+    "CTR_DATA"                      VARCHAR2(255 CHAR),
     "DEVICE_PUBLIC_KEY_BASE64"      VARCHAR2(255 CHAR),
     "EXTRAS"                        VARCHAR2(255 CHAR),
     "FAILED_ATTEMPTS"               NUMBER(19,0) NOT NULL,

@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.v3;
 
+import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
@@ -24,6 +25,8 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
@@ -33,6 +36,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
@@ -179,7 +183,24 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws Exception {
-        throw new IllegalStateException("Not implemented yet.");
+        try {
+            String activationCode = request.getActivationCode();
+            String applicationKey = request.getApplicationKey();
+            byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
+            byte[] mac = BaseEncoding.base64().decode(request.getMac());
+            byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
+            EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+            logger.info("PrepareActivationRequest received, activationCode: {}", activationCode);
+            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram);
+            logger.info("PrepareActivationRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            logger.error("Unknown error occurred", ex);
+            throw ex;
+        } catch (InvalidKeySpecException | IOException | EciesException ex) {
+            logger.error("Unknown error occurred", ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        }
     }
 
     @Override
