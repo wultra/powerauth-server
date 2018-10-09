@@ -536,6 +536,7 @@ public class ActivationServiceBehavior {
         activation.setActivationName(null);
         activation.setActivationStatus(ActivationStatus.CREATED);
         activation.setCounter(0L);
+        activation.setCtrDataBase64(null);
         activation.setDevicePublicKeyBase64(null);
         activation.setExtras(null);
         activation.setFailedAttempts(0L);

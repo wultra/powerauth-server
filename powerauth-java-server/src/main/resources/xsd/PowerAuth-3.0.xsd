@@ -760,6 +760,7 @@
             				<xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="activationCounter" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationCtrData" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="additionalInfo" type="tns:KeyValueMap" minOccurs="0" maxOccurs="1"/>
                 			<xs:element name="dataBase64" type="xs:string"  minOccurs="0" maxOccurs="1"/>

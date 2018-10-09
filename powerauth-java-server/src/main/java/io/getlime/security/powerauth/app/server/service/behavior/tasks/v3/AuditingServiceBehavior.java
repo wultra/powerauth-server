@@ -85,6 +85,7 @@ public class AuditingServiceBehavior {
                 item.setId(signatureEntity.getId());
                 item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
                 item.setActivationCounter(signatureEntity.getActivationCounter());
+                item.setActivationCtrData(signatureEntity.getActivationCtrDataBase64());
                 item.setActivationStatus(activationStatusConverter.convert(signatureEntity.getActivationStatus()));
                 item.setAdditionalInfo(keyValueMapConverter.fromString(signatureEntity.getAdditionalInfo()));
                 item.setActivationId(signatureEntity.getActivation().getActivationId());
@@ -109,6 +110,7 @@ public class AuditingServiceBehavior {
      * @param activation       Activation used for the signature calculation.
      * @param signatureType    Requested signature type
      * @param signature        Provided signature.
+     * @param additionalInfo   Additional info related to the signature.
      * @param data             Provided data.
      * @param valid            Flag indicating if the signature was valid
      * @param note             Record additional info (for example, reason for signature validation failure)
@@ -119,6 +121,7 @@ public class AuditingServiceBehavior {
         SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationCounter(activation.getCounter());
+        signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
         signatureAuditRecord.setAdditionalInfo(keyValueMapConverter.toString(additionalInfo));
         signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(data));
