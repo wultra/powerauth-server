@@ -406,6 +406,8 @@ public class ActivationServiceBehavior {
         activation.setExtras(extras);
         // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version
         activation.setVersion(2);
+        // Hash based counter is not used in this version
+        activation.setCtrDataBase64(null);
         activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
