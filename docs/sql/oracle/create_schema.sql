@@ -15,7 +15,7 @@ CREATE TABLE "PA_ACTIVATION"
     "APPLICATION_ID"                NUMBER(19,0) NOT NULL,
     "USER_ID"                       VARCHAR2(255 CHAR) NOT NULL,
     "ACTIVATION_NAME"               VARCHAR2(255 CHAR),
-    "ACTIVATION_CODE"               VARCHAR2(255 CHAR) NOT NULL,
+    "ACTIVATION_CODE"               VARCHAR2(255 CHAR),
     "ACTIVATION_STATUS"             NUMBER(10,0) NOT NULL,
     "BLOCKED_REASON"                VARCHAR2(255 CHAR),
     "COUNTER"                       NUMBER(19,0) NOT NULL,

@@ -16,7 +16,7 @@ CREATE TABLE "pa_activation"
     "application_id"                INTEGER NOT NULL,
     "user_id"                       VARCHAR(255) NOT NULL,
     "activation_name"               VARCHAR(255),
-    "activation_code"               VARCHAR(255) NOT NULL,
+    "activation_code"               VARCHAR(255),
     "activation_status"             INTEGER NOT NULL,
     "blocked_reason"                VARCHAR(255),
     "counter"                       INTEGER NOT NULL,
