@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -107,7 +108,9 @@ public class VaultUnlockServiceBehavior {
 
                 // Get encrypted vault unlock key and increment the counter
                 Long counter = activation.getCounter();
-                byte[] cKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(serverPrivateKey, devicePublicKey, counter);
+
+                byte[] ctrBytes = ByteBuffer.allocate(16).putLong(0L).putLong(counter).array();
+                byte[] cKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(serverPrivateKey, devicePublicKey, ctrBytes);
                 activation.setCounter(counter + 1);
                 powerAuthRepository.save(activation);
 
