@@ -361,7 +361,40 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws Exception {
-        throw new IllegalStateException("Not implemented yet.");
+        try {
+            // Get request data
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
+            final String signature = request.getSignature();
+            final SignatureType signatureType = request.getSignatureType();
+            final String signedData = request.getSignedData();
+            byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
+            byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
+            byte[] mac = BaseEncoding.base64().decode(request.getMac());
+
+            logger.info("VaultUnlockRequest received, activationId: {}", activationId);
+
+            // Reject 1FA signatures
+            if (signatureType.equals(SignatureType.BIOMETRY)
+                    || signatureType.equals(SignatureType.KNOWLEDGE)
+                    || signatureType.equals(SignatureType.POSSESSION)) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
+            }
+
+            // Convert received ECIES request data to cryptogram
+            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+
+            VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
+                    signature, signatureType, signedData, cryptogram, keyConversionUtilities);
+            logger.info("VaultUnlockRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            logger.error("Unknown error occurred", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override

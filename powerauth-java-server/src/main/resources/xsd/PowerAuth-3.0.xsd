@@ -700,6 +700,7 @@
             <xs:sequence>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
