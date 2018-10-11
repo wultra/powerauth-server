@@ -45,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
@@ -133,7 +134,7 @@ public class EciesEncryptionBehavior {
             }
 
             // Get application secret
-            final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
+            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
 
             // Get decryptor for the application
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.APPLICATION_SCOPE_GENERIC);
@@ -202,7 +203,7 @@ public class EciesEncryptionBehavior {
             }
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
+            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
             final byte[] devicePublicKey = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
             final byte[] transportKey = keyDerivationUtil.deriveTransportKey(serverPrivateKey, devicePublicKey);
 
