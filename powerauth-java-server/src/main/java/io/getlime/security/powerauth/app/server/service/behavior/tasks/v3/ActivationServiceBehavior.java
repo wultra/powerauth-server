@@ -64,6 +64,7 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -591,7 +592,7 @@ public class ActivationServiceBehavior {
         }
 
         // Get application secret
-        byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
+        byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
 
         // Get ecies decryptor
         EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2);

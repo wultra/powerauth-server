@@ -47,6 +47,7 @@ import io.getlime.security.powerauth.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
@@ -144,16 +145,16 @@ public class TokenBehavior {
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
             final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
-            final byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
 
             // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKey);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
-            final byte[] applicationSecret = BaseEncoding.base64().decode(applicationVersion.getApplicationSecret());
-            final byte[] devicePublicKey = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
-            final byte[] transportKey = keyDerivationUtil.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+            byte[] devicePublicKey = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            byte[] transportKey = keyDerivationUtil.deriveTransportKey(serverPrivateKey, devicePublicKey);
 
             // Get decryptor for the activation
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey,

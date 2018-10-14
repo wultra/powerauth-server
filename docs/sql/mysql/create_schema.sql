@@ -43,7 +43,7 @@ CREATE TABLE `pa_master_keypair` (
 
 CREATE TABLE `pa_activation` (
   `activation_id` varchar(37) NOT NULL,
-  `activation_code` varchar(255) NOT NULL,
+  `activation_code` varchar(255),
   `activation_status` int(11) NOT NULL,
   `blocked_reason` varchar(255) DEFAULT NULL,
   `activation_name` varchar(255) DEFAULT NULL,
