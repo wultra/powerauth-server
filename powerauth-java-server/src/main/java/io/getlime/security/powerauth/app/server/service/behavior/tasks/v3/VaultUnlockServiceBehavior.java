@@ -138,6 +138,14 @@ public class VaultUnlockServiceBehavior {
 
         // Get application secret and transport key used in sharedInfo2 parameter of ECIES
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+        // Check if application version is valid
+        if (applicationVersion == null || !applicationVersion.getSupported()) {
+            // Return response with invalid signature flag when application version is not valid
+            VaultUnlockResponse response = new VaultUnlockResponse();
+            response.setSignatureValid(false);
+            return response;
+        }
+
         byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
         byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
         byte[] transportKeyBytes = keyDerivationUtil.deriveTransportKey(serverPrivateKeyBytes, devicePublicKeyBytes);
