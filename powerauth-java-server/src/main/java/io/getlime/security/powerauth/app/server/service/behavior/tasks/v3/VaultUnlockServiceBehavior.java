@@ -136,7 +136,7 @@ public class VaultUnlockServiceBehavior {
         byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
         final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
-        // Get application secret and transport key used in sharedInfo2 parameter of ECIES
+        // Get application version
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
         // Check if application version is valid
         if (applicationVersion == null || !applicationVersion.getSupported()) {
@@ -146,6 +146,7 @@ public class VaultUnlockServiceBehavior {
             return response;
         }
 
+        // Get application secret and transport key used in sharedInfo2 parameter of ECIES
         byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
         byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
         byte[] transportKeyBytes = keyDerivationUtil.deriveTransportKey(serverPrivateKeyBytes, devicePublicKeyBytes);
