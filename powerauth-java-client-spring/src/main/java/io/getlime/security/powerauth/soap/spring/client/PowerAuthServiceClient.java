@@ -338,14 +338,27 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation Id of an activation to be used for authentication.
      * @param applicationKey Application Key of an application related to the activation.
-     * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
+     * @param signedData Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
-     * @param reason Reason why vault is being unlocked.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac MAC of key and data for ECIES.
      * @return {@link VaultUnlockResponse}
      */
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String reason) {
-        throw new IllegalStateException("Not implemented yet");
+    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
+                                           SignatureType signatureType, String signedData, String ephemeralPublicKey,
+                                           String encryptedData, String mac) {
+        VaultUnlockRequest request = new VaultUnlockRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setSignedData(signedData);
+        request.setSignature(signature);
+        request.setSignatureType(signatureType);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return unlockVault(request);
     }
 
     /**

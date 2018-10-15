@@ -473,15 +473,28 @@ public class PowerAuthServiceClient {
      * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation Id of an activation to be used for authentication.
      * @param applicationKey Application Key of an application related to the activation.
-     * @param data Data to be signed encoded in format as specified by PowerAuth 3.0 data normalization.
+     * @param signedData Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
-     * @param reason Reason why vault is being unlocked.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac MAC of key and data for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortV3ServiceStub.SignatureType signatureType, String reason) throws RemoteException {
-        throw new IllegalStateException("Not implemented yet.");
+    public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
+                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType, String signedData,
+                                                                      String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+        PowerAuthPortV3ServiceStub.VaultUnlockRequest request = new PowerAuthPortV3ServiceStub.VaultUnlockRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setSignedData(signedData);
+        request.setSignature(signature);
+        request.setSignatureType(signatureType);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return unlockVault(request);
     }
 
     /**
