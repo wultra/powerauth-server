@@ -34,6 +34,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehavior
 import io.getlime.security.powerauth.app.server.service.behavior.util.KeyDerivationUtil;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
@@ -170,6 +171,10 @@ public class VaultUnlockServiceBehavior {
         }
 
         String reason = request.getReason();
+
+        if (reason != null && reason.length() > 255) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+        }
 
         // Save vault unlock reason into additional info which is logged in signature audit log.
         // If value unlock reason is missing, use default NOT_SPECIFIED value.

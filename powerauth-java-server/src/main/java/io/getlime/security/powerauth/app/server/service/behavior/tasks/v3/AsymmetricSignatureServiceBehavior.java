@@ -23,6 +23,8 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +45,9 @@ public class AsymmetricSignatureServiceBehavior {
     private ActivationRepository activationRepository;
     private SignatureUtils signatureUtils = new SignatureUtils();
 
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);
+
     @Autowired
     public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository) {
         this.activationRepository = activationRepository;
@@ -61,6 +66,10 @@ public class AsymmetricSignatureServiceBehavior {
      */
     public boolean verifyECDSASignature(String activationId, String data, String signature, CryptoProviderUtil keyConversionUtilities) throws InvalidKeySpecException, SignatureException, InvalidKeyException {
         final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+        if (activation == null) {
+            logger.warn("Activation used when verifying ECDSA signature does not exist: {}", activationId);
+            return false;
+        }
         byte[] devicePublicKeyData = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
         return signatureUtils.validateECDSASignature(BaseEncoding.base64().decode(data), BaseEncoding.base64().decode(signature), devicePublicKey);

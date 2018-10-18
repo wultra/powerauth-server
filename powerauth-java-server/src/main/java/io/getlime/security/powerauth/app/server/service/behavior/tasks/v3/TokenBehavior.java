@@ -224,7 +224,9 @@ public class TokenBehavior {
         // Lookup the token.
         final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
         if (!tokenEntityOptional.isPresent()) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_TOKEN);
+            final ValidateTokenResponse response = new ValidateTokenResponse();
+            response.setTokenValid(false);
+            return response;
         }
         final TokenEntity token = tokenEntityOptional.get();
 
