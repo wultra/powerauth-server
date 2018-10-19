@@ -430,6 +430,8 @@ public class ActivationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
         }
 
+        // Application version is not being checked in initActivation, it is checked later in prepareActivation or createActivation.
+
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();

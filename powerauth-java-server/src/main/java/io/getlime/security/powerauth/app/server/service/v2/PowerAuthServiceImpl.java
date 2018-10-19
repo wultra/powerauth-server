@@ -169,6 +169,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
             }
 
+            if (reason != null && reason.length() > 255) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+            }
+
             // Save vault unlock reason into additional info which is logged in signature audit log.
             // If value unlock reason is missing, use default NOT_SPECIFIED value.
             KeyValueMap additionalInfo = new KeyValueMap();

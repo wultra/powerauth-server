@@ -441,6 +441,19 @@ public class ActivationServiceBehavior {
         return response;
     }
 
+    /**
+     * Init activation with given parameters
+     *
+     * @param applicationId             Application ID
+     * @param userId                    User ID
+     * @param maxFailedCount            Maximum failed attempt count (5)
+     * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
+     * @param keyConversionUtilities    Utility class for key conversion
+     * @return Response with activation initialization data
+     * @throws GenericServiceException If invalid values are provided.
+     * @throws InvalidKeySpecException If invalid key is provided
+     * @throws InvalidKeyException     If invalid key is provided
+     */
     private String initActivation(Long applicationId, String userId, Long maxFailedCount, Date activationExpireTimestamp, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException, InvalidKeySpecException, InvalidKeyException {
         // Generate timestamp in advance
         Date timestamp = new Date();
@@ -452,6 +465,8 @@ public class ActivationServiceBehavior {
         if (applicationId == 0L) {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
         }
+
+        // Application version is not being checked in initActivation, it is checked later in prepareActivation or createActivation.
 
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
