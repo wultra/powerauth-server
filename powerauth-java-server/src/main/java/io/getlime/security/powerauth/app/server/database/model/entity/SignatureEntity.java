@@ -74,6 +74,9 @@ public class SignatureEntity implements Serializable {
     @Column(name = "valid", nullable = false, updatable = false)
     private Boolean valid;
 
+    @Column(name = "version", nullable = false)
+    private Integer version;
+
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
@@ -99,7 +102,7 @@ public class SignatureEntity implements Serializable {
      * @param valid                   True if the signature was valid, false otherwise.
      * @param timestampCreated        Created timestapm.
      */
-    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, String activationCtrDataBase64, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String additionalInfo, String note, Boolean valid, Date timestampCreated) {
+    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, String activationCtrDataBase64, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String additionalInfo, String note, Boolean valid, Date timestampCreated, Integer version) {
         super();
         this.id = id;
         this.activation = activation;
@@ -112,6 +115,7 @@ public class SignatureEntity implements Serializable {
         this.additionalInfo = additionalInfo;
         this.note = note;
         this.valid = valid;
+        this.version = version;
         this.timestampCreated = timestampCreated;
     }
 
@@ -310,6 +314,22 @@ public class SignatureEntity implements Serializable {
     }
 
     /**
+     * Get signature version.
+     * @return Signature version.
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * Set signature version.
+     * @param version Signature version.
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    /**
      * Get created timestamp.
      *
      * @return Created timestamp.
@@ -341,6 +361,7 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.additionalInfo);
         hash = 23 * hash + Objects.hashCode(this.note);
         hash = 23 * hash + Objects.hashCode(this.valid);
+        hash = 23 * hash + Objects.hashCode(this.version);
         hash = 23 * hash + Objects.hashCode(this.timestampCreated);
         return hash;
     }
@@ -387,6 +408,9 @@ public class SignatureEntity implements Serializable {
         if (!Objects.equals(this.valid, other.valid)) {
             return false;
         }
+        if (!Objects.equals(this.version, other.version)) {
+            return false;
+        }
         if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
             return false;
         }
@@ -395,7 +419,7 @@ public class SignatureEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", note=" + note + ", timestampCreated=" + timestampCreated + '}';
+        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", version=" + version + ", note=" + note + ", timestampCreated=" + timestampCreated + "}";
     }
 
 }
