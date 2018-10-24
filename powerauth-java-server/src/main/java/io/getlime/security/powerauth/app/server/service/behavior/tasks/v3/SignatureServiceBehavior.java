@@ -232,7 +232,7 @@ public class SignatureServiceBehavior {
 
                 } else {
 
-                    boolean notifyCallbackListeners = handleInvalidSignature(activation, signatureRequest, currentTimestamp);
+                    boolean notifyCallbackListeners = handleInvalidSignature(activation, validationResponse, signatureRequest, currentTimestamp);
 
                     // Notify callback listeners, if needed
                     if (notifyCallbackListeners) {
@@ -336,16 +336,16 @@ public class SignatureServiceBehavior {
         List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
         // Get activation version and validate it
-        Integer version = activation.getVersion();
-        if (version == null || version < 2 || version > 3) {
+        Integer signatureVersion = activation.getVersion();
+        if (signatureVersion == null || signatureVersion < 2 || signatureVersion > 3) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
         // Handle migration from version 2 to version 3, the version is forced during migration commit
         if (signatureRequest.getSignatureVersion() != null && signatureRequest.getSignatureVersion() == 3
                 && activation.getVersion() == 2 && activation.getCtrDataBase64() != null) {
-            // Version 3 is requested from the client during migration from version 2, ctr_data already exists -> switch to version 3
-            version = 3;
+            // Version 3 is forced by client during migration from version 2, ctr_data already exists -> switch signature to version 3
+            signatureVersion = 3;
         }
 
         // Verify the signature with given lookahead
@@ -362,13 +362,13 @@ public class SignatureServiceBehavior {
         byte[] ctrDataNext = null;
         HashBasedCounter hashBasedCounter = null;
         // Get counter data from activation for version 3
-        if (version == 3) {
+        if (signatureVersion == 3) {
             ctrHash = BaseEncoding.base64().decode(activation.getCtrDataBase64());
             hashBasedCounter = new HashBasedCounter();
         }
 
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getSignatureValidationLookahead(); iteratedCounter++) {
-            switch (version) {
+            switch (signatureVersion) {
                 case 2:
                     // Use numeric counter for counter data
                     ctrData = ByteBuffer.allocate(16).putLong(8, iteratedCounter).array();
@@ -389,7 +389,7 @@ public class SignatureServiceBehavior {
                 break;
             }
         }
-        return new ValidateSignatureResponse(signatureValid, ctrNext, ctrDataNext);
+        return new ValidateSignatureResponse(signatureValid, ctrNext, ctrDataNext, signatureVersion);
     }
 
     private boolean handleInvalidApplicationVersion(ActivationRecordEntity activation, SignatureRequest signatureRequest, Date currentTimestamp) {
@@ -425,7 +425,7 @@ public class SignatureServiceBehavior {
 
         // Create the audit log record
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
-                false, "activation_invalid_application", currentTimestamp);
+                false, activation.getVersion(), "activation_invalid_application", currentTimestamp);
 
         return notifyCallbackListeners;
     }
@@ -434,7 +434,7 @@ public class SignatureServiceBehavior {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        if (activation.getVersion() == 3) {
+        if (validationResponse.getSignatureVersion() == 3) {
             // Set the ctrData to next valid ctrData value
             activation.setCtrDataBase64(BaseEncoding.base64().encode(validationResponse.getCtrDataNext()));
         }
@@ -455,10 +455,10 @@ public class SignatureServiceBehavior {
 
         // Create the audit log record.
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(),
-                signatureRequest.getData(), true, "signature_ok", currentTimestamp);
+                signatureRequest.getData(), true, validationResponse.getSignatureVersion(), "signature_ok", currentTimestamp);
     }
 
-    private boolean handleInvalidSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, Date currentTimestamp) {
+    private boolean handleInvalidSignature(ActivationRecordEntity activation, ValidateSignatureResponse validationResponse, SignatureRequest signatureRequest, Date currentTimestamp) {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
@@ -492,7 +492,7 @@ public class SignatureServiceBehavior {
 
         // Create the audit log record.
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
-                false, "signature_does_not_match", currentTimestamp);
+                false, validationResponse.getSignatureVersion(), "signature_does_not_match", currentTimestamp);
 
         return notifyCallbackListeners;
     }
@@ -604,7 +604,7 @@ public class SignatureServiceBehavior {
 
         // Create the audit log record.
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
-                false, "activation_invalid_state", currentTimestamp);
+                false, activation.getVersion(), "activation_invalid_state", currentTimestamp);
     }
 
     private class SignatureRequest {
@@ -681,17 +681,20 @@ public class SignatureServiceBehavior {
         private final boolean signatureValid;
         private final long ctrNext;
         private final byte[] ctrDataNext;
+        private final Integer signatureVersion;
 
         /**
          * Validate signature response constructor.
          * @param signatureValid Whether signature is valid.
          * @param ctrNext Next numeric counter value in case signature is valid.
          * @param ctrDataNext Next hash based counter data in case signature is valid.
+         * @param signatureVersion Signature version which may differ from activation version during migration.
          */
-        ValidateSignatureResponse(boolean signatureValid, long ctrNext, byte[] ctrDataNext) {
+        ValidateSignatureResponse(boolean signatureValid, long ctrNext, byte[] ctrDataNext, Integer signatureVersion) {
             this.signatureValid = signatureValid;
             this.ctrNext = ctrNext;
             this.ctrDataNext = ctrDataNext;
+            this.signatureVersion = signatureVersion;
         }
 
         /**
@@ -716,6 +719,14 @@ public class SignatureServiceBehavior {
          */
         byte[] getCtrDataNext() {
             return ctrDataNext;
+        }
+
+        /**
+         * Get signature version.
+         * @return Signature version.
+         */
+        Integer getSignatureVersion() {
+            return signatureVersion;
         }
     }
 }
