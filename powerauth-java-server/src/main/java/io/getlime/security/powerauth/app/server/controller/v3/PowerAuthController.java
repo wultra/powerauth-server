@@ -497,4 +497,28 @@ public class PowerAuthController {
         return new RESTResponseWrapper<>("OK", powerAuthService.removeToken(request.getRequestObject()));
     }
 
+    /**
+     * Call {@link PowerAuthService#startMigration(StartMigrationRequest)} method and
+     * return the response.
+     * @param request Start migration request.
+     * @return Start migration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/migration/start", method = RequestMethod.POST)
+    public RESTResponseWrapper<StartMigrationResponse> startMigration(@RequestBody RESTRequestWrapper<StartMigrationRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.startMigration(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#commitMigration(CommitMigrationRequest)} method and
+     * return the response.
+     * @param request Commit migration request.
+     * @return Commit migration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/migration/commit", method = RequestMethod.POST)
+    public RESTResponseWrapper<CommitMigrationResponse> commitMigration(@RequestBody RESTRequestWrapper<CommitMigrationRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.commitMigration(request.getRequestObject()));
+    }
+
 }

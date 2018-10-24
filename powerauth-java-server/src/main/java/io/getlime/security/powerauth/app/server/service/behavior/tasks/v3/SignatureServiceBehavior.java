@@ -128,6 +128,7 @@ public class SignatureServiceBehavior {
      * @param additionalInfo         Additional information about operation.
      * @param dataString             String with data used to compute the signature.
      * @param applicationKey         Associated application key.
+     * @param signatureVersion       Forced signature version during migration.
      * @param keyConversionUtilities Conversion utility class.
      * @return Response with the signature validation result object.
      * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
@@ -136,9 +137,9 @@ public class SignatureServiceBehavior {
      * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
-                                                   String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities)
+                                                   String dataString, String applicationKey, Integer signatureVersion, CryptoProviderUtil keyConversionUtilities)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
-        return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities, false);
+        return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, signatureVersion, keyConversionUtilities, false);
     }
 
     /**
@@ -159,7 +160,7 @@ public class SignatureServiceBehavior {
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
 
-        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, keyConversionUtilities, true);
+        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, null, keyConversionUtilities, true);
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setActivationId(verifySignatureResponse.getActivationId());
         response.setActivationStatus(verifySignatureResponse.getActivationStatus());
@@ -173,7 +174,7 @@ public class SignatureServiceBehavior {
     }
 
     private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
-                                                    String dataString, String applicationKey, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
+                                                    String dataString, String applicationKey, Integer signatureVersion, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
@@ -200,7 +201,7 @@ public class SignatureServiceBehavior {
 
                     // Get the data and append application KEY in this case, just for auditing reasons
                     byte[] data = (dataString + "&" + applicationKey).getBytes("UTF-8");
-                    SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo);
+                    SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, signatureVersion);
                     boolean notifyCallbackListeners = handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
                     // Notify callback listeners, if needed
@@ -216,7 +217,7 @@ public class SignatureServiceBehavior {
             }
 
             byte[] data = (dataString + "&" + applicationSecret).getBytes("UTF-8");
-            SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo);
+            SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, signatureVersion);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
@@ -338,6 +339,13 @@ public class SignatureServiceBehavior {
         Integer version = activation.getVersion();
         if (version == null || version < 2 || version > 3) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        // Handle migration from version 2 to version 3, the version is forced during migration commit
+        if (signatureRequest.getSignatureVersion() != null && signatureRequest.getSignatureVersion() == 3
+                && activation.getVersion() == 2 && activation.getCtrDataBase64() != null) {
+            // Version 3 is requested from the client during migration from version 2, ctr_data already exists -> switch to version 3
+            version = 3;
         }
 
         // Verify the signature with given lookahead
@@ -605,6 +613,7 @@ public class SignatureServiceBehavior {
         private final String signature;
         private final SignatureType signatureType;
         private final KeyValueMap additionalInfo;
+        private final Integer signatureVersion;
 
         /**
          * Signature request constructur.
@@ -612,8 +621,9 @@ public class SignatureServiceBehavior {
          * @param signature Data signature.
          * @param signatureType Signature type.
          * @param additionalInfo Additional information related to the signature.
+         * @param signatureVersion Forced signature version during migration.
          */
-        SignatureRequest(byte[] data, String signature, SignatureType signatureType, KeyValueMap additionalInfo) {
+        SignatureRequest(byte[] data, String signature, SignatureType signatureType, KeyValueMap additionalInfo, Integer signatureVersion) {
             this.data = data;
             this.signature = signature;
             this.signatureType = signatureType;
@@ -622,6 +632,7 @@ public class SignatureServiceBehavior {
             } else {
                 this.additionalInfo = additionalInfo;
             }
+            this.signatureVersion = signatureVersion;
         }
 
         /**
@@ -654,6 +665,14 @@ public class SignatureServiceBehavior {
          */
         KeyValueMap getAdditionalInfo() {
             return additionalInfo;
+        }
+
+        /**
+         * Get forced signature version.
+         * @return Forced signature version.
+         */
+        public Integer getSignatureVersion() {
+            return signatureVersion;
         }
     }
 

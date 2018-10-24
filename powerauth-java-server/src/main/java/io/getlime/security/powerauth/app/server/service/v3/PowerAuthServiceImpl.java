@@ -217,8 +217,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         String dataString = request.getData();
         String signature = request.getSignature();
         SignatureType signatureType = request.getSignatureType();
-
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities);
+        // Forced signature version during migration, currently only version 3 is supported
+        Integer signatureVersion = null;
+        if (request.getSignatureVersion() != null && request.getSignatureVersion() == 3) {
+            signatureVersion = 3;
+        }
+        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, signatureVersion, keyConversionUtilities);
 
     }
 
@@ -603,11 +607,40 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws Exception {
         logger.info("GetEciesDecryptorRequest received, applicationKey: {}, activationId: {}", new String[]{request.getApplicationKey(), request.getActivationId()});
         GetEciesDecryptorResponse response = behavior.getEciesEncryptionBehavior().getEciesDecryptorParameters(request);
         logger.info("GetEciesDecryptorRequest succeeded");
         return response;
+    }
+
+    @Override
+    @Transactional
+    public StartMigrationResponse startMigration(StartMigrationRequest request) throws Exception {
+        try {
+            logger.info("StartMigrationRequest received, applicationKey: {}, activationId: {} ", new String[]{request.getApplicationKey(), request.getActivationId()});
+            StartMigrationResponse response = behavior.getMigrationServiceBehavior().startMigration(request);
+            logger.info("StartMigrationRequest succeeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CommitMigrationResponse commitMigration(CommitMigrationRequest request) throws Exception {
+        try {
+            logger.info("CommitMigrationRequest received, applicationKey: {}, activationId: {} ", new String[]{request.getApplicationKey(), request.getActivationId()});
+            CommitMigrationResponse response = behavior.getMigrationServiceBehavior().commitMigration(request);
+            logger.info("CommitMigrationRequest succeeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
 }

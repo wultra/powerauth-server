@@ -190,7 +190,7 @@ public class VaultUnlockServiceBehavior {
 
         // Verify the signature
         VerifySignatureResponse signatureResponse = behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType,
-                signature, additionalInfo, signedData, applicationKey, keyConversion);
+                signature, additionalInfo, signedData, applicationKey, null, keyConversion);
 
         VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
 

@@ -509,7 +509,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="signatureVersion" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="signatureVersion" type="xs:long"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1093,7 +1093,7 @@
 
             <!-- Migration to version 3.0 //-->
 
-            <xs:element name="MigrationStartRequest">
+            <xs:element name="StartMigrationRequest">
                 <xs:annotation>
                     <xs:documentation>Request to start migration.</xs:documentation>
                 </xs:annotation>
@@ -1108,7 +1108,7 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="MigrationStartResponse">
+            <xs:element name="StartMigrationResponse">
                 <xs:annotation>
                     <xs:documentation>Response to start migration.</xs:documentation>
                 </xs:annotation>
@@ -1120,7 +1120,7 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="MigrationCommitRequest">
+            <xs:element name="CommitMigrationRequest">
                 <xs:annotation>
                     <xs:documentation>Migration commit request</xs:documentation>
                 </xs:annotation>
@@ -1132,13 +1132,13 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="MigrationCommitResponse">
+            <xs:element name="CommitMigrationResponse">
                 <xs:annotation>
                     <xs:documentation>Migration commit response.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="result" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="committed" type="xs:boolean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1475,6 +1475,22 @@
         <wsdl:part element="tns:GetEciesDecryptorResponse" name="GetEciesDecryptorResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="StartMigrationRequest">
+        <wsdl:part element="tns:StartMigrationRequest" name="StartMigrationRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="StartMigrationResponse">
+        <wsdl:part element="tns:StartMigrationResponse" name="StartMigrationResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CommitMigrationRequest">
+        <wsdl:part element="tns:CommitMigrationRequest" name="CommitMigrationRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CommitMigrationResponse">
+        <wsdl:part element="tns:CommitMigrationResponse" name="CommitMigrationResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="PowerAuthPortV3">
         <wsdl:operation name="UnsupportApplicationVersion">
             <wsdl:input message="tns:UnsupportApplicationVersionRequest" name="UnsupportApplicationVersionRequest">
@@ -1690,6 +1706,18 @@
             <wsdl:input message="tns:GetEciesDecryptorRequest" name="GetEciesDecryptorRequest">
             </wsdl:input>
             <wsdl:output message="tns:GetEciesDecryptorResponse" name="GetEciesDecryptorResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="StartMigration">
+            <wsdl:input message="tns:StartMigrationRequest" name="StartMigrationRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:StartMigrationResponse" name="StartMigrationResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CommitMigration">
+            <wsdl:input message="tns:CommitMigrationRequest" name="CommitMigrationRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:CommitMigrationResponse" name="CommitMigrationResponse">
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
@@ -2016,6 +2044,24 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="GetEciesDecryptorResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="StartMigration">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="StartMigrationRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="StartMigrationResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CommitMigration">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="CommitMigrationRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="CommitMigrationResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

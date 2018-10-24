@@ -894,6 +894,56 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Start migration of activations to version 3.
+     * @param request Start migration request.
+     * @return Start migration response.
+     */
+    public StartMigrationResponse startMigration(StartMigrationRequest request) {
+        return (StartMigrationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Start migration of activations to version 3.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param encryptedData Encrypted request data.
+     * @param mac MAC computed for request key and data.
+     * @return Start migration response.
+     */
+    public StartMigrationResponse startMigration(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                 String encryptedData, String mac) {
+        StartMigrationRequest request = new StartMigrationRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return startMigration(request);
+    }
+
+    /**
+     * Commit migration of activations to version 3.
+     * @param request Commit migration request.
+     * @return Commit migration response.
+     */
+    public CommitMigrationResponse commitMigration(CommitMigrationRequest request) {
+        return (CommitMigrationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Commit migration of activations to version 3.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @return Commit migration response.
+     */
+    public CommitMigrationResponse commitMigration(String activationId, String applicationKey) {
+        CommitMigrationRequest request = new CommitMigrationRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        return commitMigration(request);
+    }
+    /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      * @return PowerAuth 2.0 client.
      */

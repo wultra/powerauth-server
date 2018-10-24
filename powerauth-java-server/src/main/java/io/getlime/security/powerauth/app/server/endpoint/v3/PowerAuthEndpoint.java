@@ -545,4 +545,31 @@ public class PowerAuthEndpoint {
         return powerAuthService.getEciesDecryptor(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#startMigration(StartMigrationRequest)} method and
+     * return the response.
+     *
+     * @param request Start migration request.
+     * @return Start migration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "StartMigrationRequest")
+    @ResponsePayload
+    public StartMigrationResponse startMigration(@RequestPayload StartMigrationRequest request) throws Exception {
+        return powerAuthService.startMigration(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#commitMigration(CommitMigrationRequest)} method and
+     * return the response.
+     *
+     * @param request Commit migration request.
+     * @return Commit migration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CommitMigrationRequest")
+    @ResponsePayload
+    public CommitMigrationResponse commitMigration(@RequestPayload CommitMigrationRequest request) throws Exception {
+        return powerAuthService.commitMigration(request);
+    }
 }

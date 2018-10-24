@@ -510,7 +510,7 @@
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signatureVersion" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureVersion" type="xs:long" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1095,7 +1095,7 @@
 
     <!-- Migration to version 3.0 //-->
 
-    <xs:element name="MigrationStartRequest">
+    <xs:element name="StartMigrationRequest">
         <xs:annotation>
             <xs:documentation>Request to start migration.</xs:documentation>
         </xs:annotation>
@@ -1110,7 +1110,7 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="MigrationStartResponse">
+    <xs:element name="StartMigrationResponse">
         <xs:annotation>
             <xs:documentation>Response to start migration.</xs:documentation>
         </xs:annotation>
@@ -1122,7 +1122,7 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="MigrationCommitRequest">
+    <xs:element name="CommitMigrationRequest">
         <xs:annotation>
             <xs:documentation>Migration commit request</xs:documentation>
         </xs:annotation>
@@ -1134,13 +1134,13 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="MigrationCommitResponse">
+    <xs:element name="CommitMigrationResponse">
         <xs:annotation>
             <xs:documentation>Migration commit response.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="result" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="committed" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
