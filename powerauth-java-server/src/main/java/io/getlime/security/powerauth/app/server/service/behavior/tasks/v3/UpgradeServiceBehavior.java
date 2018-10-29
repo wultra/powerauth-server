@@ -30,7 +30,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.util.KeyDerivat
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.app.server.service.model.response.MigrationResponsePayload;
+import io.getlime.security.powerauth.app.server.service.model.response.UpgradeResponsePayload;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
@@ -39,10 +39,10 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCrypt
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.v3.CommitMigrationRequest;
-import io.getlime.security.powerauth.v3.CommitMigrationResponse;
-import io.getlime.security.powerauth.v3.StartMigrationRequest;
-import io.getlime.security.powerauth.v3.StartMigrationResponse;
+import io.getlime.security.powerauth.v3.CommitUpgradeRequest;
+import io.getlime.security.powerauth.v3.CommitUpgradeResponse;
+import io.getlime.security.powerauth.v3.StartUpgradeRequest;
+import io.getlime.security.powerauth.v3.StartUpgradeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,12 +55,12 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 
 /**
- * Behavior class implementing the activation migration process.
+ * Behavior class implementing the activation upgrade process.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
-public class MigrationServiceBehavior {
+public class UpgradeServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
@@ -73,22 +73,22 @@ public class MigrationServiceBehavior {
     private final ObjectMapper mapper = new ObjectMapper();
 
     // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(MigrationServiceBehavior.class);
+    private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
 
     @Autowired
-    public MigrationServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    public UpgradeServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
     /**
-     * Start migration of activation to version 3.
-     * @param request Start migration request.
-     * @return Start migration response.
-     * @throws GenericServiceException In case migration fails.
+     * Start upgrade of activation to version 3.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
+     * @throws GenericServiceException In case upgrade fails.
      */
-    public StartMigrationResponse startMigration(StartMigrationRequest request) throws GenericServiceException{
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException{
         final String activationId = request.getActivationId();
         final String applicationKey = request.getApplicationKey();
         final String ephemeralPublicKey = request.getEphemeralPublicKey();
@@ -116,7 +116,7 @@ public class MigrationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
-        // Do not verify ctr_data, migration response may not be delivered to client, so the client may retry the migration
+        // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
 
         // Lookup the application version and check that it is supported
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
@@ -140,7 +140,7 @@ public class MigrationServiceBehavior {
             byte[] transportKey = keyDerivationUtil.deriveTransportKey(serverPrivateKey, devicePublicKey);
 
             // Get decryptor for the application
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey, applicationSecret, transportKey, EciesSharedInfo1.MIGRATION);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey, applicationSecret, transportKey, EciesSharedInfo1.UPGRADE);
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
@@ -166,14 +166,14 @@ public class MigrationServiceBehavior {
             }
 
             // Create response payload
-            final MigrationResponsePayload payload = new MigrationResponsePayload();
+            final UpgradeResponsePayload payload = new UpgradeResponsePayload();
             payload.setCtrData(ctrDataBase64);
 
             // Encrypt response payload and return it
             final byte[] payloadBytes = mapper.writeValueAsBytes(payload);
 
             final EciesCryptogram cryptogramResponse = decryptor.encryptResponse(payloadBytes);
-            final StartMigrationResponse response = new StartMigrationResponse();
+            final StartUpgradeResponse response = new StartUpgradeResponse();
             response.setEncryptedData(BaseEncoding.base64().encode(cryptogramResponse.getEncryptedData()));
             response.setMac(BaseEncoding.base64().encode(cryptogramResponse.getMac()));
             return response;
@@ -186,12 +186,12 @@ public class MigrationServiceBehavior {
     }
 
     /**
-     * Commit migration of activation to version 3.
-     * @param request Commit migration request.
-     * @return Commit migration response.
-     * @throws GenericServiceException In case migration fails.
+     * Commit upgrade of activation to version 3.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
+     * @throws GenericServiceException In case upgrade fails.
      */
-    public CommitMigrationResponse commitMigration(CommitMigrationRequest request) throws GenericServiceException {
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String applicationKey = request.getApplicationKey();
 
@@ -211,7 +211,7 @@ public class MigrationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
-        // Check if the activation hash based counter was generated (migration has been started)
+        // Check if the activation hash based counter was generated (upgrade has been started)
         if (activation.getCtrDataBase64() == null) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
@@ -228,7 +228,7 @@ public class MigrationServiceBehavior {
         // Save update activation
         repositoryCatalogue.getActivationRepository().save(activation);
 
-        final CommitMigrationResponse response = new CommitMigrationResponse();
+        final CommitUpgradeResponse response = new CommitUpgradeResponse();
         response.setCommitted(true);
         return response;
     }

@@ -389,18 +389,18 @@ public interface PowerAuthService {
     GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws Exception;
 
     /**
-     * Start migration of activation to version 3.
-     * @param request Start migration request.
-     * @return Start migration response.
+     * Start upgrade of activation to version 3.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
      * @throws Exception In case of a business logic error.
      */
-    StartMigrationResponse startMigration(StartMigrationRequest request) throws Exception;
+    StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws Exception;
 
     /**
-     * Commit migration of activation to version 3.
-     * @param request Commit migration request.
-     * @return Commit migration response.
+     * Commit upgrade of activation to version 3.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
      * @throws Exception In case of a business logic error.
      */
-    CommitMigrationResponse commitMigration(CommitMigrationRequest request) throws Exception;
+    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws Exception;
 }

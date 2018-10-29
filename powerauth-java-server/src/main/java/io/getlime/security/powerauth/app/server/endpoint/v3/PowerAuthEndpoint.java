@@ -546,30 +546,30 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#startMigration(StartMigrationRequest)} method and
+     * Call {@link PowerAuthService#startUpgrade(StartUpgradeRequest)} method and
      * return the response.
      *
-     * @param request Start migration request.
-     * @return Start migration response.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
      * @throws Exception In case the service throws exception.
      */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "StartMigrationRequest")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "StartUpgradeRequest")
     @ResponsePayload
-    public StartMigrationResponse startMigration(@RequestPayload StartMigrationRequest request) throws Exception {
-        return powerAuthService.startMigration(request);
+    public StartUpgradeResponse startUpgrade(@RequestPayload StartUpgradeRequest request) throws Exception {
+        return powerAuthService.startUpgrade(request);
     }
 
     /**
-     * Call {@link PowerAuthService#commitMigration(CommitMigrationRequest)} method and
+     * Call {@link PowerAuthService#commitUpgrade(CommitUpgradeRequest)} method and
      * return the response.
      *
-     * @param request Commit migration request.
-     * @return Commit migration response.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
      * @throws Exception In case the service throws exception.
      */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CommitMigrationRequest")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CommitUpgradeRequest")
     @ResponsePayload
-    public CommitMigrationResponse commitMigration(@RequestPayload CommitMigrationRequest request) throws Exception {
-        return powerAuthService.commitMigration(request);
+    public CommitUpgradeResponse commitUpgrade(@RequestPayload CommitUpgradeRequest request) throws Exception {
+        return powerAuthService.commitUpgrade(request);
     }
 }

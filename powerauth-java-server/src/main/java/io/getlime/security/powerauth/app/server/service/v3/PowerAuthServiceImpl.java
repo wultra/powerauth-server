@@ -217,12 +217,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         String dataString = request.getData();
         String signature = request.getSignature();
         SignatureType signatureType = request.getSignatureType();
-        // Forced signature version during migration, currently only version 3 is supported
-        Integer signatureVersion = null;
-        if (request.getSignatureVersion() != null && request.getSignatureVersion() == 3) {
-            signatureVersion = 3;
+        // Forced signature version during upgrade, currently only version 3 is supported
+        Integer forcedSignatureVersion = null;
+        if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
+            forcedSignatureVersion = 3;
         }
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, signatureVersion, keyConversionUtilities);
+        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
 
     }
 
@@ -617,11 +617,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public StartMigrationResponse startMigration(StartMigrationRequest request) throws Exception {
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws Exception {
         try {
-            logger.info("StartMigrationRequest received, applicationKey: {}, activationId: {} ", new String[]{request.getApplicationKey(), request.getActivationId()});
-            StartMigrationResponse response = behavior.getMigrationServiceBehavior().startMigration(request);
-            logger.info("StartMigrationRequest succeeeded");
+            logger.info("StartUpgradeRequest received, applicationKey: {}, activationId: {} ", request.getApplicationKey(), request.getActivationId());
+            StartUpgradeResponse response = behavior.getUpgradeServiceBehavior().startUpgrade(request);
+            logger.info("StartUpgradeRequest succeeeded");
             return response;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -631,11 +631,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public CommitMigrationResponse commitMigration(CommitMigrationRequest request) throws Exception {
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws Exception {
         try {
-            logger.info("CommitMigrationRequest received, applicationKey: {}, activationId: {} ", new String[]{request.getApplicationKey(), request.getActivationId()});
-            CommitMigrationResponse response = behavior.getMigrationServiceBehavior().commitMigration(request);
-            logger.info("CommitMigrationRequest succeeeded");
+            logger.info("CommitUpgradeRequest received, applicationKey: {}, activationId: {} ", request.getApplicationKey(), request.getActivationId());
+            CommitUpgradeResponse response = behavior.getUpgradeServiceBehavior().commitUpgrade(request);
+            logger.info("CommitUpgradeRequest succeeeded");
             return response;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);

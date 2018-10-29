@@ -1049,57 +1049,57 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Start migration of activations to version 3.
-     * @param request Start migration request.
-     * @return Start migration response.
+     * Start upgrade of activations to version 3.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.StartMigrationResponse startMigration(PowerAuthPortV3ServiceStub.StartMigrationRequest request) throws RemoteException {
-        return clientStubV3.startMigration(request);
+    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(PowerAuthPortV3ServiceStub.StartUpgradeRequest request) throws RemoteException {
+        return clientStubV3.startUpgrade(request);
     }
 
     /**
-     * Start migration of activations to version 3.
+     * Start upgrade of activations to version 3.
      * @param activationId Activation ID.
      * @param applicationKey Application key.
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
-     * @return Start migration response.
+     * @return Start upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.StartMigrationResponse startMigration(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
-        PowerAuthPortV3ServiceStub.StartMigrationRequest request = new PowerAuthPortV3ServiceStub.StartMigrationRequest();
+    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+        PowerAuthPortV3ServiceStub.StartUpgradeRequest request = new PowerAuthPortV3ServiceStub.StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
-        return startMigration(request);
+        return startUpgrade(request);
     }
 
     /**
-     * Commit migration of activations to version 3.
-     * @param request Commit migration request.
-     * @return Commit migration response.
+     * Commit upgrade of activations to version 3.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CommitMigrationResponse commitMigration(PowerAuthPortV3ServiceStub.CommitMigrationRequest request) throws RemoteException {
-        return clientStubV3.commitMigration(request);
+    public PowerAuthPortV3ServiceStub.CommitUpgradeResponse commitUpgrade(PowerAuthPortV3ServiceStub.CommitUpgradeRequest request) throws RemoteException {
+        return clientStubV3.commitUpgrade(request);
     }
 
     /**
-     * Commit migration of activations to version 3.
+     * Commit upgrade of activations to version 3.
      * @param activationId Activation ID.
      * @param applicationKey Application key.
-     * @return Commit migration response.
+     * @return Commit upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CommitMigrationResponse commitMigration(String activationId, String applicationKey) throws RemoteException {
-        PowerAuthPortV3ServiceStub.CommitMigrationRequest request = new PowerAuthPortV3ServiceStub.CommitMigrationRequest();
+    public PowerAuthPortV3ServiceStub.CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws RemoteException {
+        PowerAuthPortV3ServiceStub.CommitUpgradeRequest request = new PowerAuthPortV3ServiceStub.CommitUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
-        return commitMigration(request);
+        return commitUpgrade(request);
     }
 
     /**

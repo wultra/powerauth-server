@@ -20,12 +20,12 @@
 package io.getlime.security.powerauth.app.server.service.model.response;
 
 /**
- * Response object for migration payload.
+ * Response object for upgrade payload.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  *
  */
-public class MigrationResponsePayload {
+public class UpgradeResponsePayload {
 
     private String ctrData;
 

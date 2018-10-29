@@ -498,27 +498,27 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#startMigration(StartMigrationRequest)} method and
+     * Call {@link PowerAuthService#startUpgrade(StartUpgradeRequest)} method and
      * return the response.
-     * @param request Start migration request.
-     * @return Start migration response.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/migration/start", method = RequestMethod.POST)
-    public RESTResponseWrapper<StartMigrationResponse> startMigration(@RequestBody RESTRequestWrapper<StartMigrationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.startMigration(request.getRequestObject()));
+    @RequestMapping(value = "/upgrade/start", method = RequestMethod.POST)
+    public RESTResponseWrapper<StartUpgradeResponse> startUpgrade(@RequestBody RESTRequestWrapper<StartUpgradeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.startUpgrade(request.getRequestObject()));
     }
 
     /**
-     * Call {@link PowerAuthService#commitMigration(CommitMigrationRequest)} method and
+     * Call {@link PowerAuthService#commitUpgrade(CommitUpgradeRequest)} method and
      * return the response.
-     * @param request Commit migration request.
-     * @return Commit migration response.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/migration/commit", method = RequestMethod.POST)
-    public RESTResponseWrapper<CommitMigrationResponse> commitMigration(@RequestBody RESTRequestWrapper<CommitMigrationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.commitMigration(request.getRequestObject()));
+    @RequestMapping(value = "/upgrade/commit", method = RequestMethod.POST)
+    public RESTResponseWrapper<CommitUpgradeResponse> commitUpgrade(@RequestBody RESTRequestWrapper<CommitUpgradeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.commitUpgrade(request.getRequestObject()));
     }
 
 }

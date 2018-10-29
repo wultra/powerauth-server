@@ -53,7 +53,7 @@ public class ServiceBehaviorCatalogue {
 
     private EciesEncryptionBehavior eciesEncryptionBehavior;
 
-    private MigrationServiceBehavior migrationServiceBehavior;
+    private UpgradeServiceBehavior upgradeServiceBehavior;
 
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
@@ -117,8 +117,8 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
-    public void setMigrationServiceBehavior(MigrationServiceBehavior migrationServiceBehavior) {
-        this.migrationServiceBehavior = migrationServiceBehavior;
+    public void setUpgradeServiceBehavior(UpgradeServiceBehavior upgradeServiceBehavior) {
+        this.upgradeServiceBehavior = upgradeServiceBehavior;
     }
 
     @Autowired
@@ -166,8 +166,8 @@ public class ServiceBehaviorCatalogue {
         return eciesEncryptionBehavior;
     }
 
-    public MigrationServiceBehavior getMigrationServiceBehavior() {
-        return migrationServiceBehavior;
+    public UpgradeServiceBehavior getUpgradeServiceBehavior() {
+        return upgradeServiceBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

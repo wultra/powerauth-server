@@ -120,6 +120,40 @@ public class SignatureServiceBehavior {
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
     /**
+     * Validate activation version.
+     * @param activationVersion Version of activation.
+     * @throws GenericServiceException Thrown when activation version is invalid.
+     */
+    private void validateActivationVersion(Integer activationVersion) throws GenericServiceException {
+        if (activationVersion == null || activationVersion < 2 || activationVersion > 3) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+    }
+
+    /**
+     * Resovle signature version based on activation version and forced signature version from request.
+     * @param activation Activation entity.
+     * @param forcedSignatureVersion Forced signature version from request.
+     * @return Resolved signature version.
+     * @throws GenericServiceException Thrown in case activation state is invalid.
+     */
+    private Integer resolveSignatureVersion(ActivationRecordEntity activation, Integer forcedSignatureVersion) throws GenericServiceException {
+        // Validate activation version
+        validateActivationVersion(activation.getVersion());
+
+        // Set signature version based on activation version as default
+        Integer signatureVersion = activation.getVersion();
+
+        // Handle upgrade from version 2 to version 3, the version is forced during upgrade commit
+        if (forcedSignatureVersion != null && forcedSignatureVersion == 3
+                && activation.getVersion() == 2 && activation.getCtrDataBase64() != null) {
+            // Version 3 is forced by client during upgrade from version 2, ctr_data already exists -> switch signature to version 3
+            signatureVersion = 3;
+        }
+        return signatureVersion;
+    }
+
+    /**
      * Verify signature for given activation and provided data in online mode. Log every validation attempt in the audit log.
      *
      * @param activationId           Activation ID.
@@ -128,7 +162,7 @@ public class SignatureServiceBehavior {
      * @param additionalInfo         Additional information about operation.
      * @param dataString             String with data used to compute the signature.
      * @param applicationKey         Associated application key.
-     * @param signatureVersion       Forced signature version during migration.
+     * @param forcedSignatureVersion       Forced signature version during upgrade.
      * @param keyConversionUtilities Conversion utility class.
      * @return Response with the signature validation result object.
      * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
@@ -137,9 +171,9 @@ public class SignatureServiceBehavior {
      * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
-                                                   String dataString, String applicationKey, Integer signatureVersion, CryptoProviderUtil keyConversionUtilities)
+                                                   String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
-        return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, signatureVersion, keyConversionUtilities, false);
+        return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities, false);
     }
 
     /**
@@ -174,7 +208,7 @@ public class SignatureServiceBehavior {
     }
 
     private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
-                                                    String dataString, String applicationKey, Integer signatureVersion, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
+                                                    String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
             throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
@@ -201,7 +235,7 @@ public class SignatureServiceBehavior {
 
                     // Get the data and append application KEY in this case, just for auditing reasons
                     byte[] data = (dataString + "&" + applicationKey).getBytes("UTF-8");
-                    SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, signatureVersion);
+                    SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, forcedSignatureVersion);
                     boolean notifyCallbackListeners = handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
                     // Notify callback listeners, if needed
@@ -217,7 +251,7 @@ public class SignatureServiceBehavior {
             }
 
             byte[] data = (dataString + "&" + applicationSecret).getBytes("UTF-8");
-            SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, signatureVersion);
+            SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, forcedSignatureVersion);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
@@ -335,18 +369,8 @@ public class SignatureServiceBehavior {
         final PowerAuthSignatureTypes powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureRequest.getSignatureType());
         List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
-        // Get activation version and validate it
-        Integer signatureVersion = activation.getVersion();
-        if (signatureVersion == null || signatureVersion < 2 || signatureVersion > 3) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-        }
-
-        // Handle migration from version 2 to version 3, the version is forced during migration commit
-        if (signatureRequest.getSignatureVersion() != null && signatureRequest.getSignatureVersion() == 3
-                && activation.getVersion() == 2 && activation.getCtrDataBase64() != null) {
-            // Version 3 is forced by client during migration from version 2, ctr_data already exists -> switch signature to version 3
-            signatureVersion = 3;
-        }
+        // Resolve signature version based on activation version and request
+        Integer signatureVersion = resolveSignatureVersion(activation, signatureRequest.getForcedSignatureVersion());
 
         // Verify the signature with given lookahead
         boolean signatureValid = false;
@@ -434,7 +458,7 @@ public class SignatureServiceBehavior {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        if (validationResponse.getSignatureVersion() == 3) {
+        if (validationResponse.getForcedSignatureVersion() == 3) {
             // Set the ctrData to next valid ctrData value
             activation.setCtrDataBase64(BaseEncoding.base64().encode(validationResponse.getCtrDataNext()));
         }
@@ -455,7 +479,7 @@ public class SignatureServiceBehavior {
 
         // Create the audit log record.
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(),
-                signatureRequest.getData(), true, validationResponse.getSignatureVersion(), "signature_ok", currentTimestamp);
+                signatureRequest.getData(), true, validationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
     }
 
     private boolean handleInvalidSignature(ActivationRecordEntity activation, ValidateSignatureResponse validationResponse, SignatureRequest signatureRequest, Date currentTimestamp) {
@@ -492,7 +516,7 @@ public class SignatureServiceBehavior {
 
         // Create the audit log record.
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
-                false, validationResponse.getSignatureVersion(), "signature_does_not_match", currentTimestamp);
+                false, validationResponse.getForcedSignatureVersion(), "signature_does_not_match", currentTimestamp);
 
         return notifyCallbackListeners;
     }
@@ -613,7 +637,7 @@ public class SignatureServiceBehavior {
         private final String signature;
         private final SignatureType signatureType;
         private final KeyValueMap additionalInfo;
-        private final Integer signatureVersion;
+        private final Integer forcedSignatureVersion;
 
         /**
          * Signature request constructur.
@@ -621,9 +645,9 @@ public class SignatureServiceBehavior {
          * @param signature Data signature.
          * @param signatureType Signature type.
          * @param additionalInfo Additional information related to the signature.
-         * @param signatureVersion Forced signature version during migration.
+         * @param forcedSignatureVersion Forced signature version during upgrade.
          */
-        SignatureRequest(byte[] data, String signature, SignatureType signatureType, KeyValueMap additionalInfo, Integer signatureVersion) {
+        SignatureRequest(byte[] data, String signature, SignatureType signatureType, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
             this.data = data;
             this.signature = signature;
             this.signatureType = signatureType;
@@ -632,7 +656,7 @@ public class SignatureServiceBehavior {
             } else {
                 this.additionalInfo = additionalInfo;
             }
-            this.signatureVersion = signatureVersion;
+            this.forcedSignatureVersion = forcedSignatureVersion;
         }
 
         /**
@@ -671,8 +695,8 @@ public class SignatureServiceBehavior {
          * Get forced signature version.
          * @return Forced signature version.
          */
-        public Integer getSignatureVersion() {
-            return signatureVersion;
+        public Integer getForcedSignatureVersion() {
+            return forcedSignatureVersion;
         }
     }
 
@@ -681,20 +705,20 @@ public class SignatureServiceBehavior {
         private final boolean signatureValid;
         private final long ctrNext;
         private final byte[] ctrDataNext;
-        private final Integer signatureVersion;
+        private final Integer forcedSignatureVersion;
 
         /**
          * Validate signature response constructor.
          * @param signatureValid Whether signature is valid.
          * @param ctrNext Next numeric counter value in case signature is valid.
          * @param ctrDataNext Next hash based counter data in case signature is valid.
-         * @param signatureVersion Signature version which may differ from activation version during migration.
+         * @param forcedSignatureVersion Signature version which may differ from activation version during upgrade.
          */
-        ValidateSignatureResponse(boolean signatureValid, long ctrNext, byte[] ctrDataNext, Integer signatureVersion) {
+        ValidateSignatureResponse(boolean signatureValid, long ctrNext, byte[] ctrDataNext, Integer forcedSignatureVersion) {
             this.signatureValid = signatureValid;
             this.ctrNext = ctrNext;
             this.ctrDataNext = ctrDataNext;
-            this.signatureVersion = signatureVersion;
+            this.forcedSignatureVersion = forcedSignatureVersion;
         }
 
         /**
@@ -725,8 +749,8 @@ public class SignatureServiceBehavior {
          * Get signature version.
          * @return Signature version.
          */
-        Integer getSignatureVersion() {
-            return signatureVersion;
+        Integer getForcedSignatureVersion() {
+            return forcedSignatureVersion;
         }
     }
 }
