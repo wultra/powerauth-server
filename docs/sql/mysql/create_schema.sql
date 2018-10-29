@@ -85,6 +85,7 @@ CREATE TABLE `pa_signature_audit` (
   `valid` int(11) NOT NULL DEFAULT 0,
   `note` text NOT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `version` int(2) DEFAULT 2,
   PRIMARY KEY (`id`),
   KEY `K_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION

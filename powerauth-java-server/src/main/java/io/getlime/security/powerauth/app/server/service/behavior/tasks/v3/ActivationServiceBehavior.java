@@ -239,6 +239,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 activationServiceItem.setApplicationName(activation.getApplication().getName());
+                // Unknown version is converted to 0 in SOAP
+                activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 response.getActivations().add(activationServiceItem);
             }
         }
@@ -309,7 +311,7 @@ public class ActivationServiceBehavior {
                 response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
                 response.setDevicePublicKeyFingerprint(null);
                 // Unknown version is converted to 0 in SOAP
-                response.setProtocolVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 return response;
 
             } else {
@@ -371,7 +373,7 @@ public class ActivationServiceBehavior {
                 response.setActivationSignature(null);
                 response.setDevicePublicKeyFingerprint(activationFingerPrint);
                 // Unknown version is converted to 0 in SOAP
-                response.setProtocolVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 return response;
 
             }
@@ -400,7 +402,7 @@ public class ActivationServiceBehavior {
             response.setActivationSignature(null);
             response.setDevicePublicKeyFingerprint(null);
             // Use 0 as version when version is undefined
-            response.setProtocolVersion(0L);
+            response.setVersion(0L);
             return response;
         }
     }

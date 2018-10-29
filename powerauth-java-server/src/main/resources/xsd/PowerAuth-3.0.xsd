@@ -426,7 +426,7 @@
                 <xs:element name="activationCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationSignature" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="devicePublicKeyFingerprint" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="protocolVersion" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -490,6 +490,7 @@
                 			<xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
@@ -769,7 +770,8 @@
                 			<xs:element name="signature" type="xs:string"  minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="note" type="xs:string"  minOccurs="1" maxOccurs="1"/>
                 			<xs:element name="valid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
-                			<xs:element name="timestampCreated" type="xs:dateTime"  minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="version" type="xs:long"  minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="timestampCreated" type="xs:dateTime"  minOccurs="1" maxOccurs="1"/>
             			</xs:sequence>
         			</xs:complexType>
         		</xs:element>
