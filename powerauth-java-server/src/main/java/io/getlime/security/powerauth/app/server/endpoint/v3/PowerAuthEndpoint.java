@@ -545,4 +545,31 @@ public class PowerAuthEndpoint {
         return powerAuthService.getEciesDecryptor(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#startUpgrade(StartUpgradeRequest)} method and
+     * return the response.
+     *
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "StartUpgradeRequest")
+    @ResponsePayload
+    public StartUpgradeResponse startUpgrade(@RequestPayload StartUpgradeRequest request) throws Exception {
+        return powerAuthService.startUpgrade(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#commitUpgrade(CommitUpgradeRequest)} method and
+     * return the response.
+     *
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CommitUpgradeRequest")
+    @ResponsePayload
+    public CommitUpgradeResponse commitUpgrade(@RequestPayload CommitUpgradeRequest request) throws Exception {
+        return powerAuthService.commitUpgrade(request);
+    }
 }

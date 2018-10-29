@@ -447,15 +447,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
      * @param signature Request signature.
      * @param signatureType Request signature type.
+     * @param forcedSignatureVersion Forced signature version.
      * @return Verify signature and return SOAP response with the verification results.
      */
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType) {
+    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, Long forcedSignatureVersion) {
         VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setForcedSignatureVersion(forcedSignatureVersion);
         return this.verifySignature(request);
     }
 
@@ -893,6 +895,56 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return getEciesDecryptor(request);
     }
 
+    /**
+     * Start upgrade of activations to version 3.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
+     */
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) {
+        return (StartUpgradeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Start upgrade of activations to version 3.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param encryptedData Encrypted request data.
+     * @param mac MAC computed for request key and data.
+     * @return Start upgrade response.
+     */
+    public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                 String encryptedData, String mac) {
+        StartUpgradeRequest request = new StartUpgradeRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return startUpgrade(request);
+    }
+
+    /**
+     * Commit upgrade of activations to version 3.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
+     */
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) {
+        return (CommitUpgradeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Commit upgrade of activations to version 3.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @return Commit upgrade response.
+     */
+    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) {
+        CommitUpgradeRequest request = new CommitUpgradeRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        return commitUpgrade(request);
+    }
     /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      * @return PowerAuth 2.0 client.

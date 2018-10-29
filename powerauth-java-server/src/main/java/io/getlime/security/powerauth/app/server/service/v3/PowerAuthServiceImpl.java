@@ -217,8 +217,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         String dataString = request.getData();
         String signature = request.getSignature();
         SignatureType signatureType = request.getSignatureType();
-
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, keyConversionUtilities);
+        // Forced signature version during upgrade, currently only version 3 is supported
+        Integer forcedSignatureVersion = null;
+        if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
+            forcedSignatureVersion = 3;
+        }
+        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
 
     }
 
@@ -603,11 +607,40 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws Exception {
         logger.info("GetEciesDecryptorRequest received, applicationKey: {}, activationId: {}", new String[]{request.getApplicationKey(), request.getActivationId()});
         GetEciesDecryptorResponse response = behavior.getEciesEncryptionBehavior().getEciesDecryptorParameters(request);
         logger.info("GetEciesDecryptorRequest succeeded");
         return response;
+    }
+
+    @Override
+    @Transactional
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws Exception {
+        try {
+            logger.info("StartUpgradeRequest received, applicationKey: {}, activationId: {} ", request.getApplicationKey(), request.getActivationId());
+            StartUpgradeResponse response = behavior.getUpgradeServiceBehavior().startUpgrade(request);
+            logger.info("StartUpgradeRequest succeeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws Exception {
+        try {
+            logger.info("CommitUpgradeRequest received, applicationKey: {}, activationId: {} ", request.getApplicationKey(), request.getActivationId());
+            CommitUpgradeResponse response = behavior.getUpgradeServiceBehavior().commitUpgrade(request);
+            logger.info("CommitUpgradeRequest succeeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
 }

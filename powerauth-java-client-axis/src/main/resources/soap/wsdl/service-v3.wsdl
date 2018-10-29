@@ -510,7 +510,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="data" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
-                        <xs:element maxOccurs="1" minOccurs="0" name="signatureVersion" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="forcedSignatureVersion" type="xs:long"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1093,11 +1093,11 @@
                 </xs:complexType>
             </xs:element>
 
-            <!-- Migration to version 3.0 //-->
+            <!-- Upgrade to version 3.0 //-->
 
-            <xs:element name="MigrationStartRequest">
+            <xs:element name="StartUpgradeRequest">
                 <xs:annotation>
-                    <xs:documentation>Request to start migration.</xs:documentation>
+                    <xs:documentation>Request to start upgrade.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1110,9 +1110,9 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="MigrationStartResponse">
+            <xs:element name="StartUpgradeResponse">
                 <xs:annotation>
-                    <xs:documentation>Response to start migration.</xs:documentation>
+                    <xs:documentation>Response to start upgrade.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1122,9 +1122,9 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="MigrationCommitRequest">
+            <xs:element name="CommitUpgradeRequest">
                 <xs:annotation>
-                    <xs:documentation>Migration commit request</xs:documentation>
+                    <xs:documentation>Upgrade commit request</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1134,13 +1134,13 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="MigrationCommitResponse">
+            <xs:element name="CommitUpgradeResponse">
                 <xs:annotation>
-                    <xs:documentation>Migration commit response.</xs:documentation>
+                    <xs:documentation>Upgrade commit response.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="result" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="committed" type="xs:boolean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1477,6 +1477,22 @@
         <wsdl:part element="tns:GetEciesDecryptorResponse" name="GetEciesDecryptorResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="StartUpgradeRequest">
+        <wsdl:part element="tns:StartUpgradeRequest" name="StartUpgradeRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="StartUpgradeResponse">
+        <wsdl:part element="tns:StartUpgradeResponse" name="StartUpgradeResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CommitUpgradeRequest">
+        <wsdl:part element="tns:CommitUpgradeRequest" name="CommitUpgradeRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CommitUpgradeResponse">
+        <wsdl:part element="tns:CommitUpgradeResponse" name="CommitUpgradeResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="PowerAuthPortV3">
         <wsdl:operation name="UnsupportApplicationVersion">
             <wsdl:input message="tns:UnsupportApplicationVersionRequest" name="UnsupportApplicationVersionRequest">
@@ -1692,6 +1708,18 @@
             <wsdl:input message="tns:GetEciesDecryptorRequest" name="GetEciesDecryptorRequest">
             </wsdl:input>
             <wsdl:output message="tns:GetEciesDecryptorResponse" name="GetEciesDecryptorResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="StartUpgrade">
+            <wsdl:input message="tns:StartUpgradeRequest" name="StartUpgradeRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:StartUpgradeResponse" name="StartUpgradeResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CommitUpgrade">
+            <wsdl:input message="tns:CommitUpgradeRequest" name="CommitUpgradeRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:CommitUpgradeResponse" name="CommitUpgradeResponse">
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
@@ -2018,6 +2046,24 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="GetEciesDecryptorResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="StartUpgrade">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="StartUpgradeRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="StartUpgradeResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CommitUpgrade">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="CommitUpgradeRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="CommitUpgradeResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

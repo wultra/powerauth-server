@@ -497,4 +497,28 @@ public class PowerAuthController {
         return new RESTResponseWrapper<>("OK", powerAuthService.removeToken(request.getRequestObject()));
     }
 
+    /**
+     * Call {@link PowerAuthService#startUpgrade(StartUpgradeRequest)} method and
+     * return the response.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/upgrade/start", method = RequestMethod.POST)
+    public RESTResponseWrapper<StartUpgradeResponse> startUpgrade(@RequestBody RESTRequestWrapper<StartUpgradeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.startUpgrade(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#commitUpgrade(CommitUpgradeRequest)} method and
+     * return the response.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/upgrade/commit", method = RequestMethod.POST)
+    public RESTResponseWrapper<CommitUpgradeResponse> commitUpgrade(@RequestBody RESTRequestWrapper<CommitUpgradeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.commitUpgrade(request.getRequestObject()));
+    }
+
 }

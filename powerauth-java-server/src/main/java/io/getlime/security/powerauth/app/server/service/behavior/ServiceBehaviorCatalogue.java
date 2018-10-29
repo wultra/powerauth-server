@@ -24,7 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Collection of all behaviors used by the PowerAuth 2.0 Server service.
+ * Collection of all behaviors used by the PowerAuth Server service.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -52,6 +52,8 @@ public class ServiceBehaviorCatalogue {
     private TokenBehavior tokenBehavior;
 
     private EciesEncryptionBehavior eciesEncryptionBehavior;
+
+    private UpgradeServiceBehavior upgradeServiceBehavior;
 
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
@@ -115,6 +117,11 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
+    public void setUpgradeServiceBehavior(UpgradeServiceBehavior upgradeServiceBehavior) {
+        this.upgradeServiceBehavior = upgradeServiceBehavior;
+    }
+
+    @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
@@ -157,6 +164,10 @@ public class ServiceBehaviorCatalogue {
 
     public EciesEncryptionBehavior getEciesEncryptionBehavior() {
         return eciesEncryptionBehavior;
+    }
+
+    public UpgradeServiceBehavior getUpgradeServiceBehavior() {
+        return upgradeServiceBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

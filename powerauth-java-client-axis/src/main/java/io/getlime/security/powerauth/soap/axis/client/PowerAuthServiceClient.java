@@ -1010,6 +1010,29 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Remove token with given token ID.
+     * @param tokenId Token ID.
+     * @param activationId ActivationId ID.
+     * @return Response token removal result.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveTokenResponse removeToken(String tokenId, String activationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.RemoveTokenRequest request = new PowerAuthPortV3ServiceStub.RemoveTokenRequest();
+        request.setTokenId(tokenId);
+        request.setActivationId(activationId);
+        return removeToken(request);
+    }
+
+    /**
+     * Get ECIES decryptor parameters.
+     * @param request Request for ECIES decryptor parameters.
+     * @return ECIES decryptor parameters.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetEciesDecryptorResponse getEciesDecryptor(PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest request) throws RemoteException {
+        return clientStubV3.getEciesDecryptor(request);
+    }
+
+    /**
      * Get ECIES decryptor parameters.
      * @param activationId Activation ID.
      * @param applicationKey Application key.
@@ -1026,26 +1049,57 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Get ECIES decryptor parameters.
-     * @param request Request for ECIES decryptor parameters.
-     * @return ECIES decryptor parameters.
+     * Start upgrade of activations to version 3.
+     * @param request Start upgrade request.
+     * @return Start upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.GetEciesDecryptorResponse getEciesDecryptor(PowerAuthPortV3ServiceStub.GetEciesDecryptorRequest request) throws RemoteException {
-        return clientStubV3.getEciesDecryptor(request);
+    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(PowerAuthPortV3ServiceStub.StartUpgradeRequest request) throws RemoteException {
+        return clientStubV3.startUpgrade(request);
     }
 
     /**
-     * Remove token with given token ID.
-     * @param tokenId Token ID.
-     * @param activationId ActivationId ID.
-     * @return Response token removal result.
+     * Start upgrade of activations to version 3.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
+     * @param encryptedData Encrypted request data.
+     * @param mac MAC computed for request key and data.
+     * @return Start upgrade response.
+     * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.RemoveTokenResponse removeToken(String tokenId, String activationId) throws RemoteException {
-        PowerAuthPortV3ServiceStub.RemoveTokenRequest request = new PowerAuthPortV3ServiceStub.RemoveTokenRequest();
-        request.setTokenId(tokenId);
+    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+        PowerAuthPortV3ServiceStub.StartUpgradeRequest request = new PowerAuthPortV3ServiceStub.StartUpgradeRequest();
         request.setActivationId(activationId);
-        return removeToken(request);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return startUpgrade(request);
+    }
+
+    /**
+     * Commit upgrade of activations to version 3.
+     * @param request Commit upgrade request.
+     * @return Commit upgrade response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.CommitUpgradeResponse commitUpgrade(PowerAuthPortV3ServiceStub.CommitUpgradeRequest request) throws RemoteException {
+        return clientStubV3.commitUpgrade(request);
+    }
+
+    /**
+     * Commit upgrade of activations to version 3.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @return Commit upgrade response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws RemoteException {
+        PowerAuthPortV3ServiceStub.CommitUpgradeRequest request = new PowerAuthPortV3ServiceStub.CommitUpgradeRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        return commitUpgrade(request);
     }
 
     /**
