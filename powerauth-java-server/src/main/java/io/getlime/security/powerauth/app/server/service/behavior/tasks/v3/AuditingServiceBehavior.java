@@ -93,6 +93,7 @@ public class AuditingServiceBehavior {
                 item.setSignature(signatureEntity.getSignature());
                 item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
                 item.setValid(signatureEntity.getValid());
+                item.setVersion(signatureEntity.getVersion());
                 item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(signatureEntity.getTimestampCreated()));
                 item.setNote(signatureEntity.getNote());
                 item.setUserId(signatureEntity.getActivation().getUserId());
@@ -108,15 +109,16 @@ public class AuditingServiceBehavior {
      * Log a record in a signature audit log.
      *
      * @param activation       Activation used for the signature calculation.
-     * @param signatureType    Requested signature type
+     * @param signatureType    Requested signature type.
      * @param signature        Provided signature.
      * @param additionalInfo   Additional info related to the signature.
      * @param data             Provided data.
-     * @param valid            Flag indicating if the signature was valid
-     * @param note             Record additional info (for example, reason for signature validation failure)
-     * @param currentTimestamp Record timestamp
+     * @param valid            Flag indicating if the signature was valid.
+     * @param version          Signature version.
+     * @param note             Record additional info (for example, reason for signature validation failure).
+     * @param currentTimestamp Record timestamp.
      */
-    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, KeyValueMap additionalInfo, byte[] data, Boolean valid, String note, Date currentTimestamp) {
+    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, KeyValueMap additionalInfo, byte[] data, Boolean valid, Integer version, String note, Date currentTimestamp) {
         // Audit the signature
         SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
@@ -128,6 +130,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setSignature(signature);
         signatureAuditRecord.setSignatureType(signatureType.value());
         signatureAuditRecord.setValid(valid);
+        signatureAuditRecord.setVersion(version);
         signatureAuditRecord.setNote(note);
         signatureAuditRecord.setTimestampCreated(currentTimestamp);
         signatureAuditRepository.save(signatureAuditRecord);
