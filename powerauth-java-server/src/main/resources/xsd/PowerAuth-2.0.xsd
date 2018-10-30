@@ -22,12 +22,12 @@
            xmlns:tns="http://getlime.io/security/powerauth/v2"
            targetNamespace="http://getlime.io/security/powerauth/v2"
            elementFormDefault="qualified">
-           
+
     <!-- Exchange public keys //-->
-    
+
     <xs:element name="PrepareActivationRequest">
         <xs:annotation>
-        	<xs:documentation>Request for client-server key exchange procedure.</xs:documentation>
+            <xs:documentation>Request for client-server key exchange procedure.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -42,10 +42,10 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="PrepareActivationResponse">
         <xs:annotation>
-        	<xs:documentation>Response for client-server key exchange procedure.</xs:documentation>
+            <xs:documentation>Response for client-server key exchange procedure.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -99,10 +99,10 @@
     </xs:element>
 
     <!-- Vault Unlock //-->
-    
+
     <xs:element name="VaultUnlockRequest">
         <xs:annotation>
-        	<xs:documentation>Request for the vault unlock procedure.</xs:documentation>
+            <xs:documentation>Request for the vault unlock procedure.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -115,10 +115,10 @@
             </xs:sequence>
         </xs:complexType>
     </xs:element>
-    
+
     <xs:element name="VaultUnlockResponse">
         <xs:annotation>
-        	<xs:documentation>Response for the vault unlock procedure.</xs:documentation>
+            <xs:documentation>Response for the vault unlock procedure.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -126,9 +126,9 @@
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="remainingAttempts" type="xs:integer"  minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signatureValid" type="xs:boolean"  minOccurs="1" maxOccurs="1"/>
-                <xs:element name="encryptedVaultEncryptionKey" type="xs:string"  minOccurs="1" maxOccurs="1"/>
+                <xs:element name="remainingAttempts" type="xs:integer" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedVaultEncryptionKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -137,7 +137,9 @@
 
     <xs:element name="GetNonPersonalizedEncryptionKeyRequest">
         <xs:annotation>
-            <xs:documentation>Request for obtaining a derived end-to-end encryption key for non-personalized encryption.</xs:documentation>
+            <xs:documentation>Request for obtaining a derived end-to-end encryption key for non-personalized
+                encryption.
+            </xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -150,7 +152,9 @@
 
     <xs:element name="GetNonPersonalizedEncryptionKeyResponse">
         <xs:annotation>
-            <xs:documentation>Response for obtaining a derived end-to-end encryption key for non-personalized encryption.</xs:documentation>
+            <xs:documentation>Response for obtaining a derived end-to-end encryption key for non-personalized
+                encryption.
+            </xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -179,7 +183,8 @@
 
     <xs:element name="GetPersonalizedEncryptionKeyResponse">
         <xs:annotation>
-            <xs:documentation>Response for obtaining a derived personalized end-to-end encryption key.</xs:documentation>
+            <xs:documentation>Response for obtaining a derived personalized end-to-end encryption key.
+            </xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -217,11 +222,13 @@
         </xs:complexType>
     </xs:element>
 
-    <!-- PowerAuth 2.0 Enumerations //-->
+    <!-- PowerAuth Enumerations //-->
 
     <xs:simpleType name="ActivationStatus">
         <xs:annotation>
-        	<xs:documentation>Enum representing the possible activation states (CREATED, OTP_USED, ACTIVE, BLOCKED, REMOVED).</xs:documentation>
+            <xs:documentation>Enum representing the possible activation states (CREATED, OTP_USED, ACTIVE, BLOCKED,
+                REMOVED).
+            </xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string">
             <xs:enumeration value="CREATED"/>
@@ -234,7 +241,8 @@
 
     <xs:simpleType name="SignatureType">
         <xs:annotation>
-            <xs:documentation>Enum representing the possible signatures types by the authentication factors used.</xs:documentation>
+            <xs:documentation>Enum representing the possible signatures types by the authentication factors used.
+            </xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string">
             <xs:enumeration value="POSSESSION"/>

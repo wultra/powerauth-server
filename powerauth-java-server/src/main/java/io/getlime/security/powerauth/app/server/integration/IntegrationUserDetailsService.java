@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.integration;
 
-import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
+import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.GrantedAuthority;
@@ -35,7 +35,7 @@ import java.util.List;
 /**
  * Class that implements user detail service used for authentication of integrations.
  * Integration is essentially an application that is allowed to communicate with
- * PowerAuth 2.0 Server.
+ * PowerAuth Server.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;

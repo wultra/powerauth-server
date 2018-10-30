@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -643,7 +642,7 @@ public class ActivationServiceBehavior {
         activation.setExtras(request.getExtras());
         // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
         activation.setVersion(3);
-        // Set initial data
+        // Set initial counter data
         activation.setCtrDataBase64(ctrDataBase64);
         activationRepository.save(activation);
         activationHistoryServiceBehavior.logActivationStatusChange(activation);

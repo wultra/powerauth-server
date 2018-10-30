@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import javax.persistence.Column;
@@ -25,7 +24,7 @@ import java.io.Serializable;
 
 /**
  * Class representing an integration - essentially an application that is allowed to communicate
- * with this PowerAuth 2.0 Server instance.
+ * with this PowerAuth Server instance.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

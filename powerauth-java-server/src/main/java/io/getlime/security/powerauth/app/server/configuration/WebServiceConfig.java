@@ -39,7 +39,7 @@ import org.springframework.xml.xsd.XsdSchema;
 import java.util.List;
 
 /**
- * PowerAuth 2.0 Server default web service configuration. Configures both basic endpoint information
+ * PowerAuth Server default web service configuration. Configures both basic endpoint information
  * (service, port, xsd) and security (WS-Security, with UsernameToken authentication) in case it is
  * enabled in application configuration ("powerauth.service.restrictAccess").
  *
@@ -158,7 +158,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     /**
      * Return PowerAuth 2.0 Server service XSD schema.
      *
-     * @return Correct XSD schema.
+     * @return PowerAuth 2.0 XSD schema.
      */
     @Bean(name = "PowerAuth-2.0")
     public XsdSchema powerAuthV2Schema() {
@@ -168,7 +168,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     /**
      * Return PowerAuth 3.0 Server service XSD schema.
      *
-     * @return Correct XSD schema.
+     * @return PowerAuth 3.0 XSD schema.
      */
     @Bean(name = "PowerAuth-3.0")
     public XsdSchema powerAuthV3Schema() {

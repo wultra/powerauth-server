@@ -281,14 +281,19 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws Exception {
-        final String activationId = request.getActivationId();
-        final String data = request.getData();
-        final String signature = request.getSignature();
-        final SignatureType signatureType = request.getSignatureType();
-        logger.info("VerifyOfflineSignatureRequest received, activationId: {}", activationId);
-        VerifyOfflineSignatureResponse response = behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, signatureType, signature, data, keyConversionUtilities);
-        logger.info("VerifyOfflineSignatureRequest succeeded");
-        return response;
+        try {
+            final String activationId = request.getActivationId();
+            final String data = request.getData();
+            final String signature = request.getSignature();
+            final SignatureType signatureType = request.getSignatureType();
+            logger.info("VerifyOfflineSignatureRequest received, activationId: {}", activationId);
+            VerifyOfflineSignatureResponse response = behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, signatureType, signature, data, keyConversionUtilities);
+            logger.info("VerifyOfflineSignatureRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
@@ -460,20 +465,30 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) {
-        logger.info("GetApplicationListRequest received");
-        GetApplicationListResponse response = behavior.getApplicationServiceBehavior().getApplicationList();
-        logger.info("GetApplicationListRequest succeeded");
-        return response;
+    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws Exception {
+        try {
+            logger.info("GetApplicationListRequest received");
+            GetApplicationListResponse response = behavior.getApplicationServiceBehavior().getApplicationList();
+            logger.info("GetApplicationListRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws Exception {
-        logger.info("GetApplicationDetailRequest received, applicationId: {}", String.valueOf(request.getApplicationId()));
-        GetApplicationDetailResponse response = behavior.getApplicationServiceBehavior().getApplicationDetail(request.getApplicationId());
-        logger.info("GetApplicationDetailRequest succeeded");
-        return response;
+        try {
+            logger.info("GetApplicationDetailRequest received, applicationId: {}", String.valueOf(request.getApplicationId()));
+            GetApplicationDetailResponse response = behavior.getApplicationServiceBehavior().getApplicationDetail(request.getApplicationId());
+            logger.info("GetApplicationDetailRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
@@ -484,135 +499,205 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             LookupApplicationByAppKeyResponse response = behavior.getApplicationServiceBehavior().lookupApplicationByAppKey(request.getApplicationKey());
             logger.info("LookupApplicationByAppKeyRequest succeeded");
             return response;
-        } catch (Throwable t) {
+        } catch (Exception ex) {
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
         }
     }
 
     @Override
     @Transactional
-    public CreateApplicationResponse createApplication(CreateApplicationRequest request) {
-        logger.info("CreateApplicationRequest received, applicationName: {}", request.getApplicationName());
-        CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConversionUtilities);
-        logger.info("CreateApplicationRequest succeeded");
-        return response;
+    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws Exception {
+        try {
+            logger.info("CreateApplicationRequest received, applicationName: {}", request.getApplicationName());
+            CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConversionUtilities);
+            logger.info("CreateApplicationRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws Exception {
-        logger.info("CreateApplicationVersionRequest received, applicationId: {}, applicationVersionName: {}", String.valueOf(request.getApplicationId()), request.getApplicationVersionName());
-        CreateApplicationVersionResponse response = behavior.getApplicationServiceBehavior().createApplicationVersion(request.getApplicationId(), request.getApplicationVersionName());
-        logger.info("CreateApplicationVersionRequest succeeded");
-        return response;
+        try {
+            logger.info("CreateApplicationVersionRequest received, applicationId: {}, applicationVersionName: {}", String.valueOf(request.getApplicationId()), request.getApplicationVersionName());
+            CreateApplicationVersionResponse response = behavior.getApplicationServiceBehavior().createApplicationVersion(request.getApplicationId(), request.getApplicationVersionName());
+            logger.info("CreateApplicationVersionRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws Exception {
-        logger.info("UnsupportApplicationVersionRequest received, applicationVersionId: {}", request.getApplicationVersionId());
-        UnsupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().unsupportApplicationVersion(request.getApplicationVersionId());
-        logger.info("UnsupportApplicationVersionRequest succeeded");
-        return response;
+        try {
+            logger.info("UnsupportApplicationVersionRequest received, applicationVersionId: {}", request.getApplicationVersionId());
+            UnsupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().unsupportApplicationVersion(request.getApplicationVersionId());
+            logger.info("UnsupportApplicationVersionRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws Exception {
-        logger.info("SupportApplicationVersionRequest received, applicationVersionId: {}", request.getApplicationVersionId());
-        SupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().supportApplicationVersion(request.getApplicationVersionId());
-        logger.info("SupportApplicationVersionRequest succeeded");
-        return response;
+        try {
+            logger.info("SupportApplicationVersionRequest received, applicationVersionId: {}", request.getApplicationVersionId());
+            SupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().supportApplicationVersion(request.getApplicationVersionId());
+            logger.info("SupportApplicationVersionRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
-    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) {
-        logger.info("CreateIntegrationRequest received, name: {}", request.getName());
-        CreateIntegrationResponse response = behavior.getIntegrationBehavior().createIntegration(request);
-        logger.info("CreateIntegrationRequest succeeded");
-        return response;
+    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws Exception {
+        try {
+            logger.info("CreateIntegrationRequest received, name: {}", request.getName());
+            CreateIntegrationResponse response = behavior.getIntegrationBehavior().createIntegration(request);
+            logger.info("CreateIntegrationRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
-    public GetIntegrationListResponse getIntegrationList() {
-        logger.info("GetIntegrationListRequest received");
-        GetIntegrationListResponse response = behavior.getIntegrationBehavior().getIntegrationList();
-        logger.info("GetIntegrationListRequest succeeded");
-        return response;
+    public GetIntegrationListResponse getIntegrationList() throws Exception {
+        try {
+            logger.info("GetIntegrationListRequest received");
+            GetIntegrationListResponse response = behavior.getIntegrationBehavior().getIntegrationList();
+            logger.info("GetIntegrationListRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
-    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) {
-        logger.info("RemoveIntegrationRequest received, id: {}", request.getId());
-        RemoveIntegrationResponse response = behavior.getIntegrationBehavior().removeIntegration(request);
-        logger.info("RemoveIntegrationRequest succeeded");
-        return response;
+    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws Exception {
+        try {
+            logger.info("RemoveIntegrationRequest received, id: {}", request.getId());
+            RemoveIntegrationResponse response = behavior.getIntegrationBehavior().removeIntegration(request);
+            logger.info("RemoveIntegrationRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws Exception {
-        logger.info("CreateCallbackUrlRequest received, name: {}", request.getName());
-        CreateCallbackUrlResponse response = behavior.getCallbackUrlBehavior().createCallbackUrl(request);
-        logger.info("CreateCallbackUrlRequest succeeded");
-        return response;
+        try {
+            logger.info("CreateCallbackUrlRequest received, name: {}", request.getName());
+            CreateCallbackUrlResponse response = behavior.getCallbackUrlBehavior().createCallbackUrl(request);
+            logger.info("CreateCallbackUrlRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) {
-        logger.info("GetCallbackUrlListRequest received, applicationId: {}", String.valueOf(request.getApplicationId()));
-        GetCallbackUrlListResponse response = behavior.getCallbackUrlBehavior().getCallbackUrlList(request);
-        logger.info("GetCallbackUrlListRequest succeeded");
-        return response;
+    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws Exception {
+        try {
+            logger.info("GetCallbackUrlListRequest received, applicationId: {}", String.valueOf(request.getApplicationId()));
+            GetCallbackUrlListResponse response = behavior.getCallbackUrlBehavior().getCallbackUrlList(request);
+            logger.info("GetCallbackUrlListRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
-    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) {
-        logger.info("RemoveCallbackUrlRequest received, id: {}", request.getId());
-        RemoveCallbackUrlResponse response = behavior.getCallbackUrlBehavior().removeIntegration(request);
-        logger.info("RemoveCallbackUrlRequest succeeded");
-        return response;
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws Exception {
+        try {
+            logger.info("RemoveCallbackUrlRequest received, id: {}", request.getId());
+            RemoveCallbackUrlResponse response = behavior.getCallbackUrlBehavior().removeIntegration(request);
+            logger.info("RemoveCallbackUrlRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws Exception {
-        logger.info("CreateTokenRequest received, activationId: {}", request.getActivationId());
-        CreateTokenResponse response = behavior.getTokenBehavior().createToken(request, keyConversionUtilities);
-        logger.info("CreateTokenRequest succeeded");
-        return response;
+        try {
+            logger.info("CreateTokenRequest received, activationId: {}", request.getActivationId());
+            CreateTokenResponse response = behavior.getTokenBehavior().createToken(request, keyConversionUtilities);
+            logger.info("CreateTokenRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws Exception {
-        logger.info("ValidateTokenRequest received, tokenId: {}", request.getTokenId());
-        ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
-        logger.info("ValidateTokenRequest succeeded");
-        return response;
+        try {
+            logger.info("ValidateTokenRequest received, tokenId: {}", request.getTokenId());
+            ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
+            logger.info("ValidateTokenRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
-    public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
-        logger.info("RemoveTokenRequest received, tokenId: {}", request.getTokenId());
-        RemoveTokenResponse response = behavior.getTokenBehavior().removeToken(request);
-        logger.info("RemoveTokenRequest succeeded");
-        return response;
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws Exception {
+        try {
+            logger.info("RemoveTokenRequest received, tokenId: {}", request.getTokenId());
+            RemoveTokenResponse response = behavior.getTokenBehavior().removeToken(request);
+            logger.info("RemoveTokenRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws Exception {
-        logger.info("GetEciesDecryptorRequest received, applicationKey: {}, activationId: {}", new String[]{request.getApplicationKey(), request.getActivationId()});
-        GetEciesDecryptorResponse response = behavior.getEciesEncryptionBehavior().getEciesDecryptorParameters(request);
-        logger.info("GetEciesDecryptorRequest succeeded");
-        return response;
+        try {
+            logger.info("GetEciesDecryptorRequest received, applicationKey: {}, activationId: {}", new String[]{request.getApplicationKey(), request.getActivationId()});
+            GetEciesDecryptorResponse response = behavior.getEciesEncryptionBehavior().getEciesDecryptorParameters(request);
+            logger.info("GetEciesDecryptorRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override

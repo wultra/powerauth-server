@@ -39,7 +39,7 @@ public enum ActivationStatus {
     CREATED((byte) 1),
 
     /**
-     * OTP_USED - status right after PowerAuth 2.0 Server receives PowerAuth 2.0 Client public
+     * OTP_USED - status right after PowerAuth Server receives PowerAuth Client public
      * key, via {@link PowerAuthService#prepareActivation(io.getlime.security.powerauth.v3.PrepareActivationRequest)}
      * method.
      */

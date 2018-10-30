@@ -15,14 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server;
 
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
- * PowerAuth 2.0 Server default servlet initializer.
+ * PowerAuth Server default servlet initializer.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

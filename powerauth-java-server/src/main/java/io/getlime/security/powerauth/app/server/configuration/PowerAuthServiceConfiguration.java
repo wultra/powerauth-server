@@ -24,7 +24,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
- * Class holding the configuration data of this PowerAuth 2.0 Server
+ * Class holding the configuration data of this PowerAuth Server
  * instance. Default values are in "application.properties" file.
  *
  * @author Petr Dvorak, petr@wultra.com

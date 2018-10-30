@@ -21,7 +21,7 @@ import io.getlime.security.powerauth.v2.*;
 import io.getlime.security.powerauth.v3.VerifySignatureRequest;
 
 /**
- * Interface containing all methods that are published by the PowerAuth 2.0 Server
+ * Interface containing all methods that are published by the PowerAuth Server
  * instance. These methods are then used to publish both SOAP and REST interface.
  *
  * <h5>PowerAuth protocol versions:</h5>
@@ -35,7 +35,7 @@ import io.getlime.security.powerauth.v3.VerifySignatureRequest;
 public interface PowerAuthService {
 
     /**
-     * Receive a PowerAuth 2.0 Client public key and return own PowerAuth 2.0 Server public key. The
+     * Receive a PowerAuth Client public key and return own PowerAuth Server public key. The
      * activation with provided ID is in OTP_USED state after calling this method.
      *
      * @param request Prepare activation request object.
@@ -46,7 +46,7 @@ public interface PowerAuthService {
 
     /**
      * Create a new activation in OTP_USED state, without the InitActivation / PrepareActivation cycle.
-     * This method receives a PowerAuth 2.0 Client public key and returns own PowerAuth 2.0 Server public key.
+     * This method receives a PowerAuth Client public key and returns own PowerAuth Server public key.
      * The activation with is in OTP_USED state after calling this method.
      *
      * Note: This method should be used in case of activation performed directly, without the external

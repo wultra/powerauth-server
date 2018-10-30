@@ -144,7 +144,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Create a new activation directly, using the createActivation method of the PowerAuth 2.0 Server
+     * Create a new activation directly, using the createActivation method of the PowerAuth Server
      * SOAP interface.
      * @param request Create activation request.
      * @return Create activation response.
@@ -444,7 +444,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be used for authentication.
      * @param applicationKey Application Key of an application related to the activation.
-     * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
+     * @param data Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Request signature.
      * @param signatureType Request signature type.
      * @param forcedSignatureVersion Forced signature version.
@@ -553,7 +553,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Get the list of all applications that are registered in PowerAuth 2.0 Server.
+     * Get the list of all applications that are registered in PowerAuth Server.
      * @param request {@link GetApplicationListRequest} instance.
      * @return {@link GetApplicationListResponse}
      */
@@ -562,7 +562,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Get the list of all applications that are registered in PowerAuth 2.0 Server.
+     * Get the list of all applications that are registered in PowerAuth Server.
      * @return List of applications.
      */
     public List<GetApplicationListResponse.Applications> getApplicationList() {

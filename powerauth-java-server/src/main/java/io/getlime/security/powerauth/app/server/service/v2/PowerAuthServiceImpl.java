@@ -35,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 
 /**
- * Default implementation of the PowerAuth 2.0 Server service.
+ * Default implementation of the PowerAuth Server service.
  * The implementation of this service is divided into "behaviors"
  * responsible for individual processes.
  *
