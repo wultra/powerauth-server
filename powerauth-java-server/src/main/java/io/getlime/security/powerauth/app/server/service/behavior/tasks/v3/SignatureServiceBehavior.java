@@ -243,7 +243,7 @@ public class SignatureServiceBehavior {
                     }
 
                     // return the data
-                    return invalidStateResponse();
+                    return invalidStateResponse(activation.getActivationStatus());
                 }
 
                 applicationSecret = applicationVersion.getApplicationSecret();
@@ -281,12 +281,12 @@ public class SignatureServiceBehavior {
                 handleInactiveActivationSignature(activation, signatureRequest, currentTimestamp);
 
                 // return the data
-                return invalidStateResponse();
+                return invalidStateResponse(activation.getActivationStatus());
 
             }
         } else { // Activation does not exist
 
-            return invalidStateResponse();
+            return invalidStateResponse(ActivationStatus.REMOVED);
 
         }
     }
@@ -296,10 +296,10 @@ public class SignatureServiceBehavior {
      *
      * @return Invalid signature response.
      */
-    private VerifySignatureResponse invalidStateResponse() {
+    private VerifySignatureResponse invalidStateResponse(ActivationStatus activationStatus) {
         VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(false);
-        response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+        response.setActivationStatus(activationStatusConverter.convert(activationStatus));
         return response;
 
     }
