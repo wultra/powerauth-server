@@ -15,12 +15,12 @@ CREATE TABLE "pa_activation"
     "activation_id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
     "application_id"                INTEGER NOT NULL,
     "user_id"                       VARCHAR(255) NOT NULL,
-    "activation_id_short"           VARCHAR(255) NOT NULL,
     "activation_name"               VARCHAR(255),
-    "activation_otp"                VARCHAR(255) NOT NULL,
+    "activation_code"               VARCHAR(255),
     "activation_status"             INTEGER NOT NULL,
     "blocked_reason"                VARCHAR(255),
     "counter"                       INTEGER NOT NULL,
+    "ctr_data"                      VARCHAR(255),
     "device_public_key_base64"      VARCHAR(255),
     "extras"                        VARCHAR(255),
     "failed_attempts"               INTEGER NOT NULL,
@@ -31,7 +31,8 @@ CREATE TABLE "pa_activation"
     "timestamp_activation_expire"   TIMESTAMP (6) NOT NULL,
     "timestamp_created"             TIMESTAMP (6) NOT NULL,
     "timestamp_last_used"           TIMESTAMP (6) NOT NULL,
-    "master_keypair_id"             INTEGER
+    "master_keypair_id"             INTEGER,
+    "version"                       INTEGER DEFAULT 2
 );
 
 --
@@ -75,17 +76,19 @@ CREATE TABLE "pa_master_keypair"
 --
 CREATE TABLE "pa_signature_audit"
 (
-    "id"                 INTEGER NOT NULL PRIMARY KEY,
-    "activation_id"      VARCHAR(37) NOT NULL,
-    "activation_counter" INTEGER NOT NULL,
-    "activation_status"  INTEGER,
-    "additional_info"    VARCHAR(255),
-    "data_base64"        TEXT,
-    "note"               VARCHAR(255),
-    "signature_type"     VARCHAR(255) NOT NULL,
-    "signature"          VARCHAR(255) NOT NULL,
-    "timestamp_created"  TIMESTAMP (6) NOT NULL,
-    "valid"              BOOLEAN
+    "id"                  INTEGER NOT NULL PRIMARY KEY,
+    "activation_id"       VARCHAR(37) NOT NULL,
+    "activation_counter"  INTEGER NOT NULL,
+    "activation_ctr_data" VARCHAR(255),
+    "activation_status"   INTEGER,
+    "additional_info"     VARCHAR(255),
+    "data_base64"         TEXT,
+    "note"                VARCHAR(255),
+    "signature_type"      VARCHAR(255) NOT NULL,
+    "signature"           VARCHAR(255) NOT NULL,
+    "timestamp_created"   TIMESTAMP (6) NOT NULL,
+    "valid"               BOOLEAN,
+    "version"             INTEGER DEFAULT 2
 );
 
 --

@@ -43,8 +43,7 @@ CREATE TABLE `pa_master_keypair` (
 
 CREATE TABLE `pa_activation` (
   `activation_id` varchar(37) NOT NULL,
-  `activation_id_short` varchar(255) NOT NULL,
-  `activation_otp` varchar(255) NOT NULL,
+  `activation_code` varchar(255),
   `activation_status` int(11) NOT NULL,
   `blocked_reason` varchar(255) DEFAULT NULL,
   `activation_name` varchar(255) DEFAULT NULL,
@@ -52,6 +51,7 @@ CREATE TABLE `pa_activation` (
   `user_id` varchar(255) NOT NULL,
   `extras` text,
   `counter` bigint(20) NOT NULL,
+  `ctr_data` varchar(255) NOT NULL,
   `device_public_key_base64` text,
   `failed_attempts` bigint(20) DEFAULT NULL,
   `max_failed_attempts` bigint(20) NOT NULL DEFAULT 5,
@@ -62,6 +62,7 @@ CREATE TABLE `pa_activation` (
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `timestamp_activation_expire` datetime NOT NULL,
   `timestamp_last_used` datetime NOT NULL,
+  `version` int(2) DEFAULT 2,
   PRIMARY KEY (`activation_id`),
   KEY `FK_ACTIVATION_APPLICATION_idx` (`application_id`),
   CONSTRAINT `FK_ACTIVATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -75,6 +76,7 @@ CREATE TABLE `pa_signature_audit` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `activation_id` varchar(37) NOT NULL,
   `activation_counter` bigint(20) NOT NULL,
+  `activation_ctr_data` varchar(255),
   `activation_status` int(11) NOT NULL,
   `additional_info` varchar(255) DEFAULT NULL,
   `data_base64` text,
@@ -83,6 +85,7 @@ CREATE TABLE `pa_signature_audit` (
   `valid` int(11) NOT NULL DEFAULT 0,
   `note` text NOT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `version` int(2) DEFAULT 2,
   PRIMARY KEY (`id`),
   KEY `K_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION

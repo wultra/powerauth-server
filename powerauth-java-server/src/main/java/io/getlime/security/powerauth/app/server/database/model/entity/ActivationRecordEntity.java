@@ -41,11 +41,8 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "activation_id", length = 37)
     private String activationId;
 
-    @Column(name = "activation_id_short", nullable = false, updatable = false)
-    private String activationIdShort;
-
-    @Column(name = "activation_otp", nullable = false, updatable = false)
-    private String activationOTP;
+    @Column(name = "activation_code", nullable = false, updatable = false)
+    private String activationCode;
 
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
@@ -67,6 +64,9 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "counter", nullable = false)
     private Long counter;
+
+    @Column(name = "ctr_data", nullable = true)
+    private String ctrDataBase64;
 
     @Column(name = "failed_attempts", nullable = false)
     private Long failedAttempts;
@@ -94,6 +94,10 @@ public class ActivationRecordEntity implements Serializable {
     @Enumerated
     private KeyEncryptionMode serverPrivateKeyEncryption;
 
+    // Version must be nullable, it is not known yet during init activation step
+    @Column(name = "version", nullable = true)
+    private Integer version;
+
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
     private ApplicationEntity application;
@@ -112,8 +116,7 @@ public class ActivationRecordEntity implements Serializable {
      * Constructor with all parameters.
      *
      * @param activationId               Activation ID
-     * @param activationIdShort          Activation Id Short
-     * @param activationOTP              Activation OTP
+     * @param activationCode             Activation code
      * @param userId                     User Id
      * @param activationName             Activation name
      * @param extras                     Extra parameter
@@ -133,8 +136,7 @@ public class ActivationRecordEntity implements Serializable {
      * @param application                Associated application.
      */
     public ActivationRecordEntity(String activationId,
-                                  String activationIdShort,
-                                  String activationOTP,
+                                  String activationCode,
                                   String userId,
                                   String activationName,
                                   String extras,
@@ -142,6 +144,7 @@ public class ActivationRecordEntity implements Serializable {
                                   String serverPublicKeyBase64,
                                   String devicePublicKeyBase64,
                                   Long counter,
+                                  String ctrDataBase64,
                                   Long failedAttempts,
                                   Long maxFailedAttempts,
                                   Date timestampCreated,
@@ -150,12 +153,12 @@ public class ActivationRecordEntity implements Serializable {
                                   ActivationStatus activationStatus,
                                   String blockedReason,
                                   KeyEncryptionMode serverPrivateKeyEncryption,
+                                  Integer version,
                                   MasterKeyPairEntity masterKeyPair,
                                   ApplicationEntity application) {
         super();
         this.activationId = activationId;
-        this.activationIdShort = activationIdShort;
-        this.activationOTP = activationOTP;
+        this.activationCode = activationCode;
         this.userId = userId;
         this.activationName = activationName;
         this.extras = extras;
@@ -163,6 +166,7 @@ public class ActivationRecordEntity implements Serializable {
         this.serverPublicKeyBase64 = serverPublicKeyBase64;
         this.devicePublicKeyBase64 = devicePublicKeyBase64;
         this.counter = counter;
+        this.ctrDataBase64 = ctrDataBase64;
         this.failedAttempts = failedAttempts;
         this.maxFailedAttempts = maxFailedAttempts;
         this.timestampCreated = timestampCreated;
@@ -171,6 +175,7 @@ public class ActivationRecordEntity implements Serializable {
         this.activationStatus = activationStatus;
         this.blockedReason = blockedReason;
         this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
+        this.version = version;
         this.masterKeyPair = masterKeyPair;
         this.application = application;
     }
@@ -194,39 +199,21 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
-     * Get short activation ID
+     * Get activation code.
      *
-     * @return Short activation ID
+     * @return Activation code.
      */
-    public String getActivationIdShort() {
-        return activationIdShort;
+    public String getActivationCode() {
+        return activationCode;
     }
 
     /**
-     * Set short activation ID
+     * Set activation code.
      *
-     * @param activationIdShort Short activation ID
+     * @param activationCode Activation code.
      */
-    public void setActivationIdShort(String activationIdShort) {
-        this.activationIdShort = activationIdShort;
-    }
-
-    /**
-     * Get activation OTP
-     *
-     * @return Activation OTP
-     */
-    public String getActivationOTP() {
-        return activationOTP;
-    }
-
-    /**
-     * Set activation OTP
-     *
-     * @param activationOTP Activation OTP
-     */
-    public void setActivationOTP(String activationOTP) {
-        this.activationOTP = activationOTP;
+    public void setActivationCode(String activationCode) {
+        this.activationCode = activationCode;
     }
 
     /**
@@ -353,6 +340,24 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setCounter(Long counter) {
         this.counter = counter;
+    }
+
+    /**
+     * Get Base64 encoded counter data.
+     *
+     * @return Counter data.
+     */
+    public String getCtrDataBase64() {
+        return ctrDataBase64;
+    }
+
+    /**
+     * Set Base64 encoded counter data.
+     *
+     * @param ctrDataBase64 Counter data.
+     */
+    public void setCtrDataBase64(String ctrDataBase64) {
+        this.ctrDataBase64 = ctrDataBase64;
     }
 
     /**
@@ -500,6 +505,22 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
+     * Get PowerAuth protocol major version for activation.
+     * @return PowerAuth protocol major version.
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * Set PowerAuth protocol major version for activation.
+     * @param version PowerAuth protocol major version.
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    /**
      * Get associated application instance. Each activation is strongly associated with
      * a single application.
      *
@@ -545,14 +566,14 @@ public class ActivationRecordEntity implements Serializable {
     public int hashCode() {
         int hash = 5;
         hash = 71 * hash + Objects.hashCode(this.activationId);
-        hash = 71 * hash + Objects.hashCode(this.activationIdShort);
-        hash = 71 * hash + Objects.hashCode(this.activationOTP);
+        hash = 71 * hash + Objects.hashCode(this.activationCode);
         hash = 71 * hash + Objects.hashCode(this.userId);
         hash = 71 * hash + Objects.hashCode(this.activationName);
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.serverPublicKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.devicePublicKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.counter);
+        hash = 71 * hash + Objects.hashCode(this.ctrDataBase64);
         hash = 71 * hash + Objects.hashCode(this.failedAttempts);
         hash = 71 * hash + Objects.hashCode(this.maxFailedAttempts);
         hash = 71 * hash + Objects.hashCode(this.timestampCreated);
@@ -563,6 +584,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyEncryption);
         hash = 71 * hash + Objects.hashCode(this.application);
         hash = 71 * hash + Objects.hashCode(this.masterKeyPair);
+        hash = 71 * hash + Objects.hashCode(this.version);
         return hash;
     }
 
@@ -578,10 +600,7 @@ public class ActivationRecordEntity implements Serializable {
             return false;
         }
         final ActivationRecordEntity other = (ActivationRecordEntity) obj;
-        if (!Objects.equals(this.activationIdShort, other.activationIdShort)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationOTP, other.activationOTP)) {
+        if (!Objects.equals(this.activationCode, other.activationCode)) {
             return false;
         }
         if (!Objects.equals(this.userId, other.userId)) {
@@ -603,6 +622,9 @@ public class ActivationRecordEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.counter, other.counter)) {
+            return false;
+        }
+        if (!Objects.equals(this.ctrDataBase64, other.ctrDataBase64)) {
             return false;
         }
         if (!Objects.equals(this.failedAttempts, other.failedAttempts)) {
@@ -632,20 +654,23 @@ public class ActivationRecordEntity implements Serializable {
         if (!Objects.equals(this.application, other.application)) {
             return false;
         }
-        return Objects.equals(this.masterKeyPair, other.masterKeyPair);
+        if (!Objects.equals(this.masterKeyPair, other.masterKeyPair)) {
+            return false;
+        }
+        return Objects.equals(this.version, other.version);
     }
 
     @Override
     public String toString() {
         return "ActivationRecordEntity{"
                 + "activationId=" + activationId
-                + ", activationIdShort=" + activationIdShort
-                + ", activationOTP=" + activationOTP
+                + ", activationCode=" + activationCode
                 + ", userId=" + userId
                 + ", clientName=" + activationName
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter
+                + ", ctrDataBase64=" + ctrDataBase64
                 + ", failedAttempts=" + failedAttempts
                 + ", maxFailedAttempts=" + maxFailedAttempts
                 + ", timestampCreated=" + timestampCreated
@@ -654,6 +679,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", status=" + activationStatus
                 + ", blockedReason=" + blockedReason
                 + ", masterKeyPair=" + masterKeyPair
+                + ", version=" + version
                 + ", application=" + application
                 + '}';
     }

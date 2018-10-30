@@ -1,0 +1,1208 @@
+<?xml version="1.0"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2018 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<xs:schema version="1.0"
+           xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns:tns="http://getlime.io/security/powerauth/v3"
+           targetNamespace="http://getlime.io/security/powerauth/v3"
+           elementFormDefault="qualified">
+
+    <!-- Status method //-->
+
+    <xs:element name="GetSystemStatusRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the system status information.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetSystemStatusResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the system status information.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="status" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationDisplayName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationEnvironment" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="version" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="buildTime" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestamp" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Server error code list -->
+
+    <xs:element name="GetErrorCodeListRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the list of all possible server error codes.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="language" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetErrorCodeListResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the list of all possible server error codes.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="errors" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="code" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="value" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- List applications //-->
+
+    <xs:element name="GetApplicationListRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the application list.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetApplicationListResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the application list.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applications" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get application details //-->
+
+    <xs:element name="GetApplicationDetailRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the application detail, including the list of versions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetApplicationDetailResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the application detail, including the list of versions.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="masterPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="versions" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationVersionName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get application details by application key //-->
+
+    <xs:element name="LookupApplicationByAppKeyRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the application detail based on the application version key.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="LookupApplicationByAppKeyResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the application detail based on the application version key.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create application //-->
+
+    <xs:element name="CreateApplicationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for creating a new activation.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateApplicationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for creating a new activation.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create application version //-->
+
+    <xs:element name="CreateApplicationVersionRequest">
+        <xs:annotation>
+            <xs:documentation>Request for creating a new activation version.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateApplicationVersionResponse">
+        <xs:annotation>
+            <xs:documentation>Response for creating a new activation version.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Unsupport application version //-->
+
+    <xs:element name="UnsupportApplicationVersionRequest">
+        <xs:annotation>
+            <xs:documentation>Request for marking a given application version as unsupported.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UnsupportApplicationVersionResponse">
+        <xs:annotation>
+            <xs:documentation>Response for marking a given application version as unsupported.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Support application version //-->
+
+    <xs:element name="SupportApplicationVersionRequest">
+        <xs:annotation>
+            <xs:documentation>Request for marking a given application version as supported.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="SupportApplicationVersionResponse">
+        <xs:annotation>
+            <xs:documentation>Response for marking a given application version as supported.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Init activation //-->
+
+    <xs:element name="InitActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for initiating the activation process by generating the activation code.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampActivationExpire" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="maxFailureCount" type="xs:long" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="InitActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for initiating the activation process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationSignature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Exchange public keys //-->
+
+    <xs:element name="PrepareActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for client-server key exchange procedure.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="PrepareActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for client-server key exchange procedure.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create new activation directly //-->
+
+    <xs:element name="CreateActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for creating a new activation directly.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampActivationExpire" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="maxFailureCount" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for creating a new activation directly.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Commit activation //-->
+
+    <xs:element name="CommitActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for committing the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CommitActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for committing the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activated" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get Activation Status //-->
+
+    <xs:element name="GetActivationStatusRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the activation details / status information.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetActivationStatusResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the activation details / status information.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedStatusBlob" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationSignature" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="devicePublicKeyFingerprint" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Remove Activation //-->
+
+    <xs:element name="RemoveActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for removing the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for removing the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="removed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Activations for user //-->
+
+    <xs:element name="GetActivationListForUserRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the list of activations for given user.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetActivationListForUserResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the list of activations for given user.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activations" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1"
+                                        maxOccurs="1"/>
+                            <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Verify signature //-->
+
+    <xs:element name="VerifySignatureRequest">
+        <xs:annotation>
+            <xs:documentation>Request for the signature verification process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="forcedSignatureVersion" type="xs:long" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="VerifySignatureResponse">
+        <xs:annotation>
+            <xs:documentation>Response for the signature verification process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="signatureValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remainingAttempts" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+
+    <!-- Create personalized offline signature payload //-->
+
+    <xs:element name="CreatePersonalizedOfflineSignaturePayloadRequest">
+        <xs:annotation>
+            <xs:documentation>Request for generating personalized signature payload for the offline signature.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreatePersonalizedOfflineSignaturePayloadResponse">
+        <xs:annotation>
+            <xs:documentation>Response for generating personalized signature payload for the offline signature.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="offlineData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create offline signature payload //-->
+
+    <xs:element name="CreateNonPersonalizedOfflineSignaturePayloadRequest">
+        <xs:annotation>
+            <xs:documentation>Request for generating non-personalized signature payload for the offline signature.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateNonPersonalizedOfflineSignaturePayloadResponse">
+        <xs:annotation>
+            <xs:documentation>Response for generating non-personalized signature payload for the offline signature.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="offlineData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Verify offline signature //-->
+
+    <xs:element name="VerifyOfflineSignatureRequest">
+        <xs:annotation>
+            <xs:documentation>Request for the offline signature verification process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="VerifyOfflineSignatureResponse">
+        <xs:annotation>
+            <xs:documentation>Response for the signature verification process.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="signatureValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remainingAttempts" type="xs:integer" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Block Activation //-->
+
+    <xs:element name="BlockActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for blocking the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="reason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="BlockActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for blocking the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Unblock Activation //-->
+
+    <xs:element name="UnblockActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for unblocking the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UnblockActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for unblocking the activation with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Vault Unlock //-->
+
+    <xs:element name="VaultUnlockRequest">
+        <xs:annotation>
+            <xs:documentation>Request for the vault unlock procedure.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="VaultUnlockResponse">
+        <xs:annotation>
+            <xs:documentation>Response for the vault unlock procedure.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Asymmetric ECDSA signature validation -->
+
+    <xs:element name="VerifyECDSASignatureRequest">
+        <xs:annotation>
+            <xs:documentation>Request for the asymmetric signature (ECDSA) validation procedure.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="VerifyECDSASignatureResponse">
+        <xs:annotation>
+            <xs:documentation>Response for the asymmetric signature (ECDSA) validation procedure.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="signatureValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Signature Audit Access //-->
+
+    <xs:element name="SignatureAuditRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the signature audit log.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="timestampFrom" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampTo" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="SignatureAuditResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the signature audit log.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="items" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationCounter" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationCtrData" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="0"
+                                        maxOccurs="1"/>
+                            <xs:element name="additionalInfo" type="tns:KeyValueMap" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="dataBase64" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="note" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="valid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Activation Status Change Log //-->
+
+    <xs:element name="ActivationHistoryRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the activation status change log.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampFrom" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestampTo" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ActivationHistoryResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the activation status change log.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="items" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1"
+                                        maxOccurs="1"/>
+                            <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create a new integration //-->
+
+    <xs:element name="CreateIntegrationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for creating a new integration record.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateIntegrationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for creating a new integration record.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="clientToken" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="clientSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get integration list //-->
+
+    <xs:element name="GetIntegrationListRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the list of integrations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence/>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetIntegrationListResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the list of integrations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="restrictedAccess" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="items" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="name" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="clientToken" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="clientSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Remove integration //-->
+
+    <xs:element name="RemoveIntegrationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for removing an integration record.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveIntegrationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for removing an integration record.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="removed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Create a new callback URL //-->
+
+    <xs:element name="CreateCallbackUrlRequest">
+        <xs:annotation>
+            <xs:documentation>Request for creating a new callback URL record associated with given application.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateCallbackUrlResponse">
+        <xs:annotation>
+            <xs:documentation>Response for creating a new callback URL.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Get callback URL list //-->
+
+    <xs:element name="GetCallbackUrlListRequest">
+        <xs:annotation>
+            <xs:documentation>Request for getting the list of callback URLs for given application.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetCallbackUrlListResponse">
+        <xs:annotation>
+            <xs:documentation>Response for getting the list of callback URLs.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="callbackUrlList" minOccurs="0" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Remove callback URL //-->
+
+    <xs:element name="RemoveCallbackUrlRequest">
+        <xs:annotation>
+            <xs:documentation>Request for removing a callback URL record.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveCallbackUrlResponse">
+        <xs:annotation>
+            <xs:documentation>Response for removing an callback URL record.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="removed" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Token Based Authentication Support //-->
+
+    <xs:element name="CreateTokenRequest">
+        <xs:annotation>
+            <xs:documentation>Request for obtaining a new token for simple authentication.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateTokenResponse">
+        <xs:annotation>
+            <xs:documentation>Response for obtaining a new token for simple authentication.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ValidateTokenRequest">
+        <xs:annotation>
+            <xs:documentation>Request for validating the request authenticated with a token..</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tokenId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="tokenDigest" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="timestamp" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ValidateTokenResponse">
+        <xs:annotation>
+            <xs:documentation>Response for validating the request authenticated with a token.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tokenValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveTokenRequest">
+        <xs:annotation>
+            <xs:documentation>Request for removing the token with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="tokenId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveTokenResponse">
+        <xs:annotation>
+            <xs:documentation>Response for removing the token with given ID.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="removed" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- ECIES //-->
+
+    <xs:element name="GetEciesDecryptorRequest">
+        <xs:annotation>
+            <xs:documentation>Request for obtaining ECIES decryptor.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <!-- activationId is optional -->
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetEciesDecryptorResponse">
+        <xs:annotation>
+            <xs:documentation>Response containing setup for ECIES decryptor.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="secretKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="sharedInfo2" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- Upgrade to version 3.0 //-->
+
+    <xs:element name="StartUpgradeRequest">
+        <xs:annotation>
+            <xs:documentation>Request to start upgrade.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="StartUpgradeResponse">
+        <xs:annotation>
+            <xs:documentation>Response to start upgrade.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CommitUpgradeRequest">
+        <xs:annotation>
+            <xs:documentation>Upgrade commit request</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CommitUpgradeResponse">
+        <xs:annotation>
+            <xs:documentation>Upgrade commit response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="committed" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <!-- PowerAuth Enumerations //-->
+
+    <xs:simpleType name="ActivationStatus">
+        <xs:annotation>
+            <xs:documentation>Enum representing the possible activation states (CREATED, OTP_USED, ACTIVE, BLOCKED,
+                REMOVED).
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CREATED"/>
+            <xs:enumeration value="OTP_USED"/>
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="BLOCKED"/>
+            <xs:enumeration value="REMOVED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="SignatureType">
+        <xs:annotation>
+            <xs:documentation>Enum representing the possible signatures types by the authentication factors used.
+            </xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="POSSESSION"/>
+            <xs:enumeration value="KNOWLEDGE"/>
+            <xs:enumeration value="BIOMETRY"/>
+            <xs:enumeration value="POSSESSION_KNOWLEDGE"/>
+            <xs:enumeration value="POSSESSION_BIOMETRY"/>
+            <xs:enumeration value="POSSESSION_KNOWLEDGE_BIOMETRY"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:complexType name="KeyValueMap">
+        <xs:sequence>
+            <xs:element name="entry" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="key" type="xs:string"/>
+                        <xs:element name="value" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+</xs:schema>

@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server;
 
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
@@ -27,7 +26,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.security.Security;
 
 /**
- * PowerAuth 2.0 Server main application class.
+ * PowerAuth Server main application class.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

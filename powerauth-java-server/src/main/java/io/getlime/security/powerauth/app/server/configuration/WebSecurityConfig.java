@@ -35,7 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Class that implements configuration of the Spring Security for RESTful interface
- * of the PowerAuth 2.0 Server. This configuration is prepared in such a way that it
+ * of the PowerAuth Server. This configuration is prepared in such a way that it
  * does not apply to the SOAP interface - only to REST.
  *
  * If a configuration "powerauth.service.restrictAccess" suggests that access should be

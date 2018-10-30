@@ -28,7 +28,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 import java.util.List;
 
 /**
- * PowerAuth 2.0 Server web application configuration. The main purpose of this class
+ * PowerAuth Server web application configuration. The main purpose of this class
  * at the moment is to assure proper handling of application exceptions (correct
  * order).
  *

@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server;
 
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
