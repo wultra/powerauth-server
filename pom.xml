@@ -76,6 +76,7 @@
 		<module>powerauth-java-server</module>
         <module>powerauth-java-client-axis</module>
         <module>powerauth-java-client-spring</module>
+        <module>powerauth-java-client-jaxws</module>
     </modules>
 
 	<properties>

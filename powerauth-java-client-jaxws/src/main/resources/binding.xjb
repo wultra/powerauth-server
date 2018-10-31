@@ -1,0 +1,15 @@
+<jaxb:bindings xmlns:xs="http://www.w3.org/2001/XMLSchema"
+               xmlns:jaxb="http://java.sun.com/xml/ns/jaxb" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+               jaxb:extensionBindingPrefixes="xjc" version="2.1">
+    <jaxb:globalBindings typesafeEnumMemberName="generateName" generateIsSetMethod="false"
+                         generateElementProperty="false">
+        <xjc:simple/>
+        <xjc:javaType adapter="io.getlime.powerauth.soap.adapter.DateTimeToLocalDateTime"
+                      name="java.time.LocalDateTime" xmlType="xs:dateTime"/>
+        <!--<xjc:javaType adapter="io.getlime.powerauth.soap.adapter.DateToLocalDate"
+                      name="java.time.LocalDate" xmlType="xs:date"/>--> <!-- not used in schema -->
+        <!--<xjc:javaType adapter="io.getlime.powerauth.soap.adapter.TimeToLocalTime"
+                      name="java.time.LocalTime" xmlType="xs:time"/>--> <!-- not used in schema -->
+        <xjc:serializable uid="19"/>
+    </jaxb:globalBindings>
+</jaxb:bindings>
