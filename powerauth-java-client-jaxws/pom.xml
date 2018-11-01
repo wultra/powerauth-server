@@ -60,6 +60,7 @@
                     <bindingFiles>
                         <bindingFile>binding.xjb</bindingFile>
                     </bindingFiles>
+                    <packageName>io.getlime.powerauth.soap</packageName>
                 </configuration>
             </plugin>
 
