@@ -6,10 +6,6 @@
         <xjc:simple/>
         <xjc:javaType adapter="io.getlime.powerauth.soap.adapter.DateTimeToLocalDateTime"
                       name="java.time.LocalDateTime" xmlType="xs:dateTime"/>
-        <!--<xjc:javaType adapter="io.getlime.powerauth.soap.adapter.DateToLocalDate"
-                      name="java.time.LocalDate" xmlType="xs:date"/>--> <!-- not used in schema -->
-        <!--<xjc:javaType adapter="io.getlime.powerauth.soap.adapter.TimeToLocalTime"
-                      name="java.time.LocalTime" xmlType="xs:time"/>--> <!-- not used in schema -->
         <xjc:serializable uid="19"/>
     </jaxb:globalBindings>
 </jaxb:bindings>
