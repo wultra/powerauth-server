@@ -187,7 +187,7 @@ public class ActivationServiceBehavior {
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
                 || !Objects.equals(activation.getApplication().getId(), application.getId())) {
-            logger.info("Activation is expired, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
+            logger.info("Activation state is invalid, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
         }
 
