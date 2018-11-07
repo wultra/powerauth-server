@@ -41,17 +41,20 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.KeyValueMap;
 import io.getlime.security.powerauth.v3.SignatureType;
 import io.getlime.security.powerauth.v3.VaultUnlockResponse;
 import io.getlime.security.powerauth.v3.VerifySignatureResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
@@ -88,6 +91,9 @@ public class VaultUnlockServiceBehavior {
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
+
     @Autowired
     public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationRepository powerAuthRepository, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior) {
         this.repositoryCatalogue = repositoryCatalogue;
@@ -110,111 +116,128 @@ public class VaultUnlockServiceBehavior {
      * @param cryptogram             ECIES cryptogram.
      * @param keyConversion          Key conversion utilities.
      * @return Vault unlock response with a properly encrypted vault unlock key.
-     * @throws InvalidKeySpecException In case invalid key is provided.
-     * @throws InvalidKeyException     In case invalid key is provided.
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType,
                                            String signedData, EciesCryptogram cryptogram, CryptoProviderUtil keyConversion)
-            throws GenericServiceException, InvalidKeySpecException, InvalidKeyException, EciesException, UnsupportedEncodingException, JsonProcessingException {
-
-        // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
-
-        // Check if the activation is in correct state
-        if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
-            // Return response with invalid signature flag when activation is not valid
-            VaultUnlockResponse response = new VaultUnlockResponse();
-            response.setSignatureValid(false);
-            return response;
-        }
-
-        // Get the server private key, decrypt it if required
-        final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-        final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-        final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
-        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
-        final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
-
-        // Get application version
-        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
-        // Check if application version is valid
-        if (applicationVersion == null || !applicationVersion.getSupported()) {
-            // Return response with invalid signature flag when application version is not valid
-            VaultUnlockResponse response = new VaultUnlockResponse();
-            response.setSignatureValid(false);
-            return response;
-        }
-
-        // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-        byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-        byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
-        byte[] transportKeyBytes = keyDerivationUtil.deriveTransportKey(serverPrivateKeyBytes, devicePublicKeyBytes);
-
-        // Get decryptor for the activation
-        final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
-                applicationSecret, transportKeyBytes, EciesSharedInfo1.VAULT_UNLOCK);
-
-        // Decrypt request to obtain vault unlock reason
-        byte[] decryptedData = decryptor.decryptRequest(cryptogram);
-
-        // Convert JSON data to vault unlock request object
-        VaultUnlockRequestPayload request;
+            throws GenericServiceException {
         try {
-            request = objectMapper.readValue(decryptedData, VaultUnlockRequestPayload.class);
-        } catch (IOException ex) {
-            // Return response with invalid signature flag when request format is not valid
+            // Lookup the activation
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+
+            // Check if the activation is in correct state
+            if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                // Return response with invalid signature flag when activation is not valid
+                VaultUnlockResponse response = new VaultUnlockResponse();
+                response.setSignatureValid(false);
+                return response;
+            }
+
+            // Get the server private key, decrypt it if required
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+            byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
+
+            // Get application version
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            // Check if application version is valid
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Return response with invalid signature flag when application version is not valid
+                VaultUnlockResponse response = new VaultUnlockResponse();
+                response.setSignatureValid(false);
+                return response;
+            }
+
+            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
+            byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            byte[] transportKeyBytes = keyDerivationUtil.deriveTransportKey(serverPrivateKeyBytes, devicePublicKeyBytes);
+
+            // Get decryptor for the activation
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
+                    applicationSecret, transportKeyBytes, EciesSharedInfo1.VAULT_UNLOCK);
+
+            // Decrypt request to obtain vault unlock reason
+            byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+
+            // Convert JSON data to vault unlock request object
+            VaultUnlockRequestPayload request;
+            try {
+                request = objectMapper.readValue(decryptedData, VaultUnlockRequestPayload.class);
+            } catch (IOException ex) {
+                logger.warn("Invalid vault unlock request, activation ID: {}", activationId);
+                // Return response with invalid signature flag when request format is not valid
+                VaultUnlockResponse response = new VaultUnlockResponse();
+                response.setSignatureValid(false);
+                return response;
+            }
+
+            String reason = request.getReason();
+
+            if (reason != null && reason.length() > 255) {
+                logger.warn("Invalid vault unlock reason: {}", reason);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+            }
+
+            // Save vault unlock reason into additional info which is logged in signature audit log.
+            // If value unlock reason is missing, use default NOT_SPECIFIED value.
+            KeyValueMap additionalInfo = new KeyValueMap();
+            KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            entry.setKey(AdditionalInformation.VAULT_UNLOCKED_REASON);
+            if (reason == null) {
+                entry.setValue(AdditionalInformation.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
+            } else {
+                entry.setValue(reason);
+            }
+            additionalInfo.getEntry().add(entry);
+
+            // Verify the signature
+            VerifySignatureResponse signatureResponse = behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType,
+                    signature, additionalInfo, signedData, applicationKey, null, keyConversion);
+
+            VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
+
+            if (signatureResponse.isSignatureValid()) {
+                // Store encrypted vault unlock key in response
+                PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+                byte[] encryptedVaultEncryptionKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(serverPrivateKey, devicePublicKey);
+                String encryptedVaultEncryptionKey = BaseEncoding.base64().encode(encryptedVaultEncryptionKeyBytes);
+                responsePayload.setEncryptedVaultEncryptionKey(encryptedVaultEncryptionKey);
+            }
+
+            // Convert response payload to bytes
+            byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
+
+            // Encrypt response payload
+            EciesCryptogram responseCryptogram = decryptor.encryptResponse(reponsePayloadBytes);
+            String responseData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
+            String responseMac = BaseEncoding.base64().encode(responseCryptogram.getMac());
+
+            // Return vault unlock response, set signature validity
             VaultUnlockResponse response = new VaultUnlockResponse();
-            response.setSignatureValid(false);
+            response.setEncryptedData(responseData);
+            response.setMac(responseMac);
+            response.setSignatureValid(signatureResponse.isSignatureValid());
             return response;
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (JsonProcessingException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
-
-        String reason = request.getReason();
-
-        if (reason != null && reason.length() > 255) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
-        }
-
-        // Save vault unlock reason into additional info which is logged in signature audit log.
-        // If value unlock reason is missing, use default NOT_SPECIFIED value.
-        KeyValueMap additionalInfo = new KeyValueMap();
-        KeyValueMap.Entry entry = new KeyValueMap.Entry();
-        entry.setKey(AdditionalInformation.VAULT_UNLOCKED_REASON);
-        if (reason == null) {
-            entry.setValue(AdditionalInformation.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
-        } else {
-            entry.setValue(reason);
-        }
-        additionalInfo.getEntry().add(entry);
-
-        // Verify the signature
-        VerifySignatureResponse signatureResponse = behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType,
-                signature, additionalInfo, signedData, applicationKey, null, keyConversion);
-
-        VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
-
-        if (signatureResponse.isSignatureValid()) {
-            // Store encrypted vault unlock key in response
-            PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
-            byte[] encryptedVaultEncryptionKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(serverPrivateKey, devicePublicKey);
-            String encryptedVaultEncryptionKey = BaseEncoding.base64().encode(encryptedVaultEncryptionKeyBytes);
-            responsePayload.setEncryptedVaultEncryptionKey(encryptedVaultEncryptionKey);
-        }
-
-        // Convert response payload to bytes
-        byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
-
-        // Encrypt response payload
-        EciesCryptogram responseCryptogram = decryptor.encryptResponse(reponsePayloadBytes);
-        String responseData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
-        String responseMac = BaseEncoding.base64().encode(responseCryptogram.getMac());
-
-        // Return vault unlock response, set signature validity
-        VaultUnlockResponse response = new VaultUnlockResponse();
-        response.setEncryptedData(responseData);
-        response.setMac(responseMac);
-        response.setSignatureValid(signatureResponse.isSignatureValid());
-        return response;
     }
 
 }

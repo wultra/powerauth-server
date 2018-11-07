@@ -112,6 +112,8 @@ public class ServiceError {
 
     /**
      * Token with given token ID does not exist.
+     *
+     * The error code is obsolete, because the error is handled using regular response instead of an exception.
      */
     public static final String INVALID_TOKEN = "ERR0016";
 
@@ -139,6 +141,16 @@ public class ServiceError {
      * Unsupported encryption mode.
      */
     public static final String UNSUPPORTED_ENCRYPTION_MODE = "ERR0021";
+
+    /**
+     * Generic cryptography error.
+     */
+    public static final String GENERIC_CRYPTOGRAPHY_ERROR = "ERR0022";
+
+    /**
+     * Cryptophy provider is initialized incorrectly.
+     */
+    public static final String INVALID_CRYPTO_PROVIDER = "ERR0023";
 
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);

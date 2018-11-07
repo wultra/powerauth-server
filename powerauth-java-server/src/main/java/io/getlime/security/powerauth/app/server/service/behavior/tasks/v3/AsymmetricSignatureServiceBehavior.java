@@ -20,8 +20,13 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +34,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 
 /**
@@ -41,15 +45,18 @@ import java.security.spec.InvalidKeySpecException;
 @Component
 public class AsymmetricSignatureServiceBehavior {
 
-    private ActivationRepository activationRepository;
+    private final ActivationRepository activationRepository;
+    private final LocalizationProvider localizationProvider;
+
     private SignatureUtils signatureUtils = new SignatureUtils();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);
 
     @Autowired
-    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository) {
+    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider) {
         this.activationRepository = activationRepository;
+        this.localizationProvider = localizationProvider;
     }
 
     /**
@@ -59,19 +66,29 @@ public class AsymmetricSignatureServiceBehavior {
      * @param signature Provided signature to be verified, in Base64 format.
      * @param keyConversionUtilities Key converter provided by the client code.
      * @return True in case signature validates for given data with provided public key, false otherwise.
-     * @throws InvalidKeySpecException In case public key was corrupt.
-     * @throws SignatureException In case it was not possible to validate the signature.
-     * @throws InvalidKeyException In case public key was corrupt.
+     * @throws GenericServiceException In case signature verification fails.
      */
-    public boolean verifyECDSASignature(String activationId, String data, String signature, CryptoProviderUtil keyConversionUtilities) throws InvalidKeySpecException, SignatureException, InvalidKeyException {
-        final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
-        if (activation == null) {
-            logger.warn("Activation used when verifying ECDSA signature does not exist: {}", activationId);
-            return false;
+    public boolean verifyECDSASignature(String activationId, String data, String signature, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+        try {
+            final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+            if (activation == null) {
+                logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
+                return false;
+            }
+            byte[] devicePublicKeyData = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
+            return signatureUtils.validateECDSASignature(BaseEncoding.base64().decode(data), BaseEncoding.base64().decode(signature), devicePublicKey);
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
-        byte[] devicePublicKeyData = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
-        PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
-        return signatureUtils.validateECDSASignature(BaseEncoding.base64().decode(data), BaseEncoding.base64().decode(signature), devicePublicKey);
+
     }
 
 }

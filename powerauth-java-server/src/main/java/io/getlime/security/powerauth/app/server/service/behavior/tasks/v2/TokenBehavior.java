@@ -37,9 +37,12 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCrypt
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.CreateTokenRequest;
 import io.getlime.security.powerauth.v2.CreateTokenResponse;
 import io.getlime.security.powerauth.v2.SignatureType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -73,6 +76,9 @@ public class TokenBehavior {
 
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
     public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
@@ -123,16 +129,23 @@ public class TokenBehavior {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
             if (activation == null) {
+                logger.info("Activation not found, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Check if the activation is in correct state
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
             final Long applicationId = activation.getApplication().getId();
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+            if (masterKeyPairEntity == null) {
+                logger.error("Missing key pair for application ID: {}", applicationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
+
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
 
             // KEY_SERVER_MASTER_PRIVATE is used in Crypto version 2.0 for ECIES, note that in version 3.0 KEY_SERVER_PRIVATE is used
@@ -150,6 +163,7 @@ public class TokenBehavior {
                 } // ... else this token ID has a collision, reset it and try to find another one
             }
             if (tokenId == null) {
+                logger.error("Unable to generate token");
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
 
@@ -173,12 +187,12 @@ public class TokenBehavior {
             // There is no encrypted request data to decrypt, the envelope key in needs to be initialized before encryption
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
             return decryptor.encryptResponse(tokenBytes);
-        } catch (InvalidKeySpecException e) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (EciesException e) {
+        } catch (InvalidKeySpecException ex) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException | JsonProcessingException ex) {
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
-        } catch (JsonProcessingException e) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        } catch (CryptoProviderException ex) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 }

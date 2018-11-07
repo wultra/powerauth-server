@@ -37,22 +37,25 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
@@ -87,6 +90,9 @@ public class SignatureServiceBehavior {
     private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
+
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(SignatureServiceBehavior.class);
 
     @Autowired
     public SignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {
@@ -125,6 +131,7 @@ public class SignatureServiceBehavior {
      */
     private void validateActivationVersion(Integer activationVersion) throws GenericServiceException {
         if (activationVersion == null || activationVersion < 2 || activationVersion > 3) {
+            logger.warn("Invalid activation version: {}", activationVersion);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
     }
@@ -164,15 +171,23 @@ public class SignatureServiceBehavior {
      * @param forcedSignatureVersion       Forced signature version during upgrade.
      * @param keyConversionUtilities Conversion utility class.
      * @return Response with the signature validation result object.
-     * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
-     * @throws InvalidKeySpecException      In case invalid key is provided.
-     * @throws InvalidKeyException          In case invalid key is provided.
      * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                    String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
-        return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities, false);
+            throws GenericServiceException {
+        try {
+            return verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities, false);
+        } catch (InvalidKeySpecException | InvalidKeyException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
     }
 
     /**
@@ -184,31 +199,38 @@ public class SignatureServiceBehavior {
      * @param dataString             String with data used to compute the signature.
      * @param keyConversionUtilities Conversion utility class.
      * @return Response with the signature validation result object.
-     * @throws UnsupportedEncodingException In case UTF-8 is not supported on the system.
-     * @throws InvalidKeySpecException      In case invalid key is provided.
-     * @throws InvalidKeyException          In case invalid key is provided.
      * @throws GenericServiceException      In case server private key decryption fails.
      */
     public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, SignatureType signatureType, String signature,
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
-
-        final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, null, keyConversionUtilities, true);
-        VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
-        response.setActivationId(verifySignatureResponse.getActivationId());
-        response.setActivationStatus(verifySignatureResponse.getActivationStatus());
-        response.setBlockedReason(verifySignatureResponse.getBlockedReason());
-        response.setApplicationId(verifySignatureResponse.getApplicationId());
-        response.setRemainingAttempts(verifySignatureResponse.getRemainingAttempts());
-        response.setSignatureType(verifySignatureResponse.getSignatureType());
-        response.setSignatureValid(verifySignatureResponse.isSignatureValid());
-        response.setUserId(verifySignatureResponse.getUserId());
-        return response;
+            throws GenericServiceException {
+        try {
+            final VerifySignatureResponse verifySignatureResponse = verifySignature(activationId, signatureType, signature, null, dataString, null, null, keyConversionUtilities, true);
+            VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
+            response.setActivationId(verifySignatureResponse.getActivationId());
+            response.setActivationStatus(verifySignatureResponse.getActivationStatus());
+            response.setBlockedReason(verifySignatureResponse.getBlockedReason());
+            response.setApplicationId(verifySignatureResponse.getApplicationId());
+            response.setRemainingAttempts(verifySignatureResponse.getRemainingAttempts());
+            response.setSignatureType(verifySignatureResponse.getSignatureType());
+            response.setSignatureValid(verifySignatureResponse.isSignatureValid());
+            response.setUserId(verifySignatureResponse.getUserId());
+            return response;
+        } catch (InvalidKeySpecException | InvalidKeyException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
     }
 
     private VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
                                                     String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities, boolean isOffline)
-            throws UnsupportedEncodingException, InvalidKeySpecException, InvalidKeyException, GenericServiceException {
+            throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
 
@@ -231,9 +253,9 @@ public class SignatureServiceBehavior {
                 ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
 
                 if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getId(), applicationId)) {
-
+                    logger.warn("Application version is incorrect, application key: {}", applicationKey);
                     // Get the data and append application KEY in this case, just for auditing reasons
-                    byte[] data = (dataString + "&" + applicationKey).getBytes("UTF-8");
+                    byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
                     SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, forcedSignatureVersion);
                     boolean notifyCallbackListeners = handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
@@ -249,7 +271,7 @@ public class SignatureServiceBehavior {
                 applicationSecret = applicationVersion.getApplicationSecret();
             }
 
-            byte[] data = (dataString + "&" + applicationSecret).getBytes("UTF-8");
+            byte[] data = (dataString + "&" + applicationSecret).getBytes(StandardCharsets.UTF_8);
             SignatureRequest signatureRequest = new SignatureRequest(data, signature, signatureType, additionalInfo, forcedSignatureVersion);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
@@ -347,7 +369,7 @@ public class SignatureServiceBehavior {
         return response;
     }
 
-    private ValidateSignatureResponse validateSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException {
+    private ValidateSignatureResponse validateSignature(ActivationRecordEntity activation, SignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         // Get the server private and device public keys
 
         // Decrypt server private key (depending on encryption mode)
@@ -526,6 +548,7 @@ public class SignatureServiceBehavior {
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
         if (activation == null) {
+            logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
@@ -546,7 +569,7 @@ public class SignatureServiceBehavior {
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes("UTF-8");
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
@@ -559,12 +582,15 @@ public class SignatureServiceBehavior {
             response.setNonce(nonce);
             return response;
 
-        } catch (InvalidKeyException | InvalidKeySpecException e) {
+        } catch (InvalidKeySpecException | InvalidKeyException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (SignatureException e) {
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
-        } catch (UnsupportedEncodingException e) {
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, e.getMessage(), e.getLocalizedMessage());
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 
@@ -573,6 +599,7 @@ public class SignatureServiceBehavior {
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
         final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPair == null) {
+            logger.error("No master key pair found for application ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
 
@@ -589,7 +616,7 @@ public class SignatureServiceBehavior {
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes("UTF-8");
+            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
 
@@ -602,12 +629,15 @@ public class SignatureServiceBehavior {
             response.setNonce(nonce);
             return response;
 
-        } catch (InvalidKeyException | InvalidKeySpecException e) {
+        } catch (InvalidKeySpecException | InvalidKeyException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (SignatureException e) {
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_COMPUTE_SIGNATURE);
-        } catch (UnsupportedEncodingException e) {
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, e.getMessage(), e.getLocalizedMessage());
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 

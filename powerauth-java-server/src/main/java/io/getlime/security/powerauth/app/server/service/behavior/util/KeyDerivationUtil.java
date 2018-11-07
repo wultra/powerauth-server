@@ -2,8 +2,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.util;
 
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 
 import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
@@ -30,8 +32,10 @@ public class KeyDerivationUtil {
      * @throws GenericServiceException Thrown when server private key could not be loaded from database.
      * @throws InvalidKeySpecException Thrown when key spec is invalid.
      * @throws InvalidKeyException Thrown when key is invalid.
+     * @throws CryptoProviderException Thrown when cryptography provider is incorrectly initialized.
+     * @throws GenericCryptoException Throwh when key derivation fails.
      */
-    public byte[] deriveTransportKey(byte[] serverPrivateKeyBytes, byte[] devicePublicKeyBytes) throws GenericServiceException, InvalidKeySpecException, InvalidKeyException {
+    public byte[] deriveTransportKey(byte[] serverPrivateKeyBytes, byte[] devicePublicKeyBytes) throws GenericServiceException, InvalidKeySpecException, InvalidKeyException, CryptoProviderException, GenericCryptoException {
         // Convert keys from bytes
         PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
