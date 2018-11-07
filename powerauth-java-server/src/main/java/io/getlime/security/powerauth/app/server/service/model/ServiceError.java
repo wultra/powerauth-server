@@ -148,7 +148,7 @@ public class ServiceError {
     public static final String GENERIC_CRYPTOGRAPHY_ERROR = "ERR0022";
 
     /**
-     * Cryptophy provider is initialized incorrectly.
+     * Cryptography provider is initialized incorrectly.
      */
     public static final String INVALID_CRYPTO_PROVIDER = "ERR0023";
 
