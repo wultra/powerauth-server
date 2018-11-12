@@ -36,7 +36,9 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEnvelopeKey
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.GetEciesDecryptorRequest;
 import io.getlime.security.powerauth.v3.GetEciesDecryptorResponse;
 import org.slf4j.Logger;
@@ -111,6 +113,7 @@ public class EciesEncryptionBehavior {
      */
     private GetEciesDecryptorResponse getEciesDecryptorParametersForApplication(GetEciesDecryptorRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
+            logger.warn("Invalid request for ECIES decryptor");
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -118,19 +121,20 @@ public class EciesEncryptionBehavior {
             // Lookup the application version and check that it is supported
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
             // Get master private key
             final ApplicationEntity application = applicationVersion.getApplication();
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            if (masterKeyPairEntity == null) {
+                logger.error("Missing key pair for application ID: {}", application.getId());
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
+
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
-
-            // Check that private key was succesfully converted
-            if (privateKey == null) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-            }
 
             // Get application secret
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
@@ -148,9 +152,18 @@ public class EciesEncryptionBehavior {
             response.setSecretKey(BaseEncoding.base64().encode(envelopeKey.getSecretKey()));
             response.setSharedInfo2(BaseEncoding.base64().encode(decryptor.getSharedInfo2()));
             return response;
-        } catch (InvalidKeySpecException | EciesException e) {
-            logger.warn("Get Ecies decryptor parameters for application failed, reason: {}", e);
+        } catch (InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 
@@ -163,6 +176,7 @@ public class EciesEncryptionBehavior {
      */
     private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
+            logger.warn("Invalid request for ECIES decryptor");
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -170,22 +184,26 @@ public class EciesEncryptionBehavior {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(request.getActivationId());
             if (activation == null) {
+                logger.info("Activation does not exist, activation ID: {}", request.getActivationId());
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Check if the activation is in correct state
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.info("Activation is not ACTIVE, activation ID: {}", request.getActivationId());
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
             // Lookup the application version and check that it is supported
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
             // Check that application key from request belongs to same application as activation ID from request
             if (!applicationVersion.getApplication().getId().equals(activation.getApplication().getId())) {
+                logger.warn("Application version is does not match, application key: {}", request.getApplicationKey());
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
@@ -195,11 +213,6 @@ public class EciesEncryptionBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
             final byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
             final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKey);
-
-            // Check that private key was succesfully converted
-            if (privateKey == null) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-            }
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
@@ -219,9 +232,18 @@ public class EciesEncryptionBehavior {
             response.setSecretKey(BaseEncoding.base64().encode(envelopeKey.getSecretKey()));
             response.setSharedInfo2(BaseEncoding.base64().encode(decryptor.getSharedInfo2()));
             return response;
-        } catch (InvalidKeySpecException | InvalidKeyException | EciesException e) {
-            logger.warn("Get Ecies decryptor parameters for activation failed, reason: {}", e);
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 

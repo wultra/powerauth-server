@@ -38,7 +38,9 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesE
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.CommitUpgradeRequest;
 import io.getlime.security.powerauth.v3.CommitUpgradeResponse;
 import io.getlime.security.powerauth.v3.StartUpgradeRequest;
@@ -97,6 +99,7 @@ public class UpgradeServiceBehavior {
 
         // Verify input data
         if (activationId == null || applicationKey == null || ephemeralPublicKey == null || encryptedData == null || mac == null) {
+            logger.warn("Invalid start upgrade request");
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -108,11 +111,13 @@ public class UpgradeServiceBehavior {
         // Lookup the activation
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
         if (activation == null) {
+            logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
         // Check if the activation is in correct state and version is 2
         if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
+            logger.info("Activation state is invalid, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
@@ -121,6 +126,7 @@ public class UpgradeServiceBehavior {
         // Lookup the application version and check that it is supported
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
         if (applicationVersion == null || !applicationVersion.getSupported()) {
+            logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -145,7 +151,8 @@ public class UpgradeServiceBehavior {
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
             if (decryptedData.length == 0) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+                logger.warn("Invalid decrypted request data");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
             // Request is valid, generate hash based counter if it does not exist yet
@@ -177,12 +184,23 @@ public class UpgradeServiceBehavior {
             response.setEncryptedData(BaseEncoding.base64().encode(cryptogramResponse.getEncryptedData()));
             response.setMac(BaseEncoding.base64().encode(cryptogramResponse.getMac()));
             return response;
-        } catch (EciesException | InvalidKeyException | InvalidKeySpecException ex) {
-            ex.printStackTrace();
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (JsonProcessingException e) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        } catch (JsonProcessingException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
+
     }
 
     /**
@@ -197,28 +215,33 @@ public class UpgradeServiceBehavior {
 
         // Verify input data
         if (activationId == null || applicationKey == null) {
+            logger.warn("Invalid commit upgrade request");
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
         // Lookup the activation
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
         if (activation == null) {
+            logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
         // Check if the activation is in correct state and version is 2
         if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
+            logger.info("Activation state is invalid, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
         // Check if the activation hash based counter was generated (upgrade has been started)
         if (activation.getCtrDataBase64() == null) {
+            logger.warn("Activation counter data is missing, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
         // Lookup the application version and check that it is supported
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
         if (applicationVersion == null || !applicationVersion.getSupported()) {
+            logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 

@@ -80,6 +80,7 @@ public class CallbackUrlBehavior {
         try {
             new URL(request.getCallbackUrl());
         } catch (MalformedURLException e) {
+            logger.warn("Invalid callback URL: "+request.getCallbackUrl());
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
@@ -121,7 +122,7 @@ public class CallbackUrlBehavior {
      * @param request Request specifying the callback URL to be removed.
      * @return Information about removal status.
      */
-    public RemoveCallbackUrlResponse removeIntegration(RemoveCallbackUrlRequest request) {
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) {
         RemoveCallbackUrlResponse response = new RemoveCallbackUrlResponse();
         response.setId(request.getId());
         final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());

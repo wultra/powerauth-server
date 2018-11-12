@@ -84,15 +84,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String applicationKey = request.getApplicationKey();
             String applicationSignature = request.getApplicationSignature();
             String extras = request.getExtras();
-            logger.info("PrepareActivationRequest received, activationIdShort: {}", activationIdShort);
+            logger.info("PrepareActivationRequest received, activation ID short: {}", activationIdShort);
             PrepareActivationResponse response = behavior.v2().getActivationServiceBehavior().prepareActivation(activationIdShort, activationNonceBase64, ephemeralPublicKey, cDevicePublicKeyBase64, activationName, extras, applicationKey, applicationSignature, keyConversionUtilities);
             logger.info("PrepareActivationRequest succeeded");
             return response;
-        } catch (IllegalArgumentException ex) {
-            logger.error("Unknown error occurred", ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         } catch (GenericServiceException ex) {
-            logger.error("Unknown error occurred", ex);
+            // already logged
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -117,7 +114,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String ephemeralPublicKey = request.getEphemeralPublicKey();
             String applicationSignature = request.getApplicationSignature();
             String extras = request.getExtras();
-            logger.info("CreateActivationRequest received, userId: {}", userId);
+            logger.info("CreateActivationRequest received, user ID: {}", userId);
             CreateActivationResponse response = behavior.v2().getActivationServiceBehavior().createActivation(
                     applicationKey,
                     userId,
@@ -135,11 +132,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             );
             logger.info("CreateActivationRequest succeeded");
             return response;
-        } catch (IllegalArgumentException ex) {
-            logger.error("Unknown error occurred", ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
         } catch (GenericServiceException ex) {
-            logger.error("Unknown error occurred", ex);
+            // already logged
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -160,16 +154,18 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String data = request.getData();
             String reason = request.getReason();
 
-            logger.info("VaultUnlockRequest received, activationId: {}", activationId);
+            logger.info("VaultUnlockRequest received, activation ID: {}", activationId);
 
             // Reject 1FA signatures.
             if (signatureType.equals(SignatureType.BIOMETRY)
                     || signatureType.equals(SignatureType.KNOWLEDGE)
                     || signatureType.equals(SignatureType.POSSESSION)) {
+                logger.warn("Invalid signature type: {}", signatureType);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
             }
 
             if (reason != null && reason.length() > 255) {
+                logger.warn("Invalid vault unlock reason: {}", reason);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
@@ -192,7 +188,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
-            logger.error("Unknown error occurred", ex);
+            // already logged
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -203,40 +199,64 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public GetPersonalizedEncryptionKeyResponse generateE2EPersonalizedEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws Exception {
-        logger.info("GetPersonalizedEncryptionKeyRequest received, activationId: {}", request.getActivationId());
-        GetPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateEncryptionKeyForActivation(
-                request.getActivationId(),
-                request.getSessionIndex(),
-                keyConversionUtilities
-        );
-        logger.info("GetPersonalizedEncryptionKeyRequest succeeded");
-        return response;
+        try {
+            logger.info("GetPersonalizedEncryptionKeyRequest received, activation ID: {}", request.getActivationId());
+            GetPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateEncryptionKeyForActivation(
+                    request.getActivationId(),
+                    request.getSessionIndex(),
+                    keyConversionUtilities
+            );
+            logger.info("GetPersonalizedEncryptionKeyRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public GetNonPersonalizedEncryptionKeyResponse generateE2ENonPersonalizedEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws Exception {
-        logger.info("GetNonPersonalizedEncryptionKeyRequest received");
-        GetNonPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateNonPersonalizedEncryptionKeyForApplication(
-                request.getApplicationKey(),
-                request.getSessionIndex(),
-                request.getEphemeralPublicKey(),
-                keyConversionUtilities
-        );
-        logger.info("GetNonPersonalizedEncryptionKeyRequest succeeded");
-        return response;
+        try {
+            logger.info("GetNonPersonalizedEncryptionKeyRequest received");
+            GetNonPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateNonPersonalizedEncryptionKeyForApplication(
+                    request.getApplicationKey(),
+                    request.getSessionIndex(),
+                    request.getEphemeralPublicKey(),
+                    keyConversionUtilities
+            );
+            logger.info("GetNonPersonalizedEncryptionKeyRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     @Override
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws Exception {
-        logger.info("CreateTokenRequest received, activationId: {}", request.getActivationId());
-        CreateTokenResponse response = behavior.v2().getTokenBehavior().createToken(request, keyConversionUtilities);
-        logger.info("CreateTokenRequest succeeded");
-        return response;
+        try {
+            logger.info("CreateTokenRequest received, activation ID: {}", request.getActivationId());
+            CreateTokenResponse response = behavior.v2().getTokenBehavior().createToken(request, keyConversionUtilities);
+            logger.info("CreateTokenRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
-    private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws Exception {
+    private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
         io.getlime.security.powerauth.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
         io.getlime.security.powerauth.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
         return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();

@@ -27,7 +27,10 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,6 +52,9 @@ public class ApplicationServiceBehavior {
 
     private RepositoryCatalogue repositoryCatalogue;
     private LocalizationProvider localizationProvider;
+
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationServiceBehavior.class);
 
     @Autowired
     public ApplicationServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider) {
@@ -98,6 +104,7 @@ public class ApplicationServiceBehavior {
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String appKey) throws GenericServiceException {
         ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
         if (applicationVersion == null) {
+            logger.warn("Application version is incorrect, application key: {}", appKey);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
@@ -133,43 +140,48 @@ public class ApplicationServiceBehavior {
      * @param name                   Application name
      * @param keyConversionUtilities Utility class for the key conversion
      * @return Response with new application information
+     * @throws GenericServiceException In case cryptography provider is initialized incorrectly.
      */
-    public CreateApplicationResponse createApplication(String name, CryptoProviderUtil keyConversionUtilities) {
+    public CreateApplicationResponse createApplication(String name, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+        try {
+            ApplicationEntity application = new ApplicationEntity();
+            application.setName(name);
+            application = repositoryCatalogue.getApplicationRepository().save(application);
 
-        ApplicationEntity application = new ApplicationEntity();
-        application.setName(name);
-        application = repositoryCatalogue.getApplicationRepository().save(application);
+            KeyGenerator keyGen = new KeyGenerator();
+            KeyPair kp = keyGen.generateKeyPair();
+            PrivateKey privateKey = kp.getPrivate();
+            PublicKey publicKey = kp.getPublic();
 
-        KeyGenerator keyGen = new KeyGenerator();
-        KeyPair kp = keyGen.generateKeyPair();
-        PrivateKey privateKey = kp.getPrivate();
-        PublicKey publicKey = kp.getPublic();
+            // Generate the default master key pair
+            MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
+            keyPair.setApplication(application);
+            keyPair.setMasterKeyPrivateBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
+            keyPair.setMasterKeyPublicBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
+            keyPair.setTimestampCreated(new Date());
+            keyPair.setName(name + " Default Keypair");
+            repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
 
-        // Generate the default master key pair
-        MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
-        keyPair.setApplication(application);
-        keyPair.setMasterKeyPrivateBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
-        keyPair.setMasterKeyPublicBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
-        keyPair.setTimestampCreated(new Date());
-        keyPair.setName(name + " Default Keypair");
-        repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
+            // Create the default application version
+            byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
+            byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
+            ApplicationVersionEntity version = new ApplicationVersionEntity();
+            version.setApplication(application);
+            version.setName("default");
+            version.setSupported(true);
+            version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
+            version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
+            repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-        // Create the default application version
-        byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-        byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
-        ApplicationVersionEntity version = new ApplicationVersionEntity();
-        version.setApplication(application);
-        version.setName("default");
-        version.setSupported(true);
-        version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
-        version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
-        repositoryCatalogue.getApplicationVersionRepository().save(version);
+            CreateApplicationResponse response = new CreateApplicationResponse();
+            response.setApplicationId(application.getId());
+            response.setApplicationName(application.getName());
 
-        CreateApplicationResponse response = new CreateApplicationResponse();
-        response.setApplicationId(application.getId());
-        response.setApplicationName(application.getName());
-
-        return response;
+            return response;
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
     }
 
     /**
@@ -257,6 +269,7 @@ public class ApplicationServiceBehavior {
     private ApplicationEntity findApplicationById(Long applicationId) throws GenericServiceException {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
         if (!applicationOptional.isPresent()) {
+            logger.info("Application not found, application ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationOptional.get();
@@ -271,6 +284,7 @@ public class ApplicationServiceBehavior {
     private ApplicationVersionEntity findApplicationVersionById(Long versionId) throws GenericServiceException {
         final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().findById(versionId);
         if (!applicationVersionOptional.isPresent()) {
+            logger.info("Application version not found, application version ID: {}", versionId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationVersionOptional.get();

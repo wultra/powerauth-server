@@ -26,15 +26,15 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -77,6 +77,7 @@ public class ServerPrivateKeyConverter {
      */
     public String fromDBValue(KeyEncryptionMode keyEncryptionMode, String serverPrivateKeyBase64, String userId, String activationId) throws GenericServiceException {
         if (keyEncryptionMode == null) {
+            logger.error("Missing key encryption mode");
             throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
 
@@ -90,6 +91,7 @@ public class ServerPrivateKeyConverter {
 
                 // In case master DB encryption key does not exist, do not encrypt the server private key
                 if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
+                    logger.error("Missing master DB encryption key");
                     throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_MASTER_DB_ENCRYPTION_KEY);
                 }
 
@@ -105,8 +107,8 @@ public class ServerPrivateKeyConverter {
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (serverPrivateKey == null || serverPrivateKey.length < 16) {
-                        logger.error("Invalid encrypted private key format - the byte array is too short.");
-                        throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+                        logger.error("Invalid encrypted private key format - the byte array is too short");
+                        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                     }
 
                     // IV is present in first 16 bytes
@@ -121,13 +123,19 @@ public class ServerPrivateKeyConverter {
                     // Base64-encode decrypted serverPrivateKey
                     return BaseEncoding.base64().encode(decryptedServerPrivateKey);
 
-                } catch (BadPaddingException | IllegalBlockSizeException | InvalidKeyException | IllegalArgumentException ex) {
+                } catch (InvalidKeyException ex) {
                     logger.error(ex.getMessage(), ex);
-                    throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+                } catch (GenericCryptoException ex) {
+                    logger.error(ex.getMessage(), ex);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+                } catch (CryptoProviderException ex) {
+                    logger.error(ex.getMessage(), ex);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
                 }
 
             default:
-                logger.error("Unknown encryption mode provided: {}", Byte.toString(keyEncryptionMode.getValue()));
+                logger.error("Unknown key encryption mode: {}", Byte.toString(keyEncryptionMode.getValue()));
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
     }
@@ -174,7 +182,16 @@ public class ServerPrivateKeyConverter {
             // Return encrypted record including encryption mode
             return new ServerPrivateKey(KeyEncryptionMode.AES_HMAC, encryptedKeyBase64);
 
-        } catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | IllegalArgumentException | IOException ex) {
+        } catch (InvalidKeyException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         }
@@ -189,8 +206,9 @@ public class ServerPrivateKeyConverter {
      * @param userId User ID.
      * @param activationId Activation ID.
      * @return Derived secret key.
+     * @throws GenericCryptoException In case key derivation fails.
      */
-    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
+    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) throws GenericCryptoException, CryptoProviderException {
         // Use concatenated user ID and activation ID bytes as index for KDF_INTERNAL
         byte[] index = (userId + "&" + activationId).getBytes();
 

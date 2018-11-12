@@ -39,10 +39,14 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -75,6 +79,9 @@ public class TokenBehavior {
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final KeyDerivationUtil keyDerivationUtil = new KeyDerivationUtil();
+
+    // Prepare logger
+    private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
     public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter) {
@@ -132,11 +139,13 @@ public class TokenBehavior {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
             if (activation == null) {
+                logger.info("Activation not found, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Check if the activation is in correct state
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -162,7 +171,8 @@ public class TokenBehavior {
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
             if (decryptedData.length == 0) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+                logger.warn("Invalid decrypted request data");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
             // Generate unique token ID.
@@ -176,6 +186,7 @@ public class TokenBehavior {
                 } // ... else this token ID has a collision, reset it and try to find another one
             }
             if (tokenId == null) {
+                logger.error("Unable to generate token");
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
 
@@ -197,12 +208,21 @@ public class TokenBehavior {
 
             // Encrypt response using previously created ECIES decryptor
             return decryptor.encryptResponse(tokenBytes);
-        } catch (InvalidKeySpecException e) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
-        } catch (EciesException | InvalidKeyException e) {
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (JsonProcessingException e) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        } catch (JsonProcessingException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 
@@ -214,45 +234,53 @@ public class TokenBehavior {
      * @throws GenericServiceException In case of the business logic error.
      */
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
+        try {
+            final String tokenId = request.getTokenId();
+            final byte[] nonce = BaseEncoding.base64().decode(request.getNonce());
+            final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());
+            final byte[] tokenDigest = BaseEncoding.base64().decode(request.getTokenDigest());
 
-        final String tokenId = request.getTokenId();
-        final byte[] nonce = BaseEncoding.base64().decode(request.getNonce());
-        final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());
-        final byte[] tokenDigest = BaseEncoding.base64().decode(request.getTokenDigest());
+            // Lookup the token
+            final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
+            if (!tokenEntityOptional.isPresent()) {
+                // Instead of throwing INVALID_TOKEN exception a response with invalid token is returned
+                final ValidateTokenResponse response = new ValidateTokenResponse();
+                response.setTokenValid(false);
+                return response;
+            }
+            final TokenEntity token = tokenEntityOptional.get();
 
-        // Lookup the token.
-        final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
-        if (!tokenEntityOptional.isPresent()) {
-            final ValidateTokenResponse response = new ValidateTokenResponse();
-            response.setTokenValid(false);
-            return response;
+            // Check if the activation is in correct state
+            final ActivationRecordEntity activation = token.getActivation();
+            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            final byte[] tokenSecret = BaseEncoding.base64().decode(token.getTokenSecret());
+
+            final boolean isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
+
+            if (isTokenValid) {
+                final ValidateTokenResponse response = new ValidateTokenResponse();
+                response.setTokenValid(true);
+                response.setActivationId(activation.getActivationId());
+                response.setApplicationId(activation.getApplication().getId());
+                response.setUserId(activation.getUserId());
+                response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
+                return response;
+            } else {
+                final ValidateTokenResponse response = new ValidateTokenResponse();
+                response.setTokenValid(false);
+                return response;
+            }
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
-        final TokenEntity token = tokenEntityOptional.get();
-
-        // Check if the activation is in correct state
-        final ActivationRecordEntity activation = token.getActivation();
-        if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-        }
-
-        final byte[] tokenSecret = BaseEncoding.base64().decode(token.getTokenSecret());
-
-        final boolean isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
-
-        if (isTokenValid) {
-            final ValidateTokenResponse response = new ValidateTokenResponse();
-            response.setTokenValid(true);
-            response.setActivationId(activation.getActivationId());
-            response.setApplicationId(activation.getApplication().getId());
-            response.setUserId(activation.getUserId());
-            response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
-            return response;
-        } else {
-            final ValidateTokenResponse response = new ValidateTokenResponse();
-            response.setTokenValid(false);
-            return response;
-        }
-
     }
 
     /**
