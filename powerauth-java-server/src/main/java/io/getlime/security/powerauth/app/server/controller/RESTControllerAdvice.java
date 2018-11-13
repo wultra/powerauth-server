@@ -18,8 +18,6 @@
 package io.getlime.security.powerauth.app.server.controller;
 
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -37,24 +35,21 @@ import java.util.List;
 @ControllerAdvice
 public class RESTControllerAdvice {
 
-    private static final Logger logger = LoggerFactory.getLogger(RESTControllerAdvice.class);
-
     /**
      * Handle all service exceptions using the same error format. Response has a status code 400 Bad Request.
      *
-     * @param e   Service exception.
+     * @param ex Service exception.
      * @return REST response with error collection.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = GenericServiceException.class)
-    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnGenericError(GenericServiceException e) {
+    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnGenericError(GenericServiceException ex) {
         RESTErrorModel error = new RESTErrorModel();
-        error.setCode(e.getCode());
-        error.setMessage(e.getMessage());
-        error.setLocalizedMessage(e.getLocalizedMessage());
+        error.setCode(ex.getCode());
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
         List<RESTErrorModel> errorList = new LinkedList<>();
         errorList.add(error);
-        logger.error("Generic service error occurred", e);
         return new RESTResponseWrapper<>("ERROR", errorList);
     }
 
