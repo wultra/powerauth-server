@@ -318,6 +318,9 @@ public class ActivationServiceBehavior {
                     // Get the server private and device public keys to compute the transport key
                     String devicePublicKeyBase64 = activation.getDevicePublicKeyBase64();
 
+                    // Get the server public key for the fingerprint
+                    String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
+
                     // Decrypt server private key (depending on encryption mode)
                     String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
                     KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
@@ -337,6 +340,7 @@ public class ActivationServiceBehavior {
 
                         PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
                         PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(devicePublicKeyBase64));
+                        PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(serverPublicKeyBase64));
 
                         SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
                         SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
@@ -352,7 +356,19 @@ public class ActivationServiceBehavior {
                         );
 
                         // Assign the activation fingerprint
-                        activationFingerPrint = powerAuthServerActivation.computeDevicePublicKeyFingerprint(devicePublicKey);
+                        switch (activation.getVersion()) {
+                            case 2:
+                                activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey);
+                                break;
+
+                            case 3:
+                                activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
+                                break;
+
+                            default:
+                                logger.error("Unsupported activation version: {}", activation.getVersion());
+                                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                        }
 
                     }
 
