@@ -205,7 +205,34 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
-        throw new IllegalStateException("Not implemented yet.");
+        try {
+            // Get request parameters
+            String userId = request.getUserId();
+            Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
+            Long maxFailedCount = request.getMaxFailureCount();
+            String applicationKey = request.getApplicationKey();
+            byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
+            byte[] mac = BaseEncoding.base64().decode(request.getMac());
+            byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
+            EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+            logger.info("CreateActivationRequest received, user ID: {}", userId);
+            CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
+                    userId,
+                    activationExpireTimestamp,
+                    maxFailedCount,
+                    applicationKey,
+                    cryptogram,
+                    keyConversionUtilities
+            );
+            logger.info("CreateActivationRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     private VerifySignatureResponse verifySignatureImplNonTransaction(VerifySignatureRequest request, KeyValueMap additionalInfo) throws GenericServiceException {
