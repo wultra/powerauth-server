@@ -755,14 +755,14 @@ public class ActivationServiceBehavior {
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
 
             ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            // if there is no such application, exit
+            // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
             ApplicationEntity application = applicationVersion.getApplication();
-            // if there is no such application, exit
+            // If there is no such application, exit
             if (application == null) {
                 logger.warn("Application is incorrect, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
