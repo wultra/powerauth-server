@@ -18,7 +18,6 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -43,7 +42,6 @@ public class ActivationHistoryServiceBehavior {
 
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     @Autowired
     public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository) {

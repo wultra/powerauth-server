@@ -174,7 +174,7 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Component
-    public class ServiceBehaviorCatalogueV2 {
+    public static class ServiceBehaviorCatalogueV2 {
 
         private io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.ActivationServiceBehavior activationServiceBehavior;
 
