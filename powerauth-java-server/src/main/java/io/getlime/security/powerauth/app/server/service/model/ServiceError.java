@@ -152,6 +152,11 @@ public class ServiceError {
      */
     public static final String INVALID_CRYPTO_PROVIDER = "ERR0023";
 
+    /**
+     * Invalid request error.
+     */
+    public static final String INVALID_REQUEST = "ERR0024";
+
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);
         list.add(UNKNOWN_ERROR);
@@ -176,6 +181,9 @@ public class ServiceError {
         list.add(UNABLE_TO_GENERATE_TOKEN);
         list.add(MISSING_MASTER_DB_ENCRYPTION_KEY);
         list.add(UNSUPPORTED_ENCRYPTION_MODE);
+        list.add(GENERIC_CRYPTOGRAPHY_ERROR);
+        list.add(INVALID_CRYPTO_PROVIDER);
+        list.add(INVALID_REQUEST);
         return list;
     }
 

@@ -74,6 +74,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws Exception {
+        if (request.getActivationIdShort() == null || request.getActivationNonce() == null || request.getEncryptedDevicePublicKey() == null
+            || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationKey() == null || request.getApplicationSignature() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         try {
             // Get request parameters
             String activationIdShort = request.getActivationIdShort();
@@ -100,6 +105,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws Exception {
+        if (request.getApplicationKey() == null || request.getUserId() == null || request.getActivationOtp() == null || request.getActivationNonce() == null || request.getEncryptedDevicePublicKey() == null
+                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationKey() == null || request.getApplicationSignature() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
         try {
             // Get request parameters
             String applicationKey = request.getApplicationKey();
@@ -144,6 +155,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws Exception {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
+                || request.getSignatureType() == null || request.getData() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        // Vault unlock reason can be null, in this case unspecified reason is used
         try {
 
             // Get request data
@@ -199,6 +216,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public GetPersonalizedEncryptionKeyResponse generateE2EPersonalizedEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws Exception {
+        if (request.getActivationId() == null || request.getSessionIndex() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         try {
             logger.info("GetPersonalizedEncryptionKeyRequest received, activation ID: {}", request.getActivationId());
             GetPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateEncryptionKeyForActivation(
@@ -220,6 +241,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public GetNonPersonalizedEncryptionKeyResponse generateE2ENonPersonalizedEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws Exception {
+        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getSessionIndex() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         try {
             logger.info("GetNonPersonalizedEncryptionKeyRequest received");
             GetNonPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateNonPersonalizedEncryptionKeyForApplication(
@@ -242,6 +267,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws Exception {
+        if (request.getActivationId() == null || request.getEphemeralPublicKey() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         try {
             logger.info("CreateTokenRequest received, activation ID: {}", request.getActivationId());
             CreateTokenResponse response = behavior.v2().getTokenBehavior().createToken(request, keyConversionUtilities);
