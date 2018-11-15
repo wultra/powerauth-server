@@ -153,14 +153,14 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Validate activation in prepare activation step: it should be in CREATED state, it should be linked to correct
+     * Validate activation in prepare or create activation step: it should be in CREATED state, it should be linked to correct
      * application and the activation code should have valid length.
      *
      * @param activation Activation used in prepare activation step.
      * @param application Application used in prepare activation step.
      * @throws GenericServiceException In case activation state is invalid.
      */
-    private void validateActivationInPrepareStep(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
         // If there is no such activation or application does not match the activation application, fail validation
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
@@ -201,14 +201,14 @@ public class ActivationServiceBehavior {
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
 
             ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            // if there is no such application, exit
+            // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
             ApplicationEntity application = applicationVersion.getApplication();
-            // if there is no such application, exit
+            // If there is no such application, exit
             if (application == null) {
                 logger.warn("Application does not exist, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
@@ -224,7 +224,7 @@ public class ActivationServiceBehavior {
             }
 
             // Validate that the activation is in correct state for the prepare step
-            validateActivationInPrepareStep(activation, application);
+            validateCreatedActivation(activation, application);
 
             // Extract activation OTP from activation code
             String activationOtp = activation.getActivationCode().substring(12);
@@ -324,7 +324,7 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Prepare activation with given parameters
+     * Create activation with given parameters
      *
      * @param userId                         User ID
      * @param maxFailedCount                 Maximum failed attempt count (5)
@@ -357,20 +357,22 @@ public class ActivationServiceBehavior {
             String applicationSignature,
             CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         try {
+            // Get current timestamp
+            Date timestamp = new Date();
 
             // Get the repository
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
 
             ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
-            // if there is no such application, exit
+            // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
             ApplicationEntity application = applicationVersion.getApplication();
-            // if there is no such application, exit
+            // If there is no such application, exit
             if (application == null) {
                 logger.warn("Application is incorrect, application key: {}", applicationKey);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
@@ -380,6 +382,14 @@ public class ActivationServiceBehavior {
             InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+
+            // Make sure to deactivate the activation if it is expired
+            if (activation != null) {
+                deactivatePendingActivation(timestamp, activation);
+            }
+
+            // Validate that the activation is in correct state for the create step, it could be removed because of expiration
+            validateCreatedActivation(activation, application);
 
             // Get master private key
             String masterPrivateKeyBase64 = activation.getMasterKeyPair().getMasterKeyPrivateBase64();

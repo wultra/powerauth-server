@@ -156,51 +156,28 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the createActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID.
-     * @param applicationKey Application key of a given application.
-     * @param identity Identity fingerprint used during activation.
-     * @param activationName Name of this activation.
-     * @param activationNonce Activation nonce.
-     * @param applicationSignature Signature proving a correct application is sending the data.
-     * @param cDevicePublicKey Device public key encrypted with activation OTP.
-     * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
-     * @param extras Additional, application specific information.
+     * @param timestampActivationExpire Expiration timestamp for activation (optional).
+     * @param maxFailureCount Maximum failure count (optional).
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac Mac of key and data for ECIES.
      * @return {@link CreateActivationResponse}
      */
-    public CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
-        return this.createActivation(
-                applicationKey,
-                userId,
-                null,
-                null,
-                identity,
-                "00000-00000",
-                activationName,
-                activationNonce,
-                ephemeralPublicKey,
-                cDevicePublicKey,
-                extras,
-                applicationSignature
-        );
-    }
-
-    /**
-     * Call the createActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID.
-     * @param maxFailureCount Maximum failure count.
-     * @param timestampActivationExpire Timestamp this activation should expire.
-     * @param applicationKey Application key of a given application.
-     * @param identity Identity fingerprint used during activation.
-     * @param activationOtp Activation OTP.
-     * @param activationName Name of this activation.
-     * @param activationNonce Activation nonce.
-     * @param applicationSignature Signature proving a correct application is sending the data.
-     * @param cDevicePublicKey Device public key encrypted with activation OTP.
-     * @param ephemeralPublicKey Ephemeral public key.
-     * @param extras Additional, application specific information.
-     * @return {@link CreateActivationResponse}
-     */
-    public CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
-        throw new IllegalStateException("Not implemented yet");
+    public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) {
+        CreateActivationRequest request = new CreateActivationRequest();
+        request.setUserId(userId);
+        if (timestampActivationExpire != null) {
+            request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
+        }
+        if (maxFailureCount != null) {
+            request.setMaxFailureCount(maxFailureCount);
+        }
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return createActivation(request);
     }
 
     /**

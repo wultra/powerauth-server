@@ -175,14 +175,14 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Validate activation in prepare activation step: it should be in CREATED state, it should be linked to correct
+     * Validate activation in prepare or create activation step: it should be in CREATED state, it should be linked to correct
      * application and the activation code should have valid length.
      *
      * @param activation Activation used in prepare activation step.
      * @param application Application used in prepare activation step.
      * @throws GenericServiceException In case activation state is invalid.
      */
-    private void validateActivationInPrepareStep(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
         // If there is no such activation or application does not match the activation application, fail validation
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
@@ -437,13 +437,13 @@ public class ActivationServiceBehavior {
      *
      * @param applicationId             Application ID
      * @param userId                    User ID
-     * @param maxFailedCount            Maximum failed attempt count (5)
+     * @param maxFailureCount            Maximum failed attempt count (5)
      * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
      * @param keyConversionUtilities    Utility class for key conversion
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailedCount, Date activationExpireTimestamp, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
@@ -465,7 +465,7 @@ public class ActivationServiceBehavior {
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
             // Get number of max attempts from request or from constants, if not provided
-            Long maxAttempt = maxFailedCount;
+            Long maxAttempt = maxFailureCount;
             if (maxAttempt == null) {
                 maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
             }
@@ -658,7 +658,7 @@ public class ActivationServiceBehavior {
             }
 
             // Validate that the activation is in correct state for the prepare step
-            validateActivationInPrepareStep(activation, application);
+            validateCreatedActivation(activation, application);
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
@@ -677,6 +677,7 @@ public class ActivationServiceBehavior {
 
             // Update and persist the activation record
             activation.setActivationStatus(ActivationStatus.OTP_USED);
+            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
@@ -730,38 +731,144 @@ public class ActivationServiceBehavior {
      * </ul>
      *
      * @param userId                         User ID
-     * @param maxFailedCount                 Maximum failed attempt count (5)
      * @param activationExpireTimestamp      Timestamp after which activation can no longer be completed
-     * @param identity                       A string representing the provided identity
-     * @param activationOtp                  Activation OTP parameter
-     * @param activationNonceBase64          Activation nonce encoded as Base64
-     * @param clientEphemeralPublicKeyBase64 Client ephemeral public key encoded as Base64
-     * @param cDevicePublicKeyBase64         Encrypted device public key encoded as Base64
-     * @param activationName                 Activation name
-     * @param extras                         Extra parameter
+     * @param maxFailureCount                Maximum failed attempt count (default = 5)
      * @param applicationKey                 Application key
-     * @param applicationSignature           Application signature
+     * @param eciesCryptogram                ECIES cryptogram
      * @param keyConversionUtilities         Utility class for key conversion
-     * @return Prepared activation information
-     * @throws GenericServiceException      In case invalid data is provided
-     * @throws InvalidKeySpecException      If invalid key was provided
-     * @throws InvalidKeyException          If invalid key was provided
+     * @return ECIES encrypted activation information
+     * @throws GenericServiceException       In case create activation fails
      */
     public CreateActivationResponse createActivation(
-            String applicationKey,
             String userId,
-            Long maxFailedCount,
             Date activationExpireTimestamp,
-            String identity,
-            String activationOtp,
-            String activationNonceBase64,
-            String clientEphemeralPublicKeyBase64,
-            String cDevicePublicKeyBase64,
-            String activationName,
-            String extras,
-            String applicationSignature,
-            CryptoProviderUtil keyConversionUtilities) throws GenericServiceException, InvalidKeySpecException, InvalidKeyException {
-        throw new IllegalStateException("Not implemented yet.");
+            Long maxFailureCount,
+            String applicationKey,
+            EciesCryptogram eciesCryptogram,
+            CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+        try {
+            // Get current timestamp
+            Date timestamp = new Date();
+
+            // Get required repositories
+            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+            final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
+
+            ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
+            // If there is no such activation version or activation version is unsupported, exit
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
+            ApplicationEntity application = applicationVersion.getApplication();
+            // If there is no such application, exit
+            if (application == null) {
+                logger.warn("Application is incorrect, application key: {}", applicationKey);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            }
+
+            // Create an activation record and obtain the activation database record
+            InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, keyConversionUtilities);
+            String activationId = initResponse.getActivationId();
+            ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+
+            // Make sure to deactivate the activation if it is expired
+            if (activation != null) {
+                deactivatePendingActivation(timestamp, activation);
+            }
+
+            validateCreatedActivation(activation, application);
+
+            // Get master server private key
+            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            if (masterKeyPairEntity == null) {
+                logger.error("Missing key pair for application ID: {}", application.getId());
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
+
+            String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+
+            // Get application secret
+            byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+
+            // Get ecies decryptor
+            EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2);
+
+            // Decrypt activation data
+            byte[] activationData = eciesDecryptor.decryptRequest(eciesCryptogram);
+
+            // Convert JSON data to activation layer 2 request object
+            ActivationLayer2Request request;
+            try {
+                request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
+            } catch (IOException ex) {
+                logger.warn("Invalid activation request, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+            }
+
+            // Extract the device public key from request
+            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
+            PublicKey devicePublicKey = null;
+
+            try {
+                devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            } catch (InvalidKeySpecException ex) {
+                handleInvalidPublicKey(activation);
+            }
+
+            // Initialize hash based counter
+            HashBasedCounter counter = new HashBasedCounter();
+            byte[] ctrData = counter.init();
+            String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
+
+            // Update and persist the activation record
+            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
+            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setActivationName(request.getActivationName());
+            activation.setExtras(request.getExtras());
+            // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
+            activation.setVersion(3);
+            // Set initial counter data
+            activation.setCtrDataBase64(ctrDataBase64);
+            activationRepository.save(activation);
+            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
+            // Generate activation layer 2 response
+            ActivationLayer2Response response = new ActivationLayer2Response();
+            response.setActivationId(activation.getActivationId());
+            response.setCtrData(ctrDataBase64);
+            response.setServerPublicKey(activation.getServerPublicKeyBase64());
+            byte[] responseData = objectMapper.writeValueAsBytes(response);
+
+            // Encrypt response data
+            EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
+            String encryptedData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
+            String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
+
+            // Generate encrypted response
+            CreateActivationResponse encryptedResponse = new CreateActivationResponse();
+            encryptedResponse.setActivationId(activation.getActivationId());
+            encryptedResponse.setEncryptedData(encryptedData);
+            encryptedResponse.setMac(mac);
+            return encryptedResponse;
+        } catch (InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException | JsonProcessingException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
     }
 
     /**
