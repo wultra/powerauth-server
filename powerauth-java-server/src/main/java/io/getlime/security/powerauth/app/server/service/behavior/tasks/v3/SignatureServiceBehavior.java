@@ -405,11 +405,10 @@ public class SignatureServiceBehavior {
         byte[] ctrHash = null;
         // Next hash based counter value used in case signature is valid
         byte[] ctrDataNext = null;
-        HashBasedCounter hashBasedCounter = null;
+        HashBasedCounter hashBasedCounter = new HashBasedCounter();
         // Get counter data from activation for version 3
         if (signatureVersion == 3) {
             ctrHash = BaseEncoding.base64().decode(activation.getCtrDataBase64());
-            hashBasedCounter = new HashBasedCounter();
         }
 
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getSignatureValidationLookahead(); iteratedCounter++) {
@@ -660,7 +659,7 @@ public class SignatureServiceBehavior {
                 false, activation.getVersion(), "activation_invalid_state", currentTimestamp);
     }
 
-    private class SignatureRequest {
+    private static class SignatureRequest {
 
         private final byte[] data;
         private final String signature;
@@ -729,7 +728,7 @@ public class SignatureServiceBehavior {
         }
     }
 
-    private class ValidateSignatureResponse {
+    private static class ValidateSignatureResponse {
 
         private final boolean signatureValid;
         private final long ctrNext;

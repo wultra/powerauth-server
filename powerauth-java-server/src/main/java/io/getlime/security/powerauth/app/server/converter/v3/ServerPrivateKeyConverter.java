@@ -38,6 +38,7 @@ import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
 
@@ -210,7 +211,7 @@ public class ServerPrivateKeyConverter {
      */
     private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) throws GenericCryptoException, CryptoProviderException {
         // Use concatenated user ID and activation ID bytes as index for KDF_INTERNAL
-        byte[] index = (userId + "&" + activationId).getBytes();
+        byte[] index = (userId + "&" + activationId).getBytes(StandardCharsets.UTF_8);
 
         // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
         return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);

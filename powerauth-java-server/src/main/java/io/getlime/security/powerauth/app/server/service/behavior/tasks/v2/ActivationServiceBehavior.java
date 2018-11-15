@@ -23,14 +23,11 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
-import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.ActivationHistoryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.CallbackUrlBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -43,6 +40,7 @@ import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.CreateActivationResponse;
 import io.getlime.security.powerauth.v2.PrepareActivationResponse;
+import io.getlime.security.powerauth.v3.InitActivationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,6 +76,8 @@ public class ActivationServiceBehavior {
 
     private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
 
+    private io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.ActivationServiceBehavior activationServiceBehaviorV3;
+
     private LocalizationProvider localizationProvider;
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -106,6 +106,11 @@ public class ActivationServiceBehavior {
     @Autowired
     public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
+    }
+
+    @Autowired
+    public void setActivationActivationServiceBehaviorV3(io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.ActivationServiceBehavior activationServiceBehaviorV3) {
+        this.activationServiceBehaviorV3 = activationServiceBehaviorV3;
     }
 
     @Autowired
@@ -372,7 +377,8 @@ public class ActivationServiceBehavior {
             }
 
             // Create an activation record and obtain the activation database record
-            String activationId = this.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
+            InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
+            String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivation(activationId);
 
             // Get master private key
@@ -461,149 +467,6 @@ public class ActivationServiceBehavior {
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        }
-    }
-
-    /**
-     * Init activation with given parameters
-     *
-     * @param applicationId             Application ID
-     * @param userId                    User ID
-     * @param maxFailedCount            Maximum failed attempt count (5)
-     * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
-     * @param keyConversionUtilities    Utility class for key conversion
-     * @return Response with activation initialization data
-     * @throws GenericServiceException  If init activation fails.
-     */
-    private String initActivation(Long applicationId, String userId, Long maxFailedCount, Date activationExpireTimestamp, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
-        try {
-            // Generate timestamp in advance
-            Date timestamp = new Date();
-
-            if (userId == null) {
-                logger.warn("User ID not specified");
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_USER_ID);
-            }
-
-            if (applicationId == 0L) {
-                logger.warn("Application ID not specified");
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
-            }
-
-            // Application version is not being checked in initActivation, it is checked later in prepareActivation or createActivation.
-
-            // Get the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-
-            // Get number of max attempts from request or from constants, if not provided
-            Long maxAttempt = maxFailedCount;
-            if (maxAttempt == null) {
-                maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
-            }
-
-            // Get activation expiration date from request or from constants, if not provided
-            Date timestampExpiration = activationExpireTimestamp;
-            if (timestampExpiration == null) {
-                timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
-            }
-
-            // Fetch the latest master private key
-            MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPair == null) {
-                GenericServiceException ex = localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-                logger.error("No master key pair found for application ID: {}", applicationId);
-                throw ex;
-            }
-            byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterKeyPair.getMasterKeyPrivateBase64());
-            PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes);
-
-            // Generate new activation data, generate a unique activation ID
-            String activationId = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
-                String tmpActivationId = powerAuthServerActivation.generateActivationId();
-                ActivationRecordEntity record = activationRepository.findActivation(tmpActivationId);
-                if (record == null) {
-                    activationId = tmpActivationId;
-                    break;
-                } // ... else this activation ID has a collision, reset it and try to find another one
-            }
-            if (activationId == null) {
-                logger.error("Unable to generate activation ID");
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
-            }
-
-            // Generate a unique short activation ID for created and OTP used states
-            String activationCode = null;
-            Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED);
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
-                String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
-                ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationCode, states, timestamp);
-                // this activation short ID has a collision, reset it and find
-                // another one
-                if (record == null) {
-                    activationCode = tmpActivationCode;
-                    break;
-                }
-            }
-            if (activationCode == null) {
-                logger.error("Unable to generate short activation ID");
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
-            }
-
-            // Compute activation signature
-            byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationCode, masterPrivateKey);
-
-            // Encode the signature
-            String activationSignatureBase64 = BaseEncoding.base64().encode(activationSignature);
-
-            // Generate server key pair
-            KeyPair serverKeyPair = powerAuthServerActivation.generateServerKeyPair();
-            byte[] serverKeyPrivateBytes = keyConversionUtilities.convertPrivateKeyToBytes(serverKeyPair.getPrivate());
-            byte[] serverKeyPublicBytes = keyConversionUtilities.convertPublicKeyToBytes(serverKeyPair.getPublic());
-
-            // Store the new activation
-            ActivationRecordEntity activation = new ActivationRecordEntity();
-            activation.setActivationId(activationId);
-            activation.setActivationCode(activationCode);
-            activation.setActivationName(null);
-            activation.setActivationStatus(ActivationStatus.CREATED);
-            activation.setCounter(0L);
-            activation.setCtrDataBase64(null);
-            activation.setDevicePublicKeyBase64(null);
-            activation.setExtras(null);
-            activation.setFailedAttempts(0L);
-            activation.setApplication(masterKeyPair.getApplication());
-            activation.setMasterKeyPair(masterKeyPair);
-            activation.setMaxFailedAttempts(maxAttempt);
-            activation.setServerPublicKeyBase64(BaseEncoding.base64().encode(serverKeyPublicBytes));
-            activation.setTimestampActivationExpire(timestampExpiration);
-            activation.setTimestampCreated(timestamp);
-            activation.setTimestampLastUsed(timestamp);
-            // Activation version is not known yet
-            activation.setVersion(null);
-            activation.setUserId(userId);
-
-            // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
-            ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
-            activation.setServerPrivateKeyEncryption(serverPrivateKey.getKeyEncryptionMode());
-            activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
-
-            // A reference to saved ActivationRecordEntity is required when logging activation status change, otherwise issue #57 occurs on Oracle.
-            activation = activationRepository.save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
-
-            return activationId;
-        } catch (InvalidKeySpecException | InvalidKeyException ex) {
-            logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
