@@ -704,6 +704,7 @@ public class ActivationServiceBehavior {
             // Generate encrypted response
             PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
+            encryptedResponse.setUserId(activation.getUserId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
             return encryptedResponse;
