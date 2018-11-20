@@ -60,7 +60,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     ActivationRecordEntity findActivationWithoutLock(String activationId);
 
     /**
-     * Find count of activations with given activation ID.
+     * Get count of activations with given activation ID.
      *
      * @param activationId Activation ID
      * @return Activation with given ID or null if not found
@@ -107,8 +107,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     ActivationRecordEntity findCreatedActivationWithLock(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
-     * Find number of activations identified by an activation code associated with given application.
-     * Filter the results by activation state and make sure to apply activation time window.
+     * Get count of activations identified by an activation code associated with given application.
      *
      * <h5>PowerAuth protocol versions:</h5>
      * <ul>
@@ -117,12 +116,10 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      *
      * @param applicationId     Application ID
      * @param activationCode    Activation code
-     * @param states            Allowed activation states
-     * @param currentTimestamp  Current timestamp
      * @return Activation matching the search criteria or null if not found
      */
-    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
-    Long getCreatedActivationCount(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2")
+    Long getActivationCountByActivationCode(Long applicationId, String activationCode);
 
     /**
      * Find the first activation associated with given application by the activation ID short.
