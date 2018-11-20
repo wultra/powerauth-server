@@ -97,7 +97,7 @@ public class VaultUnlockServiceBehavior {
     public VaultUnlockResponse unlockVault(String activationId, boolean isSignatureValid, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         try {
             // Find related activation record
-            ActivationRecordEntity activation = powerAuthRepository.findActivation(activationId);
+            ActivationRecordEntity activation = powerAuthRepository.findActivationWithLock(activationId);
 
             if (activation != null && activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 

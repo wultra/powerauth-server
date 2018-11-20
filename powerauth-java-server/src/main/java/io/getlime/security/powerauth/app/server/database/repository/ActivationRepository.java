@@ -38,7 +38,7 @@ import java.util.List;
 public interface ActivationRepository extends CrudRepository<ActivationRecordEntity, String> {
 
     /**
-     * Find a first activation with given activation ID.
+     * Find the first activation with given activation ID.
      * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
      * (DB deadlock, invalid counter value in second transaction, etc.).
      *
@@ -47,7 +47,26 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
-    ActivationRecordEntity findActivation(String activationId);
+    ActivationRecordEntity findActivationWithLock(String activationId);
+
+    /**
+     * Find the first activation with given activation ID.
+     * The activation record is not locked in DB.
+     *
+     * @param activationId Activation ID
+     * @return Activation with given ID or null if not found
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    ActivationRecordEntity findActivationWithoutLock(String activationId);
+
+    /**
+     * Find count of activations with given activation ID.
+     *
+     * @param activationId Activation ID
+     * @return Activation with given ID or null if not found
+     */
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    Long getActivationCount(String activationId);
 
     /**
      * Find all activations for given user ID
@@ -67,7 +86,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     List<ActivationRecordEntity> findByApplicationIdAndUserId(Long applicationId, String userId);
 
     /**
-     * Find the first activation associated with given application by the activation code (or first half of it for version 2.0).
+     * Find the first activation associated with given application by the activation code.
      * Filter the results by activation state and make sure to apply activation time window.
      * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
      * (DB deadlock, invalid counter value in second transaction, etc.).
@@ -85,7 +104,25 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
-    ActivationRecordEntity findCreatedActivation(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+    ActivationRecordEntity findCreatedActivationWithLock(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+
+    /**
+     * Find number of activations identified by an activation code associated with given application.
+     * Filter the results by activation state and make sure to apply activation time window.
+     *
+     * <h5>PowerAuth protocol versions:</h5>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+     *
+     * @param applicationId     Application ID
+     * @param activationCode    Activation code
+     * @param states            Allowed activation states
+     * @param currentTimestamp  Current timestamp
+     * @return Activation matching the search criteria or null if not found
+     */
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    Long getCreatedActivationCount(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Find the first activation associated with given application by the activation ID short.
@@ -107,6 +144,6 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2% AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
-    ActivationRecordEntity findCreatedActivationWithShortId(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
+    ActivationRecordEntity findCreatedActivationByShortIdWithLock(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
 }

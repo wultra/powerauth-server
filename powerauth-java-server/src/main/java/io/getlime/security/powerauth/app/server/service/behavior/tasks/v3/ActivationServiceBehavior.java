@@ -149,8 +149,12 @@ public class ActivationServiceBehavior {
      * @param timestamp  Timestamp to check activations against.
      * @param activation Activation to check.
      */
-    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation) {
+    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) {
         if ((activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED) || activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+            if (!isActivationLocked) {
+                // Make sure activation is locked until the end of transaction in case it was not locked yet
+                activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
+            }
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             repositoryCatalogue.getActivationRepository().save(activation);
             activationHistoryServiceBehavior.logActivationStatusChange(activation);
@@ -226,7 +230,7 @@ public class ActivationServiceBehavior {
         if (activationsList != null) {
             for (ActivationRecordEntity activation : activationsList) {
 
-                deactivatePendingActivation(timestamp, activation);
+                deactivatePendingActivation(timestamp, activation, false);
 
                 // Map between database object and service objects
                 GetActivationListForUserResponse.Activations activationServiceItem = new GetActivationListForUserResponse.Activations();
@@ -266,13 +270,13 @@ public class ActivationServiceBehavior {
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
-            ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+            ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
 
             // Check if the activation exists
             if (activation != null) {
 
                 // Deactivate old pending activations first
-                deactivatePendingActivation(timestamp, activation);
+                deactivatePendingActivation(timestamp, activation, false);
 
                 // Handle CREATED activation
                 if (activation.getActivationStatus() == io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED) {
@@ -490,8 +494,8 @@ public class ActivationServiceBehavior {
             String activationId = null;
             for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationIdIterations(); i++) {
                 String tmpActivationId = powerAuthServerActivation.generateActivationId();
-                ActivationRecordEntity record = activationRepository.findActivation(tmpActivationId);
-                if (record == null) {
+                Long activationCount = activationRepository.getActivationCount(tmpActivationId);
+                if (activationCount == 0) {
                     activationId = tmpActivationId;
                     break;
                 } // ... else this activation ID has a collision, reset it and try to find another one
@@ -506,10 +510,9 @@ public class ActivationServiceBehavior {
             Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED);
             for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
                 String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
-                ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationCode, states, timestamp);
-                // this activation short ID has a collision, reset it and find
-                // another one
-                if (record == null) {
+                Long activationCount = activationRepository.getCreatedActivationCount(applicationId, tmpActivationCode, states, timestamp);
+                // Check that the temporary activation code is unique, otherwise generate a different code
+                if (activationCount == 0) {
                     activationCode = tmpActivationCode;
                     break;
                 }
@@ -650,11 +653,11 @@ public class ActivationServiceBehavior {
 
             // Fetch the current activation by activation code
             Set<ActivationStatus> states = ImmutableSet.of(ActivationStatus.CREATED);
-            ActivationRecordEntity activation = activationRepository.findCreatedActivation(application.getId(), activationCode, states, timestamp);
+            ActivationRecordEntity activation = activationRepository.findCreatedActivationWithLock(application.getId(), activationCode, states, timestamp);
 
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {
-                deactivatePendingActivation(timestamp, activation);
+                deactivatePendingActivation(timestamp, activation, true);
             }
 
             // Validate that the activation is in correct state for the prepare step
@@ -773,11 +776,11 @@ public class ActivationServiceBehavior {
             // Create an activation record and obtain the activation database record
             InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, keyConversionUtilities);
             String activationId = initResponse.getActivationId();
-            ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+            ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {
-                deactivatePendingActivation(timestamp, activation);
+                deactivatePendingActivation(timestamp, activation, true);
             }
 
             validateCreatedActivation(activation, application);
@@ -884,7 +887,7 @@ public class ActivationServiceBehavior {
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+        ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
         // Get current timestamp
         Date timestamp = new Date();
@@ -893,7 +896,7 @@ public class ActivationServiceBehavior {
         if (activation != null) {
 
             // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation);
+            deactivatePendingActivation(timestamp, activation, true);
             if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED)) {
                 logger.info("Activation is already REMOVED, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
@@ -930,7 +933,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist
      */
     public RemoveActivationResponse removeActivation(String activationId) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             repositoryCatalogue.getActivationRepository().save(activation);
@@ -955,7 +958,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public BlockActivationResponse blockActivation(String activationId, String reason) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation does not exist, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -989,7 +992,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public UnblockActivationResponse unblockActivation(String activationId) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation does not exist, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);

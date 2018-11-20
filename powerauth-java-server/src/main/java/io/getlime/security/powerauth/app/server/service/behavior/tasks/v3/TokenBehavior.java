@@ -137,7 +137,7 @@ public class TokenBehavior {
     private EciesCryptogram createToken(String activationId, String applicationKey, EciesCryptogram cryptogram, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
