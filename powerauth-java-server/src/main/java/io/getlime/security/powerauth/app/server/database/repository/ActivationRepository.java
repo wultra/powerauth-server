@@ -63,7 +63,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * Get count of activations with given activation ID.
      *
      * @param activationId Activation ID
-     * @return Activation with given ID or null if not found
+     * @return Count of activations with given activation ID
      */
     @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.activationId = ?1")
     Long getActivationCount(String activationId);
