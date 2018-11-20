@@ -517,7 +517,7 @@ public class ActivationServiceBehavior {
                 }
             }
             if (activationCode == null) {
-                logger.error("Unable to generate short activation ID");
+                logger.error("Unable to generate activation code");
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
             }
 
