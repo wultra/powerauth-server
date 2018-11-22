@@ -106,11 +106,6 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     /**
      * Get count of activations identified by an activation code associated with given application.
      *
-     * <h5>PowerAuth protocol versions:</h5>
-     * <ul>
-     *     <li>3.0</li>
-     * </ul>
-     *
      * @param applicationId     Application ID
      * @param activationCode    Activation code
      * @return Count of activations matching the search criteria

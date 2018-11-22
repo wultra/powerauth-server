@@ -221,7 +221,7 @@ public class ActivationServiceBehavior {
 
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {
-                // Search for activation again to aquire single PESSIMISTIC_WRITE lock for activation row
+                // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
                 activation = activationRepository.findActivationWithLock(activation.getActivationId());
                 deactivatePendingActivation(timestamp, activation);
             }
