@@ -6,7 +6,7 @@ CREATE TABLE `pa_application` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE `pa_application_version` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
@@ -19,7 +19,7 @@ CREATE TABLE `pa_application_version` (
   KEY `KEY_APPLICATION_ID` (`application_id`),
   KEY `KEY_APPLICATION_KEY` (`application_key`),
   CONSTRAINT `FK_APPLICATION_VERSION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create table for application related master keypair
@@ -35,7 +35,7 @@ CREATE TABLE `pa_master_keypair` (
   PRIMARY KEY (`id`),
   KEY `FK_APPLICATION_KEYPAIR_idx` (`application_id`),
   CONSTRAINT `FK_APPLICATION_KEYPAIR` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create table for activation records
@@ -66,7 +66,7 @@ CREATE TABLE `pa_activation` (
   PRIMARY KEY (`activation_id`),
   KEY `FK_ACTIVATION_APPLICATION_idx` (`application_id`),
   CONSTRAINT `FK_ACTIVATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create a table for signature audits
@@ -89,7 +89,7 @@ CREATE TABLE `pa_signature_audit` (
   PRIMARY KEY (`id`),
   KEY `K_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create a table for integration credentials
@@ -101,7 +101,7 @@ CREATE TABLE `pa_integration` (
   `client_token` varchar(37) DEFAULT NULL,
   `client_secret` varchar(37) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create a table for callback URLs
@@ -113,7 +113,7 @@ CREATE TABLE `pa_application_callback` (
   `name` varchar(255) DEFAULT NULL,
   `callback_url` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create a table for tokens
@@ -128,7 +128,7 @@ CREATE TABLE pa_token (
   PRIMARY KEY (`token_id`),
   KEY `K_TOKEN_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_TOKEN_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create table for activation changes
@@ -142,4 +142,4 @@ CREATE TABLE `pa_activation_history` (
   PRIMARY KEY (`id`),
   KEY `K_HISTORY_ACTIVATION_ID` (`activation_id`),
   CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
