@@ -452,8 +452,8 @@ public class ActivationServiceBehavior {
             // Generate timestamp in advance
             Date timestamp = new Date();
 
-            if (userId == null) {
-                logger.warn("User ID not specified");
+            if (userId == null || userId.isEmpty() || userId.length() > 255) {
+                logger.warn("User ID not specified or invalid");
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_USER_ID);
             }
 
@@ -518,7 +518,7 @@ public class ActivationServiceBehavior {
             }
             if (activationCode == null) {
                 logger.error("Unable to generate activation code");
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
+                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
 
