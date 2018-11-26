@@ -507,7 +507,7 @@ public class ActivationServiceBehavior {
 
             // Generate a unique activation code
             String activationCode = null;
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
+            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
                 String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
                 Long activationCount = activationRepository.getActivationCountByActivationCode(applicationId, tmpActivationCode);
                 // Check that the temporary activation code is unique, otherwise generate a different code
