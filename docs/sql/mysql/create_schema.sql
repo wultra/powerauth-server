@@ -107,7 +107,8 @@ CREATE TABLE `pa_application_callback` (
   `application_id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `callback_url` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  CONSTRAINT `FK_APPLICATION_CALLBACK` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -138,7 +139,7 @@ CREATE TABLE `pa_activation_history` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8;
 
 ---
---- Indexes for better performance
+--- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
 ---
 
 CREATE INDEX PA_ACTIVATION_CODE ON PA_ACTIVATION(ACTIVATION_CODE);
