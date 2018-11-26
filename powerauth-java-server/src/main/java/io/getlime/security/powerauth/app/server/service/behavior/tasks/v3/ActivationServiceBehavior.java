@@ -448,8 +448,8 @@ public class ActivationServiceBehavior {
             // Generate timestamp in advance
             Date timestamp = new Date();
 
-            if (userId == null) {
-                logger.warn("User ID not specified");
+            if (userId == null || userId.isEmpty() || userId.length() > 255) {
+                logger.warn("User ID not specified or invalid");
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_USER_ID);
             }
 
