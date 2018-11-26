@@ -61,9 +61,9 @@ public class ServiceError {
     public static final String UNABLE_TO_GENERATE_ACTIVATION_ID = "ERR0005";
 
     /**
-     * Too many failed attempts to generate short activation ID.
+     * Too many failed attempts to generate activation code.
      */
-    public static final String UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID = "ERR0006";
+    public static final String UNABLE_TO_GENERATE_ACTIVATION_CODE = "ERR0006";
 
     /**
      * This activation is already expired.
@@ -165,7 +165,7 @@ public class ServiceError {
         list.add(NO_MASTER_SERVER_KEYPAIR);
         list.add(INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         list.add(UNABLE_TO_GENERATE_ACTIVATION_ID);
-        list.add(UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
+        list.add(UNABLE_TO_GENERATE_ACTIVATION_CODE);
         list.add(ACTIVATION_EXPIRED);
         list.add(ACTIVATION_INCORRECT_STATE);
         list.add(ACTIVATION_NOT_FOUND);

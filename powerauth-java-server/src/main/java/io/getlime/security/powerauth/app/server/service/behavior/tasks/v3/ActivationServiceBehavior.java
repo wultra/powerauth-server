@@ -501,22 +501,21 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
             }
 
-            // Generate a unique short activation ID for created and OTP used states
+            // Generate a unique activation code for created and OTP used states
             String activationCode = null;
             Set<io.getlime.security.powerauth.app.server.database.model.ActivationStatus> states = ImmutableSet.of(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED, io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED);
-            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationShortIdIterations(); i++) {
+            for (int i = 0; i < powerAuthServiceConfiguration.getActivationGenerateActivationCodeIterations(); i++) {
                 String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
                 ActivationRecordEntity record = activationRepository.findCreatedActivation(applicationId, tmpActivationCode, states, timestamp);
-                // this activation short ID has a collision, reset it and find
-                // another one
+                // Check that the temporary activation code is unique, otherwise generate a different code
                 if (record == null) {
                     activationCode = tmpActivationCode;
                     break;
                 }
             }
             if (activationCode == null) {
-                logger.error("Unable to generate short activation ID");
-                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
+                logger.error("Unable to generate activation code");
+                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
 
