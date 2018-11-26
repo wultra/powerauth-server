@@ -182,7 +182,7 @@ public class EciesEncryptionBehavior {
 
         try {
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(request.getActivationId());
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(request.getActivationId());
             if (activation == null) {
                 logger.info("Activation does not exist, activation ID: {}", request.getActivationId());
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);

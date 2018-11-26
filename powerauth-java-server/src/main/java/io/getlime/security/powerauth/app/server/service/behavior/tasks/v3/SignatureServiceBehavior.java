@@ -235,7 +235,7 @@ public class SignatureServiceBehavior {
         Date currentTimestamp = new Date();
 
         // Fetch related activation
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
 
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
@@ -545,7 +545,7 @@ public class SignatureServiceBehavior {
 
         // Fetch activation details from the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);

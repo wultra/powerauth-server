@@ -25,6 +25,7 @@ import java.util.Calendar;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
+@Ignore("The test requires running MySQL database.")
 public class VerifySignatureConcurrencyTest {
 
     private PowerAuthService powerAuthService;
@@ -34,7 +35,6 @@ public class VerifySignatureConcurrencyTest {
         this.powerAuthService = powerAuthService;
     }
 
-    @Ignore("The test requires running MySQL database.")
     @Test
     public void testVerifySignatureConcurrent() throws Exception {
 

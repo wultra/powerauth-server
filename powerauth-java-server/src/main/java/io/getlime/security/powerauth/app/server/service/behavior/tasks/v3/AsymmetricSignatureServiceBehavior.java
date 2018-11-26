@@ -70,7 +70,7 @@ public class AsymmetricSignatureServiceBehavior {
      */
     public boolean verifyECDSASignature(String activationId, String data, String signature, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
                 return false;

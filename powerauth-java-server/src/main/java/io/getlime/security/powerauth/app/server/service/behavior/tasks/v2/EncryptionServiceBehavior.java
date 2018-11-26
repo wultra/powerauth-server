@@ -103,7 +103,7 @@ public class EncryptionServiceBehavior {
     public GetPersonalizedEncryptionKeyResponse generateEncryptionKeyForActivation(String activationId, String sessionIndex, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         try {
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-            final ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
 
             // If there is no such activation or activation is not active, return error
             if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {

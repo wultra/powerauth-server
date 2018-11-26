@@ -216,10 +216,13 @@ public class ActivationServiceBehavior {
 
             // Fetch the current activation by short activation ID
             Set<ActivationStatus> states = ImmutableSet.of(ActivationStatus.CREATED);
-            ActivationRecordEntity activation = activationRepository.findCreatedActivationWithShortId(application.getId(), activationIdShort, states, timestamp);
+            // Search for activation without lock to avoid potential deadlocks
+            ActivationRecordEntity activation = activationRepository.findCreatedActivationByShortIdWithoutLock(application.getId(), activationIdShort, states, timestamp);
 
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {
+                // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
+                activation = activationRepository.findActivationWithLock(activation.getActivationId());
                 deactivatePendingActivation(timestamp, activation);
             }
 
@@ -381,7 +384,7 @@ public class ActivationServiceBehavior {
             // Create an activation record and obtain the activation database record
             InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
             String activationId = initResponse.getActivationId();
-            ActivationRecordEntity activation = activationRepository.findActivation(activationId);
+            ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {

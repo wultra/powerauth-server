@@ -109,7 +109,7 @@ public class UpgradeServiceBehavior {
         final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
 
         // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -220,7 +220,7 @@ public class UpgradeServiceBehavior {
         }
 
         // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
