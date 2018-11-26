@@ -123,7 +123,7 @@ public class VaultUnlockServiceBehavior {
             throws GenericServiceException {
         try {
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivation(activationId);
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
 
             // Check if the activation is in correct state
             if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
