@@ -104,14 +104,18 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     ActivationRecordEntity findCreatedActivationWithoutLock(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
-     * Get count of activations identified by an activation code associated with given application.
+     * Get count of activations identified by an activation short ID associated with given application.
+     *
+     * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
+     * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
+     * supported.
      *
      * @param applicationId     Application ID
-     * @param activationCode    Activation code
+     * @param activationIdShort Activation ID short
      * @return Count of activations matching the search criteria
      */
-    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2")
-    Long getActivationCountByActivationCode(Long applicationId, String activationCode);
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2%")
+    Long getActivationCountByActivationIdShort(Long applicationId, String activationIdShort);
 
     /**
      * Find the first activation associated with given application by the activation ID short.
