@@ -511,7 +511,7 @@ public class ActivationServiceBehavior {
                 String tmpActivationCode = powerAuthServerActivation.generateActivationCode();
                 String tmpActivationShortId = tmpActivationCode.substring(0, 11);
                 Long activationCount = activationRepository.getActivationCountByActivationIdShort(applicationId, tmpActivationShortId);
-                // Check that the temporary activation code is unique, otherwise generate a different code
+                // Check that the temporary short activation ID is unique, otherwise generate a different activation code
                 if (activationCount == 0) {
                     activationCode = tmpActivationCode;
                     break;
