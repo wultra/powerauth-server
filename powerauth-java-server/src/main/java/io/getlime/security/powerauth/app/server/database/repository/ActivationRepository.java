@@ -110,12 +110,32 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
      * supported.
      *
+     * This method will be removed when crypto version 2.0 is deprecated.
+     *
      * @param applicationId     Application ID
      * @param activationIdShort Activation ID short
      * @return Count of activations matching the search criteria
      */
     @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2%")
     Long getActivationCountByActivationIdShort(Long applicationId, String activationIdShort);
+
+    /**
+     * Get count of activations identified by an activation code associated with given application.
+     *
+     * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
+     * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
+     * supported.
+     *
+     * @param applicationId  Application ID
+     * @param activationCode Activation code
+     * @return Count of activations matching the search criteria
+     */
+    default Long getActivationCountByActivationCode(Long applicationId, String activationCode) {
+        if (activationCode == null || activationCode.length() != 23) {
+            throw new IllegalArgumentException("Invalid activation code: " + activationCode);
+        }
+        return getActivationCountByActivationIdShort(applicationId, activationCode.substring(0, 11));
+    }
 
     /**
      * Find the first activation associated with given application by the activation ID short.
