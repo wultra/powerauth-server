@@ -26,7 +26,6 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
-import io.getlime.security.powerauth.app.server.service.behavior.util.KeyDerivationUtil;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -37,6 +36,7 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.GetEciesDecryptorRequest;
@@ -46,9 +46,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 
@@ -71,7 +73,7 @@ public class EciesEncryptionBehavior {
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
-    private final KeyDerivationUtil keyDerivationUtil = new KeyDerivationUtil();
+    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final CryptoProviderUtil keyConvertor = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
 
     // Prepare logger
@@ -100,7 +102,7 @@ public class EciesEncryptionBehavior {
             return getEciesDecryptorParametersForApplication(request);
         } else {
             // Activation scope
-            return getEciesDecryptorParametersForActivation(request);
+            return getEciesDecryptorParametersForActivation(request, keyConvertor);
         }
     }
 
@@ -174,7 +176,7 @@ public class EciesEncryptionBehavior {
      * @return ECIES decryptor parameters for activation scope.
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
-    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request) throws GenericServiceException {
+    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             logger.warn("Invalid request for ECIES decryptor");
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
@@ -211,16 +213,18 @@ public class EciesEncryptionBehavior {
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
             final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
-            final byte[] serverPrivateKey = BaseEncoding.base64().decode(serverPrivateKeyBase64);
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKey);
+            final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            final byte[] devicePublicKey = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
-            final byte[] transportKey = keyDerivationUtil.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
             // Get decryptor for the activation
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) privateKey, applicationSecret, transportKey, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC);
 
             // Initialize decryptor with ephemeral public key
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
