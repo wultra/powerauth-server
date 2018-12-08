@@ -68,7 +68,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
             "    \n" +
             "    IF @res NOT IN (0, 1)\n" +
             "    BEGIN\n" +
-            "        RAISERROR ('Unable to acquire lock, error %d, transaction count %d', 16, 1, @res, @@trancount )\n" +
+            "        RAISERROR ('Unable to acquire lock, error %d, transaction count %d', 16, 1, @res, @@trancount)\n" +
             "    END \n" +
             "    ELSE\n" +
             "    BEGIN\n" +
