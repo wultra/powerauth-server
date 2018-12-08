@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.service.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -69,6 +70,7 @@ public class UpgradeServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ActivationQueryService activationQueryService;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
@@ -80,10 +82,11 @@ public class UpgradeServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
 
     @Autowired
-    public UpgradeServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    public UpgradeServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationQueryService activationQueryService) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.activationQueryService = activationQueryService;
     }
 
     /**
@@ -111,7 +114,7 @@ public class UpgradeServiceBehavior {
         final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
 
         // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -224,7 +227,7 @@ public class UpgradeServiceBehavior {
         }
 
         // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);

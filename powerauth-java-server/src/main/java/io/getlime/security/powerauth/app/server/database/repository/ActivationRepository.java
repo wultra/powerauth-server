@@ -50,6 +50,33 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     ActivationRecordEntity findActivationWithLock(String activationId);
 
     /**
+     * Find activation with given activation ID. This method is MSSQL-specific.
+     * The activation is locked using stored procedure sp_getapplock in exclusive mode.
+     * The lock is released automatically at the end of the transaction. The stored procedure
+     * raises an error in case the lock could not be created.
+     *
+     * @param activationId Activation ID
+     * @return Activation with given ID or null if not found
+     */
+    @Query(value = "DECLARE @res INT\n" +
+            "    EXEC @res = sp_getapplock \n" +
+            "                @Resource = ?1,\n" +
+            "                @LockMode = 'Exclusive',\n" +
+            "                @LockOwner = 'Transaction',\n" +
+            "                @LockTimeout = 60000,\n" +
+            "                @DbPrincipal = 'public'\n" +
+            "    \n" +
+            "    IF @res NOT IN (0, 1)\n" +
+            "    BEGIN\n" +
+            "        RAISERROR ('Unable to acquire lock, error %d, transaction count %d', 16, 1, @res, @@trancount )\n" +
+            "    END \n" +
+            "    ELSE\n" +
+            "    BEGIN\n" +
+            "        select * from pa_activation where activation_id = ?1\n" +
+            "    END\n", nativeQuery = true)
+    ActivationRecordEntity findActivationWithLockMSSQL(String activationId);
+
+    /**
      * Find the first activation with given activation ID.
      * The activation record is not locked in DB.
      *

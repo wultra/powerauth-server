@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
+import io.getlime.security.powerauth.app.server.service.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -86,6 +87,8 @@ public class SignatureServiceBehavior {
 
     private LocalizationProvider localizationProvider;
 
+    private ActivationQueryService activationQueryService;
+
     // Prepare converters
     private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -119,6 +122,11 @@ public class SignatureServiceBehavior {
     @Autowired
     public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
+    @Autowired
+    public void setActivationQueryService(ActivationQueryService activationQueryService) {
+        this.activationQueryService = activationQueryService;
     }
 
     private final PowerAuthServerSignature powerAuthServerSignature = new PowerAuthServerSignature();
@@ -235,7 +243,7 @@ public class SignatureServiceBehavior {
         Date currentTimestamp = new Date();
 
         // Fetch related activation
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId);
 
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {

@@ -28,6 +28,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
+import io.getlime.security.powerauth.app.server.service.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.ActivationHistoryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.CallbackUrlBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -84,6 +85,8 @@ public class ActivationServiceBehavior {
 
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
+    private ActivationQueryService activationQueryService;
+
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
@@ -116,6 +119,11 @@ public class ActivationServiceBehavior {
     @Autowired
     public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
+    @Autowired
+    public void setActivationQueryService(ActivationQueryService activationQueryService) {
+        this.activationQueryService = activationQueryService;
     }
 
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
@@ -222,7 +230,7 @@ public class ActivationServiceBehavior {
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {
                 // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
-                activation = activationRepository.findActivationWithLock(activation.getActivationId());
+                activation = activationQueryService.findActivationForUpdate(activation.getActivationId());
                 deactivatePendingActivation(timestamp, activation);
             }
 
@@ -384,7 +392,7 @@ public class ActivationServiceBehavior {
             // Create an activation record and obtain the activation database record
             InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
             String activationId = initResponse.getActivationId();
-            ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+            ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId);
 
             // Make sure to deactivate the activation if it is expired
             if (activation != null) {

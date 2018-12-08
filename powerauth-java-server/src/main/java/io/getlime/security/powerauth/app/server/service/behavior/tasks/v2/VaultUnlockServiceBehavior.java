@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.service.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -61,6 +62,7 @@ public class VaultUnlockServiceBehavior {
 
     private final ActivationRepository powerAuthRepository;
     private final LocalizationProvider localizationProvider;
+    private ActivationQueryService activationQueryService;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
@@ -82,6 +84,11 @@ public class VaultUnlockServiceBehavior {
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
+    @Autowired
+    public void setActivationQueryService(ActivationQueryService activationQueryService) {
+        this.activationQueryService = activationQueryService;
+    }
+
     /**
      * Method to retrieve the vault unlock key. Before calling this method, it is assumed that
      * client application performs signature validation - this method should not be called unauthenticated.
@@ -97,7 +104,7 @@ public class VaultUnlockServiceBehavior {
     public VaultUnlockResponse unlockVault(String activationId, boolean isSignatureValid, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
         try {
             // Find related activation record
-            ActivationRecordEntity activation = powerAuthRepository.findActivationWithLock(activationId);
+            ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId);;
 
             if (activation != null && activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
