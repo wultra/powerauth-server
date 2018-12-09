@@ -610,7 +610,6 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException If invalid values are provided.
      */
     public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram) throws GenericServiceException {
-        String activationId = null;
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -669,7 +668,6 @@ public class ActivationServiceBehavior {
             if (activation != null) {
                 // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
                 activation = activationQueryService.findActivationForUpdate(activation.getActivationId());
-                activationId = activation.getActivationId();
                 deactivatePendingActivation(timestamp, activation, true);
             }
 
