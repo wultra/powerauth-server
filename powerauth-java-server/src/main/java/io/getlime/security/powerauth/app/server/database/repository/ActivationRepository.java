@@ -52,8 +52,10 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     /**
      * Find activation with given activation ID. This method is MSSQL-specific.
      * The activation is locked using stored procedure sp_getapplock in exclusive mode.
-     * The lock is released automatically at the end of the transaction. The stored procedure
-     * raises an error in case the lock could not be acquired.
+     * The lock is released automatically at the end of the transaction. Transaction isolation
+     * level READ COMMITTED is used because the lock is pessimistic, optimistic locking would
+     * cause an UPDATE conflict error. The stored procedure raises an error in case the lock
+     * could not be acquired.
      *
      * @param activationId Activation ID
      * @return Activation with given ID or null if not found
