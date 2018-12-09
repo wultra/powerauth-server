@@ -61,7 +61,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation with given ID or null if not found
      */
     @Query(value = "DECLARE @res INT\n" +
-            "    SET TRANSACTION ISOLATION LEVEL READ COMMITTED" +
+            "    SET TRANSACTION ISOLATION LEVEL READ COMMITTED\n" +
             "    EXEC @res = sp_getapplock \n" +
             "                @Resource = ?1,\n" +
             "                @LockMode = 'Exclusive',\n" +
