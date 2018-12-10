@@ -164,7 +164,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetActivationListForUserRequest")
     @ResponsePayload
-    public GetActivationListForUserResponse getActivatioListForUser(@RequestPayload GetActivationListForUserRequest request) throws Exception {
+    public GetActivationListForUserResponse getActivationListForUser(@RequestPayload GetActivationListForUserRequest request) throws Exception {
         return powerAuthService.getActivationListForUser(request);
     }
 
@@ -248,7 +248,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "VerifyECDSASignatureRequest")
     @ResponsePayload
-    public VerifyECDSASignatureResponse verifySignature(@RequestPayload VerifyECDSASignatureRequest request) throws Exception {
+    public VerifyECDSASignatureResponse verifyECDSASignature(@RequestPayload VerifyECDSASignatureRequest request) throws Exception {
         return powerAuthService.verifyECDSASignature(request);
     }
 
@@ -485,7 +485,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveCallbackUrlRequest")
     @ResponsePayload
-    public RemoveCallbackUrlResponse removeIntegration(@RequestPayload RemoveCallbackUrlRequest request) throws Exception {
+    public RemoveCallbackUrlResponse removeCallbackUrl(@RequestPayload RemoveCallbackUrlRequest request) throws Exception {
         return powerAuthService.removeCallbackUrl(request);
     }
 

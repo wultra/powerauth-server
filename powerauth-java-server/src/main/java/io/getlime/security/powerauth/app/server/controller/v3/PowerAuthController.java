@@ -156,7 +156,7 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetActivationListForUserResponse> getActivatioListForUser(@RequestBody RESTRequestWrapper<GetActivationListForUserRequest> request) throws Exception {
+    public RESTResponseWrapper<GetActivationListForUserResponse> getActivationListForUser(@RequestBody RESTRequestWrapper<GetActivationListForUserRequest> request) throws Exception {
         return new RESTResponseWrapper<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
     }
 
@@ -495,6 +495,19 @@ public class PowerAuthController {
     @RequestMapping(value = "/token/remove", method = RequestMethod.POST)
     public RESTResponseWrapper<RemoveTokenResponse> removeToken(@RequestBody RESTRequestWrapper<RemoveTokenRequest> request) throws Exception {
         return new RESTResponseWrapper<>("OK", powerAuthService.removeToken(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#getEciesDecryptor(GetEciesDecryptorRequest)} method and
+     * return the response.
+     *
+     * @param request Get ECIES decryptor parameters for given request.
+     * @return Response with ECIES decryptor parameters.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/ecies/decryptor", method = RequestMethod.POST)
+    public RESTResponseWrapper<GetEciesDecryptorResponse> getEciesDecryptor(@RequestBody RESTRequestWrapper<GetEciesDecryptorRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.getEciesDecryptor(request.getRequestObject()));
     }
 
     /**
