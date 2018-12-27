@@ -477,10 +477,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
             logger.info("VaultUnlockRequest received, activation ID: {}", activationId);
 
-            // Reject 1FA signatures
-            if (signatureType.equals(SignatureType.BIOMETRY)
-                    || signatureType.equals(SignatureType.KNOWLEDGE)
-                    || signatureType.equals(SignatureType.POSSESSION)) {
+            // The only allowed signature type is POSESSION_KNOWLEDGE to prevent attacks with weaker signature types
+            if (!signatureType.equals(SignatureType.POSSESSION_KNOWLEDGE)) {
                 logger.warn("Invalid signature type: {}", signatureType);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
             }
