@@ -96,7 +96,7 @@ public class TokenBehavior {
     /**
      * Method that creates a new token provided activation.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>

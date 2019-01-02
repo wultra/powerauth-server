@@ -24,7 +24,7 @@ import io.getlime.security.powerauth.v3.VerifySignatureRequest;
  * Interface containing all methods that are published by the PowerAuth Server
  * instance. These methods are then used to publish both SOAP and REST interface.
  *
- * <h5>PowerAuth protocol versions:</h5>
+ * <p><b>PowerAuth protocol versions:</b>
  * <ul>
  *     <li>2.0</li>
  *     <li>2.1</li>

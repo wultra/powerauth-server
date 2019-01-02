@@ -589,7 +589,7 @@ public class ActivationServiceBehavior {
     /**
      * Prepare activation with given parameters.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>
@@ -731,7 +731,7 @@ public class ActivationServiceBehavior {
     /**
      * Create activation with given parameters.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>

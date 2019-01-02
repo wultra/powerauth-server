@@ -77,7 +77,7 @@ public interface PowerAuthService {
      * Receive a PowerAuth 3.0 Client public key and return own PowerAuth 3.0 Server public key. The
      * activation with provided ID is in OTP_USED state after calling this method.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>
@@ -96,7 +96,7 @@ public interface PowerAuthService {
      * Note: This method should be used in case of activation performed directly, without the external
      * master front end application.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>
@@ -199,7 +199,7 @@ public interface PowerAuthService {
      * {@link PowerAuthService#verifySignature(VerifySignatureRequest)} method. For vaultUnlock, however,
      * counter is incremented by 2 - one for signature validation, second for the transport key derivation.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>
@@ -353,7 +353,7 @@ public interface PowerAuthService {
     /**
      * Creates a new token for simple token-based device authentication.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>

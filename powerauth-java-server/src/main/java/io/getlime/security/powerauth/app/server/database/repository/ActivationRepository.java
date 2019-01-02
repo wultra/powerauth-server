@@ -89,7 +89,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * Find the first activation associated with given application by the activation code.
      * Filter the results by activation state and make sure to apply activation time window.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
      * </ul>
@@ -141,7 +141,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * Find the first activation associated with given application by the activation ID short.
      * Filter the results by activation state and make sure to apply activation time window.
      *
-     * <h5>PowerAuth protocol versions:</h5>
+     * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>2.0</li>
      *     <li>2.1</li>
