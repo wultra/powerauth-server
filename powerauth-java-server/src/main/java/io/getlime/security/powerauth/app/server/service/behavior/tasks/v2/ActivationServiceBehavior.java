@@ -59,7 +59,7 @@ import java.util.Set;
  * Behavior class implementing processes related with activations. Used to move the
  * implementation outside of the main service implementation.
  *
- * <h5>PowerAuth protocol versions:</h5>
+ * <p><b>PowerAuth protocol versions:</b>
  * <ul>
  *     <li>2.0</li>
  *     <li>2.1</li>

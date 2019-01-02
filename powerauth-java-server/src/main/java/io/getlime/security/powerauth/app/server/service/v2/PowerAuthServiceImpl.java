@@ -39,7 +39,7 @@ import java.util.Date;
  * The implementation of this service is divided into "behaviors"
  * responsible for individual processes.
  *
- * <h5>PowerAuth protocol versions:</h5>
+ * <p><b>PowerAuth protocol versions:</b>
  * <ul>
  *     <li>2.0</li>
  *     <li>2.1</li>
