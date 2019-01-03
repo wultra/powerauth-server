@@ -283,7 +283,7 @@ public class ActivationServiceBehavior {
 
                     // Created activations are not able to transfer valid status blob to the client
                     // since both keys were not exchanged yet and transport cannot be secured.
-                    byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(16);
+                    byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(32);
 
                     // Activation signature
                     MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(activation.getApplication().getId());
@@ -333,7 +333,7 @@ public class ActivationServiceBehavior {
                     // If an activation was turned to REMOVED directly from CREATED state,
                     // there is not device public key in the database - we need to handle
                     // that case by defaulting the C_statusBlob to random value...
-                    byte[] C_statusBlob = new KeyGenerator().generateRandomBytes(16);
+                    byte[] C_statusBlob = new KeyGenerator().generateRandomBytes(32);
 
                     // Prepare a value for the device public key fingerprint
                     String activationFingerPrint = null;
@@ -349,6 +349,16 @@ public class ActivationServiceBehavior {
                         SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
                         SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
+                        String ctrDataBase64 = activation.getCtrDataBase64();
+                        byte[] ctrDataForStatusBlob;
+                        if (ctrDataBase64 != null) {
+                            // In crypto v3 counter data is stored with activation
+                            ctrDataForStatusBlob = BaseEncoding.base64().decode(ctrDataBase64);
+                        } else {
+                            // In crypto v2 counter data is not present, generate random bytes
+                            ctrDataForStatusBlob = new KeyGenerator().generateRandomBytes(16);
+                        }
+
                         // Encrypt the status blob
                         C_statusBlob = powerAuthServerActivation.encryptedStatusBlob(
                                 activation.getActivationStatus().getByte(),
@@ -356,6 +366,7 @@ public class ActivationServiceBehavior {
                                 POWERAUTH_PROTOCOL_VERSION,
                                 activation.getFailedAttempts().byteValue(),
                                 activation.getMaxFailedAttempts().byteValue(),
+                                ctrDataForStatusBlob,
                                 transportKey
                         );
 
@@ -400,7 +411,7 @@ public class ActivationServiceBehavior {
 
                 // Activations that do not exist should return REMOVED state and
                 // a random status blob
-                byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(16);
+                byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(32);
 
                 // Generate date
                 XMLGregorianCalendar zeroDate = XMLGregorianCalendarConverter.convertFrom(new Date(0));
