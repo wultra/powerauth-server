@@ -229,7 +229,7 @@ public class PowerAuthServiceConfiguration {
      * @param activationGenerateActivationCodeIterations Retry iteration count (10, by default).
      */
     public void setActivationGenerateActivationCodeIterations(int activationGenerateActivationCodeIterations) {
-        this.activationGenerateActivationCodeIterations = this.activationGenerateActivationCodeIterations;
+        this.activationGenerateActivationCodeIterations = activationGenerateActivationCodeIterations;
     }
 
     /**
