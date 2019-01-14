@@ -156,7 +156,6 @@ public class ActivationServiceBehavior {
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
             }
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
@@ -171,7 +170,6 @@ public class ActivationServiceBehavior {
      */
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
-        // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
@@ -576,7 +574,6 @@ public class ActivationServiceBehavior {
             activation.setServerPrivateKeyEncryption(serverPrivateKey.getKeyEncryptionMode());
             activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
 
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
@@ -705,7 +702,6 @@ public class ActivationServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
@@ -855,7 +851,6 @@ public class ActivationServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
@@ -922,7 +917,6 @@ public class ActivationServiceBehavior {
             // Activation is in correct state
             if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) {
                 activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
-                // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
@@ -953,7 +947,6 @@ public class ActivationServiceBehavior {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
@@ -990,7 +983,6 @@ public class ActivationServiceBehavior {
             } else {
                 activation.setBlockedReason(reason);
             }
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
@@ -1022,7 +1014,6 @@ public class ActivationServiceBehavior {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }

@@ -450,7 +450,6 @@ public class SignatureServiceBehavior {
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
-                // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
                 KeyValueMap.Entry entry = new KeyValueMap.Entry();
@@ -519,7 +518,6 @@ public class SignatureServiceBehavior {
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();

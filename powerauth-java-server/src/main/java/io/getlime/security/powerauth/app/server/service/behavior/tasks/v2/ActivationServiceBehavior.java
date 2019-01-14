@@ -130,7 +130,6 @@ public class ActivationServiceBehavior {
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation) {
         if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             activation.setActivationStatus(ActivationStatus.REMOVED);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
@@ -145,7 +144,6 @@ public class ActivationServiceBehavior {
      */
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
-        // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
@@ -283,7 +281,6 @@ public class ActivationServiceBehavior {
             // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version in activation status
             activation.setVersion(2);
             // Counter data is null, numeric counter is used in this version
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
@@ -446,7 +443,6 @@ public class ActivationServiceBehavior {
             activation.setVersion(2);
             // Hash based counter is not used in this version
             activation.setCtrDataBase64(null);
-            // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 

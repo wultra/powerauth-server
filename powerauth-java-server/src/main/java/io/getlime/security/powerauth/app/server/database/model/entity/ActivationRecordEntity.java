@@ -23,7 +23,9 @@ import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -108,6 +110,10 @@ public class ActivationRecordEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "master_keypair_id", referencedColumnName = "id", nullable = false)
     private MasterKeyPairEntity masterKeyPair;
+
+    @OneToMany(mappedBy = "activation", cascade = CascadeType.ALL)
+    @OrderBy("timestamp_created")
+    private List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
     /**
      * Default constructor.
@@ -581,6 +587,14 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setMasterKeyPair(MasterKeyPairEntity masterKeyPair) {
         this.masterKeyPair = masterKeyPair;
+    }
+
+    /**
+     * Get activation history.
+     * @return Activation history.
+     */
+    public List<ActivationHistoryEntity> getActivationHistory() {
+        return activationHistory;
     }
 
     @Override

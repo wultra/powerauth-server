@@ -64,8 +64,9 @@ public class ActivationHistoryServiceBehavior {
         activationHistoryEntity.setActivation(activation);
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
         activationHistoryEntity.setTimestampCreated(changeTimestamp);
-        // Activation is persisted together with activation history using Cascade.PERSIST on ActivationHistoryEntity
-        activationHistoryRepository.save(activationHistoryEntity);
+        activation.getActivationHistory().add(activationHistoryEntity);
+        // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
+        activationRepository.save(activation);
     }
 
     /**
