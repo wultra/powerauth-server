@@ -40,7 +40,7 @@ public class ActivationHistoryEntity implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.PERSIST)
     @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
     private ActivationRecordEntity activation;
 
