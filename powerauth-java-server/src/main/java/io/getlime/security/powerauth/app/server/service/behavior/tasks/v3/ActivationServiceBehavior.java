@@ -241,6 +241,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExtras(activation.getExtras());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 activationServiceItem.setApplicationName(activation.getApplication().getName());
@@ -309,6 +310,7 @@ public class ActivationServiceBehavior {
                     response.setApplicationId(activation.getApplication().getId());
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                    response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                     response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
                     response.setActivationCode(activation.getActivationCode());
                     response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
@@ -398,6 +400,7 @@ public class ActivationServiceBehavior {
                     response.setApplicationId(activation.getApplication().getId());
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                    response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                     response.setEncryptedStatusBlob(BaseEncoding.base64().encode(C_statusBlob));
                     response.setActivationCode(null);
                     response.setActivationSignature(null);
@@ -427,6 +430,7 @@ public class ActivationServiceBehavior {
                 response.setExtras(null);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
+                response.setTimestampLastChange(null);
                 response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
                 response.setActivationCode(null);
                 response.setActivationSignature(null);
@@ -562,6 +566,7 @@ public class ActivationServiceBehavior {
             activation.setTimestampActivationExpire(timestampExpiration);
             activation.setTimestampCreated(timestamp);
             activation.setTimestampLastUsed(timestamp);
+            activation.setTimestampLastChange(null);
             // Activation version is not known yet
             activation.setVersion(null);
             activation.setUserId(userId);
