@@ -1,0 +1,74 @@
+---
+layout: page
+title: Configuring SOAP Client for Axis2
+---
+
+This tutorial shows the way internet banking (or other "master front-end application") developers integrate with PowerAuth Server.
+
+## Prerequisites For the Tutorial
+
+- Running PowerAuth Server with available SOAP interface.
+- Knowledge of Java EE applications based on JAX-RS.
+- Software: IDE - Spring Tool Suite, Java EE Application Server (Pivotal Server, Tomcat, ...)
+
+## Integration Manual
+
+### Add a Maven Dependency
+
+To add a PowerAuth support in your application, add Maven dependency for PowerAuth RESTful Client module in your `pom.xml` file:
+
+```xml
+<dependency>
+    <groupId>io.getlime.security</groupId>
+    <artifactId>powerauth-java-client-axis</artifactId>
+    <version>${powerauth.version}</version>
+</dependency>
+```
+
+### Configure PowerAuth SOAP Service Client
+
+In order to connect to the correct PowerAuth Server, you need to add following producer class:
+
+```java
+@Dependent
+public class PowerAuthBeanFactory {
+
+    @Produces
+    public PowerAuthServiceClient buildClient() {
+        try {
+            return new PowerAuthServiceClient("http://localhost:8080/powerauth-java-server/soap");
+        } catch (AxisFault axisFault) {
+            return null;
+        }
+    }
+
+}
+```
+
+Make sure to set the correct path to the PowerAuth Server SOAP endpoint.
+
+### Setting Up Credentials
+
+//TODO: Describe SOAP client WS-Security configuration
+
+_Note: For SOAP interface, PowerAuth Server uses WS-Security, `UsernameToken` validation (plain text password). The RESTful interface is secured using Basic HTTP Authentication (pre-emptive)._
+
+### Using the PowerAuth SOAP Client
+
+In order to use a `PowerAuthServiceClient` instance, you can easily `@Inject` it in your class, for example in your resource class, like this:
+
+```java
+@Path(value = "ib/settings")
+public class IBSettingsResource {
+
+    @Inject
+    private PowerAuthServiceClient powerAuthServiceClient;
+
+    // ... Resource code
+
+}
+```
+
+## Using the SOAP Service Client
+
+In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage) and read the [reference manual](./SOAP-Service-Methods).
