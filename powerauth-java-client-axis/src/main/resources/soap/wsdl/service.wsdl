@@ -713,7 +713,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="remainingAttempts" type="xs:integer"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureValid" type="xs:boolean"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="encryptedVaultEncryptionKey" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="encryptedVaultEncryptionKey" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
