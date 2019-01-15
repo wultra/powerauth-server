@@ -31,6 +31,7 @@ CREATE TABLE "pa_activation"
     "timestamp_activation_expire"   TIMESTAMP (6) NOT NULL,
     "timestamp_created"             TIMESTAMP (6) NOT NULL,
     "timestamp_last_used"           TIMESTAMP (6) NOT NULL,
+    "timestamp_last_change"         TIMESTAMP (6),
     "master_keypair_id"             INTEGER,
     "version"                       INTEGER DEFAULT 2
 );

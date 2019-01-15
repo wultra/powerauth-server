@@ -23,7 +23,9 @@ import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -83,6 +85,9 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "timestamp_last_used", nullable = false)
     private Date timestampLastUsed;
 
+    @Column(name = "timestamp_last_change", nullable = true)
+    private Date timestampLastChange;
+
     @Column(name = "activation_status", nullable = false)
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
@@ -105,6 +110,10 @@ public class ActivationRecordEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "master_keypair_id", referencedColumnName = "id", nullable = false)
     private MasterKeyPairEntity masterKeyPair;
+
+    @OneToMany(mappedBy = "activation", cascade = CascadeType.ALL)
+    @OrderBy("timestamp_created")
+    private List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
     /**
      * Default constructor.
@@ -150,6 +159,7 @@ public class ActivationRecordEntity implements Serializable {
                                   Date timestampCreated,
                                   Date timestampActivationExpire,
                                   Date timestampLastUsed,
+                                  Date timestampLastChange,
                                   ActivationStatus activationStatus,
                                   String blockedReason,
                                   KeyEncryptionMode serverPrivateKeyEncryption,
@@ -172,6 +182,7 @@ public class ActivationRecordEntity implements Serializable {
         this.timestampCreated = timestampCreated;
         this.timestampActivationExpire = timestampActivationExpire;
         this.timestampLastUsed = timestampLastUsed;
+        this.timestampLastChange = timestampLastChange;
         this.activationStatus = activationStatus;
         this.blockedReason = blockedReason;
         this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
@@ -455,6 +466,22 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
+     * Get timestamp of the last activation status change
+     * @return Timestamp of the last activation status change
+     */
+    public Date getTimestampLastChange() {
+        return timestampLastChange;
+    }
+
+    /**
+     * Set timestamp of the last activation status change
+     * @param timestampLastChange Timestamp of the last activation status change
+     */
+    public void setTimestampLastChange(Date timestampLastChange) {
+        this.timestampLastChange = timestampLastChange;
+    }
+
+    /**
      * Get activation status.
      *
      * @return Activation status, value of {@link ActivationStatus}
@@ -562,6 +589,14 @@ public class ActivationRecordEntity implements Serializable {
         this.masterKeyPair = masterKeyPair;
     }
 
+    /**
+     * Get activation history.
+     * @return Activation history.
+     */
+    public List<ActivationHistoryEntity> getActivationHistory() {
+        return activationHistory;
+    }
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -579,6 +614,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.timestampCreated);
         hash = 71 * hash + Objects.hashCode(this.timestampActivationExpire);
         hash = 71 * hash + Objects.hashCode(this.timestampLastUsed);
+        hash = 71 * hash + Objects.hashCode(this.timestampLastChange);
         hash = 71 * hash + Objects.hashCode(this.activationStatus);
         hash = 71 * hash + Objects.hashCode(this.blockedReason);
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyEncryption);
@@ -642,6 +678,9 @@ public class ActivationRecordEntity implements Serializable {
         if (!Objects.equals(this.timestampLastUsed, other.timestampLastUsed)) {
             return false;
         }
+        if (!Objects.equals(this.timestampLastChange, other.timestampLastChange)) {
+            return false;
+        }
         if (this.activationStatus != other.activationStatus) {
             return false;
         }
@@ -676,6 +715,7 @@ public class ActivationRecordEntity implements Serializable {
                 + ", timestampCreated=" + timestampCreated
                 + ", timestampActivationExpire=" + timestampActivationExpire
                 + ", timestampLastUsed=" + timestampLastUsed
+                + ", timestampLastChange=" + timestampLastChange
                 + ", status=" + activationStatus
                 + ", blockedReason=" + blockedReason
                 + ", masterKeyPair=" + masterKeyPair

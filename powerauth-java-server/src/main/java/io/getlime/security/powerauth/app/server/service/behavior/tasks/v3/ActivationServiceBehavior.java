@@ -156,8 +156,7 @@ public class ActivationServiceBehavior {
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
             }
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            repositoryCatalogue.getActivationRepository().save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
     }
@@ -171,8 +170,7 @@ public class ActivationServiceBehavior {
      */
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
-        repositoryCatalogue.getActivationRepository().save(activation);
-        activationHistoryServiceBehavior.logActivationStatusChange(activation);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -241,6 +239,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExtras(activation.getExtras());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 activationServiceItem.setApplicationName(activation.getApplication().getName());
@@ -309,6 +308,7 @@ public class ActivationServiceBehavior {
                     response.setApplicationId(activation.getApplication().getId());
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                    response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                     response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
                     response.setActivationCode(activation.getActivationCode());
                     response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
@@ -398,6 +398,7 @@ public class ActivationServiceBehavior {
                     response.setApplicationId(activation.getApplication().getId());
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                    response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                     response.setEncryptedStatusBlob(BaseEncoding.base64().encode(C_statusBlob));
                     response.setActivationCode(null);
                     response.setActivationSignature(null);
@@ -427,6 +428,7 @@ public class ActivationServiceBehavior {
                 response.setExtras(null);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
+                response.setTimestampLastChange(null);
                 response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
                 response.setActivationCode(null);
                 response.setActivationSignature(null);
@@ -562,6 +564,7 @@ public class ActivationServiceBehavior {
             activation.setTimestampActivationExpire(timestampExpiration);
             activation.setTimestampCreated(timestamp);
             activation.setTimestampLastUsed(timestamp);
+            activation.setTimestampLastChange(null);
             // Activation version is not known yet
             activation.setVersion(null);
             activation.setUserId(userId);
@@ -571,9 +574,7 @@ public class ActivationServiceBehavior {
             activation.setServerPrivateKeyEncryption(serverPrivateKey.getKeyEncryptionMode());
             activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
 
-            // A reference to saved ActivationRecordEntity is required when logging activation status change, otherwise issue #57 occurs on Oracle.
-            activation = activationRepository.save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
             // Return the server response
@@ -701,8 +702,7 @@ public class ActivationServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
-            activationRepository.save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
             // Generate activation layer 2 response
@@ -851,8 +851,7 @@ public class ActivationServiceBehavior {
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
-            activationRepository.save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
             // Generate activation layer 2 response
@@ -918,8 +917,7 @@ public class ActivationServiceBehavior {
             // Activation is in correct state
             if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) {
                 activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
-                activationRepository.save(activation);
-                activationHistoryServiceBehavior.logActivationStatusChange(activation);
+                activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
                 CommitActivationResponse response = new CommitActivationResponse();
@@ -949,8 +947,7 @@ public class ActivationServiceBehavior {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            repositoryCatalogue.getActivationRepository().save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);
@@ -986,8 +983,7 @@ public class ActivationServiceBehavior {
             } else {
                 activation.setBlockedReason(reason);
             }
-            repositoryCatalogue.getActivationRepository().save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
         BlockActivationResponse response = new BlockActivationResponse();
@@ -1018,8 +1014,7 @@ public class ActivationServiceBehavior {
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
-            repositoryCatalogue.getActivationRepository().save(activation);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         }
         UnblockActivationResponse response = new UnblockActivationResponse();

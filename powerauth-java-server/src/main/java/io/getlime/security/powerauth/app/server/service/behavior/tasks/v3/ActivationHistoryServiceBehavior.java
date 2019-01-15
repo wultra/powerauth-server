@@ -22,6 +22,7 @@ import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalenda
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.v3.ActivationHistoryResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -40,12 +41,15 @@ public class ActivationHistoryServiceBehavior {
 
     private final ActivationHistoryRepository activationHistoryRepository;
 
+    private final ActivationRepository activationRepository;
+
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository) {
+    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository) {
         this.activationHistoryRepository = activationHistoryRepository;
+        this.activationRepository = activationRepository;
     }
 
     /**
@@ -53,12 +57,16 @@ public class ActivationHistoryServiceBehavior {
      *
      * @param activation Activation.
      */
-    public void logActivationStatusChange(ActivationRecordEntity activation) {
+    public void saveActivationAndLogChange(ActivationRecordEntity activation) {
+        Date changeTimestamp = new Date();
+        activation.setTimestampLastChange(changeTimestamp);
         ActivationHistoryEntity activationHistoryEntity = new ActivationHistoryEntity();
         activationHistoryEntity.setActivation(activation);
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
-        activationHistoryEntity.setTimestampCreated(new Date());
-        activationHistoryRepository.save(activationHistoryEntity);
+        activationHistoryEntity.setTimestampCreated(changeTimestamp);
+        activation.getActivationHistory().add(activationHistoryEntity);
+        // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
+        activationRepository.save(activation);
     }
 
     /**

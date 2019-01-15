@@ -449,8 +449,8 @@ public class SignatureServiceBehavior {
             Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
-                activationHistoryServiceBehavior.logActivationStatusChange(activation);
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
                 KeyValueMap.Entry entry = new KeyValueMap.Entry();
                 entry.setKey(AdditionalInformation.BLOCKED_REASON);
@@ -517,8 +517,8 @@ public class SignatureServiceBehavior {
         Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
-            activationHistoryServiceBehavior.logActivationStatusChange(activation);
             activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
             entry.setKey(AdditionalInformation.BLOCKED_REASON);
