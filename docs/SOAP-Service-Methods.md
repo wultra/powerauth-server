@@ -660,8 +660,8 @@ Verify off-line signature of provided data.
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Base64 encoded data for the signature, normalized data for signatures. |
-| `String` | `signature` | Actual signature value. |
+| `String` | `data` | Base64 encoded data for the signature, normalized data for signatures |
+| `String` | `signature` | Actual signature value |
 | `SignatureType` | `signatureType` | Type of the signature |
 
 #### Response

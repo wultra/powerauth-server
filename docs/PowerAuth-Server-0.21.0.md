@@ -150,7 +150,7 @@ CREATE UNIQUE INDEX PA_INTEGRATION_TOKEN ON PA_INTEGRATION(CLIENT_TOKEN);
 CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED);
 ```
 
-## PowerAuth Protocol Versioning
+## PowerAuth Protocol Version 3.0
 
 PowerAuth protocol version `3.0` support has been introduced in PowerAuth server version `0.21.0`.
 
@@ -166,7 +166,7 @@ The PowerAuth protocol upgrade caused following changes in PowerAuth server impl
 - Instead of using separate *Activation ID Short* and *Activation OTP*, a single *Activation Code* is used.
 - Binary format of encrypted status blob in *Activation Status* has been changed.
 - Original PowerAuth End-to-end encryption has been deprecated in favor of ECIES-based encryption.
-- PowerAuth SDK release `0.21.0` will trigger upgrade of activations to version `3` using new upgrade endpoints. Previous versions of the SDK use the `2` version of activations.
+- PowerAuth SDK release `0.21.0` will trigger upgrade of activations to version `3` using new upgrade endpoints. Previous versions of the SDK use the version `2` of activations.
 
 The original version `2.1` interfaces are still available both in the SOAP API, REST API and both client implementations, however migration to new interfaces is recommended. 
 The version `2.1` interfaces will be deprecated in a future release. 
