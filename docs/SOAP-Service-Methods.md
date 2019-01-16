@@ -9,7 +9,7 @@ It reflects the SOAP service methods as they are defined in the WSDL files:
 - [WSDL version 3.0](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl).
 - [WSDL version 2.1](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl).
 
-The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md)
+The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
 The following version `3.0` methods are published using the service:
 
@@ -62,8 +62,8 @@ The following version `3.0` methods are published using the service:
 - End-To-End Encryption
     - [getEciesDecryptor](#method-geteciesdecryptor)
 - Activation Versioning
-    - [startUpgrade](#method-upgradestart)
-    - [commitUpgrade](#method-upgradecommit)
+    - [startUpgrade](#method-startupgrade)
+    - [commitUpgrade](#method-commitupgrade)
 
 The following version `2.1` methods are published using the service:
 - Activation Management
@@ -1045,7 +1045,7 @@ Get ECIES decryptor data for request/response decryption on intermediate server.
 
 ## Activation versioning
 
-### Method 'upgradeStart'
+### Method 'startUpgrade'
 
 Upgrade activation to the most recent version supported by the server.
 
@@ -1070,7 +1070,7 @@ Upgrade activation to the most recent version supported by the server.
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
-### Method 'upgradeCommit'
+### Method 'commitUpgrade'
 
 #### Request
 
