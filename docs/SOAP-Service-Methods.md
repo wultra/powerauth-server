@@ -6,8 +6,8 @@ title: SOAP Service Methods
 This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
 It reflects the SOAP service methods as they are defined in the WSDL files:
  
-- [WSDL version `3.0`](https://github.com/wultra/powerauth-server/blob/master/powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl).
-- [WSDL version `2.1`](https://github.com/wultra/powerauth-server/blob/master/powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl).
+- [WSDL version 3.0](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl).
+- [WSDL version 2.1](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl).
 
 The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md)
 
