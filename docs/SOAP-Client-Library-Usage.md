@@ -17,7 +17,7 @@ All samples in this chapter use the `3.0` version client methods. See chapter [S
 
 To generate a new activation data for a given user ID, call the `initActivation` method of the `PowerAuthServiceClient` instance. 
 
-In response, you will obtain a new activation data. Your goal is to display `activationIdShort`, `activationOtp` and optionally `activationSignature` attributes in user interface so that a user can enter these information in his PowerAuth Client application.
+In response, you will obtain a new activation data. Your goal is to display `activationCode` and optionally `activationSignature` attributes in user interface so that a user can enter these information in his PowerAuth Client application.
 
 Also, you will receive `activationId` in the response that you can use to query for activation status or to commit the activation. Finally, response contains the `userId` as a back-reference to your request data.
 
