@@ -118,9 +118,9 @@ public class AuthenticationController {
 
 ### PowerAuth Protocol Compatibility
 
-Since PowerAuth server version `0.21.0` there are two versions of client methods available:
-- version `3.0`: default version of client with methods compatible with version `2.1` and `3.0` of PowerAuth protocol
-- version `2.1`: old version of client with methods compatible only with version `2.1` of PowerAuth protocol, the client methods are accessible using the `v2()` method in client API.
+The SOAP client supports two versions of PowerAuth protocol:
+- The version `3.0` methods are available as default implementation directly on the client class. 
+- You can access the version `2.1` specific methods using the `v2()` method in the client. This method will be deprecated in a future release.
 
 You can access the WSDL files in following URLs:
 - version `3.0`: http://localhost:8080/powerauth-java-server/soap/service-v3.wsdl
