@@ -18,6 +18,6 @@ PowerAuth Server is a Java EE application (packaged as an executable WAR file) r
 
 ## Reference Manual
 
-- [SOAP Interface Methods](./SOAP-service-methods.md)
+- [SOAP Interface Methods](./SOAP-Service-Methods.md)
 - [PowerAuth Server Database Structure](./Database-Structure.md)
 - [PowerAuth Server Error Codes](./Server-Error-Codes.md)
