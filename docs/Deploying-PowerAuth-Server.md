@@ -26,7 +26,7 @@ For example, when using Oracle with Tomcat, make sure to add `ojdbc-${VERSION}.j
 
 ## Creating the Database Schema
 
-In order for the PowerAuth Server to work, you need to have a correct schema in the database. To create the correct database schema, execute these SQL scripts for your database engine (MySQL is used by default):
+In order for the PowerAuth Server to work, you need to have a correct schema in the database. To create the correct database schema, execute these SQL scripts for your database engine:
 
 - [Default SQL Database Schema](./sql)
 
