@@ -567,6 +567,26 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Lookup an application by application key.
+     * @param request {@link LookupApplicationByAppKeyRequest} instance.
+     * @return {@link LookupApplicationByAppKeyResponse}
+     */
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) {
+        return (LookupApplicationByAppKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Lookup an application by application key.
+     * @param applicationKey Application key.
+     * @return Response with application ID.
+     */
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) {
+        LookupApplicationByAppKeyRequest request = new LookupApplicationByAppKeyRequest();
+        request.setApplicationKey(applicationKey);
+        return this.lookupApplicationByAppKey(request);
+    }
+
+    /**
      * Create a new application with given name.
      * @param request {@link CreateApplicationRequest} instance.
      * @return {@link CreateApplicationResponse}

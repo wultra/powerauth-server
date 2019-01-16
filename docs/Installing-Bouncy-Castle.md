@@ -9,7 +9,7 @@ In order to function correctly, PowerAuth software requires Bouncy Castle to be 
 
 You can install Bouncy Castle in your system by:
 
-1. Copying [`bcprov-jdk15on.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
+1. Copying [`bcprov-jdk15on-[VERSION].jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
 2. Adding a following record to your `${JDK_HOME}/jre/lib/security/java.security`:
 
 ```sh
@@ -42,7 +42,7 @@ https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
 ## Testing BC Installation
 
-You can test the installation using our [simple Java utility](https://github.com/wultra/powerauth-server/wiki/resources/util/check-bc.jar):
+You can test the installation using our [simple Java utility](./util/check-bc.jar):
 
 ```sh
 $ java -jar check-bc.jar

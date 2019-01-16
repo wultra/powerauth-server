@@ -69,6 +69,16 @@ public class IBSettingsResource {
 }
 ```
 
+### PowerAuth Protocol Compatibility
+
+Since PowerAuth server version `0.21.0` there are two versions of client methods available:
+- version `3.0`: default version of client with methods compatible with version `2.1` and `3.0` of PowerAuth protocol
+- version `2.1`: old version of client with methods compatible only with version `2.1` of PowerAuth protocol, the client methods are accessible using the `v2()` method in client API.
+
+You can access the WSDL files in following URLs:
+- version `3.0`: http://localhost:8080/powerauth-java-server/soap/service-v3.wsdl
+- version `2.1`: http://localhost:8080/powerauth-java-server/soap/service-v2.wsdl
+
 ## Using the SOAP Service Client
 
-In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage) and read the [reference manual](./SOAP-Service-Methods).
+In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage.md) and read the [reference manual](./SOAP-Service-Methods.md).

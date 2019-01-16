@@ -113,7 +113,7 @@ powerauth.server.db.master.encryption.key=MTIzNDU2Nzg5MDEyMzQ1Ng==
 
 When the property value is empty (default), encryption is not performed.
 
-For additional details, see: [Encrypting Records in Database](https://github.com/lime-company/powerauth-server/wiki/Encrypting-Records-in-Database).
+For additional details, see: [Encrypting Records in Database](./Encrypting-Records-in-Database.md).
 
 ## Java 9 support
 
@@ -154,8 +154,8 @@ In release 0.19.0 this endpoint has been split into two endpoints depending on w
 * `createPersonalizedOfflineSignaturePayload`
 * `createNonPersonalizedOfflineSignaturePayload` 
 
-For more information about migration to the new endpoints, see [Offline Signatures](./Offline-Signatures).
+For more information about migration to the new endpoints, see [Offline Signatures](./Offline-Signatures.md).
 
 ## Updated error codes
 
-Due to new functionality the list of [PowerAuth server error codes](./Server-Error-Codes) has been updated. If you are not using the error code list, you can ignore this change.
+Due to new functionality the list of [PowerAuth server error codes](./Server-Error-Codes.md) has been updated. If you are not using the error code list, you can ignore this change.

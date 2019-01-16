@@ -3,14 +3,15 @@ layout: page
 title: Database Structure
 ---
 
-PowerAuth Server uses a very simple database structure that can be recreated in any SQL database (in order to work with PowerAuth Server, the database must be JPA ready). You can download SQL scripts for databases that are currently used in production:
+You can download DDL scripts for supported databases:
 
-- [MySQL Database Schema](https://github.com/lime-company/powerauth-server/tree/master/docs/sql/mysql)
-- [Oracle Database Schema](https://github.com/lime-company/powerauth-server/tree/master/docs/sql/oracle)
+- [MySQL Database Schema](./sql/mysql)
+- [Oracle Database Schema](./sql/oracle)
+- [PostgreSQL Database Schema](./sql/postgresql)
 
-You can also create the database structure manually quite easily - see the overall database schema in this [MySQL Workbench file](https://github.com/lime-company/powerauth-server/tree/master/docs/sql/mysql/mysql-workbench-model.mwb):
+See the overall database schema in this [MySQL Workbench file](./sql/mysql/mysql-workbench-model.mwb):
 
-![Database sturucture](https://github.com/lime-company/powerauth-server/wiki/resources/images/arch_db_structure.png)
+![Database structure](./images/arch_db_structure.png)
 
 ## Table Documentation
 
@@ -57,8 +58,7 @@ Columns:
 | Name | Type | Info | Note |
 |------|------|---------|------|
 | activation_id  | VARCHAR(37) | primary key, UUID (level 4) | Unique activation ID. Uses UUID Level 4 format, for example "099e5e30-47b1-41c7-b49b-3bf28e811fca". |
-| activation_id_short | VARCHAR(255) | index | Short activation ID used during the activation process. Uses 2x5 characters in Base32 encoding separated by a "-" character, for example "MRVWC-43KNR". |
-| activation_otp  | VARCHAR(255) | - | Activation OTP used for public key encryption. Uses 2x5 characters in Base32 encoding separated by a "-" character, for example "ZWUYL-ENRVG". |
+| activation_code | VARCHAR(255) | index | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA". |
 | activation_status  | INT(11) | - | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
 | blocked_reason | VARCHAR(255) | - | Reason why activation is blocked (used when activation_status = 4, BLOCKED). |
 | activation_name  | VARCHAR(255 | - | Name of the activation, typically a name of the client device, for example "John's iPhone 6" |
@@ -66,6 +66,7 @@ Columns:
 | user_id  | VARCHAR(255) | index | Associated user ID. |
 | extras  | TEXT | - | Any application specific information. |
 | counter  | BIGINT(20) | - | Activation counter. |
+| ctr_data | VARCHAR(255) | - | Activation hash based counter data. |
 | device_public_key_base64  | TEXT | - | Device public key, encoded in Base64 encoding. |
 | failed_attempts  | BIGINT(20) | - | Number of failed signature verification attempts. |
 | max_failed_attempts | BIGINT(20) | - | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
@@ -76,6 +77,8 @@ Columns:
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |
 | timestamp_activation_expire | DATETIME | - | Timestamp until which the activation must be committed. In case activation is not committed until this period, it will become REMOVED. |
 | timestamp_last_used | DATETIME | - | Timestamp of the last signature verification attempt. |
+| timestamp_last_change | DATETIME | - | Timestamp of the last signature verification attempt. |
+| version | BIGINT(2) | - | Cryptography protocol version. |
 
 ### Master Key Pair Table
 
@@ -107,14 +110,16 @@ Columns:
 | id | BIGINT(20) | primary key, autoincrement | Unique record ID. |
 | activation_id | BIGINT(20) | foreign key: pa\_activation.activation\_id | Associated activation ID. |
 | activation_counter | BIGINT(20) | - | Activation counter at the moment of signature validation. |
+| activation_ctr_data | BIGINT(2) | - | Activation hash based counter data at the moment of signature validation. |
 | activation_status | INT(11) | - | Activation status at the moment of signature validation. |
-| additional_info | VARCHAR(255) | - | Additional information related to the activation in JSON format. |
+| additional_info | VARCHAR(255) | - | Additional information related to the signature request in JSON format. |
 | data_base64 | TEXT | - | Data passed as the base for the signature, encoded as Base64. |
 | signature_type | VARCHAR(255) | - | Requested type of the signature. |
 | signature | VARCHAR(255) | - | Provided value of the signature. |
 | valid | INT(11) | - | Flag indicating if the provided signature was valid. |
 | note | TEXT | - | Additional information about the validation result. |
-| timestamp_created | DATETIME | - | A timestamp of the validation attempt. |
+| timestamp_created | DATETIME | index | A timestamp of the validation attempt. |
+| version | BIGINT(2) | - | PowerAuth protocol version. |
 
 ### Integration Credentials Table
 
@@ -128,7 +133,7 @@ Columns:
 |------|------|---------|------|
 | id | VARCHAR(37) | primary key | Unique integration ID, UUID Level 4 format. |
 | name | VARCHAR(255) | - | Integration name, anything that visually identifies the associated application. |
-| client_token | VARCHAR(37) | - | Integration username, UUID Level 4 format. |
+| client_token | VARCHAR(37) | index | Integration username, UUID Level 4 format. |
 | client_secret | VARCHAR(37) | - | Integration password, UUID Level 4 format. |
 
 ### Application Callback URL Table
@@ -174,5 +179,5 @@ Columns:
 |------|------|---------|------|
 | id | INT(37) | primary key | Unique record ID. |
 | activation_id | VARCHAR(37) | foreign key: pa\_activation.activation_id | Reference to associated activation. |
-| activation_status | INT(11) | - | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
+| activation_status | INT(11) | index | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |

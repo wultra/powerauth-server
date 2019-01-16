@@ -10,6 +10,7 @@ In order to improve the security of the keys stored in the database, we recommen
 As a basic security measure, we suggest using data encryption support of your database engine to protect the records stored in the database. Most of the database engines support the mechanism of "transparent data encryption", see for example:
 
 - [Oracle](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/asoag/asopart1.html)
+- [PostgreSQL](https://www.postgresql.org/docs/11/encryption-options.html)
 - [MySQL](https://dev.mysql.com/doc/mysql-secure-deployment-guide/5.7/en/secure-deployment-data-encryption.html)
 
 ## Additional Private Key Encryption
@@ -48,7 +49,7 @@ public byte[] decrypt(byte[] record, SecretKey derivedDbEncryptionKey) {
 }
 ```
 
-In order to achieve a consistency between activation record and encrypted server private key (to prevent a partial record swap attack, where admin replaces part of the record with own known values), we pay special attention to how we derive the encryption key from `MASTER_DB_ENCRYPTION_KEY` in the above mentioned routines. The encryption key `DERIVED_DB_ENCRYPTION_KEY` is derived from the master DB encryption key `MASTER_DB_ENCRYPTION_KEY` using a [KDF_INTERNAL](https://github.com/lime-company/powerauth-crypto/wiki/Basic-definitions) function, with a user ID and activation ID in concatenated String as a base for deriving the `index`, like so:
+In order to achieve a consistency between activation record and encrypted server private key (to prevent a partial record swap attack, where admin replaces part of the record with own known values), we pay special attention to how we derive the encryption key from `MASTER_DB_ENCRYPTION_KEY` in the above mentioned routines. The encryption key `DERIVED_DB_ENCRYPTION_KEY` is derived from the master DB encryption key `MASTER_DB_ENCRYPTION_KEY` using a [KDF_INTERNAL](https://github.com/wultra/powerauth-crypto/docs/Basic-definitions.md) function, with a user ID and activation ID in concatenated String as a base for deriving the `index`, like so:
 
 ```java
 public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
@@ -65,4 +66,4 @@ Every database record carries an information about how it was created - with enc
 
 More problematic situation is changing the master encryption key. The server currently has no easy way to re-encrypt the records with the new key and hence the conversion must be performed using a custom database migration.
 
-**In case you lost the original master DB encryption key, there is no way to recover original data and your users will need to re-activate their mobile applications.**
+**In case you lose the original master DB encryption key, there is no way to recover original data and your users will need to re-activate their mobile applications.**

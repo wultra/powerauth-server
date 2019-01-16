@@ -37,12 +37,12 @@ public class PowerAuthWebServiceConfiguration {
     @Value("${powerauth.service.url}")
     private String powerAuthServiceUrl;
 
-	@Bean
-	public Jaxb2Marshaller marshaller() {
-		Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-		marshaller.setContextPath("io.getlime.powerauth.soap");
-		return marshaller;
-	}
+    @Bean
+    public Jaxb2Marshaller marshaller() {
+        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+        marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth.soap.v3");
+        return marshaller;
+    }
 
 	@Bean
 	public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) {
@@ -58,7 +58,7 @@ public class PowerAuthWebServiceConfiguration {
 
 ### Setting Up Credentials
 
-_(optional)_ In case PowerAuth Server uses a [restricted access flag in the server configuration](https://github.com/lime-company/powerauth-server/wiki/Deploying-PowerAuth-Server#enabling-powerauth-20-server-security), you need to configure credentials for the WS-Security so that your client can connect to the SOAP service - modify your `PowerAuthWebServiceConfiguration` to include `Wss4jSecurityInterceptor` bean, like so:
+_(optional)_ In case PowerAuth Server uses a [restricted access flag in the server configuration](./Deploying-PowerAuth-Server.md#enabling-powerauth-20-server-security), you need to configure credentials for the WS-Security so that your client can connect to the SOAP service - modify your `PowerAuthWebServiceConfiguration` to include `Wss4jSecurityInterceptor` bean, like so:
 
 ```java
 @Value("${powerauth.service.security.clientToken}")
@@ -116,6 +116,16 @@ public class AuthenticationController {
 }
 ```
 
+### PowerAuth Protocol Compatibility
+
+Since PowerAuth server version `0.21.0` there are two versions of client methods available:
+- version `3.0`: default version of client with methods compatible with version `2.1` and `3.0` of PowerAuth protocol
+- version `2.1`: old version of client with methods compatible only with version `2.1` of PowerAuth protocol, the client methods are accessible using the `v2()` method in client API.
+
+You can access the WSDL files in following URLs:
+- version `3.0`: http://localhost:8080/powerauth-java-server/soap/service-v3.wsdl
+- version `2.1`: http://localhost:8080/powerauth-java-server/soap/service-v2.wsdl
+
 ## Using the SOAP Service Client
 
-In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage) and read the [reference manual](./SOAP-Service-Methods).
+In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage.md) and read the [reference manual](./SOAP-Service-Methods.md).

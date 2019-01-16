@@ -14,7 +14,7 @@ PowerAuth Server primary installation method is running the WAR package in the J
 
 Following Java version is required:
 
-- JRE 7 or 8, and
+- JRE 8, and
 - Correctly installed Bouncy Castle provider, and
 - JCE Unlimited Strength Jurisdiction Policy Files 8
 
@@ -30,13 +30,15 @@ PowerAuth supports any JPA2 compatible database and it is tested with:
 - MySQL 5.5 or newer, or
 - PostgreSQL 9.5.4 or newer
 
+Note that MSSQL database is not supported.
+
 When deploying the PowerAuth Server, plese follow the specifics of your application server.
 
 Of course, you can also run the PowerAuth Server without the servler container (as an executable WAR file) - in this case, you need to make sure to place appropriate libraries on Java classpath.
 
 Deployment is described in details in a separate documentation:
 
-- [Deploying PowerAuth Server](./Deploying-PowerAuth-Server)
+- [Deploying PowerAuth Server](./Deploying-PowerAuth-Server.md)
 
 ### Deployment in Docker
 
@@ -50,7 +52,7 @@ You need following software versions:
 
 Deployment is described in a separate documentation:
 
-- [Docker Images for PowerAuth](https://github.com/lime-company/powerauth-docker)
+- [Docker Images for PowerAuth](https://github.com/wultra/powerauth-docker)
 
 ### HW Requirements
 

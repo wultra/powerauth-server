@@ -3,9 +3,15 @@ layout: page
 title: SOAP Service Methods
 ---
 
-This is a reference documentation of the methods published by the PowerAuth Server SOAP service. It reflects the SOAP service methods as they are defined in the [WSDL file](https://github.com/lime-company/powerauth-server/blob/master/powerauth-java-client-spring/src/main/resources/soap/wsdl/service.wsdl).
+This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
+It reflects the SOAP service methods as they are defined in the WSDL files:
+ 
+- [WSDL version `3.0`](https://github.com/wultra/powerauth-server/blob/master/powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl).
+- [WSDL version `2.1`](https://github.com/wultra/powerauth-server/blob/master/powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl).
 
-Following methods are published using the service:
+The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md)
+
+The following version `3.0` methods are published using the service:
 
 - System Status
     - [getSystemStatus](#method-getsystemstatus)
@@ -13,6 +19,7 @@ Following methods are published using the service:
 - Application Management
     - [getApplicationList](#method-getapplicationlist)
     - [getApplicationDetail](#method-getapplicationdetail)
+    - [lookupApplicationByAppKey](#method-lookupapplicationbyappkey)
     - [createApplication](#method-createapplication)
     - [createApplicationVersion](#method-createapplicationversion)
     - [unsupportApplicationVersion](#method-unsupportapplicationversion)
@@ -53,8 +60,22 @@ Following methods are published using the service:
     - [getCallbackUrlList](#method-getcallbckurllist)
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
-    - [getNonPersonalizedEncryptionKey](#method-getnonpersonalizedencryptionkey)
-    - [getPersonalizedEncryptionKey](#method-getpersonalizedencryptionkey)
+    - [getEciesDecryptor](#method-geteciesdecryptor)
+- Activation Versioning
+    - [startUpgrade](#method-upgradestart)
+    - [commitUpgrade](#method-upgradecommit)
+
+The following version `2.1` methods are published using the service:
+- Activation Management
+    - [prepareActivation (v2)](#method-prepareactivation-v2)
+    - [createActivation (v2)](#method-createactivation-v2)
+- Token Based Authentication
+    - [createToken (v2)](#method-createtoken-v2)
+- Vault Unlocking
+    - [vaultUnlock (v2)](#method-vaultunlock-v2)
+- End-To-End Encryption
+    - [getNonPersonalizedEncryptionKey (v2)](#method-getnonpersonalizedencryptionkey-v2)
+    - [getPersonalizedEncryptionKey (v2)](#method-getpersonalizedencryptionkey-v2)
 
 ## System status
 
@@ -169,9 +190,29 @@ Get detail of application with given ID, including the list of versions.
 |------|------|-------------|
 | `Long` | `applicationVersionId` | An identifier of an application version |
 | `String` | `applicationVersionName` | An application version name, for example "1.0.3" |
-| `String` | `applicationKey` | An application key associated with this version |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `applicationSecret` | An application secret associated with this version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
+
+### Method 'lookupApplicationByAppKey'
+
+Find application using application key.
+
+#### Request
+
+`LookupApplicationByAppKeyRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+
+#### Response
+
+`LookupApplicationByAppKeyResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
 
 ### Method 'createApplication'
 
@@ -215,7 +256,7 @@ Create a new application version with given name for a specified application.
 |------|------|-------------|
 | `Long` | `applicationVersionId` | An identifier of an application version |
 | `String` | `applicationVersionName` | An application version name |
-| `String` | `applicationKey` | An application key associated with this version |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `applicationSecret` | An application secret associated with this version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
@@ -265,43 +306,6 @@ Mark application version with given ID as "supported". Signatures constructed us
 
 Methods related to activation management.
 
-### Method 'getActivationListForUser'
-
-Get the list of all activations for given user and application ID. If no application ID is provided, return list of all activations for given user.
-
-#### Request
-
-`GetActivationListForUserRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
-
-#### Response
-
-`GetActivationListForUserResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | An identifier of a user |
-| `Activation[]` | `activations` | A collection of activations for given user |
-
-`GetActivationListForUserResponse.Activation`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String` | `activationName` | An activation name |
-| `String` | `extras` | Any custom attributes |
-| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier fo an application |
-| `String` | `applicationName` | An application name |
-
 ### Method 'initActivation'
 
 Create (initialize) a new application for given user and application. After calling this method, a new activation record is created in CREATED state.
@@ -323,9 +327,8 @@ Create (initialize) a new application for given user and application. After call
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | A long UUID4 identifier of an activation |
-| `String` | `activationIdShort` | A short (5+5 characters from Base32) identifier of an activation |
-| `String` | `activationOTP` | An activation OTP (5+5 characters from Base32) |
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier of an application |
@@ -340,14 +343,11 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationIdShort` | A short (5+5 characters from Base32) identifier of an activation |
-| `String` | `activationName` | A visual identifier of the activation |
-| `String` | `extras` | Any extra parameter object |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key |
-| `String` | `encryptedDevicePublicKey` | A base64 encoded encrypted device public key |
-| `String` | `applicationKey` | An application key |
-| `String` | `applicationSignature` | An application signature |
+| `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` | Base 64 encoded mac of key and data for ECIES |
 
 #### Response
 
@@ -355,11 +355,10 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | A long UUID4 identifier of an activation |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key |
-| `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
-| `String` | `encryptedServerPublicKeySignature` | A base64 encoded signature of the activation data using Master Server Private Key |
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `userId` | User ID |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
 ### Method 'createActivation'
 
@@ -372,17 +371,12 @@ Create an activation for given user and application, with provided maximum numbe
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `userId` | User ID |
-| `Long` | `applicationId` | Application ID |
 | `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
 | `Long` | `maxFailureCount` | How many failures are allowed for this activation |
-| `String` | `identity` | An identity identifier string for this activation |
-| `String` | `activationName` | A visual identifier of the activation |
-| `String` | `extras` | Any extra parameter object |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key |
-| `String` | `encryptedDevicePublicKey` | A base64 encoded encrypted device public key |
-| `String` | `applicationKey` | An application key |
-| `String` | `applicationSignature` | An application signature |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
 #### Response
 
@@ -390,11 +384,9 @@ Create an activation for given user and application, with provided maximum numbe
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | A long UUID4 identifier of an activation |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key |
-| `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
-| `String` | `encryptedServerPublicKeySignature` | A base64 encoded signature of the activation data using Master Server Private Key |
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
 ### Method 'commitActivation'
 
@@ -442,12 +434,14 @@ Get status information and all important details for activation with given ID.
 | `String` | `userId` | An identifier of a user |
 | `String` | `extras` | Any custom attributes |
 | `Long` | `applicationId` | An identifier fo an application |
-| `String` | `encryptedStatusBlob` | An encrypted blob with status information |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
-| `String` | `activationIdShort` | A short (5+5 characters from Base32) identifier of an activation |
-| `String` | `activationOTP` | An activation OTP (5+5 characters from Base32) |
+| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
+| `String` | `encryptedStatusBlob` | An encrypted blob with status information |
+| `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
+| `String` | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
+| `Long` | `version` | Activation version | 
 
 ### Method 'removeActivation'
 
@@ -469,6 +463,45 @@ Remove activation with given ID. This operation is irreversible. Activations can
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `Boolean` | `removed` | Flag indicating if the activation was removed |
+
+### Method 'getActivationListForUser'
+
+Get the list of all activations for given user and application ID. If no application ID is provided, return list of all activations for given user.
+
+#### Request
+
+`GetActivationListForUserRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | An identifier of a user |
+| `Long` | `applicationId` | An identifier of an application |
+
+#### Response
+
+`GetActivationListForUserResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | An identifier of a user |
+| `Activation[]` | `activations` | A collection of activations for given user |
+
+`GetActivationListForUserResponse.Activation`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `ActivationStatus` | `activationStatus` | An activation status |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String` | `activationName` | An activation name |
+| `String` | `extras` | Any custom attributes |
+| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
+| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
+| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
+| `String` | `userId` | An identifier of a user |
+| `Long` | `applicationId` | An identifier fo an application |
+| `String` | `applicationName` | An application name |
+| `Long` | `version` | Activation version | 
 
 ### Method 'blockActivation'
 
@@ -529,10 +562,11 @@ Verify signature correctness for given activation, application key, data and sig
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
-| `String` | `applicationKey` | An key (identifier) of an application, associated with given application version |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `data` | Base64 encoded data for the signature |
 | `String` | `signature` | PowerAuth signature |
 | `SignatureType` | `signatureType` | PowerAuth signature type |
+| `Long` | `forcedSignatureVersion` | Forced signature version used during activation upgrade |
 
 #### Response
 
@@ -540,14 +574,14 @@ Verify signature correctness for given activation, application key, data and sig
 
 | Type | Name | Description |
 |------|------|-------------|
+| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| `ActivationStatus` | `activationStatus` | An activation status |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier of the application |
 | `SignatureType` | `signatureType` | Type of the signature that was used for the computation of the signature. |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
-| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
 
 ### Method 'verifyECDSASignature'
 
@@ -582,7 +616,7 @@ Create a data payload used as a challenge for personalized off-line signatures.
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/lime-company/powerauth-webflow/wiki/Off-line-Signatures-QR-Code) documentation |
+| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/docs/Off-line-Signatures-QR-Code.md) documentation |
 
 #### Response
 
@@ -604,7 +638,7 @@ Create a data payload used as a challenge for non-personalized off-line signatur
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `applicationId` | An identifier of an application |
-| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/lime-company/powerauth-webflow/wiki/Off-line-Signatures-QR-Code) documentation |
+| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/docs/Off-line-Signatures-QR-Code.md) documentation |
 
 #### Response
 
@@ -636,14 +670,16 @@ Verify off-line signature of provided data.
 
 | Type | Name | Description |
 |------|------|-------------|
+| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| `ActivationStatus` | `activationStatus` | An activation status |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier of the application |
 | `SignatureType` | `signatureType` | Type of the signature that was used for the computation of the signature. |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
-| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+
+## Token Based Authentication
 
 ### Method 'createToken'
 
@@ -656,8 +692,11 @@ Create a new token for the simple token-based authentication.
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation. |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
-| `String` | `ephemeralPublicKey` | Ephemeral public key used for request/response encryption. Base64 encoded bytes of the encoded public key. |
 
 #### Response
 
@@ -665,8 +704,8 @@ Create a new token for the simple token-based authentication.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `mac` | Data MAC value, Base64 encoded. |
-| `String` | `encryptedData` | Encrypted data, Base64 encoded bytes. |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
 ### Method 'validateToken'
 
@@ -730,11 +769,13 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
-| `String` | `applicationKey` | An key (identifier) of an application, associated with given application version |
-| `String` | `data` | Base64 encoded data for the signature |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `signedData` | Base64 encoded data for the signature |
 | `String` | `signature` | PowerAuth signature |
 | `SignatureType` | `signatureType` | PowerAuth signature type |
-| `String` | `reason` | Reason why vault is being unlocked (default: NOT_SPECIFIED) |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
 #### Response
 
@@ -742,13 +783,9 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `userId` | An identifier of a user |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 | `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
-| `String` | `encryptedVaultEncryptionKey` | Encrypted key for vault unlocking |
 
 ## Signature audit
 
@@ -786,6 +823,7 @@ Get the signature audit log for given user, application and date range. In case 
 | `Long` | `applicationId` | An identifier of an application |
 | `String` | `activationId` | An identifier of an activation |
 | `Long` | `activationCounter` | A counter value at the moment of a signature verification |
+| `String` | `activationCtrData` | Base 64 encoded hash based counter data |
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
 | `KeyValueMap` | `additionalInfo` | Key-value map with additional information |
 | `String` | `dataBase64` | A base64 encoded data sent with the signature |
@@ -982,9 +1020,206 @@ Remove callback URL with given ID.
 
 ## End-To-End Encryption
 
+### Method 'getEciesDecryptor'
+
+Get ECIES decryptor data for request/response decryption on intermediate server. 
+
+#### Request
+
+`GetEciesDecryptorRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+
+#### Response
+
+`GetEciesDecryptorResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `secretKey` | Base 64 encoded secret key for ECIES |
+| `String` | `sharedInfo2` | The sharedInfo2 parameter for ECIES |
+
+## Activation versioning
+
+### Method 'upgradeStart'
+
+Upgrade activation to the most recent version supported by the server.
+
+#### Request
+
+`StartUpgradeRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+
+#### Response
+
+`StartUpgradeResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+
+### Method 'upgradeCommit'
+
+#### Request
+
+`CommitUpgradeRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+
+#### Response
+
+`CommitUpgradeResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Boolean` | `committed` | Flag specifying if activation upgrade was committed |
+
+## Activation management (v2)
+
+### Method 'prepareActivation' (v2)
+
+Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in OTP_USED state.
+
+#### Request
+
+`PrepareActivationRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationIdShort` | A short (5+5 characters from Base32) identifier of an activation |
+| `String` | `activationName` | A visual identifier of the activation |
+| `String` | `extras` | Any extra parameter object |
+| `String` | `activationNonce` | A base64 encoded activation nonce |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedDevicePublicKey` | A base64 encoded encrypted device public key |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `applicationSignature` | An application signature |
+
+#### Response
+
+`PrepareActivationResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationNonce` | A base64 encoded activation nonce |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
+| `String` | `encryptedServerPublicKeySignature` | A base64 encoded signature of the activation data using Master Server Private Key |
+
+### Method 'createActivation' (v2)
+
+Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in OTP_USED state.
+
+#### Request
+
+`CreateActivationRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | User ID |
+| `Long` | `applicationId` | Application ID |
+| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
+| `Long` | `maxFailureCount` | How many failures are allowed for this activation |
+| `String` | `identity` | An identity identifier string for this activation |
+| `String` | `activationName` | A visual identifier of the activation |
+| `String` | `extras` | Any extra parameter object |
+| `String` | `activationNonce` | A base64 encoded activation nonce |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedDevicePublicKey` | A base64 encoded encrypted device public key |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `applicationSignature` | An application signature |
+
+#### Response
+
+`CreateActivationResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationNonce` | A base64 encoded activation nonce |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
+| `String` | `encryptedServerPublicKeySignature` | A base64 encoded signature of the activation data using Master Server Private Key |
+
+## Token Based Authentication (v2)
+
+### Method 'createToken' (v2)
+
+Create a new token for the simple token-based authentication.
+
+#### Request
+
+`CreateTokenRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation. |
+| `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
+| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+
+#### Response
+
+`CreateTokenResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `mac` | Data MAC value, Base64 encoded. |
+| `String` | `encryptedData` | Encrypted data, Base64 encoded bytes. |
+
+## Vault unlocking (v2)
+
+### Method 'vaultUnlock' (v2)
+
+Get the encrypted vault unlock key upon successful authentication using PowerAuth Signature.
+
+#### Request
+
+`VaultUnlockRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `data` | Base64 encoded data for the signature |
+| `String` | `signature` | PowerAuth signature |
+| `SignatureType` | `signatureType` | PowerAuth signature type |
+| `String` | `reason` | Reason why vault is being unlocked (default: NOT_SPECIFIED) |
+
+#### Response
+
+`VaultUnlockResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `String` | `userId` | An identifier of a user |
+| `ActivationStatus` | `activationStatus` | An activation status |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
+| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| `String` | `encryptedVaultEncryptionKey` | Encrypted key for vault unlocking |
+
+## End-To-End Encryption (v2)
+
 Methods used for establishing a context for end-to-end encryption.
 
-### Method 'getNonPersonalizedEncryptionKey'
+### Method 'getNonPersonalizedEncryptionKey' (v2)
 
 Establishes a context required for performing a non-personalized (application specific) end-to-end encryption.
 
@@ -994,7 +1229,7 @@ Establishes a context required for performing a non-personalized (application sp
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `applicationKey` | Application version identification  |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `sessionIndex` | Random session index used to generate session based key, in case `null` is provided, `encryptionKeyIndex` will be autogenerated in response. |
 | `String` | `ephemeralPublicKey` | Ephemeral public key used for deriving a shared secret. |
 
@@ -1004,13 +1239,13 @@ Establishes a context required for performing a non-personalized (application sp
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `applicationKey` | Application version identification  |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `Long` | `applicationId` | Application ID associated with provided version  |
 | `String` | `encryptionKeyIndex` | Session index used to generate session based key. |
 | `String` | `encryptionKey` | Derived key used as a base for ad-hoc key derivation. |
 | `String` | `ephemeralPublicKey` | Ephemeral public key used for deriving a shared secret. |
 
-### Method 'getPersonalizedEncryptionKey'
+### Method 'getPersonalizedEncryptionKey' (v2)
 
 Establishes a context required for performing a personalized (activation specific) end-to-end encryption.
 
@@ -1060,27 +1295,3 @@ This chapter lists complex types used by PowerAuth Server SOAP service.
     - entry - list of entries (0..n)
         - key - String-based key
         - value - String-based value
-
-## Documentation template
-
-When adding documentation for a new method, use this template:
-
-### Method 'methodName'
-
-Lorem ipsum description.
-
-#### Request
-
-`RequestObject`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | Lorem ipsum |
-
-#### Response
-
-`ResponseObject`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | Lorem ipsum |

@@ -3,11 +3,19 @@ layout: page
 title: SOAP Client Library Usage
 ---
 
-This chapter explains how to use SOAP client.
+This chapter explains how to use the SOAP client.
+
+## PowerAuth Protocol Compatibility Notice 
+
+The SOAP client supports two versions of PowerAuth protocol:
+- The version `3.0` methods are available as default implementation directly on the client class. 
+- You can access the version `2.1` specific methods using the `v2()` method in the client. This method will be deprecated in a future release.
+
+All samples in this chapter use the `3.0` version client methods. See chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md) for additional details about SOAP interface versioning.
 
 ## Obtaining the New Activation Data
 
-To generate a new activation data for a given user ID, call the `initActivation` method of the `PowerAuthServiceClient` instance.
+To generate a new activation data for a given user ID, call the `initActivation` method of the `PowerAuthServiceClient` instance. 
 
 In response, you will obtain a new activation data. Your goal is to display `activationIdShort`, `activationOtp` and optionally `activationSignature` attributes in user interface so that a user can enter these information in his PowerAuth Client application.
 
@@ -56,11 +64,13 @@ To get the list of activations for a given user ID, call the `getActivationListF
 
 - `activationId` - Identifier of the activation.
 - `activationStatus` - Status of the activation: `CREATED`, `OTP_USED`, `ACTIVE`, `BLOCKED`, or `REMOVED`.
+- `blockedReason` - Reason why activation was blocked (only in activation state `BLOCKED`).
 - `activationName` - Name of the activation, as the user created it.
 - `userId` - Reference to the user to whom the activation belongs.
 - `timestampCreated` - Timestamp representing the moment an activation was created (milliseconds since the Unix epoch start).
 - `timestampLastUsed`  - Timestamp representing the moment an activation was last used for signature verification (milliseconds since the Unix epoch start).
 - `extras` - Extra data, content depends on application specific requirements.
+- `version` - PowerAuth protocol version.
 
 ```java
 // Your actual user identifier
@@ -147,11 +157,17 @@ To get the list of performed signature attempts for a given user ID, call the `g
 - `id` - Identifier of the signature audit record.
 - `userId` - Reference to the user who attempted to compute the signature.
 - `activationId` - Identifier of the activation that was used to construct the signature.
-- `activationCounter` - Value of the counter used for the signature.
+- `activationCounter` - Value of the numeric counter.
+- `activationCtrData` - Value of the hash based counter (available only in version `3.0`).
+- `activationStatus` - Status of the activation: `CREATED`, `OTP_USED`, `ACTIVE`, `BLOCKED`, or `REMOVED`. 
+- `additionalInfo` - Additional information related to the signature request in JSON format.
 - `dataBase64` - Data used for the signature, base64 encoded.
 - `signatureType` - Type of the signature that was requested.
 - `signature` - Signature as it was delivered.
+- `note` - Additional information about the validation result.
+- `valid` - Whether signature is valid.
 - `timestampCreated` - Timestamp representing the moment a signature audit record was created (milliseconds since the Unix epoch start).
+- `version` - PowerAuth protocol version.
 
 ```java
 // Your actual user identifier

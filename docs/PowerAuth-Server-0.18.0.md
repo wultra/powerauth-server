@@ -93,7 +93,7 @@ We added row level DB locking for activations when handling concurrent signature
 
 ```properties
 # Database Lock Timeout Configuration
-javax.persistence.lock.timeout=10000
+spring.jpa.properties.lock.timeout=10000
 ```
 
 Locking of database records on Oracle unfortunately produces "follow-on-locking" warnings. These warnings can be safely ignored. To disable follow-on-locking warnings, we set the following property:

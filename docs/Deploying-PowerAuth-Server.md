@@ -8,29 +8,31 @@ This chapter explains how to deploy PowerAuth Server.
 ## Supported Databases
 
 Following databases are supported:
-- Oracle 12c and higher
-- PostgreSQL 10 and higher
-- MySQL 8 and higher
+- Oracle Database 11g or 12c, or
+- MySQL 5.5 or newer, or
+- PostgreSQL 9.5.4 or newer
+
+Note that MSSQL database is not supported.
 
 ## Downloading PowerAuth Server WAR
 
-You can download the latest `powerauth-java-server.war` at the [PowerAuth Server releases page](https://github.com/lime-company/powerauth-server/releases).
+You can download the latest `powerauth-java-server.war` at the [PowerAuth Server releases page](https://github.com/wultra/powerauth-server/releases).
 
 ## Adding Database Connector on Classpath
 
-PowerAuth Server supports any JPA 2.0 compatible database engine. In order for the database connectivity to work, you need to add appropriate DB client libraries on your classpath.
+In order for the database connectivity to work, you need to add appropriate DB client libraries on your classpath.
 
-For example, when using MySQL with Tomcat, make sure to add `mysql-connector-java-${VERSION}.jar` to the `${CATALINA_HOME}/lib` folder (server restart will be required).
+For example, when using Oracle with Tomcat, make sure to add `ojdbc-${VERSION}.jar` to the `${CATALINA_HOME}/lib` folder (server restart will be required).
 
 ## Creating the Database Schema
 
 In order for the PowerAuth Server to work, you need to have a correct schema in the database. To create the correct database schema, execute these SQL scripts for your database engine (MySQL is used by default):
 
-- [Default SQL Database Schema](https://github.com/lime-company/powerauth-server/tree/master/docs/sql)
+- [Default SQL Database Schema](./sql)
 
 You can read more about PowerAuth Server database schema in following guide:
 
-- [Database Structure](./Database-Structure)
+- [Database Structure](./Database-Structure.md)
 
 ## Connecting PowerAuth Server to Database
 
@@ -45,6 +47,34 @@ spring.jpa.hibernate.ddl-auto=none
 ```
 
 These parameters are of course only for the testing purposes, they are not suitable for production environment. They should be overridden for your production environment using a standard [Spring database connectivity related properties](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-connect-to-production-database).
+
+For Oracle database use following connectivity parameters (example):
+```
+spring.datasource.url=jdbc:oracle:thin:@//[HOST]:[PORT]/[SERVICENAME]
+spring.datasource.username=powerauth
+spring.datasource.password=*********
+spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.database-platform=org.hibernate.dialect.Oracle12cDialect
+spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
+```
+
+For PostgreSQL use following connectivity parameters (example):
+```
+spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DATABASE]
+spring.datasource.username=powerauth
+spring.datasource.password=*********
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.hibernate.ddl-auto=none
+spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
+```
+
+The character set is defined when creating database and each database supports different character sets. 
+In case of any national character issues, make sure to configure character encoding for database connection (example):
+```
+spring.jpa.properties.hibernate.connection.characterEncoding=utf8
+spring.jpa.properties.hibernate.connection.useUnicode=true
+```
 
 ## PowerAuth Server Configuration
 
@@ -164,7 +194,7 @@ spring.datasource.jndi-name=java:/jdbc/powerauth
 
 PowerAuth Server uses Bouncy Castle as a Java cryptography provider - this library is bundled in the WAR package. As a result, you need to [install unlimited policy files in your JVM](http://www.bouncycastle.org/wiki/display/JA1/Provider+Installation) and follow the instructions provided by your server vendor on specifics related to working with the Bouncy Castle library.
 
-Please follow our tutorial [how to configure Bouncy Castle](https://github.com/lime-company/powerauth-server/wiki/Installing-Bouncy-Castle).
+Please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
 
 #### Wildfly
 
