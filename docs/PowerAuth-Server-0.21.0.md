@@ -187,6 +187,11 @@ Marshaller context path setting in version `0.21.0`:
 marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth.soap.v3");
 ```
 
+Once you migrate completely to the `v3` classes, you can use:
+```java
+marshaller.setContextPaths("io.getlime.powerauth.soap.v3");
+```
+
 ### SOAP Interface Changes
 
 PowerAuth server in version `0.21.0` supports both version `3.0` and version `2.1` of PowerAuth protocol. 

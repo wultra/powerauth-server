@@ -130,7 +130,7 @@ _Note: You can overwrite the port using `-Dserver.port=8090` parameter to avoid 
 In order to initialize the database with an application, call PowerAuth Server RESTful service endpoint:
 
 ```bash
-$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationName": "DEMO APPLICATION NAME" } }' http://localhost:8080/powerauth-java-server/rest/application/create | json_pp
+$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationName": "DEMO APPLICATION NAME" } }' http://localhost:8080/powerauth-java-server/rest/v3/application/create | json_pp
 {
    "status" : "OK",
    "responseObject" : {
@@ -149,7 +149,7 @@ This command will create:
 To get the application details, you can copy the `applicationId` value from the previous response and call:
 
 ```bash
-$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationId": 1 } }' http://localhost:8080/powerauth-java-server/rest/application/detail | json_pp
+$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationId": 1 } }' http://localhost:8080/powerauth-java-server/rest/v3/application/detail | json_pp
 {
    "status" : "OK",
    "responseObject" : {
