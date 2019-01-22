@@ -1,7 +1,4 @@
----
-layout: page
-title: Configuring SOAP Client for Axis2
----
+# Configuring SOAP Client for Axis2
 
 This tutorial shows the way internet banking (or other "master front-end application") developers integrate with PowerAuth Server.
 

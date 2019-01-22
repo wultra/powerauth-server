@@ -1,7 +1,4 @@
----
-layout: page
-title: Using SOAP Service Client
----
+# Using SOAP Service Client
 
 PowerAuth assumes that the end-user client application (for example, mobile banking) is managed via a secure "master front-end application", for example via the Internet banking. Internet banking has to display a page to the user with the device activation list and allow user to create a new activation and manage existing activations.
 

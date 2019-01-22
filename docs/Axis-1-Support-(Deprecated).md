@@ -1,7 +1,4 @@
----
-layout: page
-title: Axis1 Support
----
+# Axis1 Support
 
 In case you need to use Axis 1 for connecting to PowerAuth Server SOAP service, you are basically on your own. We do not have ready to use integration libraries and we do not plan to ever implement them. However, we have some observations from customers like you that can help you make the integration quickly.
 

@@ -1,3 +1,5 @@
+# PowerAuth Server Error Codes
+
 PowerAuth Server may return following errors:
 
 | Error Code | Error Message | Note |

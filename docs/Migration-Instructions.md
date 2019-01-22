@@ -1,7 +1,4 @@
----
-layout: page
-title: Migration Instructions
----
+# Migration Instructions
 
 This page contains PowerAuth Server migration instructions.
 - [PowerAuth Server 0.21.0](./PowerAuth-Server-0.21.0.md)

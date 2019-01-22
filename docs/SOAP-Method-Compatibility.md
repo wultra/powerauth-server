@@ -1,9 +1,4 @@
----
-layout: page
-title: SOAP Method Compatibility
----
-
-## SOAP Method Compatibility
+# SOAP Method Compatibility
 
 This chapter describes SOAP interface changes per each SOAP method between PowerAuth protocol versions `2.x` and `3.0`. 
 The table below lists which methods are available for each version of PowerAuth protocol and describes how to handle the interface change.

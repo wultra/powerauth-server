@@ -1,7 +1,4 @@
----
-layout: page
-title: System Requirements
----
+# System Requirements
 
 There are two ways to deploy PowerAuth Server:
 

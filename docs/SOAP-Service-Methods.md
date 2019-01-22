@@ -1,7 +1,4 @@
----
-layout: page
-title: SOAP Service Methods
----
+# SOAP Service Methods
 
 This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
 It reflects the SOAP service methods as they are defined in the WSDL files:
