@@ -136,7 +136,7 @@ public class ServerPrivateKeyConverter {
                 }
 
             default:
-                logger.error("Unknown key encryption mode: {}", Byte.toString(keyEncryptionMode.getValue()));
+                logger.error("Unknown key encryption mode: {}", keyEncryptionMode.getValue());
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
     }
@@ -201,7 +201,7 @@ public class ServerPrivateKeyConverter {
     /**
      * Derive secret key from master DB encryption key, user ID and activation ID.<br/>
      * <br/>
-     * See: https://github.com/wultra/powerauth-server/wiki/Encrypting-Records-in-Database
+     * See: https://github.com/wultra/powerauth-server/docs/Encrypting-Records-in-Database.md
      *
      * @param masterDbEncryptionKey Master DB encryption key.
      * @param userId User ID.

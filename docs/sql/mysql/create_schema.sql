@@ -62,7 +62,8 @@ CREATE TABLE `pa_activation` (
   `timestamp_last_change` datetime,
   `version` int(2) DEFAULT 2,
   PRIMARY KEY (`activation_id`),
-  CONSTRAINT `FK_ACTIVATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `FK_ACTIVATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `FK_ACTIVATION_KEYPAIR` FOREIGN KEY (`master_keypair_id`) REFERENCES `pa_master_keypair` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --

@@ -694,6 +694,28 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Lookup application by application key.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest} instance.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse lookupApplicationByAppKey(PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest request) throws RemoteException {
+        return clientStubV3.lookupApplicationByAppKey(request);
+    }
+
+    /**
+     * Lookup application by application key.
+     * @param applicationKey Application key.
+     * @return Response with application ID.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws RemoteException {
+        PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest request = new PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest();
+        request.setApplicationKey(applicationKey);
+        return this.lookupApplicationByAppKey(request);
+    }
+
+    /**
      * Create a new application with given name.
      * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateApplicationRequest} instance.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateApplicationResponse}
