@@ -1,7 +1,4 @@
----
-layout: page
-title: Encrypting Records in Database
----
+# Encrypting Records in Database
 
 In order to improve the security of the keys stored in the database, we recommend taking following additional steps when configuring your database and database access.
 

@@ -1,7 +1,4 @@
----
-layout: page
-title: SOAP Client Library Usage
----
+# SOAP Client Library Usage
 
 This chapter explains how to use the SOAP client.
 

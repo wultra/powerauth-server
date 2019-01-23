@@ -1,7 +1,4 @@
----
-layout: page
-title: Offline Signatures
----
+# Offline Signatures
 
 Offline signatures are used in case when the mobile device is not connected to the internet. An intermediate web application with connection to the PowerAuth server can generate a QR code which is scanned by the mobile device and an offline signature is generated based on scanned QR code data. The offline signature consists of digits which can be rewritten into the web application which performs online code verification against PowerAuth server.
 

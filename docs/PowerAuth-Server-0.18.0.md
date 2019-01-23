@@ -1,7 +1,4 @@
----
-layout: page
-title: Migration from 0.17.0 to 0.18.0
----
+# Migration from 0.17.0 to 0.18.0
 
 This guide contains instructions for migration from PowerAuth Server version 0.17.0 to version 0.18.0.
 

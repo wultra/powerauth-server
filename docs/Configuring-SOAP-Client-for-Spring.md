@@ -1,7 +1,4 @@
----
-layout: page
-title: Configuring SOAP Client for Spring WS
----
+# Configuring SOAP Client for Spring WS
 
 This tutorial shows the way internet banking (or other similar application) developers integrate with PowerAuth Server using a SOAP service client.
 

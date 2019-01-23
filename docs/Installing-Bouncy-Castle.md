@@ -1,7 +1,4 @@
----
-layout: page
-title: Installing Bouncy Castle
----
+# Installing Bouncy Castle
 
 In order to function correctly, PowerAuth software requires Bouncy Castle to be available. While some servers, such as Wildfly, already come with own BC version, other servers, for example Tomcat, requires BC to be installed system-wide. You also need to install BC for testing the server via our command-line utility.
 

@@ -1,7 +1,4 @@
----
-layout: page
-title: Deploying PowerAuth Server
----
+# Deploying PowerAuth Server
 
 This chapter explains how to deploy PowerAuth Server.
 

@@ -1,7 +1,4 @@
----
-layout: page
-title: Database Structure
----
+# Database Structure
 
 You can download DDL scripts for supported databases:
 
