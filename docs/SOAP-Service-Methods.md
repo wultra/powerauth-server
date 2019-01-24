@@ -613,7 +613,7 @@ Create a data payload used as a challenge for personalized off-line signatures.
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/docs/Off-line-Signatures-QR-Code.md) documentation |
+| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation |
 
 #### Response
 
@@ -635,7 +635,7 @@ Create a data payload used as a challenge for non-personalized off-line signatur
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `applicationId` | An identifier of an application |
-| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/docs/Off-line-Signatures-QR-Code.md) documentation |
+| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation |
 
 #### Response
 
