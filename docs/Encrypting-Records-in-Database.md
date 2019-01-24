@@ -46,7 +46,7 @@ public byte[] decrypt(byte[] record, SecretKey derivedDbEncryptionKey) {
 }
 ```
 
-In order to achieve a consistency between activation record and encrypted server private key (to prevent a partial record swap attack, where admin replaces part of the record with own known values), we pay special attention to how we derive the encryption key from `MASTER_DB_ENCRYPTION_KEY` in the above mentioned routines. The encryption key `DERIVED_DB_ENCRYPTION_KEY` is derived from the master DB encryption key `MASTER_DB_ENCRYPTION_KEY` using a [KDF_INTERNAL](https://github.com/wultra/powerauth-crypto/docs/Basic-definitions.md) function, with a user ID and activation ID in concatenated String as a base for deriving the `index`, like so:
+In order to achieve a consistency between activation record and encrypted server private key (to prevent a partial record swap attack, where admin replaces part of the record with own known values), we pay special attention to how we derive the encryption key from `MASTER_DB_ENCRYPTION_KEY` in the above mentioned routines. The encryption key `DERIVED_DB_ENCRYPTION_KEY` is derived from the master DB encryption key `MASTER_DB_ENCRYPTION_KEY` using a [KDF_INTERNAL](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Basic-definitions.md) function, with a user ID and activation ID in concatenated String as a base for deriving the `index`, like so:
 
 ```java
 public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId, String activationId) {
