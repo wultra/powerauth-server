@@ -37,7 +37,7 @@ public class PowerAuthWebServiceConfiguration {
     @Bean
     public Jaxb2Marshaller marshaller() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth.soap.v3");
+        marshaller.setContextPath("io.getlime.powerauth.soap.v3");
         return marshaller;
     }
 
@@ -51,6 +51,12 @@ public class PowerAuthWebServiceConfiguration {
 	}
 
 }
+```
+
+_Note: The `v3` endpoints provide the most current implementation of PowerAuth cryptography protocol. If you still need to use the `v2` endpoints, include the `v2` context path for the Marshaller:_
+
+```
+marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth.soap.v3");
 ```
 
 ### Setting Up Credentials
