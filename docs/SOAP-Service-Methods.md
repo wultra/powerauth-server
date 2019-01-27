@@ -3,12 +3,12 @@
 This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
 It reflects the SOAP service methods as they are defined in the WSDL files:
  
-- [WSDL version 3.0](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl).
-- [WSDL version 2.1](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl).
+- [WSDL version 3](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl).
+- [WSDL version 2](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl).
 
 The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
-The following version `3.0` methods are published using the service:
+The following version `v3` methods are published using the service:
 
 - System Status
     - [getSystemStatus](#method-getsystemstatus)
@@ -62,7 +62,7 @@ The following version `3.0` methods are published using the service:
     - [startUpgrade](#method-startupgrade)
     - [commitUpgrade](#method-commitupgrade)
 
-The following version `2.1` methods are published using the service:
+The following version `v2` methods are published using the service:
 - Activation Management
     - [prepareActivation (v2)](#method-prepareactivation-v2)
     - [createActivation (v2)](#method-createactivation-v2)
