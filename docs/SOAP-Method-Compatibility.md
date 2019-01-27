@@ -10,7 +10,7 @@ The table below lists which methods are available for each version of PowerAuth 
 | `prepareActivation`         |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` | 
 | `createActivation`          |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` |
 | `vaultUnlock`               |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` |
-| `verifySignature`           |      |  X   | Added `signatureVersion`, PowerAuth uses signature version based on activation version, `signatureVersion` parameter is used during upgrade and is optional | Method moved to `v3`, use `v3` method |
+| `verifySignature`           |      |  X   | Added `forcedSignatureVersion`, PowerAuth uses signature version based on activation version, `forcedSignatureVersion` parameter is used during upgrade and is optional | Method moved to `v3`, use `v3` method |
 | `createPersOfflineSigPl`    |      |  X   |                      | Method moved to `v3`, use `v3` method   |
 | `createNonPersOfflineSigPl` |      |  X   |                      | Method moved to `v3`, use `v3` method   |
 | `verifyOfflineSignature`    |      |  X   | PowerAuth server uses `v2` or `v3` version of signature based on version of activation | Method moved to `v3`, use `v3` method   |
