@@ -153,7 +153,7 @@ PowerAuth protocol version `3.0` support has been introduced in PowerAuth server
 
 The main changes in PowerAuth protocol are following:
 - **ECIES scheme** is used for key agreement, encryption and message authentication.
-- Activations use **hash based counter** instead of numeric counter for replay protection.
+- Signatures use **hash based counter** instead of numeric counter for replay protection.
 
 The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto/docs) project. 
 
@@ -176,7 +176,7 @@ Spring PowerAuth SOAP Service Client.
 
 Original marshaller context path setting in previous versions:
 ```java
-marshaller.setContextPaths("io.getlime.powerauth.soap");
+marshaller.setContextPath("io.getlime.powerauth.soap");
 ```
 
 Marshaller context path setting in version `0.21.0`:
@@ -186,7 +186,7 @@ marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth
 
 Once you migrate completely to the `v3` classes, you can use:
 ```java
-marshaller.setContextPaths("io.getlime.powerauth.soap.v3");
+marshaller.setContextPath("io.getlime.powerauth.soap.v3");
 ```
 
 ### SOAP Interface Changes
