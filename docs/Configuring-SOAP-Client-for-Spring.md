@@ -41,15 +41,14 @@ public class PowerAuthWebServiceConfiguration {
         return marshaller;
     }
 
-	@Bean
-	public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) {
-		PowerAuthServiceClient client = new PowerAuthServiceClient();
-		client.setDefaultUri(powerAuthServiceUrl);
-		client.setMarshaller(marshaller);
-		client.setUnmarshaller(marshaller);
-		return client;
-	}
-
+    @Bean
+    public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) { 
+        PowerAuthServiceClient client = new PowerAuthServiceClient();
+        client.setDefaultUri(powerAuthServiceUrl);
+        client.setMarshaller(marshaller);
+        client.setUnmarshaller(marshaller);
+        return client; 
+    }
 }
 ```
 
