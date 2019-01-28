@@ -8,7 +8,7 @@ It reflects the SOAP service methods as they are defined in the WSDL files:
 
 The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
-The following version `v3` methods are published using the service:
+The following `v3` methods are published using the service:
 
 - System Status
     - [getSystemStatus](#method-getsystemstatus)
@@ -62,7 +62,7 @@ The following version `v3` methods are published using the service:
     - [startUpgrade](#method-startupgrade)
     - [commitUpgrade](#method-commitupgrade)
 
-The following version `v2` methods are published using the service:
+The following `v2` methods are published using the service:
 - Activation Management
     - [prepareActivation (v2)](#method-prepareactivation-v2)
     - [createActivation (v2)](#method-createactivation-v2)
