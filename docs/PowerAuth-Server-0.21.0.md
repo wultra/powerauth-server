@@ -155,7 +155,7 @@ The main changes in PowerAuth protocol are following:
 - **ECIES scheme** is used for key agreement, encryption and message authentication.
 - Signatures use **hash based counter** instead of numeric counter for replay protection.
 
-The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto/docs) project. 
+The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto) project. 
 
 The PowerAuth protocol upgrade caused following changes in PowerAuth server implementation:
 - Activations, tokens and vault unlock use ECIES scheme in PowerAuth protocol version `3.0`. The original implementations are still available for compatibility reasons. 
