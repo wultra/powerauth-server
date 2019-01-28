@@ -5,7 +5,7 @@ The table below lists which methods are available for each version of PowerAuth 
 
 | Method                      | `v2` | `v3` | Compatibility issues | Migration notes |
 | --------------------------- |:----:|:----:| -------------------- | --------------- |
-| `getActivationStatus`       |      |  X   | Binary representation of encrypted status blob changed | Method moved to `v3`, use `v3` method, migrate to updated `PowerAuthServerActivation.encryptedStatusBlob` method |
+| `getActivationStatus`       |      |  X   | Binary representation of encrypted status blob changed | Method moved to `v3`, use `v3` method, migrate to updated `PowerAuthServerActivation.encryptedStatusBlob` method, see [Status Blob Format](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Status.md#status-blob-format) |
 | `initActivation`            |      |  X   | Removed `activationOTP`, renamed `activationIdShort` to `activationCode`, `activationSignature` is calculated only from `activationCode` | Migrate to response with new activation code structure |
 | `prepareActivation`         |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` | 
 | `createActivation`          |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` |
