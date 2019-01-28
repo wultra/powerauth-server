@@ -33,6 +33,8 @@ You can read more about PowerAuth Server database schema in following guide:
 
 ## Connecting PowerAuth Server to Database
 
+### Default Database Connectivity Parameters
+
 The default database connectivity parameters in `powerauth-java-server.war` are following (MySQL defaults):
 
 ```sh
@@ -45,6 +47,8 @@ spring.jpa.hibernate.ddl-auto=none
 
 These parameters are of course only for the testing purposes, they are not suitable for production environment. They should be overridden for your production environment using a standard [Spring database connectivity related properties](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-connect-to-production-database).
 
+### Oracle Connectivity Parameters
+
 For Oracle database use following connectivity parameters (example):
 ```
 spring.datasource.url=jdbc:oracle:thin:@//[HOST]:[PORT]/[SERVICENAME]
@@ -56,6 +60,8 @@ spring.jpa.database-platform=org.hibernate.dialect.Oracle12cDialect
 spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
 
+### PostgreSQL Connectivity Parameters
+
 For PostgreSQL use following connectivity parameters (example):
 ```
 spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DATABASE]
@@ -65,6 +71,8 @@ spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
+
+### Specifying Database Connection Character Set
 
 The character set is defined when creating database and each database supports different character sets. 
 In case of any national character issues, make sure to configure character encoding for database connection (example):
