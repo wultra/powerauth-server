@@ -305,7 +305,7 @@ Methods related to activation management.
 
 ### Method 'initActivation'
 
-Create (initialize) a new application for given user and application. After calling this method, a new activation record is created in CREATED state.
+Create (initialize) a new activation for given user and application. After calling this method, a new activation record is created in CREATED state.
 
 #### Request
 
