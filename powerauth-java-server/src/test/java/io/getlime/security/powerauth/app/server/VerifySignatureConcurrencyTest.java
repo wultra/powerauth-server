@@ -1,16 +1,18 @@
 package io.getlime.security.powerauth.app.server;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
-import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
-import io.getlime.security.powerauth.v3.CreateApplicationRequest;
-import io.getlime.security.powerauth.v3.CreateApplicationResponse;
-import io.getlime.security.powerauth.v3.CreateApplicationVersionRequest;
-import io.getlime.security.powerauth.v3.CreateApplicationVersionResponse;
+import io.getlime.security.powerauth.v3.*;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,10 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.crypto.SecretKey;
+import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -56,47 +62,37 @@ public class VerifySignatureConcurrencyTest {
         PublicKey publicKey = keyPair.getPublic();
         byte[] publicKeyBytes = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertPublicKeyToBytes(publicKey);
 
-        // Generate random activation request values
-        PowerAuthServerActivation serverActivation = new PowerAuthServerActivation();
-        byte[] activationNonce = serverActivation.generateActivationNonce();
-        String activationNonceBase64 = BaseEncoding.base64().encode(activationNonce);
-        String activationCode = serverActivation.generateActivationCode();
-        String activationIdShort = activationCode.substring(0, 11);
-        String activationOtp = activationCode.substring(12);
-
-        // Derive and encrypt non-existent device public key
-        SecretKey otpBasedSymmetricKey = new KeyGenerator().deriveSecretKeyFromPassword(activationOtp, activationIdShort.getBytes());
-        byte[] encryptedDevicePublicKey = new AESEncryptionUtils().encrypt(publicKeyBytes, activationNonce, otpBasedSymmetricKey);
-        String encryptedDevicePublicKeyBase64 = BaseEncoding.base64().encode(encryptedDevicePublicKey);
-
         // Compute application signature
         PowerAuthClientActivation clientActivation = new PowerAuthClientActivation();
-        byte[] signature = clientActivation.computeApplicationSignature(
-                activationIdShort,
-                activationNonce,
-                encryptedDevicePublicKey,
-                BaseEncoding.base64().decode(createApplicationVersionResponse.getApplicationKey()),
-                BaseEncoding.base64().decode(createApplicationVersionResponse.getApplicationSecret()));
 
         // Generate expiration time
         Calendar expiration = Calendar.getInstance();
         expiration.add(Calendar.MINUTE, 5);
 
-        // Create activation
+        ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        requestL2.setActivationName("test_activation");
+        requestL2.setDevicePublicKey(BaseEncoding.base64().encode(publicKeyBytes));
 
-        // TODO - migrate test to version 3.0 once implemented
-        /*
+        GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
+        detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
+        GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
+
+        ECPublicKey masterPublicKey = (ECPublicKey) PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(BaseEncoding.base64().decode(detailResponse.getMasterPublicKey()));
+
+        EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey, createApplicationVersionResponse.getApplicationSecret().getBytes(StandardCharsets.UTF_8), EciesSharedInfo1.ACTIVATION_LAYER_2);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        new ObjectMapper().writeValue(baos, requestL2);
+        EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest(baos.toByteArray());
+
+        // Create activation
         CreateActivationRequest createActivationRequest = new CreateActivationRequest();
-        createActivationRequest.setApplicationId(createApplicationResponse.getApplicationId());
         createActivationRequest.setUserId("test");
-        createActivationRequest.setActivationName(testId);
         createActivationRequest.setTimestampActivationExpire(XMLGregorianCalendarConverter.convertFrom(expiration.getTime()));
-        createActivationRequest.setEncryptedDevicePublicKey(encryptedDevicePublicKeyBase64);
-        createActivationRequest.setActivationNonce(activationNonceBase64);
-        createActivationRequest.setActivationOtp(activationOtp);
-        createActivationRequest.setIdentity(activationIdShort);
+        createActivationRequest.setMaxFailureCount(5L);
         createActivationRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
-        createActivationRequest.setApplicationSignature(BaseEncoding.base64().encode(signature));
+        createActivationRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
+        createActivationRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
+        createActivationRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
         CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
 
         // Commit activation
@@ -135,7 +131,6 @@ public class VerifySignatureConcurrencyTest {
         for (Thread t: threads) {
             t.join();
         }
-        */
 
     }
 }
