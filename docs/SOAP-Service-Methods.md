@@ -346,6 +346,11 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base 64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data (as JSON):
+ - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
+ - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
+ - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+
 #### Response
 
 `PrepareActivationResponse`
@@ -356,6 +361,11 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 | `String` | `userId` | User ID |
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
+ - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
+ - `ctrData` - Initial value for hash-based counter (base64-encoded).
 
 ### Method 'createActivation'
 
@@ -375,6 +385,11 @@ Create an activation for given user and application, with provided maximum numbe
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data (as JSON):
+ - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
+ - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
+ - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+
 #### Response
 
 `CreateActivationResponse`
@@ -384,6 +399,11 @@ Create an activation for given user and application, with provided maximum numbe
 | `String` | `activationId` | An UUID4 identifier of an activation |
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
+ - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
+ - `ctrData` - Initial value for hash-based counter (base64-encoded).
 
 ### Method 'commitActivation'
 
@@ -695,6 +715,11 @@ Create a new token for the simple token-based authentication.
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
 
+ECIES request should contain following data (an empty JSON object):
+```json
+{}
+```
+
 #### Response
 
 `CreateTokenResponse`
@@ -703,6 +728,14 @@ Create a new token for the simple token-based authentication.
 |------|------|-------------|
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (example):
+```json
+{
+   "tokenId": "d6561669-34d6-4fee-8913-89477687a5cb",  
+   "tokenSecret": "VqAXEhziiT27lxoqREjtcQ=="
+}
+```
 
 ### Method 'validateToken'
 
@@ -774,6 +807,21 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data:
+```json
+{
+    "reason": "..."
+}
+```
+
+You can provide following reasons for a vault unlocking:
+
+- `ADD_BIOMETRY` - call was used to enable biometric authentication.
+- `FETCH_ENCRYPTION_KEY` - call was used to fetch a generic data encryption key.
+- `SIGN_WITH_DEVICE_PRIVATE_KEY` - call was used to unlock device private key used for ECDSA signatures.
+- `NOT_SPECIFIED` - no reason was specified.
+
+
 #### Response
 
 `VaultUnlockResponse`
@@ -783,6 +831,14 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 | `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
 | `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+
+ECIES response contains following data (example):
+```json
+{
+    "activationId": "c564e700-7e86-4a87-b6c8-a5a0cc89683f",
+    "encryptedVaultEncryptionKey": "QNESF9QVUJMSUNfS0VZX3JhbmRvbQ=="
+}
+```
 
 ## Signature audit
 
