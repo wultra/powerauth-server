@@ -201,7 +201,7 @@ public class ServerPrivateKeyConverter {
     /**
      * Derive secret key from master DB encryption key, user ID and activation ID.<br/>
      * <br/>
-     * See: https://github.com/wultra/powerauth-server/docs/Encrypting-Records-in-Database.md
+     * See: https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md
      *
      * @param masterDbEncryptionKey Master DB encryption key.
      * @param userId User ID.
