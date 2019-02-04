@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -19,6 +19,7 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -28,8 +29,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.ws.config.annotation.EnableWs;
 import org.springframework.ws.config.annotation.WsConfigurerAdapter;
 import org.springframework.ws.server.EndpointInterceptor;
-import org.springframework.ws.soap.security.wss4j.Wss4jSecurityInterceptor;
-import org.springframework.ws.soap.security.wss4j.callback.SpringSecurityPasswordValidationCallbackHandler;
+import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
+import org.springframework.ws.soap.security.wss4j2.callback.SpringSecurityPasswordValidationCallbackHandler;
 import org.springframework.ws.transport.http.MessageDispatcherServlet;
 import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
@@ -38,11 +39,11 @@ import org.springframework.xml.xsd.XsdSchema;
 import java.util.List;
 
 /**
- * PowerAuth 2.0 Server default web service configuration. Configures both basic endpoint information
+ * PowerAuth Server default web service configuration. Configures both basic endpoint information
  * (service, port, xsd) and security (WS-Security, with UsernameToken authentication) in case it is
  * enabled in application configuration ("powerauth.service.restrictAccess").
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @EnableWs
 @Configuration
@@ -62,11 +63,11 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     }
 
     /**
-     * Constructor that accepts an instance of UserDetailsServicce for autowiring.
+     * Constructor that accepts an instance of UserDetailsService for autowiring.
      * @param userDetailsService UserDetailsService instance.
      */
     @Autowired
-    public WebServiceConfig(UserDetailsService userDetailsService) {
+    public WebServiceConfig(@Qualifier("integrationUserDetailsService") UserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
 
@@ -121,18 +122,35 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     }
 
     /**
-     * Specify SOAP service parameters from WSDL file. Map service WSDP to
-     * ${CONTEXT_PATH}/soap/service.wsdl address.
+     * Specify SOAP service parameters from WSDL file. Map service WSDL to
+     * ${CONTEXT_PATH}/soap/service-v2.wsdl address.
      *
-     * @param powerAuthSchema XSD schema with PowerAuth service objects.
-     * @return WSDL definition.
+     * @param powerAuthSchema XSD schema with PowerAuth 2.0 service objects.
+     * @return PowerAuth 2.0 WSDL definition.
      */
-    @Bean(name = "service")
-    public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema powerAuthSchema) {
+    @Bean(name = "service-v2")
+    public DefaultWsdl11Definition defaultWsdl11DefinitionV2(@Qualifier(value = "PowerAuth-2.0") XsdSchema powerAuthSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
-        wsdl11Definition.setPortTypeName("PowerAuthPort");
+        wsdl11Definition.setPortTypeName("PowerAuthPortV2");
         wsdl11Definition.setLocationUri("/soap");
-        wsdl11Definition.setTargetNamespace("http://getlime.io/security/powerauth");
+        wsdl11Definition.setTargetNamespace("http://getlime.io/security/powerauth/v2");
+        wsdl11Definition.setSchema(powerAuthSchema);
+        return wsdl11Definition;
+    }
+
+    /**
+     * Specify SOAP service parameters from WSDL file. Map service WSDL to
+     * ${CONTEXT_PATH}/soap/service-v3.wsdl address.
+     *
+     * @param powerAuthSchema XSD schema with PowerAuth 3.0 service objects.
+     * @return PowerAuth 3.0 WSDL definition.
+     */
+    @Bean(name = "service-v3")
+    public DefaultWsdl11Definition defaultWsdl11DefinitionV3(@Qualifier(value = "PowerAuth-3.0") XsdSchema powerAuthSchema) {
+        DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
+        wsdl11Definition.setPortTypeName("PowerAuthPortV3");
+        wsdl11Definition.setLocationUri("/soap");
+        wsdl11Definition.setTargetNamespace("http://getlime.io/security/powerauth/v3");
         wsdl11Definition.setSchema(powerAuthSchema);
         return wsdl11Definition;
     }
@@ -140,11 +158,21 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     /**
      * Return PowerAuth 2.0 Server service XSD schema.
      *
-     * @return Correct XSD schema.
+     * @return PowerAuth 2.0 XSD schema.
      */
-    @Bean
-    public XsdSchema countriesSchema() {
+    @Bean(name = "PowerAuth-2.0")
+    public XsdSchema powerAuthV2Schema() {
         return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-2.0.xsd"));
+    }
+
+    /**
+     * Return PowerAuth 3.0 Server service XSD schema.
+     *
+     * @return PowerAuth 3.0 XSD schema.
+     */
+    @Bean(name = "PowerAuth-3.0")
+    public XsdSchema powerAuthV3Schema() {
+        return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-3.0.xsd"));
     }
 
 }

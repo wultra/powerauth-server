@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntity;
@@ -25,7 +24,7 @@ import org.springframework.stereotype.Repository;
 /**
  * Repository for accessing stored tokens for token-based authentication.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Repository
 public interface TokenRepository extends CrudRepository<TokenEntity, String> {

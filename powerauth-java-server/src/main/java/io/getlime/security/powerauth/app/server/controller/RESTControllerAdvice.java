@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -26,13 +26,11 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Class used for handling RESTful service errors.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @ControllerAdvice
 public class RESTControllerAdvice {
@@ -40,19 +38,18 @@ public class RESTControllerAdvice {
     /**
      * Handle all service exceptions using the same error format. Response has a status code 400 Bad Request.
      *
-     * @param e   Service exception.
+     * @param ex Service exception.
      * @return REST response with error collection.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = GenericServiceException.class)
-    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnGenericError(GenericServiceException e) {
+    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnGenericError(GenericServiceException ex) {
         RESTErrorModel error = new RESTErrorModel();
-        error.setCode(e.getCode());
-        error.setMessage(e.getMessage());
-        error.setLocalizedMessage(e.getLocalizedMessage());
+        error.setCode(ex.getCode());
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
         List<RESTErrorModel> errorList = new LinkedList<>();
         errorList.add(error);
-        Logger.getLogger(RESTControllerAdvice.class.getName()).log(Level.SEVERE, null, e);
         return new RESTResponseWrapper<>("ERROR", errorList);
     }
 

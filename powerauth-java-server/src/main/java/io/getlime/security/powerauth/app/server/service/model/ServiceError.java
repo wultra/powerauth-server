@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package io.getlime.security.powerauth.app.server.service.model;
 
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ import java.util.List;
  * The {@link io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider}
  * class is then used for looking up the displayable error message.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 public class ServiceError {
 
@@ -62,9 +61,9 @@ public class ServiceError {
     public static final String UNABLE_TO_GENERATE_ACTIVATION_ID = "ERR0005";
 
     /**
-     * Too many failed attempts to generate short activation ID.
+     * Too many failed attempts to generate activation code.
      */
-    public static final String UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID = "ERR0006";
+    public static final String UNABLE_TO_GENERATE_ACTIVATION_CODE = "ERR0006";
 
     /**
      * This activation is already expired.
@@ -113,6 +112,8 @@ public class ServiceError {
 
     /**
      * Token with given token ID does not exist.
+     *
+     * The error code is obsolete, because the error is handled using regular response instead of an exception.
      */
     public static final String INVALID_TOKEN = "ERR0016";
 
@@ -141,6 +142,21 @@ public class ServiceError {
      */
     public static final String UNSUPPORTED_ENCRYPTION_MODE = "ERR0021";
 
+    /**
+     * Generic cryptography error.
+     */
+    public static final String GENERIC_CRYPTOGRAPHY_ERROR = "ERR0022";
+
+    /**
+     * Cryptography provider is initialized incorrectly.
+     */
+    public static final String INVALID_CRYPTO_PROVIDER = "ERR0023";
+
+    /**
+     * Invalid request error.
+     */
+    public static final String INVALID_REQUEST = "ERR0024";
+
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);
         list.add(UNKNOWN_ERROR);
@@ -149,7 +165,7 @@ public class ServiceError {
         list.add(NO_MASTER_SERVER_KEYPAIR);
         list.add(INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         list.add(UNABLE_TO_GENERATE_ACTIVATION_ID);
-        list.add(UNABLE_TO_GENERATE_SHORT_ACTIVATION_ID);
+        list.add(UNABLE_TO_GENERATE_ACTIVATION_CODE);
         list.add(ACTIVATION_EXPIRED);
         list.add(ACTIVATION_INCORRECT_STATE);
         list.add(ACTIVATION_NOT_FOUND);
@@ -165,6 +181,9 @@ public class ServiceError {
         list.add(UNABLE_TO_GENERATE_TOKEN);
         list.add(MISSING_MASTER_DB_ENCRYPTION_KEY);
         list.add(UNSUPPORTED_ENCRYPTION_MODE);
+        list.add(GENERIC_CRYPTOGRAPHY_ERROR);
+        list.add(INVALID_CRYPTO_PROVIDER);
+        list.add(INVALID_REQUEST);
         return list;
     }
 

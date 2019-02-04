@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -28,11 +28,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExc
 import java.util.List;
 
 /**
- * PowerAuth 2.0 Server web application configuration. The main purpose of this class
+ * PowerAuth Server web application configuration. The main purpose of this class
  * at the moment is to assure proper handling of application exceptions (correct
  * order).
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
 public class WebApplicationConfig implements WebMvcConfigurer {
