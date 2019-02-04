@@ -159,15 +159,17 @@ The main changes in PowerAuth protocol are following:
 The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto) project. 
 
 The PowerAuth protocol upgrade caused following changes in PowerAuth server implementation:
-- Activations, tokens and vault unlock use ECIES scheme in PowerAuth protocol version `3.0`. The original implementations are still available for compatibility reasons. 
-- Signatures use the hash based counter introduced in version `3.0`. The signatures use numeric or hash based counter depending on version of activation. 
-- Instead of using separate *Activation ID Short* and *Activation OTP*, a single *Activation Code* is used.
-- Binary format of encrypted status blob in *Activation Status* has been changed.
-- Original PowerAuth End-to-end encryption has been deprecated in favor of ECIES-based encryption.
-- PowerAuth SDK release `0.21.0` will trigger upgrade of activations to version `3` using new upgrade endpoints. Previous versions of the SDK use the version `2` of activations.
+- Activations, tokens and vault unlock use ECIES scheme in PowerAuth protocol version `3.0`. The original implementations are still available for compatibility reasons. See [End-to-end Encryption Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/End-To-End-Encryption.md)
+- Signatures use the hash based counter introduced in version `3.0`. The signatures use numeric or hash based counter depending on version of activation. See [PowerAuth Signature Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Computing-and-Validating-Signatures.md)
+- Instead of using separate *Activation ID Short* and *Activation OTP*, a single *Activation Code* is used. See [Activation Code Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Code.md).
+- Binary format of encrypted status blob in *Activation Status* has been changed. See [Activation Status Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Status.md)
+- Original PowerAuth End-to-end encryption has been deprecated in favor of ECIES-based encryption. See [End-to-end Encryption Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/End-To-End-Encryption.md)
+- PowerAuth SDK release `1.0.0` will trigger upgrade of activations to version `3` using new upgrade endpoints. Previous versions of the SDK use the version `2` of activations. See [Activation Upgrade Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Upgrade.md)
 
 The original `v2` interfaces are still available both in the SOAP API, REST API and both client implementations, however migration to new interfaces is recommended. 
 The `v2` interfaces will be deprecated in a future release. 
+
+The interface changes are described in details in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
 ### JAXB Marshaller Context Path Update
 
