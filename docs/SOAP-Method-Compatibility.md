@@ -6,17 +6,17 @@ The table below lists which methods are available for each version of PowerAuth 
 | Method                      | `v2` | `v3` | Compatibility issues | Migration notes |
 | --------------------------- |:----:|:----:| -------------------- | --------------- |
 | `getActivationStatus`       |      |  X   | Binary representation of encrypted status blob changed | Method moved to `v3`, use `v3` method, migrate to updated `PowerAuthServerActivation.encryptedStatusBlob` method, see [Status Blob Format](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Status.md#status-blob-format) |
-| `initActivation`            |      |  X   | Removed `activationOTP`, renamed `activationIdShort` to `activationCode`, `activationSignature` is calculated only from `activationCode` | Migrate to response with new activation code structure |
+| `initActivation`            |      |  X   | `activationCode` replaced `activationOTP` and `activationIdShort`, `activationSignature` is calculated only from `activationCode` | Migrate to response with new `activationCode` structure |
 | `prepareActivation`         |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` | 
 | `createActivation`          |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` |
 | `vaultUnlock`               |  X   |  X   | `v3` version uses ECIES, incompatible with `v2`| Use either `v2` (will be deprecated in future release) or migrate to ECIES in `v3` |
-| `verifySignature`           |      |  X   | Added `forcedSignatureVersion`, PowerAuth uses signature version based on activation version, `forcedSignatureVersion` parameter is used during upgrade and is optional | Method moved to `v3`, use `v3` method |
+| `verifySignature`           |      |  X   | Added `forcedSignatureVersion`, PowerAuth uses signature version based on activation version, `forcedSignatureVersion` parameter is used during activation upgrade and is optional | Method moved to `v3`, use `v3` method |
 | `createPersOfflineSigPl`    |      |  X   |                      | Method moved to `v3`, use `v3` method   |
 | `createNonPersOfflineSigPl` |      |  X   |                      | Method moved to `v3`, use `v3` method   |
 | `verifyOfflineSignature`    |      |  X   | PowerAuth server uses `v2` or `v3` version of signature based on version of activation | Method moved to `v3`, use `v3` method   |
 | `generateE2EPersEncKey`     |  X   |      | Not supported in `v3`, used in legacy E2E encryption | ECIES-based encryption should be used as replacement for legacy E2E encryption |
 | `generateE2ENonPersEncKey`  |  X   |      | Not supported in `v3`, used in legacy E2E encryption | ECIES-based encryption should be used as replacement for legacy E2E encryption |
-| `createToken`               |  X   |  X   | ECIES keys and `sharedInfo` parameters have changed in `v3` which broke compatibility | Use either `v2` (will be deprecated in future release) or migrate to new ECIES parameters in `v3` |
+| `createToken`               |  X   |  X   | ECIES private key and `sharedInfo` parameter have changed in `v3` which broke compatibility | Use either `v2` (will be deprecated in future release) or migrate to new ECIES parameters in `v3` |
 | `validateToken`             |      |  X   |                      | Method moved to `v3`, use `v3` method   |
 | `removeToken`               |      |  X   |                      | Method moved to `v3`, use `v3` method   |
 | `getSystemStatus`           |      |  X   |                      | Method moved to `v3`, use `v3` method   |
