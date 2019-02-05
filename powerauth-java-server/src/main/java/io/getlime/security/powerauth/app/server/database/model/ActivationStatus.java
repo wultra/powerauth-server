@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model;
 
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 
 /**
  * Enum representing possible activation states. Following values are supported:
@@ -28,41 +28,41 @@ import io.getlime.security.powerauth.app.server.service.PowerAuthService;
  * - BLOCKED = 4
  * - REMOVED = 5
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 public enum ActivationStatus {
 
     /**
      * CREATED - status right after the activation record was created by calling
-     * {@link PowerAuthService#initActivation(io.getlime.security.powerauth.InitActivationRequest)}.
+     * {@link PowerAuthService#initActivation(io.getlime.security.powerauth.v3.InitActivationRequest)}.
      */
     CREATED((byte) 1),
 
     /**
-     * OTP_USED - status right after PowerAuth 2.0 Server receives PowerAuth 2.0 Client public
-     * key, via {@link PowerAuthService#prepareActivation(io.getlime.security.powerauth.PrepareActivationRequest)}
+     * OTP_USED - status right after PowerAuth Server receives PowerAuth Client public
+     * key, via {@link PowerAuthService#prepareActivation(io.getlime.security.powerauth.v3.PrepareActivationRequest)}
      * method.
      */
     OTP_USED((byte) 2),
 
     /**
      * ACTIVE - status after the activation record was committed by calling
-     * {@link PowerAuthService#commitActivation(io.getlime.security.powerauth.CommitActivationRequest)},
+     * {@link PowerAuthService#commitActivation(io.getlime.security.powerauth.v3.CommitActivationRequest)},
      * or after activation was unblocked from the BLOCKED state by calling
-     * {@link PowerAuthService#unblockActivation(io.getlime.security.powerauth.UnblockActivationRequest)}.
+     * {@link PowerAuthService#unblockActivation(io.getlime.security.powerauth.v3.UnblockActivationRequest)}.
      */
     ACTIVE((byte) 3),
 
     /**
      * BLOCKED - status after the activation record was blocked by calling
-     * {@link PowerAuthService#blockActivation(io.getlime.security.powerauth.BlockActivationRequest)} or
+     * {@link PowerAuthService#blockActivation(io.getlime.security.powerauth.v3.BlockActivationRequest)} or
      * after too many authentication failed attempt occurred.
      */
     BLOCKED((byte) 4),
 
     /**
      * REMOVED - status after the activation record was removed by calling
-     * {@link PowerAuthService#removeActivation(io.getlime.security.powerauth.RemoveActivationRequest)}.
+     * {@link PowerAuthService#removeActivation(io.getlime.security.powerauth.v3.RemoveActivationRequest)}.
      */
     REMOVED((byte) 5);
 

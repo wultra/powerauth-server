@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -25,7 +25,7 @@ import java.util.Objects;
 /**
  * Entity class representing Master Key Pair in the database.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Entity(name = "pa_master_keypair")
 public class MasterKeyPairEntity implements Serializable {
@@ -224,10 +224,7 @@ public class MasterKeyPairEntity implements Serializable {
         if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
             return false;
         }
-        if (!Objects.equals(this.application, other.application)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.application, other.application);
     }
 
     @Override

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,9 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.integration;
 
-import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
+import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
@@ -34,11 +35,12 @@ import java.util.List;
 /**
  * Class that implements user detail service used for authentication of integrations.
  * Integration is essentially an application that is allowed to communicate with
- * PowerAuth 2.0 Server.
+ * PowerAuth Server.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@Qualifier("integrationUserDetailsService")
 public class IntegrationUserDetailsService implements UserDetailsService {
 
     private IntegrationRepository integrationRepository;

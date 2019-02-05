@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -32,13 +32,13 @@ import java.util.List;
 /**
  * Database repository for activation entities.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Component
 public interface ActivationRepository extends CrudRepository<ActivationRecordEntity, String> {
 
     /**
-     * Find a first activation with given activation ID.
+     * Find the first activation with given activation ID.
      * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
      * (DB deadlock, invalid counter value in second transaction, etc.).
      *
@@ -47,7 +47,26 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
-    ActivationRecordEntity findActivation(String activationId);
+    ActivationRecordEntity findActivationWithLock(String activationId);
+
+    /**
+     * Find the first activation with given activation ID.
+     * The activation record is not locked in DB.
+     *
+     * @param activationId Activation ID
+     * @return Activation with given ID or null if not found
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    ActivationRecordEntity findActivationWithoutLock(String activationId);
+
+    /**
+     * Get count of activations with given activation ID.
+     *
+     * @param activationId Activation ID
+     * @return Count of activations with given activation ID
+     */
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    Long getActivationCount(String activationId);
 
     /**
      * Find all activations for given user ID
@@ -67,10 +86,66 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     List<ActivationRecordEntity> findByApplicationIdAndUserId(Long applicationId, String userId);
 
     /**
+     * Find the first activation associated with given application by the activation code.
+     * Filter the results by activation state and make sure to apply activation time window.
+     *
+     * <p><b>PowerAuth protocol versions:</b>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+     *
+     * @param applicationId     Application ID
+     * @param activationCode    Activation code
+     * @param states            Allowed activation states
+     * @param currentTimestamp  Current timestamp
+     * @return Activation matching the search criteria or null if not found
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    ActivationRecordEntity findCreatedActivationWithoutLock(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+
+    /**
+     * Get count of activations identified by an activation short ID associated with given application.
+     *
+     * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
+     * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
+     * supported.
+     *
+     * This method will be removed when crypto version 2.0 is deprecated.
+     *
+     * @param applicationId     Application ID
+     * @param activationIdShort Activation ID short
+     * @return Count of activations matching the search criteria
+     */
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2%")
+    Long getActivationCountByActivationIdShort(Long applicationId, String activationIdShort);
+
+    /**
+     * Get count of activations identified by an activation code associated with given application.
+     *
+     * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
+     * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
+     * supported.
+     *
+     * @param applicationId  Application ID
+     * @param activationCode Activation code
+     * @return Count of activations matching the search criteria
+     */
+    default Long getActivationCountByActivationCode(Long applicationId, String activationCode) {
+        if (activationCode == null || activationCode.length() != 23) {
+            throw new IllegalArgumentException("Invalid activation code: " + activationCode);
+        }
+        return getActivationCountByActivationIdShort(applicationId, activationCode.substring(0, 11));
+    }
+
+    /**
      * Find the first activation associated with given application by the activation ID short.
      * Filter the results by activation state and make sure to apply activation time window.
-     * The activation record is locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues
-     * (DB deadlock, invalid counter value in second transaction, etc.).
+     *
+     * <p><b>PowerAuth protocol versions:</b>
+     * <ul>
+     *     <li>2.0</li>
+     *     <li>2.1</li>
+     * </ul>
      *
      * @param applicationId     Application ID
      * @param activationIdShort Short activation ID
@@ -78,8 +153,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param currentTimestamp  Current timestamp
      * @return Activation matching the search criteria or null if not found
      */
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationIdShort = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
-    ActivationRecordEntity findCreatedActivation(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2% AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    ActivationRecordEntity findCreatedActivationByShortIdWithoutLock(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
 }

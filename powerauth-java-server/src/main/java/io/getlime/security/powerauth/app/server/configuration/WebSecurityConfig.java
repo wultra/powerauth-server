@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -28,25 +28,21 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.AuthenticationEntryPoint;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * Class that implements configuration of the Spring Security for RESTful interface
- * of the PowerAuth 2.0 Server. This configuration is prepared in such a way that it
+ * of the PowerAuth Server. This configuration is prepared in such a way that it
  * does not apply to the SOAP interface - only to REST.
  *
  * If a configuration "powerauth.service.restrictAccess" suggests that access should be
  * restricted, HTTP Basic Authentication is used for RESTful API endpoints. Username and
  * passwords can be set in the "pa_integration" table.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
 @EnableWebSecurity
@@ -87,15 +83,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
-        return new AuthenticationEntryPoint() {
-            @Override public void commence(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, AuthenticationException e) throws IOException, ServletException {
-                RESTResponseWrapper<String> errorResponse = new RESTResponseWrapper<>("ERROR", "Authentication failed");
-                httpServletResponse.setContentType("application/json");
-                httpServletResponse.setCharacterEncoding("UTF-8");
-                httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                httpServletResponse.getOutputStream().println(new ObjectMapper().writeValueAsString(errorResponse));
-                httpServletResponse.getOutputStream().flush();
-            }
+        return (httpServletRequest, httpServletResponse, e) -> {
+            RESTResponseWrapper<String> errorResponse = new RESTResponseWrapper<>("ERROR", "Authentication failed");
+            httpServletResponse.setContentType("application/json");
+            httpServletResponse.setCharacterEncoding("UTF-8");
+            httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            httpServletResponse.getOutputStream().println(new ObjectMapper().writeValueAsString(errorResponse));
+            httpServletResponse.getOutputStream().flush();
         };
     }
 

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -23,7 +23,7 @@ import javax.validation.constraints.NotNull;
  * Base class for RESTful request object.
  *
  * @param <T> Type of the request object instance.
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 public class RESTRequestWrapper<T> {
 
@@ -86,13 +86,10 @@ public class RESTRequestWrapper<T> {
         @SuppressWarnings("rawtypes")
         RESTRequestWrapper other = (RESTRequestWrapper) obj;
         if (requestObject == null) {
-            if (other.requestObject != null) {
-                return false;
-            }
-        } else if (!requestObject.equals(other.requestObject)) {
-            return false;
+            return other.requestObject == null;
+        } else {
+            return requestObject.equals(other.requestObject);
         }
-        return true;
     }
 
 }

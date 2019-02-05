@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * Entity representing a single signature audit log.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Entity
 @Table(name = "pa_signature_audit")
@@ -48,6 +48,9 @@ public class SignatureEntity implements Serializable {
 
     @Column(name = "activation_counter", nullable = false)
     private Long activationCounter;
+
+    @Column(name = "activation_ctr_data", nullable = true)
+    private String activationCtrDataBase64;
 
     @Column(name = "activation_status", nullable = true)
     @Convert(converter = ActivationStatusConverter.class)
@@ -71,6 +74,9 @@ public class SignatureEntity implements Serializable {
     @Column(name = "valid", nullable = false, updatable = false)
     private Boolean valid;
 
+    @Column(name = "version", nullable = false)
+    private Integer version;
+
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
@@ -83,23 +89,25 @@ public class SignatureEntity implements Serializable {
     /**
      * Constructor with all properties.
      *
-     * @param id                Signature audit item record ID.
-     * @param activation        Associated activation, or null of no related activation was found.
-     * @param activationCounter Activation counter at the time of signature computation attempt, or 0 if activation is null.
-     * @param activationStatus  Activation status at the time of signature computation attempt.
-     * @param dataBase64        Data that were sent alongside the signature.
-     * @param signatureType     Requested signature type.
-     * @param signature         Signature value.
-     * @param additionalInfo    Additional information related to this signature.
-     * @param note              Signature audit log note, with more information about the log reason.
-     * @param valid             True if the signature was valid, false otherwise.
-     * @param timestampCreated  Created timestapm.
+     * @param id                      Signature audit item record ID.
+     * @param activation              Associated activation, or null of no related activation was found.
+     * @param activationCounter       Activation counter at the time of signature computation attempt, or 0 if activation is null.
+     * @param activationCtrDataBase64 Activation counter data at the time of signature computation attempt, or null if only numeric counter is used.
+     * @param activationStatus        Activation status at the time of signature computation attempt.
+     * @param dataBase64              Data that were sent alongside the signature.
+     * @param signatureType           Requested signature type.
+     * @param signature               Signature value.
+     * @param additionalInfo          Additional information related to this signature.
+     * @param note                    Signature audit log note, with more information about the log reason.
+     * @param valid                   True if the signature was valid, false otherwise.
+     * @param timestampCreated        Created timestapm.
      */
-    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String additionalInfo, String note, Boolean valid, Date timestampCreated) {
+    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, String activationCtrDataBase64, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String additionalInfo, String note, Boolean valid, Date timestampCreated, Integer version) {
         super();
         this.id = id;
         this.activation = activation;
         this.activationCounter = activationCounter;
+        this.activationCtrDataBase64 = activationCtrDataBase64;
         this.activationStatus = activationStatus;
         this.dataBase64 = dataBase64;
         this.signatureType = signatureType;
@@ -107,6 +115,7 @@ public class SignatureEntity implements Serializable {
         this.additionalInfo = additionalInfo;
         this.note = note;
         this.valid = valid;
+        this.version = version;
         this.timestampCreated = timestampCreated;
     }
 
@@ -162,6 +171,22 @@ public class SignatureEntity implements Serializable {
      */
     public void setActivationCounter(Long activationCounter) {
         this.activationCounter = activationCounter;
+    }
+
+    /**
+     * Get Base64 encoded activation counter data.
+     * @return Activation counter data.
+     */
+    public String getActivationCtrDataBase64() {
+        return activationCtrDataBase64;
+    }
+
+    /**
+     * Set Base64 encoded activation counter data.
+     * @param activationCtrDataBase64 Activation counter data.
+     */
+    public void setActivationCtrDataBase64(String activationCtrDataBase64) {
+        this.activationCtrDataBase64 = activationCtrDataBase64;
     }
 
     /**
@@ -289,6 +314,22 @@ public class SignatureEntity implements Serializable {
     }
 
     /**
+     * Get signature version.
+     * @return Signature version.
+     */
+    public Integer getVersion() {
+        return version;
+    }
+
+    /**
+     * Set signature version.
+     * @param version Signature version.
+     */
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    /**
      * Get created timestamp.
      *
      * @return Created timestamp.
@@ -312,6 +353,7 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.id);
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationCounter);
+        hash = 23 * hash + Objects.hashCode(this.activationCtrDataBase64);
         hash = 23 * hash + Objects.hashCode(this.activationStatus);
         hash = 23 * hash + Objects.hashCode(this.dataBase64);
         hash = 23 * hash + Objects.hashCode(this.signatureType);
@@ -319,6 +361,7 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.additionalInfo);
         hash = 23 * hash + Objects.hashCode(this.note);
         hash = 23 * hash + Objects.hashCode(this.valid);
+        hash = 23 * hash + Objects.hashCode(this.version);
         hash = 23 * hash + Objects.hashCode(this.timestampCreated);
         return hash;
     }
@@ -356,24 +399,27 @@ public class SignatureEntity implements Serializable {
         if (!Objects.equals(this.activationCounter, other.activationCounter)) {
             return false;
         }
+        if (!Objects.equals(this.activationCtrDataBase64, other.activationCtrDataBase64)) {
+            return false;
+        }
         if (!Objects.equals(this.activationStatus, other.activationStatus)) {
             return false;
         }
         if (!Objects.equals(this.valid, other.valid)) {
             return false;
         }
+        if (!Objects.equals(this.version, other.version)) {
+            return false;
+        }
         if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
             return false;
         }
-        if (!Objects.equals(this.note, other.note)) {
-            return false;
-        }
-        return true;
+        return Objects.equals(this.note, other.note);
     }
 
     @Override
     public String toString() {
-        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", note=" + note + ", timestampCreated=" + timestampCreated + '}';
+        return "SignatureEntity{" + "id=" + id + ", activation=" + activation + ", activationCounter=" + activationCounter + ", activationCtrDataBase64=" + activationCtrDataBase64 + ", activationStatus=" + activationStatus + ", dataBase64=" + dataBase64 + ", signatureType=" + signatureType + ", signature=" + signature + ", additionalInfo= " + additionalInfo + ", valid=" + valid + ", version=" + version + ", note=" + note + ", timestampCreated=" + timestampCreated + "}";
     }
 
 }

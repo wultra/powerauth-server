@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2017 Lime - HighTech Solutions s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -24,10 +24,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
- * Class holding the configuration data of this PowerAuth 2.0 Server
+ * Class holding the configuration data of this PowerAuth Server
  * instance. Default values are in "application.properties" file.
  *
- * @author Petr Dvorak, petr@lime-company.eu
+ * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
 public class PowerAuthServiceConfiguration {
@@ -76,11 +76,11 @@ public class PowerAuthServiceConfiguration {
     private int generateTokenIdIterations;
 
     /**
-     * When a duplicate activation short ID is encountered during the
+     * When a duplicate activation code is encountered during the
      * activation, how many times generate a new one.
      */
-    @Value("${powerauth.service.crypto.generateActivationShortIdIterations}")
-    private int activationGenerateActivationShortIdIterations;
+    @Value("${powerauth.service.crypto.generateActivationCodeIterations}")
+    private int activationGenerateActivationCodeIterations;
 
     /**
      * How many milliseconds should be CREATED or OTP_USED record usable for
@@ -217,19 +217,19 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get number of short activation ID generation attempts in case of collision.
+     * Get number of activation code generation attempts in case of collision.
      * @return Retry iteration count (10, by default).
      */
-    public int getActivationGenerateActivationShortIdIterations() {
-        return activationGenerateActivationShortIdIterations;
+    public int getActivationGenerateActivationCodeIterations() {
+        return activationGenerateActivationCodeIterations;
     }
 
     /**
-     * Set number of short activation ID generation attempts in case of collision.
-     * @param activationGenerateActivationShortIdIterations Retry iteration count (10, by default).
+     * Set number of activation code generation attempts in case of collision.
+     * @param activationGenerateActivationCodeIterations Retry iteration count (10, by default).
      */
-    public void setActivationGenerateActivationShortIdIterations(int activationGenerateActivationShortIdIterations) {
-        this.activationGenerateActivationShortIdIterations = activationGenerateActivationShortIdIterations;
+    public void setActivationGenerateActivationCodeIterations(int activationGenerateActivationCodeIterations) {
+        this.activationGenerateActivationCodeIterations = activationGenerateActivationCodeIterations;
     }
 
     /**

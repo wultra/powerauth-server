@@ -6,17 +6,17 @@ branches:
     - master
 env:
   global:
-  - secure: "q6qRU4s81Rl+UCe1Ix2RA7l6xuK/JK7VUE8k6aAcxWskkddRX2sRuMQ4BzTiSVxXVP9pofjrjuRVv3Pkre4fvmFKj5yRovWbVJdre+H+RdS+ScYr+KLV1LKgYf0nnDJ7+aJ/qVGT8C1MqiZ+3nptgI0i73BzePXDyKpONuLcdlQWFQnSqIEXwy64yzk2fDew4kw+2duHY/bLvignfaL2TF5Suz//0BvqcRcs+t5F+5M9QSqBX0ibWI6HFUhTEw4vY7LiN5f5URpS0qPOlYg7OTBnLaI2BMhRUg+D3Iksxz53xl54PFu5tQ3sXcZ3qigC1ZG0FDLqz/xggsfDfnwyeqgeHFM7qgx4KvBeC5cHrNcbfY13kf2f5SDyjFB4QJSbcBLByNuYRJ0wwg6L7ySyX5hyCAI172t4VioF+Ynl11qcVUvqZRrTpsSE5z4MAho5og+NzrirnveI36xUzVeZ+hSX6WCCn4EuMe4gvZXpTKXNzwaXkt5tEvT9/FyeY0VbbY8sMVvSLmrvSyKpOy6eUKhiBj81BIvDr4gpaGExiK+IdYJmO19Jg22E+CLSeJBULhlbcNoK0Jn04YsbkfUKPEZ33lmVJW4OWQPpZXvROBt4dfJwqpSleicf96sTUDKE9GM2HuFubMbQPdmVzrj4mVvvEClvTTwo5nTNg2Ru+hQ="
+  - secure: "anR9zJ9i63ixplFLL8HuNeH9b8T4YXz54gVNYT55zfy6Mam7Lun1yxz9dJ8Aj/hI9qzVbkbPOGtjFmqbM0ePHcM7+6EeNWKeAYOgjlJOjKYYS1K0lOifFGSNQLuYvMvfR33GM6D7LBq3lCZVDzqnTlUcDo1jz9g+D+eSvQscWv4WXSQz7j0qYe0lk0lJM9UkH8hMG5TUfcCaVg3ifeeUv6kLybTojIsreciN0vlocm3zLgF8afGJLMQ6gC03yNN1zgiFUCzZLZ88ZjDlbaWKigrbFxuwsIFTpLXu0mJm7ArZd1bB6NFKwJKk/i+B5L6E4vYaMVs6r/0IqfGZ4dzfS8+J8Z/azK+7fNY+qGahsI9iXaAmP4Im8Txy5Ci65tvOiCMe5u9h/73/iJZ/kTf/9WWLC0CgmbsT8lKTEBBzxQ7bGG9oeWho/BlgKHuHTn4No9fk5qJH2ECqp2PatCrZbeCZ024iQ5rswctBoiMUu+wVOwTTorWUUdZslIgwVFEjyICe0AfNv9ki2m8wImZcjgHEVUt1/dVEPHXS9OI2BrddA1ld+dDXBjqz2Ve/qcTuDNHhrLCydtk8OO8OVpcHAgiaN8ik4phmu5/H38UVKU+0NBZ+TRzOQzF8FTLKvtumgN36AVjdPSnVm6h7cOMGL1vetNQS5yhB04p/q8r0NLs="
 
 before_install:
-  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 
 addons:
   coverity_scan:
     project:
-      name: lime-company/powerauth-server
+      name: "wultra/powerauth-server"
       description: Build submitted via Travis CI
-    notification_email: petr@lime-company.eu
+    notification_email: petr@wultra.com
     build_command_prepend: mvn clean
     build_command: mvn -DskipTests=true compile
     branch_pattern: master
