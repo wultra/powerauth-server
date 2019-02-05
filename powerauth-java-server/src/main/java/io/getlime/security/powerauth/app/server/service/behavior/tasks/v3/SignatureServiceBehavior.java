@@ -443,6 +443,9 @@ public class SignatureServiceBehavior {
         // By default do not notify listeners
         boolean notifyCallbackListeners = false;
 
+        // Update the last used date
+        activation.setTimestampLastUsed(currentTimestamp);
+
         // Update failed attempts and block the activation, if necessary
         if (notPossessionFactorSignature(signatureRequest.getSignatureType())) {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
@@ -450,6 +453,7 @@ public class SignatureServiceBehavior {
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
                 KeyValueMap.Entry entry = new KeyValueMap.Entry();
@@ -458,14 +462,14 @@ public class SignatureServiceBehavior {
                 additionalInfo.getEntry().add(entry);
                 // notify callback listeners
                 notifyCallbackListeners = true;
+            } else {
+                // Save the activation
+                activationRepository.save(activation);
             }
+        } else {
+            // Save the activation
+            activationRepository.save(activation);
         }
-
-        // Update the last used date
-        activation.setTimestampLastUsed(currentTimestamp);
-
-        // Save the activation
-        activationRepository.save(activation);
 
         // Create the audit log record
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
@@ -514,10 +518,14 @@ public class SignatureServiceBehavior {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
         }
 
+        // Update the last used date
+        activation.setTimestampLastUsed(currentTimestamp);
+
         Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             KeyValueMap additionalInfo = signatureRequest.getAdditionalInfo();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
@@ -526,13 +534,10 @@ public class SignatureServiceBehavior {
             additionalInfo.getEntry().add(entry);
             // notify callback listeners
             notifyCallbackListeners = true;
+        } else {
+            // Save the activation
+            activationRepository.save(activation);
         }
-
-        // Update the last used date
-        activation.setTimestampLastUsed(currentTimestamp);
-
-        // Save the activation
-        activationRepository.save(activation);
 
         // Create the audit log record.
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureRequest.getSignatureType(), signatureRequest.getSignature(), signatureRequest.getAdditionalInfo(), signatureRequest.getData(),
