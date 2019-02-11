@@ -180,7 +180,7 @@ public class VaultUnlockServiceBehavior {
 
             String reason = request.getReason();
 
-            if (reason != null && reason.length() > 255) {
+            if (reason != null && !reason.matches("[A-Za-z0-9_\\-\\.]{3,255}")) {
                 logger.warn("Invalid vault unlock reason: {}", reason);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
