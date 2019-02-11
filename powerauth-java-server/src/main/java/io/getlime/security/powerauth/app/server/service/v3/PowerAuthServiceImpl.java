@@ -823,6 +823,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+        // Verify the token timestamp validity
+        if (request.getTimestamp() < System.currentTimeMillis() - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
+            logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         try {
             logger.info("ValidateTokenRequest received, token ID: {}", request.getTokenId());
             ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
