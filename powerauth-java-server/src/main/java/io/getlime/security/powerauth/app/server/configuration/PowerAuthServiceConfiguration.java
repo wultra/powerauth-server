@@ -103,6 +103,12 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * Token timestamp validity in milliseconds, checked before validating the token.
+     */
+    @Value("${powerauth.service.token.timestamp.validity}")
+    private long tokenTimestampValidityInMilliseconds;
+
+    /**
      * Master DB encryption key.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
@@ -278,6 +284,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSignatureValidationLookahead(long signatureValidationLookahead) {
         this.signatureValidationLookahead = signatureValidationLookahead;
+    }
+
+    /**
+     * Get the token timestamp validity in milliseconds.
+     * @return Token timestamp validity in milliseconds.
+     */
+    public long getTokenTimestampValidityInMilliseconds() {
+        return tokenTimestampValidityInMilliseconds;
+    }
+
+    /**
+     * Set the token timestamp validity in milliseconds.
+     * @param tokenTimestampValidityInMilliseconds Token timestamp validity in milliseconds.
+     */
+    public void setTokenTimestampValidityInMilliseconds(long tokenTimestampValidityInMilliseconds) {
+        this.tokenTimestampValidityInMilliseconds = tokenTimestampValidityInMilliseconds;
     }
 
     /**
