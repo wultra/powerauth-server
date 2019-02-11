@@ -976,8 +976,8 @@ public class ActivationServiceBehavior {
 
         // does the record even exist, is it in correct state?
         // early null check done above, no null check needed here
-        if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE)) {
-            activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED);
+        if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+            activation.setActivationStatus(ActivationStatus.BLOCKED);
             if (reason == null) {
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_NOT_SPECIFIED);
             } else {
@@ -985,6 +985,10 @@ public class ActivationServiceBehavior {
             }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
+            // In case activation status is not ACTIVE or BLOCKED, throw an exception
+            logger.info("Activation cannot be blocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
         BlockActivationResponse response = new BlockActivationResponse();
         response.setActivationId(activationId);
@@ -1009,13 +1013,17 @@ public class ActivationServiceBehavior {
 
         // does the record even exist, is it in correct state?
         // early null check done above, no null check needed here
-        if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED)) {
+        if (activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
             // Update and store new activation
-            activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
+            activation.setActivationStatus(ActivationStatus.ACTIVE);
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+            // In case activation status is not BLOCKED or ACTIVE, throw an exception
+            logger.info("Activation cannot be unblocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
         UnblockActivationResponse response = new UnblockActivationResponse();
         response.setActivationId(activationId);
