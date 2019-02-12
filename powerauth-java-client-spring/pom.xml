@@ -22,14 +22,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>powerauth-java-client-spring</artifactId>
-    <version>0.21.0</version>
+    <version>0.22.0</version>
     <name>powerauth-java-client-spring</name>
     <description>PowerAuth Server SOAP Service Client</description>
 
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>0.21.0</version>
+        <version>0.22.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -49,6 +49,18 @@
             <groupId>wsdl4j</groupId>
             <artifactId>wsdl4j</artifactId>
             <version>1.6.3</version>
+        </dependency>
+
+        <!-- JAXB dependency for Java 11 -->
+        <dependency>
+            <groupId>javax.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+            <version>2.3.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.xml.bind</groupId>
+            <artifactId>jaxb-impl</artifactId>
+            <version>2.3.1</version>
         </dependency>
     </dependencies>
 

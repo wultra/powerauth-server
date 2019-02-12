@@ -19,9 +19,7 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -316,14 +314,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
-    }
-
-    @Bean
-    public ResourceBundleMessageSource messageSource() {
-        ResourceBundleMessageSource source = new ResourceBundleMessageSource();
-        source.setBasename("/i18n/errors_");
-        source.setUseCodeAsDefaultMessage(true);
-        return source;
     }
 
 }
