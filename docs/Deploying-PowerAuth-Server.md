@@ -201,17 +201,3 @@ PowerAuth Server uses Bouncy Castle as a Java cryptography provider - this libra
 
 Please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
 
-#### Wildfly
-
-In order to make PowerAuth Server work on Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
-
-```xml
-<subsystem xmlns="urn:jboss:domain:ee:4.0">
-    <!-- ... -->
-    <global-modules>
-        <module name="org.bouncycastle" slot="main"/>
-    </global-modules>
-</subsystem>
-```
-
-Note that when Wildfly's Bouncy Castle module is used, Bouncy Castle should not be present in the `lib/ext` folder of the Java runtime, otherwise the following error can occur: "key spec not recognised" due to clash of Bouncy Castle libraries.
