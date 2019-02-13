@@ -10,3 +10,6 @@ longer contains the Bouncy Castle library in war files to avoid classloader issu
 The Bouncy Castle provider needs to be installed using mechanism supported by the web container. 
 See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-bouncy-castle-on-java-11) chapter in documentation.
 
+### Tomcat on Java 11
+
+We have tested PowerAuth on Tomcat `9.0.16` with Java 11, so please use this version or higher. Older versions of Tomcat may not work properly with Java 11. 
