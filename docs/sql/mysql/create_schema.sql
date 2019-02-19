@@ -144,17 +144,17 @@ CREATE TABLE `pa_activation_history` (
 -- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
 --
 
-CREATE INDEX `pa_activation_code` on `pa_activation`(`activation_code`);
+CREATE INDEX `pa_activation_code` ON `pa_activation`(`activation_code`);
 
-CREATE INDEX `pa_activation_user_id` on `pa_activation`(`user_id`);
+CREATE INDEX `pa_activation_user_id` ON `pa_activation`(`user_id`);
 
-CREATE INDEX `pa_activation_history_created` on `pa_activation_history`(`timestamp_created`);
+CREATE INDEX `pa_activation_history_created` ON `pa_activation_history`(`timestamp_created`);
 
-CREATE UNIQUE INDEX `pa_app_version_app_key` on `pa_application_version`(`application_key`);
+CREATE UNIQUE INDEX `pa_app_version_app_key` ON `pa_application_version`(`application_key`);
 
 CREATE INDEX `pa_app_callback_app` ON `pa_application_callback`(`application_id`);
 
-CREATE UNIQUE INDEX `pa_integration_token` on `pa_integration`(`client_token`);
+CREATE UNIQUE INDEX `pa_integration_token` ON `pa_integration`(`client_token`);
 
-CREATE INDEX `pa_signature_audit_created` on `pa_signature_audit`(`timestamp_created`);
+CREATE INDEX `pa_signature_audit_created` ON `pa_signature_audit`(`timestamp_created`);
 
