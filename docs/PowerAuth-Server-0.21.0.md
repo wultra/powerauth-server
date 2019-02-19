@@ -133,19 +133,19 @@ CREATE INDEX PA_TOKEN_ACTIVATION ON PA_TOKEN(ACTIVATION_ID);
 
 Script for MySQL (foreign key indexes are created automatically in InnoDB):
 ```sql
-CREATE INDEX PA_ACTIVATION_CODE ON PA_ACTIVATION(ACTIVATION_CODE);
+CREATE INDEX `pa_activation_code` on `pa_activation`(`activation_code`);
 
-CREATE INDEX PA_ACTIVATION_USER_ID ON PA_ACTIVATION(USER_ID);
+CREATE INDEX `pa_activation_user_id` on `pa_activation`(`user_id`);
 
-CREATE INDEX PA_ACTIVATION_HISTORY_CREATED ON PA_ACTIVATION_HISTORY(TIMESTAMP_CREATED);
+CREATE INDEX `pa_activation_history_created` on `pa_activation_history`(`timestamp_created`);
 
-CREATE UNIQUE INDEX PA_APP_VERSION_APP_KEY ON PA_APPLICATION_VERSION(APPLICATION_KEY);
+CREATE UNIQUE INDEX `pa_app_version_app_key` on `pa_application_version`(`application_key`);
 
-CREATE INDEX PA_APP_CALLBACK_APP ON PA_APPLICATION_CALLBACK(APPLICATION_ID);
+CREATE INDEX `pa_app_callback_app` ON `pa_application_callback`(`application_id`);
 
-CREATE UNIQUE INDEX PA_INTEGRATION_TOKEN ON PA_INTEGRATION(CLIENT_TOKEN);
+CREATE UNIQUE INDEX `pa_integration_token` on `pa_integration`(`client_token`);
 
-CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED);
+CREATE INDEX `pa_signature_audit_created` on `pa_signature_audit`(`timestamp_created`);
 ```
 
 ## PowerAuth Protocol Version 3.0
