@@ -58,42 +58,42 @@ Migration script for MySQL:
 --
 --  Added Column ACTIVATION_CODE in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION ADD ACTIVATION_CODE VARCHAR(255);
+ALTER TABLE `pa_activation` ADD `activation_code` VARCHAR(255);
 
 --
 --  Added Column CTR_DATA in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION ADD CTR_DATA VARCHAR(255);
+ALTER TABLE `pa_activation` ADD `ctr_data` VARCHAR(255);
 
 --
 --  Added Column VERSION in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION ADD VERSION INT(2) DEFAULT 2;
+ALTER TABLE `pa_activation` ADD `version` INT(2) DEFAULT 2;
 
 --
 --  Added Column ACTIVATION_CTR_DATA in Table PA_SIGNATURE_AUDIT
 --
-ALTER TABLE PA_SIGNATURE_AUDIT ADD ACTIVATION_CTR_DATA VARCHAR(255);
+ALTER TABLE `pa_signature_audit` ADD `activation_ctr_data` VARCHAR(255);
 
 --
 --  Added Column VERSION in Table PA_SIGNATURE_AUDIT
 --
-ALTER TABLE PA_SIGNATURE_AUDIT ADD VERSION INT(2) DEFAULT 2;
+ALTER TABLE `pa_signature_audit` ADD `version` INT(2) DEFAULT 2;
 
 --
 --  Column ACTIVATION_CODE Filled with Data from ACTIVATION_ID_SHORT || '-' || ACTIATION_OTP
 --
-UPDATE PA_ACTIVATION SET ACTIVATION_CODE = ACTIVATION_ID_SHORT || '-' || ACTIVATION_OTP;
+UPDATE `pa_activation` SET `activation_code` = `activation_id_short` || '-' || `activation_otp`;
 
 --
 --  Dropped Column ACTIVATION_ID_SHORT in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION DROP COLUMN ACTIVATION_ID_SHORT;
+ALTER TABLE `pa_activation` DROP COLUMN `activation_id_short`;
 
 --
 --  Dropped Column ACTIVATION_OTP in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION DROP COLUMN ACTIVATION_OTP;
+ALTER TABLE `pa_activation` DROP COLUMN `activation_otp`;
 ```
 
 ## Database Indexes
