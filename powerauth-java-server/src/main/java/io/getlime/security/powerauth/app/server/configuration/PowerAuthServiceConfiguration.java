@@ -101,6 +101,42 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * Whether HTTP proxy is enabled for outgoing HTTP requests.
+     */
+    @Value("${powerauth.service.http.proxy.enabled}")
+    private Boolean httpProxyEnabled;
+
+    /**
+     * HTTP proxy host.
+     */
+    @Value("${powerauth.service.http.proxy.host}")
+    private String httpProxyHost;
+
+    /**
+     * HTTP proxy port.
+     */
+    @Value("${powerauth.service.http.proxy.port}")
+    private Integer httpProxyPort;
+
+    /**
+     * HTTP proxy username, use only in case HTTP proxy authentication is required.
+     */
+    @Value("${powerauth.service.http.proxy.username}")
+    private String httpProxyUsername;
+
+    /**
+     * HTTP proxy password, use only in case HTTP proxy authentication is required.
+     */
+    @Value("${powerauth.service.http.proxy.password}")
+    private String httpProxyPassword;
+
+    /**
+     * HTTP connection timeout.
+     */
+    @Value("${powerauth.service.http.connection.timeout}")
+    private Integer httpConnectionTimeout;
+
+    /**
      * Token timestamp validity in milliseconds, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.validity}")
@@ -282,6 +318,102 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSignatureValidationLookahead(long signatureValidationLookahead) {
         this.signatureValidationLookahead = signatureValidationLookahead;
+    }
+
+    /**
+     * Get whether HTTP proxy is enabled.
+     * @return Whether HTTP proxy is enabled.
+     */
+    public Boolean getHttpProxyEnabled() {
+        return httpProxyEnabled;
+    }
+
+    /**
+     * Set whether HTTP proxy is enabled.
+     * @param httpProxyEnabled Whether HTTP proxy is enabled.
+     */
+    public void setHttpProxyEnabled(Boolean httpProxyEnabled) {
+        this.httpProxyEnabled = httpProxyEnabled;
+    }
+
+    /**
+     * Get HTTP proxy host.
+     * @return HTTP proxy host.
+     */
+    public String getHttpProxyHost() {
+        return httpProxyHost;
+    }
+
+    /**
+     * Set HTTP proxy host.
+     * @param httpProxyHost HTTP proxy host.
+     */
+    public void setHttpProxyHost(String httpProxyHost) {
+        this.httpProxyHost = httpProxyHost;
+    }
+
+    /**
+     * Get HTTP proxy port.
+     * @return HTTP proxy port.
+     */
+    public Integer getHttpProxyPort() {
+        return httpProxyPort;
+    }
+
+    /**
+     * Set HTTP proxy port.
+     * @param httpProxyPort HTTP proxy port.
+     */
+    public void setHttpProxyPort(Integer httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
+    }
+
+    /**
+     * Get HTTP proxy username.
+     * @return HTTP proxy username.
+     */
+    public String getHttpProxyUsername() {
+        return httpProxyUsername;
+    }
+
+    /**
+     * Set HTTP proxy username.
+     * @param httpProxyUsername HTTP proxy username.
+     */
+    public void setHttpProxyUsername(String httpProxyUsername) {
+        this.httpProxyUsername = httpProxyUsername;
+    }
+
+    /**
+     * Get HTTP proxy password.
+     * @return HTTP proxy password.
+     */
+    public String getHttpProxyPassword() {
+        return httpProxyPassword;
+    }
+
+    /**
+     * Set HTTP proxy password.
+     * @param httpProxyPassword HTTP proxy password.
+     */
+    public void setHttpProxyPassword(String httpProxyPassword) {
+        this.httpProxyPassword = httpProxyPassword;
+    }
+
+    /**
+     * Get HTTP connection timeout.
+     * @return HTTP connection timeout.
+     */
+    public Integer getHttpConnectionTimeout() {
+        return httpConnectionTimeout;
+    }
+
+    /**
+     * Set HTTP connection timeout.
+     * @param httpConnectionTimeout HTTP connection timeout.
+     */
+    public void setHttpConnectionTimeout(Integer httpConnectionTimeout) {
+        this.httpConnectionTimeout = httpConnectionTimeout;
     }
 
     /**
