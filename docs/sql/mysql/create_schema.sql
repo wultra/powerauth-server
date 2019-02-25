@@ -118,11 +118,11 @@ CREATE TABLE `pa_application_callback` (
 --
 
 CREATE TABLE pa_token (
-	`token_id` VARCHAR(37) NOT NULL,
-	`token_secret` VARCHAR(255) NOT NULL,
-	`activation_id` VARCHAR(37) NOT NULL,
-	`signature_type` VARCHAR(255) NOT NULL,
-	`timestamp_created` DATETIME NOT NULL,
+	`token_id` varchar(37) NOT NULL,
+	`token_secret` varchar(255) NOT NULL,
+	`activation_id` varchar(37) NOT NULL,
+	`signature_type` varchar(255) NOT NULL,
+	`timestamp_created` datetime NOT NULL,
   PRIMARY KEY (`token_id`),
   CONSTRAINT `FK_TOKEN_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -135,6 +135,8 @@ CREATE TABLE `pa_activation_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `activation_id` varchar(37) NOT NULL,
   `activation_status` int(11) NOT NULL,
+  `blocked_reason` varchar(255),
+  `external_user_id` varchar(255),
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION

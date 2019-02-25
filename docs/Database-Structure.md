@@ -177,4 +177,6 @@ Columns:
 | id | INT(37) | primary key | Unique record ID. |
 | activation_id | VARCHAR(37) | foreign key: pa\_activation.activation_id | Reference to associated activation. |
 | activation_status | INT(11) | index | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
+| blocked_reason | VARCHAR(255) | - | Reason why activation was blocked (used when activation_status = 4, BLOCKED). |
+| external_user_id | VARCHAR(255) | - | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |
