@@ -632,6 +632,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="reason" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="externalUserId" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -658,6 +659,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="externalUserId" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -807,6 +809,8 @@
                                     <xs:element maxOccurs="1" minOccurs="1" name="id" type="xs:long"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="blockedReason" type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="externalUserId" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                 </xs:sequence>
                             </xs:complexType>

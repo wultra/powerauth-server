@@ -964,10 +964,11 @@ public class ActivationServiceBehavior {
      *
      * @param activationId Activation ID
      * @param reason Reason why activation is being blocked.
+     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
      * @return Response confirming that activation was blocked
      * @throws GenericServiceException In case activation does not exist.
      */
-    public BlockActivationResponse blockActivation(String activationId, String reason) throws GenericServiceException {
+    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation does not exist, activation ID: {}", activationId);
@@ -983,7 +984,7 @@ public class ActivationServiceBehavior {
             } else {
                 activation.setBlockedReason(reason);
             }
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
             // In case activation status is not ACTIVE or BLOCKED, throw an exception
@@ -1001,10 +1002,11 @@ public class ActivationServiceBehavior {
      * Unblock activation with given ID
      *
      * @param activationId Activation ID
+     * @param externalUserId User ID of user who unblocked the activation. Use null value if activation owner caused the change.
      * @return Response confirming that activation was unblocked
      * @throws GenericServiceException In case activation does not exist.
      */
-    public UnblockActivationResponse unblockActivation(String activationId) throws GenericServiceException {
+    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation does not exist, activation ID: {}", activationId);
@@ -1018,7 +1020,7 @@ public class ActivationServiceBehavior {
             activation.setActivationStatus(ActivationStatus.ACTIVE);
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             // In case activation status is not BLOCKED or ACTIVE, throw an exception

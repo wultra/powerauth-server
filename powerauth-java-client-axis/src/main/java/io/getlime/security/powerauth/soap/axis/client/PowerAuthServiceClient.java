@@ -403,13 +403,15 @@ public class PowerAuthServiceClient {
      * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
      * @param reason Reason why activation is being blocked.
+     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.BlockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.BlockActivationResponse blockActivation(String activationId, String reason) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws RemoteException {
         PowerAuthPortV3ServiceStub.BlockActivationRequest request = new PowerAuthPortV3ServiceStub.BlockActivationRequest();
         request.setActivationId(activationId);
         request.setReason(reason);
+        request.setExternalUserId(externalUserId);
         return this.blockActivation(request);
     }
 
@@ -426,12 +428,14 @@ public class PowerAuthServiceClient {
     /**
      * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be unblocked.
+     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UnblockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.UnblockActivationResponse unblockActivation(String activationId) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws RemoteException {
         PowerAuthPortV3ServiceStub.UnblockActivationRequest request = new PowerAuthPortV3ServiceStub.UnblockActivationRequest();
         request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
         return this.unblockActivation(request);
     }
 

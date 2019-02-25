@@ -13,3 +13,26 @@ See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-boun
 ### Tomcat on Java 11
 
 We have tested PowerAuth on Tomcat `9.0.16` with Java 11, so please use this version or higher. Older versions of Tomcat may not work properly with Java 11. 
+
+## Database Changes
+
+Following DB changes occurred between version 0.21.0 and 0.22.0:
+- Table `pa_activation_history` - added column `external_user_id`
+
+Migration script for Oracle:
+```sql
+ALTER TABLE PA_ACTIVATION_HISTORY ADD EXTERNAL_USER_ID VARCHAR2(255 CHAR);
+ALTER TABLE PA_ACTIVATION_HISTORY ADD BLOCKED_REASON VARCHAR2(255 CHAR);
+```
+
+Migration script for MySQL:
+```sql
+ALTER TABLE `pa_activation_history` ADD `blocked_reason` varchar(255);
+ALTER TABLE `pa_activation_history` ADD `external_user_id` varchar(255);
+```
+
+Migration script for PostgreSQL:
+```sql
+ALTER TABLE pa_activation_history ADD blocked_reason VARCHAR(255);
+ALTER TABLE pa_activation_history ADD external_user_id VARCHAR(255);
+```

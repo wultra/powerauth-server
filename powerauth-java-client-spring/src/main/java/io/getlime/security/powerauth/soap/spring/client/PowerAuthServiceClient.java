@@ -272,13 +272,15 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be blocked.
+     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
      * @param reason Reason why activation is being blocked.
      * @return {@link BlockActivationResponse}
      */
-    public BlockActivationResponse blockActivation(String activationId, String reason) {
+    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) {
         BlockActivationRequest request = new BlockActivationRequest();
         request.setActivationId(activationId);
         request.setReason(reason);
+        request.setExternalUserId(externalUserId);
         return this.blockActivation(request);
     }
 
@@ -294,11 +296,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be unblocked.
+     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
      * @return {@link UnblockActivationResponse}
      */
-    public UnblockActivationResponse unblockActivation(String activationId) {
+    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) {
         UnblockActivationRequest request = new UnblockActivationRequest();
         request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
         return this.unblockActivation(request);
     }
 
