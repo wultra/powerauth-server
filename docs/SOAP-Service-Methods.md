@@ -54,7 +54,7 @@ The following `v3` methods are published using the service:
     - [removeIntegration](#method-removeintegration)
 - Callback URL Management
     - [createCallbackUrl](#method-createcallbackurl)
-    - [getCallbackUrlList](#method-getcallbckurllist)
+    - [getCallbackUrlList](#method-getcallbackurllist)
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
     - [getEciesDecryptor](#method-geteciesdecryptor)
