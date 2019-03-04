@@ -128,8 +128,8 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @param powerAuthSchema XSD schema with PowerAuth 2.0 service objects.
      * @return PowerAuth 2.0 WSDL definition.
      */
-    @Bean(name = "service-v2")
-    public DefaultWsdl11Definition defaultWsdl11DefinitionV2(@Qualifier(value = "PowerAuth-2.0") XsdSchema powerAuthSchema) {
+    @Bean(name = "serviceV2")
+    public DefaultWsdl11Definition defaultWsdl11DefinitionV2(@Qualifier(value = "powerAuthV2") XsdSchema powerAuthSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
         wsdl11Definition.setPortTypeName("PowerAuthPortV2");
         wsdl11Definition.setLocationUri("/soap");
@@ -145,8 +145,8 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @param powerAuthSchema XSD schema with PowerAuth 3.0 service objects.
      * @return PowerAuth 3.0 WSDL definition.
      */
-    @Bean(name = "service-v3")
-    public DefaultWsdl11Definition defaultWsdl11DefinitionV3(@Qualifier(value = "PowerAuth-3.0") XsdSchema powerAuthSchema) {
+    @Bean(name = "serviceV3")
+    public DefaultWsdl11Definition defaultWsdl11DefinitionV3(@Qualifier(value = "powerAuthV3") XsdSchema powerAuthSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
         wsdl11Definition.setPortTypeName("PowerAuthPortV3");
         wsdl11Definition.setLocationUri("/soap");
@@ -160,7 +160,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      *
      * @return PowerAuth 2.0 XSD schema.
      */
-    @Bean(name = "PowerAuth-2.0")
+    @Bean(name = "powerAuthV2")
     public XsdSchema powerAuthV2Schema() {
         return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-2.0.xsd"));
     }
@@ -170,7 +170,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      *
      * @return PowerAuth 3.0 XSD schema.
      */
-    @Bean(name = "PowerAuth-3.0")
+    @Bean(name = "powerAuthV3")
     public XsdSchema powerAuthV3Schema() {
         return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-3.0.xsd"));
     }

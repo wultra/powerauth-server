@@ -83,7 +83,7 @@ import java.util.Set;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("ActivationServiceBehavior")
+@Component("activationServiceBehavior")
 public class ActivationServiceBehavior {
 
     /**
