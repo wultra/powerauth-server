@@ -416,6 +416,7 @@ Commit activation with given ID. Only non-expired activations in OTP_USED state 
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who committed the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -471,6 +472,7 @@ Remove activation with given ID. This operation is irreversible. Activations can
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who removed the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -532,6 +534,7 @@ Block activation with given ID. Activations can be blocked in ACTIVE state only.
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `reason` | Reason why activation is being blocked (default: NOT_SPECIFIED) |
+| `String` | `externalUserId` | User ID of user who blocked the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -554,6 +557,7 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who unblocked the activation. Use null value if activation owner caused the change. |
 
 #### Response
 

@@ -374,8 +374,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String externalUserId = request.getExternalUserId();
             logger.info("CommitActivationRequest received, activation ID: {}", activationId);
-            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId);
+            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId, externalUserId);
             logger.info("CommitActivationRequest succeeded", request.getActivationId());
             return response;
         } catch (GenericServiceException ex) {
@@ -396,8 +397,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String externalUserId = request.getExternalUserId();
             logger.info("RemoveActivationRequest received, activation ID: {}", activationId);
-            RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId);
+            RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId, externalUserId);
             logger.info("RemoveActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
