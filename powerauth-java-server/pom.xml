@@ -51,6 +51,8 @@
         <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-ws-core</artifactId>
+            <!-- TODO - update/remove version shortly before final release, 3.0.6.RELEASE is the current version which causes startup issues on Wildfly -->
+            <version>3.0.7.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -60,10 +62,20 @@
         <dependency>
             <groupId>org.springframework.ws</groupId>
             <artifactId>spring-ws-security</artifactId>
+            <!-- TODO - update/remove version shortly before final release, 3.0.6.RELEASE is the current version which causes startup issues on Wildfly -->
+            <version>3.0.7.RELEASE</version>
             <exclusions>
                 <exclusion>
                     <artifactId>bcprov-jdk15on</artifactId>
                     <groupId>org.bouncycastle</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>ehcache</artifactId>
+                    <groupId>net.sf.ehcache</groupId>
+                </exclusion>
+                <exclusion>
+                    <artifactId>geronimo-javamail_1.4_mail</artifactId>
+                    <groupId>org.apache.geronimo.javamail</groupId>
                 </exclusion>
             </exclusions>
         </dependency>
