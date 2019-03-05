@@ -2,9 +2,14 @@
 
 You can download DDL scripts for supported databases:
 
-- [MySQL Database Schema](./sql/mysql)
-- [Oracle Database Schema](./sql/oracle)
-- [PostgreSQL Database Schema](./sql/postgresql)
+- [Oracle - Create Database Schema](./sql/oracle/create_schema.sql)
+- [MySQL - Create Database Schema](./sql/mysql/create_schema.sql)
+- [PostgreSQL - Create Database Schema](./sql/postgresql/create_schema.sql)
+
+The drop scripts are available for supported databases:
+- [Oracle - Drop Tables and Sequences](./sql/oracle/delete_schema.sql)
+- [MySQL - Drop Tables](./sql/mysql/delete_schema.sql)
+- [PostgreSQL - Drop Tables and Sequences](./sql/postgresql/delete_schema.sql)
 
 See the overall database schema in this [MySQL Workbench file](./sql/mysql/mysql-workbench-model.mwb):
 
