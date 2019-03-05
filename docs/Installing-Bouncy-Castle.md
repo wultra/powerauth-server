@@ -51,7 +51,7 @@ You can get the Bouncy Castle provider here:
 https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
 _Warning: Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
-Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case.
+Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case._
 
 ### Bouncy Castle on Wildfly
 
