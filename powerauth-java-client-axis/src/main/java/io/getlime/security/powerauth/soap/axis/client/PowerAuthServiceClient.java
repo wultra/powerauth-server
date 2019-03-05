@@ -314,12 +314,14 @@ public class PowerAuthServiceClient {
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be committed.
+     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CommitActivationResponse commitActivation(String activationId) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CommitActivationResponse commitActivation(String activationId, String externalUserId) throws RemoteException {
         PowerAuthPortV3ServiceStub.CommitActivationRequest request = new PowerAuthPortV3ServiceStub.CommitActivationRequest();
         request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
         return this.commitActivation(request);
     }
 
@@ -380,12 +382,14 @@ public class PowerAuthServiceClient {
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be removed.
+     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws RemoteException {
         PowerAuthPortV3ServiceStub.RemoveActivationRequest request = new PowerAuthPortV3ServiceStub.RemoveActivationRequest();
         request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
         return this.removeActivation(request);
     }
 

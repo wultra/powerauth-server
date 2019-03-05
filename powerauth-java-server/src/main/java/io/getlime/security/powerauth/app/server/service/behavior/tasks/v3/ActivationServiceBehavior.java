@@ -888,13 +888,14 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Commit activation with given ID
+     * Commit activation with given ID.
      *
-     * @param activationId Activation ID
-     * @return Response with activation commit confirmation
-     * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired
+     * @param activationId Activation ID.
+     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
+     * @return Response with activation commit confirmation.
+     * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
      */
-    public CommitActivationResponse commitActivation(String activationId) throws GenericServiceException {
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId) throws GenericServiceException {
 
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -917,7 +918,7 @@ public class ActivationServiceBehavior {
             // Activation is in correct state
             if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) {
                 activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
-                activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+                activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
                 callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
                 CommitActivationResponse response = new CommitActivationResponse();
@@ -937,17 +938,18 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Remove activation with given ID
+     * Remove activation with given ID.
      *
-     * @param activationId Activation ID
-     * @return Response with confirmation of removal
-     * @throws GenericServiceException In case activation does not exist
+     * @param activationId Activation ID.
+     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @return Response with confirmation of removal.
+     * @throws GenericServiceException In case activation does not exist.
      */
-    public RemoveActivationResponse removeActivation(String activationId) throws GenericServiceException {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);

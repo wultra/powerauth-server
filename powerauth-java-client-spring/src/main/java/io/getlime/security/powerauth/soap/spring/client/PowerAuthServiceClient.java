@@ -192,11 +192,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be commited.
+     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @return {@link CommitActivationResponse}
      */
-    public CommitActivationResponse commitActivation(String activationId) {
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId) {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
         return this.commitActivation(request);
     }
 
@@ -252,11 +254,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be removed.
+     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
      * @return {@link RemoveActivationResponse}
      */
-    public RemoveActivationResponse removeActivation(String activationId) {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
         return this.removeActivation(request);
     }
 
