@@ -67,7 +67,7 @@ import java.util.Set;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("ActivationServiceBehaviorV2")
+@Component("activationServiceBehaviorV2")
 public class ActivationServiceBehavior {
 
     private RepositoryCatalogue repositoryCatalogue;

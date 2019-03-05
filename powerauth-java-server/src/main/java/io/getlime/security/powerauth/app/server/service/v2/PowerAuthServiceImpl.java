@@ -49,7 +49,7 @@ import java.util.Date;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("PowerAuthServiceImplV2")
+@Component("powerAuthServiceImplV2")
 public class PowerAuthServiceImpl implements PowerAuthService {
 
     private ServiceBehaviorCatalogue behavior;

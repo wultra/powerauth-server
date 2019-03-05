@@ -49,7 +49,7 @@ import java.util.Locale;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("PowerAuthServiceImplV3")
+@Component("powerAuthServiceImplV3")
 public class PowerAuthServiceImpl implements PowerAuthService {
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;

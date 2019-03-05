@@ -74,7 +74,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("VaultUnlockServiceBehavior")
+@Component("vaultUnlockServiceBehavior")
 public class VaultUnlockServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;

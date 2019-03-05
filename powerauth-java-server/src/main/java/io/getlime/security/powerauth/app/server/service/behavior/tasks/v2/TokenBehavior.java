@@ -63,7 +63,7 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("TokenBehaviorV2")
+@Component("tokenBehaviorV2")
 public class TokenBehavior {
 
     private RepositoryCatalogue repositoryCatalogue;

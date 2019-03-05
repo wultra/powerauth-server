@@ -56,7 +56,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("VaultUnlockServiceBehaviorV2")
+@Component("vaultUnlockServiceBehaviorV2")
 public class VaultUnlockServiceBehavior {
 
     private final ActivationRepository powerAuthRepository;
