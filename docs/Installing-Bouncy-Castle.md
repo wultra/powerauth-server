@@ -50,6 +50,9 @@ Copy [`bcprov-jdk15on-[VERSION].jar`](https://mvnrepository.com/artifact/org.bou
 You can get the Bouncy Castle provider here:
 https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
+_Warning: Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
+Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case._
+
 ### Bouncy Castle on Wildfly
 
 In order to make PowerAuth Server work on Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -175,4 +178,5 @@ In case you get the following error: `key spec not recognized`, there are possib
 - Tomcat on Java 8: Check that Bouncy Castle library is installed in `${JDK_HOME}/jre/lib/ext` and it is not present in `${CATALINA_HOME}/lib`.
 - Wildfly on Java 11: Check that Bouncy Castle library is installed as a module in Wildfly.
 - Wildfly on Java 8: Check that Bouncy Castle library is not installed in `${JDK_HOME}/jre/lib/ext` and it is installed as a module in Wildfly.
-- All containers on Java 8/11: Check that none of the deployed war files contains Bouncy Castle library, it would clash with the globally installed version of the library. This rule applies only for PowerAuth `2019.04` or later.
+- All containers on Java 8/11: Check that none of the deployed war files contains Bouncy Castle library, even if the war file is not related to PowerAuth.
+Another copy of Bouncy Castle library would clash with the globally installed version of the library. This rule applies only for PowerAuth `2019.04` or later.
