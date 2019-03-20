@@ -6,6 +6,8 @@ CREATE SEQUENCE "pa_application_version_seq" MINVALUE 1 MAXVALUE 999999999999999
 CREATE SEQUENCE "pa_master_keypair_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
 CREATE SEQUENCE "pa_signature_audit_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
 CREATE SEQUENCE "pa_activation_history_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_recovery_code_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_recovery_puk_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
 
 --
 --  DDL for Table PA_ACTIVATION
@@ -115,7 +117,7 @@ CREATE TABLE "pa_application_callback"
 );
 
 --
--- Create a table for tokens
+-- DDL for Table PA_TOKEN
 --
 
 CREATE TABLE "pa_token"
@@ -138,6 +140,37 @@ CREATE TABLE "pa_activation_history"
     "blocked_reason"     VARCHAR(255),
     "external_user_id"   VARCHAR(255),
     "timestamp_created"  TIMESTAMP (6) NOT NULL
+);
+
+--
+-- DDL for Table PA_RECOVERY_CODE
+--
+
+CREATE TABLE "pa_recovery_code" (
+  "id"                    INTEGER NOT NULL PRIMARY KEY,
+  "recovery_code"         VARCHAR(23) NOT NULL,
+  "application_id"        INTEGER NOT NULL,
+  "user_id"               VARCHAR(255) NOT NULL,
+  "activation_id"         VARCHAR(37),
+  "status"                INTEGER NOT NULL,
+  "failed_attempts"       INTEGER DEFAULT 0 NOT NULL,
+  "max_failed_attempts"   INTEGER DEFAULT 10 NOT NULL,
+  "timestamp_created"     TIMESTAMP (6) NOT NULL,
+  "timestamp_last_used"   TIMESTAMP (6),
+  "timestamp_last_change" TIMESTAMP (6)
+);
+
+--
+-- DDL for Table PA_RECOVERY_PUK
+--
+
+CREATE TABLE "pa_recovery_puk" (
+  "id"                    INTEGER NOT NULL PRIMARY KEY,
+  "recovery_code_id"      INTEGER NOT NULL,
+  "puk"                   VARCHAR(60),
+  "puk_index"             INTEGER NOT NULL,
+  "status"                INTEGER NOT NULL,
+  "timestamp_last_change" TIMESTAMP (6)
 );
 
 --
@@ -176,6 +209,17 @@ ALTER TABLE "pa_token" ADD CONSTRAINT "activation_token_fk" FOREIGN KEY ("activa
 --
 ALTER TABLE "pa_activation_history" ADD CONSTRAINT "history_activation_fk" FOREIGN KEY ("activation_id") REFERENCES "pa_activation" ("activation_id");
 
+--
+--  Ref Constraints for Table PA_RECOVERY_CODE
+--
+ALTER TABLE "pa_recovery_code" ADD CONSTRAINT "recovery_code_application_fk" FOREIGN KEY ("application_id") REFERENCES "pa_application" ("id");
+ALTER TABLE "pa_recovery_code" ADD CONSTRAINT "recovery_code_activation_fk" FOREIGN KEY ("activation_id") REFERENCES "pa_activation" ("activation_id");
+
+--
+--  Ref Constraints for Table PA_RECOVERY_PUK
+--
+ALTER TABLE "pa_recovery_puk" ADD CONSTRAINT "recovery_puk_code_fk" FOREIGN KEY ("recovery_code_id") REFERENCES "pa_recovery_code" ("id");
+
 ---
 --- Indexes for better performance. PostgreSQL does not create indexes on foreign key automatically.
 ---
@@ -207,3 +251,15 @@ CREATE INDEX PA_SIGNATURE_AUDIT_ACTIVATION ON PA_SIGNATURE_AUDIT(ACTIVATION_ID);
 CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED);
 
 CREATE INDEX PA_TOKEN_ACTIVATION ON PA_TOKEN(ACTIVATION_ID);
+
+CREATE INDEX PA_RECOVERY_CODE ON PA_RECOVERY_CODE(RECOVERY_CODE);
+
+CREATE INDEX PA_RECOVERY_CODE_APP ON PA_RECOVERY_CODE(APPLICATION_ID);
+
+CREATE INDEX PA_RECOVERY_CODE_USER ON PA_RECOVERY_CODE(USER_ID);
+
+CREATE INDEX PA_RECOVERY_CODE_ACT ON PA_RECOVERY_CODE(ACTIVATION_ID);
+
+CREATE UNIQUE INDEX PA_RECOVERY_CODE_PUK ON PA_RECOVERY_PUK(RECOVERY_CODE_ID, PUK_INDEX);
+
+CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);

@@ -705,7 +705,7 @@ public class ActivationRecordEntity implements Serializable {
                 + "activationId=" + activationId
                 + ", activationCode=" + activationCode
                 + ", userId=" + userId
-                + ", clientName=" + activationName
+                + ", activationName=" + activationName
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter

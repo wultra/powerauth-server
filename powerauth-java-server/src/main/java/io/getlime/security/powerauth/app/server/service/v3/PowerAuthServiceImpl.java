@@ -928,4 +928,132 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
     }
 
+    @Override
+    @Transactional
+    public CreateRecoveryCodeForUserResponse createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > 100) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("CreateRecoveryCodeForUserRequest received, application ID: {}, user ID: {}", request.getApplicationId(), request.getUserId());
+            CreateRecoveryCodeForUserResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCodeForUser(request);
+            logger.info("CreateRecoveryCodeForUserRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CreateRecoveryCodeForActivationResponse createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L || request.getActivationId() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("CreateRecoveryCodeForActivationRequest received, application ID: {}, activation ID: {}", request.getApplicationId(), request.getActivationId());
+            CreateRecoveryCodeForActivationResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCodeForActivation(request);
+            logger.info("CreateRecoveryCodeForActivationRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws Exception {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
+                || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("ConfirmRecoveryCodeRequest received, activation ID: {}, application key: {}", request.getActivationId(), request.getApplicationKey());
+            ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request);
+            logger.info("ConfirmRecoveryCodeRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L || (request.getUserId() == null && request.getActivationId() == null)) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("LookupRecoveryCodesRequest received, application ID: {}, user ID: {}, activation ID: {}", request.getApplicationId(), request.getUserId(), request.getActivationId());
+            LookupRecoveryCodesResponse response = behavior.getRecoveryServiceBehavior().lookupRecoveryCodes(request);
+            logger.info("LookupRecoveryCodesRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws Exception {
+        if (request.getRecoveryCodes() == null || request.getRecoveryCodes().isEmpty()) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RevokeRecoveryCodesRequest received, recovery codes: {}", request.getRecoveryCodes());
+            RevokeRecoveryCodesResponse response = behavior.getRecoveryServiceBehavior().revokeRecoveryCodes(request);
+            logger.info("RevokeRecoveryCodesRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception {
+        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
+            || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RecoveryCodeActivationRequest received, recovery code: {}, application key: {}", request.getRecoveryCode(), request.getApplicationKey());
+            RecoveryCodeActivationResponse response = behavior.getRecoveryServiceBehavior().createActivationUsingRecoveryCode(request);
+            logger.info("RecoveryCodeActivationRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
 }

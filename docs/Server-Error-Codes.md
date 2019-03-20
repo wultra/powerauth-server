@@ -29,5 +29,7 @@ PowerAuth Server may return following errors:
 | ERR0022    | Generic cryptography error. | Unspecified cryptography error occurred. |
 | ERR0023    | Invalid cryptography provider. | Cryptography provider is initialized incorrectly. |
 | ERR0024    | Invalid request. | The request sent to the server is invalid. |
+| ERR0025    | Recovery code already exists. | Could not generate recovery code because a valid recovery code already exists. |
+| ERR0026    | Too many failed attempts to generate recovery code. | In order to uniquely identify a recovery code, a random recovery code (4x5 characters in Base32 encoding) is generated. In a very unlikely case of a collision, server attempts to generate a new one, at most 10 times. When the new recovery code generation fails 10 times, this error is returned. |
 
 For each of these issues, more details about the specific nature and cause can be found in the server log.

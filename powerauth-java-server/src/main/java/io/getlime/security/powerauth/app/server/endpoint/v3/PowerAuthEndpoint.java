@@ -572,4 +572,89 @@ public class PowerAuthEndpoint {
     public CommitUpgradeResponse commitUpgrade(@RequestPayload CommitUpgradeRequest request) throws Exception {
         return powerAuthService.commitUpgrade(request);
     }
+
+    /**
+     * Call {@link PowerAuthService#createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest)} method and
+     * return the response.
+     *
+     * @param request Create recovery code for user request.
+     * @return Create recovery code for user response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateRecoveryCodeForUserRequest")
+    @ResponsePayload
+    public CreateRecoveryCodeForUserResponse createRecoveryCodeForUser(@RequestPayload CreateRecoveryCodeForUserRequest request) throws Exception {
+        return powerAuthService.createRecoveryCodeForUser(request);
+    }
+
+
+    /**
+     * Call {@link PowerAuthService#createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest)} method and
+     * return the response.
+     *
+     * @param request Create recovery code for activation request.
+     * @return Create recovery code for activation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateRecoveryCodeForActivationRequest")
+    @ResponsePayload
+    public CreateRecoveryCodeForActivationResponse createRecoveryCodeForActivation(@RequestPayload CreateRecoveryCodeForActivationRequest request) throws Exception {
+        return powerAuthService.createRecoveryCodeForActivation(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#confirmRecoveryCode(ConfirmRecoveryCodeRequest)} method and
+     * return the response.
+     *
+     * @param request Confirm recovery code request.
+     * @return Confirm recovery code response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ConfirmRecoveryCodeRequest")
+    @ResponsePayload
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(@RequestPayload ConfirmRecoveryCodeRequest request) throws Exception {
+        return powerAuthService.confirmRecoveryCode(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#lookupRecoveryCodes(LookupRecoveryCodesRequest)} method and
+     * return the response.
+     *
+     * @param request Lookup recovery codes request.
+     * @return Lookup recovery codes response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "LookupRecoveryCodesRequest")
+    @ResponsePayload
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(@RequestPayload LookupRecoveryCodesRequest request) throws Exception {
+        return powerAuthService.lookupRecoveryCodes(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#revokeRecoveryCodes(RevokeRecoveryCodesRequest)} method and
+     * return the response.
+     *
+     * @param request Revoke recovery codes request.
+     * @return Revoke recovery codes response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RevokeRecoveryCodesRequest")
+    @ResponsePayload
+    public RevokeRecoveryCodesResponse lookupRecoveryCodes(@RequestPayload RevokeRecoveryCodesRequest request) throws Exception {
+        return powerAuthService.revokeRecoveryCodes(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#createActivationUsingRecoveryCode(RecoveryCodeActivationRequest)} method and
+     * return the response.
+     *
+     * @param request Create activation using recovery code request.
+     * @return Create activation using recovery codes response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RecoveryCodeActivationRequest")
+    @ResponsePayload
+    public RecoveryCodeActivationResponse lookupRecoveryCodes(@RequestPayload RecoveryCodeActivationRequest request) throws Exception {
+        return powerAuthService.createActivationUsingRecoveryCode(request);
+    }
 }

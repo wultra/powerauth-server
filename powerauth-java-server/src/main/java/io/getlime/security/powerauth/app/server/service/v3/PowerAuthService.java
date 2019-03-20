@@ -403,4 +403,52 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws Exception;
+
+    /**
+     * Create recovery code for given user.
+     * @param request Create recovery code request.
+     * @return Create recovery code response.
+     * @throws Exception In case of a business logic error.
+     */
+    CreateRecoveryCodeForUserResponse createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest request) throws Exception;
+
+    /**
+     * Create recovery code for given activation.
+     * @param request Create recovery code request.
+     * @return Create recovery code response.
+     * @throws Exception In case of a business logic error.
+     */
+    CreateRecoveryCodeForActivationResponse createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest request) throws Exception;
+
+    /**
+     * Confirm recovery code, change its status from CREATED to ACTIVE.
+     * @param request Confirm recovery code request.
+     * @return Confirm recovery code response.
+     * @throws Exception In case of a business logic error.
+     */
+    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws Exception;
+
+    /**
+     * Lookup recovery codes matching provided criteria.
+     * @param request Lookup recovery codes request.
+     * @return Lookup recover codes response.
+     * @throws Exception In case of a business logic error.
+     */
+    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws Exception;
+
+    /**
+     * Revoke specified recovery codes.
+     * @param request Revoke recovery codes request.
+     * @return Revoke recovery codes response.
+     * @throws Exception In case of a business logic error.
+     */
+    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws Exception;
+
+    /**
+     * Create an activation using recovery code.
+     * @param request Create activation using recovery code request.
+     * @return Create activation using recovery code response.
+     * @throws Exception In case of a business logic error.
+     */
+    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception;
 }

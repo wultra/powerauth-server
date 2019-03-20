@@ -36,3 +36,6 @@ Migration script for PostgreSQL:
 ALTER TABLE pa_activation_history ADD blocked_reason VARCHAR(255);
 ALTER TABLE pa_activation_history ADD external_user_id VARCHAR(255);
 ```
+
+TODO: Recovery codes DDL
+

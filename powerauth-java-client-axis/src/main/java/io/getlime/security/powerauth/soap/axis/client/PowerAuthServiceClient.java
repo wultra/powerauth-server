@@ -1109,6 +1109,144 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Create recovery code.
+     * @param request Create recovery code request.
+     * @return Create recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.CreateRecoveryCodeResponse createRecoveryCode(PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest request) throws RemoteException {
+        return clientStubV3.createRecoveryCode(request);
+    }
+
+    /**
+     * Create recovery code.
+     * @param applicationId Application ID.
+     * @param userId User ID.
+     * @param pukCount Number of PUKs to create.
+     * @return Create recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws RemoteException {
+        PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest request = new PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest();
+        request.setApplicationId(applicationId);
+        request.setUserId(userId);
+        request.setPukCount(pukCount);
+        return createRecoveryCode(request);
+    }
+
+    /**
+     * Confirm recovery code.
+     * @param request Confirm recovery code request
+     * @return Confirm recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeResponse confirmRecoveryCode(PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest request) throws RemoteException {
+        return clientStubV3.confirmRecoveryCode(request);
+    }
+
+    /**
+     * Confirm recovery code.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac MAC of key and data for ECIES.
+     * @return Confirm recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                                                      String encryptedData, String mac) throws RemoteException {
+        PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest request = new PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return confirmRecoveryCode(request);
+    }
+
+    /**
+     * Lookup recovery codes.
+     * @param request Lookup recovery codes request.
+     * @return Lookup recovery codes response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.LookupRecoveryCodesResponse lookupRecoveryCodes(PowerAuthPortV3ServiceStub.LookupRecoveryCodesRequest request) throws RemoteException {
+        return clientStubV3.lookupRecoveryCodes(request);
+    }
+
+    /**
+     * Lookup recovery codes.
+     * @param userId User ID.
+     * @param activationId Activation ID.
+     * @param applicationId Application ID.
+     * @param recoveryCodeStatus Recovery code status.
+     * @param recoveryPukStatus Recovery PUK status.
+     * @return Lookup recovery codes response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.LookupRecoveryCodesResponse lookupRecoveryCode(String userId, String activationId, Long applicationId,
+                                                                                     PowerAuthPortV3ServiceStub.RecoveryCodeStatus recoveryCodeStatus, PowerAuthPortV3ServiceStub.RecoveryPukStatus recoveryPukStatus) throws RemoteException {
+        PowerAuthPortV3ServiceStub.LookupRecoveryCodesRequest request = new PowerAuthPortV3ServiceStub.LookupRecoveryCodesRequest();
+        request.setUserId(userId);
+        request.setActivationId(activationId);
+        request.setApplicationId(applicationId);
+        request.setRecoveryCodeStatus(recoveryCodeStatus);
+        request.setRecoveryPukStatus(recoveryPukStatus);
+        return lookupRecoveryCodes(request);
+    }
+
+    /**
+     * Revoke recovery codes.
+     * @param request Revoke recovery codes request.
+     * @return Revoke recovery codes response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.RevokeRecoveryCodesResponse revokeRecoveryCodes(PowerAuthPortV3ServiceStub.RevokeRecoveryCodesRequest request) throws RemoteException {
+        return clientStubV3.revokeRecoveryCodes(request);
+    }
+
+    /**
+     * Revoke recovery codes.
+     * @param recoveryCodes Recovery codes to revoke.
+     * @return Revoke recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws RemoteException {
+        PowerAuthPortV3ServiceStub.RevokeRecoveryCodesRequest request = new PowerAuthPortV3ServiceStub.RevokeRecoveryCodesRequest();
+        request.setRecoveryCodeIds(recoveryCodeIds.stream().mapToLong(l -> l).toArray());
+        return revokeRecoveryCodes(request);
+    }
+
+    /**
+     * Create activation using recovery code.
+     * @param request Create activation using recovery code request.
+     * @return Create activation using recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest request) throws RemoteException {
+        return clientStubV3.recoveryCodeActivation(request);
+    }
+
+    /**
+     * Revoke recovery codes.
+     * @param recoveryCodes Recovery codes to revoke.
+     * @return Revoke recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey,
+                                                                                                       String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+        PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest request = new PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest();
+        request.setRecoveryCode(recoveryCode);
+        request.setPuk(puk);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return createActivationUsingRecoveryCode(request);
+    }
+
+    /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      *
      * @return PowerAuth 2.0 client.
