@@ -1164,11 +1164,16 @@ public class ActivationServiceBehavior {
                         firstValidPuk = recoveryPukEntity;
                         // First valid PUK found, verify PUK hash
                         byte[] pukBytes = puk.getBytes(StandardCharsets.UTF_8);
-                        String mcrRef = recoveryPukEntity.getPuk();
-                        if (PasswordHash.verify(pukBytes, mcrRef)) {
-                            pukValid = true;
-                            pukUsedDuringActivation = recoveryPukEntity;
-                            break;
+                        String pukHash = recoveryPukEntity.getPuk();
+                        try {
+                            if (PasswordHash.verify(pukBytes, pukHash)) {
+                                pukValid = true;
+                                pukUsedDuringActivation = recoveryPukEntity;
+                                break;
+                            }
+                        } catch (IOException ex) {
+                            logger.warn("Invalid PUK hash for recovery code: {}", recoveryCode);
+                            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                         }
                     }
                 }
