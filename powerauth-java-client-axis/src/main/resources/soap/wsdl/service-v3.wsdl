@@ -1165,6 +1165,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="pukCount" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="allowDuplicateCode" type="xs:boolean"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1180,7 +1181,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="recoveryCodeId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="recoveryCodeMasked" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="status" type="tns:RecoveryCodeStatus"/>
-                        <xs:element maxOccurs="unbounded" minOccurs="1" name="pukCodes">
+                        <xs:element maxOccurs="unbounded" minOccurs="1" name="puks">
                             <xs:complexType>
                                 <xs:sequence>
                                     <xs:element maxOccurs="1" minOccurs="1" name="pukIndex" type="xs:long"/>
@@ -1230,7 +1231,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="recoveryCodeStatus" type="tns:RecoveryCodeStatus"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="recoveryPukStatus" type="tns:RecoveryPukStatus"/>
                     </xs:sequence>
@@ -1243,15 +1244,16 @@
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="recoveryCodes">
+                        <xs:element  name="recoveryCodes" maxOccurs="unbounded" minOccurs="0">
                             <xs:complexType>
                                 <xs:sequence>
                                     <xs:element maxOccurs="1" minOccurs="1" name="recoveryCodeId" type="xs:long"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="recoveryCodeMasked" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="status" type="tns:RecoveryCodeStatus"/>
-                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="pukCodes">
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="puks">
                                         <xs:complexType>
                                             <xs:sequence>
                                                 <xs:element maxOccurs="1" minOccurs="1" name="pukIndex" type="xs:long"/>
@@ -1297,6 +1299,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="recoveryCode" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="puk" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationKey" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="maxFailureCount" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>

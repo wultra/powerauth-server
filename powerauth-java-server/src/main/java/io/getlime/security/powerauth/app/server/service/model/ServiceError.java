@@ -167,6 +167,21 @@ public class ServiceError {
      */
     public static final String UNABLE_TO_GENERATE_RECOVERY_CODE = "ERR0026";
 
+    /**
+     * Recovery code was not found.
+     */
+    public static final String RECOVERY_CODE_NOT_FOUND = "ERR0027";
+
+    /**
+     * Invalid recovery code.
+     */
+    public static final String INVALID_RECOVERY_CODE = "ERR0028";
+
+    /**
+     * Recovery code configuration is missing or incomplete.
+     */
+    public static final String INVALID_RECOVERY_CONFIGURATION = "ERR0029";
+
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);
         list.add(UNKNOWN_ERROR);
@@ -196,6 +211,9 @@ public class ServiceError {
         list.add(INVALID_REQUEST);
         list.add(RECOVERY_CODE_ALREADY_EXISTS);
         list.add(UNABLE_TO_GENERATE_RECOVERY_CODE);
+        list.add(RECOVERY_CODE_NOT_FOUND);
+        list.add(INVALID_RECOVERY_CODE);
+        list.add(INVALID_RECOVERY_CONFIGURATION);
         return list;
     }
 

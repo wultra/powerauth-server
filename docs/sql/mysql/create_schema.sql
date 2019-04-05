@@ -117,7 +117,7 @@ CREATE TABLE `pa_application_callback` (
 -- Create a table for tokens
 --
 
-CREATE TABLE pa_token (
+CREATE TABLE `pa_token` (
 	`token_id` varchar(37) NOT NULL,
 	`token_secret` varchar(255) NOT NULL,
 	`activation_id` varchar(37) NOT NULL,
@@ -170,12 +170,27 @@ CREATE TABLE `pa_recovery_code` (
 CREATE TABLE `pa_recovery_puk` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `recovery_code_id` int(11) NOT NULL,
-  `puk` varchar(60) NOT NULL,
+  `puk` varchar(255) NOT NULL,
   `puk_index` int(11) NOT NULL,
   `status` int(37) NOT NULL,
   `timestamp_last_change` datetime,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_PUK_RECOVERY_CODE` FOREIGN KEY (`recovery_code_id`) REFERENCES `pa_recovery_code` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
+-- Create table for recovery configuration
+--
+CREATE TABLE `pa_recovery_config` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `application_id` bigint(20) NOT NULL,
+  `activation_recovery_enabled` int(1) NOT NULL DEFAULT 0,
+  `recovery_postcard_enabled` int(1) NOT NULL DEFAULT 0,
+  `recovery_private_key_base64` varchar(255),
+  `recovery_public_key_base64` varchar(255),
+  `remote_public_key_base64` varchar(255),
+  PRIMARY KEY (`id`),
+  CONSTRAINT `FK_RECOVERY_CONFIG_APP` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --

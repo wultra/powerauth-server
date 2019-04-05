@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.i18n;
 
+import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
@@ -34,6 +35,10 @@ import java.util.Locale;
 @Service
 public class LocalizationProvider {
 
+    /**
+     * Create message source bean.
+     * @return Message source bean.
+     */
     @Bean
     public ResourceBundleMessageSource messageSource() {
         ResourceBundleMessageSource source = new ResourceBundleMessageSource();
@@ -42,22 +47,67 @@ public class LocalizationProvider {
         return source;
     }
 
+    /**
+     * Get localized error message for given error code in English.
+     * @param code Error code.
+     * @return Localized error message.
+     */
     public String getLocalizedErrorMessage(String code) {
         return this.getLocalizedErrorMessage(code, Locale.ENGLISH);
     }
 
+    /**
+     * Get localized error message for given error code and locale.
+     * @param code Error code.
+     * @param locale Locale.
+     * @return Localized error message.
+     */
     public String getLocalizedErrorMessage(String code, Locale locale) {
         return messageSource().getMessage("ServiceError." + code, null, locale);
     }
 
+    /**
+     * Build exception for given error code in English.
+     * @param code Error code.
+     * @return Generic service exception.
+     */
     public GenericServiceException buildExceptionForCode(String code) {
         return this.buildExceptionForCode(code, Locale.ENGLISH);
     }
 
+    /**
+     * Build exception for given error code and locale.
+     * @param code Error code.
+     * @param locale Locale.
+     * @return Generic service exception.
+     */
     public GenericServiceException buildExceptionForCode(String code, Locale locale) {
-        String message = this.getLocalizedErrorMessage(code);
-        String localizedMessage = this.getLocalizedErrorMessage(code, locale);
+        String message = getLocalizedErrorMessage(code);
+        String localizedMessage = getLocalizedErrorMessage(code, locale);
         return new GenericServiceException(code, message, localizedMessage);
+    }
+
+    /**
+     * Build activation recovery exception for given error code in English with current recovery PUK index parameter.
+     * @param code Error code.
+     * @param currentRecoveryPukIndex Current recovery PUK index.
+     * @return Activation recovery exception.
+     */
+    public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, int currentRecoveryPukIndex) {
+        return this.buildActivationRecoveryExceptionForCode(code, Locale.ENGLISH, currentRecoveryPukIndex);
+    }
+
+    /**
+     * Build activation recovery exception for given error code and locale with current recovery PUK index parameter.
+     * @param code Error code.
+     * @param locale Locale.
+     * @param currentRecoveryPukIndex Current recovery PUK index.
+     * @return Activation recovery exception.
+     */
+    public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, Locale locale, int currentRecoveryPukIndex) {
+        String message = getLocalizedErrorMessage(code);
+        String localizedMessage = getLocalizedErrorMessage(code, locale);
+        return new ActivationRecoveryException(code, message, localizedMessage, currentRecoveryPukIndex);
     }
 
 }

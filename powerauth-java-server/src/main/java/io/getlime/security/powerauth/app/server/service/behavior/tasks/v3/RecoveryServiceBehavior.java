@@ -17,164 +17,518 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
+import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
-import io.getlime.security.powerauth.app.server.database.model.entity.RecoveryCodeEntity;
+import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
+import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
+import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.model.request.ConfirmRecoveryRequestPayload;
+import io.getlime.security.powerauth.app.server.service.model.response.ConfirmRecoveryResponsePayload;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
+import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-import java.util.Date;
-import java.util.List;
+import javax.crypto.SecretKey;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.*;
 
 /**
  * Behavior class implementing processes related to recovery codes.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Component
 public class RecoveryServiceBehavior {
+
+    private static final int PUK_COUNT = 10;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(RecoveryServiceBehavior.class);
 
-    private final RecoveryCodeRepository recoveryCodeRepository;
+    // Autowired dependencies
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final RepositoryCatalogue repositoryCatalogue;
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ActivationServiceBehavior activationServiceBehavior;
 
+    // Business logic implementation classes
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
+    private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final KeyGenerator keyGenerator = new KeyGenerator();
+    private final EciesFactory eciesFactory = new EciesFactory();
+
+    // Helper classes
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
+    private final RecoveryCodeStatusConverter recoveryCodeStatusConverter = new RecoveryCodeStatusConverter();
+    private final RecoveryPukStatusConverter recoveryPukStatusConverter = new RecoveryPukStatusConverter();
 
     @Autowired
-    public RecoveryServiceBehavior(RecoveryCodeRepository recoveryCodeRepository, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
-        this.recoveryCodeRepository = recoveryCodeRepository;
+    public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
+                                   PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
+                                   ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.repositoryCatalogue = repositoryCatalogue;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.activationServiceBehavior = activationServiceBehavior;
     }
 
     /**
-     * Create recovery code for given user.
+     * Create recovery code for secure recovery postcard. Recovery code status is set to CREATED.
      * @param request Create recovery code request.
      * @return Create recovery code response.
      * @throws GenericServiceException In case of any error.
      */
-    public CreateRecoveryCodeForUserResponse createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest request) throws GenericServiceException {
-        final Long applicationId = request.getApplicationId();
-        final String userId = request.getUserId();
-        final Long pukCount = request.getPukCount();
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+        try {
+            final Long applicationId = request.getApplicationId();
+            final String userId = request.getUserId();
+            final Long pukCount = request.getPukCount();
+            final Boolean allowDuplicateCode = request.isAllowDuplicateCode();
+            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
-        // Check whether user has any recovery code in state CREATED or ACTIVE, in this case the recovery code needs to be revoked first
-        List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationId, userId);
-        for (RecoveryCodeEntity recoveryCodeEntity: existingRecoveryCodes) {
-            if (recoveryCodeEntity.getStatus() == RecoveryCodeStatus.CREATED || recoveryCodeEntity.getStatus() == RecoveryCodeStatus.ACTIVE) {
-                logger.warn("Create recovery code failed because of existing recovery codes, application ID: {}, user ID: {}", applicationId, userId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_ALREADY_EXISTS);
+            final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
+            if (!applicationOptional.isPresent()) {
+                logger.warn("Application does not exist, application ID: {}", applicationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            final ApplicationEntity application = applicationOptional.get();
+            // Check whether activation recovery and recovery postcard is enabled
+            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+            if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                logger.warn("Activation recovery is disabled");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            if (!recoveryConfigEntity.getRecoveryPostcardEnabled()) {
+                logger.warn("Activation recovery using recovery postcard is disabled");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            if (recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null
+                    || recoveryConfigEntity.getRemotePostcardPublicKeyBase64() == null) {
+                logger.error("Missing key when deriving shared secret key for recovery code, application ID: {}", applicationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_RECOVERY_CONFIGURATION);
+            }
+
+            // Check whether user has any recovery code related to postcard (no activationId) in state CREATED or ACTIVE,
+            // in this case the recovery code needs to be revoked first.
+            if (allowDuplicateCode == null || allowDuplicateCode == false) {
+                List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationId, userId);
+                for (RecoveryCodeEntity recoveryCodeEntity : existingRecoveryCodes) {
+                    if (recoveryCodeEntity.getActivationId() == null
+                            && (recoveryCodeEntity.getStatus() == RecoveryCodeStatus.CREATED || recoveryCodeEntity.getStatus() == RecoveryCodeStatus.ACTIVE)) {
+                        logger.warn("Create recovery code failed because of existing recovery code, application ID: {}, user ID: {}", applicationId, userId);
+                        throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_ALREADY_EXISTS);
+                    }
+                }
+            }
+
+            final byte[] privateKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64());
+            final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(privateKeyBytes);
+            final byte[] publicKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
+            final PublicKey publicKey = keyConversion.convertBytesToPublicKey(publicKeyBytes);
+
+            final SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
+            String recoveryCode = null;
+            Map<Integer, String> puks = null;
+            byte[] nonce = null;
+            Map<Integer, Long> pukDerivationIndexes = null;
+
+            for (int i = 0; i < powerAuthServiceConfiguration.getGenerateRecoveryCodeIterations(); i++) {
+                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, PUK_COUNT, true);
+                // Check that recovery code is unique
+                boolean recoveryCodeExists = recoveryCodeRepository.getRecoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
+                if (!recoveryCodeExists) {
+                    recoveryCode = recoveryInfo.getRecoveryCode();
+                    puks = recoveryInfo.getPuks();
+                    nonce = recoveryInfo.getSeed().getNonce();
+                    pukDerivationIndexes = recoveryInfo.getSeed().getPukDerivationIndexes();
+                    break;
+                }
+            }
+
+            // In case recovery code generation failed, throw an exception
+            if (recoveryCode == null || puks == null || puks.size() != PUK_COUNT || nonce == null
+                    || pukDerivationIndexes == null
+                    || !puks.keySet().equals(pukDerivationIndexes.keySet())) {
+                logger.error("Unable to generate recovery code");
+                throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_RECOVERY_CODE);
+            }
+
+            // Create and persist recovery code entity with PUKs
+            final RecoveryCodeEntity recoveryCodeEntity = new RecoveryCodeEntity();
+            recoveryCodeEntity.setUserId(userId);
+            recoveryCodeEntity.setApplicationId(applicationId);
+            // Recovery is related to user, not activation
+            recoveryCodeEntity.setActivationId(null);
+            recoveryCodeEntity.setFailedAttempts(0L);
+            recoveryCodeEntity.setMaxFailedAttempts(powerAuthServiceConfiguration.getRecoveryMaxFailedAttempts());
+            recoveryCodeEntity.setRecoveryCode(recoveryCode);
+            recoveryCodeEntity.setStatus(RecoveryCodeStatus.CREATED);
+            recoveryCodeEntity.setTimestampCreated(new Date());
+
+            for (int i = 1; i <= puks.size(); i++) {
+                String puk = puks.get(i);
+                RecoveryPukEntity recoveryPukEntity = new RecoveryPukEntity();
+                recoveryPukEntity.setPukIndex((long) i);
+                String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
+                recoveryPukEntity.setPuk(pukHash);
+                recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
+                recoveryPukEntity.setRecoveryCode(recoveryCodeEntity);
+                recoveryCodeEntity.getRecoveryPuks().add(recoveryPukEntity);
+            }
+
+            recoveryCodeRepository.save(recoveryCodeEntity);
+
+            CreateRecoveryCodeResponse response = new CreateRecoveryCodeResponse();
+            response.setNonce(BaseEncoding.base64().encode(nonce));
+            response.setUserId(userId);
+            response.setRecoveryCodeId(recoveryCodeEntity.getId());
+            response.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
+            response.setStatus(io.getlime.security.powerauth.v3.RecoveryCodeStatus.CREATED);
+            List<CreateRecoveryCodeResponse.Puks> pukListResponse = response.getPuks();
+            for (int i = 1; i <= pukDerivationIndexes.size(); i++) {
+                Long pukDerivationIndex = pukDerivationIndexes.get(i);
+                CreateRecoveryCodeResponse.Puks pukResponse = new CreateRecoveryCodeResponse.Puks();
+                pukResponse.setPukIndex(i);
+                pukResponse.setPukDerivationIndex(pukDerivationIndex);
+                pukResponse.setStatus(io.getlime.security.powerauth.v3.RecoveryPukStatus.VALID);
+                pukListResponse.add(pukResponse);
+            }
+            return response;
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
+
+    /**
+     * Confirm recovery code received via recovery postcard.
+     * @param request Confirm recovery code request.
+     * @return Confirm recovery code response.
+     * @throws GenericServiceException In case of any error.
+     */
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
+            final String ephemeralPublicKey = request.getEphemeralPublicKey();
+            final String encryptedData = request.getEncryptedData();
+            final String mac = request.getMac();
+
+            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
+
+            // Lookup the activation
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
+            if (activation == null) {
+                logger.warn("Activation not found, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            // Check whether activation recovery is enabled
+            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activation.getApplication().getId());
+            if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                logger.warn("Activation recovery is disabled");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Check if the activation is in ACTIVE state
+            if (!io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.warn("Activation is not ACTIVE, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Get the server private key, decrypt it if required
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+            final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
+
+            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+            final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
+
+            // Get decryptor for the activation
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
+                    applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE);
+
+            // Decrypt request data
+            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
+            final byte[] encryptedDataBytes = BaseEncoding.base64().decode(request.getEncryptedData());
+            final byte[] macBytes = BaseEncoding.base64().decode(request.getMac());
+            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
+            final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+
+            // Convert JSON data to confirm recovery request object
+            final ConfirmRecoveryRequestPayload requestPayload = objectMapper.readValue(decryptedData, ConfirmRecoveryRequestPayload.class);
+
+            // Validate recovery code
+            final String recoveryCode = requestPayload.getRecoveryCode();
+            if (recoveryCode == null || recoveryCode.isEmpty()) {
+                logger.warn("Missing recovery code in confirm recovery, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            if (!identifierGenerator.validateActivationCode(recoveryCode)) {
+                logger.warn("Invalid recovery code in confirm recovery, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Find recovery code entity
+            final RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(applicationVersion.getApplication().getId(), recoveryCode);
+            if (recoveryCodeEntity == null) {
+                logger.warn("Recovery code does not exist in confirm recovery, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_NOT_FOUND);
+            }
+
+            // Check that user ID from activation matches user ID from recovery entity
+            if (!recoveryCodeEntity.getUserId().equals(activation.getUserId())) {
+                logger.warn("User ID from activation does not match user ID from recovery code in confirm recovery, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            final boolean inCreatedState = RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus());
+            final boolean alreadyConfirmed = RecoveryCodeStatus.ACTIVE.equals(recoveryCodeEntity.getStatus());
+
+            // Check recovery code status
+            if (!inCreatedState && !alreadyConfirmed) {
+                logger.warn("Recovery code is not in CREATED or ACTIVE state in confirm recovery, recovery code ID: {}", recoveryCodeEntity.getId());
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Confirm recovery code and persist it
+            if (inCreatedState) {
+                recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
+                recoveryCodeEntity.setTimestampLastChange(new Date());
+                recoveryCodeRepository.save(recoveryCodeEntity);
+            }
+
+            // Prepare response payload
+            final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload();
+            responsePayload.setAlreadyConfirmed(alreadyConfirmed);
+
+            // Convert response payload
+            final ObjectMapper mapper = new ObjectMapper();
+            final byte[] responseBytes = mapper.writeValueAsBytes(responsePayload);
+
+            // Encrypt response using previously created ECIES decryptor
+            final EciesCryptogram eciesResponse = decryptor.encryptResponse(responseBytes);
+            final String encryptedDataResponse = BaseEncoding.base64().encode(eciesResponse.getEncryptedData());
+            final String macResponse = BaseEncoding.base64().encode(eciesResponse.getMac());
+
+            // Return response
+            final ConfirmRecoveryCodeResponse response = new ConfirmRecoveryCodeResponse();
+            response.setActivationId(activationId);
+            response.setUserId(recoveryCodeEntity.getUserId());
+            response.setEncryptedData(encryptedDataResponse);
+            response.setMac(macResponse);
+            return response;
+
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (IOException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
+
+    /**
+     * Lookup recovery codes matching search criteria.
+     * @param request Lookup recovery codes request.
+     * @return Lookup recovery codes response.
+     * @throws GenericServiceException In case of any error.
+     */
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws GenericServiceException {
+        final Long applicationId = request.getApplicationId();
+        final String activationId = request.getActivationId();
+        final String userId = request.getUserId();
+        final RecoveryCodeStatus recoveryCodeStatus = recoveryCodeStatusConverter.convertTo(request.getRecoveryCodeStatus());
+        final RecoveryPukStatus recoveryPukStatus = recoveryPukStatusConverter.convertTo(request.getRecoveryPukStatus());
+
+        final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+
+        final List<RecoveryCodeEntity> recoveryCodesEntities;
+        if (applicationId != null && activationId != null) {
+            if (userId != null) {
+                // Application ID, user ID and activation ID are specified
+                recoveryCodesEntities = recoveryCodeRepository.findAllRecoveryCodes(applicationId, userId, activationId);
+            } else {
+                // Application ID and activation ID are specified
+                recoveryCodesEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(applicationId, activationId);
+            }
+        } else if (applicationId != null && userId != null){
+            // Application ID and user ID are specified
+            recoveryCodesEntities = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationId, userId);
+        } else if (userId != null) {
+            // User ID is specified
+            recoveryCodesEntities = recoveryCodeRepository.findAllByUserId(userId);
+        } else {
+            // Only application ID is specified, such request is not allowed
+            logger.warn("Invalid request for lookup of recovery codes");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
+        // Filter recovery codes by recovery code status
+        final Set<RecoveryCodeEntity> recoveryCodesToRemove = new LinkedHashSet<>();
+        if (recoveryCodeStatus != null) {
+            for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodesEntities) {
+                if (!recoveryCodeStatus.equals(recoveryCodeEntity.getStatus())) {
+                    recoveryCodesToRemove.add(recoveryCodeEntity);
+                }
             }
         }
 
-        // TODO - Generate Recovery code and PUK codes based on secure postcard algorithm
-        String recoveryCode = "";
+        // Filter recovery PUKs by recovery PUK status, remove recovery codes with no remaining PUKs
+        if (recoveryPukStatus != null) {
+            for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodesEntities) {
+                final Set<RecoveryPukEntity> recoveryPuksToRemove = new LinkedHashSet<>();
+                for (RecoveryPukEntity recoveryPukEntity : recoveryCodeEntity.getRecoveryPuks()) {
+                    if (!recoveryPukStatus.equals(recoveryPukEntity.getStatus())) {
+                        recoveryPuksToRemove.add(recoveryPukEntity);
+                    }
+                }
+                recoveryCodeEntity.getRecoveryPuks().removeAll(recoveryPuksToRemove);
+                // Check whether recovery code has any PUKs left, if not, remove it
+                if (recoveryCodeEntity.getRecoveryPuks().isEmpty()) {
+                    recoveryCodesToRemove.add(recoveryCodeEntity);
+                }
+            }
+        }
 
-        // Create and persist recovery code entity
-        RecoveryCodeEntity recoveryCodeEntity = new RecoveryCodeEntity();
-        recoveryCodeEntity.setUserId(userId);
-        recoveryCodeEntity.setApplicationId(applicationId);
-        recoveryCodeEntity.setFailedAttempts(0L);
-        recoveryCodeEntity.setMaxFailedAttempts(powerAuthServiceConfiguration.getRecoveryMaxFailedAttempts());
-        recoveryCodeEntity.setRecoveryCode(recoveryCode);
-        recoveryCodeEntity.setStatus(RecoveryCodeStatus.CREATED);
-        recoveryCodeEntity.setTimestampCreated(new Date());
+        // Remove filtered out recovery codes
+        recoveryCodesEntities.removeAll(recoveryCodesToRemove);
 
-        // TODO - attach PUK codes to recovery code entity
-
-        // Generate nonce for secure postcard exchange
-        byte[] randomBytes = keyGenerator.generateRandomBytes(16);
-        String nonce = BaseEncoding.base64().encode(randomBytes);
-
-        CreateRecoveryCodeForUserResponse response = new CreateRecoveryCodeForUserResponse();
-        response.setNonce(nonce);
-        response.setUserId(userId);
-        response.setRecoveryCode(recoveryCode);
-        response.setStatus(io.getlime.security.powerauth.v3.RecoveryCodeStatus.CREATED);
-        // TODO - attach PUK codes to response
-
+        LookupRecoveryCodesResponse response = new LookupRecoveryCodesResponse();
+        List<LookupRecoveryCodesResponse.RecoveryCodes> recoveryCodes = response.getRecoveryCodes();
+        for (RecoveryCodeEntity recoveryCodeEntity: recoveryCodesEntities) {
+            LookupRecoveryCodesResponse.RecoveryCodes recoveryCode = new LookupRecoveryCodesResponse.RecoveryCodes();
+            recoveryCode.setRecoveryCodeId(recoveryCodeEntity.getId());
+            recoveryCode.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
+            recoveryCode.setApplicationId(recoveryCodeEntity.getApplicationId());
+            recoveryCode.setUserId(recoveryCodeEntity.getUserId());
+            recoveryCode.setActivationId(recoveryCodeEntity.getActivationId());
+            recoveryCode.setStatus(recoveryCodeStatusConverter.convertFrom(recoveryCodeEntity.getStatus()));
+            for (RecoveryPukEntity recoveryPukEntity: recoveryCodeEntity.getRecoveryPuks()) {
+                LookupRecoveryCodesResponse.RecoveryCodes.Puks puk = new LookupRecoveryCodesResponse.RecoveryCodes.Puks();
+                puk.setStatus(recoveryPukStatusConverter.convertFrom(recoveryPukEntity.getStatus()));
+                puk.setPukIndex(recoveryPukEntity.getPukIndex());
+                recoveryCode.getPuks().add(puk);
+            }
+            recoveryCodes.add(recoveryCode);
+        }
         return response;
     }
 
     /**
-     * Create recovery code for given activation and set its status to ACTIVE.
-     * @param request Create recovery code for activation request.
-     * @return Create recovery code for activation response.
+     * Revoke recovery codes.
+     * @param request Revoke recovery codes request.
+     * @return Revoke recovery codes response.
      * @throws GenericServiceException In case of any error.
      */
-    public CreateRecoveryCodeForActivationResponse createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest request) throws GenericServiceException {
-        final Long applicationId = request.getApplicationId();
-        final String activationId = request.getActivationId();
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws GenericServiceException {
+        final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
 
-        // Check whether user has any recovery code in state CREATED or ACTIVE, in this case the recovery code needs to be revoked first
-        List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndActivationId(applicationId, activationId);
-        for (RecoveryCodeEntity recoveryCodeEntity: existingRecoveryCodes) {
-            if (recoveryCodeEntity.getStatus() == RecoveryCodeStatus.CREATED || recoveryCodeEntity.getStatus() == RecoveryCodeStatus.ACTIVE) {
-                logger.warn("Create recovery code failed because of existing recovery codes, application ID: {}, activation ID: {}", applicationId, activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_ALREADY_EXISTS);
+        final List<Long> recoveryCodeIds = request.getRecoveryCodeIds();
+        for (Long recoveryCodeId : recoveryCodeIds) {
+            if (recoveryCodeId == null || recoveryCodeId < 0L) {
+                logger.warn("Invalid revoke recovery codes request");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
 
-        // Generate random nonce
-        byte[] randomBytes = keyGenerator.generateRandomBytes(16);
-        String nonce = BaseEncoding.base64().encode(randomBytes);
+        int revokedCount = 0;
+        for (Long recoveryCodeId : recoveryCodeIds) {
+            Optional<RecoveryCodeEntity> recoveryCodeOptional = recoveryCodeRepository.findById(recoveryCodeId);
+            if (!recoveryCodeOptional.isPresent()) {
+                // Silently ignore invalid recovery code IDs
+                continue;
+            }
+            RecoveryCodeEntity recoveryCode = recoveryCodeOptional.get();
+            if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                // Revoke recovery code and update status in database
+                recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                recoveryCode.setTimestampLastChange(new Date());
+                // Change status of PUKs with status VALID to INVALID
+                for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                    if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                        puk.setStatus(RecoveryPukStatus.INVALID);
+                        puk.setTimestampLastChange(new Date());
+                    }
+                }
+                recoveryCodeRepository.save(recoveryCode);
+                revokedCount++;
+            }
+        }
 
-        // TODO - Find user ID from activation
-        String userId = "";
-
-        // TODO - Generate Recovery code and PUK code
-        String recoveryCode = "";
-
-        // Create and persist recovery code entity
-        RecoveryCodeEntity recoveryCodeEntity = new RecoveryCodeEntity();
-        recoveryCodeEntity.setUserId(userId);
-        recoveryCodeEntity.setApplicationId(applicationId);
-        recoveryCodeEntity.setFailedAttempts(0L);
-        recoveryCodeEntity.setMaxFailedAttempts(powerAuthServiceConfiguration.getRecoveryMaxFailedAttempts());
-        recoveryCodeEntity.setRecoveryCode(recoveryCode);
-        recoveryCodeEntity.setStatus(RecoveryCodeStatus.CREATED);
-        recoveryCodeEntity.setTimestampCreated(new Date());
-
-        // TODO - attach PUK codes to recovery code entity
-
-        CreateRecoveryCodeForActivationResponse response = new CreateRecoveryCodeForActivationResponse();
-        response.setActivationId(activationId);
-        response.setRecoveryCode(recoveryCode);
-        response.setStatus(io.getlime.security.powerauth.v3.RecoveryCodeStatus.CREATED);
-        // TODO - attach PUK codes to response
-
-        return response;
-    }
-
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws GenericServiceException {
-        ConfirmRecoveryCodeResponse response = new ConfirmRecoveryCodeResponse();
-        return response;
-    }
-
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws GenericServiceException {
-        LookupRecoveryCodesResponse response = new LookupRecoveryCodesResponse();
-        return response;
-    }
-
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws GenericServiceException {
-        RevokeRecoveryCodesResponse response = new RevokeRecoveryCodesResponse();
-        return response;
-    }
-
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
-        RecoveryCodeActivationResponse response = new RecoveryCodeActivationResponse();
+        final RevokeRecoveryCodesResponse response = new RevokeRecoveryCodesResponse();
+        if (revokedCount > 0) {
+            // At least one recovery code was revoked
+            response.setRevoked(true);
+        } else {
+            response.setRevoked(false);
+        }
         return response;
     }
 

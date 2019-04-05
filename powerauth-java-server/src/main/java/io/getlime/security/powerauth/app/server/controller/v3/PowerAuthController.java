@@ -535,27 +535,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest)} method and
+     * Call {@link PowerAuthService#createRecoveryCode(CreateRecoveryCodeRequest)} method and
      * return the response.
-     * @param request Create recovery code for user request.
-     * @return Create recovery code for user response.
+     * @param request Create recovery code request.
+     * @return Create recovery code response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/recovery/create/user", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateRecoveryCodeForUserResponse> createRecoveryCodeForUser(@RequestBody RESTRequestWrapper<CreateRecoveryCodeForUserRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createRecoveryCodeForUser(request.getRequestObject()));
-    }
-
-    /**
-     * Call {@link PowerAuthService#createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest)} method and
-     * return the response.
-     * @param request Create recovery code for activation request.
-     * @return Create recovery code for activation response.
-     * @throws Exception In case the service throws exception.
-     */
-    @RequestMapping(value = "/recovery/create/activation", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateRecoveryCodeForActivationResponse> createRecoveryCodeForActivation(@RequestBody RESTRequestWrapper<CreateRecoveryCodeForActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createRecoveryCodeForActivation(request.getRequestObject()));
+    @RequestMapping(value = "/recovery/create", method = RequestMethod.POST)
+    public RESTResponseWrapper<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@RequestBody RESTRequestWrapper<CreateRecoveryCodeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createRecoveryCode(request.getRequestObject()));
     }
 
     /**

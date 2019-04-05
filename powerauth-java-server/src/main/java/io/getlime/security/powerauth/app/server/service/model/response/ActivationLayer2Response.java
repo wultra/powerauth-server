@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.response;
 
+import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery;
+
 /**
  * Response object for activation layer 2 response.
  *
@@ -28,6 +30,7 @@ public class ActivationLayer2Response {
     private String activationId;
     private String serverPublicKey;
     private String ctrData;
+    private ActivationRecovery activationRecovery;
 
     /**
      * Get activation ID.
@@ -75,5 +78,21 @@ public class ActivationLayer2Response {
      */
     public void setCtrData(String ctrData) {
         this.ctrData = ctrData;
+    }
+
+    /**
+     * Get activation recovery information.
+     * @return Activation recovery information.
+     */
+    public ActivationRecovery getActivationRecovery() {
+        return activationRecovery;
+    }
+
+    /**
+     * Set activation recovery information.
+     * @param activationRecovery Activation recovery information.
+     */
+    public void setActivationRecovery(ActivationRecovery activationRecovery) {
+        this.activationRecovery = activationRecovery;
     }
 }

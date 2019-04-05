@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.controller;
 
+import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -48,6 +49,24 @@ public class RESTControllerAdvice {
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
+        List<RESTErrorModel> errorList = new LinkedList<>();
+        errorList.add(error);
+        return new RESTResponseWrapper<>("ERROR", errorList);
+    }
+
+    /**
+     * Resolver for Activation Recovery Exception.
+     * @param ex Activation Recovery Exception.
+     * @return Activation recovery error.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = ActivationRecoveryException.class)
+    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnActivationRecoveryError(ActivationRecoveryException ex) {
+        RESTErrorModelRecovery error = new RESTErrorModelRecovery();
+        error.setCode(ex.getCode());
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
+        error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
         List<RESTErrorModel> errorList = new LinkedList<>();
         errorList.add(error);
         return new RESTResponseWrapper<>("ERROR", errorList);

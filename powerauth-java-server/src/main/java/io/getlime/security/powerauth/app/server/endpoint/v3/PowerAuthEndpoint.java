@@ -574,32 +574,17 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest)} method and
+     * Call {@link PowerAuthService#createRecoveryCode(CreateRecoveryCodeRequest)} method and
      * return the response.
      *
-     * @param request Create recovery code for user request.
-     * @return Create recovery code for user response.
+     * @param request Create recovery code request.
+     * @return Create recovery code response.
      * @throws Exception In case the service throws exception.
      */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateRecoveryCodeForUserRequest")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateRecoveryCodeRequest")
     @ResponsePayload
-    public CreateRecoveryCodeForUserResponse createRecoveryCodeForUser(@RequestPayload CreateRecoveryCodeForUserRequest request) throws Exception {
-        return powerAuthService.createRecoveryCodeForUser(request);
-    }
-
-
-    /**
-     * Call {@link PowerAuthService#createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest)} method and
-     * return the response.
-     *
-     * @param request Create recovery code for activation request.
-     * @return Create recovery code for activation response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateRecoveryCodeForActivationRequest")
-    @ResponsePayload
-    public CreateRecoveryCodeForActivationResponse createRecoveryCodeForActivation(@RequestPayload CreateRecoveryCodeForActivationRequest request) throws Exception {
-        return powerAuthService.createRecoveryCodeForActivation(request);
+    public CreateRecoveryCodeResponse createRecoveryCodeForUser(@RequestPayload CreateRecoveryCodeRequest request) throws Exception {
+        return powerAuthService.createRecoveryCode(request);
     }
 
     /**

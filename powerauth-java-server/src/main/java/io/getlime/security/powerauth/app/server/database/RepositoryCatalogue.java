@@ -47,6 +47,10 @@ public class RepositoryCatalogue {
 
     private final TokenRepository tokenRepository;
 
+    private final RecoveryCodeRepository recoveryCodeRepository;
+
+    private final RecoveryConfigRepository recoveryConfigRepository;
+
     @Autowired
     public RepositoryCatalogue(
             ActivationRepository activationRepository,
@@ -57,7 +61,9 @@ public class RepositoryCatalogue {
             IntegrationRepository integrationRepository,
             MasterKeyPairRepository masterKeyPairRepository,
             SignatureAuditRepository signatureAuditRepository,
-            TokenRepository tokenRepository) {
+            TokenRepository tokenRepository,
+            RecoveryCodeRepository recoveryCodeRepository,
+            RecoveryConfigRepository recoveryConfigRepository) {
 
         this.activationRepository = activationRepository;
         this.activationHistoryRepository = activationHistoryRepository;
@@ -68,6 +74,8 @@ public class RepositoryCatalogue {
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.signatureAuditRepository = signatureAuditRepository;
         this.tokenRepository = tokenRepository;
+        this.recoveryCodeRepository = recoveryCodeRepository;
+        this.recoveryConfigRepository = recoveryConfigRepository;
     }
 
     // Getters
@@ -106,5 +114,13 @@ public class RepositoryCatalogue {
 
     public TokenRepository getTokenRepository() {
         return tokenRepository;
+    }
+
+    public RecoveryCodeRepository getRecoveryCodeRepository() {
+        return recoveryCodeRepository;
+    }
+
+    public RecoveryConfigRepository getRecoveryConfigRepository() {
+        return recoveryConfigRepository;
     }
 }

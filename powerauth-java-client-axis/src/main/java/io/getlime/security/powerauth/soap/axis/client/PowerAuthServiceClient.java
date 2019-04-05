@@ -1123,14 +1123,16 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID.
      * @param userId User ID.
      * @param pukCount Number of PUKs to create.
+     * @param allowDuplicateCode Whether duplicate recovery code should be allowed.
      * @return Create recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount, Boolean allowDuplicateCode) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest request = new PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
         request.setPukCount(pukCount);
+        request.setAllowDuplicateCode(allowDuplicateCode);
         return createRecoveryCode(request);
     }
 
@@ -1214,7 +1216,9 @@ public class PowerAuthServiceClient {
      */
     public PowerAuthPortV3ServiceStub.RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws RemoteException {
         PowerAuthPortV3ServiceStub.RevokeRecoveryCodesRequest request = new PowerAuthPortV3ServiceStub.RevokeRecoveryCodesRequest();
-        request.setRecoveryCodeIds(recoveryCodeIds.stream().mapToLong(l -> l).toArray());
+        if (recoveryCodeIds != null) {
+            request.setRecoveryCodeIds(recoveryCodeIds.stream().mapToLong(l -> l).toArray());
+        }
         return revokeRecoveryCodes(request);
     }
 
@@ -1229,17 +1233,26 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Revoke recovery codes.
-     * @param recoveryCodes Recovery codes to revoke.
-     * @return Revoke recovery code response.
+     * Create activation using recovery code.
+     * @param recoveryCode Recovery code.
+     * @param puk Recovery PUK.
+     * @param applicationKey Application key.
+     * @param maxFailureCount Maximum failure count.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac MAC of key and data for ECIES.
+     * @return Create activation using recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey,
+    public PowerAuthPortV3ServiceStub.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
                                                                                                        String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
         PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest request = new PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
         request.setApplicationKey(applicationKey);
+        if (maxFailureCount != null) {
+            request.setMaxFailureCount(maxFailureCount);
+        }
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);

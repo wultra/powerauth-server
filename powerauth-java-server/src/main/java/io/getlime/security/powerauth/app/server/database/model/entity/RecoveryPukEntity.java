@@ -34,7 +34,7 @@ import java.util.Objects;
 @Table(name = "pa_recovery_puk")
 public class RecoveryPukEntity implements Serializable {
 
-    private static final long serialVersionUID = -2767925347538348721L;
+    private static final long serialVersionUID = 1836238476585497799L;
 
     @Id
     @SequenceGenerator(name = "pa_recovery_puk", sequenceName = "pa_recovery_puk_seq")
@@ -42,7 +42,8 @@ public class RecoveryPukEntity implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "recovery_code_id", nullable = false, updatable = false)
+    @ManyToOne
+    @JoinColumn(name = "recovery_code_id", referencedColumnName = "id", nullable = false, updatable = false)
     private RecoveryCodeEntity recoveryCode;
 
     @Column(name = "puk", nullable = false)

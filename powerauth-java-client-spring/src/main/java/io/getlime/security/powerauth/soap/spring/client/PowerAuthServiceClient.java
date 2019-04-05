@@ -956,7 +956,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param request Create recovery code request.
      * @return Create recovery coderesponse.
      */
-    public CreateRecoveryCodeResponse createRecoveryCodeForUser(CreateRecoveryCodeRequest request) {
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) {
         return (CreateRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
@@ -965,14 +965,16 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param applicationId Application ID.
      * @param userId User ID.
      * @param pukCount Number of PUKs to create.
+     * @param allowDuplicateCode Whether duplicate recovery code should be allowed.
      * @return Create recovery code response.
      */
-    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) {
+    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount, Boolean allowDuplicateCode) {
         CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
         request.setPukCount(pukCount);
-        return createRecoveryCodeForUser(request);
+        request.setAllowDuplicateCode(allowDuplicateCode);
+        return createRecoveryCode(request);
     }
 
     /**
@@ -1067,17 +1069,21 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param recoveryCode Recovery code.
      * @param puk Recovery PUK.
      * @param applicationKey Application key.
+     * @param maxFailureCount Maximum failure count.
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
      * @return Create activation using recovery code response.
      */
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey,
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
                                                                             String ephemeralPublicKey, String encryptedData, String mac) {
         RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
         request.setApplicationKey(applicationKey);
+        if (maxFailureCount != null) {
+            request.setMaxFailureCount(maxFailureCount);
+        }
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);

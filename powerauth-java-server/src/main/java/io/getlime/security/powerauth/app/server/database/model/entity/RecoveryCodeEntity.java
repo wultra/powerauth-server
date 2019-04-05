@@ -36,7 +36,7 @@ import java.util.Objects;
 @Table(name = "pa_recovery_code")
 public class RecoveryCodeEntity implements Serializable {
 
-    private static final long serialVersionUID = -7860801545480180791L;
+    private static final long serialVersionUID = 3356659945010116930L;
 
     @Id
     @SequenceGenerator(name = "pa_recovery_code", sequenceName = "pa_recovery_code_seq")
@@ -146,6 +146,17 @@ public class RecoveryCodeEntity implements Serializable {
      */
     public String getRecoveryCode() {
         return recoveryCode;
+    }
+
+    /**
+     * Get masked recovery code.
+     * @return Masked recovery code.
+     */
+    public String getRecoveryCodeMasked() {
+        if (recoveryCode == null || recoveryCode.length() != 23) {
+            return "";
+        }
+        return "XXXXX-XXXXX-XXXXX-" + recoveryCode.substring(18);
     }
 
     /**
@@ -374,7 +385,6 @@ public class RecoveryCodeEntity implements Serializable {
     public String toString() {
         return "RecoveryCodeEntity{"
                 + "id=" + id
-                + ", recoveryCode=" + recoveryCode
                 + ", applicationId=" + applicationId
                 + ", userId=" + userId
                 + ", activationId=" + activationId

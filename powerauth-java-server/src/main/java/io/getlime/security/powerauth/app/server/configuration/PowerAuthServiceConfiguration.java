@@ -155,12 +155,6 @@ public class PowerAuthServiceConfiguration {
     private String masterDbEncryptionKey;
 
     /**
-     * Whether recovery codes are enabled.
-     */
-    @Value("${powerauth.service.recovery.enabled}")
-    private Boolean recoveryCodesEnabled;
-
-    /**
      * How many failed usages of recovery code block the recovery code.
      */
     @Value("${powerauth.service.recovery.maxFailedAttempts}")
@@ -480,22 +474,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setMasterDbEncryptionKey(String masterDbEncryptionKey) {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
-    }
-
-    /**
-     * Get whether recovery codes are enabled.
-     * @return Whether recovery codes are enabled (disabled by default).
-     */
-    public Boolean getRecoveryCodesEnabled() {
-        return recoveryCodesEnabled;
-    }
-
-    /**
-     * Set whether recovery codes are enabled.
-     * @param recoveryCodesEnabled Whether recovery codes are enabled (disabled by default).
-     */
-    public void setRecoveryCodesEnabled(Boolean recoveryCodesEnabled) {
-        this.recoveryCodesEnabled = recoveryCodesEnabled;
     }
 
     /**

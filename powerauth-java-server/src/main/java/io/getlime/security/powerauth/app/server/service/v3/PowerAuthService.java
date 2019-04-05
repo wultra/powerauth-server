@@ -405,20 +405,12 @@ public interface PowerAuthService {
     CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws Exception;
 
     /**
-     * Create recovery code for given user.
+     * Create recovery code.
      * @param request Create recovery code request.
      * @return Create recovery code response.
      * @throws Exception In case of a business logic error.
      */
-    CreateRecoveryCodeForUserResponse createRecoveryCodeForUser(CreateRecoveryCodeForUserRequest request) throws Exception;
-
-    /**
-     * Create recovery code for given activation.
-     * @param request Create recovery code request.
-     * @return Create recovery code response.
-     * @throws Exception In case of a business logic error.
-     */
-    CreateRecoveryCodeForActivationResponse createRecoveryCodeForActivation(CreateRecoveryCodeForActivationRequest request) throws Exception;
+    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws Exception;
 
     /**
      * Confirm recovery code, change its status from CREATED to ACTIVE.
