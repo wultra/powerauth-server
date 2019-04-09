@@ -443,4 +443,20 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception;
+
+    /**
+     * Get recovery configuration.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     * @throws Exception In case of a business logic error.
+     */
+    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws Exception;
+
+    /**
+     * Update recovery configuration.
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception;
 }

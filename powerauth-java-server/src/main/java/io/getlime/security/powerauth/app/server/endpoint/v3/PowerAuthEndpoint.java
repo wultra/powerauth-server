@@ -642,4 +642,33 @@ public class PowerAuthEndpoint {
     public RecoveryCodeActivationResponse lookupRecoveryCodes(@RequestPayload RecoveryCodeActivationRequest request) throws Exception {
         return powerAuthService.createActivationUsingRecoveryCode(request);
     }
+
+    /**
+     * Call {@link PowerAuthService#getRecoveryConfig(GetRecoveryConfigRequest)} method and
+     * return the response.
+     *
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetRecoveryConfigRequest")
+    @ResponsePayload
+    public GetRecoveryConfigResponse getRecoveryConfig(@RequestPayload GetRecoveryConfigRequest request) throws Exception {
+        return powerAuthService.getRecoveryConfig(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateRecoveryConfig(UpdateRecoveryConfigRequest)} method and
+     * return the response.
+     *
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateRecoveryConfigRequest")
+    @ResponsePayload
+    public UpdateRecoveryConfigResponse getRecoveryConfig(@RequestPayload UpdateRecoveryConfigRequest request) throws Exception {
+        return powerAuthService.updateRecoveryConfig(request);
+    }
+
 }

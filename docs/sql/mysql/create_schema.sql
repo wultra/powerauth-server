@@ -171,6 +171,7 @@ CREATE TABLE `pa_recovery_puk` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `recovery_code_id` int(11) NOT NULL,
   `puk` varchar(255) NOT NULL,
+  `puk_encryption` int(11) NOT NULL DEFAULT 0,
   `puk_index` int(11) NOT NULL,
   `status` int(37) NOT NULL,
   `timestamp_last_change` datetime,

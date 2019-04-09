@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
@@ -99,6 +100,7 @@ public class ActivationServiceBehavior {
     // Prepare converters
     private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private RecoveryPukConverter recoveryPukConverter;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
@@ -133,6 +135,11 @@ public class ActivationServiceBehavior {
     @Autowired
     public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+    }
+
+    @Autowired
+    public void setRecoveryPukConverter(RecoveryPukConverter recoveryPukConverter) {
+        this.recoveryPukConverter = recoveryPukConverter;
     }
 
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -323,8 +330,9 @@ public class ActivationServiceBehavior {
 
                     // Decrypt server private key (depending on encryption mode)
                     String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-                    KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-                    String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
+                    EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+                    final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+                    String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
                     // If an activation was turned to REMOVED directly from CREATED state,
                     // there is not device public key in the database - we need to handle
@@ -567,7 +575,7 @@ public class ActivationServiceBehavior {
 
             // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
             ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
-            activation.setServerPrivateKeyEncryption(serverPrivateKey.getKeyEncryptionMode());
+            activation.setServerPrivateKeyEncryption(serverPrivateKey.getEncryptionMode());
             activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -1164,7 +1172,10 @@ public class ActivationServiceBehavior {
                         firstValidPuk = recoveryPukEntity;
                         // First valid PUK found, verify PUK hash
                         byte[] pukBytes = puk.getBytes(StandardCharsets.UTF_8);
-                        String pukHash = recoveryPukEntity.getPuk();
+                        String pukValueFromDB = recoveryPukEntity.getPuk();
+                        EncryptionMode encryptionMode = recoveryPukEntity.getPukEncryption();
+                        RecoveryPuk recoveryPuk = new RecoveryPuk(encryptionMode, pukValueFromDB);
+                        String pukHash = recoveryPukConverter.fromDBValue(recoveryPuk, application.getId(), recoveryCodeEntity.getUserId(), recoveryCode, recoveryPukEntity.getPukIndex());
                         try {
                             if (PasswordHash.verify(pukBytes, pukHash)) {
                                 pukValid = true;
@@ -1384,8 +1395,10 @@ public class ActivationServiceBehavior {
 
             final RecoveryPukEntity recoveryPukEntity = new RecoveryPukEntity();
             recoveryPukEntity.setPukIndex(1L);
-            String mcfRef = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
-            recoveryPukEntity.setPuk(mcfRef);
+            String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
+            RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, applicationId, userId, recoveryCode, recoveryPukEntity.getPukIndex());
+            recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
+            recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
             recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
             recoveryPukEntity.setRecoveryCode(recoveryCodeEntity);
             recoveryCodeEntity.getRecoveryPuks().add(recoveryPukEntity);

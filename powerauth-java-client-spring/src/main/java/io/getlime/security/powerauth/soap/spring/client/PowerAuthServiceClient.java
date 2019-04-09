@@ -1091,6 +1091,52 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Get recovery configuration.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     */
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) {
+        return (GetRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Get recovery configuration.
+     * @param applicationId Application ID.
+     * @return Get recovery configuration response.
+     */
+    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) {
+        GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        return getRecoveryConfig(request);
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     */
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) {
+        return (UpdateRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param applicationId Application ID.
+     * @param activationRecoveryEnabled Whether activation recovery is enabled.
+     * @param postcardRecoveryEnabled Whether recovery postcard is enabled.
+     * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote public key.
+     * @return Update recovery configuration response.
+     */
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, String remoteRecoveryPublicKeyBase64) {
+        UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        request.setActivationRecoveryEnabled(activationRecoveryEnabled);
+        request.setRecoveryPostcardEnabled(recoveryPostcardEnabled);
+        request.setRemotePostcardPublicKeyBase64(remoteRecoveryPublicKeyBase64);
+        return updateRecoveryConfig(request);
+    }
+
+    /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      * @return PowerAuth 2.0 client.
      */

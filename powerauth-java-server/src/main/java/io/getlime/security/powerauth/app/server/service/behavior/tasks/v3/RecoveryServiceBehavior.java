@@ -21,12 +21,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
+import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
@@ -61,6 +62,7 @@ import javax.crypto.SecretKey;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
+import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
@@ -98,16 +100,20 @@ public class RecoveryServiceBehavior {
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final RecoveryCodeStatusConverter recoveryCodeStatusConverter = new RecoveryCodeStatusConverter();
     private final RecoveryPukStatusConverter recoveryPukStatusConverter = new RecoveryPukStatusConverter();
+    private final RecoveryPukConverter recoveryPukConverter;
+
 
     @Autowired
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
-                                   ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior) {
+                                   ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior,
+                                   RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.activationServiceBehavior = activationServiceBehavior;
+        this.recoveryPukConverter = recoveryPukConverter;
     }
 
     /**
@@ -213,7 +219,9 @@ public class RecoveryServiceBehavior {
                 RecoveryPukEntity recoveryPukEntity = new RecoveryPukEntity();
                 recoveryPukEntity.setPukIndex((long) i);
                 String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
-                recoveryPukEntity.setPuk(pukHash);
+                RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, applicationId, userId, recoveryCode, recoveryPukEntity.getPukIndex());
+                recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
+                recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
                 recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
                 recoveryPukEntity.setRecoveryCode(recoveryCodeEntity);
                 recoveryCodeEntity.getRecoveryPuks().add(recoveryPukEntity);
@@ -288,8 +296,9 @@ public class RecoveryServiceBehavior {
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
             final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
@@ -532,4 +541,90 @@ public class RecoveryServiceBehavior {
         return response;
     }
 
+    /**
+     * Get recovery configuration.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     * @throws GenericServiceException In case of any error.
+     */
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
+        long applicationId = request.getApplicationId();
+        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+        final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
+        final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
+        if (!applicationOptional.isPresent()) {
+            logger.warn("Application does not exist, application ID: {}", applicationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+        if (recoveryConfigEntity == null) {
+            // Configuration does not exist yet, create it
+            recoveryConfigEntity = new RecoveryConfigEntity();
+            recoveryConfigEntity.setApplication(applicationOptional.get());
+            recoveryConfigEntity.setActivationRecoveryEnabled(false);
+            recoveryConfigEntity.setRecoveryPostcardEnabled(false);
+            recoveryConfigRepository.save(recoveryConfigEntity);
+        }
+        GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
+        response.setApplicationId(applicationId);
+        response.setActivationRecoveryEnabled(recoveryConfigEntity.getActivationRecoveryEnabled());
+        response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());
+        response.setPostcardPublicKeyBase64(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
+        response.setRemotePostcardPublicKeyBase64(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
+        return response;
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param request Update recovery configuration request.
+     * @param keyConversion Key conversion utility.
+     * @return Update recovery configuration response.
+     * @throws GenericServiceException In case of any error.
+     */
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+        try {
+            long applicationId = request.getApplicationId();
+            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
+            final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
+            if (!applicationOptional.isPresent()) {
+                logger.warn("Application does not exist, application ID: {}", applicationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+            if (recoveryConfigEntity == null) {
+                // Configuration does not exist yet, create it
+                recoveryConfigEntity = new RecoveryConfigEntity();
+                recoveryConfigEntity.setApplication(applicationOptional.get());
+            }
+            if (request.isRecoveryPostcardEnabled() && recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null) {
+                // Private key does not exist, generate key pair and persist it
+                KeyGenerator keyGen = new KeyGenerator();
+                KeyPair kp = keyGen.generateKeyPair();
+                PrivateKey privateKey = kp.getPrivate();
+                PublicKey publicKey = kp.getPublic();
+                byte[] privateKeyBytes = keyConversion.convertPrivateKeyToBytes(privateKey);
+                String privateKeyBase64 = BaseEncoding.base64().encode(privateKeyBytes);
+                byte[] publicKeyBytes = keyConversion.convertPublicKeyToBytes(publicKey);
+                String publicKeyBase64 = BaseEncoding.base64().encode(publicKeyBytes);
+
+                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(privateKeyBase64);
+                recoveryConfigEntity.setRecoveryPostcardPublicKeyBase64(publicKeyBase64);
+            }
+            recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());
+            recoveryConfigEntity.setRecoveryPostcardEnabled(request.isRecoveryPostcardEnabled());
+            if (request.getRemotePostcardPublicKeyBase64() != null) {
+                recoveryConfigEntity.setRemotePostcardPublicKeyBase64(request.getRemotePostcardPublicKeyBase64());
+                if (request.getRemotePostcardPublicKeyBase64().isEmpty()) {
+                    // Empty value is used to remove the remote postcard public key
+                    recoveryConfigEntity.setRemotePostcardPublicKeyBase64(null);
+                }
+            }
+            recoveryConfigRepository.save(recoveryConfigEntity);
+            return new UpdateRecoveryConfigResponse();
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
 }

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2019 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -18,23 +18,23 @@
 package io.getlime.security.powerauth.app.server.database.model;
 
 /**
- * Compound value of server private key. Key can be stored encrypted or decrypted based on key encryption mode.
+ * Compound value of recovery PUK. PUK hash can be stored encrypted or decrypted based on key encryption mode.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class ServerPrivateKey {
+public class RecoveryPuk {
 
     private final EncryptionMode encryptionMode;
-    private final String serverPrivateKeyBase64;
+    private final String pukHash;
 
     /**
-     * Constructor with key encryption mode and base64-encoded key.
+     * Constructor with key encryption mode and PUK hash.
      * @param encryptionMode Key encryption mode.
-     * @param serverPrivateKeyBase64 Base64-encoded server private key.
+     * @param pukHash PUK hash, encrypted if speciefied by key encryption mode.
      */
-    public ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
+    public RecoveryPuk(EncryptionMode encryptionMode, String pukHash) {
         this.encryptionMode = encryptionMode;
-        this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
+        this.pukHash = pukHash;
     }
 
     /**
@@ -46,10 +46,10 @@ public class ServerPrivateKey {
     }
 
     /**
-     * Get Base64-encoded server private key.
-     * @return Base64-encoded server private key.
+     * Get PUK hash, encrypted if speciefied by key encryption mode.
+     * @return PUK hash, encrypted if speciefied by key encryption mode.
      */
-    public String getServerPrivateKeyBase64() {
-        return serverPrivateKeyBase64;
+    public String getPukHash() {
+        return pukHash;
     }
 }

@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatusConverter;
 
@@ -49,6 +50,10 @@ public class RecoveryPukEntity implements Serializable {
     @Column(name = "puk", nullable = false)
     private String puk;
 
+    @Column(name = "puk_encryption", nullable = false)
+    @Enumerated
+    private EncryptionMode pukEncryption;
+
     @Column(name = "puk_index", nullable = false, updatable = false)
     private Long pukIndex;
 
@@ -78,12 +83,14 @@ public class RecoveryPukEntity implements Serializable {
     public RecoveryPukEntity(Long id,
                              RecoveryCodeEntity recoveryCode,
                              String puk,
+                             EncryptionMode pukEncryption,
                              Long pukIndex,
                              RecoveryPukStatus status,
                              Date timestampLastChange) {
         this.id = id;
         this.recoveryCode = recoveryCode;
         this.puk = puk;
+        this.pukEncryption = pukEncryption;
         this.pukIndex = pukIndex;
         this.status = status;
         this.timestampLastChange = timestampLastChange;
@@ -135,6 +142,22 @@ public class RecoveryPukEntity implements Serializable {
      */
     public void setPuk(String puk) {
         this.puk = puk;
+    }
+
+    /**
+     * Get PUK encryption mode.
+     * @return PUK encryption mode.
+     */
+    public EncryptionMode getPukEncryption() {
+        return pukEncryption;
+    }
+
+    /**
+     * Set PUK encryption mode.
+     * @param pukEncryption PUK encryption mode.
+     */
+    public void setPukEncryption(EncryptionMode pukEncryption) {
+        this.pukEncryption = pukEncryption;
     }
 
     /**
@@ -191,6 +214,7 @@ public class RecoveryPukEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.id);
         hash = 71 * hash + Objects.hashCode(this.recoveryCode);
         hash = 71 * hash + Objects.hashCode(this.puk);
+        hash = 71 * hash + Objects.hashCode(this.pukEncryption);
         hash = 71 * hash + Objects.hashCode(this.pukIndex);
         hash = 71 * hash + Objects.hashCode(this.status);
         hash = 71 * hash + Objects.hashCode(this.timestampLastChange);
@@ -218,6 +242,9 @@ public class RecoveryPukEntity implements Serializable {
         if (!Objects.equals(this.puk, other.puk)) {
             return false;
         }
+        if (!Objects.equals(this.pukEncryption, other.pukEncryption)) {
+            return false;
+        }
         if (!Objects.equals(this.pukIndex, other.pukIndex)) {
             return false;
         }
@@ -232,6 +259,7 @@ public class RecoveryPukEntity implements Serializable {
         return "RecoveryPukEntity{"
                 + "id=" + id
                 + ", recoveryCode=" + recoveryCode.getRecoveryCode()
+                + ", pukEncryption=" + pukEncryption
                 + ", pukIndex=" + pukIndex
                 + ", status=" + status
                 + ", timestampLastChange=" + timestampLastChange

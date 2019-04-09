@@ -172,6 +172,7 @@ CREATE TABLE "pa_recovery_puk" (
     "id"                    INTEGER NOT NULL PRIMARY KEY,
     "recovery_code_id"      INTEGER NOT NULL,
     "puk"                   VARCHAR(255),
+    "puk_encryption"        INTEGER DEFAULT 0 NOT NULL,
     "puk_index"             INTEGER NOT NULL,
     "status"                INTEGER NOT NULL,
     "timestamp_last_change" TIMESTAMP (6)

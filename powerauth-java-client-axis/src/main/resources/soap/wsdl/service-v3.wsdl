@@ -1321,6 +1321,59 @@
                 </xs:complexType>
             </xs:element>
 
+
+            <xs:element name="GetRecoveryConfigRequest">
+                <xs:annotation>
+                    <xs:documentation>Get application recovery configuration request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="GetRecoveryConfigResponse">
+                <xs:annotation>
+                    <xs:documentation>Get application recovery configuration response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationRecoveryEnabled" type="xs:boolean"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="recoveryPostcardEnabled" type="xs:boolean"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="postcardPublicKeyBase64" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="remotePostcardPublicKeyBase64" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateRecoveryConfigRequest">
+                <xs:annotation>
+                    <xs:documentation>Update application recovery configuration request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationRecoveryEnabled" type="xs:boolean"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="recoveryPostcardEnabled" type="xs:boolean"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="remotePostcardPublicKeyBase64" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateRecoveryConfigResponse">
+                <xs:annotation>
+                    <xs:documentation>Update application recovery configuration response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="updated" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+
             <!-- PowerAuth 2.0 Enumerations //-->
 
             <xs:simpleType name="ActivationStatus">
@@ -1732,6 +1785,22 @@
         <wsdl:part element="tns:RecoveryCodeActivationResponse" name="RecoveryCodeActivationResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="GetRecoveryConfigRequest">
+        <wsdl:part element="tns:GetRecoveryConfigRequest" name="GetRecoveryConfigRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="GetRecoveryConfigResponse">
+        <wsdl:part element="tns:GetRecoveryConfigResponse" name="GetRecoveryConfigResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateRecoveryConfigRequest">
+        <wsdl:part element="tns:UpdateRecoveryConfigRequest" name="UpdateRecoveryConfigRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateRecoveryConfigResponse">
+        <wsdl:part element="tns:UpdateRecoveryConfigResponse" name="UpdateRecoveryConfigResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="PowerAuthPortV3">
         <wsdl:operation name="UnsupportApplicationVersion">
             <wsdl:input message="tns:UnsupportApplicationVersionRequest" name="UnsupportApplicationVersionRequest">
@@ -1989,6 +2058,18 @@
             <wsdl:input message="tns:RecoveryCodeActivationRequest" name="RecoveryCodeActivationRequest">
             </wsdl:input>
             <wsdl:output message="tns:RecoveryCodeActivationResponse" name="RecoveryCodeActivationResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetRecoveryConfig">
+            <wsdl:input message="tns:GetRecoveryConfigRequest" name="GetRecoveryConfigRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:GetRecoveryConfigResponse" name="GetRecoveryConfigResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateRecoveryConfig">
+            <wsdl:input message="tns:UpdateRecoveryConfigRequest" name="UpdateRecoveryConfigRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:UpdateRecoveryConfigResponse" name="UpdateRecoveryConfigResponse">
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
@@ -2378,6 +2459,24 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="RecoveryCodeActivationResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="GetRecoveryConfig">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="GetRecoveryConfigRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="GetRecoveryConfigResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateRecoveryConfig">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="UpdateRecoveryConfigRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="UpdateRecoveryConfigResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

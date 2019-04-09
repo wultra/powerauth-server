@@ -1337,6 +1337,57 @@
         </xs:complexType>
     </xs:element>
 
+    <xs:element name="GetRecoveryConfigRequest">
+        <xs:annotation>
+            <xs:documentation>Get application recovery configuration request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetRecoveryConfigResponse">
+        <xs:annotation>
+            <xs:documentation>Get application recovery configuration response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="postcardPublicKeyBase64" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remotePostcardPublicKeyBase64" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateRecoveryConfigRequest">
+        <xs:annotation>
+            <xs:documentation>Update application recovery configuration request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="remotePostcardPublicKeyBase64" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateRecoveryConfigResponse">
+        <xs:annotation>
+            <xs:documentation>Update application recovery configuration response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="updated" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- PowerAuth Enumerations //-->
 
     <xs:simpleType name="ActivationStatus">

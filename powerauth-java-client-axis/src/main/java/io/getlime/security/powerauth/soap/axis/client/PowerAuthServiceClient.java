@@ -1260,6 +1260,56 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Get recovery configuration.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetRecoveryConfigResponse getRecoveryConfig(PowerAuthPortV3ServiceStub.GetRecoveryConfigRequest request) throws RemoteException {
+        return clientStubV3.getRecoveryConfig(request);
+    }
+
+    /**
+     * Get recovery configuration.
+     * @param applicationId Application ID.
+     * @return Get recovery configuration response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetRecoveryConfigRequest request = new PowerAuthPortV3ServiceStub.GetRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        return getRecoveryConfig(request);
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateRecoveryConfigResponse updateRecoveryConfig(PowerAuthPortV3ServiceStub.UpdateRecoveryConfigRequest request) throws RemoteException {
+        return clientStubV3.updateRecoveryConfig(request);
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param applicationId Application ID.
+     * @param activationRecoveryEnabled Whether activation recovery is enabled.
+     * @param postcardRecoveryEnabled Whether recovery postcard is enabled.
+     * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote public key.
+     * @return Revoke recovery code response.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, String remoteRecoveryPublicKeyBase64) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateRecoveryConfigRequest request = new PowerAuthPortV3ServiceStub.UpdateRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        request.setActivationRecoveryEnabled(activationRecoveryEnabled);
+        request.setRecoveryPostcardEnabled(recoveryPostcardEnabled);
+        request.setRemotePostcardPublicKeyBase64(remoteRecoveryPublicKeyBase64);
+        return updateRecoveryConfig(request);
+    }
+
+    /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      *
      * @return PowerAuth 2.0 client.

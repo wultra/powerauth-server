@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server.database.model;
 
 /**
- * Enum representing server private key encryption modes. Following values are supported:
+ * Enum representing encryption modes. Following values are supported:
  * <p>
  * - NO_ENCRYPTION = 0
  * - AES_HMAC = 1
@@ -26,7 +26,7 @@ package io.getlime.security.powerauth.app.server.database.model;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public enum KeyEncryptionMode {
+public enum EncryptionMode {
 
     /**
      * No encryption.
@@ -39,7 +39,7 @@ public enum KeyEncryptionMode {
     AES_HMAC((byte) 1);
 
     /**
-     * Byte value of key encryption mode.
+     * Byte value of encryption mode.
      */
     final byte value;
 
@@ -47,7 +47,7 @@ public enum KeyEncryptionMode {
      * Default constructor with byte value of encryption mode.
      * @param value Byte value of encryption mode.
      */
-    KeyEncryptionMode(final byte value) {
+    EncryptionMode(final byte value) {
         this.value = value;
     }
 

@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server;
 
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.Test;
@@ -51,7 +51,8 @@ public class ServerPrivateKeyConverterTest {
 
     @Test
     public void testFromDbValueNoEncryption() throws Exception {
-        String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.NO_ENCRYPTION, SERVER_PRIVATE_KEY_PLAIN, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+        final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(EncryptionMode.NO_ENCRYPTION, SERVER_PRIVATE_KEY_PLAIN);
+        String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         assertEquals(SERVER_PRIVATE_KEY_PLAIN, serverPrivateKeyActual);
     }
 
@@ -59,7 +60,7 @@ public class ServerPrivateKeyConverterTest {
     public void testEncryptionAndDecryptionSuccess() throws Exception {
         byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
         ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes,"test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-        String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+        String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         assertEquals(SERVER_PRIVATE_KEY_PLAIN, serverPrivateKeyActual);
     }
 
@@ -68,7 +69,7 @@ public class ServerPrivateKeyConverterTest {
         assertThrows(GenericServiceException.class, ()-> {
             byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
             ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-            serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test2", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+            serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         });
     }
 
@@ -77,7 +78,7 @@ public class ServerPrivateKeyConverterTest {
         assertThrows(GenericServiceException.class, ()-> {
             byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
             ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
-            serverPrivateKeyConverter.fromDBValue(KeyEncryptionMode.AES_HMAC, serverPrivateKeyEncrypted.getServerPrivateKeyBase64(), "test", "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
+            serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test", "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         });
     }
 
