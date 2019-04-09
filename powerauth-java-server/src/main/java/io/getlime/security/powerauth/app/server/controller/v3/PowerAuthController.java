@@ -590,8 +590,32 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/recovery/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<RecoveryCodeActivationResponse> create(@RequestBody RESTRequestWrapper<RecoveryCodeActivationRequest> request) throws Exception {
+    public RESTResponseWrapper<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@RequestBody RESTRequestWrapper<RecoveryCodeActivationRequest> request) throws Exception {
         return new RESTResponseWrapper<>("OK", powerAuthService.createActivationUsingRecoveryCode(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#getRecoveryConfig(GetRecoveryConfigRequest)} method and
+     * return the response.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/config/detail", method = RequestMethod.POST)
+    public RESTResponseWrapper<GetRecoveryConfigResponse> getRecoveryConfig(@RequestBody RESTRequestWrapper<GetRecoveryConfigRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.getRecoveryConfig(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateRecoveryConfig(UpdateRecoveryConfigRequest)} method and
+     * return the response.
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/config/update", method = RequestMethod.POST)
+    public RESTResponseWrapper<UpdateRecoveryConfigResponse> updateRecoveryConfig(@RequestBody RESTRequestWrapper<UpdateRecoveryConfigRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.updateRecoveryConfig(request.getRequestObject()));
     }
 
 }
