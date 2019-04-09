@@ -45,9 +45,7 @@ CREATE TABLE "pa_activation"
 CREATE TABLE "pa_application"
 (
     "id"                          INTEGER NOT NULL PRIMARY KEY,
-    "name"                        VARCHAR(255),
-    "activation_recovery_enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_postcard_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
+    "name"                        VARCHAR(255)
 );
 
 
@@ -73,7 +71,6 @@ CREATE TABLE "pa_master_keypair"
     "application_id"                INTEGER NOT NULL,
     "master_key_private_base64"     VARCHAR(255) NOT NULL,
     "master_key_public_base64"      VARCHAR(255) NOT NULL,
-    "recovery_master_secret_base64" VARCHAR(255),
     "name"                          VARCHAR(255),
     "timestamp_created"             TIMESTAMP (6) NOT NULL
 );
