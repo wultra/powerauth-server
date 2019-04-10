@@ -70,8 +70,8 @@ CREATE TABLE "PA_RECOVERY_CONFIG" (
     "APPLICATION_ID"              NUMBER(19,0) NOT NULL,
     "ACTIVATION_RECOVERY_ENABLED" NUMBER(1,0) DEFAULT 0 NOT NULL,
     "RECOVERY_POSTCARD_ENABLED"   NUMBER(1,0) DEFAULT 0 NOT NULL,
-    "RECOVERY_PRIVATE_KEY_BASE64" VARCHAR2(255 CHAR),
-    "RECOVERY_PUBLIC_KEY_BASE64"  VARCHAR2(255 CHAR),
+    "POSTCARD_PRIVATE_KEY_BASE64" VARCHAR2(255 CHAR),
+    "POSTCARD_PUBLIC_KEY_BASE64"  VARCHAR2(255 CHAR),
     "REMOTE_PUBLIC_KEY_BASE64"    VARCHAR2(255 CHAR)
 );
 
@@ -156,8 +156,8 @@ CREATE TABLE `pa_recovery_config` (
   `application_id` bigint(20) NOT NULL,
   `activation_recovery_enabled` int(1) NOT NULL DEFAULT 0,
   `recovery_postcard_enabled` int(1) NOT NULL DEFAULT 0,
-  `recovery_private_key_base64` varchar(255),
-  `recovery_public_key_base64` varchar(255),
+  `postcard_private_key_base64` varchar(255),
+  `postcard_public_key_base64` varchar(255),
   `remote_public_key_base64` varchar(255),
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_RECOVERY_CONFIG_APP` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -216,13 +216,13 @@ CREATE TABLE "pa_recovery_puk" (
 --
 
 CREATE TABLE "PA_RECOVERY_CONFIG" (
-    "id"                          NUMBER(19,0) NOT NULL PRIMARY KEY,
-    "application_id"              NUMBER(19,0) NOT NULL,
-    "activation_recovery_enabled" BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_postcard_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_private_key_base64" VARCHAR(255),
-    "recovery_public_key_base64"  VARCHAR(255),
-    "remote_public_key_base64"    VARCHAR(255)
+    "id"                                NUMBER(19,0) NOT NULL PRIMARY KEY,
+    "application_id"                    NUMBER(19,0) NOT NULL,
+    "activation_recovery_enabled"       BOOLEAN NOT NULL DEFAULT FALSE,
+    "recovery_postcard_enabled"         BOOLEAN NOT NULL DEFAULT FALSE,
+    "postcard_private_key_base64"       VARCHAR(255),
+    "postcard_public_key_base64"        VARCHAR(255),
+    "remote_public_key_base64" VARCHAR(255)
 );
 
 --

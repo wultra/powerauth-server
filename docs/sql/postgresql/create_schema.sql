@@ -184,8 +184,8 @@ CREATE TABLE "PA_RECOVERY_CONFIG" (
     "application_id"              NUMBER(19,0) NOT NULL,
     "activation_recovery_enabled" BOOLEAN NOT NULL DEFAULT FALSE,
     "recovery_postcard_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_private_key_base64" VARCHAR(255),
-    "recovery_public_key_base64"  VARCHAR(255),
+    "postcard_private_key_base64" VARCHAR(255),
+    "postcard_public_key_base64"  VARCHAR(255),
     "remote_public_key_base64"    VARCHAR(255)
 );
 

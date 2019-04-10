@@ -43,10 +43,10 @@ public class RecoveryConfigEntity implements Serializable {
     @Column(name = "recovery_postcard_enabled")
     private Boolean recoveryPostcardEnabled;
 
-    @Column(name = "recovery_private_key_base64")
+    @Column(name = "postcard_private_key_base64")
     private String recoveryPostcardPrivateKeyBase64;
 
-    @Column(name = "recovery_public_key_base64")
+    @Column(name = "postcard_public_key_base64")
     private String recoveryPostcardPublicKeyBase64;
 
     @Column(name = "remote_public_key_base64")
