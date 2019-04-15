@@ -176,6 +176,10 @@ $ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "
 }
 ```
 
+## Deploying PowerAuth Server On JBoss / Wildfly
+
+Follow the extra instructions in chapter [Deploying PowerAuth Server on JBoss / Wildfly](./Deploying-Wildfly.md).
+
 ## Troubleshooting
 
 ### Issues With Database Connectivity
