@@ -97,4 +97,4 @@ PowerAuth Server Spring application uses the `ext` Spring profile which activate
 The Bouncy Castle module for JBoss / Wildfly needs to be enabled as a global module for PowerAuth.
 
 Follow the instructions in the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md) chapter. 
-Note that the instructions differ based on Java version and application server.
+Note that the instructions differ based on Java version and application server type.
