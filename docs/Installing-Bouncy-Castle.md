@@ -53,9 +53,9 @@ https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 _Warning: Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
 Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case._
 
-### Bouncy Castle on Wildfly
+### Bouncy Castle on JBoss / Wildfly
 
-In order to make PowerAuth Server work on Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
+In order to make PowerAuth Server work on JBoss / Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
 
 ```xml
 <subsystem xmlns="urn:jboss:domain:ee:4.0">
@@ -87,7 +87,7 @@ In case of any error or different output, please check the troubleshooting guide
 
 Bouncy Castle library is installed in two steps on Java 8:
 - Bouncy Castle security provider needs to be configured in `java.security` configuration file.
-- Java 8 provides a library extension mechanism which can be used to installed Bouncy Castle with exception of Wildfly which has it's own mechanism for installing Bouncy Castle.  
+- Java 8 provides a library extension mechanism which can be used to installed Bouncy Castle with exception of JBoss / Wildfly which has it's own mechanism for installing Bouncy Castle.  
 
 ### Configuring Java Security
 
@@ -125,9 +125,9 @@ Copy [`bcprov-jdk15on-[VERSION].jar`](https://mvnrepository.com/artifact/org.bou
 You can get the Bouncy Castle provider here:
 https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
-### Bouncy Castle on Wildfly
+### Bouncy Castle on JBoss / Wildfly
 
-In order to make PowerAuth Server work on Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
+In order to make PowerAuth Server work on JBoss / Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
 
 ```xml
 <subsystem xmlns="urn:jboss:domain:ee:4.0">
@@ -138,7 +138,7 @@ In order to make PowerAuth Server work on Wildfly, you need to enable the Bouncy
 </subsystem>
 ```
 
-Note that when Wildfly's Bouncy Castle module is used, Bouncy Castle should not be present in the `lib/ext` folder of the Java runtime, otherwise the following error can occur: `key spec not recognized` due to clash of Bouncy Castle libraries.
+Note that when Bouncy Castle module for JBoss / Wildfly is used, Bouncy Castle should not be present in the `lib/ext` folder of the Java runtime, otherwise the following error can occur: `key spec not recognized` due to clash of Bouncy Castle libraries.
 
 ### Testing the Installation
 
@@ -176,7 +176,7 @@ In case you get the following error: `key spec not recognized`, there are possib
 
 - Tomcat on Java 11: Check that Bouncy Castle library is installed in `${CATALINA_HOME}/lib`.
 - Tomcat on Java 8: Check that Bouncy Castle library is installed in `${JDK_HOME}/jre/lib/ext` and it is not present in `${CATALINA_HOME}/lib`.
-- Wildfly on Java 11: Check that Bouncy Castle library is installed as a module in Wildfly.
-- Wildfly on Java 8: Check that Bouncy Castle library is not installed in `${JDK_HOME}/jre/lib/ext` and it is installed as a module in Wildfly.
+- JBoss / Wildfly on Java 11: Check that Bouncy Castle library is installed as a module in JBoss / Wildfly.
+- JBoss / Wildfly on Java 8: Check that Bouncy Castle library is not installed in `${JDK_HOME}/jre/lib/ext` and it is installed as a module in JBoss / Wildfly.
 - All containers on Java 8/11: Check that none of the deployed war files contains Bouncy Castle library, even if the war file is not related to PowerAuth.
 Another copy of Bouncy Castle library would clash with the globally installed version of the library. This rule applies only for PowerAuth `2019.04` or later.
