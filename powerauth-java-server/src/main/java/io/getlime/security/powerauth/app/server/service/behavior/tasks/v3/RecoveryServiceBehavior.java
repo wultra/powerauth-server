@@ -77,7 +77,7 @@ import java.util.*;
 @Component
 public class RecoveryServiceBehavior {
 
-    private static final int PUK_COUNT = 10;
+    public static final int PUK_COUNT_MAX = 100;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(RecoveryServiceBehavior.class);
@@ -182,7 +182,7 @@ public class RecoveryServiceBehavior {
             Map<Integer, Long> pukDerivationIndexes = null;
 
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateRecoveryCodeIterations(); i++) {
-                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, PUK_COUNT, true);
+                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, (int) request.getPukCount(), true);
                 // Check that recovery code is unique
                 boolean recoveryCodeExists = recoveryCodeRepository.getRecoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
                 if (!recoveryCodeExists) {
@@ -195,7 +195,7 @@ public class RecoveryServiceBehavior {
             }
 
             // In case recovery code generation failed, throw an exception
-            if (recoveryCode == null || puks == null || puks.size() != PUK_COUNT || nonce == null
+            if (recoveryCode == null || puks == null || puks.size() != request.getPukCount() || nonce == null
                     || pukDerivationIndexes == null
                     || !puks.keySet().equals(pukDerivationIndexes.keySet())) {
                 logger.error("Unable to generate recovery code");

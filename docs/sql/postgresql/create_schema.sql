@@ -179,7 +179,7 @@ CREATE TABLE "pa_recovery_puk" (
 -- DDL for Table PA_RECOVERY_CONFIG
 --
 
-CREATE TABLE "PA_RECOVERY_CONFIG" (
+CREATE TABLE "pa_recovery_config" (
     "id"                          NUMBER(19,0) NOT NULL PRIMARY KEY,
     "application_id"              NUMBER(19,0) NOT NULL,
     "activation_recovery_enabled" BOOLEAN NOT NULL DEFAULT FALSE,

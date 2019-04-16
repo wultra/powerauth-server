@@ -21,6 +21,7 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -931,7 +932,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws Exception {
-        if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > 100) {
+        if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
