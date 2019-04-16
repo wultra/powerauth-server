@@ -21,7 +21,8 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.converter.v2.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -106,8 +107,9 @@ public class VaultUnlockServiceBehavior {
 
                     // Decrypt server private key (depending on encryption mode)
                     String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-                    KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-                    String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activationId);
+                    EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+                    ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+                    String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
                     // Get the server private and device public keys as byte[]
                     byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);

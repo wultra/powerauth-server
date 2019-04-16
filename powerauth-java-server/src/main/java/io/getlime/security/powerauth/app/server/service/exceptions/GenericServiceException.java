@@ -17,15 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.service.exceptions;
 
-import org.springframework.ws.soap.server.endpoint.annotation.FaultCode;
-import org.springframework.ws.soap.server.endpoint.annotation.SoapFault;
-
 /**
  * Exception for any SOAP interface error.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@SoapFault(faultCode = FaultCode.SERVER)
 public class GenericServiceException extends Exception {
 
     private static final long serialVersionUID = 7185138483623356230L;

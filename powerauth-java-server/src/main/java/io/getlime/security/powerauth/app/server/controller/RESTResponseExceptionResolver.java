@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import org.springframework.core.Ordered;
 import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
@@ -54,12 +55,21 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
     protected ModelAndView doResolveException(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @Nullable Object handler, @NonNull Exception exception) {
         try {
             // Build the error list
-            RESTErrorModel error = new RESTErrorModel();
-            error.setCode("ERR_SPRING_JAVA");
-            error.setMessage(exception.getMessage());
-            error.setLocalizedMessage(exception.getLocalizedMessage());
             List<RESTErrorModel> errorList = new LinkedList<>();
-            errorList.add(error);
+            if (exception instanceof ActivationRecoveryException) {
+                RESTErrorModelRecovery recoveryError = new RESTErrorModelRecovery();
+                recoveryError.setCode("ERR_RECOVERY");
+                recoveryError.setMessage(exception.getMessage());
+                recoveryError.setLocalizedMessage(exception.getLocalizedMessage());
+                recoveryError.setCurrentRecoveryPukIndex(((ActivationRecoveryException) exception).getCurrentRecoveryPukIndex());
+                errorList.add(recoveryError);
+            } else {
+                RESTErrorModel error = new RESTErrorModel();
+                error.setCode("ERR_SPRING_JAVA");
+                error.setMessage(exception.getMessage());
+                error.setLocalizedMessage(exception.getLocalizedMessage());
+                errorList.add(error);
+            }
 
             // Prepare the response
             RESTResponseWrapper<List<RESTErrorModel>> errorResponse = new RESTResponseWrapper<>("ERROR", errorList);

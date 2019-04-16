@@ -950,6 +950,192 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setApplicationKey(applicationKey);
         return commitUpgrade(request);
     }
+
+    /**
+     * Create recovery code.
+     * @param request Create recovery code request.
+     * @return Create recovery coderesponse.
+     */
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) {
+        return (CreateRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Create recovery code for user.
+     * @param applicationId Application ID.
+     * @param userId User ID.
+     * @param pukCount Number of PUKs to create.
+     * @param allowDuplicateCode Whether duplicate recovery code should be allowed.
+     * @return Create recovery code response.
+     */
+    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount, Boolean allowDuplicateCode) {
+        CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
+        request.setApplicationId(applicationId);
+        request.setUserId(userId);
+        request.setPukCount(pukCount);
+        request.setAllowDuplicateCode(allowDuplicateCode);
+        return createRecoveryCode(request);
+    }
+
+    /**
+     * Confirm recovery code.
+     * @param request Confirm recovery code request.
+     * @return Confirm recovery code response.
+     */
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) {
+        return (ConfirmRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Confirm recovery code.
+     * @param activationId Activation ID.
+     * @param applicationKey Application key.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac MAC of key and data for ECIES.
+     * @return Confirm recovery code response.
+     */
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                           String encryptedData, String mac) {
+        ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
+        request.setActivationId(activationId);
+        request.setApplicationKey(applicationKey);
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return confirmRecoveryCode(request);
+    }
+
+    /**
+     * Lookup recovery codes.
+     * @param request Lookup recovery codes request.
+     * @return Lookup recovery codes response.
+     */
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) {
+        return (LookupRecoveryCodesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Lookup recovery codes.
+     * @param userId User ID.
+     * @param activationId Activation ID.
+     * @param applicationId Application ID.
+     * @param recoveryCodeStatus Recovery code status.
+     * @param recoveryPukStatus Recovery PUK status.
+     * @return Lookup recovery codes response.
+     */
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
+                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) {
+        LookupRecoveryCodesRequest request = new LookupRecoveryCodesRequest();
+        request.setUserId(userId);
+        request.setActivationId(activationId);
+        request.setApplicationId(applicationId);
+        request.setRecoveryCodeStatus(recoveryCodeStatus);
+        request.setRecoveryPukStatus(recoveryPukStatus);
+        return lookupRecoveryCodes(request);
+    }
+
+    /**
+     * Revoke recovery codes.
+     * @param request Revoke recovery codes request.
+     * @return Revoke recovery codes response.
+     */
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) {
+        return (RevokeRecoveryCodesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Revoke recovery codes.
+     * @param recoveryCodes IDs of recovery codes to revoke.
+     * @return Revoke recovery code response.
+     */
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) {
+        RevokeRecoveryCodesRequest request = new RevokeRecoveryCodesRequest();
+        request.getRecoveryCodeIds().addAll(recoveryCodeIds);
+        return revokeRecoveryCodes(request);
+    }
+
+    /**
+     * Create activation using recovery code.
+     * @param request Create activation using recovery code request.
+     * @return Create activation using recovery code response.
+     */
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) {
+        return (RecoveryCodeActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Create activation using recovery code.
+     * @param recoveryCode Recovery code.
+     * @param puk Recovery PUK.
+     * @param applicationKey Application key.
+     * @param maxFailureCount Maximum failure count.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param encryptedData Encrypted data for ECIES.
+     * @param mac MAC of key and data for ECIES.
+     * @return Create activation using recovery code response.
+     */
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
+                                                                            String ephemeralPublicKey, String encryptedData, String mac) {
+        RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
+        request.setRecoveryCode(recoveryCode);
+        request.setPuk(puk);
+        request.setApplicationKey(applicationKey);
+        if (maxFailureCount != null) {
+            request.setMaxFailureCount(maxFailureCount);
+        }
+        request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setEncryptedData(encryptedData);
+        request.setMac(mac);
+        return createActivationUsingRecoveryCode(request);
+    }
+
+    /**
+     * Get recovery configuration.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     */
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) {
+        return (GetRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Get recovery configuration.
+     * @param applicationId Application ID.
+     * @return Get recovery configuration response.
+     */
+    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) {
+        GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        return getRecoveryConfig(request);
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     */
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) {
+        return (UpdateRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Update recovery configuration.
+     * @param applicationId Application ID.
+     * @param activationRecoveryEnabled Whether activation recovery is enabled.
+     * @param postcardRecoveryEnabled Whether recovery postcard is enabled.
+     * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote public key.
+     * @return Update recovery configuration response.
+     */
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, String remoteRecoveryPublicKeyBase64) {
+        UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+        request.setApplicationId(applicationId);
+        request.setActivationRecoveryEnabled(activationRecoveryEnabled);
+        request.setRecoveryPostcardEnabled(recoveryPostcardEnabled);
+        request.setRemotePostcardPublicKeyBase64(remoteRecoveryPublicKeyBase64);
+        return updateRecoveryConfig(request);
+    }
+
     /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      * @return PowerAuth 2.0 client.

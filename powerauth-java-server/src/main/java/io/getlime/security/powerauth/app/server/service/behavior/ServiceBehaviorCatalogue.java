@@ -54,6 +54,8 @@ public class ServiceBehaviorCatalogue {
 
     private UpgradeServiceBehavior upgradeServiceBehavior;
 
+    private RecoveryServiceBehavior recoveryServiceBehavior;
+
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
     public ActivationServiceBehavior getActivationServiceBehavior() {
@@ -121,6 +123,11 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
+    public void setRecoveryServiceBehavior(RecoveryServiceBehavior recoveryServiceBehavior) {
+        this.recoveryServiceBehavior = recoveryServiceBehavior;
+    }
+
+    @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
@@ -167,6 +174,10 @@ public class ServiceBehaviorCatalogue {
 
     public UpgradeServiceBehavior getUpgradeServiceBehavior() {
         return upgradeServiceBehavior;
+    }
+
+    public RecoveryServiceBehavior getRecoveryServiceBehavior() {
+        return recoveryServiceBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

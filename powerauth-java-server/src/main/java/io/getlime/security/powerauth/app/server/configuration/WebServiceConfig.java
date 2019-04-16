@@ -18,6 +18,9 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
+import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.exceptions.SoapFaultExceptionResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -31,12 +34,15 @@ import org.springframework.ws.config.annotation.WsConfigurerAdapter;
 import org.springframework.ws.server.EndpointInterceptor;
 import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
 import org.springframework.ws.soap.security.wss4j2.callback.SpringSecurityPasswordValidationCallbackHandler;
+import org.springframework.ws.soap.server.endpoint.SoapFaultDefinition;
+import org.springframework.ws.soap.server.endpoint.SoapFaultMappingExceptionResolver;
 import org.springframework.ws.transport.http.MessageDispatcherServlet;
 import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * PowerAuth Server default web service configuration. Configures both basic endpoint information
@@ -175,4 +181,24 @@ public class WebServiceConfig extends WsConfigurerAdapter {
         return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-3.0.xsd"));
     }
 
+    /**
+     * Exception resolver for SOAP errors.
+     * @return SOAP fault resolver.
+     */
+    @Bean
+    public SoapFaultMappingExceptionResolver exceptionResolver() {
+        SoapFaultMappingExceptionResolver exceptionResolver = new SoapFaultExceptionResolver();
+
+        SoapFaultDefinition faultDefinition = new SoapFaultDefinition();
+        faultDefinition.setFaultCode(SoapFaultDefinition.SERVER);
+        exceptionResolver.setDefaultFault(faultDefinition);
+
+        Properties errorMappings = new Properties();
+        errorMappings.setProperty(Exception.class.getName(), SoapFaultDefinition.SERVER.toString());
+        errorMappings.setProperty(GenericServiceException.class.getName(), SoapFaultDefinition.SERVER.toString());
+        errorMappings.setProperty(ActivationRecoveryException.class.getName(), SoapFaultDefinition.SERVER.toString());
+        exceptionResolver.setExceptionMappings(errorMappings);
+        exceptionResolver.setOrder(1);
+        return exceptionResolver;
+    }
 }

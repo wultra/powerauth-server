@@ -83,6 +83,12 @@ public class PowerAuthServiceConfiguration {
     private int activationGenerateActivationCodeIterations;
 
     /**
+     * When a duplicate recovery code is encountered, how many times generate a new one.
+     */
+    @Value("${powerauth.service.crypto.generateRecoveryCodeIterations}")
+    private int generateRecoveryCodeIterations;
+
+    /**
      * How many milliseconds should be CREATED or OTP_USED record usable for
      * completing the activation.
      */
@@ -149,6 +155,12 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
+
+    /**
+     * How many failed usages of recovery code block the recovery code.
+     */
+    @Value("${powerauth.service.recovery.maxFailedAttempts}")
+    private long recoveryMaxFailedAttempts;
 
     /**
      * Get application name, usually used as a "unique code" for the application within
@@ -272,6 +284,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setActivationGenerateActivationCodeIterations(int activationGenerateActivationCodeIterations) {
         this.activationGenerateActivationCodeIterations = activationGenerateActivationCodeIterations;
+    }
+
+    /**
+     * Get number of recovery code generation attempts in case of collision.
+     * @return Retry iteration count (10, by default).
+     */
+    public int getGenerateRecoveryCodeIterations() {
+        return generateRecoveryCodeIterations;
+    }
+
+    /**
+     * Set number of recovery code generation attempts in case of collision.
+     * @param generateRecoveryCodeIterations Retry iteration count (10, by default).
+     */
+    public void setGenerateRecoveryCodeIterations(int generateRecoveryCodeIterations) {
+        this.generateRecoveryCodeIterations = generateRecoveryCodeIterations;
     }
 
     /**
@@ -450,4 +478,19 @@ public class PowerAuthServiceConfiguration {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
     }
 
+    /**
+     * Get default number of maximum failed attempts for recovery codes.
+     * @return Maximum failed attempts for recovery codes (5, by default).
+     */
+    public long getRecoveryMaxFailedAttempts() {
+        return recoveryMaxFailedAttempts;
+    }
+
+    /**
+     * Set default number of maximum failed attempts for recovery codes.
+     * @param recoveryMaxFailedAttempts Maximum failed attempts for recovery codes (5, by default).
+     */
+    public void setRecoveryMaxFailedAttempts(long recoveryMaxFailedAttempts) {
+        this.recoveryMaxFailedAttempts = recoveryMaxFailedAttempts;
+    }
 }
