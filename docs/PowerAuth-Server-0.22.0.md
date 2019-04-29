@@ -8,7 +8,7 @@ Java 11 no longer supports installing Bouncy Castle using library extension mech
 longer contains the Bouncy Castle library in war files to avoid classloader issues in some web containers (e.g. Tomcat). 
 
 The Bouncy Castle provider needs to be installed using mechanism supported by the web container. 
-See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-bouncy-castle-on-java-11) chapter in documentation.
+See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-on-java-11) chapter in documentation.
 
 ### Tomcat on Java 11
 
