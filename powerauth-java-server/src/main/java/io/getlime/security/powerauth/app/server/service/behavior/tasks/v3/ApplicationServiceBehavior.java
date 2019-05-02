@@ -78,6 +78,7 @@ public class ApplicationServiceBehavior {
         response.setApplicationName(application.getName());
         MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPairEntity == null) {
+            // This can happen only when an application was not created properly using PA Server service
             logger.error("Missing key pair for application ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
