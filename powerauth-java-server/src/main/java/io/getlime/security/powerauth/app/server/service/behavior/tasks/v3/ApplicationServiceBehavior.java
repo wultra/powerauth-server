@@ -76,7 +76,12 @@ public class ApplicationServiceBehavior {
         GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(application.getId());
         response.setApplicationName(application.getName());
-        response.setMasterPublicKey(repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId()).getMasterKeyPublicBase64());
+        MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+        if (masterKeyPairEntity == null) {
+            logger.error("Missing key pair for application ID: {}", applicationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+        }
+        response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
 
         List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(application.getId());
         for (ApplicationVersionEntity version : versions) {
