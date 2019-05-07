@@ -32,7 +32,7 @@ Additional requirements for Bouncy Castle library:
 
 For more details about installation of the library see [Installing Bouncy Castle](./Installing-Bouncy-Castle.md).
 
-**Warning: PowerAuth Server requires version 1.61, do not use PowerAuth server with older versions of Bouncy Castle library.**
+**Warning: PowerAuth Server requires Bouncy Castle version 1.61, do not use PowerAuth server with older versions of Bouncy Castle library.**
   
 ### Tomcat on Java 11
 
