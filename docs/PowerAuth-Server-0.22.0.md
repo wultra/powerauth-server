@@ -2,18 +2,10 @@
 
 This guide contains instructions for migration from PowerAuth Server version `0.21.0` to version `0.22.0`.
 
-## Java 11 Support
+## Bouncy Castle Library Update to Version 1.61 
 
-Java 11 no longer supports installing Bouncy Castle using library extension mechanism. PowerAuth no 
-longer contains the Bouncy Castle library in war files to avoid classloader issues in some web containers (e.g. Tomcat). 
-
-The Bouncy Castle provider needs to be installed using mechanism supported by the web container. 
-See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-on-java-11) chapter in documentation.
-
-### Bouncy Castle Library Update to Version 1.61 
-
-Bouncy Castle library has been updated to version `1.61`. Since PowerAuth server no longer contains the Bouncy Castle library in war files,
-the library needs to be updated in the `lib/ext` folder of Java runtime or web container libraries, depending on Java version.
+Bouncy Castle library has been updated to version `1.61`. PowerAuth server no longer contains the Bouncy Castle library in the war file,
+thus the library needs to be updated in the `lib/ext` folder of Java runtime or web container libraries, depending on Java version.
 
 The newest version of Bouncy Castle library can be downloaded from: https://www.bouncycastle.org/download/bcprov-jdk15on-161.jar
 
@@ -32,8 +24,16 @@ Additional requirements for Bouncy Castle library:
 
 For more details about installation of the library see [Installing Bouncy Castle](./Installing-Bouncy-Castle.md).
 
-**Warning: PowerAuth Server requires Bouncy Castle version 1.61, do not use PowerAuth server with older versions of Bouncy Castle library.**
-  
+**Warning: PowerAuth Server requires Bouncy Castle version 1.61, do not use PowerAuth server with older versions of Bouncy Castle library.** 
+
+## Java 11 Support
+
+Java 11 no longer supports installing Bouncy Castle using library extension mechanism. PowerAuth no 
+longer contains the Bouncy Castle library in war files to avoid classloader issues in some web containers (e.g. Tomcat). 
+
+The Bouncy Castle provider needs to be installed using mechanism supported by the web container. 
+See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-on-java-11) chapter in documentation.
+
 ### Tomcat on Java 11
 
 We have tested PowerAuth on Tomcat `9.0.16` with Java 11, so please use this version or higher. Older versions of Tomcat may not work properly with Java 11.
