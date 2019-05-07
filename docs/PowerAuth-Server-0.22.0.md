@@ -13,11 +13,14 @@ See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-on-j
 ### Bouncy Castle Library Update to Version 1.61 
 
 Bouncy Castle library has been updated to version `1.61`. Since PowerAuth server no longer contains the Bouncy Castle library in war files,
-the library needs to be updated in the web container.
+the library needs to be updated in the `lib\ext` folder of Java runtime or web container libraries, depending on Java version.
 
 The newest version of Bouncy Castle library can be downloaded from: https://www.bouncycastle.org/download/bcprov-jdk15on-161.jar
 
-Installation:
+Installation on **Java 8**:
+- Update Bouncy Castle library the `lib/ext` folder of the Java runtime
+
+Installation on **Java 11**:
 - Tomcat: update Bouncy Castle library in `CATALINA_HOME/lib`
 - JBoss / Wildfly: update Bouncy Castle library global module
 - Other web containers: follow instructions for installing a global library for the web container
