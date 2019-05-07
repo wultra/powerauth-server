@@ -569,8 +569,8 @@ public class RecoveryServiceBehavior {
         response.setApplicationId(applicationId);
         response.setActivationRecoveryEnabled(recoveryConfigEntity.getActivationRecoveryEnabled());
         response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());
-        response.setPostcardPublicKeyBase64(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
-        response.setRemotePostcardPublicKeyBase64(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
+        response.setPostcardPublicKey(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
+        response.setRemotePostcardPublicKey(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
         return response;
     }
 
@@ -613,9 +613,9 @@ public class RecoveryServiceBehavior {
             }
             recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());
             recoveryConfigEntity.setRecoveryPostcardEnabled(request.isRecoveryPostcardEnabled());
-            if (request.getRemotePostcardPublicKeyBase64() != null) {
-                recoveryConfigEntity.setRemotePostcardPublicKeyBase64(request.getRemotePostcardPublicKeyBase64());
-                if (request.getRemotePostcardPublicKeyBase64().isEmpty()) {
+            if (request.getRemotePostcardPublicKey() != null) {
+                recoveryConfigEntity.setRemotePostcardPublicKeyBase64(request.getRemotePostcardPublicKey());
+                if (request.getRemotePostcardPublicKey().isEmpty()) {
                     // Empty value is used to remove the remote postcard public key
                     recoveryConfigEntity.setRemotePostcardPublicKeyBase64(null);
                 }

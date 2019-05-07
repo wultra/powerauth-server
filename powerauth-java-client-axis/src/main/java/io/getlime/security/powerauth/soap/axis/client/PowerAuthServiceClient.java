@@ -1305,7 +1305,7 @@ public class PowerAuthServiceClient {
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);
         request.setRecoveryPostcardEnabled(recoveryPostcardEnabled);
-        request.setRemotePostcardPublicKeyBase64(remoteRecoveryPublicKeyBase64);
+        request.setRemotePostcardPublicKey(remoteRecoveryPublicKeyBase64);
         return updateRecoveryConfig(request);
     }
 
