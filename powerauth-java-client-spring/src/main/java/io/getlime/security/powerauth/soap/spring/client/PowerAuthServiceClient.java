@@ -1122,14 +1122,16 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param applicationId Application ID.
      * @param activationRecoveryEnabled Whether activation recovery is enabled.
      * @param postcardRecoveryEnabled Whether recovery postcard is enabled.
+     * @param allowMultipleRecoveryCodes Whether multiple recovery codes are allowed.
      * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote public key.
      * @return Update recovery configuration response.
      */
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, String remoteRecoveryPublicKeyBase64) {
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) {
         UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);
         request.setRecoveryPostcardEnabled(recoveryPostcardEnabled);
+        request.setAllowMultipleRecoveryCodes(allowMultipleRecoveryCodes);
         request.setRemotePostcardPublicKey(remoteRecoveryPublicKeyBase64);
         return updateRecoveryConfig(request);
     }

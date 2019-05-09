@@ -1328,6 +1328,7 @@ Get configuration of activation recovery.
 | `Long` | `applicationId` | An identifier of an application |
 | `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
 | `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
+| `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
 | `String` | `postcardPublicKey` | Base64 encoded recovery postcard public key for PowerAuth server |
 | `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key for recovery postcard printing center |
 
@@ -1344,6 +1345,7 @@ Update configuration of activation recovery.
 | `Long` | `applicationId` | An identifier of an application |
 | `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
 | `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
+| `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
 | `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key |
 
 #### Response
