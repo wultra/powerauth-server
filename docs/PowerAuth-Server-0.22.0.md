@@ -98,13 +98,14 @@ CREATE TABLE "PA_RECOVERY_PUK" (
 --
 
 CREATE TABLE "PA_RECOVERY_CONFIG" (
-    "ID"                          NUMBER(19,0) NOT NULL PRIMARY KEY,
-    "APPLICATION_ID"              NUMBER(19,0) NOT NULL,
-    "ACTIVATION_RECOVERY_ENABLED" NUMBER(1,0) DEFAULT 0 NOT NULL,
-    "RECOVERY_POSTCARD_ENABLED"   NUMBER(1,0) DEFAULT 0 NOT NULL,
-    "POSTCARD_PRIVATE_KEY_BASE64" VARCHAR2(255 CHAR),
-    "POSTCARD_PUBLIC_KEY_BASE64"  VARCHAR2(255 CHAR),
-    "REMOTE_PUBLIC_KEY_BASE64"    VARCHAR2(255 CHAR)
+    "ID"                            NUMBER(19,0) NOT NULL PRIMARY KEY,
+    "APPLICATION_ID"                NUMBER(19,0) NOT NULL,
+    "ACTIVATION_RECOVERY_ENABLED"   NUMBER(1,0) DEFAULT 0 NOT NULL,
+    "RECOVERY_POSTCARD_ENABLED"     NUMBER(1,0) DEFAULT 0 NOT NULL,
+    "ALLOW_MULTIPLE_RECOVERY_CODES" NUMBER(1,0) DEFAULT 0 NOT NULL,    
+    "POSTCARD_PRIVATE_KEY_BASE64"   VARCHAR2(255 CHAR),
+    "POSTCARD_PUBLIC_KEY_BASE64"    VARCHAR2(255 CHAR),
+    "REMOTE_PUBLIC_KEY_BASE64"      VARCHAR2(255 CHAR)
 );
 
 --
@@ -188,6 +189,7 @@ CREATE TABLE `pa_recovery_config` (
   `application_id` bigint(20) NOT NULL,
   `activation_recovery_enabled` int(1) NOT NULL DEFAULT 0,
   `recovery_postcard_enabled` int(1) NOT NULL DEFAULT 0,
+  `allow_multiple_recovery_codes` int(1) NOT NULL DEFAULT 0,  
   `postcard_private_key_base64` varchar(255),
   `postcard_public_key_base64` varchar(255),
   `remote_public_key_base64` varchar(255),
@@ -248,13 +250,14 @@ CREATE TABLE "pa_recovery_puk" (
 --
 
 CREATE TABLE "pa_recovery_config" (
-    "id"                                NUMBER(19,0) NOT NULL PRIMARY KEY,
-    "application_id"                    NUMBER(19,0) NOT NULL,
-    "activation_recovery_enabled"       BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_postcard_enabled"         BOOLEAN NOT NULL DEFAULT FALSE,
-    "postcard_private_key_base64"       VARCHAR(255),
-    "postcard_public_key_base64"        VARCHAR(255),
-    "remote_public_key_base64" VARCHAR(255)
+    "id"                            NUMBER(19,0) NOT NULL PRIMARY KEY,
+    "application_id"                NUMBER(19,0) NOT NULL,
+    "activation_recovery_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
+    "recovery_postcard_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
+    "allow_multiple_recovery_codes" BOOLEAN NOT NULL DEFAULT FALSE,    
+    "postcard_private_key_base64"   VARCHAR(255),
+    "postcard_public_key_base64"    VARCHAR(255),
+    "remote_public_key_base64"      VARCHAR(255)
 );
 
 --

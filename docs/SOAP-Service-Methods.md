@@ -1172,7 +1172,6 @@ Create a recovery code for user.
 | `String` | `applicationId` | An identifier of an application |
 | `String` | `userId` | An identifier of a user |
 | `Long` | `pukCount` | Number of PUKs to generate |
-| `Boolean` | `allowDuplicateCode` | Whether to allow duplicate recovery code for a user |
 
 #### Response
 

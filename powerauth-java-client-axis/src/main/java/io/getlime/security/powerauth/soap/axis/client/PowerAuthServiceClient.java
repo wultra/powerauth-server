@@ -1123,16 +1123,14 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID.
      * @param userId User ID.
      * @param pukCount Number of PUKs to create.
-     * @param allowDuplicateCode Whether duplicate recovery code should be allowed.
      * @return Create recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount, Boolean allowDuplicateCode) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest request = new PowerAuthPortV3ServiceStub.CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
         request.setPukCount(pukCount);
-        request.setAllowDuplicateCode(allowDuplicateCode);
         return createRecoveryCode(request);
     }
 
