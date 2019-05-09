@@ -963,7 +963,7 @@ public class ActivationServiceBehavior {
                 response.setActivated(true);
                 return response;
             } else {
-                logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
+                logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
