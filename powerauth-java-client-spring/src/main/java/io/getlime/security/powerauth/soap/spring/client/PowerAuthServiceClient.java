@@ -965,15 +965,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param applicationId Application ID.
      * @param userId User ID.
      * @param pukCount Number of PUKs to create.
-     * @param allowDuplicateCode Whether duplicate recovery code should be allowed.
      * @return Create recovery code response.
      */
-    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount, Boolean allowDuplicateCode) {
+    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) {
         CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
         request.setPukCount(pukCount);
-        request.setAllowDuplicateCode(allowDuplicateCode);
         return createRecoveryCode(request);
     }
 

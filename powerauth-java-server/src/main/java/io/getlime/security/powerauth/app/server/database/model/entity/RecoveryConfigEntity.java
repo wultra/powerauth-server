@@ -43,6 +43,9 @@ public class RecoveryConfigEntity implements Serializable {
     @Column(name = "recovery_postcard_enabled")
     private Boolean recoveryPostcardEnabled;
 
+    @Column(name = "allow_multiple_recovery_codes")
+    private Boolean allowMultipleRecoveryCodes;
+
     @Column(name = "postcard_private_key_base64")
     private String recoveryPostcardPrivateKeyBase64;
 
@@ -67,14 +70,16 @@ public class RecoveryConfigEntity implements Serializable {
      * @param id Recovery config ID.
      * @param activationRecoveryEnabled Whether activation recovery is enabled.
      * @param recoveryPostcardEnabled Whether recovery postcard is enabled.
+     * @param allowMultipleRecoveryCodes Whether multiple recovery codes per user are allowed.
      * @param recoveryPostcardPrivateKeyBase64 Base64 encoded local recovery postcard private key.
      * @param recoveryPostcardPublicKeyBase64 Base64 encoded local recovery postcard public key.
      * @param remotePostcardPublicKeyBase64 Base64 enncoded remote recovery postcard public key.
      */
-    public RecoveryConfigEntity(Long id, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64) {
+    public RecoveryConfigEntity(Long id, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64) {
         this.id = id;
         this.activationRecoveryEnabled = activationRecoveryEnabled;
         this.recoveryPostcardEnabled = recoveryPostcardEnabled;
+        this.allowMultipleRecoveryCodes = allowMultipleRecoveryCodes;
         this.recoveryPostcardPrivateKeyBase64 = recoveryPostcardPrivateKeyBase64;
         this.recoveryPostcardPublicKeyBase64 = recoveryPostcardPublicKeyBase64;
         this.remotePostcardPublicKeyBase64 = remotePostcardPublicKeyBase64;
@@ -128,6 +133,22 @@ public class RecoveryConfigEntity implements Serializable {
      */
     public void setRecoveryPostcardEnabled(Boolean recoveryPostcardEnabled) {
         this.recoveryPostcardEnabled = recoveryPostcardEnabled;
+    }
+
+    /**
+     * Get whether multiple recovery codes per user are allowed.
+     * @return Whether multiple recovery codes per user are allowed.
+     */
+    public Boolean getAllowMultipleRecoveryCodes() {
+        return allowMultipleRecoveryCodes;
+    }
+
+    /**
+     * Set whether multiple recovery codes per user are allowed.
+     * @param allowMultipleRecoveryCodes Whether multiple recovery codes per user are allowed.
+     */
+    public void setAllowMultipleRecoveryCodes(Boolean allowMultipleRecoveryCodes) {
+        this.allowMultipleRecoveryCodes = allowMultipleRecoveryCodes;
     }
 
     /**
@@ -202,6 +223,7 @@ public class RecoveryConfigEntity implements Serializable {
         hash = 37 * hash + Objects.hashCode(this.id);
         hash = 37 * hash + Objects.hashCode(this.activationRecoveryEnabled);
         hash = 37 * hash + Objects.hashCode(this.recoveryPostcardEnabled);
+        hash = 37 * hash + Objects.hashCode(this.allowMultipleRecoveryCodes);
         hash = 37 * hash + Objects.hashCode(this.recoveryPostcardPrivateKeyBase64);
         hash = 37 * hash + Objects.hashCode(this.recoveryPostcardPublicKeyBase64);
         hash = 37 * hash + Objects.hashCode(this.remotePostcardPublicKeyBase64);
@@ -230,6 +252,9 @@ public class RecoveryConfigEntity implements Serializable {
         if (!Objects.equals(this.recoveryPostcardEnabled, other.recoveryPostcardEnabled)) {
             return false;
         }
+        if (!Objects.equals(this.allowMultipleRecoveryCodes, other.allowMultipleRecoveryCodes)) {
+            return false;
+        }
         if (!Objects.equals(this.recoveryPostcardPrivateKeyBase64, other.recoveryPostcardPrivateKeyBase64)) {
             return false;
         }
@@ -248,6 +273,7 @@ public class RecoveryConfigEntity implements Serializable {
                 + "id=" + id
                 + ", activationRecoveryEnabled=" + activationRecoveryEnabled
                 + ", recoveryPostcardEnabled=" + recoveryPostcardEnabled
+                + ", allowMultipleRecoveryCodes=" + allowMultipleRecoveryCodes
                 + ", recoveryPostcardPublicKeyBase64=" + recoveryPostcardPublicKeyBase64
                 + ", remotePostcardPublicKeyBase64=" + remotePostcardPublicKeyBase64
                 + ", application=" + application.getId()

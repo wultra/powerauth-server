@@ -127,7 +127,6 @@ public class RecoveryServiceBehavior {
             final Long applicationId = request.getApplicationId();
             final String userId = request.getUserId();
             final Long pukCount = request.getPukCount();
-            final Boolean allowDuplicateCode = request.isAllowDuplicateCode();
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
@@ -159,7 +158,7 @@ public class RecoveryServiceBehavior {
 
             // Check whether user has any recovery code related to postcard (no activationId) in state CREATED or ACTIVE,
             // in this case the recovery code needs to be revoked first.
-            if (allowDuplicateCode == null || allowDuplicateCode == false) {
+            if (recoveryConfigEntity.getActivationRecoveryEnabled() == null || recoveryConfigEntity.getAllowMultipleRecoveryCodes() == false) {
                 List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationId, userId);
                 for (RecoveryCodeEntity recoveryCodeEntity : existingRecoveryCodes) {
                     if (recoveryCodeEntity.getActivationId() == null

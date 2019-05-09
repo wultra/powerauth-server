@@ -187,6 +187,7 @@ CREATE TABLE `pa_recovery_config` (
   `application_id` bigint(20) NOT NULL,
   `activation_recovery_enabled` int(1) NOT NULL DEFAULT 0,
   `recovery_postcard_enabled` int(1) NOT NULL DEFAULT 0,
+  `allow_multiple_recovery_codes` int(1) NOT NULL DEFAULT 0,
   `postcard_private_key_base64` varchar(255),
   `postcard_public_key_base64` varchar(255),
   `remote_public_key_base64` varchar(255),
