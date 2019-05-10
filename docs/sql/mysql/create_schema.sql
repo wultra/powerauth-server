@@ -132,7 +132,7 @@ CREATE TABLE `pa_token` (
 --
 
 CREATE TABLE `pa_activation_history` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `activation_id` varchar(37) NOT NULL,
   `activation_status` int(11) NOT NULL,
   `blocked_reason` varchar(255),
@@ -147,14 +147,14 @@ CREATE TABLE `pa_activation_history` (
 --
 
 CREATE TABLE `pa_recovery_code` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `recovery_code` varchar(23) NOT NULL,
-  `application_id` bigint(11) NOT NULL,
+  `application_id` bigint(20) NOT NULL,
   `user_id` varchar(255) NOT NULL,
   `activation_id` varchar(37),
-  `status` int(37) NOT NULL,
-  `failed_attempts` int(11) NOT NULL,
-  `max_failed_attempts` int(11) NOT NULL,
+  `status` int(11) NOT NULL,
+  `failed_attempts` bigint(20) NOT NULL,
+  `max_failed_attempts` bigint(20) NOT NULL,
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `timestamp_last_used` datetime,
   `timestamp_last_change` datetime,
@@ -168,12 +168,12 @@ CREATE TABLE `pa_recovery_code` (
 --
 
 CREATE TABLE `pa_recovery_puk` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
-  `recovery_code_id` int(11) NOT NULL,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `recovery_code_id` bigint(20) NOT NULL,
   `puk` varchar(255) NOT NULL,
   `puk_encryption` int(11) NOT NULL DEFAULT 0,
   `puk_index` int(11) NOT NULL,
-  `status` int(37) NOT NULL,
+  `status` int(11) NOT NULL,
   `timestamp_last_change` datetime,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_PUK_RECOVERY_CODE` FOREIGN KEY (`recovery_code_id`) REFERENCES `pa_recovery_code` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
