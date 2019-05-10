@@ -185,3 +185,62 @@ Columns:
 | blocked_reason | VARCHAR(255) | - | Reason why activation was blocked (used when activation_status = 4, BLOCKED). |
 | external_user_id | VARCHAR(255) | - | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |
+
+### Recovery Code Table
+
+Table name: `pa_recovery_code`
+
+Purpose: Stores information about recovery codes.
+
+Columns:
+
+| Name | Type | Info | Note |
+|------|------|---------|------|
+| id | INT(37) | primary key | Unique record ID. |
+| recovery_code | VARCHAR(23) | index | Recovery code used for recovering an activation. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA". |
+| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
+| user_id  | VARCHAR(255) | index | Associated user ID. |
+| activation_id | VARCHAR(37) | foreign key: pa\_activation.activation_id | Reference to associated activation. |
+| status  | INT(11) | - | Recovery code status, can be one of following values:<br><br>1 - CREATED<br>2 - ACTIVE<br>3 - BLOCKED<br>4 - REVOKED |
+| failed_attempts  | BIGINT(20) | - | Number of failed activation recovery attempts. |
+| max_failed_attempts | BIGINT(20) | - | Number of maximum allowed failed activation recovery attempts. After value of "failed_attempts" matches this value, recovery code becomes blocked (status = 3, BLOCKED) |
+| timestamp_created | DATETIME | - | Timestamp of record creation. |
+| timestamp_last_used | DATETIME | - | Timestamp of record last usage. |
+| timestamp_last_change | DATETIME | - | Timestamp of record last change. |
+
+### Recovery PUK Table
+
+Table name: `pa_recovery_puk`
+
+Purpose: Stores information about recovery PUKs.
+
+Columns:
+
+| Name | Type | Info | Note |
+|------|------|---------|------|
+| id | INT(37) | primary key | Unique record ID. |
+| recovery_code_id | INT(37) | foreign key: pa_recovery_code.id, index | Related recovery code. |
+| puk | VARCHAR(255) | - | Recovery PUK value (optionally encrypted). |
+| puk_encryption | INT(11) | - | Encryption type for PUK (0 = NO_ENCRYPTION, 1 = AES_HMAC) |
+| puk_index | INT(11) | index | Index of the PUK (value starts by 1). |
+| status | INT(11) | - | Recovery PUK status, can be one of following values: <br><br>1 - VALID<br>2 - USED<br>3 - INVALID |
+| timestamp_last_change | DATETIME | - | Timestamp of record last change. |
+
+### Recovery Configuration Table
+
+Table name: `pa_recovery_config`
+
+Purpose: Stores configuration of activation recovery and recovery postcards.
+
+Columns:
+
+| Name | Type | Info | Note |
+|------|------|---------|------|
+| id | INT(37) | primary key | Unique record ID. |
+| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
+| activation_recovery_enabled | INT(1) | - | Whether activation recovery is enabled. |
+| recovery_postcard_enabled | INT(1) | - | Whether recovery postcard is enabled. |
+| allow_multiple_recovery_codes | INT(1) | - | Whether multiple recovery codes are allowed per user. |
+| postcard_private_key_base64 | VARCHAR(255) | - | Base64 encoded EC server private key for recovery postcard. |
+| postcard_public_key_base64 | VARCHAR(255) | - | Base64 encoded EC server public key for recovery postcard. |
+| remote_public_key_base64 | VARCHAR(255) | - | Base64 encoded EC printing center public key for recovery postcard. |

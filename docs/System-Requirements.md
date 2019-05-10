@@ -80,12 +80,30 @@ To compute more exact values, you need to account for following input parameters
 
 We will be also using value `B` as a "Base unit size for row size" equal to 1kB.
 
-With these values, we can compute expected database size and growth using following formula:
+With these values, we can compute expected database size using following formula:
 
+1. In case activation recovery is disabled:
 ```
 SIZE   = SIZE1 + SIZE3 = (I * D * A * B) + (I * D * A * X * B)
        = I * D * A * B * (1 + X)
+```
 
+2. In case activation recovery is enabled and recovery postcards are disabled:
+
+```
+SIZE   = SIZE1 + SIZE3 + SIZE4A + SIZE5A = (I * D * A * B) + (I * D * A * X * B) + (I * D * A * B) + (I * D * A * 0.5 * B)
+       = I * D * A * B * (2.5 + X)
+```
+
+3. In case activation recovery is enabled and recovery postcards are enabled:
+
+```
+SIZE   = SIZE1 + SIZE3 + SIZE4B + SIZE5B = (I * D * A * B) + (I * D * A * X * B) + (I * D * A * B + I * B) + (I * D * A * 0.5 * B + I * 5 * B)
+       = I * D * A * B * (2.5 + X) + I * 6 * B
+```
+
+Database size growth can be estimated using following formula:
+```
 GROWTH = SIZE2
        = U * O * (S + B)
 ```
@@ -131,6 +149,19 @@ Specifically, PowerAuth Server tables behave in a following way:
     - this table may grow significantly based mainly on number of users and app extensions they use
     - expected row length: `R3 = 1 * B`
     - `SIZE3 = I * D * A * X * R3 = I * D * A * X * B`
+- `pa_recovery_code`
+    - this table may grow significantly based mainly on number of users, however only in case activation recovery is enabled
+    - expected row length: `R4 = 1 * B`
+    - in case activation postcards are disabled: `SIZE4A = I * D * A * R4 = I * D * A * B`
+    - in case activation postcards are enabled: `SIZE4B = I * D * A * R4 + I * R4 = I * D * A * B + I * B`
+- `pa_recovery_puk`
+    - this table may grow significantly based mainly on number of users, however only in case activation recovery is enabled
+    - expected row length: `R5 = 0.5 * B`
+    - in case activation postcards are disabled: `SIZE5A = I * D * A * R5 = I * D * A * 0.5 * B`
+    - in case activation postcards are enabled: `SIZE5B = I * D * A * R5 + I * R5 * 10 = I * D * A * 0.5 * B + I * 5 * B`
+- `pa_recovery_config`
+    - this table is small size and can be neglected in size estimates
+    - it contains a single record for every application
 
 #### Example
 
