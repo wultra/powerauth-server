@@ -20,11 +20,21 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Optional;
+
 /**
  * Database repository class for access to applications
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 public interface ApplicationRepository extends CrudRepository<ApplicationEntity, Long> {
+
+    /**
+     * Find application by name.
+     *
+     * @param applicationName Application name
+     * @return Optional application entity with given name, returns the first name match
+     */
+    Optional<ApplicationEntity> findFirstByName(String applicationName);
 
 }

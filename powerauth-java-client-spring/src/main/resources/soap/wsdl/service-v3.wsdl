@@ -117,9 +117,14 @@
                     <xs:documentation>Request for getting the application detail, including the list of versions.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
-                    <xs:sequence>
-                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
-                    </xs:sequence>
+                    <xs:choice>
+                        <xs:sequence>
+                            <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        </xs:sequence>
+                        <xs:sequence>
+                            <xs:element maxOccurs="1" minOccurs="1" name="applicationName" type="xs:string"/>
+                        </xs:sequence>
+                    </xs:choice>
                 </xs:complexType>
             </xs:element>
 

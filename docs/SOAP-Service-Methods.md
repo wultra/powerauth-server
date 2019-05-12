@@ -167,7 +167,7 @@ Get list of all applications that are present in this PowerAuth Server instance.
 
 ### Method 'getApplicationDetail'
 
-Get detail of application with given ID, including the list of versions.
+Get detail of application with given ID or name, including the list of versions.
 
 #### Request
 
@@ -175,7 +175,8 @@ Get detail of application with given ID, including the list of versions.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| `Long` | `applicationId` | An identifier of an application (required if applicationName not specified) |
+| `String` | `applicationName` | Application name  (required if applicationId not specified) |
 
 #### Response
 
