@@ -575,6 +575,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Get the detail of an application with given name, including the version list.
+     * @param applicationName name of an application to fetch.
+     * @return Application with given name, including the version list.
+     */
+    public GetApplicationDetailResponse getApplicationDetail(String applicationName) {
+        GetApplicationDetailRequest request = new GetApplicationDetailRequest();
+        request.setApplicationName(applicationName);
+        return this.getApplicationDetail(request);
+    }
+
+    /**
      * Lookup an application by application key.
      * @param request {@link LookupApplicationByAppKeyRequest} instance.
      * @return {@link LookupApplicationByAppKeyResponse}
