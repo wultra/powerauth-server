@@ -1213,6 +1213,9 @@ public class ActivationServiceBehavior {
                 }
             }
 
+            // Reset failed count, PUK was valid
+            recoveryCodeEntity.setFailedAttempts(0L);
+
             // Change status of PUK which was used for recovery to USED
             pukUsedDuringActivation.setStatus(RecoveryPukStatus.USED);
             pukUsedDuringActivation.setTimestampLastChange(new Date());
