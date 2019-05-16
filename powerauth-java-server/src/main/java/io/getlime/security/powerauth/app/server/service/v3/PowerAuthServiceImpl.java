@@ -36,10 +36,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Default implementation of the PowerAuth 3.0 Server service.
@@ -344,7 +341,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null || request.getSignatureType() == null) {
+        if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -352,9 +349,13 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String activationId = request.getActivationId();
             final String data = request.getData();
             final String signature = request.getSignature();
-            final SignatureType signatureType = request.getSignatureType();
+            final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
+            allowedSignatureTypes.add(SignatureType.POSSESSION_KNOWLEDGE);
+            if (request.isAllowBiometry()) {
+                allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);
+            }
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            VerifyOfflineSignatureResponse response = behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, signatureType, signature, data, keyConversionUtilities);
+            VerifyOfflineSignatureResponse response = behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, data, keyConversionUtilities);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {

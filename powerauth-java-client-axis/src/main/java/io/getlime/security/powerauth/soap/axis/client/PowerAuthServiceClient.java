@@ -534,16 +534,16 @@ public class PowerAuthServiceClient {
      * @param activationId Activation ID.
      * @param data Data for signature.
      * @param signature Signature value.
-     * @param signatureType Signature type (used factors).
+     * @param allowBiometry Whether POSSESSION_BIOMETRY signature type is allowed during offline signature verification.
      * @return Offline signature verification response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws RemoteException {
         PowerAuthPortV3ServiceStub.VerifyOfflineSignatureRequest request = new PowerAuthPortV3ServiceStub.VerifyOfflineSignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
         request.setSignature(signature);
-        request.setSignatureType(signatureType);
+        request.setAllowBiometry(allowBiometry);
         return verifyOfflineSignature(request);
     }
 
