@@ -1340,7 +1340,6 @@ public class ActivationServiceBehavior {
             // It is also expected that the activation is a valid activation which has just been created.
             // Prepare repositories
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
             final long applicationId = activationEntity.getApplication().getId();
             final String activationId = activationEntity.getActivationId();

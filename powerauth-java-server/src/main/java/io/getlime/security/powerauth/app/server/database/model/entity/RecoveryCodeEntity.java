@@ -322,7 +322,6 @@ public class RecoveryCodeEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 71 * hash + Objects.hashCode(this.id);
         hash = 71 * hash + Objects.hashCode(this.recoveryCode);
         hash = 71 * hash + Objects.hashCode(this.applicationId);
         hash = 71 * hash + Objects.hashCode(this.userId);
@@ -348,9 +347,6 @@ public class RecoveryCodeEntity implements Serializable {
             return false;
         }
         final RecoveryCodeEntity other = (RecoveryCodeEntity) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
         if (!Objects.equals(this.recoveryCode, other.recoveryCode)) {
             return false;
         }

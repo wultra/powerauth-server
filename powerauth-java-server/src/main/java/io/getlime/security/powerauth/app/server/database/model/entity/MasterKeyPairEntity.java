@@ -188,7 +188,6 @@ public class MasterKeyPairEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 37 * hash + Objects.hashCode(this.id);
         hash = 37 * hash + Objects.hashCode(this.name);
         hash = 37 * hash + Objects.hashCode(this.masterKeyPrivateBase64);
         hash = 37 * hash + Objects.hashCode(this.masterKeyPublicBase64);
@@ -210,9 +209,6 @@ public class MasterKeyPairEntity implements Serializable {
         }
         final MasterKeyPairEntity other = (MasterKeyPairEntity) obj;
         if (!Objects.equals(this.name, other.name)) {
-            return false;
-        }
-        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         if (!Objects.equals(this.masterKeyPrivateBase64, other.masterKeyPrivateBase64)) {
