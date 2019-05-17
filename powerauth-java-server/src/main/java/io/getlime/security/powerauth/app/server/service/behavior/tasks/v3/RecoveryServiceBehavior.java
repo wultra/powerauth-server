@@ -30,7 +30,6 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -129,7 +128,6 @@ public class RecoveryServiceBehavior {
             final Long pukCount = request.getPukCount();
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
@@ -138,7 +136,6 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final ApplicationEntity application = applicationOptional.get();
             // Check whether activation recovery and recovery postcard is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
@@ -181,7 +178,7 @@ public class RecoveryServiceBehavior {
             Map<Integer, Long> pukDerivationIndexes = null;
 
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateRecoveryCodeIterations(); i++) {
-                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, (int) request.getPukCount(), true);
+                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, pukCount.intValue(), true);
                 // Check that recovery code is unique
                 boolean recoveryCodeExists = recoveryCodeRepository.getRecoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
                 if (!recoveryCodeExists) {
@@ -314,9 +311,9 @@ public class RecoveryServiceBehavior {
                     applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE);
 
             // Decrypt request data
-            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            final byte[] encryptedDataBytes = BaseEncoding.base64().decode(request.getEncryptedData());
-            final byte[] macBytes = BaseEncoding.base64().decode(request.getMac());
+            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
+            final byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
+            final byte[] macBytes = BaseEncoding.base64().decode(mac);
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
 
