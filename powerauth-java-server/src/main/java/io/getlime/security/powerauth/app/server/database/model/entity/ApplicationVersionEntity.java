@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Entity class representing an application version. Each activation is associated with a single application,
@@ -161,4 +162,20 @@ public class ApplicationVersionEntity implements Serializable {
         this.supported = supported;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApplicationVersionEntity that = (ApplicationVersionEntity) o;
+        return Objects.equals(application, that.application) &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(applicationKey, that.applicationKey) &&
+                Objects.equals(applicationSecret, that.applicationSecret) &&
+                Objects.equals(supported, that.supported);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(application, name, applicationKey, applicationSecret, supported);
+    }
 }

@@ -186,7 +186,6 @@ public class ActivationHistoryEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.id);
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationStatus);
         hash = 23 * hash + Objects.hashCode(this.blockedReason);
@@ -207,9 +206,6 @@ public class ActivationHistoryEntity implements Serializable {
             return false;
         }
         final ActivationHistoryEntity other = (ActivationHistoryEntity) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
         if (!Objects.equals(this.activation, other.activation)) {
             return false;
         }
