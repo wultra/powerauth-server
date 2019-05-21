@@ -267,8 +267,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
             forcedSignatureVersion = 3;
         }
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
-
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
     }
 
     @Override
@@ -280,7 +279,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("VerifySignatureRequest received, activation ID: {}", request.getActivationId());
-            VerifySignatureResponse response = this.verifySignatureImplNonTransaction(request, null);
+            KeyValueMap additionalInfo = new KeyValueMap();
+            VerifySignatureResponse response = this.verifySignatureImplNonTransaction(request, additionalInfo);
             logger.info("VerifySignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -303,7 +303,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             String data = request.getData();
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", activationId);
-            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConversionUtilities);
+            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConversionUtilities);
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -326,7 +326,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             long applicationId = request.getApplicationId();
             String data = request.getData();
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received, application ID: {}", applicationId);
-            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
+            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -354,8 +354,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             if (request.isAllowBiometry()) {
                 allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);
             }
+            KeyValueMap additionalInfo = new KeyValueMap();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            VerifyOfflineSignatureResponse response = behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, data, keyConversionUtilities);
+            VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConversionUtilities);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
