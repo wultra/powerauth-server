@@ -62,7 +62,7 @@ import java.util.List;
 @Component
 public class OfflineSignatureServiceBehavior {
 
-    private static final String OFFLINE_MODE = "offline";
+    private static final String APPLICATION_SECRET_OFFLINE_MODE = "offline";
     private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
     private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
 
@@ -278,9 +278,8 @@ public class OfflineSignatureServiceBehavior {
 
             Long applicationId = activation.getApplication().getId();
 
-            applicationSecret = OFFLINE_MODE;
-
-            byte[] data = (dataString + "&" + applicationSecret).getBytes(StandardCharsets.UTF_8);
+            // Application secret is "offline" in offline mode
+            byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
             SignatureData signatureData = new SignatureData(data, signature, additionalInfo, forcedSignatureVersion);
             OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
 
