@@ -166,14 +166,13 @@ public class OnlineSignatureServiceBehavior {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
 
-                    return validSignatureResponse(activation, applicationId, signatureRequest, verificationResponse.getUsedSignatureType());
+                    return validSignatureResponse(activation,  signatureRequest, verificationResponse.getUsedSignatureType());
 
                 } else {
 
                     signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
 
-                    Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-                    return invalidSignatureResponse(activation, applicationId, signatureRequest, remainingAttempts);
+                    return invalidSignatureResponse(activation, signatureRequest);
 
                 }
             } else {
@@ -207,13 +206,15 @@ public class OnlineSignatureServiceBehavior {
     /**
      * Generates a valid signature response when signature validation succeeded.
      * @param activation Activation ID.
-     * @param applicationId Application ID.
      * @param signatureRequest Signature request.
      * @param usedSignatureType Signature type which was used during validation of the signature.
      * @return Valid signature response.
      */
-    private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation, Long applicationId, OnlineSignatureRequest signatureRequest, SignatureType usedSignatureType) {
-        // return the data
+    private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation,OnlineSignatureRequest signatureRequest, SignatureType usedSignatureType) {
+        // Extract application ID
+        Long applicationId = activation.getApplication().getId();
+
+        // Return the data
         VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(true);
         response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
@@ -229,12 +230,15 @@ public class OnlineSignatureServiceBehavior {
     /**
      * Generates an invalid signature response when signature validation failed.
      * @param activation Activation ID.
-     * @param applicationId Application ID.
      * @param signatureRequest Signature request.
-     * @param remainingAttempts Count of remaining attempts.
      * @return Invalid signature response.
      */
-    private VerifySignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, Long applicationId, OnlineSignatureRequest signatureRequest, Long remainingAttempts) {
+    private VerifySignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest) {
+        // Calculate remaining attempts
+        Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        // Extract application ID
+        Long applicationId = activation.getApplication().getId();
+
         // return the data
         VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(false);

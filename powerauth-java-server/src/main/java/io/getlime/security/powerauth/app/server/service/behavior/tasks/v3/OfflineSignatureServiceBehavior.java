@@ -274,10 +274,6 @@ public class OfflineSignatureServiceBehavior {
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
-            String applicationSecret;
-
-            Long applicationId = activation.getApplication().getId();
-
             // Application secret is "offline" in offline mode
             byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
             SignatureData signatureData = new SignatureData(data, signature, additionalInfo, forcedSignatureVersion);
@@ -292,14 +288,13 @@ public class OfflineSignatureServiceBehavior {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    return validSignatureResponse(activation, applicationId, offlineSignatureRequest, verificationResponse.getUsedSignatureType());
+                    return validSignatureResponse(activation, offlineSignatureRequest, verificationResponse.getUsedSignatureType());
 
                 } else {
 
                     signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-                    return invalidSignatureResponse(activation, applicationId, offlineSignatureRequest, remainingAttempts);
+                    return invalidSignatureResponse(activation, offlineSignatureRequest);
 
                 }
             } else {
@@ -337,8 +332,11 @@ public class OfflineSignatureServiceBehavior {
      * @param usedSignatureType Signature type which was used during validation of the signature.
      * @return Valid signature response.
      */
-    private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, Long applicationId, OfflineSignatureRequest OfflineSignatureRequest, SignatureType usedSignatureType) {
-        // return the data
+    private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest OfflineSignatureRequest, SignatureType usedSignatureType) {
+        // Extract application ID
+        Long applicationId = activation.getApplication().getId();
+
+        // Return the data
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setSignatureValid(true);
         response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
@@ -354,13 +352,16 @@ public class OfflineSignatureServiceBehavior {
     /**
      * Generates an invalid signature response when signature validation failed.
      * @param activation Activation ID.
-     * @param applicationId Application ID.
      * @param offlineSignatureRequest Signature request.
-     * @param remainingAttempts Count of remaining attempts.
      * @return Invalid signature response.
      */
-    private VerifyOfflineSignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, Long applicationId, OfflineSignatureRequest offlineSignatureRequest, Long remainingAttempts) {
-        // return the data
+    private VerifyOfflineSignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest offlineSignatureRequest) {
+        // Calculate remaining attempts
+        Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        // Extract application ID
+        Long applicationId = activation.getApplication().getId();
+
+        // Return the data
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
