@@ -132,8 +132,6 @@ public class OnlineSignatureServiceBehavior {
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
-            String applicationSecret;
-
             Long applicationId = activation.getApplication().getId();
 
             // Check the activation - application relationship and version support
@@ -151,9 +149,7 @@ public class OnlineSignatureServiceBehavior {
                 return invalidStateResponse(activation.getActivationStatus());
             }
 
-            applicationSecret = applicationVersion.getApplicationSecret();
-
-            byte[] data = (dataString + "&" + applicationSecret).getBytes(StandardCharsets.UTF_8);
+            byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
             SignatureData signatureData = new SignatureData(data, signature, additionalInfo, forcedSignatureVersion);
             OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
 
