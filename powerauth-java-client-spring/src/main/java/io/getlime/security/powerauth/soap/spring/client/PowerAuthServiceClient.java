@@ -395,15 +395,15 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param activationId Activation ID.
      * @param data Data for signature.
      * @param signature Signature value.
-     * @param signatureType Signature type (used factors).
+     * @param allowBiometry Whether POSSESSION_BIOMETRY signature type is allowed during signature verification.
      * @return Offline signature verification response.
      */
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, SignatureType signatureType) {
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) {
         VerifyOfflineSignatureRequest request = new VerifyOfflineSignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
         request.setSignature(signature);
-        request.setSignatureType(signatureType);
+        request.setAllowBiometry(allowBiometry);
         return verifyOfflineSignature(request);
     }
 

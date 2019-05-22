@@ -38,7 +38,9 @@ public class ServiceBehaviorCatalogue {
 
     private AuditingServiceBehavior auditingServiceBehavior;
 
-    private SignatureServiceBehavior signatureServiceBehavior;
+    private OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
+
+    private OfflineSignatureServiceBehavior offlineSignatureServiceBehavior;
 
     private VaultUnlockServiceBehavior vaultUnlockServiceBehavior;
 
@@ -83,8 +85,13 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
-    public void setSignatureServiceBehavior(SignatureServiceBehavior signatureServiceBehavior) {
-        this.signatureServiceBehavior = signatureServiceBehavior;
+    public void setOnlineSignatureServiceBehavior(OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+        this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
+    }
+
+    @Autowired
+    public void setOfflineSignatureServiceBehavior(OfflineSignatureServiceBehavior offlineSignatureServiceBehavior) {
+        this.offlineSignatureServiceBehavior = offlineSignatureServiceBehavior;
     }
 
     @Autowired
@@ -144,8 +151,12 @@ public class ServiceBehaviorCatalogue {
         return auditingServiceBehavior;
     }
 
-    public SignatureServiceBehavior getSignatureServiceBehavior() {
-        return signatureServiceBehavior;
+    public OnlineSignatureServiceBehavior getOnlineSignatureServiceBehavior() {
+        return onlineSignatureServiceBehavior;
+    }
+
+    public OfflineSignatureServiceBehavior getOfflineSignatureServiceBehavior() {
+        return offlineSignatureServiceBehavior;
     }
 
     public VaultUnlockServiceBehavior getVaultUnlockServiceBehavior() {

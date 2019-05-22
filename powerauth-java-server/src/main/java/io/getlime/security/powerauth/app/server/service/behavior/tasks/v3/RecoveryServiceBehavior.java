@@ -574,7 +574,7 @@ public class RecoveryServiceBehavior {
     /**
      * Update recovery configuration.
      * @param request Update recovery configuration request.
-     * @param keyConversion Key conversion utility.
+     * @param keyConversion Key convertor.
      * @return Update recovery configuration response.
      * @throws GenericServiceException In case of any error.
      */
