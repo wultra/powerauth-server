@@ -29,6 +29,24 @@ public class TokenInfo {
     private Long expires;
 
     /**
+     * Default constructor.
+     */
+    public TokenInfo() {
+    }
+
+    /**
+     * Parameterized constructor.
+     * @param tokenId Token identifier.
+     * @param tokenSecret Token secret.
+     * @param expires Expiration timestamp as Unix timestamp in milliseconds.
+     */
+    public TokenInfo(String tokenId, String tokenSecret, Long expires) {
+        this.tokenId = tokenId;
+        this.tokenSecret = tokenSecret;
+        this.expires = expires;
+    }
+
+    /**
      * Get token ID.
      * @return Token ID.
      */

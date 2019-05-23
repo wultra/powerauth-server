@@ -28,8 +28,14 @@ import java.util.List;
  */
 public class OfflineSignatureRequest {
 
-    private final SignatureData signatureData;
-    private final List<SignatureType> signatureTypes;
+    private SignatureData signatureData;
+    private List<SignatureType> signatureTypes;
+
+    /**
+     * Default constructor.
+     */
+    public OfflineSignatureRequest() {
+    }
 
     /**
      * Offline signature request constructur.

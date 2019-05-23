@@ -179,8 +179,7 @@ public class UpgradeServiceBehavior {
             }
 
             // Create response payload
-            final UpgradeResponsePayload payload = new UpgradeResponsePayload();
-            payload.setCtrData(ctrDataBase64);
+            final UpgradeResponsePayload payload = new UpgradeResponsePayload(ctrDataBase64);
 
             // Encrypt response payload and return it
             final byte[] payloadBytes = mapper.writeValueAsBytes(payload);

@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2019 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -361,8 +361,7 @@ public class RecoveryServiceBehavior {
             }
 
             // Prepare response payload
-            final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload();
-            responsePayload.setAlreadyConfirmed(alreadyConfirmed);
+            final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload(alreadyConfirmed);
 
             // Convert response payload
             final ObjectMapper mapper = new ObjectMapper();

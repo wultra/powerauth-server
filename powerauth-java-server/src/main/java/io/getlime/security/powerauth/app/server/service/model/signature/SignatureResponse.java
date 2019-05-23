@@ -26,11 +26,17 @@ import io.getlime.security.powerauth.v3.SignatureType;
  */
 public class SignatureResponse {
 
-    private final boolean signatureValid;
-    private final long ctrNext;
-    private final byte[] ctrDataNext;
-    private final Integer forcedSignatureVersion;
-    private final SignatureType usedSignatureType;
+    private boolean signatureValid;
+    private long ctrNext;
+    private byte[] ctrDataNext;
+    private Integer forcedSignatureVersion;
+    private SignatureType usedSignatureType;
+
+    /**
+     * Default constructor.
+     */
+    public SignatureResponse() {
+    }
 
     /**
      * Verify signature response constructor.

@@ -33,6 +33,26 @@ public class ActivationLayer2Response {
     private ActivationRecovery activationRecovery;
 
     /**
+     * Default constructor.
+     */
+    public ActivationLayer2Response() {
+    }
+
+    /**
+     * Constructor with all parameters.
+     * @param activationId Activation identifier.
+     * @param serverPublicKey Server public key.
+     * @param ctrData Counter data.
+     * @param activationRecovery Activation recovery data.
+     */
+    public ActivationLayer2Response(String activationId, String serverPublicKey, String ctrData, ActivationRecovery activationRecovery) {
+        this.activationId = activationId;
+        this.serverPublicKey = serverPublicKey;
+        this.ctrData = ctrData;
+        this.activationRecovery = activationRecovery;
+    }
+
+    /**
      * Get activation ID.
      * @return Activation ID.
      */
