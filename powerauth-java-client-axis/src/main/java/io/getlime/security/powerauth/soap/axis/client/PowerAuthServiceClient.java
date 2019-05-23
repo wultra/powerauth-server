@@ -1208,7 +1208,7 @@ public class PowerAuthServiceClient {
 
     /**
      * Revoke recovery codes.
-     * @param recoveryCodes Recovery codes to revoke.
+     * @param recoveryCodeIds Identifiers of recovery codes to revoke.
      * @return Revoke recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
@@ -1293,7 +1293,7 @@ public class PowerAuthServiceClient {
      * Update recovery configuration.
      * @param applicationId Application ID.
      * @param activationRecoveryEnabled Whether activation recovery is enabled.
-     * @param postcardRecoveryEnabled Whether recovery postcard is enabled.
+     * @param recoveryPostcardEnabled Whether recovery postcard is enabled.
      * @param allowMultipleRecoveryCodes Whether multiple recovery codes are allowed.
      * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote public key.
      * @return Revoke recovery code response.

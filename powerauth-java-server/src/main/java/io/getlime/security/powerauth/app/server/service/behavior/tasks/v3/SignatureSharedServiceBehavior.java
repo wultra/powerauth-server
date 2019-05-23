@@ -190,7 +190,7 @@ public class SignatureSharedServiceBehavior {
      * Handle invalid signature verification event for online signatures.
      * @param activation Activation used for signature verification.
      * @param verificationResponse Signature verification response.
-     * @param onlineSignatureRequest Online signature verification request.
+     * @param signatureRequest Online signature verification request.
      * @param currentTimestamp Signature verification timestamp.
      */
     public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OnlineSignatureRequest signatureRequest, Date currentTimestamp) {
@@ -201,7 +201,7 @@ public class SignatureSharedServiceBehavior {
      * Handle invalid signature verification event for offline signatures.
      * @param activation Activation used for signature verification.
      * @param verificationResponse Signature verification response.
-     * @param offlineSignatureRequest Offline signature verification request.
+     * @param signatureRequest Offline signature verification request.
      * @param currentTimestamp Signature verification timestamp.
      */
     public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
