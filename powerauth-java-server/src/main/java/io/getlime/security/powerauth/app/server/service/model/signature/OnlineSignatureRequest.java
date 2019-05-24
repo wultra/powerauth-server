@@ -26,8 +26,14 @@ import io.getlime.security.powerauth.v3.SignatureType;
  */
 public class OnlineSignatureRequest {
 
-    private final SignatureData signatureData;
-    private final SignatureType signatureType;
+    private SignatureData signatureData;
+    private SignatureType signatureType;
+
+    /**
+     * Default constructor.
+     */
+    public OnlineSignatureRequest() {
+    }
 
     /**
      * Online signature request constructur.

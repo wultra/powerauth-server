@@ -295,4 +295,9 @@ CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);
 The [VerifyOfflineSignature](./SOAP-Service-Methods.md#method-verifyofflinesignature) method has been updated to specify whether biometry is allowed in
 offline mode instead of specifying the used signature type directly. The PowerAuth client `verifyOfflineSignature` method
 has been updated to reflect the change of parameters. If you use offline mode verification using PowerAuth API, 
-please update the SOAP method call. 
+please update the SOAP method call.
+
+The [CommitActivation](./SOAP-Service-Methods.md#method-commitactivation), [RemoveActivation](./SOAP-Service-Methods.md#method-removeactivation), 
+[BlockActivation](./SOAP-Service-Methods.md#method-blockactivation) and [UnblockActivation](./SOAP-Service-Methods.md#method-unblockactivation) methods
+have been updated to allow specification of external user identifier. The related PowerAuth client methods have been updated to reflect the change of parameters. 
+If you use any of these methods, please update the SOAP method call.

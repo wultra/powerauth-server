@@ -350,6 +350,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String data = request.getData();
             final String signature = request.getSignature();
             final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
+            // The order of signature types is important. PowerAuth server logs first found signature type
+            // as used signature type in case signature verification fails. In case the POSSESSION_BIOMETRY signature
+            // type is allowed, additional info in signature audit contains flag BIOMETRY_ALLOWED.
             allowedSignatureTypes.add(SignatureType.POSSESSION_KNOWLEDGE);
             if (request.isAllowBiometry()) {
                 allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);

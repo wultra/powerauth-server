@@ -26,11 +26,16 @@ import io.getlime.security.powerauth.v3.KeyValueMap;
  */
 public class SignatureData {
 
-    private final byte[] data;
-    private final String signature;
-    private final KeyValueMap additionalInfo;
-    private final Integer forcedSignatureVersion;
+    private byte[] data;
+    private String signature;
+    private KeyValueMap additionalInfo;
+    private Integer forcedSignatureVersion;
 
+    /**
+     * Default constructor.
+     */
+    public SignatureData() {
+    }
 
     /**
      * Signature data constructur.

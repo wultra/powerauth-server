@@ -68,7 +68,7 @@ In order to make PowerAuth Server work on JBoss / Wildfly, you need to enable th
 
 ### Testing the Installation
 
-You can test the installation in web container using our simple [bc-check.war application](https://github.com/wultra/powerauth-crypto/releases/download/0.21.0/check-bc.war).
+You can test the installation in web container using our simple [bc-check.war application](https://github.com/wultra/powerauth-crypto/releases/download/0.22.0/check-bc.war).
 
 The application performs following checks after startup:
 - Check whether BC provider is correctly installed.
@@ -179,4 +179,4 @@ In case you get the following error: `key spec not recognized`, there are possib
 - JBoss / Wildfly on Java 11: Check that Bouncy Castle library is installed as a module in JBoss / Wildfly.
 - JBoss / Wildfly on Java 8: Check that Bouncy Castle library is not installed in `${JDK_HOME}/jre/lib/ext` and it is installed as a module in JBoss / Wildfly.
 - All containers on Java 8/11: Check that none of the deployed war files contains Bouncy Castle library, even if the war file is not related to PowerAuth.
-Another copy of Bouncy Castle library would clash with the globally installed version of the library. This rule applies only for PowerAuth `2019.04` or later.
+Another copy of Bouncy Castle library would clash with the globally installed version of the library. This rule applies only for PowerAuth `2019.05` or later.

@@ -30,6 +30,20 @@ public class ConfirmRecoveryResponsePayload {
     private boolean alreadyConfirmed;
 
     /**
+     * Default constructor.
+     */
+    public ConfirmRecoveryResponsePayload() {
+    }
+
+    /**
+     * Parameterized constructor.
+     * @param alreadyConfirmed Whether recovery code was already confirmed.
+     */
+    public ConfirmRecoveryResponsePayload(boolean alreadyConfirmed) {
+        this.alreadyConfirmed = alreadyConfirmed;
+    }
+
+    /**
      * Get whether recovery code was already confirmed.
      * @return Whether recovery code was already confirmed.
      */
