@@ -7,7 +7,7 @@ This guide contains instructions for migration from PowerAuth Server version `0.
 Bouncy Castle library has been updated to version `1.61`. PowerAuth server no longer contains the Bouncy Castle library in the war file,
 thus the library needs to be updated in the `lib/ext` folder of Java runtime or web container libraries, depending on Java version.
 
-The newest version of Bouncy Castle library can be downloaded from: https://www.bouncycastle.org/download/bcprov-jdk15on-161.jar
+The newest version of Bouncy Castle library can be downloaded from: [https://www.bouncycastle.org/download/bcprov-jdk15on-161.jar](https://www.bouncycastle.org/download/bcprov-jdk15on-161.jar)
 
 Installation on **Java 8**:
 - Update Bouncy Castle library the `lib/ext` folder of the Java runtime
