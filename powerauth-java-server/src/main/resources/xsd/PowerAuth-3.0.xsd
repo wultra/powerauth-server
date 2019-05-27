@@ -384,6 +384,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -447,6 +448,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -611,7 +613,7 @@
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="allowBiometry" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -644,6 +646,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="reason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -670,6 +673,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -821,6 +825,8 @@
                             <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1"
                                         maxOccurs="1"/>
+                            <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>
@@ -1163,6 +1169,226 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Recovery codes -->
+
+    <xs:element name="CreateRecoveryCodeRequest">
+        <xs:annotation>
+            <xs:documentation>Create recovery code request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="pukCount" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateRecoveryCodeResponse">
+        <xs:annotation>
+            <xs:documentation>Create recovery code response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="nonce" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="recoveryCodeId" type="xs:long" maxOccurs="1" minOccurs="1"/>
+                <xs:element name="recoveryCodeMasked" type="xs:string" maxOccurs="1" minOccurs="1"/>
+                <xs:element name="status" type="tns:RecoveryCodeStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="puks" minOccurs="1" maxOccurs="unbounded">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="pukIndex" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="pukDerivationIndex" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="status" type="tns:RecoveryPukStatus" minOccurs="1" maxOccurs="1"/>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ConfirmRecoveryCodeRequest">
+        <xs:annotation>
+            <xs:documentation>Confirm recovery code request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+
+    <xs:element name="ConfirmRecoveryCodeResponse">
+        <xs:annotation>
+            <xs:documentation>Confirm recovery code response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="LookupRecoveryCodesRequest">
+        <xs:annotation>
+            <xs:documentation>Search for recovery codes request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="recoveryCodeStatus" type="tns:RecoveryCodeStatus" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="recoveryPukStatus" type="tns:RecoveryPukStatus" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="LookupRecoveryCodesResponse">
+        <xs:annotation>
+            <xs:documentation>Search for recovery codes response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="recoveryCodes" maxOccurs="unbounded" minOccurs="0">
+                    <xs:complexType>
+                        <xs:sequence>
+                            <xs:element name="recoveryCodeId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="recoveryCodeMasked" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="status" type="tns:RecoveryCodeStatus" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="puks" minOccurs="0" maxOccurs="unbounded">
+                                <xs:complexType>
+                                    <xs:sequence>
+                                        <xs:element name="pukIndex" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                                        <xs:element name="status" type="tns:RecoveryPukStatus" minOccurs="1" maxOccurs="1"/>
+                                    </xs:sequence>
+                                </xs:complexType>
+                            </xs:element>
+                        </xs:sequence>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RevokeRecoveryCodesRequest">
+        <xs:annotation>
+            <xs:documentation>Revoke recovery codes request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="recoveryCodeIds" type="xs:long" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RevokeRecoveryCodesResponse">
+        <xs:annotation>
+            <xs:documentation>Revoke recovery code response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="revoked" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RecoveryCodeActivationRequest">
+        <xs:annotation>
+            <xs:documentation>Request for creating a new activation using recovery code.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="recoveryCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="puk" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="maxFailureCount" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RecoveryCodeActivationResponse">
+        <xs:annotation>
+            <xs:documentation>Response for creating a new activation using recovery code.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetRecoveryConfigRequest">
+        <xs:annotation>
+            <xs:documentation>Get application recovery configuration request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="GetRecoveryConfigResponse">
+        <xs:annotation>
+            <xs:documentation>Get application recovery configuration response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="allowMultipleRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="postcardPublicKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remotePostcardPublicKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateRecoveryConfigRequest">
+        <xs:annotation>
+            <xs:documentation>Update application recovery configuration request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="allowMultipleRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="remotePostcardPublicKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateRecoveryConfigResponse">
+        <xs:annotation>
+            <xs:documentation>Update application recovery configuration response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="updated" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- PowerAuth Enumerations //-->
 
     <xs:simpleType name="ActivationStatus">
@@ -1177,6 +1403,29 @@
             <xs:enumeration value="ACTIVE"/>
             <xs:enumeration value="BLOCKED"/>
             <xs:enumeration value="REMOVED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="RecoveryCodeStatus">
+        <xs:annotation>
+            <xs:documentation>Enum representing the possible recovery code states (CREATED, ACTIVE, BLOCKED, REVOKED).</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="CREATED"/>
+            <xs:enumeration value="ACTIVE"/>
+            <xs:enumeration value="BLOCKED"/>
+            <xs:enumeration value="REVOKED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="RecoveryPukStatus">
+        <xs:annotation>
+            <xs:documentation>Enum representing the possible recovery PUK states (VALID, USED, INVALID).</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="VALID"/>
+            <xs:enumeration value="USED"/>
+            <xs:enumeration value="INVALID"/>
         </xs:restriction>
     </xs:simpleType>
 

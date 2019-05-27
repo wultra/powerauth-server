@@ -54,14 +54,21 @@ The following `v3` methods are published using the service:
     - [removeIntegration](#method-removeintegration)
 - Callback URL Management
     - [createCallbackUrl](#method-createcallbackurl)
-    - [getCallbackUrlList](#method-getcallbckurllist)
+    - [getCallbackUrlList](#method-getcallbackurllist)
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
     - [getEciesDecryptor](#method-geteciesdecryptor)
 - Activation Versioning
     - [startUpgrade](#method-startupgrade)
     - [commitUpgrade](#method-commitupgrade)
-
+- Activation Recovery
+    - [createRecoveryCode](#method-createrecoverycode)
+    - [confirmRecoveryCode](#method-confirmrecoverycode)
+    - [lookupRecoveryCodes](#method-lookuprecoverycodes)
+    - [revokeRecoveryCodes](#method-revokerecoverycodes)
+    - [recoveryCodeActivation](#method-recoverycodeactivation)
+    - [getRecoveryConfig](#method-getrecoveryconfig)
+    - [updateRecoveryConfig](#method-updaterecoveryconfig)
 The following `v2` methods are published using the service:
 - Activation Management
     - [prepareActivation (v2)](#method-prepareactivation-v2)
@@ -343,8 +350,8 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` | Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -359,13 +366,16 @@ ECIES request should contain following data (as JSON):
 |------|------|-------------|
 | `String` | `activationId` | An UUID4 identifier of an activation |
 | `String` | `userId` | User ID |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
  - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
  - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - Information about activation recovery which is sent only in case activation recovery is enabled.
+    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 ### Method 'createActivation'
 
@@ -382,8 +392,8 @@ Create an activation for given user and application, with provided maximum numbe
 | `Long` | `maxFailureCount` | How many failures are allowed for this activation |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -397,13 +407,16 @@ ECIES request should contain following data (as JSON):
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An UUID4 identifier of an activation |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
  - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
  - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - - `activationRecovery` - Information about activation recovery which is sent only in case activation recovery is enabled.
+   - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+   - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 ### Method 'commitActivation'
 
@@ -416,6 +429,7 @@ Commit activation with given ID. Only non-expired activations in OTP_USED state 
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who committed the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -471,6 +485,7 @@ Remove activation with given ID. This operation is irreversible. Activations can
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who removed the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -532,6 +547,7 @@ Block activation with given ID. Activations can be blocked in ACTIVE state only.
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `reason` | Reason why activation is being blocked (default: NOT_SPECIFIED) |
+| `String` | `externalUserId` | User ID of user who blocked the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -554,6 +570,7 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who unblocked the activation. Use null value if activation owner caused the change. |
 
 #### Response
 
@@ -679,7 +696,7 @@ Verify off-line signature of provided data.
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `data` | Base64 encoded data for the signature, normalized data for signatures |
 | `String` | `signature` | Actual signature value |
-| `SignatureType` | `signatureType` | Type of the signature |
+| `boolean` | `biometryAllowed` | Whether biometry is allowed in offline mode |
 
 #### Response
 
@@ -711,8 +728,8 @@ Create a new token for the simple token-based authentication.
 | `String` | `activationId` | An identifier of an activation. |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
 
 ECIES request should contain following data (an empty JSON object):
@@ -726,8 +743,8 @@ ECIES request should contain following data (an empty JSON object):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 ECIES response contains following data (example):
 ```json
@@ -804,8 +821,8 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 | `String` | `signature` | PowerAuth signature |
 | `SignatureType` | `signatureType` | PowerAuth signature type |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 ECIES request should contain following data:
 ```json
@@ -828,8 +845,8 @@ You can provide following reasons for a vault unlocking:
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
 
 ECIES response contains following data (example):
@@ -876,7 +893,7 @@ Get the signature audit log for given user, application and date range. In case 
 | `Long` | `applicationId` | An identifier of an application |
 | `String` | `activationId` | An identifier of an activation |
 | `Long` | `activationCounter` | A counter value at the moment of a signature verification |
-| `String` | `activationCtrData` | Base 64 encoded hash based counter data |
+| `String` | `activationCtrData` | Base64 encoded hash based counter data |
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
 | `KeyValueMap` | `additionalInfo` | Key-value map with additional information |
 | `String` | `dataBase64` | A base64 encoded data sent with the signature |
@@ -919,6 +936,8 @@ Get the status change log for given activation and date range.
 | `Long` | `id` | Change ID |
 | `String` | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String` | `externalUserId` | User ID of user who modified the activation. Null value is used if activation owner caused the change. |
 | `DateTime` | `timestampCreated` | Timestamp when the record was created |
 
 ## Integration management
@@ -1093,7 +1112,7 @@ Get ECIES decryptor data for request/response decryption on intermediate server.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `secretKey` | Base 64 encoded secret key for ECIES |
+| `String` | `secretKey` | Base64 encoded secret key for ECIES |
 | `String` | `sharedInfo2` | The sharedInfo2 parameter for ECIES |
 
 ## Activation versioning
@@ -1111,8 +1130,8 @@ Upgrade activation to the most recent version supported by the server.
 | `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 #### Response
 
@@ -1120,10 +1139,12 @@ Upgrade activation to the most recent version supported by the server.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `encryptedData` | Base 64 encoded encrypted data for ECIES |
-| `String` | `mac` |  Base 64 encoded mac of key and data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
 ### Method 'commitUpgrade'
+
+Commint activation upgrade.
 
 #### Request
 
@@ -1142,6 +1163,227 @@ Upgrade activation to the most recent version supported by the server.
 |------|------|-------------|
 | `Boolean` | `committed` | Flag specifying if activation upgrade was committed |
 
+## Activation recovery
+
+### Method 'createRecoveryCode'
+
+Create a recovery code for user.
+
+#### Request
+
+`CreateRecoveryCodeRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String` | `userId` | An identifier of a user |
+| `Long` | `pukCount` | Number of PUKs to generate |
+
+#### Response
+
+`CreateRecoveryCodeResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `nonce` | A base64 encoded nonce used when generating recovery code |
+| `String` | `userId` | An identifier of a user |
+| `Long` | `recoveryCodeId` | Recovery code entity identifier |
+| `String` | `recoveryCodeMasked` | Recovery code with partial masking to avoid leaking recovery code |
+| `RecoveryCodeStatus` | `status` | Recovery code status |
+| `Puk[]` | `puks` | Recovery code PUKs |
+
+`CreateRecoveryCodeResponse.Puk`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `pukIndex` | Index of the PUK, counting starts by 1 |
+| `Long` | `pukDerivationIndex` | Derivation index used when generating PUK |
+| `RecoveryPukStatus` | `status` | Recovery PUK status |
+
+### Method `confirmRecoveryCode`
+
+Confirm a recovery code recieved using recovery postcard.
+
+#### Request
+
+`ConfirmRecoveryCodeRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String` | `ephemeralPublicKey` | Base64 encoded ephemeral public key for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES request should contain following data (as JSON):
+ - `recoveryCode` - Recovery code which should be confirmed in this request.
+
+#### Response
+
+`ConfirmRecoveryCodeResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `userId` | An identifier of a user |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `alreadyConfirmed` - Boolean flag which describes whether recovery code was already confirmed before this request.
+
+### Method `lookupRecoveryCodes`
+
+Lookup recovery codes.
+
+#### Request
+
+`LookupRecoveryCodesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | An identifier of a user |
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `applicationId` | An identifier of an application |
+| `RecoveryCodeStatus` | `recoveryCodeStatus` | Recovery code status |
+| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status | 
+
+#### Response
+
+`LookupRecoveryCodesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `recoveryCodeId` | Recovery code entity identifiers |
+| `String` | `recoveryCodeMasked` | Recovery code with partial masking to avoid leaking recovery code |
+| `String` | `userId` | An identifier of a user |
+| `Long` | `applicationId` | An identifier of an application |
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `RecoveryCodeStatus` | `status` | Recovery code status |
+| `Puk[]` | `puks` | Recovery code PUKs |
+
+`LookupRecoveryCodesResponse.Puk`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `pukIndex` | Index of the PUK, counting starts by 1 |
+| `RecoveryPukStatus` | `status` | Recovery PUK status |
+
+### Method `revokeRecoveryCodes`
+
+Revoke recovery codes.
+
+#### Request
+
+`RevokeRecoveryCodesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long[]` | `recoveryCodeIds` | Recovery code entity identifiers |
+
+#### Response
+
+`RevokeRecoveryCodesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Boolean` | `revoked` | True if at least one recovery code was revoked |
+
+### Method `recoveryCodeActivation`
+
+Create an activation using recovery code.
+
+#### Request
+
+`RecoveryCodeActivationRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `recoveryCode` | Recovery code |
+| `String` | `puk` | Recovery PUK |
+| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `Long` | `maxFailureCount` | Maximum number of failures when using the recovery code |
+| `String` | `ephemeralPublicKey` | Base64 encoded encrypted data for ECIES |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES request should contain following data (as JSON):
+ - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
+ - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
+ - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+
+#### Response
+
+`RevokeRecoveryCodesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `userId` | An identifier of a user |
+| `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
+| `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
+ - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
+ - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - Information about activation recovery.
+    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
+    
+In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex` 
+value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
+
+### Method `getRecoveryConfig`
+
+Get configuration of activation recovery.
+
+#### Request
+
+`GetRecoveryConfigRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+
+#### Response
+
+`GetRecoveryConfigResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+| `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
+| `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
+| `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
+| `String` | `postcardPublicKey` | Base64 encoded recovery postcard public key for PowerAuth server |
+| `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key for recovery postcard printing center |
+
+### Method `updateRecoveryConfig`
+
+Update configuration of activation recovery.
+
+#### Request
+
+`UpdateRecoveryConfigRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+| `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
+| `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
+| `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
+| `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key |
+
+#### Response
+
+`UpdateRecoveryConfigResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Boolean` | `updated` | Whether recovery configuration was updated |   
+    
 ## Activation management (v2)
 
 ### Method 'prepareActivation' (v2)
@@ -1339,6 +1581,17 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
     - POSSESSION_KNOWLEDGE
     - POSSESSION_BIOMETRY
     - POSSESSION_KNOWLEDGE_BIOMETRY
+    
+- `RecoveryCodeStatus` - Represent status of the recovery code, one of the following values:
+    - CREATED
+    - ACTIVE
+    - BLOCKED
+    - REVOKED
+    
+- `RecoveryPukStatus` - Represents status of the recovery PUK, one of the following values:
+    - VALID
+    - USED
+    - INVALID
 
 ## Used complex types
 

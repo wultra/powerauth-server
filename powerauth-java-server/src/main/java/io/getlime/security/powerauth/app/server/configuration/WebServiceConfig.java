@@ -18,6 +18,9 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
+import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.exceptions.SoapFaultExceptionResolver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -31,12 +34,15 @@ import org.springframework.ws.config.annotation.WsConfigurerAdapter;
 import org.springframework.ws.server.EndpointInterceptor;
 import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
 import org.springframework.ws.soap.security.wss4j2.callback.SpringSecurityPasswordValidationCallbackHandler;
+import org.springframework.ws.soap.server.endpoint.SoapFaultDefinition;
+import org.springframework.ws.soap.server.endpoint.SoapFaultMappingExceptionResolver;
 import org.springframework.ws.transport.http.MessageDispatcherServlet;
 import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
 import java.util.List;
+import java.util.Properties;
 
 /**
  * PowerAuth Server default web service configuration. Configures both basic endpoint information
@@ -128,8 +134,8 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @param powerAuthSchema XSD schema with PowerAuth 2.0 service objects.
      * @return PowerAuth 2.0 WSDL definition.
      */
-    @Bean(name = "service-v2")
-    public DefaultWsdl11Definition defaultWsdl11DefinitionV2(@Qualifier(value = "PowerAuth-2.0") XsdSchema powerAuthSchema) {
+    @Bean(name = "serviceV2")
+    public DefaultWsdl11Definition defaultWsdl11DefinitionV2(@Qualifier(value = "powerAuthV2") XsdSchema powerAuthSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
         wsdl11Definition.setPortTypeName("PowerAuthPortV2");
         wsdl11Definition.setLocationUri("/soap");
@@ -145,8 +151,8 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      * @param powerAuthSchema XSD schema with PowerAuth 3.0 service objects.
      * @return PowerAuth 3.0 WSDL definition.
      */
-    @Bean(name = "service-v3")
-    public DefaultWsdl11Definition defaultWsdl11DefinitionV3(@Qualifier(value = "PowerAuth-3.0") XsdSchema powerAuthSchema) {
+    @Bean(name = "serviceV3")
+    public DefaultWsdl11Definition defaultWsdl11DefinitionV3(@Qualifier(value = "powerAuthV3") XsdSchema powerAuthSchema) {
         DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
         wsdl11Definition.setPortTypeName("PowerAuthPortV3");
         wsdl11Definition.setLocationUri("/soap");
@@ -160,7 +166,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      *
      * @return PowerAuth 2.0 XSD schema.
      */
-    @Bean(name = "PowerAuth-2.0")
+    @Bean(name = "powerAuthV2")
     public XsdSchema powerAuthV2Schema() {
         return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-2.0.xsd"));
     }
@@ -170,9 +176,29 @@ public class WebServiceConfig extends WsConfigurerAdapter {
      *
      * @return PowerAuth 3.0 XSD schema.
      */
-    @Bean(name = "PowerAuth-3.0")
+    @Bean(name = "powerAuthV3")
     public XsdSchema powerAuthV3Schema() {
         return new SimpleXsdSchema(new ClassPathResource("xsd/PowerAuth-3.0.xsd"));
     }
 
+    /**
+     * Exception resolver for SOAP errors.
+     * @return SOAP fault resolver.
+     */
+    @Bean
+    public SoapFaultMappingExceptionResolver exceptionResolver() {
+        SoapFaultMappingExceptionResolver exceptionResolver = new SoapFaultExceptionResolver();
+
+        SoapFaultDefinition faultDefinition = new SoapFaultDefinition();
+        faultDefinition.setFaultCode(SoapFaultDefinition.SERVER);
+        exceptionResolver.setDefaultFault(faultDefinition);
+
+        Properties errorMappings = new Properties();
+        errorMappings.setProperty(Exception.class.getName(), SoapFaultDefinition.SERVER.toString());
+        errorMappings.setProperty(GenericServiceException.class.getName(), SoapFaultDefinition.SERVER.toString());
+        errorMappings.setProperty(ActivationRecoveryException.class.getName(), SoapFaultDefinition.SERVER.toString());
+        exceptionResolver.setExceptionMappings(errorMappings);
+        exceptionResolver.setOrder(1);
+        return exceptionResolver;
+    }
 }

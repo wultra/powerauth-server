@@ -25,7 +25,9 @@ For example, when using Oracle with Tomcat, make sure to add `ojdbc-${VERSION}.j
 
 In order for the PowerAuth Server to work, you need to have a correct schema in the database. To create the correct database schema, execute these SQL scripts for your database engine:
 
-- [Default SQL Database Schema](./sql)
+- [Oracle - Create Database Schema](./sql/oracle/create_schema.sql)
+- [MySQL - Create Database Schema](./sql/mysql/create_schema.sql)
+- [PostgreSQL - Create Database Schema](./sql/postgresql/create_schema.sql)
 
 You can read more about PowerAuth Server database schema in following guide:
 
@@ -174,6 +176,10 @@ $ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "
 }
 ```
 
+## Deploying PowerAuth Server On JBoss / Wildfly
+
+Follow the extra instructions in chapter [Deploying PowerAuth Server on JBoss / Wildfly](./Deploying-Wildfly.md).
+
 ## Troubleshooting
 
 ### Issues With Database Connectivity
@@ -201,17 +207,3 @@ PowerAuth Server uses Bouncy Castle as a Java cryptography provider - this libra
 
 Please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
 
-#### Wildfly
-
-In order to make PowerAuth Server work on Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
-
-```xml
-<subsystem xmlns="urn:jboss:domain:ee:4.0">
-    <!-- ... -->
-    <global-modules>
-        <module name="org.bouncycastle" slot="main"/>
-    </global-modules>
-</subsystem>
-```
-
-Note that when Wildfly's Bouncy Castle module is used, Bouncy Castle should not be present in the `lib/ext` folder of the Java runtime, otherwise the following error can occur: "key spec not recognised" due to clash of Bouncy Castle libraries.

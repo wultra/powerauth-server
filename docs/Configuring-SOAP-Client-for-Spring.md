@@ -60,7 +60,7 @@ marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth
 
 ### Setting Up Credentials
 
-_(optional)_ In case PowerAuth Server uses a [restricted access flag in the server configuration](./Deploying-PowerAuth-Server.md#enabling-powerauth-20-server-security), you need to configure credentials for the WS-Security so that your client can connect to the SOAP service - modify your `PowerAuthWebServiceConfiguration` to include `Wss4jSecurityInterceptor` bean, like so:
+_(optional)_ In case PowerAuth Server uses a [restricted access flag in the server configuration](./Deploying-PowerAuth-Server.md#enabling-powerauth-server-security), you need to configure credentials for the WS-Security so that your client can connect to the SOAP service - modify your `PowerAuthWebServiceConfiguration` to include `Wss4jSecurityInterceptor` bean, like so:
 
 ```java
 @Value("${powerauth.service.security.clientToken}")

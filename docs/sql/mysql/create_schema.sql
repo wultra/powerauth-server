@@ -117,12 +117,12 @@ CREATE TABLE `pa_application_callback` (
 -- Create a table for tokens
 --
 
-CREATE TABLE pa_token (
-	`token_id` VARCHAR(37) NOT NULL,
-	`token_secret` VARCHAR(255) NOT NULL,
-	`activation_id` VARCHAR(37) NOT NULL,
-	`signature_type` VARCHAR(255) NOT NULL,
-	`timestamp_created` DATETIME NOT NULL,
+CREATE TABLE `pa_token` (
+	`token_id` varchar(37) NOT NULL,
+	`token_secret` varchar(255) NOT NULL,
+	`activation_id` varchar(37) NOT NULL,
+	`signature_type` varchar(255) NOT NULL,
+	`timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`token_id`),
   CONSTRAINT `FK_TOKEN_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -132,28 +132,89 @@ CREATE TABLE pa_token (
 --
 
 CREATE TABLE `pa_activation_history` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `activation_id` varchar(37) NOT NULL,
   `activation_status` int(11) NOT NULL,
+  `blocked_reason` varchar(255),
+  `external_user_id` varchar(255),
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_HISTORY_ACTIVATION_ID` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
----
---- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
----
+--
+-- Create table for recovery codes
+--
 
-CREATE INDEX PA_ACTIVATION_CODE ON PA_ACTIVATION(ACTIVATION_CODE);
+CREATE TABLE `pa_recovery_code` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `recovery_code` varchar(23) NOT NULL,
+  `application_id` bigint(20) NOT NULL,
+  `user_id` varchar(255) NOT NULL,
+  `activation_id` varchar(37),
+  `status` int(11) NOT NULL,
+  `failed_attempts` bigint(20) NOT NULL,
+  `max_failed_attempts` bigint(20) NOT NULL,
+  `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `timestamp_last_used` datetime,
+  `timestamp_last_change` datetime,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `FK_RECOVERY_CODE_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION,
+  CONSTRAINT `FK_RECOVERY_CODE_ACTIVATION` FOREIGN KEY (`activation_id`) REFERENCES `pa_activation` (`activation_id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE INDEX PA_ACTIVATION_USER_ID ON PA_ACTIVATION(USER_ID);
+--
+-- Create table for recovery code PUKs
+--
 
-CREATE INDEX PA_ACTIVATION_HISTORY_CREATED ON PA_ACTIVATION_HISTORY(TIMESTAMP_CREATED);
+CREATE TABLE `pa_recovery_puk` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `recovery_code_id` bigint(20) NOT NULL,
+  `puk` varchar(255) NOT NULL,
+  `puk_encryption` int(11) NOT NULL DEFAULT 0,
+  `puk_index` int(11) NOT NULL,
+  `status` int(11) NOT NULL,
+  `timestamp_last_change` datetime,
+  PRIMARY KEY (`id`),
+  CONSTRAINT `FK_PUK_RECOVERY_CODE` FOREIGN KEY (`recovery_code_id`) REFERENCES `pa_recovery_code` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE UNIQUE INDEX PA_APP_VERSION_APP_KEY ON PA_APPLICATION_VERSION(APPLICATION_KEY);
+--
+-- Create table for recovery configuration
+--
+CREATE TABLE `pa_recovery_config` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT,
+  `application_id` bigint(20) NOT NULL,
+  `activation_recovery_enabled` int(1) NOT NULL DEFAULT 0,
+  `recovery_postcard_enabled` int(1) NOT NULL DEFAULT 0,
+  `allow_multiple_recovery_codes` int(1) NOT NULL DEFAULT 0,
+  `postcard_private_key_base64` varchar(255),
+  `postcard_public_key_base64` varchar(255),
+  `remote_public_key_base64` varchar(255),
+  PRIMARY KEY (`id`),
+  CONSTRAINT `FK_RECOVERY_CONFIG_APP` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-CREATE INDEX PA_APP_CALLBACK_APP ON PA_APPLICATION_CALLBACK(APPLICATION_ID);
+--
+-- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
+--
 
-CREATE UNIQUE INDEX PA_INTEGRATION_TOKEN ON PA_INTEGRATION(CLIENT_TOKEN);
+CREATE INDEX `pa_activation_code` ON `pa_activation`(`activation_code`);
 
-CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED);
+CREATE INDEX `pa_activation_user_id` ON `pa_activation`(`user_id`);
+
+CREATE INDEX `pa_activation_history_created` ON `pa_activation_history`(`timestamp_created`);
+
+CREATE UNIQUE INDEX `pa_app_version_app_key` ON `pa_application_version`(`application_key`);
+
+CREATE INDEX `pa_app_callback_app` ON `pa_application_callback`(`application_id`);
+
+CREATE UNIQUE INDEX `pa_integration_token` ON `pa_integration`(`client_token`);
+
+CREATE INDEX `pa_signature_audit_created` ON `pa_signature_audit`(`timestamp_created`);
+
+CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
+
+CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
+
+CREATE UNIQUE INDEX `pa_recovery_code_puk` ON `pa_recovery_puk`(`recovery_code_id`, `puk_index`);

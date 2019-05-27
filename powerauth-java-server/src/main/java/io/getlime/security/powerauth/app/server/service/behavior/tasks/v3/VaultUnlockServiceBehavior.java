@@ -25,7 +25,8 @@ import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyCon
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
-import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
@@ -74,7 +75,7 @@ import java.security.spec.InvalidKeySpecException;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("VaultUnlockServiceBehavior")
+@Component("vaultUnlockServiceBehavior")
 public class VaultUnlockServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
@@ -136,8 +137,9 @@ public class VaultUnlockServiceBehavior {
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final KeyEncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity, activation.getUserId(), activation.getActivationId());
+            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
             byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
@@ -180,7 +182,7 @@ public class VaultUnlockServiceBehavior {
 
             String reason = request.getReason();
 
-            if (reason != null && reason.length() > 255) {
+            if (reason != null && !reason.matches("[A-Za-z0-9_\\-\\.]{3,255}")) {
                 logger.warn("Invalid vault unlock reason: {}", reason);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
@@ -198,7 +200,7 @@ public class VaultUnlockServiceBehavior {
             additionalInfo.getEntry().add(entry);
 
             // Verify the signature
-            VerifySignatureResponse signatureResponse = behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType,
+            VerifySignatureResponse signatureResponse = behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType,
                     signature, additionalInfo, signedData, applicationKey, null, keyConversion);
 
             VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();

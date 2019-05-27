@@ -30,6 +30,24 @@ public class ActivationLayer2Request {
     private String extras;
 
     /**
+     * Default constructor.
+     */
+    public ActivationLayer2Request() {
+    }
+
+    /**
+     * Parameterized constructor.
+     * @param devicePublicKey Device public key.
+     * @param activationName Activation name.
+     * @param extras Activation extras.
+     */
+    public ActivationLayer2Request(String devicePublicKey, String activationName, String extras) {
+        this.devicePublicKey = devicePublicKey;
+        this.activationName = activationName;
+        this.extras = extras;
+    }
+
+    /**
      * Get Base64 encoded device public key.
      * @return Device public key.
      */

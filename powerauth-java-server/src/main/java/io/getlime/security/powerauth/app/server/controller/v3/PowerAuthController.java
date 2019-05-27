@@ -32,7 +32,7 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@RestController("RestControllerV3")
+@RestController("restControllerV3")
 @RequestMapping(value = "/rest/v3")
 public class PowerAuthController {
 
@@ -532,6 +532,90 @@ public class PowerAuthController {
     @RequestMapping(value = "/upgrade/commit", method = RequestMethod.POST)
     public RESTResponseWrapper<CommitUpgradeResponse> commitUpgrade(@RequestBody RESTRequestWrapper<CommitUpgradeRequest> request) throws Exception {
         return new RESTResponseWrapper<>("OK", powerAuthService.commitUpgrade(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#createRecoveryCode(CreateRecoveryCodeRequest)} method and
+     * return the response.
+     * @param request Create recovery code request.
+     * @return Create recovery code response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/create", method = RequestMethod.POST)
+    public RESTResponseWrapper<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@RequestBody RESTRequestWrapper<CreateRecoveryCodeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createRecoveryCode(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#confirmRecoveryCode(ConfirmRecoveryCodeRequest)} method and
+     * return the response.
+     * @param request Confirm recovery code request.
+     * @return Confirm recovery code response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/confirm", method = RequestMethod.POST)
+    public RESTResponseWrapper<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@RequestBody RESTRequestWrapper<ConfirmRecoveryCodeRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.confirmRecoveryCode(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#lookupRecoveryCodes(LookupRecoveryCodesRequest)} method and
+     * return the response.
+     * @param request Lookup recovery codes request.
+     * @return Lookup recovery code response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/lookup", method = RequestMethod.POST)
+    public RESTResponseWrapper<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@RequestBody RESTRequestWrapper<LookupRecoveryCodesRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.lookupRecoveryCodes(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#revokeRecoveryCodes(RevokeRecoveryCodesRequest)} method and
+     * return the response.
+     * @param request Revoke recovery codes request.
+     * @return Revoke recovery code response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/revoke", method = RequestMethod.POST)
+    public RESTResponseWrapper<RevokeRecoveryCodesResponse> revokeRecoveryCodesRequest(@RequestBody RESTRequestWrapper<RevokeRecoveryCodesRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.revokeRecoveryCodes(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#createActivationUsingRecoveryCode(RecoveryCodeActivationRequest)} method and
+     * return the response.
+     * @param request Create activation using recovery code request.
+     * @return Create activation using recovery response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/recovery/create", method = RequestMethod.POST)
+    public RESTResponseWrapper<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@RequestBody RESTRequestWrapper<RecoveryCodeActivationRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createActivationUsingRecoveryCode(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#getRecoveryConfig(GetRecoveryConfigRequest)} method and
+     * return the response.
+     * @param request Get recovery configuration request.
+     * @return Get recovery configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/config/detail", method = RequestMethod.POST)
+    public RESTResponseWrapper<GetRecoveryConfigResponse> getRecoveryConfig(@RequestBody RESTRequestWrapper<GetRecoveryConfigRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.getRecoveryConfig(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateRecoveryConfig(UpdateRecoveryConfigRequest)} method and
+     * return the response.
+     * @param request Update recovery configuration request.
+     * @return Update recovery configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/recovery/config/update", method = RequestMethod.POST)
+    public RESTResponseWrapper<UpdateRecoveryConfigResponse> updateRecoveryConfig(@RequestBody RESTRequestWrapper<UpdateRecoveryConfigRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.updateRecoveryConfig(request.getRequestObject()));
     }
 
 }

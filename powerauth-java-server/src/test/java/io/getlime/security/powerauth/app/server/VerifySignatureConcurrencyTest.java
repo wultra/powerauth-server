@@ -110,7 +110,6 @@ public class VerifySignatureConcurrencyTest {
                 verifySignatureRequest.setData("data");
                 verifySignatureRequest.setSignature("bad signature");
                 VerifySignatureResponse response = powerAuthService.verifySignature(verifySignatureRequest);
-                System.out.println("Signature verification response: "+response.isSignatureValid());
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -38,7 +38,9 @@ public class ServiceBehaviorCatalogue {
 
     private AuditingServiceBehavior auditingServiceBehavior;
 
-    private SignatureServiceBehavior signatureServiceBehavior;
+    private OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
+
+    private OfflineSignatureServiceBehavior offlineSignatureServiceBehavior;
 
     private VaultUnlockServiceBehavior vaultUnlockServiceBehavior;
 
@@ -53,6 +55,8 @@ public class ServiceBehaviorCatalogue {
     private EciesEncryptionBehavior eciesEncryptionBehavior;
 
     private UpgradeServiceBehavior upgradeServiceBehavior;
+
+    private RecoveryServiceBehavior recoveryServiceBehavior;
 
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
@@ -81,8 +85,13 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
-    public void setSignatureServiceBehavior(SignatureServiceBehavior signatureServiceBehavior) {
-        this.signatureServiceBehavior = signatureServiceBehavior;
+    public void setOnlineSignatureServiceBehavior(OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+        this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
+    }
+
+    @Autowired
+    public void setOfflineSignatureServiceBehavior(OfflineSignatureServiceBehavior offlineSignatureServiceBehavior) {
+        this.offlineSignatureServiceBehavior = offlineSignatureServiceBehavior;
     }
 
     @Autowired
@@ -121,6 +130,11 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
+    public void setRecoveryServiceBehavior(RecoveryServiceBehavior recoveryServiceBehavior) {
+        this.recoveryServiceBehavior = recoveryServiceBehavior;
+    }
+
+    @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
@@ -137,8 +151,12 @@ public class ServiceBehaviorCatalogue {
         return auditingServiceBehavior;
     }
 
-    public SignatureServiceBehavior getSignatureServiceBehavior() {
-        return signatureServiceBehavior;
+    public OnlineSignatureServiceBehavior getOnlineSignatureServiceBehavior() {
+        return onlineSignatureServiceBehavior;
+    }
+
+    public OfflineSignatureServiceBehavior getOfflineSignatureServiceBehavior() {
+        return offlineSignatureServiceBehavior;
     }
 
     public VaultUnlockServiceBehavior getVaultUnlockServiceBehavior() {
@@ -167,6 +185,10 @@ public class ServiceBehaviorCatalogue {
 
     public UpgradeServiceBehavior getUpgradeServiceBehavior() {
         return upgradeServiceBehavior;
+    }
+
+    public RecoveryServiceBehavior getRecoveryServiceBehavior() {
+        return recoveryServiceBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

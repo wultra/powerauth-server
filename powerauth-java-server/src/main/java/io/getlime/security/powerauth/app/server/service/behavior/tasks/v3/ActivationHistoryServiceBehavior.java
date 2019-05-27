@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
@@ -58,11 +59,25 @@ public class ActivationHistoryServiceBehavior {
      * @param activation Activation.
      */
     public void saveActivationAndLogChange(ActivationRecordEntity activation) {
+        saveActivationAndLogChange(activation, null);
+    }
+
+    /**
+     * Log activation status change into activation history.
+     *
+     * @param activation Activation.
+     * @param externalUserId User ID of user who caused the change.
+     */
+    public void saveActivationAndLogChange(ActivationRecordEntity activation, String externalUserId) {
         Date changeTimestamp = new Date();
         activation.setTimestampLastChange(changeTimestamp);
         ActivationHistoryEntity activationHistoryEntity = new ActivationHistoryEntity();
         activationHistoryEntity.setActivation(activation);
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
+        if (activation.getActivationStatus() == ActivationStatus.BLOCKED) {
+            activationHistoryEntity.setBlockedReason(activation.getBlockedReason());
+        }
+        activationHistoryEntity.setExternalUserId(externalUserId);
         activationHistoryEntity.setTimestampCreated(changeTimestamp);
         activation.getActivationHistory().add(activationHistoryEntity);
         // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
@@ -90,6 +105,8 @@ public class ActivationHistoryServiceBehavior {
                 item.setId(activationHistoryEntity.getId());
                 item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
                 item.setActivationStatus(activationStatusConverter.convert(activationHistoryEntity.getActivationStatus()));
+                item.setBlockedReason(activationHistoryEntity.getBlockedReason());
+                item.setExternalUserId(activationHistoryEntity.getExternalUserId());
                 item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activationHistoryEntity.getTimestampCreated()));
 
                 response.getItems().add(item);

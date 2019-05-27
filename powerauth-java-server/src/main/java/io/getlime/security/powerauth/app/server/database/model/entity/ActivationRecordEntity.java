@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.database.model.KeyEncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -97,7 +97,7 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "server_private_key_encryption", nullable = false)
     @Enumerated
-    private KeyEncryptionMode serverPrivateKeyEncryption;
+    private EncryptionMode serverPrivateKeyEncryption;
 
     // Version must be nullable, it is not known yet during init activation step
     @Column(name = "version", nullable = true)
@@ -162,7 +162,7 @@ public class ActivationRecordEntity implements Serializable {
                                   Date timestampLastChange,
                                   ActivationStatus activationStatus,
                                   String blockedReason,
-                                  KeyEncryptionMode serverPrivateKeyEncryption,
+                                  EncryptionMode serverPrivateKeyEncryption,
                                   Integer version,
                                   MasterKeyPairEntity masterKeyPair,
                                   ApplicationEntity application) {
@@ -519,7 +519,7 @@ public class ActivationRecordEntity implements Serializable {
      * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
      * @return Mode of server private key encryption.
      */
-    public KeyEncryptionMode getServerPrivateKeyEncryption() {
+    public EncryptionMode getServerPrivateKeyEncryption() {
         return serverPrivateKeyEncryption;
     }
 
@@ -527,7 +527,7 @@ public class ActivationRecordEntity implements Serializable {
      * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
      * @param serverPrivateKeyEncryption Mode of server private key encryption.
      */
-    public void setServerPrivateKeyEncryption(KeyEncryptionMode serverPrivateKeyEncryption) {
+    public void setServerPrivateKeyEncryption(EncryptionMode serverPrivateKeyEncryption) {
         this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
     }
 
@@ -705,7 +705,7 @@ public class ActivationRecordEntity implements Serializable {
                 + "activationId=" + activationId
                 + ", activationCode=" + activationCode
                 + ", userId=" + userId
-                + ", clientName=" + activationName
+                + ", activationName=" + activationName
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter

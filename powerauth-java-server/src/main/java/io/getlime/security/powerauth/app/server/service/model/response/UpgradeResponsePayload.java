@@ -27,6 +27,20 @@ package io.getlime.security.powerauth.app.server.service.model.response;
  */
 public class UpgradeResponsePayload {
 
+    /**
+     * Default constructor.
+     */
+    public UpgradeResponsePayload() {
+    }
+
+    /**
+     * Parameterized constructor.
+     * @param ctrData Counter data.
+     */
+    public UpgradeResponsePayload(String ctrData) {
+        this.ctrData = ctrData;
+    }
+
     private String ctrData;
 
     /**

@@ -24,16 +24,16 @@ package io.getlime.security.powerauth.app.server.database.model;
  */
 public class ServerPrivateKey {
 
-    private final KeyEncryptionMode keyEncryptionMode;
+    private final EncryptionMode encryptionMode;
     private final String serverPrivateKeyBase64;
 
     /**
      * Constructor with key encryption mode and base64-encoded key.
-     * @param keyEncryptionMode Key encryption mode.
+     * @param encryptionMode Key encryption mode.
      * @param serverPrivateKeyBase64 Base64-encoded server private key.
      */
-    public ServerPrivateKey(KeyEncryptionMode keyEncryptionMode, String serverPrivateKeyBase64) {
-        this.keyEncryptionMode = keyEncryptionMode;
+    public ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
+        this.encryptionMode = encryptionMode;
         this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
     }
 
@@ -41,8 +41,8 @@ public class ServerPrivateKey {
      * Get key encryption mode.
      * @return Key encryption mode.
      */
-    public KeyEncryptionMode getKeyEncryptionMode() {
-        return keyEncryptionMode;
+    public EncryptionMode getEncryptionMode() {
+        return encryptionMode;
     }
 
     /**

@@ -49,7 +49,7 @@ import java.util.Date;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("PowerAuthServiceImplV2")
+@Component("powerAuthServiceImplV2")
 public class PowerAuthServiceImpl implements PowerAuthService {
 
     private ServiceBehaviorCatalogue behavior;
@@ -288,7 +288,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
         io.getlime.security.powerauth.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
         io.getlime.security.powerauth.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
     }
 
 }

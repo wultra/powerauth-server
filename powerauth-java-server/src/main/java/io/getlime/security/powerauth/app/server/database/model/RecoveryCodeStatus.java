@@ -18,44 +18,49 @@
 package io.getlime.security.powerauth.app.server.database.model;
 
 /**
- * Enum representing server private key encryption modes. Following values are supported:
+ * Enum representing possible recovery code states. Following values are supported:
  * <p>
- * - NO_ENCRYPTION = 0
- * - AES_HMAC = 1
- * </p>
+ * - CREATED = 1
+ * - ACTIVE = 2
+ * - BLOCKED = 3
+ * - REVOKED = 4
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public enum KeyEncryptionMode {
+public enum RecoveryCodeStatus {
 
     /**
-     * No encryption.
+     * CREATED - recovery code has been created, however it is not active yet.
      */
-    NO_ENCRYPTION((byte) 0),
+    CREATED((byte) 1),
 
     /**
-     * AES encryption with HMAC-based index.
+     * ACTIVE - recovery code is active and can be used for a recovery scenario.
      */
-    AES_HMAC((byte) 1);
+    ACTIVE((byte) 2),
 
     /**
-     * Byte value of key encryption mode.
+     * BLOCKED - recovery code has been blocked due to too many failed attempts.
      */
+    BLOCKED((byte) 3),
+
+    /**
+     * REVOKED - recovery code has been revoked.
+     */
+    REVOKED((byte) 4);
+
     final byte value;
 
-    /**
-     * Default constructor with byte value of encryption mode.
-     * @param value Byte value of encryption mode.
-     */
-    KeyEncryptionMode(final byte value) {
+    RecoveryCodeStatus(final byte value) {
         this.value = value;
     }
 
     /**
-     * Get byte value of encryption mode.
-     * @return Byte value of encryption mode.
+     * Get byte representation of the enum value.
+     *
+     * @return Byte representing enum value.
      */
-    public byte getValue() {
+    public byte getByte() {
         return value;
     }
 }

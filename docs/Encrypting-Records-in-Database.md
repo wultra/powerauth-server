@@ -1,6 +1,6 @@
 # Encrypting Records in Database
 
-In order to improve the security of the keys stored in the database, we recommend taking following additional steps when configuring your database and database access.
+In order to improve the security of sensitive records stored in the database (e.g. private keys and PUKs), we recommend taking following additional steps when configuring your database and database access.
 
 ## Transparent Data Encryption
 
@@ -10,13 +10,13 @@ As a basic security measure, we suggest using data encryption support of your da
 - [PostgreSQL](https://www.postgresql.org/docs/11/encryption-options.html)
 - [MySQL](https://dev.mysql.com/doc/mysql-secure-deployment-guide/5.7/en/secure-deployment-data-encryption.html)
 
-## Additional Private Key Encryption
+## Additional Record Encryption
 
-To separate database administrators from the access to the raw private keys, you can additionally encrypt server private keys in the database using an application level record encryption.
+To separate database administrators from the access to raw private records, you can additionally encrypt database records such as server private keys and recovery PUKs in the database using an application level record encryption.
 
-### Enabling Private Key Encryption
+### Enabling Record Encryption
 
-In order to enable the additional server private key encryption, you need to set the following property to the application:
+In order to enable the additional database record encryption, you need to set the following property to the application:
 
 ```
 powerauth.server.db.master.encryption.key=MTIzNDU2Nzg5MDEyMzQ1Ng==
@@ -24,7 +24,7 @@ powerauth.server.db.master.encryption.key=MTIzNDU2Nzg5MDEyMzQ1Ng==
 
 The value of the key must be 16 random bytes, Base64 encoded.
 
-### Note to Private Key Encryption Cryptography
+### Note on Private Key Encryption Cryptography
 
 In case additional private key encryption is enabled, PowerAuth Server uses application level encryption/decryption routines whenever storing/loading a `KEY_SERVER_PRIVATE` value takes place. For this purpose, a new key `MASTER_DB_ENCRYPTION_KEY` is introduced. Also, since there is the good old rule "Same data should result in different encrypted values", a random `IV` value for the encryption is generated and stored with the value for the purpose of a later decryption.
 
@@ -56,6 +56,21 @@ public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, String userId,
     return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
 }
 ```
+
+### Note on Recovery PUK Encryption Cryptography
+
+The Recovery PUKs are encrypted using the same `encrypt` and `decrypt` methods as described above, however the secret key derivation index parameters differ:
+
+```java
+public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId, String userId, String recoveryCode, long pukIndex) {
+    // Use concatenated application ID, user ID, recovery code and PUK index bytes as index for KDF_INTERNAL
+    byte[] index = (applicationId + "&" + userId + "&" + recoveryCode + "&" + pukIndex).getBytes(StandardCharsets.UTF_8);
+    // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
+    return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
+}
+```
+
+Note that PUK values are hashed using the Argon2i hashing algorithm before optional encryption. Raw PUK values are never stored in PowerAuth database.
 
 ### Note on the Backward Compatibility
 

@@ -21,6 +21,7 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -35,10 +36,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 /**
  * Default implementation of the PowerAuth 3.0 Server service.
@@ -49,7 +47,7 @@ import java.util.Locale;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("PowerAuthServiceImplV3")
+@Component("powerAuthServiceImplV3")
 public class PowerAuthServiceImpl implements PowerAuthService {
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -208,7 +206,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
             EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram);
+            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConversionUtilities);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -269,8 +267,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
             forcedSignatureVersion = 3;
         }
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
-
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
     }
 
     @Override
@@ -282,7 +279,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("VerifySignatureRequest received, activation ID: {}", request.getActivationId());
-            VerifySignatureResponse response = this.verifySignatureImplNonTransaction(request, null);
+            KeyValueMap additionalInfo = new KeyValueMap();
+            VerifySignatureResponse response = this.verifySignatureImplNonTransaction(request, additionalInfo);
             logger.info("VerifySignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -305,7 +303,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             String data = request.getData();
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", activationId);
-            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConversionUtilities);
+            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConversionUtilities);
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -328,7 +326,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             long applicationId = request.getApplicationId();
             String data = request.getData();
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received, application ID: {}", applicationId);
-            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
+            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -343,7 +341,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null || request.getSignatureType() == null) {
+        if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -351,9 +349,17 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String activationId = request.getActivationId();
             final String data = request.getData();
             final String signature = request.getSignature();
-            final SignatureType signatureType = request.getSignatureType();
+            final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
+            // The order of signature types is important. PowerAuth server logs first found signature type
+            // as used signature type in case signature verification fails. In case the POSSESSION_BIOMETRY signature
+            // type is allowed, additional info in signature audit contains flag BIOMETRY_ALLOWED.
+            allowedSignatureTypes.add(SignatureType.POSSESSION_KNOWLEDGE);
+            if (request.isAllowBiometry()) {
+                allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);
+            }
+            KeyValueMap additionalInfo = new KeyValueMap();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            VerifyOfflineSignatureResponse response = behavior.getSignatureServiceBehavior().verifyOfflineSignature(activationId, signatureType, signature, data, keyConversionUtilities);
+            VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConversionUtilities);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -374,9 +380,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String externalUserId = request.getExternalUserId();
             logger.info("CommitActivationRequest received, activation ID: {}", activationId);
-            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId);
-            logger.info("CommitActivationRequest succeeded", request.getActivationId());
+            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId, externalUserId);
+            logger.info("CommitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -396,8 +403,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String externalUserId = request.getExternalUserId();
             logger.info("RemoveActivationRequest received, activation ID: {}", activationId);
-            RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId);
+            RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId, externalUserId);
             logger.info("RemoveActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -419,8 +427,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             String activationId = request.getActivationId();
             String reason = request.getReason();
+            String externalUserId = request.getExternalUserId();
             logger.info("BlockActivationRequest received, activation ID: {}", activationId);
-            BlockActivationResponse response = behavior.getActivationServiceBehavior().blockActivation(activationId, reason);
+            BlockActivationResponse response = behavior.getActivationServiceBehavior().blockActivation(activationId, reason, externalUserId);
             logger.info("BlockActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -441,8 +450,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String externalUserId = request.getExternalUserId();
             logger.info("UnblockActivationRequest received, activation ID: {}", activationId);
-            UnblockActivationResponse response = behavior.getActivationServiceBehavior().unblockActivation(activationId);
+            UnblockActivationResponse response = behavior.getActivationServiceBehavior().unblockActivation(activationId, externalUserId);
             logger.info("UnblockActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -823,6 +833,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+        // Verify the token timestamp validity
+        if (request.getTimestamp() < System.currentTimeMillis() - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
+            logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
         try {
             logger.info("ValidateTokenRequest received, token ID: {}", request.getTokenId());
             ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
@@ -909,6 +924,155 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("CommitUpgradeRequest received, application key: {}, activation ID: {}", request.getApplicationKey(), request.getActivationId());
             CommitUpgradeResponse response = behavior.getUpgradeServiceBehavior().commitUpgrade(request);
             logger.info("CommitUpgradeRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("CreateRecoveryCodeRequest received, application ID: {}, user ID: {}", request.getApplicationId(), request.getUserId());
+            CreateRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCode(request, keyConversionUtilities);
+            logger.info("CreateRecoveryCodeRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws Exception {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
+                || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("ConfirmRecoveryCodeRequest received, activation ID: {}, application key: {}", request.getActivationId(), request.getApplicationKey());
+            ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request, keyConversionUtilities);
+            logger.info("ConfirmRecoveryCodeRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws Exception {
+        if (request.getApplicationId() == null && request.getUserId() == null && request.getActivationId() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("LookupRecoveryCodesRequest received, application ID: {}, user ID: {}, activation ID: {}", request.getApplicationId(), request.getUserId(), request.getActivationId());
+            LookupRecoveryCodesResponse response = behavior.getRecoveryServiceBehavior().lookupRecoveryCodes(request);
+            logger.info("LookupRecoveryCodesRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws Exception {
+        if (request.getRecoveryCodeIds() == null || request.getRecoveryCodeIds().isEmpty()) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RevokeRecoveryCodesRequest received, recovery code IDs: {}", request.getRecoveryCodeIds());
+            RevokeRecoveryCodesResponse response = behavior.getRecoveryServiceBehavior().revokeRecoveryCodes(request);
+            logger.info("RevokeRecoveryCodesRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception {
+        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
+            || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RecoveryCodeActivationRequest received, recovery code: {}, application key: {}", request.getRecoveryCode(), request.getApplicationKey());
+            RecoveryCodeActivationResponse response = behavior.getActivationServiceBehavior().createActivationUsingRecoveryCode(request, keyConversionUtilities);
+            logger.info("RecoveryCodeActivationRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
+            GetRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().getRecoveryConfig(request);
+            logger.info("GetRecoveryConfigRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
+            UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConversionUtilities);
+            logger.info("GetRecoveryConfigRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged

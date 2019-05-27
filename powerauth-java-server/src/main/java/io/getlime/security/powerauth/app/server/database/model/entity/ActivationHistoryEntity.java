@@ -48,6 +48,12 @@ public class ActivationHistoryEntity implements Serializable {
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
+    @Column(name = "blocked_reason", nullable = true)
+    private String blockedReason;
+
+    @Column(name = "external_user_id", nullable = true)
+    private String externalUserId;
+
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
@@ -128,6 +134,38 @@ public class ActivationHistoryEntity implements Serializable {
     }
 
     /**
+     * Get reason why activation was blocked.
+     * @return Reason why activation was blocked.
+     */
+    public String getBlockedReason() {
+        return blockedReason;
+    }
+
+    /**
+     * Set reason why activation was blocked.
+     * @param blockedReason Reason why activation was blocked.
+     */
+    public void setBlockedReason(String blockedReason) {
+        this.blockedReason = blockedReason;
+    }
+
+    /**
+     * Get user ID of user who caused last activation change. Null value is returned if activation owner caused the change.
+     * @return User ID of user who caused last activation change.
+     */
+    public String getExternalUserId() {
+        return externalUserId;
+    }
+
+    /**
+     * Set user ID of user who caused last activation change. Null value is returned if activation owner caused the change.
+     * @param externalUserId User ID of user who caused last activation change.
+     */
+    public void setExternalUserId(String externalUserId) {
+        this.externalUserId = externalUserId;
+    }
+
+    /**
      * Get created timestamp.
      *
      * @return Created timestamp.
@@ -148,9 +186,10 @@ public class ActivationHistoryEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.id);
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationStatus);
+        hash = 23 * hash + Objects.hashCode(this.blockedReason);
+        hash = 23 * hash + Objects.hashCode(this.externalUserId);
         hash = 23 * hash + Objects.hashCode(this.timestampCreated);
         return hash;
     }
@@ -167,13 +206,16 @@ public class ActivationHistoryEntity implements Serializable {
             return false;
         }
         final ActivationHistoryEntity other = (ActivationHistoryEntity) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
         if (!Objects.equals(this.activation, other.activation)) {
             return false;
         }
         if (!Objects.equals(this.activationStatus, other.activationStatus)) {
+            return false;
+        }
+        if (!Objects.equals(this.blockedReason, other.blockedReason)) {
+            return false;
+        }
+        if (!Objects.equals(this.externalUserId, other.externalUserId)) {
             return false;
         }
         return Objects.equals(this.timestampCreated, other.timestampCreated);
@@ -181,7 +223,9 @@ public class ActivationHistoryEntity implements Serializable {
 
     @Override
     public String toString() {
-        return "ActivationHistoryEntity{" + "id=" + id + ", activation=" + activation + ", activationStatus=" + activationStatus + ", timestampCreated=" + timestampCreated + '}';
+        return "ActivationHistoryEntity{" +
+                "id=" + id + ", activation=" + activation + ", activationStatus=" + activationStatus +
+                ", blockedReason=" + blockedReason + ", externalUserId=" + externalUserId + ", timestampCreated=" + timestampCreated + '}';
     }
 
 }

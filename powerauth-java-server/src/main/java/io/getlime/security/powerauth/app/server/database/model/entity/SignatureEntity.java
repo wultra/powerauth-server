@@ -350,7 +350,6 @@ public class SignatureEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.id);
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationCounter);
         hash = 23 * hash + Objects.hashCode(this.activationCtrDataBase64);
@@ -388,9 +387,6 @@ public class SignatureEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.additionalInfo, other.additionalInfo)) {
-            return false;
-        }
-        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         if (!Objects.equals(this.activation, other.activation)) {

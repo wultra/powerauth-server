@@ -19,9 +19,8 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.support.ResourceBundleMessageSource;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -30,6 +29,7 @@ import org.springframework.context.support.ResourceBundleMessageSource;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
+@ConfigurationProperties("ext")
 public class PowerAuthServiceConfiguration {
 
     /**
@@ -83,6 +83,12 @@ public class PowerAuthServiceConfiguration {
     private int activationGenerateActivationCodeIterations;
 
     /**
+     * When a duplicate recovery code is encountered, how many times generate a new one.
+     */
+    @Value("${powerauth.service.crypto.generateRecoveryCodeIterations}")
+    private int generateRecoveryCodeIterations;
+
+    /**
      * How many milliseconds should be CREATED or OTP_USED record usable for
      * completing the activation.
      */
@@ -103,10 +109,58 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * Whether HTTP proxy is enabled for outgoing HTTP requests.
+     */
+    @Value("${powerauth.service.http.proxy.enabled}")
+    private Boolean httpProxyEnabled;
+
+    /**
+     * HTTP proxy host.
+     */
+    @Value("${powerauth.service.http.proxy.host}")
+    private String httpProxyHost;
+
+    /**
+     * HTTP proxy port.
+     */
+    @Value("${powerauth.service.http.proxy.port}")
+    private Integer httpProxyPort;
+
+    /**
+     * HTTP proxy username, use only in case HTTP proxy authentication is required.
+     */
+    @Value("${powerauth.service.http.proxy.username}")
+    private String httpProxyUsername;
+
+    /**
+     * HTTP proxy password, use only in case HTTP proxy authentication is required.
+     */
+    @Value("${powerauth.service.http.proxy.password}")
+    private String httpProxyPassword;
+
+    /**
+     * HTTP connection timeout.
+     */
+    @Value("${powerauth.service.http.connection.timeout}")
+    private Integer httpConnectionTimeout;
+
+    /**
+     * Token timestamp validity in milliseconds, checked before validating the token.
+     */
+    @Value("${powerauth.service.token.timestamp.validity}")
+    private long tokenTimestampValidityInMilliseconds;
+
+    /**
      * Master DB encryption key.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
     private String masterDbEncryptionKey;
+
+    /**
+     * How many failed usages of recovery code block the recovery code.
+     */
+    @Value("${powerauth.service.recovery.maxFailedAttempts}")
+    private long recoveryMaxFailedAttempts;
 
     /**
      * Get application name, usually used as a "unique code" for the application within
@@ -233,6 +287,22 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
+     * Get number of recovery code generation attempts in case of collision.
+     * @return Retry iteration count (10, by default).
+     */
+    public int getGenerateRecoveryCodeIterations() {
+        return generateRecoveryCodeIterations;
+    }
+
+    /**
+     * Set number of recovery code generation attempts in case of collision.
+     * @param generateRecoveryCodeIterations Retry iteration count (10, by default).
+     */
+    public void setGenerateRecoveryCodeIterations(int generateRecoveryCodeIterations) {
+        this.generateRecoveryCodeIterations = generateRecoveryCodeIterations;
+    }
+
+    /**
      * Get default number of maximum failed attempts.
      * @return Maximum failed attempts (5, by default).
      */
@@ -281,6 +351,118 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
+     * Get whether HTTP proxy is enabled.
+     * @return Whether HTTP proxy is enabled.
+     */
+    public Boolean getHttpProxyEnabled() {
+        return httpProxyEnabled;
+    }
+
+    /**
+     * Set whether HTTP proxy is enabled.
+     * @param httpProxyEnabled Whether HTTP proxy is enabled.
+     */
+    public void setHttpProxyEnabled(Boolean httpProxyEnabled) {
+        this.httpProxyEnabled = httpProxyEnabled;
+    }
+
+    /**
+     * Get HTTP proxy host.
+     * @return HTTP proxy host.
+     */
+    public String getHttpProxyHost() {
+        return httpProxyHost;
+    }
+
+    /**
+     * Set HTTP proxy host.
+     * @param httpProxyHost HTTP proxy host.
+     */
+    public void setHttpProxyHost(String httpProxyHost) {
+        this.httpProxyHost = httpProxyHost;
+    }
+
+    /**
+     * Get HTTP proxy port.
+     * @return HTTP proxy port.
+     */
+    public Integer getHttpProxyPort() {
+        return httpProxyPort;
+    }
+
+    /**
+     * Set HTTP proxy port.
+     * @param httpProxyPort HTTP proxy port.
+     */
+    public void setHttpProxyPort(Integer httpProxyPort) {
+        this.httpProxyPort = httpProxyPort;
+    }
+
+    /**
+     * Get HTTP proxy username.
+     * @return HTTP proxy username.
+     */
+    public String getHttpProxyUsername() {
+        return httpProxyUsername;
+    }
+
+    /**
+     * Set HTTP proxy username.
+     * @param httpProxyUsername HTTP proxy username.
+     */
+    public void setHttpProxyUsername(String httpProxyUsername) {
+        this.httpProxyUsername = httpProxyUsername;
+    }
+
+    /**
+     * Get HTTP proxy password.
+     * @return HTTP proxy password.
+     */
+    public String getHttpProxyPassword() {
+        return httpProxyPassword;
+    }
+
+    /**
+     * Set HTTP proxy password.
+     * @param httpProxyPassword HTTP proxy password.
+     */
+    public void setHttpProxyPassword(String httpProxyPassword) {
+        this.httpProxyPassword = httpProxyPassword;
+    }
+
+    /**
+     * Get HTTP connection timeout.
+     * @return HTTP connection timeout.
+     */
+    public Integer getHttpConnectionTimeout() {
+        return httpConnectionTimeout;
+    }
+
+    /**
+     * Set HTTP connection timeout.
+     * @param httpConnectionTimeout HTTP connection timeout.
+     */
+    public void setHttpConnectionTimeout(Integer httpConnectionTimeout) {
+        this.httpConnectionTimeout = httpConnectionTimeout;
+    }
+
+    /**
+     * Get the token timestamp validity in milliseconds.
+     * @return Token timestamp validity in milliseconds.
+     */
+    public long getTokenTimestampValidityInMilliseconds() {
+        return tokenTimestampValidityInMilliseconds;
+    }
+
+    /**
+     * Set the token timestamp validity in milliseconds.
+     * @param tokenTimestampValidityInMilliseconds Token timestamp validity in milliseconds.
+     */
+    public void setTokenTimestampValidityInMilliseconds(long tokenTimestampValidityInMilliseconds) {
+        this.tokenTimestampValidityInMilliseconds = tokenTimestampValidityInMilliseconds;
+    }
+
+    /**
      * Get master DB encryption key.
      * @return Master DB encryption key.
      */
@@ -296,12 +478,19 @@ public class PowerAuthServiceConfiguration {
         this.masterDbEncryptionKey = masterDbEncryptionKey;
     }
 
-    @Bean
-    public ResourceBundleMessageSource messageSource() {
-        ResourceBundleMessageSource source = new ResourceBundleMessageSource();
-        source.setBasename("/i18n/errors_");
-        source.setUseCodeAsDefaultMessage(true);
-        return source;
+    /**
+     * Get default number of maximum failed attempts for recovery codes.
+     * @return Maximum failed attempts for recovery codes (5, by default).
+     */
+    public long getRecoveryMaxFailedAttempts() {
+        return recoveryMaxFailedAttempts;
     }
 
+    /**
+     * Set default number of maximum failed attempts for recovery codes.
+     * @param recoveryMaxFailedAttempts Maximum failed attempts for recovery codes (5, by default).
+     */
+    public void setRecoveryMaxFailedAttempts(long recoveryMaxFailedAttempts) {
+        this.recoveryMaxFailedAttempts = recoveryMaxFailedAttempts;
+    }
 }

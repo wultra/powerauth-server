@@ -9,7 +9,7 @@ PowerAuth Server is a core back-end application that realizes the PowerAuth prot
 
 ## Documentation
 
-For the most recent documentation and tutorials, please visit [PowerAuth Server Documentation](./docs/Home.md).
+For the most recent documentation and tutorials, please visit [PowerAuth Server Documentation on GitHub](./docs/Readme.md) or visit [developers.wultra.com](https://developers.wultra.com/docs/develop/powerauth-server).
 
 # License
 

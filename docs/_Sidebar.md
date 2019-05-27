@@ -1,6 +1,7 @@
 **Deployment Tutorials**
 
 - [Deploy PowerAuth Server](./Deploying-PowerAuth-Server.md)
+- [Deploy PowerAuth Server on JBoss / Wildfly](./Deploying-Wildfly.md)
 - [System Requirements](./System-Requirements.md)
 - [Migration Instructions](./Migration-Instructions.md)
 
