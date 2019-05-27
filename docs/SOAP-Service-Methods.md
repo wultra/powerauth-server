@@ -373,6 +373,9 @@ ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
  - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
  - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - Information about activation recovery which is sent only in case activation recovery is enabled.
+    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 ### Method 'createActivation'
 
@@ -411,6 +414,9 @@ ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
  - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
  - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - - `activationRecovery` - Information about activation recovery which is sent only in case activation recovery is enabled.
+   - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+   - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 ### Method 'commitActivation'
 
@@ -1210,6 +1216,9 @@ Confirm a recovery code recieved using recovery postcard.
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data (as JSON):
+ - `recoveryCode` - Recovery code which should be confirmed in this request.
+
 #### Response
 
 `ConfirmRecoveryCodeResponse`
@@ -1220,6 +1229,9 @@ Confirm a recovery code recieved using recovery postcard.
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `alreadyConfirmed` - Boolean flag which describes whether recovery code was already confirmed before this request.
 
 ### Method `lookupRecoveryCodes`
 
@@ -1296,6 +1308,11 @@ Create an activation using recovery code.
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data (as JSON):
+ - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
+ - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
+ - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+
 #### Response
 
 `RevokeRecoveryCodesResponse`
@@ -1306,6 +1323,17 @@ Create an activation using recovery code.
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
+ - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
+ - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - Information about activation recovery.
+    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
+    
+In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex` 
+value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
 
 ### Method `getRecoveryConfig`
 
