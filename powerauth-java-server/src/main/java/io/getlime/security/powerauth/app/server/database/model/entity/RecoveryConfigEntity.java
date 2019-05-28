@@ -37,13 +37,13 @@ public class RecoveryConfigEntity implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "activation_recovery_enabled")
+    @Column(name = "activation_recovery_enabled", nullable = false)
     private Boolean activationRecoveryEnabled;
 
-    @Column(name = "recovery_postcard_enabled")
+    @Column(name = "recovery_postcard_enabled", nullable = false)
     private Boolean recoveryPostcardEnabled;
 
-    @Column(name = "allow_multiple_recovery_codes")
+    @Column(name = "allow_multiple_recovery_codes", nullable = false)
     private Boolean allowMultipleRecoveryCodes;
 
     @Column(name = "postcard_private_key_base64")
