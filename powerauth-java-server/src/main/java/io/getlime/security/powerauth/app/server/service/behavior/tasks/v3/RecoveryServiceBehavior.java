@@ -558,6 +558,7 @@ public class RecoveryServiceBehavior {
             recoveryConfigEntity.setApplication(applicationOptional.get());
             recoveryConfigEntity.setActivationRecoveryEnabled(false);
             recoveryConfigEntity.setRecoveryPostcardEnabled(false);
+            recoveryConfigEntity.setAllowMultipleRecoveryCodes(false);
             recoveryConfigRepository.save(recoveryConfigEntity);
         }
         GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
