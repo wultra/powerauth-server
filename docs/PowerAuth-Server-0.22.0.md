@@ -2,7 +2,7 @@
 
 This guide contains instructions for migration from PowerAuth Server version `0.21.0` to version `0.22.0`.
 
-## Bouncy Castle Library Update to Version 1.61 
+## Bouncy Castle Library Update to Version 1.61
 
 Bouncy Castle library has been updated to version `1.61`. PowerAuth server no longer contains the Bouncy Castle library in the war file,
 thus the library needs to be updated in the `lib/ext` folder of Java runtime or web container libraries, depending on Java version.
@@ -19,12 +19,12 @@ Installation on **Java 11**:
 - Standalone mode: PowerAuth Server can no longer be started from command line because of missing Bouncy Castle library in the war file. Contact us if you want to run PowerAuth Server in standalone mode.
 
 Additional requirements for Bouncy Castle library:
-- Make sure that no other version of Bouncy Castle library is present in the web container 
+- Make sure that no other version of Bouncy Castle library is present in the web container
 - Do not deploy additional applications (war files) which contain Bouncy Castle library in the same web container as PowerAuth due to potential classloader issues
 
 For more details about installation of the library see [Installing Bouncy Castle](./Installing-Bouncy-Castle.md).
 
-**Warning: PowerAuth Server requires Bouncy Castle version 1.61, do not use PowerAuth server with older versions of Bouncy Castle library.** 
+**Warning: PowerAuth Server requires Bouncy Castle version 1.61, do not use PowerAuth server with older versions of Bouncy Castle library.**
 
 ## Java 11 Support
 
@@ -32,10 +32,10 @@ The whole PowerAuth stack now supports Java 11. The deployment requirements for 
 
 ### Bouncy Castle Library Deployment Change on Java 11
 
-Java 11 no longer supports installing Bouncy Castle using library extension mechanism. PowerAuth no 
-longer contains the Bouncy Castle library in war files to avoid classloader issues in some web containers (e.g. Tomcat). 
+Java 11 no longer supports installing Bouncy Castle using library extension mechanism. PowerAuth no
+longer contains the Bouncy Castle library in war files to avoid classloader issues in some web containers (e.g. Tomcat).
 
-The Bouncy Castle provider needs to be installed using mechanism supported by the web container. 
+The Bouncy Castle provider needs to be installed using mechanism supported by the web container.
 See the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md#installing-on-java-11) chapter in documentation.
 
 ### Tomcat on Java 11
@@ -44,7 +44,7 @@ We have tested PowerAuth on Tomcat `9.0.16` with Java 11, so please use this ver
 
 ### Other Web Containers on Java 11
 
-Make sure you upgrade the web container to a version which supports Java 11 before deploying PowerAuth server. 
+Make sure you upgrade the web container to a version which supports Java 11 before deploying PowerAuth server.
 
 ## Database Changes
 
@@ -292,12 +292,24 @@ CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);
 
 ## SOAP Endpoint Changes
 
-The [VerifyOfflineSignature](./SOAP-Service-Methods.md#method-verifyofflinesignature) method has been updated to specify whether biometry is allowed in
-offline mode instead of specifying the used signature type directly. The PowerAuth client `verifyOfflineSignature` method
-has been updated to reflect the change of parameters. If you use offline mode verification using PowerAuth API, 
-please update the SOAP method call.
+### WSDL Location Change
 
-The [CommitActivation](./SOAP-Service-Methods.md#method-commitactivation), [RemoveActivation](./SOAP-Service-Methods.md#method-removeactivation), 
-[BlockActivation](./SOAP-Service-Methods.md#method-blockactivation) and [UnblockActivation](./SOAP-Service-Methods.md#method-unblockactivation) methods
-have been updated to allow specification of external user identifier. The related PowerAuth client methods have been updated to reflect the change of parameters. 
-If you use any of these methods, please update the SOAP method call.
+After [fixing the Spring bean naming conventions](https://github.com/wultra/powerauth-server/issues/285), the locations of the WSDL were changed.
+
+**old** The original address:
+
+- version 3: http://localhost:8080/powerauth-java-server/soap/service-v3.wsdl
+- version 2: http://localhost:8080/powerauth-java-server/soap/service-v2.wsdl
+
+**new** The current address:
+
+- version 3: http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl
+- version 2: http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl
+
+### Offline Signatures and Biometry
+
+The [VerifyOfflineSignature](./SOAP-Service-Methods.md#method-verifyofflinesignature) method has been updated to specify whether biometry is allowed in offline mode instead of specifying the used signature type directly. The PowerAuth client `verifyOfflineSignature` method has been updated to reflect the change of parameters. If you use offline mode verification using PowerAuth API, please update the SOAP method call.
+
+### External User Identifier
+
+The [CommitActivation](./SOAP-Service-Methods.md#method-commitactivation), [RemoveActivation](./SOAP-Service-Methods.md#method-removeactivation), [BlockActivation](./SOAP-Service-Methods.md#method-blockactivation) and [UnblockActivation](./SOAP-Service-Methods.md#method-unblockactivation) methods have been updated to allow specification of external user identifier. The related PowerAuth client methods have been updated to reflect the change of parameters. If you use any of these methods, please update the SOAP method call.
