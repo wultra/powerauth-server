@@ -71,7 +71,7 @@
 						</goals>
 						<configuration>
 							<packageName>io.getlime.powerauth.soap.v2</packageName>
-							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/service-v2.wsdl</wsdlFile>
+							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/serviceV2.wsdl</wsdlFile>
 							<databindingName>adb</databindingName>
 							<outputDirectory>${project.build.directory}/generated-sources/axis2/wsdl2code/v2</outputDirectory>
 						</configuration>
@@ -83,7 +83,7 @@
 						</goals>
 						<configuration>
 							<packageName>io.getlime.powerauth.soap.v3</packageName>
-							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/service-v3.wsdl</wsdlFile>
+							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/serviceV3.wsdl</wsdlFile>
 							<databindingName>adb</databindingName>
 							<outputDirectory>${project.build.directory}/generated-sources/axis2/wsdl2code/v3</outputDirectory>
 						</configuration>

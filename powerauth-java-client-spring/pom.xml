@@ -80,7 +80,7 @@
                             <schemaLanguage>WSDL</schemaLanguage>
                             <schemaDirectory>src/main/resources/soap/wsdl</schemaDirectory>
                             <schemaIncludes>
-                                <include>service-v2.wsdl</include>
+                                <include>serviceV2.wsdl</include>
                             </schemaIncludes>
                             <generatePackage>io.getlime.powerauth.soap.v2</generatePackage>
                             <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v2</generateDirectory>
@@ -97,7 +97,7 @@
                             <schemaLanguage>WSDL</schemaLanguage>
                             <schemaDirectory>src/main/resources/soap/wsdl</schemaDirectory>
                             <schemaIncludes>
-                                <include>service-v3.wsdl</include>
+                                <include>serviceV3.wsdl</include>
                             </schemaIncludes>
                             <generatePackage>io.getlime.powerauth.soap.v3</generatePackage>
                             <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v3</generateDirectory>
