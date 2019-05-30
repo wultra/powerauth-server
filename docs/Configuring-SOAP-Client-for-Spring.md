@@ -42,12 +42,12 @@ public class PowerAuthWebServiceConfiguration {
     }
 
     @Bean
-    public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) { 
+    public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) {
         PowerAuthServiceClient client = new PowerAuthServiceClient();
         client.setDefaultUri(powerAuthServiceUrl);
         client.setMarshaller(marshaller);
         client.setUnmarshaller(marshaller);
-        return client; 
+        return client;
     }
 }
 ```
@@ -121,12 +121,12 @@ public class AuthenticationController {
 ### PowerAuth Protocol Compatibility
 
 The SOAP client supports two versions of PowerAuth protocol:
-- The version `3` methods are available as default implementation directly on the client class. 
+- The version `3` methods are available as default implementation directly on the client class.
 - You can access the version `2` specific methods using the `v2()` method in the client. This method will be deprecated in a future release.
 
 You can access the WSDL files in following URLs:
-- version `3`: http://localhost:8080/powerauth-java-server/soap/service-v3.wsdl
-- version `2`: http://localhost:8080/powerauth-java-server/soap/service-v2.wsdl
+- version `3`: http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl
+- version `2`: http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl
 
 ## Using the SOAP Service Client
 

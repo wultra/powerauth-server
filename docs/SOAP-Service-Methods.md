@@ -1,10 +1,10 @@
 # SOAP Service Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
+This is a reference documentation of the methods published by the PowerAuth Server SOAP service.
 It reflects the SOAP service methods as they are defined in the WSDL files:
- 
-- [service-v3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl)
-- [service-v2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl)
+
+- [serviceV3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV3.wsdl)
+- [serviceV2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV2.wsdl)
 
 The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
@@ -472,7 +472,7 @@ Get status information and all important details for activation with given ID.
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
-| `Long` | `version` | Activation version | 
+| `Long` | `version` | Activation version |
 
 ### Method 'removeActivation'
 
@@ -533,7 +533,7 @@ Get the list of all activations for given user and application ID. If no applica
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier fo an application |
 | `String` | `applicationName` | An application name |
-| `Long` | `version` | Activation version | 
+| `Long` | `version` | Activation version |
 
 ### Method 'blockActivation'
 
@@ -1094,7 +1094,7 @@ Remove callback URL with given ID.
 
 ### Method 'getEciesDecryptor'
 
-Get ECIES decryptor data for request/response decryption on intermediate server. 
+Get ECIES decryptor data for request/response decryption on intermediate server.
 
 #### Request
 
@@ -1247,7 +1247,7 @@ Lookup recovery codes.
 | `String` | `activationId` | An UUID4 identifier of an activation |
 | `String` | `applicationId` | An identifier of an application |
 | `RecoveryCodeStatus` | `recoveryCodeStatus` | Recovery code status |
-| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status | 
+| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status |
 
 #### Response
 
@@ -1331,8 +1331,8 @@ ECIES response contains following data (as JSON):
  - `activationRecovery` - Information about activation recovery.
     - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
     - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
-    
-In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex` 
+
+In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex`
 value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
 
 ### Method `getRecoveryConfig`
@@ -1383,7 +1383,7 @@ Update configuration of activation recovery.
 | Type | Name | Description |
 |------|------|-------------|
 | `Boolean` | `updated` | Whether recovery configuration was updated |   
-    
+
 ## Activation management (v2)
 
 ### Method 'prepareActivation' (v2)
@@ -1581,13 +1581,13 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
     - POSSESSION_KNOWLEDGE
     - POSSESSION_BIOMETRY
     - POSSESSION_KNOWLEDGE_BIOMETRY
-    
+
 - `RecoveryCodeStatus` - Represent status of the recovery code, one of the following values:
     - CREATED
     - ACTIVE
     - BLOCKED
     - REVOKED
-    
+
 - `RecoveryPukStatus` - Represents status of the recovery PUK, one of the following values:
     - VALID
     - USED
