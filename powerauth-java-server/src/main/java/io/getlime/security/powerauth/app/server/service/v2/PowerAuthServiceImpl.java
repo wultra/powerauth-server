@@ -106,7 +106,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws Exception {
         if (request.getApplicationKey() == null || request.getUserId() == null || request.getActivationOtp() == null || request.getActivationNonce() == null || request.getEncryptedDevicePublicKey() == null
-                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationKey() == null || request.getApplicationSignature() == null) {
+                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationSignature() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }

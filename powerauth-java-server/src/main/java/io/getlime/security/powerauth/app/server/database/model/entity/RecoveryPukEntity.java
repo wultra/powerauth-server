@@ -61,7 +61,7 @@ public class RecoveryPukEntity implements Serializable {
     @Convert(converter = RecoveryPukStatusConverter.class)
     private RecoveryPukStatus status;
 
-    @Column(name = "timestamp_last_change", nullable = true)
+    @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
 
     /**
