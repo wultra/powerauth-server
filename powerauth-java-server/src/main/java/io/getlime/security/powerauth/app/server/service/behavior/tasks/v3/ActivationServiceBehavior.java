@@ -87,7 +87,7 @@ public class ActivationServiceBehavior {
      */
     private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
 
-    private RepositoryCatalogue repositoryCatalogue;
+    private final RepositoryCatalogue repositoryCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
@@ -95,17 +95,16 @@ public class ActivationServiceBehavior {
 
     private LocalizationProvider localizationProvider;
 
-    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
     private RecoveryPukConverter recoveryPukConverter;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final KeyGenerator keyGenerator = new KeyGenerator();
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
 
     // Prepare logger
@@ -673,11 +672,14 @@ public class ActivationServiceBehavior {
             ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(application.getId(), activationCode, states, timestamp);
 
             // Make sure to deactivate the activation if it is expired
-            if (activation != null) {
-                // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
-                activation = activationRepository.findActivationWithLock(activation.getActivationId());
-                deactivatePendingActivation(timestamp, activation, true);
+            if (activation == null) {
+                logger.warn("Activation not found with activation ID: {}", activationCode);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
+
+            // Search for activation again to acquire PESSIMISTIC_WRITE lock for activation row
+            activation = activationRepository.findActivationWithLock(activation.getActivationId());
+            deactivatePendingActivation(timestamp, activation, true);
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application);
@@ -714,7 +716,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, keyConversion);
+                activationRecovery = createRecoveryCodeForActivation(activation);
             }
 
             // Generate activation layer 2 response
@@ -807,10 +809,13 @@ public class ActivationServiceBehavior {
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
-            // Make sure to deactivate the activation if it is expired
-            if (activation != null) {
-                deactivatePendingActivation(timestamp, activation, true);
+            if (activation == null) { // should not happen, activation was just created above via "init" call
+                logger.warn("Activation not found for activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
+
+            // Make sure to deactivate the activation if it is expired
+            deactivatePendingActivation(timestamp, activation, true);
 
             validateCreatedActivation(activation, application);
 
@@ -874,7 +879,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, keyConversion);
+                activationRecovery = createRecoveryCodeForActivation(activation);
             }
 
             // Generate activation layer 2 response
@@ -1282,7 +1287,7 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Create a new recovery code and PUK for new activation
-            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation, keyConversion);
+            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation);
 
             // Generate activation layer 2 response
             ActivationLayer2Response layer2Response = new ActivationLayer2Response();
@@ -1324,7 +1329,7 @@ public class ActivationServiceBehavior {
      * @return Activation recovery code and PUK.
      * @throws GenericServiceException In case of any error.
      */
-    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity) throws GenericServiceException {
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
         try {
@@ -1407,8 +1412,7 @@ public class ActivationServiceBehavior {
 
             recoveryCodeRepository.save(recoveryCodeEntity);
 
-            final ActivationRecovery activationRecovery = new ActivationRecovery(recoveryCode, puk);
-            return activationRecovery;
+            return new ActivationRecovery(recoveryCode, puk);
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);

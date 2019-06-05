@@ -48,7 +48,7 @@ public class AsymmetricSignatureServiceBehavior {
     private final ActivationRepository activationRepository;
     private final LocalizationProvider localizationProvider;
 
-    private SignatureUtils signatureUtils = new SignatureUtils();
+    private final SignatureUtils signatureUtils = new SignatureUtils();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);

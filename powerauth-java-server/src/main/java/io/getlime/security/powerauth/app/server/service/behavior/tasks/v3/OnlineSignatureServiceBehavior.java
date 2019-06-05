@@ -60,7 +60,7 @@ public class OnlineSignatureServiceBehavior {
     private final LocalizationProvider localizationProvider;
 
     // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(OnlineSignatureServiceBehavior.class);
@@ -162,7 +162,7 @@ public class OnlineSignatureServiceBehavior {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
 
-                    return validSignatureResponse(activation,  signatureRequest, verificationResponse.getUsedSignatureType());
+                    return validSignatureResponse(activation,  verificationResponse.getUsedSignatureType());
 
                 } else {
 
@@ -202,11 +202,10 @@ public class OnlineSignatureServiceBehavior {
     /**
      * Generates a valid signature response when signature validation succeeded.
      * @param activation Activation ID.
-     * @param signatureRequest Signature request.
      * @param usedSignatureType Signature type which was used during validation of the signature.
      * @return Valid signature response.
      */
-    private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation,OnlineSignatureRequest signatureRequest, SignatureType usedSignatureType) {
+    private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
         // Extract application ID
         Long applicationId = activation.getApplication().getId();
 
@@ -231,7 +230,7 @@ public class OnlineSignatureServiceBehavior {
      */
     private VerifySignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest) {
         // Calculate remaining attempts
-        Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         // Extract application ID
         Long applicationId = activation.getApplication().getId();
 

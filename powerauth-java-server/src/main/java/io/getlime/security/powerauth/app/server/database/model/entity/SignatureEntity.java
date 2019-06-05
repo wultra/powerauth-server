@@ -43,20 +43,20 @@ public class SignatureEntity implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
     @Column(name = "activation_counter", nullable = false)
     private Long activationCounter;
 
-    @Column(name = "activation_ctr_data", nullable = true)
+    @Column(name = "activation_ctr_data")
     private String activationCtrDataBase64;
 
-    @Column(name = "activation_status", nullable = true)
+    @Column(name = "activation_status")
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
-    @Column(name = "additional_info", nullable = true)
+    @Column(name = "additional_info")
     private String additionalInfo;
 
     @Column(name = "data_base64", updatable = false)

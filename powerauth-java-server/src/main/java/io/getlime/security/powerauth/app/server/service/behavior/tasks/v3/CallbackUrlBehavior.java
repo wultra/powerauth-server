@@ -53,7 +53,7 @@ import java.util.function.Consumer;
 @Component
 public class CallbackUrlBehavior {
 
-    private CallbackUrlRepository callbackUrlRepository;
+    private final CallbackUrlRepository callbackUrlRepository;
 
     private LocalizationProvider localizationProvider;
 

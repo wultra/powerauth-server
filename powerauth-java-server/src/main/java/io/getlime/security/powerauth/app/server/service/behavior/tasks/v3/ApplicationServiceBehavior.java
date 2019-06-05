@@ -50,8 +50,8 @@ import java.util.Optional;
 @Component
 public class ApplicationServiceBehavior {
 
-    private RepositoryCatalogue repositoryCatalogue;
-    private LocalizationProvider localizationProvider;
+    private final RepositoryCatalogue repositoryCatalogue;
+    private final LocalizationProvider localizationProvider;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ApplicationServiceBehavior.class);

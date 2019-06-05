@@ -66,9 +66,9 @@ import java.util.Optional;
 @Component("tokenBehaviorV2")
 public class TokenBehavior {
 
-    private RepositoryCatalogue repositoryCatalogue;
-    private LocalizationProvider localizationProvider;
-    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final RepositoryCatalogue repositoryCatalogue;
+    private final LocalizationProvider localizationProvider;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();

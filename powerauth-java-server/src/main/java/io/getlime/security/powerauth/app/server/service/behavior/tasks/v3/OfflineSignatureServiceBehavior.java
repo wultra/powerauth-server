@@ -67,7 +67,6 @@ public class OfflineSignatureServiceBehavior {
     private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
 
     private final RepositoryCatalogue repositoryCatalogue;
-    private final AuditingServiceBehavior auditingServiceBehavior;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
     private final LocalizationProvider localizationProvider;
 
@@ -79,9 +78,8 @@ public class OfflineSignatureServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(OfflineSignatureServiceBehavior.class);
 
     @Autowired
-    public OfflineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior auditingServiceBehavior, SignatureSharedServiceBehavior signatureSharedServiceBehavior, LocalizationProvider localizationProvider) {
+    public OfflineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, SignatureSharedServiceBehavior signatureSharedServiceBehavior, LocalizationProvider localizationProvider) {
         this.repositoryCatalogue = repositoryCatalogue;
-        this.auditingServiceBehavior = auditingServiceBehavior;
         this.signatureSharedServiceBehavior = signatureSharedServiceBehavior;
         this.localizationProvider = localizationProvider;
     }
@@ -106,7 +104,7 @@ public class OfflineSignatureServiceBehavior {
                                                                  String dataString, CryptoProviderUtil keyConversionUtilities)
             throws GenericServiceException {
         try {
-            final VerifyOfflineSignatureResponse signatureResponse = verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, null, null, keyConversionUtilities);
+            final VerifyOfflineSignatureResponse signatureResponse = verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, keyConversionUtilities);
             VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
             response.setActivationId(signatureResponse.getActivationId());
             response.setActivationStatus(signatureResponse.getActivationStatus());
@@ -252,8 +250,6 @@ public class OfflineSignatureServiceBehavior {
      * @param signature Signature.
      * @param additionalInfo Additional information related to signature verification.
      * @param dataString Signature data.
-     * @param applicationKey Application key.
-     * @param forcedSignatureVersion Forced signature version during upgrade.
      * @param keyConversionUtilities Key convertor.
      * @return Verify offline signature response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
@@ -263,7 +259,7 @@ public class OfflineSignatureServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(String activationId, List<SignatureType> signatureTypes, String signature, KeyValueMap additionalInfo,
-                                                                      String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
+                                                                      String dataString, CryptoProviderUtil keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();
@@ -276,7 +272,7 @@ public class OfflineSignatureServiceBehavior {
 
             // Application secret is "offline" in offline mode
             byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, additionalInfo, forcedSignatureVersion);
+            SignatureData signatureData = new SignatureData(data, signature, additionalInfo, null);
             OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
@@ -288,7 +284,7 @@ public class OfflineSignatureServiceBehavior {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    return validSignatureResponse(activation, offlineSignatureRequest, verificationResponse.getUsedSignatureType());
+                    return validSignatureResponse(activation, verificationResponse.getUsedSignatureType());
 
                 } else {
 
@@ -327,12 +323,10 @@ public class OfflineSignatureServiceBehavior {
     /**
      * Generates a valid signature response when signature validation succeeded.
      * @param activation Activation ID.
-     * @param applicationId Application ID.
-     * @param OfflineSignatureRequest Signature request.
      * @param usedSignatureType Signature type which was used during validation of the signature.
      * @return Valid signature response.
      */
-    private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest OfflineSignatureRequest, SignatureType usedSignatureType) {
+    private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
         // Extract application ID
         Long applicationId = activation.getApplication().getId();
 
@@ -357,7 +351,7 @@ public class OfflineSignatureServiceBehavior {
      */
     private VerifyOfflineSignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest offlineSignatureRequest) {
         // Calculate remaining attempts
-        Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         // Extract application ID
         Long applicationId = activation.getApplication().getId();
 

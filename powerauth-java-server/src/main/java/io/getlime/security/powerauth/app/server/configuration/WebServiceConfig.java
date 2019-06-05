@@ -55,7 +55,7 @@ import java.util.Properties;
 @Configuration
 public class WebServiceConfig extends WsConfigurerAdapter {
 
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     private PowerAuthServiceConfiguration configuration;
 

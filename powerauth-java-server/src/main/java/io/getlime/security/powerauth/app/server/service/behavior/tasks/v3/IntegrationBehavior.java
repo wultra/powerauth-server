@@ -35,7 +35,7 @@ import java.util.UUID;
 @Component
 public class IntegrationBehavior {
 
-    private IntegrationRepository integrationRepository;
+    private final IntegrationRepository integrationRepository;
     private PowerAuthServiceConfiguration configuration;
 
     @Autowired
