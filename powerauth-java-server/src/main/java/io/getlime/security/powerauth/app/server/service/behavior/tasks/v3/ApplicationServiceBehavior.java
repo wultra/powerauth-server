@@ -302,7 +302,7 @@ public class ApplicationServiceBehavior {
      * @throws GenericServiceException Thrown when application does not exist.
      */
     private ApplicationEntity findApplicationByName(String applicationName) throws GenericServiceException {
-        final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findFirstByName(applicationName);
+        final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findByName(applicationName);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application name: '{}'", applicationName);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);

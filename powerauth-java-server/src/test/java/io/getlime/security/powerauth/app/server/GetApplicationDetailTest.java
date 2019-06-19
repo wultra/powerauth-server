@@ -94,20 +94,6 @@ public class GetApplicationDetailTest {
         assertThrows(GenericServiceException.class, ()-> powerAuthService.getApplicationDetail(request));
     }
 
-    @Test
-    public void testGetApplicationDetailByNameWhenSameName() throws Exception {
-        ApplicationEntity application1 = createApplication();
-        ApplicationEntity application2 = createApplication(application1.getName());
-
-        assertNotEquals(application1.getId(), application2.getId());
-        assertEquals(application1.getName(), application2.getName());
-
-        GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationName(application1.getName());
-        GetApplicationDetailResponse response = powerAuthService.getApplicationDetail(request);
-        assertEquals(application1.getId(), Long.valueOf(response.getApplicationId()));
-    }
-
     private ApplicationEntity createApplication() throws Exception {
         return createApplication("GetApplicationDetailTest-" + System.currentTimeMillis());
     }

@@ -33,8 +33,8 @@ public interface ApplicationRepository extends CrudRepository<ApplicationEntity,
      * Find application by name.
      *
      * @param applicationName Application name
-     * @return Optional application entity with given name, returns the first name match
+     * @return Optional application entity with given name, returns application matching the name
      */
-    Optional<ApplicationEntity> findFirstByName(String applicationName);
+    Optional<ApplicationEntity> findByName(String applicationName);
 
 }
