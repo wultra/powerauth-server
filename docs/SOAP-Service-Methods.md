@@ -176,7 +176,7 @@ Get detail of application with given ID or name, including the list of versions.
 | Type | Name | Description |
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application (required if applicationName not specified) |
-| `String` | `applicationName` | Application name  (required if applicationId not specified) |
+| `String` | `applicationName` | An application name (required if applicationId not specified) |
 
 #### Response
 

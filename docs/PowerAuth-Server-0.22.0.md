@@ -51,8 +51,6 @@ Make sure you upgrade the web container to a version which supports Java 11 befo
 Following DB changes occurred between version 0.21.0 and 0.22.0:
 - Table `pa_activation_history` - added column `external_user_id`
 - Added tables, sequences and indexes for storage of Recovery Codes, Recovery PUKs and Recovery Configuration
-- Table `pa_application` - added not null constraint to column `name` (optional)
-- Table `pa_application` - added unique constraint to column `name` (optional)
 
 Migration script for Oracle:
 ```sql
@@ -140,12 +138,6 @@ CREATE UNIQUE INDEX PA_RECOVERY_CODE_PUK ON PA_RECOVERY_PUK(RECOVERY_CODE_ID, PU
 CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);
 
 CREATE UNIQUE INDEX PA_RECOVERY_CONFIG_APP ON PA_RECOVERY_CONFIG(APPLICATION_ID);
-
---
--- Optional (recommended) new constraints for Table PA_APPLICATION and its column name
---
-ALTER TABLE "PA_APPLICATION" ALTER COLUMN "name" SET NOT NULL;
-CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);
 ```
 
 Migration script for MySQL:
@@ -210,12 +202,6 @@ CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
 CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
 
 CREATE UNIQUE INDEX `pa_recovery_code_puk` ON `pa_recovery_puk`(`recovery_code_id`, `puk_index`);
-
---
--- Optional (recommended) new constraints for Table PA_APPLICATION and its column name
---
-ALTER TABLE `pa_application` ALTER COLUMN `name` SET NOT NULL;
-CREATE UNIQUE INDEX `pa_application_name` ON `pa_application`(`name`);
 ```
 
 Migration script for PostgreSQL:
@@ -302,10 +288,5 @@ CREATE INDEX PA_RECOVERY_CODE_ACT ON PA_RECOVERY_CODE(ACTIVATION_ID);
 CREATE UNIQUE INDEX PA_RECOVERY_CODE_PUK ON PA_RECOVERY_PUK(RECOVERY_CODE_ID, PUK_INDEX);
 
 CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);
-
---
--- Optional (recommended) new constraints for Table PA_APPLICATION and its column name
---
-ALTER TABLE "pa_application" ALTER COLUMN "name" SET NOT NULL;
-CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);
 ```
+
