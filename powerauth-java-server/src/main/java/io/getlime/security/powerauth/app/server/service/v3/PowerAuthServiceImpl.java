@@ -638,7 +638,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
         if (request.getApplicationName() == null) {
             logger.warn("Invalid request");
