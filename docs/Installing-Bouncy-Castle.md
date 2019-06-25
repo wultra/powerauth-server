@@ -7,45 +7,11 @@ Bouncy Castle library installation depends on Java version and used web containe
 
 ## Installing on Java 11
 
-Bouncy Castle library is installed in two steps on Java 11:
-- Bouncy Castle security provider needs to be configured in `java.security` configuration file.
-- Java 11 no longer provides a library extension mechanism and thus Bouncy Castle library must be installed in the web container.
-
-### Configuring Java Security
-
-Add following record to your `${JDK_HOME}/conf/security/java.security`:
-
-```sh
-security.provider.N=org.bouncycastle.jce.provider.BouncyCastleProvider
-```
-
-... where `N` should be replaced according to your file content. Usually, there are multiple `security.provider.X` records in the file, you should chose the next in order number as `N`, for example:
-
-```sh
-#
-# List of providers and their preference orders (see above):
-#
-security.provider.1=SUN
-security.provider.2=SunRsaSign
-security.provider.3=SunEC
-security.provider.4=SunJSSE
-security.provider.5=SunJCE
-security.provider.6=SunJGSS
-security.provider.7=SunSASL
-security.provider.8=XMLDSig
-security.provider.9=SunPCSC
-security.provider.10=JdkLDAP
-security.provider.11=JdkSASL
-security.provider.12=Apple
-security.provider.13=SunPKCS11
-security.provider.14=org.bouncycastle.jce.provider.BouncyCastleProvider
-```
-
-_Warning: Configuring Bouncy Castle as the first provider (security.provider.1) may cause JVM errors._
+Java 11 no longer provides a library extension mechanism and thus Bouncy Castle library must be installed in the web container.
 
 ### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-[VERSION].jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
+Copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
 
 You can get the Bouncy Castle provider here:
 https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
@@ -55,16 +21,32 @@ Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder.
 
 ### Bouncy Castle on JBoss / Wildfly
 
-In order to make PowerAuth Server work on JBoss / Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
+PowerAuth requires a specific version of Bouncy Castle library: `bcprov-jdk15on-161.jar`
+
+In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
+by adding the `<global-modules>` element in the `standalone.xml` file:
 
 ```xml
 <subsystem xmlns="urn:jboss:domain:ee:4.0">
-    <!-- ... -->
     <global-modules>
-        <module name="org.bouncycastle" slot="main"/>
+        <module name="org.bouncycastle.external" slot="main"/>
     </global-modules>
 </subsystem>
 ```
+
+The module should be defined using a new module XML file in JBoss folder `modules/system/layers/base/org/bouncycastle/external/main`:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="org.bouncycastle.external" xmlns="urn:jboss:module:1.8">
+    <resources>
+        <resource-root path="bcprov-jdk15on-161.jar"/>
+    </resources>
+</module>
+```
+
+Finally, copy the Bouncy Castle library `bcprov-jdk15on-161.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
+
+_Warning: do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth._  
 
 ### Testing the Installation
 
@@ -120,23 +102,39 @@ _Warning: Configuring Bouncy Castle as the first provider (security.provider.1) 
 
 ### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-[VERSION].jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
+Copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
 
 You can get the Bouncy Castle provider here:
 https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
 ### Bouncy Castle on JBoss / Wildfly
 
-In order to make PowerAuth Server work on JBoss / Wildfly, you need to enable the Bouncy Castle module on the server, by adding the `<global-modules>` element in the `standalone.xml` file:
+PowerAuth requires a specific version of Bouncy Castle library: `bcprov-jdk15on-161.jar`
+
+In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
+by adding the `<global-modules>` element in the `standalone.xml` file:
 
 ```xml
 <subsystem xmlns="urn:jboss:domain:ee:4.0">
-    <!-- ... -->
     <global-modules>
-        <module name="org.bouncycastle" slot="main"/>
+        <module name="org.bouncycastle.external" slot="main"/>
     </global-modules>
 </subsystem>
 ```
+
+The module should be defined using a new module XML file in JBoss folder `modules/system/layers/base/org/bouncycastle/external/main`:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<module name="org.bouncycastle.external" xmlns="urn:jboss:module:1.8">
+    <resources>
+        <resource-root path="bcprov-jdk15on-161.jar"/>
+    </resources>
+</module>
+```
+
+Finally, copy the Bouncy Castle library `bcprov-jdk15on-161.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
+
+_Warning: do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth._  
 
 Note that when Bouncy Castle module for JBoss / Wildfly is used, Bouncy Castle should not be present in the `lib/ext` folder of the Java runtime, otherwise the following error can occur: `key spec not recognized` due to clash of Bouncy Castle libraries.
 
