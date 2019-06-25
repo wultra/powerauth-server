@@ -21,7 +21,7 @@ Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder.
 
 ### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth requires a specific version of Bouncy Castle library: `bcprov-jdk15on-161.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-161.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -109,7 +109,7 @@ https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
 ### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth requires a specific version of Bouncy Castle library: `bcprov-jdk15on-161.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-161.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
