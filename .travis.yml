@@ -4,6 +4,7 @@ jdk:
 branches:
   only:
     - master
+    - coverity_scan
 env:
   global:
     - secure: "Al5hdoPhZvzsQ0ITmXSuoI3eazeyW/Nrqtk0cWu1qk1qpqyeCom6f/v7agHmEzIOVV5kCyeHrmEVSMIU6PlOLKz7DApwaKAHqnyekh3fHArxOqYKkW+wvYA0bCYYqbcOkA7VHv/pCjhhYnv0C5kxL0ZnJv+icUIgHjYuQ1X+DA2j5Yc1DCHZMivClIUrTuhWEoRS5mCgib3ZKg5IkIARCFvSiyolr+BTvn3Z7bnNJ3vhfYYUD54kcWxMaSdOHJLEE5ALfnkfXcAiYPoeBzUnB/9QnvbCi2IGy0PfyHPAuj1ymzvd4F+2pJjGJetoF2MxEUK/ArqYRYd8cvP69e4GASM38sxLz2P9oj+54J69hrWY6P4H4fIbWCa1teRP5fEkC5l/JlQh9vxmAGk3yj/CXOBJKbFNZviu2mopdZfwE61orZquaU9kDGJX/yUZxxLudoOlohQIISxBMIXU6m9xTgsqcYEmbtg1H9er854FtVtEs6MBh94z/57Dv9N94/hEGa+iikKaG5Cp4EvhiImvS4jFYnwyGHh0POnv/v+H3KVVJb97JYh7fsQ/K4oO/TC8/CpMcgXOtGZ2nVhE6nTXGuwMSalVdMjpuP6A/NwWzdxSPBrKIKei3T/ZtHWA0fgQohpQrD5iwT93BfWSQ6Vc9XympiLfBUwBTdrH9kQRZcw="
