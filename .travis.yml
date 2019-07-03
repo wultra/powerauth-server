@@ -4,9 +4,10 @@ jdk:
 branches:
   only:
     - master
+    - coverity_scan
 env:
   global:
-  - secure: "anR9zJ9i63ixplFLL8HuNeH9b8T4YXz54gVNYT55zfy6Mam7Lun1yxz9dJ8Aj/hI9qzVbkbPOGtjFmqbM0ePHcM7+6EeNWKeAYOgjlJOjKYYS1K0lOifFGSNQLuYvMvfR33GM6D7LBq3lCZVDzqnTlUcDo1jz9g+D+eSvQscWv4WXSQz7j0qYe0lk0lJM9UkH8hMG5TUfcCaVg3ifeeUv6kLybTojIsreciN0vlocm3zLgF8afGJLMQ6gC03yNN1zgiFUCzZLZ88ZjDlbaWKigrbFxuwsIFTpLXu0mJm7ArZd1bB6NFKwJKk/i+B5L6E4vYaMVs6r/0IqfGZ4dzfS8+J8Z/azK+7fNY+qGahsI9iXaAmP4Im8Txy5Ci65tvOiCMe5u9h/73/iJZ/kTf/9WWLC0CgmbsT8lKTEBBzxQ7bGG9oeWho/BlgKHuHTn4No9fk5qJH2ECqp2PatCrZbeCZ024iQ5rswctBoiMUu+wVOwTTorWUUdZslIgwVFEjyICe0AfNv9ki2m8wImZcjgHEVUt1/dVEPHXS9OI2BrddA1ld+dDXBjqz2Ve/qcTuDNHhrLCydtk8OO8OVpcHAgiaN8ik4phmu5/H38UVKU+0NBZ+TRzOQzF8FTLKvtumgN36AVjdPSnVm6h7cOMGL1vetNQS5yhB04p/q8r0NLs="
+    - secure: "Al5hdoPhZvzsQ0ITmXSuoI3eazeyW/Nrqtk0cWu1qk1qpqyeCom6f/v7agHmEzIOVV5kCyeHrmEVSMIU6PlOLKz7DApwaKAHqnyekh3fHArxOqYKkW+wvYA0bCYYqbcOkA7VHv/pCjhhYnv0C5kxL0ZnJv+icUIgHjYuQ1X+DA2j5Yc1DCHZMivClIUrTuhWEoRS5mCgib3ZKg5IkIARCFvSiyolr+BTvn3Z7bnNJ3vhfYYUD54kcWxMaSdOHJLEE5ALfnkfXcAiYPoeBzUnB/9QnvbCi2IGy0PfyHPAuj1ymzvd4F+2pJjGJetoF2MxEUK/ArqYRYd8cvP69e4GASM38sxLz2P9oj+54J69hrWY6P4H4fIbWCa1teRP5fEkC5l/JlQh9vxmAGk3yj/CXOBJKbFNZviu2mopdZfwE61orZquaU9kDGJX/yUZxxLudoOlohQIISxBMIXU6m9xTgsqcYEmbtg1H9er854FtVtEs6MBh94z/57Dv9N94/hEGa+iikKaG5Cp4EvhiImvS4jFYnwyGHh0POnv/v+H3KVVJb97JYh7fsQ/K4oO/TC8/CpMcgXOtGZ2nVhE6nTXGuwMSalVdMjpuP6A/NwWzdxSPBrKIKei3T/ZtHWA0fgQohpQrD5iwT93BfWSQ6Vc9XympiLfBUwBTdrH9kQRZcw="
 
 before_install:
   - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
@@ -15,8 +16,8 @@ addons:
   coverity_scan:
     project:
       name: "wultra/powerauth-server"
-      description: Build submitted via Travis CI
-    notification_email: petr@wultra.com
-    build_command_prepend: mvn clean
-    build_command: mvn -DskipTests=true compile
-    branch_pattern: master
+      description: "Build submitted via Travis CI"
+    notification_email: roman.strobl@wultra.com
+    build_command_prepend: "mvn clean"
+    build_command: "mvn -DskipTests=true compile"
+    branch_pattern: coverity_scan
