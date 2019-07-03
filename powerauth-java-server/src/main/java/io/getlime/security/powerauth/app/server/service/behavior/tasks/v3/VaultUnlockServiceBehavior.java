@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -29,7 +28,6 @@ import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -80,7 +78,6 @@ public class VaultUnlockServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
-    private final ActivationRepository powerAuthRepository;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ServiceBehaviorCatalogue behavior;
 
@@ -90,17 +87,13 @@ public class VaultUnlockServiceBehavior {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
-    // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationRepository powerAuthRepository, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
-        this.powerAuthRepository = powerAuthRepository;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.behavior = behavior;
     }
@@ -182,7 +175,7 @@ public class VaultUnlockServiceBehavior {
 
             String reason = request.getReason();
 
-            if (reason != null && !reason.matches("[A-Za-z0-9_\\-\\.]{3,255}")) {
+            if (reason != null && !reason.matches("[A-Za-z0-9_\\-.]{3,255}")) {
                 logger.warn("Invalid vault unlock reason: {}", reason);
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
@@ -200,7 +193,7 @@ public class VaultUnlockServiceBehavior {
             additionalInfo.getEntry().add(entry);
 
             // Verify the signature
-            VerifySignatureResponse signatureResponse = behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureType,
+            VerifySignatureResponse signatureResponse = behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType,
                     signature, additionalInfo, signedData, applicationKey, null, keyConversion);
 
             VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();

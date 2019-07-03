@@ -37,13 +37,13 @@ public class RecoveryConfigEntity implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "activation_recovery_enabled")
+    @Column(name = "activation_recovery_enabled", nullable = false)
     private Boolean activationRecoveryEnabled;
 
-    @Column(name = "recovery_postcard_enabled")
+    @Column(name = "recovery_postcard_enabled", nullable = false)
     private Boolean recoveryPostcardEnabled;
 
-    @Column(name = "allow_multiple_recovery_codes")
+    @Column(name = "allow_multiple_recovery_codes", nullable = false)
     private Boolean allowMultipleRecoveryCodes;
 
     @Column(name = "postcard_private_key_base64")
@@ -220,7 +220,6 @@ public class RecoveryConfigEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 3;
-        hash = 37 * hash + Objects.hashCode(this.id);
         hash = 37 * hash + Objects.hashCode(this.activationRecoveryEnabled);
         hash = 37 * hash + Objects.hashCode(this.recoveryPostcardEnabled);
         hash = 37 * hash + Objects.hashCode(this.allowMultipleRecoveryCodes);
@@ -243,9 +242,6 @@ public class RecoveryConfigEntity implements Serializable {
             return false;
         }
         final RecoveryConfigEntity other = (RecoveryConfigEntity) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
         if (!Objects.equals(this.activationRecoveryEnabled, other.activationRecoveryEnabled)) {
             return false;
         }

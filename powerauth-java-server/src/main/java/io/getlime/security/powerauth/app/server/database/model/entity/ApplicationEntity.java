@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Entity class representing an application.
@@ -105,5 +106,18 @@ public class ApplicationEntity implements Serializable {
      */
     public List<ApplicationVersionEntity> getVersions() {
         return versions;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ApplicationEntity that = (ApplicationEntity) o;
+        return Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
     }
 }

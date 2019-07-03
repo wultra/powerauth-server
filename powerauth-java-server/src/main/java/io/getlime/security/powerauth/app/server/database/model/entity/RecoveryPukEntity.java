@@ -61,7 +61,7 @@ public class RecoveryPukEntity implements Serializable {
     @Convert(converter = RecoveryPukStatusConverter.class)
     private RecoveryPukStatus status;
 
-    @Column(name = "timestamp_last_change", nullable = true)
+    @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
 
     /**
@@ -211,7 +211,6 @@ public class RecoveryPukEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 5;
-        hash = 71 * hash + Objects.hashCode(this.id);
         hash = 71 * hash + Objects.hashCode(this.recoveryCode);
         hash = 71 * hash + Objects.hashCode(this.puk);
         hash = 71 * hash + Objects.hashCode(this.pukEncryption);
@@ -233,9 +232,6 @@ public class RecoveryPukEntity implements Serializable {
             return false;
         }
         final RecoveryPukEntity other = (RecoveryPukEntity) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
         if (!Objects.equals(this.recoveryCode, other.recoveryCode)) {
             return false;
         }

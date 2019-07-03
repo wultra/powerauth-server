@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2019 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -30,7 +30,6 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -48,7 +47,6 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
-import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
@@ -87,10 +85,8 @@ public class RecoveryServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ActivationServiceBehavior activationServiceBehavior;
 
     // Business logic implementation classes
-    private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final EciesFactory eciesFactory = new EciesFactory();
@@ -112,7 +108,6 @@ public class RecoveryServiceBehavior {
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.activationServiceBehavior = activationServiceBehavior;
         this.recoveryPukConverter = recoveryPukConverter;
     }
 
@@ -126,10 +121,9 @@ public class RecoveryServiceBehavior {
         try {
             final Long applicationId = request.getApplicationId();
             final String userId = request.getUserId();
-            final Long pukCount = request.getPukCount();
+            final long pukCount = request.getPukCount();
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
@@ -138,7 +132,6 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final ApplicationEntity application = applicationOptional.get();
             // Check whether activation recovery and recovery postcard is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
@@ -158,7 +151,7 @@ public class RecoveryServiceBehavior {
 
             // Check whether user has any recovery code related to postcard (no activationId) in state CREATED or ACTIVE,
             // in this case the recovery code needs to be revoked first.
-            if (recoveryConfigEntity.getActivationRecoveryEnabled() == null || recoveryConfigEntity.getAllowMultipleRecoveryCodes() == false) {
+            if ((recoveryConfigEntity.getActivationRecoveryEnabled() == null) || !recoveryConfigEntity.getAllowMultipleRecoveryCodes()) {
                 List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationId, userId);
                 for (RecoveryCodeEntity recoveryCodeEntity : existingRecoveryCodes) {
                     if (recoveryCodeEntity.getActivationId() == null
@@ -181,7 +174,7 @@ public class RecoveryServiceBehavior {
             Map<Integer, Long> pukDerivationIndexes = null;
 
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateRecoveryCodeIterations(); i++) {
-                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, (int) request.getPukCount(), true);
+                RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, (int) pukCount, true);
                 // Check that recovery code is unique
                 boolean recoveryCodeExists = recoveryCodeRepository.getRecoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
                 if (!recoveryCodeExists) {
@@ -314,9 +307,9 @@ public class RecoveryServiceBehavior {
                     applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE);
 
             // Decrypt request data
-            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            final byte[] encryptedDataBytes = BaseEncoding.base64().decode(request.getEncryptedData());
-            final byte[] macBytes = BaseEncoding.base64().decode(request.getMac());
+            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
+            final byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
+            final byte[] macBytes = BaseEncoding.base64().decode(mac);
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
 
@@ -364,8 +357,7 @@ public class RecoveryServiceBehavior {
             }
 
             // Prepare response payload
-            final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload();
-            responsePayload.setAlreadyConfirmed(alreadyConfirmed);
+            final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload(alreadyConfirmed);
 
             // Convert response payload
             final ObjectMapper mapper = new ObjectMapper();
@@ -387,10 +379,7 @@ public class RecoveryServiceBehavior {
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (EciesException ex) {
-            logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        } catch (IOException ex) {
+        } catch (EciesException | IOException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
@@ -562,12 +551,14 @@ public class RecoveryServiceBehavior {
             recoveryConfigEntity.setApplication(applicationOptional.get());
             recoveryConfigEntity.setActivationRecoveryEnabled(false);
             recoveryConfigEntity.setRecoveryPostcardEnabled(false);
+            recoveryConfigEntity.setAllowMultipleRecoveryCodes(false);
             recoveryConfigRepository.save(recoveryConfigEntity);
         }
         GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
         response.setApplicationId(applicationId);
         response.setActivationRecoveryEnabled(recoveryConfigEntity.getActivationRecoveryEnabled());
         response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());
+        response.setAllowMultipleRecoveryCodes(recoveryConfigEntity.getAllowMultipleRecoveryCodes());
         response.setPostcardPublicKey(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
         response.setRemotePostcardPublicKey(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
         return response;
@@ -576,7 +567,7 @@ public class RecoveryServiceBehavior {
     /**
      * Update recovery configuration.
      * @param request Update recovery configuration request.
-     * @param keyConversion Key conversion utility.
+     * @param keyConversion Key convertor.
      * @return Update recovery configuration response.
      * @throws GenericServiceException In case of any error.
      */
@@ -612,6 +603,7 @@ public class RecoveryServiceBehavior {
             }
             recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());
             recoveryConfigEntity.setRecoveryPostcardEnabled(request.isRecoveryPostcardEnabled());
+            recoveryConfigEntity.setAllowMultipleRecoveryCodes(request.isAllowMultipleRecoveryCodes());
             if (request.getRemotePostcardPublicKey() != null) {
                 recoveryConfigEntity.setRemotePostcardPublicKeyBase64(request.getRemotePostcardPublicKey());
                 if (request.getRemotePostcardPublicKey().isEmpty()) {

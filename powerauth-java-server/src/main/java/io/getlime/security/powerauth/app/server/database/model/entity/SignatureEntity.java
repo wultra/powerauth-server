@@ -43,20 +43,20 @@ public class SignatureEntity implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
     @Column(name = "activation_counter", nullable = false)
     private Long activationCounter;
 
-    @Column(name = "activation_ctr_data", nullable = true)
+    @Column(name = "activation_ctr_data")
     private String activationCtrDataBase64;
 
-    @Column(name = "activation_status", nullable = true)
+    @Column(name = "activation_status")
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
-    @Column(name = "additional_info", nullable = true)
+    @Column(name = "additional_info")
     private String additionalInfo;
 
     @Column(name = "data_base64", updatable = false)
@@ -350,7 +350,6 @@ public class SignatureEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.id);
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationCounter);
         hash = 23 * hash + Objects.hashCode(this.activationCtrDataBase64);
@@ -388,9 +387,6 @@ public class SignatureEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.additionalInfo, other.additionalInfo)) {
-            return false;
-        }
-        if (!Objects.equals(this.id, other.id)) {
             return false;
         }
         if (!Objects.equals(this.activation, other.activation)) {

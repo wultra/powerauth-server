@@ -24,7 +24,7 @@ package io.getlime.security.powerauth.app.server.service.exceptions;
  */
 public class ActivationRecoveryException extends GenericServiceException {
 
-    private int currentRecoveryPukIndex;
+    private final int currentRecoveryPukIndex;
 
     /**
      * Constructor with error code and error message.

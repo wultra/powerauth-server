@@ -1,10 +1,10 @@
 # SOAP Service Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
+This is a reference documentation of the methods published by the PowerAuth Server SOAP service.
 It reflects the SOAP service methods as they are defined in the WSDL files:
- 
-- [service-v3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl)
-- [service-v2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl)
+
+- [serviceV3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV3.wsdl)
+- [serviceV2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV2.wsdl)
 
 The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
@@ -374,6 +374,9 @@ ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
  - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
  - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - Information about activation recovery which is sent only in case activation recovery is enabled.
+    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 ### Method 'createActivation'
 
@@ -412,6 +415,9 @@ ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
  - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
  - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - - `activationRecovery` - Information about activation recovery which is sent only in case activation recovery is enabled.
+   - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+   - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 ### Method 'commitActivation'
 
@@ -467,7 +473,7 @@ Get status information and all important details for activation with given ID.
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
-| `Long` | `version` | Activation version | 
+| `Long` | `version` | Activation version |
 
 ### Method 'removeActivation'
 
@@ -528,7 +534,7 @@ Get the list of all activations for given user and application ID. If no applica
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier fo an application |
 | `String` | `applicationName` | An application name |
-| `Long` | `version` | Activation version | 
+| `Long` | `version` | Activation version |
 
 ### Method 'blockActivation'
 
@@ -691,7 +697,7 @@ Verify off-line signature of provided data.
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `data` | Base64 encoded data for the signature, normalized data for signatures |
 | `String` | `signature` | Actual signature value |
-| `SignatureType` | `signatureType` | Type of the signature |
+| `boolean` | `biometryAllowed` | Whether biometry is allowed in offline mode |
 
 #### Response
 
@@ -1089,7 +1095,7 @@ Remove callback URL with given ID.
 
 ### Method 'getEciesDecryptor'
 
-Get ECIES decryptor data for request/response decryption on intermediate server. 
+Get ECIES decryptor data for request/response decryption on intermediate server.
 
 #### Request
 
@@ -1211,6 +1217,9 @@ Confirm a recovery code recieved using recovery postcard.
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data (as JSON):
+ - `recoveryCode` - Recovery code which should be confirmed in this request.
+
 #### Response
 
 `ConfirmRecoveryCodeResponse`
@@ -1221,6 +1230,9 @@ Confirm a recovery code recieved using recovery postcard.
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `alreadyConfirmed` - Boolean flag which describes whether recovery code was already confirmed before this request.
 
 ### Method `lookupRecoveryCodes`
 
@@ -1236,7 +1248,7 @@ Lookup recovery codes.
 | `String` | `activationId` | An UUID4 identifier of an activation |
 | `String` | `applicationId` | An identifier of an application |
 | `RecoveryCodeStatus` | `recoveryCodeStatus` | Recovery code status |
-| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status | 
+| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status |
 
 #### Response
 
@@ -1297,6 +1309,11 @@ Create an activation using recovery code.
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 
+ECIES request should contain following data (as JSON):
+ - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
+ - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
+ - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+
 #### Response
 
 `RevokeRecoveryCodesResponse`
@@ -1307,6 +1324,17 @@ Create an activation using recovery code.
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+
+ECIES response contains following data (as JSON):
+ - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
+ - `serverPublicKey` - Public key `KEY_SERVER_PUBLIC` of the server (base64-encoded).
+ - `ctrData` - Initial value for hash-based counter (base64-encoded).
+ - `activationRecovery` - Information about activation recovery.
+    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
+    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
+
+In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex`
+value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
 
 ### Method `getRecoveryConfig`
 
@@ -1329,6 +1357,7 @@ Get configuration of activation recovery.
 | `Long` | `applicationId` | An identifier of an application |
 | `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
 | `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
+| `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
 | `String` | `postcardPublicKey` | Base64 encoded recovery postcard public key for PowerAuth server |
 | `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key for recovery postcard printing center |
 
@@ -1345,6 +1374,7 @@ Update configuration of activation recovery.
 | `Long` | `applicationId` | An identifier of an application |
 | `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
 | `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
+| `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
 | `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key |
 
 #### Response
@@ -1354,7 +1384,7 @@ Update configuration of activation recovery.
 | Type | Name | Description |
 |------|------|-------------|
 | `Boolean` | `updated` | Whether recovery configuration was updated |   
-    
+
 ## Activation management (v2)
 
 ### Method 'prepareActivation' (v2)
@@ -1552,13 +1582,13 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
     - POSSESSION_KNOWLEDGE
     - POSSESSION_BIOMETRY
     - POSSESSION_KNOWLEDGE_BIOMETRY
-    
+
 - `RecoveryCodeStatus` - Represent status of the recovery code, one of the following values:
     - CREATED
     - ACTIVE
     - BLOCKED
     - REVOKED
-    
+
 - `RecoveryPukStatus` - Represents status of the recovery PUK, one of the following values:
     - VALID
     - USED

@@ -203,7 +203,6 @@ spring.datasource.jndi-name=java:/jdbc/powerauth
 
 ### Issues With Bouncy Castle Provider
 
-PowerAuth Server uses Bouncy Castle as a Java cryptography provider - this library is bundled in the WAR package. As a result, you need to [install unlimited policy files in your JVM](http://www.bouncycastle.org/wiki/display/JA1/Provider+Installation) and follow the instructions provided by your server vendor on specifics related to working with the Bouncy Castle library.
-
+PowerAuth Server uses Bouncy Castle as a Java cryptography provider. 
 Please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
 

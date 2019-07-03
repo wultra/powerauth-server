@@ -28,6 +28,20 @@ public class VaultUnlockRequestPayload {
     private String reason;
 
     /**
+     * Default constructor.
+     */
+    public VaultUnlockRequestPayload() {
+    }
+
+    /**
+     * Constructor with vault unlock reason.
+     * @param reason Vault unlock reason.
+     */
+    public VaultUnlockRequestPayload(String reason) {
+        this.reason = reason;
+    }
+
+    /**
      * Get vault unlock reason.
      * @return Vault unlock reason.
      */

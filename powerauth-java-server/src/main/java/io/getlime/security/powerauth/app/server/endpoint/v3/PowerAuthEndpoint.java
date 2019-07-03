@@ -625,7 +625,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RevokeRecoveryCodesRequest")
     @ResponsePayload
-    public RevokeRecoveryCodesResponse lookupRecoveryCodes(@RequestPayload RevokeRecoveryCodesRequest request) throws Exception {
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(@RequestPayload RevokeRecoveryCodesRequest request) throws Exception {
         return powerAuthService.revokeRecoveryCodes(request);
     }
 
@@ -639,7 +639,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RecoveryCodeActivationRequest")
     @ResponsePayload
-    public RecoveryCodeActivationResponse lookupRecoveryCodes(@RequestPayload RecoveryCodeActivationRequest request) throws Exception {
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(@RequestPayload RecoveryCodeActivationRequest request) throws Exception {
         return powerAuthService.createActivationUsingRecoveryCode(request);
     }
 
@@ -667,7 +667,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateRecoveryConfigRequest")
     @ResponsePayload
-    public UpdateRecoveryConfigResponse getRecoveryConfig(@RequestPayload UpdateRecoveryConfigRequest request) throws Exception {
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(@RequestPayload UpdateRecoveryConfigRequest request) throws Exception {
         return powerAuthService.updateRecoveryConfig(request);
     }
 

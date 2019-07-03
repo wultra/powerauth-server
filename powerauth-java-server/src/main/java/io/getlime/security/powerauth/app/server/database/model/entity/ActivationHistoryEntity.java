@@ -41,17 +41,17 @@ public class ActivationHistoryEntity implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
-    @Column(name = "activation_status", nullable = true)
+    @Column(name = "activation_status")
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
-    @Column(name = "blocked_reason", nullable = true)
+    @Column(name = "blocked_reason")
     private String blockedReason;
 
-    @Column(name = "external_user_id", nullable = true)
+    @Column(name = "external_user_id")
     private String externalUserId;
 
     @Column(name = "timestamp_created", nullable = false)
@@ -186,7 +186,6 @@ public class ActivationHistoryEntity implements Serializable {
     @Override
     public int hashCode() {
         int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.id);
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationStatus);
         hash = 23 * hash + Objects.hashCode(this.blockedReason);
@@ -207,9 +206,6 @@ public class ActivationHistoryEntity implements Serializable {
             return false;
         }
         final ActivationHistoryEntity other = (ActivationHistoryEntity) obj;
-        if (!Objects.equals(this.id, other.id)) {
-            return false;
-        }
         if (!Objects.equals(this.activation, other.activation)) {
             return false;
         }

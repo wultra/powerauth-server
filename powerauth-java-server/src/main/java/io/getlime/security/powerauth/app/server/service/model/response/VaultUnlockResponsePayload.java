@@ -28,6 +28,20 @@ public class VaultUnlockResponsePayload {
     private String encryptedVaultEncryptionKey;
 
     /**
+     * Default constructor.
+     */
+    public VaultUnlockResponsePayload() {
+    }
+
+    /**
+     * Parameterized constructor.
+     * @param encryptedVaultEncryptionKey Encrypted vault encryption key.
+     */
+    public VaultUnlockResponsePayload(String encryptedVaultEncryptionKey) {
+        this.encryptedVaultEncryptionKey = encryptedVaultEncryptionKey;
+    }
+
+    /**
      * Get encrypted vault encryption key.
      * @return Encrypted vault encryption key.
      */

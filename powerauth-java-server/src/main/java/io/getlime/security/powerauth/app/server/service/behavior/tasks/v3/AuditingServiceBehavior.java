@@ -25,7 +25,7 @@ import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalenda
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
-import io.getlime.security.powerauth.v3.KeyValueMap;
+import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.v3.SignatureAuditResponse;
 import io.getlime.security.powerauth.v3.SignatureType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,12 +44,12 @@ import java.util.List;
 @Component
 public class AuditingServiceBehavior {
 
-    private SignatureAuditRepository signatureAuditRepository;
+    private final SignatureAuditRepository signatureAuditRepository;
 
     // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
-    private KeyValueMapConverter keyValueMapConverter = new KeyValueMapConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private final KeyValueMapConverter keyValueMapConverter = new KeyValueMapConverter();
 
     @Autowired
     public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository) {
@@ -108,25 +108,23 @@ public class AuditingServiceBehavior {
      * Log a record in a signature audit log.
      *
      * @param activation       Activation used for the signature calculation.
+     * @param signatureData    Data related to the signature.
      * @param signatureType    Requested signature type.
-     * @param signature        Provided signature.
-     * @param additionalInfo   Additional info related to the signature.
-     * @param data             Provided data.
      * @param valid            Flag indicating if the signature was valid.
      * @param version          Signature version.
      * @param note             Record additional info (for example, reason for signature validation failure).
      * @param currentTimestamp Record timestamp.
      */
-    void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureType signatureType, String signature, KeyValueMap additionalInfo, byte[] data, Boolean valid, Integer version, String note, Date currentTimestamp) {
+    public void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Boolean valid, Integer version, String note, Date currentTimestamp) {
         // Audit the signature
         SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
-        signatureAuditRecord.setAdditionalInfo(keyValueMapConverter.toString(additionalInfo));
-        signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(data));
-        signatureAuditRecord.setSignature(signature);
+        signatureAuditRecord.setAdditionalInfo(keyValueMapConverter.toString(signatureData.getAdditionalInfo()));
+        signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(signatureData.getData()));
+        signatureAuditRecord.setSignature(signatureData.getSignature());
         signatureAuditRecord.setSignatureType(signatureType.value());
         signatureAuditRecord.setValid(valid);
         signatureAuditRecord.setVersion(version);
