@@ -55,7 +55,7 @@ import java.util.Properties;
 @Configuration
 public class WebServiceConfig extends WsConfigurerAdapter {
 
-    private UserDetailsService userDetailsService;
+    private final UserDetailsService userDetailsService;
 
     private PowerAuthServiceConfiguration configuration;
 
@@ -129,7 +129,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
 
     /**
      * Specify SOAP service parameters from WSDL file. Map service WSDL to
-     * ${CONTEXT_PATH}/soap/service-v2.wsdl address.
+     * ${CONTEXT_PATH}/soap/serviceV2.wsdl address.
      *
      * @param powerAuthSchema XSD schema with PowerAuth 2.0 service objects.
      * @return PowerAuth 2.0 WSDL definition.
@@ -146,7 +146,7 @@ public class WebServiceConfig extends WsConfigurerAdapter {
 
     /**
      * Specify SOAP service parameters from WSDL file. Map service WSDL to
-     * ${CONTEXT_PATH}/soap/service-v3.wsdl address.
+     * ${CONTEXT_PATH}/soap/serviceV3.wsdl address.
      *
      * @param powerAuthSchema XSD schema with PowerAuth 3.0 service objects.
      * @return PowerAuth 3.0 WSDL definition.

@@ -36,7 +36,7 @@ public class TokenEntity {
     private String tokenSecret;
 
     @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
     @Column(name = "signature_type", nullable = false, updatable = false)

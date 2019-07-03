@@ -613,7 +613,7 @@
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="allowBiometry" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1356,6 +1356,7 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="allowMultipleRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="postcardPublicKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remotePostcardPublicKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -1371,6 +1372,7 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="allowMultipleRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remotePostcardPublicKey" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>

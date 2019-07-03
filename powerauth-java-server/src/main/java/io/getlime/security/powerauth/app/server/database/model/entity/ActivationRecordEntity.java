@@ -49,10 +49,10 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
-    @Column(name = "activation_name", nullable = true)
+    @Column(name = "activation_name")
     private String activationName;
 
-    @Column(name = "extras", nullable = true)
+    @Column(name = "extras")
     private String extras;
 
     @Column(name = "server_private_key_base64", nullable = false)
@@ -61,13 +61,13 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "server_public_key_base64", nullable = false)
     private String serverPublicKeyBase64;
 
-    @Column(name = "device_public_key_base64", nullable = true)
+    @Column(name = "device_public_key_base64")
     private String devicePublicKeyBase64;
 
     @Column(name = "counter", nullable = false)
     private Long counter;
 
-    @Column(name = "ctr_data", nullable = true)
+    @Column(name = "ctr_data")
     private String ctrDataBase64;
 
     @Column(name = "failed_attempts", nullable = false)
@@ -85,14 +85,14 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "timestamp_last_used", nullable = false)
     private Date timestampLastUsed;
 
-    @Column(name = "timestamp_last_change", nullable = true)
+    @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
 
     @Column(name = "activation_status", nullable = false)
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
-    @Column(name = "blocked_reason", nullable = true)
+    @Column(name = "blocked_reason")
     private String blockedReason;
 
     @Column(name = "server_private_key_encryption", nullable = false)
@@ -100,7 +100,7 @@ public class ActivationRecordEntity implements Serializable {
     private EncryptionMode serverPrivateKeyEncryption;
 
     // Version must be nullable, it is not known yet during init activation step
-    @Column(name = "version", nullable = true)
+    @Column(name = "version")
     private Integer version;
 
     @ManyToOne
@@ -113,7 +113,7 @@ public class ActivationRecordEntity implements Serializable {
 
     @OneToMany(mappedBy = "activation", cascade = CascadeType.ALL)
     @OrderBy("timestamp_created")
-    private List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
+    private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
     /**
      * Default constructor.

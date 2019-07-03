@@ -106,7 +106,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws Exception {
         if (request.getApplicationKey() == null || request.getUserId() == null || request.getActivationOtp() == null || request.getActivationNonce() == null || request.getEncryptedDevicePublicKey() == null
-                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationKey() == null || request.getApplicationSignature() == null) {
+                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationSignature() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -288,7 +288,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
         io.getlime.security.powerauth.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
         io.getlime.security.powerauth.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
-        return behavior.getSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
     }
 
 }

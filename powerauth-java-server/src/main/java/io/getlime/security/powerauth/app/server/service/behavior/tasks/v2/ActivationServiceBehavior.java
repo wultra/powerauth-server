@@ -19,8 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -70,7 +68,7 @@ import java.util.Set;
 @Component("activationServiceBehaviorV2")
 public class ActivationServiceBehavior {
 
-    private RepositoryCatalogue repositoryCatalogue;
+    private final RepositoryCatalogue repositoryCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
@@ -80,17 +78,13 @@ public class ActivationServiceBehavior {
 
     private LocalizationProvider localizationProvider;
 
-    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
-
-    private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue) {
         this.repositoryCatalogue = repositoryCatalogue;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     @Autowired
@@ -111,11 +105,6 @@ public class ActivationServiceBehavior {
     @Autowired
     public void setActivationActivationServiceBehaviorV3(io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.ActivationServiceBehavior activationServiceBehaviorV3) {
         this.activationServiceBehaviorV3 = activationServiceBehaviorV3;
-    }
-
-    @Autowired
-    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
@@ -217,12 +206,15 @@ public class ActivationServiceBehavior {
             // Search for activation without lock to avoid potential deadlocks
             ActivationRecordEntity activation = activationRepository.findCreatedActivationByShortIdWithoutLock(application.getId(), activationIdShort, states, timestamp);
 
-            // Make sure to deactivate the activation if it is expired
-            if (activation != null) {
-                // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
-                activation = activationRepository.findActivationWithLock(activation.getActivationId());
-                deactivatePendingActivation(timestamp, activation);
+            if (activation == null) {
+                logger.warn("Activation does not exist for short activation ID: {}", activationIdShort);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
+
+            // Make sure to deactivate the activation if it is expired
+            // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
+            activation = activationRepository.findActivationWithLock(activation.getActivationId());
+            deactivatePendingActivation(timestamp, activation);
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application);
@@ -383,10 +375,13 @@ public class ActivationServiceBehavior {
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
-            // Make sure to deactivate the activation if it is expired
-            if (activation != null) {
-                deactivatePendingActivation(timestamp, activation);
+            if (activation == null) { // this should not happen - activation was just created above by calling "init" method
+                logger.warn("Activation does not exist for activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
+
+            // Make sure to deactivate the activation if it is expired
+            deactivatePendingActivation(timestamp, activation);
 
             // Validate that the activation is in correct state for the create step, it could be removed because of expiration
             validateCreatedActivation(activation, application);

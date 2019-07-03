@@ -29,5 +29,6 @@ public class AdditionalInformation {
     public static final String BLOCKED_REASON_MAX_FAILED_ATTEMPTS = "MAX_FAILED_ATTEMPTS";
     public static final String BLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
     public static final String VAULT_UNLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
+    public static final String BIOMETRY_ALLOWED = "BIOMETRY_ALLOWED";
 
 }

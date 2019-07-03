@@ -66,7 +66,7 @@ import java.security.spec.InvalidKeySpecException;
 @Component
 public class EncryptionServiceBehavior {
 
-    private RepositoryCatalogue repositoryCatalogue;
+    private final RepositoryCatalogue repositoryCatalogue;
 
     private LocalizationProvider localizationProvider;
 
