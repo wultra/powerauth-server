@@ -702,6 +702,18 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Get the detail of an application with given name, including the version list.
+     * @param applicationName name of an application to fetch.
+     * @return Application with given name, including the version list.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetApplicationDetailResponse getApplicationDetail(String applicationName) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetApplicationDetailRequest request = new PowerAuthPortV3ServiceStub.GetApplicationDetailRequest();
+        request.setApplicationName(applicationName);
+        return this.getApplicationDetail(request);
+    }
+
+    /**
      * Lookup application by application key.
      * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest} instance.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse}

@@ -600,8 +600,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
         try {
-            logger.info("GetApplicationDetailRequest received, application ID: {}", request.getApplicationId());
-            GetApplicationDetailResponse response = behavior.getApplicationServiceBehavior().getApplicationDetail(request.getApplicationId());
+            GetApplicationDetailResponse response;
+            if (request.getApplicationId() != null && request.getApplicationName() == null) {
+                logger.info("GetApplicationDetailRequest received, application ID: {}", request.getApplicationId());
+                response = behavior.getApplicationServiceBehavior().getApplicationDetail(request.getApplicationId());
+            } else if (request.getApplicationName() != null && request.getApplicationId() == null) {
+                logger.info("GetApplicationDetailRequest received, application name: '{}'", request.getApplicationName());
+                response = behavior.getApplicationServiceBehavior().getApplicationDetailByName(request.getApplicationName());
+            } else {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
             logger.info("GetApplicationDetailRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -635,7 +643,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
         if (request.getApplicationName() == null) {
             logger.warn("Invalid request");
