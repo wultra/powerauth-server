@@ -27,6 +27,11 @@ ALTER TABLE PA_ACTIVATION ADD CTR_DATA VARCHAR2(255 CHAR);
 ALTER TABLE PA_ACTIVATION ADD VERSION NUMBER(2,0) DEFAULT 2;
 
 --
+--  Added Column TIMESTAMP_LAST_CHANGE in Table PA_ACTIVATION
+--
+ALTER TABLE PA_ACTIVATION ADD TIMESTAMP_LAST_CHANGE TIMESTAMP (6);
+
+--
 --  Added Column ACTIVATION_CTR_DATA in Table PA_SIGNATURE_AUDIT
 --
 ALTER TABLE PA_SIGNATURE_AUDIT ADD ACTIVATION_CTR_DATA VARCHAR2(255 CHAR);
@@ -58,42 +63,48 @@ Migration script for MySQL:
 --
 --  Added Column ACTIVATION_CODE in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION ADD ACTIVATION_CODE VARCHAR(255);
+ALTER TABLE `pa_activation` ADD `activation_code` VARCHAR(255);
 
 --
 --  Added Column CTR_DATA in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION ADD CTR_DATA VARCHAR(255);
+ALTER TABLE `pa_activation` ADD `ctr_data` VARCHAR(255);
 
 --
 --  Added Column VERSION in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION ADD VERSION INT(2) DEFAULT 2;
+ALTER TABLE `pa_activation` ADD `version` INT(2) DEFAULT 2;
+
+--
+--  Added Column TIMESTAMP_LAST_CHANGE in Table PA_ACTIVATION
+--
+ALTER TABLE `pa_activation` ADD  `timestamp_last_change` datetime
+
 
 --
 --  Added Column ACTIVATION_CTR_DATA in Table PA_SIGNATURE_AUDIT
 --
-ALTER TABLE PA_SIGNATURE_AUDIT ADD ACTIVATION_CTR_DATA VARCHAR(255);
+ALTER TABLE `pa_signature_audit` ADD `activation_ctr_data` VARCHAR(255);
 
 --
 --  Added Column VERSION in Table PA_SIGNATURE_AUDIT
 --
-ALTER TABLE PA_SIGNATURE_AUDIT ADD VERSION INT(2) DEFAULT 2;
+ALTER TABLE `pa_signature_audit` ADD `version` INT(2) DEFAULT 2;
 
 --
 --  Column ACTIVATION_CODE Filled with Data from ACTIVATION_ID_SHORT || '-' || ACTIATION_OTP
 --
-UPDATE PA_ACTIVATION SET ACTIVATION_CODE = ACTIVATION_ID_SHORT || '-' || ACTIVATION_OTP;
+UPDATE `pa_activation` SET `activation_code` = `activation_id_short` || '-' || `activation_otp`;
 
 --
 --  Dropped Column ACTIVATION_ID_SHORT in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION DROP COLUMN ACTIVATION_ID_SHORT;
+ALTER TABLE `pa_activation` DROP COLUMN `activation_id_short`;
 
 --
 --  Dropped Column ACTIVATION_OTP in Table PA_ACTIVATION
 --
-ALTER TABLE PA_ACTIVATION DROP COLUMN ACTIVATION_OTP;
+ALTER TABLE `pa_activation` DROP COLUMN `activation_otp`;
 ```
 
 ## Database Indexes
@@ -133,19 +144,19 @@ CREATE INDEX PA_TOKEN_ACTIVATION ON PA_TOKEN(ACTIVATION_ID);
 
 Script for MySQL (foreign key indexes are created automatically in InnoDB):
 ```sql
-CREATE INDEX PA_ACTIVATION_CODE ON PA_ACTIVATION(ACTIVATION_CODE);
+CREATE INDEX `pa_activation_code` ON `pa_activation`(`activation_code`);
 
-CREATE INDEX PA_ACTIVATION_USER_ID ON PA_ACTIVATION(USER_ID);
+CREATE INDEX `pa_activation_user_id` ON `pa_activation`(`user_id`);
 
-CREATE INDEX PA_ACTIVATION_HISTORY_CREATED ON PA_ACTIVATION_HISTORY(TIMESTAMP_CREATED);
+CREATE INDEX `pa_activation_history_created` ON `pa_activation_history`(`timestamp_created`);
 
-CREATE UNIQUE INDEX PA_APP_VERSION_APP_KEY ON PA_APPLICATION_VERSION(APPLICATION_KEY);
+CREATE UNIQUE INDEX `pa_app_version_app_key` ON `pa_application_version`(`application_key`);
 
-CREATE INDEX PA_APP_CALLBACK_APP ON PA_APPLICATION_CALLBACK(APPLICATION_ID);
+CREATE INDEX `pa_app_callback_app` ON `pa_application_callback`(`application_id`);
 
-CREATE UNIQUE INDEX PA_INTEGRATION_TOKEN ON PA_INTEGRATION(CLIENT_TOKEN);
+CREATE UNIQUE INDEX `pa_integration_token` ON `pa_integration`(`client_token`);
 
-CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED);
+CREATE INDEX `pa_signature_audit_created` ON `pa_signature_audit`(`timestamp_created`);
 ```
 
 ## PowerAuth Protocol Version 3.0
