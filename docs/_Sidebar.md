@@ -22,3 +22,4 @@
 
 - [Encrypting DB Records](./Encrypting-Records-in-Database.md)
 - [Offline Signatures](./Offline-Signatures.md)
+- [Integrating with HashiCorp Vault](./Using-HashiCorp-Vault.md)

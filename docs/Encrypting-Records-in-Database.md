@@ -19,10 +19,14 @@ To separate database administrators from the access to raw private records, you 
 In order to enable the additional database record encryption, you need to set the following property to the application:
 
 ```
-powerauth.server.db.master.encryption.key=MTIzNDU2Nzg5MDEyMzQ1Ng==
+powerauth.server.db.master.encryption.key=[16 random bytes Base64 encoded, for example 'MTIzNDU2Nzg5MDEyMzQ1Ng==']
 ```
 
 The value of the key must be 16 random bytes, Base64 encoded.
+
+### Using HashiCorp Vault
+
+Instead of providing a hard-coded value of `powerauth.server.db.master.encryption.key` in your application properties, you can also [use a HashiCorp Vault to store the database encryption key securely](./Using-HashiCorp-Vault.md). For high security environment, this is the preferred way of storing the database encryption key. 
 
 ### Note on Private Key Encryption Cryptography
 
