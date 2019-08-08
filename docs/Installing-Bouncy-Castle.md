@@ -12,7 +12,11 @@ Java 11 no longer provides a library extension mechanism and thus Bouncy Castle 
 
 ### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
+1. Copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
+2. Add a new line to `$JAVA_HOME/jre/lib/security/java.security` to enable Bouncy Castle security provider:
+```
+security.provider.N=org.bouncycastle.jce.provider.BouncyCastleProvider
+```
 
 You can get the Bouncy Castle provider here:
 https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
