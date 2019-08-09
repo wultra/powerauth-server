@@ -4,7 +4,7 @@ In order to protect the database records, PowerAuth has an embedded [mechanism f
 
 ## About HashiCorp Vault
 
-[HashiCorp Vault](https://www.hashicorp.com/products/vault/) (or just Vault, for short) is just like [HSM](https://en.wikipedia.org/wiki/Hardware_security_module), but in software. It is a convenient mechanism to store secret keys, passwords, or perform cryptographic operations in an isolated secure environment. It provides a convenient API-based interface (RESFtul API) and extremely easy integration with Spring Boot apps via [Spring Cloud Vault](https://cloud.spring.io/spring-cloud-vault). Finally, the enterprise version of Vault supports integration with HSM for even better key protection.
+[HashiCorp Vault](https://www.hashicorp.com/products/vault/) (or just Vault, for short) is just like [HSM](https://en.wikipedia.org/wiki/Hardware_security_module), but in software. It is a convenient mechanism to store secret keys, passwords, or perform cryptographic operations in an isolated secure environment. It provides a convenient API-based interface (RESTful API) and extremely easy integration with Spring Boot apps via [Spring Cloud Vault](https://cloud.spring.io/spring-cloud-vault). Finally, the enterprise version of Vault supports integration with HSM for even better key protection.
 
 ## Installation and Setup
 
@@ -28,6 +28,13 @@ The Vault starts rather quickly, the last message should be of a format:
 
 Beware! Never use the "zero token" authentication mentioned above for production environment. Refer to the [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details.
 
+After starting the Vault, you need to set two environment variables to point the Vault CLI to the Vault endpoint and to provide an authentication token:
+
+```bash
+$ export export VAULT_TOKEN="00000000-0000-0000-0000-000000000000"
+$ export VAULT_ADDR="http://127.0.0.1:8200"
+```
+
 ## Adding Database Encryption Key in the Vault
 
 To add a key used to encrypt and decrypt sensitive records in the PowerAuth database, simply call the following command from the terminal:
@@ -42,7 +49,7 @@ To check that the value is present in the Vault, you can use:
 
 ```bash
 $ vault kv get secret/powerauth-java-server
-``` 
+```
 
 ## Configuring PowerAuth Server
 
@@ -68,7 +75,7 @@ In case you are using Apache Tomcat for deployment, you can set the regular prop
 <Context>
 
     <!-- ... other configuration properties -->
-    
+
     <Parameter name="spring.cloud.vault.enabled" value="true"/>
     <Parameter name="spring.cloud.vault.host" value="localhost"/>
     <Parameter name="spring.cloud.vault.port" value="8200"/>
