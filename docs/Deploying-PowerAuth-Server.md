@@ -118,9 +118,47 @@ _Note: For SOAP interface, PowerAuth Server uses WS-Security, `UsernameToken` va
 
 You can deploy PowerAuth Server WAR into any Java EE container.
 
-The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (WSDL is then available on `http://localhost:8080/powerauth-java-server/soap/service.wsdl`).
+The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (WSDL is then available on `http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl`).
 
 To deploy PowerAuth Server to Apache Tomcat, simply copy the WAR file in your `webapps` folder or deploy it using the "Tomcat Web Application Manager" application (usually deployed on default Tomcat address `http://localhost:8080/manager`).
+
+### Setting the Application Properties
+
+There are generally two approaches to property configuration when deploying on the server:
+
+#### 1. Configuring the Properties Directly
+
+You can specify the individual properties directly in the server configuration. For example, on Tomcat, you can create an XML file called `${CATALINA_HOME}/conf/Catalina/localhost/powerauth-java-server.xml` with the following properties for database configuration:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <Parameter name="spring.datasource.url" value="jdbc:mysql://localhost:3306/powerauth"/>
+    <Parameter name="spring.datasource.username" value="powerauth"/>
+    <Parameter name="spring.datasource.password" value=""/>
+    <Parameter name="spring.datasource.driver-class-name" value="com.mysql.jdbc.Driver"/>
+</Context>
+```
+
+#### 2. Configuring by Pointing to Configuration File
+
+Alternatively, you can create a single property in the server configuration that only points to your custom configuration file `/path/to/some/custom.properties`. This method is especially useful in situations where the server configuration must be as simple as possible (for example, creating a configuration module in JBoss Wildfly). In such case, do not forget to also include the default `application.properties` file that is on the classpath by default (it is bundled inside the WAR) - here is the Tomcat example again: 
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <Parameter name="spring.config.location" value="classpath:/application.properties,file:/path/to/some/custom.properties"/>
+</Context>
+```
+
+To match the previous example, the contents of `/path/to/come/custom.properties` is the following:
+
+```properties
+spring.datasource.url=jdbc:mysql://localhost:3306/powerauth
+spring.datasource.username=powerauth
+spring.datasource.password=
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+```
 
 ## Deploying PowerAuth Server Outside the Container
 
