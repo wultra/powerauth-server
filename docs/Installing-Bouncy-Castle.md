@@ -4,7 +4,10 @@ In order to function correctly, PowerAuth software requires Bouncy Castle to be 
 
 Bouncy Castle library installation depends on Java version and used web container.
 
-PowerAuth server uses dynamic initialization of Bouncy Castle provider, so it is not required to configure security provider statically in the Java Runtime configuration. 
+PowerAuth server uses dynamic initialization of Bouncy Castle provider, so it is not required to configure security provider statically in the Java Runtime configuration.
+
+You can get the Bouncy Castle provider here:
+https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
 ## Installing on Java 11
 
@@ -13,9 +16,6 @@ Java 11 no longer provides a library extension mechanism and thus Bouncy Castle 
 ### Bouncy Castle on Tomcat
 
 Copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
-
-You can get the Bouncy Castle provider here:
-https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
 
 _Warning: Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
 Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case._
@@ -72,10 +72,19 @@ Java 8 provides a library extension mechanism which can be used to installed Bou
 
 ### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
+#### Standalone Tomcat
 
-You can get the Bouncy Castle provider here:
-https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+When running a standalone Tomcat instance, all you need to do is to copy [`bcprov-jdk15on-161.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
+
+#### Embedded Tomcat
+
+In case you are running Spring Boot application with the embedded Tomcat server, you also might need to register the provider in the Java security configuration file. To do this, add a new line to `$JAVA_HOME/jre/lib/security/java.security` and enable Bouncy Castle security provider on a system level:
+
+```
+security.provider.N=org.bouncycastle.jce.provider.BouncyCastleProvider
+```
+
+Make sure to add the provider to the top of the list (ideally, N=2).
 
 ### Bouncy Castle on JBoss / Wildfly
 
