@@ -326,20 +326,22 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param signedData Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param signatureVersion Signature version.
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
      * @return {@link VaultUnlockResponse}
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
-                                           SignatureType signatureType, String signedData, String ephemeralPublicKey,
-                                           String encryptedData, String mac) {
+                                           SignatureType signatureType, String signatureVersion, String signedData,
+                                           String ephemeralPublicKey, String encryptedData, String mac) {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setSignedData(signedData);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setSignatureVersion(signatureVersion);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
@@ -432,16 +434,18 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param data Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Request signature.
      * @param signatureType Request signature type.
+     * @param signatureVersion Signature version.
      * @param forcedSignatureVersion Forced signature version.
      * @return Verify signature and return SOAP response with the verification results.
      */
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, Long forcedSignatureVersion) {
+    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) {
         VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setSignatureVersion(signatureVersion);
         request.setForcedSignatureVersion(forcedSignatureVersion);
         return this.verifySignature(request);
     }

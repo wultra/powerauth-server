@@ -28,6 +28,7 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
@@ -78,6 +79,7 @@ public class OnlineSignatureServiceBehavior {
      * @param activationId           Activation ID.
      * @param signatureType          Provided signature type.
      * @param signature              Provided signature.
+     * @param signatureVersion       Version of signature.
      * @param additionalInfo         Additional information about operation.
      * @param dataString             String with data used to compute the signature.
      * @param applicationKey         Associated application key.
@@ -86,11 +88,12 @@ public class OnlineSignatureServiceBehavior {
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
+    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, String signatureVersion, KeyValueMap additionalInfo,
                                                    String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
             throws GenericServiceException {
         try {
-            return verifySignatureImpl(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
+            final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
+            return verifySignatureImpl(activationId, signatureType, signature, signatureFormat, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
@@ -108,6 +111,7 @@ public class OnlineSignatureServiceBehavior {
      * @param activationId Activation ID.
      * @param signatureType Signature type to use for signature verification.
      * @param signature Signature.
+     * @param signatureFormat Signature format.
      * @param additionalInfo Additional information related to signature verification.
      * @param dataString Signature data.
      * @param applicationKey Application key.
@@ -120,7 +124,7 @@ public class OnlineSignatureServiceBehavior {
      * @throws GenericCryptoException In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
-    private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, KeyValueMap additionalInfo,
+    private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, PowerAuthSignatureFormat signatureFormat, KeyValueMap additionalInfo,
                                                         String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
@@ -141,7 +145,7 @@ public class OnlineSignatureServiceBehavior {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Get the data and append application KEY in this case, just for auditing reasons
                 byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
-                SignatureData signatureData = new SignatureData(data, signature, additionalInfo, forcedSignatureVersion);
+                SignatureData signatureData = new SignatureData(data, signature, signatureFormat, additionalInfo, forcedSignatureVersion);
                 OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
                 signatureSharedServiceBehavior.handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
@@ -150,7 +154,7 @@ public class OnlineSignatureServiceBehavior {
             }
 
             byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, additionalInfo, forcedSignatureVersion);
+            SignatureData signatureData = new SignatureData(data, signature, signatureFormat, additionalInfo, forcedSignatureVersion);
             OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {

@@ -34,6 +34,7 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OfflineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -272,7 +273,7 @@ public class OfflineSignatureServiceBehavior {
 
             // Application secret is "offline" in offline mode
             byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, additionalInfo, null);
+            SignatureData signatureData = new SignatureData(data, signature, PowerAuthSignatureFormat.DECIMAL, additionalInfo, null);
             OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
