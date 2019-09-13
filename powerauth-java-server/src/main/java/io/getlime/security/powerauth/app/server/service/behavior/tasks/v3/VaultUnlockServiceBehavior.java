@@ -108,12 +108,13 @@ public class VaultUnlockServiceBehavior {
      * @param applicationKey         Application key.
      * @param signature              PowerAuth signature.
      * @param signatureType          PowerAuth signature type.
+     * @param signatureVersion       PowerAuth signature version.
      * @param cryptogram             ECIES cryptogram.
      * @param keyConversion          Key conversion utilities.
      * @return Vault unlock response with a properly encrypted vault unlock key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType,
+    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType, String signatureVersion,
                                            String signedData, EciesCryptogram cryptogram, CryptoProviderUtil keyConversion)
             throws GenericServiceException {
         try {
@@ -194,7 +195,7 @@ public class VaultUnlockServiceBehavior {
 
             // Verify the signature
             VerifySignatureResponse signatureResponse = behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType,
-                    signature, additionalInfo, signedData, applicationKey, null, keyConversion);
+                    signature, signatureVersion, additionalInfo, signedData, applicationKey, null, keyConversion);
 
             VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
 
