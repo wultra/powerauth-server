@@ -30,3 +30,23 @@ UPDATE "pa_application" SET name = CONCAT('application_', id) WHERE name IS NULL
 ALTER TABLE "pa_application" ALTER COLUMN name SET NOT NULL;
 CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);
 ```
+
+## PowerAuth Protocol Version 3.1
+
+PowerAuth protocol version `3.1` support has been introduced in PowerAuth server version `0.23.0`. 
+
+The main changes in PowerAuth protocol are following:
+- Improved information entropy in PowerAuth online signatures. The signature is now encoded into BASE64 instead of decimal string.
+
+The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto) project. 
+
+### SOAP Interface Changes
+
+PowerAuth server in version `0.23.0` slightly changed SOAP interface for protocol version `3` (namespace `http://getlime.io/security/powerauth/v3`):
+
+- `VerifySignatureRequest` request object has now required parameter `signatureVersion`. The client must provide the version of signature obtained from `X-PowerAuth-Authorization` header.
+- `VaultUnlockRequest` request object has now required parameter `signatureVersion`. The client must provide the version of signature obtained from `X-PowerAuth-Authorization` header.
+
+You can access the WSDL files in following URLs:
+- version `3`: `http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl`
+- version `2`: `http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl`
