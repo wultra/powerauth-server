@@ -336,14 +336,33 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. This method should be used only
+     * to acquire the activation status for other, than RESTful API purposes. If you're implementing the PowerAuth RESTful API,
+     * then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)} method instead.
+     *
      * @param activationId Activation Id to lookup information for.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatus(String activationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
+        response.setEncryptedStatusBlob(null);
+        return response;
+    }
+
+    /**
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. The method should be used to acquire
+     * the activation status for RESTful API purposes. The returned object contains an encrypted activation status blob.
+     *
+     * @param activationId Activation Id to lookup information for.
+     * @param challenge Cryptographic challenge for activation status blob encryption.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws RemoteException {
         PowerAuthPortV3ServiceStub.GetActivationStatusRequest request = new PowerAuthPortV3ServiceStub.GetActivationStatusRequest();
         request.setActivationId(activationId);
+        request.setChallenge(challenge);
         return this.getActivationStatus(request);
     }
 
