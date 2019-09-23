@@ -162,7 +162,7 @@ public class PowerAuthServiceConfiguration {
      * Token timestamp validity in milliseconds, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.validity}")
-    @Min(0)
+    @Min(1)
     private long tokenTimestampValidityInMilliseconds;
 
     /**
