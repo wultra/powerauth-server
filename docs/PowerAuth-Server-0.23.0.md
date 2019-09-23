@@ -58,7 +58,7 @@ You can access the WSDL files in following URLs:
 
 Both Spring and Axis2 clients have been updated to support version `3.1` of PowerAuth protocol. The most important change is in the method which provides information about the activation status:
 
-- `getActivationStatus(activationId)` method no longer provides `encryptedStatusBlob` in the response, so it's no longer usable for RESTful API implementation.
+- `getActivationStatus(activationId)` method no longer provides `encryptedStatusBlob` in the response, so it's no longer usable for PowerAuth standard RESTful API implementation.
 - `getActivationStatusWithEncryptedStatusBlob(activationId, challenge)` is a new method that returns an activation information, together with the `encryptedStatusBlob` (and `encryptedStatusBlobNonce`, if `V3.1` mobile client is getting the status)
 
-The reason for the change is that the original function is no longer usable for RESTful API implementation purposes, because the `challenge` parameter is now required for `V3.1` status blob encryption.
+The reason for the change is that the original function is no longer usable for PowerAuth standard RESTful API implementation purposes, because the `challenge` parameter is now required for `V3.1` status blob encryption.
