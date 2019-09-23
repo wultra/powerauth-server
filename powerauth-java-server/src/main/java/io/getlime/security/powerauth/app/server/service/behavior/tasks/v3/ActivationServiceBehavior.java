@@ -390,6 +390,7 @@ public class ActivationServiceBehavior {
                         statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
                         statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
                         statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
+                        statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getSignatureValidationLookahead());
                         statusBlobInfo.setCtrData(ctrDataForStatusBlob);
                         encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey);
 

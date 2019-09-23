@@ -21,6 +21,10 @@ package io.getlime.security.powerauth.app.server.configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -30,6 +34,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @ConfigurationProperties("ext")
+@Validated
 public class PowerAuthServiceConfiguration {
 
     /**
@@ -66,6 +71,7 @@ public class PowerAuthServiceConfiguration {
      * many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateActivationIdIterations}")
+    @Min(1)
     private int activationGenerateActivationIdIterations;
 
     /**
@@ -73,6 +79,7 @@ public class PowerAuthServiceConfiguration {
      * many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateTokenIdIterations}")
+    @Min(1)
     private int generateTokenIdIterations;
 
     /**
@@ -80,12 +87,14 @@ public class PowerAuthServiceConfiguration {
      * activation, how many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateActivationCodeIterations}")
+    @Min(1)
     private int activationGenerateActivationCodeIterations;
 
     /**
      * When a duplicate recovery code is encountered, how many times generate a new one.
      */
     @Value("${powerauth.service.crypto.generateRecoveryCodeIterations}")
+    @Min(1)
     private int generateRecoveryCodeIterations;
 
     /**
@@ -93,19 +102,24 @@ public class PowerAuthServiceConfiguration {
      * completing the activation.
      */
     @Value("${powerauth.service.crypto.activationValidityInMilliseconds}")
+    @Min(0)
     private int activationValidityBeforeActive;
 
     /**
-     * How many failed signatures cause activation record blocking.
+     * How many failed signatures cause activation record blocking. The maximum supported value is 64.
      */
     @Value("${powerauth.service.crypto.signatureMaxFailedAttempts}")
+    @Min(0)
+    @Max(64)
     private long signatureMaxFailedAttempts;
 
     /**
-     * When validating the signature, how many iterations ahead too look in case
-     * signature fails for the first counter value.
+     * When validating the signature, how many iterations ahead to look in case signature fails for the first
+     * counter value. The maximum supported value is 64.
      */
     @Value("${powerauth.service.crypto.signatureValidationLookahead}")
+    @Min(1)
+    @Max(64)
     private long signatureValidationLookahead;
 
     /**
@@ -148,6 +162,7 @@ public class PowerAuthServiceConfiguration {
      * Token timestamp validity in milliseconds, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.validity}")
+    @Min(0)
     private long tokenTimestampValidityInMilliseconds;
 
     /**
@@ -157,9 +172,11 @@ public class PowerAuthServiceConfiguration {
     private String masterDbEncryptionKey;
 
     /**
-     * How many failed usages of recovery code block the recovery code.
+     * How many failed usages of recovery code block the recovery code. The maximum supported value is 64.
      */
     @Value("${powerauth.service.recovery.maxFailedAttempts}")
+    @Min(0)
+    @Max(64)
     private long recoveryMaxFailedAttempts;
 
     /**
