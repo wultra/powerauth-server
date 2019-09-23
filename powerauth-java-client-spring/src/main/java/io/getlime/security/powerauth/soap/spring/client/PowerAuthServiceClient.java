@@ -212,13 +212,33 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. This method should be used only
+     * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
+     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
+     * method instead.
+     *
      * @param activationId Activation Id to lookup information for.
      * @return {@link GetActivationStatusResponse}
      */
     public GetActivationStatusResponse getActivationStatus(String activationId) {
+        GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
+        response.setEncryptedStatusBlob(null);
+        return response;
+    }
+
+    /**
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. The method should be used to
+     * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
+     * contains an encrypted activation status blob.
+     *
+     * @param activationId Activation Id to lookup information for.
+     * @param challenge Cryptographic challenge for activation status blob encryption.
+     * @return {@link GetActivationStatusResponse}
+     */
+    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) {
         GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
+        request.setChallenge(challenge);
         return this.getActivationStatus(request);
     }
 

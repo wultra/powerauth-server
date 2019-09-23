@@ -151,8 +151,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String challenge = request.getChallenge();
             logger.info("GetActivationStatusRequest received, activation ID: {}", activationId);
-            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, keyConversionUtilities);
+            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, challenge, keyConversionUtilities);
             logger.info("GetActivationStatusResponse succeeded");
             return response;
         } catch (GenericServiceException ex) {

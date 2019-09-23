@@ -411,6 +411,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="challenge" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -432,6 +433,7 @@
                 <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="encryptedStatusBlob" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="encryptedStatusBlobNonce" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationCode" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationSignature" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="devicePublicKeyFingerprint" type="xs:string" minOccurs="0" maxOccurs="1"/>
