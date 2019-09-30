@@ -275,7 +275,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null || request.getSignature() == null || request.getSignatureType() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null
+                || request.getSignature() == null || request.getSignatureType() == null || request.getSignatureVersion() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -471,7 +472,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
-                || request.getSignatureType() == null || request.getSignedData() == null
+                || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
                 || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
