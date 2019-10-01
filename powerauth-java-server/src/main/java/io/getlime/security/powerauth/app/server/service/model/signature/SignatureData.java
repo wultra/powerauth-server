@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.v3.KeyValueMap;
 
 /**
@@ -28,6 +29,7 @@ public class SignatureData {
 
     private byte[] data;
     private String signature;
+    private PowerAuthSignatureFormat signatureFormat;
     private KeyValueMap additionalInfo;
     private Integer forcedSignatureVersion;
 
@@ -41,12 +43,14 @@ public class SignatureData {
      * Signature data constructur.
      * @param data Signed data.
      * @param signature Data signature.
+     * @param signatureFormat Format of signature
      * @param additionalInfo Additional information related to the signature.
      * @param forcedSignatureVersion Forced signature version during upgrade.
      */
-    public SignatureData(byte[] data, String signature, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
+    public SignatureData(byte[] data, String signature, PowerAuthSignatureFormat signatureFormat, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
         this.data = data;
         this.signature = signature;
+        this.signatureFormat = signatureFormat;
         this.additionalInfo = additionalInfo;
         this.forcedSignatureVersion = forcedSignatureVersion;
     }
@@ -65,6 +69,14 @@ public class SignatureData {
      */
     public String getSignature() {
         return signature;
+    }
+
+    /**
+     * Get signature format.
+     * @return Signature format.
+     */
+    public PowerAuthSignatureFormat getSignatureFormat() {
+        return signatureFormat;
     }
 
     /**

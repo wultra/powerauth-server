@@ -151,8 +151,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             String activationId = request.getActivationId();
+            String challenge = request.getChallenge();
             logger.info("GetActivationStatusRequest received, activation ID: {}", activationId);
-            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, keyConversionUtilities);
+            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, challenge, keyConversionUtilities);
             logger.info("GetActivationStatusResponse succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -261,19 +262,21 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         String applicationKey = request.getApplicationKey();
         String dataString = request.getData();
         String signature = request.getSignature();
+        String signatureVersion = request.getSignatureVersion();
         SignatureType signatureType = request.getSignatureType();
         // Forced signature version during upgrade, currently only version 3 is supported
         Integer forcedSignatureVersion = null;
         if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
             forcedSignatureVersion = 3;
         }
-        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
     }
 
     @Override
     @Transactional
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null || request.getSignature() == null || request.getSignatureType() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null
+                || request.getSignature() == null || request.getSignatureType() == null || request.getSignatureVersion() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -469,7 +472,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
-                || request.getSignatureType() == null || request.getSignedData() == null
+                || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
                 || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -480,6 +483,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String applicationKey = request.getApplicationKey();
             final String signature = request.getSignature();
             final SignatureType signatureType = request.getSignatureType();
+            final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
             byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
@@ -497,7 +501,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
 
             VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
-                    signature, signatureType, signedData, cryptogram, keyConversionUtilities);
+                    signature, signatureType, signatureVersion, signedData, cryptogram, keyConversionUtilities);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {

@@ -336,14 +336,35 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. This method should be used only
+     * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
+     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
+     * method instead.
+     *
      * @param activationId Activation Id to lookup information for.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatus(String activationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
+        response.setEncryptedStatusBlob(null);
+        return response;
+    }
+
+    /**
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. The method should be used to
+     * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
+     * contains an encrypted activation status blob.
+     *
+     * @param activationId Activation Id to lookup information for.
+     * @param challenge Cryptographic challenge for activation status blob encryption.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws RemoteException {
         PowerAuthPortV3ServiceStub.GetActivationStatusRequest request = new PowerAuthPortV3ServiceStub.GetActivationStatusRequest();
         request.setActivationId(activationId);
+        request.setChallenge(challenge);
         return this.getActivationStatus(request);
     }
 
@@ -460,6 +481,7 @@ public class PowerAuthServiceClient {
      * @param signedData Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param signatureVersion Signature version.
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
@@ -467,14 +489,15 @@ public class PowerAuthServiceClient {
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
-                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType, String signedData,
-                                                                      String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType, String signatureVersion,
+                                                                      String signedData, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
         PowerAuthPortV3ServiceStub.VaultUnlockRequest request = new PowerAuthPortV3ServiceStub.VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setSignedData(signedData);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setSignatureVersion(signatureVersion);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
@@ -574,16 +597,18 @@ public class PowerAuthServiceClient {
      * @param data Data to be signed encoded in format as specified by PowerAuth 3.0 data normalization.
      * @param signature Request signature.
      * @param signatureType Request signature type.
+     * @param signatureVersion Signature version.
      * @return Verify signature and return SOAP response with the verification results.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, PowerAuthPortV3ServiceStub.SignatureType signatureType, String signatureVersion) throws RemoteException {
         PowerAuthPortV3ServiceStub.VerifySignatureRequest request = new PowerAuthPortV3ServiceStub.VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setSignatureVersion(signatureVersion);
         return this.verifySignature(request);
     }
 
