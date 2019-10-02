@@ -62,3 +62,7 @@ Both Spring and Axis2 clients have been updated to support version `3.1` of Powe
 - `getActivationStatusWithEncryptedStatusBlob(activationId, challenge)` is a new method that returns an activation information, together with the `encryptedStatusBlob` (and `encryptedStatusBlobNonce`, if `V3.1` mobile client is getting the status)
 
 The reason for the change is that the original function is no longer usable for PowerAuth standard RESTful API implementation purposes, because the `challenge` parameter is now required for `V3.1` status blob encryption.
+
+## Database records encryption
+
+If your turned-on an additional database records encryption in the previous PowerAuth Server version (see [Encrypting Records in Database](Encrypting-Records-in-Database.md#additional-record-encryption)), then please contact us at [support@wultra.com](mailto:support@wultra.com). The encryption scheme has been slightly changed, so we can help you with the migration.
