@@ -273,7 +273,7 @@ public class OfflineSignatureServiceBehavior {
 
             // Application secret is "offline" in offline mode
             byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, PowerAuthSignatureFormat.DECIMAL, additionalInfo, null);
+            SignatureData signatureData = new SignatureData(data, signature, PowerAuthSignatureFormat.DECIMAL, null, additionalInfo, null);
             OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {

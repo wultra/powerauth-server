@@ -92,8 +92,7 @@ public class OnlineSignatureServiceBehavior {
                                                    String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
             throws GenericServiceException {
         try {
-            final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
-            return verifySignatureImpl(activationId, signatureType, signature, signatureFormat, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
+            return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
@@ -111,7 +110,7 @@ public class OnlineSignatureServiceBehavior {
      * @param activationId Activation ID.
      * @param signatureType Signature type to use for signature verification.
      * @param signature Signature.
-     * @param signatureFormat Signature format.
+     * @param signatureVersion Signature version.
      * @param additionalInfo Additional information related to signature verification.
      * @param dataString Signature data.
      * @param applicationKey Application key.
@@ -124,7 +123,7 @@ public class OnlineSignatureServiceBehavior {
      * @throws GenericCryptoException In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
-    private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, PowerAuthSignatureFormat signatureFormat, KeyValueMap additionalInfo,
+    private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, String signatureVersion, KeyValueMap additionalInfo,
                                                         String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
@@ -138,6 +137,9 @@ public class OnlineSignatureServiceBehavior {
 
             Long applicationId = activation.getApplication().getId();
 
+            // Convert signature version to expected signature format.
+            final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
+
             // Check the activation - application relationship and version support
             ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
 
@@ -145,7 +147,7 @@ public class OnlineSignatureServiceBehavior {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Get the data and append application KEY in this case, just for auditing reasons
                 byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
-                SignatureData signatureData = new SignatureData(data, signature, signatureFormat, additionalInfo, forcedSignatureVersion);
+                SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
                 OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
                 signatureSharedServiceBehavior.handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
@@ -154,7 +156,7 @@ public class OnlineSignatureServiceBehavior {
             }
 
             byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, signatureFormat, additionalInfo, forcedSignatureVersion);
+            SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
             OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {

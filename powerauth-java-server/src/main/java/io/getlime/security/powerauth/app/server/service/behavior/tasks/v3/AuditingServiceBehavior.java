@@ -89,6 +89,7 @@ public class AuditingServiceBehavior {
                 item.setAdditionalInfo(keyValueMapConverter.fromString(signatureEntity.getAdditionalInfo()));
                 item.setActivationId(signatureEntity.getActivation().getActivationId());
                 item.setDataBase64(signatureEntity.getDataBase64());
+                item.setSignatureVersion(signatureEntity.getSignatureVersion());
                 item.setSignature(signatureEntity.getSignature());
                 item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
                 item.setValid(signatureEntity.getValid());
@@ -126,6 +127,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(signatureData.getData()));
         signatureAuditRecord.setSignature(signatureData.getSignature());
         signatureAuditRecord.setSignatureType(signatureType.value());
+        signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
         signatureAuditRecord.setValid(valid);
         signatureAuditRecord.setVersion(version);
         signatureAuditRecord.setNote(note);

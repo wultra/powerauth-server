@@ -898,6 +898,7 @@ Get the signature audit log for given user, application and date range. In case 
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
 | `KeyValueMap` | `additionalInfo` | Key-value map with additional information |
 | `String` | `dataBase64` | A base64 encoded data sent with the signature |
+| `String` | `signatureVersion` | Requested signature version |
 | `SignatureType` | `signatureType` | Requested signature type |
 | `String` | `signature` | Submitted value of a signature |
 | `String` | `note` | Extra info about the result of the signature verification |

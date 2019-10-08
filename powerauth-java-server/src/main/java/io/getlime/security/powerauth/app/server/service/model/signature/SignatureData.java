@@ -29,6 +29,7 @@ public class SignatureData {
 
     private byte[] data;
     private String signature;
+    private String signatureVersion;
     private PowerAuthSignatureFormat signatureFormat;
     private KeyValueMap additionalInfo;
     private Integer forcedSignatureVersion;
@@ -44,12 +45,14 @@ public class SignatureData {
      * @param data Signed data.
      * @param signature Data signature.
      * @param signatureFormat Format of signature
+     * @param signatureVersion Version of requested signature
      * @param additionalInfo Additional information related to the signature.
      * @param forcedSignatureVersion Forced signature version during upgrade.
      */
-    public SignatureData(byte[] data, String signature, PowerAuthSignatureFormat signatureFormat, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
+    public SignatureData(byte[] data, String signature, PowerAuthSignatureFormat signatureFormat, String signatureVersion, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
         this.data = data;
         this.signature = signature;
+        this.signatureVersion = signatureVersion;
         this.signatureFormat = signatureFormat;
         this.additionalInfo = additionalInfo;
         this.forcedSignatureVersion = forcedSignatureVersion;
@@ -69,6 +72,14 @@ public class SignatureData {
      */
     public String getSignature() {
         return signature;
+    }
+
+    /**
+     * Get requested signature version.
+     * @return Signature version.
+     */
+    public String getSignatureVersion() {
+        return signatureVersion;
     }
 
     /**

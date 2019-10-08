@@ -776,6 +776,7 @@
                                     <xs:element maxOccurs="1" minOccurs="0" name="activationStatus" type="tns:ActivationStatus"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="additionalInfo" type="tns:KeyValueMap"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="dataBase64" type="xs:string"/>
+                                    <xs:element maxOccurs="1" minOccurs="0" name="signatureVersion" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="signature" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="note" type="xs:string"/>
