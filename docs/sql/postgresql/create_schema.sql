@@ -92,7 +92,8 @@ CREATE TABLE "pa_signature_audit"
     "signature"           VARCHAR(255) NOT NULL,
     "timestamp_created"   TIMESTAMP (6) NOT NULL,
     "valid"               BOOLEAN,
-    "version"             INTEGER DEFAULT 2
+    "version"             INTEGER DEFAULT 2,
+    "signature_version"   VARCHAR(255)
 );
 
 --

@@ -789,6 +789,7 @@
                                         maxOccurs="1"/>
                             <xs:element name="additionalInfo" type="tns:KeyValueMap" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="dataBase64" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="signatureVersion" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="signatureType" type="tns:SignatureType" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="note" type="xs:string" minOccurs="1" maxOccurs="1"/>
