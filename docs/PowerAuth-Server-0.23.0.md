@@ -13,7 +13,7 @@ Following DB changes occurred between version 0.22.0 and 0.23.0:
 Migration script for Oracle:
 ```sql
 UPDATE "PA_APPLICATION" SET NAME = CONCAT('application_', id) WHERE NAME IS NULL;
-ALTER TABLE "PA_APPLICATION" ALTER COLUMN NAME SET NOT NULL;
+ALTER TABLE "PA_APPLICATION" MODIFY NAME NOT NULL;
 CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);
 ALTER TABLE PA_SIGNATURE_AUDIT ADD SIGNATURE_VERSION VARCHAR2(255 CHAR);
 ```
@@ -21,7 +21,7 @@ ALTER TABLE PA_SIGNATURE_AUDIT ADD SIGNATURE_VERSION VARCHAR2(255 CHAR);
 Migration script for MySQL:
 ```sql
 UPDATE `pa_application` SET `name` = CONCAT('application_', `id`) WHERE `name` IS NULL;
-ALTER TABLE `pa_application` ALTER COLUMN `name` SET NOT NULL;
+ALTER TABLE `pa_application` MODIFY COLUMN `name` VARCHAR(255) NOT NULL;
 CREATE UNIQUE INDEX `pa_application_name` ON `pa_application`(`name`);
 ALTER TABLE `pa_signature_audit` ADD `signature_version` varchar(255);
 ```
