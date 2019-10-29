@@ -489,8 +489,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
             // The only allowed signature type is POSESSION_KNOWLEDGE to prevent attacks with weaker signature types
             if (!signatureType.equals(SignatureType.POSSESSION_KNOWLEDGE)) {
-                logger.warn("Invalid signature type: {}", signatureType);
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
+                // POSSESSION_BIOMETRY can also be used, but must be explicitly allowed in the configuration.
+                if (!(signatureType.equals(SignatureType.POSSESSION_BIOMETRY) &&
+                        powerAuthServiceConfiguration.isSecureVaultBiometricAuthenticationEnabled())) {
+                    logger.warn("Invalid signature type: {}", signatureType);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
+                }
             }
 
             // Convert received ECIES request data to cryptogram

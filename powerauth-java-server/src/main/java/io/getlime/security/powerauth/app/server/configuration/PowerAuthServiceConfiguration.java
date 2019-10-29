@@ -163,6 +163,12 @@ public class PowerAuthServiceConfiguration {
     private long recoveryMaxFailedAttempts;
 
     /**
+     * If enabled, then the vault encryption key can be acquired also after the successful biometric authentication.
+     */
+    @Value("${powerauth.service.secureVault.enableBiometricAuthentication}")
+    private boolean secureVaultBiometricAuthenticationEnabled;
+
+    /**
      * Get application name, usually used as a "unique code" for the application within
      * a server infrastructure.
      *
@@ -492,5 +498,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setRecoveryMaxFailedAttempts(long recoveryMaxFailedAttempts) {
         this.recoveryMaxFailedAttempts = recoveryMaxFailedAttempts;
+    }
+
+    /**
+     * Get whether vault encryption key can be acquired also after the successful biometric authentication.
+     * @return {@code true} if vault encryption key can be acquired also after the successful biometric authentication.
+     */
+    public boolean isSecureVaultBiometricAuthenticationEnabled() {
+        return secureVaultBiometricAuthenticationEnabled;
+    }
+
+    /**
+     * Set whether vault encryption key can be acquired also after the successful biometric authentication.
+     * @param secureVaultBiometricAuthenticationEnabled If {@code true}, then vault encryption key can be acquired
+     *                                                  also after the successful biometric authentication.
+     */
+    public void setSecureVaultBiometricAuthenticationEnabled(boolean secureVaultBiometricAuthenticationEnabled) {
+        this.secureVaultBiometricAuthenticationEnabled = secureVaultBiometricAuthenticationEnabled;
     }
 }
