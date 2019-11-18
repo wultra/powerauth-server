@@ -391,6 +391,37 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupActivationsRequest} instance
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupActivationsResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.LookupActivationsResponse lookupActivations(PowerAuthPortV3ServiceStub.LookupActivationsRequest request) throws RemoteException {
+        return clientStubV3.lookupActivations(request);
+    }
+
+    /**
+     * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userId User ID to fetch the activations for.
+     * @return List of activation instances for given user.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsed, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
+        PowerAuthPortV3ServiceStub.LookupActivationsRequest request = new PowerAuthPortV3ServiceStub.LookupActivationsRequest();
+        request.setUserIds(userIds.stream().toArray(String[]::new));
+        if (applicationIds != null) {
+            request.setApplicationIds(applicationIds.stream().mapToLong(l -> l).toArray());
+        }
+        if (timestampLastUsed != null) {
+            request.setTimestampLastUsed(calendarWithDate(timestampLastUsed));
+        }
+        if (activationStatus != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return Arrays.asList(this.lookupActivations(request).getActivations());
+    }
+
+    /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationRequest} instance.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}

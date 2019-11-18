@@ -505,6 +505,51 @@
                 </xs:complexType>
             </xs:element>
 
+            <!-- Lookup activations //-->
+
+            <xs:element name="LookupActivationsRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for querying activations using various parameters.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="userIds" type="xs:string" />
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="applicationIds" type="xs:long"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="LookupActivationsResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for querying activations using various parameters.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="activations">
+                            <xs:complexType>
+                                <xs:sequence>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="blockedReason" type="xs:string"/>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="activationName" type="xs:string"/>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="extras" type="xs:string"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="timestampCreated" type="xs:dateTime"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="timestampLastChange" type="xs:dateTime"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="userId" type="xs:string"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="applicationName" type="xs:string"/>
+                                    <xs:element minOccurs="1" maxOccurs="1" name="version" type="xs:long"/>
+                                </xs:sequence>
+                            </xs:complexType>
+                        </xs:element>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
             <!-- Verify signature //-->
 
             <xs:element name="VerifySignatureRequest">
@@ -1624,12 +1669,20 @@
         <wsdl:part element="tns:GetActivationListForUserRequest" name="GetActivationListForUserRequest">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="LookupActivations">
+        <wsdl:part element="tns:LookupActivationsRequest" name="LookupActivationsRequest">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="LookupApplicationByAppKeyResponse">
         <wsdl:part element="tns:LookupApplicationByAppKeyResponse" name="LookupApplicationByAppKeyResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="GetActivationListForUserResponse">
         <wsdl:part element="tns:GetActivationListForUserResponse" name="GetActivationListForUserResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="LookupActivationsResponse">
+        <wsdl:part element="tns:LookupActivationsResponse" name="LookupActivationsResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="GetIntegrationListResponse">
@@ -1995,6 +2048,12 @@
             <wsdl:output message="tns:GetActivationListForUserResponse" name="GetActivationListForUserResponse">
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="LookupActivations">
+            <wsdl:input message="tns:LookupActivationsRequest" name="LookupActivationsRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:LookupActivationsResponse" name="LookupActivationsResponse">
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="GetIntegrationList">
             <wsdl:input message="tns:GetIntegrationListRequest" name="GetIntegrationListRequest">
             </wsdl:input>
@@ -2358,6 +2417,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="GetActivationListForUserResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="LookupActivations">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="LookupActivationsRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="LookupActivationsResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

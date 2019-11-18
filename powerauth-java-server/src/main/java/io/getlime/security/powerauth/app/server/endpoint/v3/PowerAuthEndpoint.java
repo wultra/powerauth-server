@@ -169,6 +169,20 @@ public class PowerAuthEndpoint {
     }
 
     /**
+     * Call {@link PowerAuthService#lookupActivations(LookupActivationsRequest)} method and
+     * return the response.
+     *
+     * @param request Activation lookup request.
+     * @return Activation lookup response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "LookupActivationsRequest")
+    @ResponsePayload
+    public LookupActivationsResponse lookupActivations(@RequestPayload LookupActivationsRequest request) throws Exception {
+        return powerAuthService.lookupActivations(request);
+    }
+
+    /**
      * Call {@link PowerAuthService#verifySignature(VerifySignatureRequest)} method and
      * return the response.
      *

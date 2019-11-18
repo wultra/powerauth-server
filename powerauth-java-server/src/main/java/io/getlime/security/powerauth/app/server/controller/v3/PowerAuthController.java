@@ -161,6 +161,19 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#lookupActivations(LookupActivationsRequest)} method and
+     * return the response.
+     *
+     * @param request Lookup activations request.
+     * @return Lookup activations response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/lookup", method = RequestMethod.POST)
+    public RESTResponseWrapper<LookupActivationsResponse> lookupActivations(@RequestBody RESTRequestWrapper<LookupActivationsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.lookupActivations(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#verifySignature(VerifySignatureRequest)} method and
      * return the response.
      *

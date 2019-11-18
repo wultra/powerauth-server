@@ -19,7 +19,9 @@ package io.getlime.security.powerauth.app.server.service.v3;
 
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -57,6 +59,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private LocalizationProvider localizationProvider;
 
     private BuildProperties buildProperties;
+
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceImpl.class);
@@ -141,6 +145,35 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
+
+    @Override
+    @Transactional
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws GenericServiceException {
+        if (request.getUserIds().isEmpty()) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            List<String> userIds = request.getUserIds();
+            List<Long> applicationIds = request.getApplicationIds();
+            Date timestampLastUsed = null;
+            if (request.getTimestampLastUsed() != null) {
+                timestampLastUsed = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsed());
+            }
+            ActivationStatus activationStatus = null;
+            if (request.getActivationStatus() != null) {
+                activationStatus = activationStatusConverter.convert(request.getActivationStatus());
+            }
+            logger.info("LookupActivationsRequest received");
+            LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsed, activationStatus);
+            logger.info("LookupActivationsRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
 
     @Override
     @Transactional

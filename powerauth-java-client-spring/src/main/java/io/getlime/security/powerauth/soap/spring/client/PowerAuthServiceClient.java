@@ -263,6 +263,38 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link LookupActivationsRequest} instance
+     * @return {@link LookupActivationsResponse}
+     */
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) {
+        return (LookupActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userIds User IDs to be used in the activations query.
+     * @param applicationIds Application IDs to be used in the activations query (optional).
+     * @param timestampLastUsed Last used timestamp to be used in the activations query (optional).
+     * @param activationStatus Activation status to be used in the activations query (optional).
+     * @return List of activation instances satisfying given query parameters.
+     */
+    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsed, ActivationStatus activationStatus) {
+        LookupActivationsRequest request = new LookupActivationsRequest();
+        request.getUserIds().addAll(userIds);
+        if (request.getApplicationIds() != null) {
+            request.getApplicationIds().addAll(applicationIds);
+        }
+        if (request.getTimestampLastUsed() != null) {
+            request.setTimestampLastUsed(calendarWithDate(timestampLastUsed));
+        }
+        if (request.getActivationStatus() != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return this.lookupActivations(request).getActivations();
+    }
+
+    /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link RemoveActivationRequest} instance.
      * @return {@link RemoveActivationResponse}
