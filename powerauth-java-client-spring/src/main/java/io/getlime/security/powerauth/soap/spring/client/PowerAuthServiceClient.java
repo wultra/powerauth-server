@@ -295,6 +295,30 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link UpdateStatusForActivationsRequest} instance
+     * @return {@link UpdateStatusForActivationsResponse}
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) {
+        return (UpdateStatusForActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationIds Identifiers of activations whose status should be updated.
+     * @param activationStatus Activation status to be used.
+     * @return Response indicating whether activation status update succeeded.
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) {
+        UpdateStatusForActivationsRequest request = new UpdateStatusForActivationsRequest();
+        request.getActivationIds().addAll(activationIds);
+        if (activationStatus != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return this.updateStatusForActivations(request);
+    }
+
+    /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link RemoveActivationRequest} instance.
      * @return {@link RemoveActivationResponse}

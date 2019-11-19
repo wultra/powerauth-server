@@ -402,8 +402,11 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID to fetch the activations for.
-     * @return List of activation instances for given user.
+     * @param userIds User IDs to be used in the activations query.
+     * @param applicationIds Application IDs to be used in the activations query (optional).
+     * @param timestampLastUsed Last used timestamp to be used in the activations query (optional).
+     * @param activationStatus Activation status to be used in the activations query (optional).
+     * @return List of activation instances satisfying given query parameters.
      * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsed, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
@@ -419,6 +422,32 @@ public class PowerAuthServiceClient {
             request.setActivationStatus(activationStatus);
         }
         return Arrays.asList(this.lookupActivations(request).getActivations());
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest} instance
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse updateStatusForActivations(PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest request) throws RemoteException {
+        return clientStubV3.updateStatusForActivations(request);
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationIds Identifiers of activations whose status should be updated.
+     * @param activationStatus Activation status to be used.
+     * @return Response indicating whether activation status update succeeded.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest request = new PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest();
+        request.setActivationIds(activationIds.toArray(new String[0]));
+        if (activationStatus != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return updateStatusForActivations(request);
     }
 
     /**

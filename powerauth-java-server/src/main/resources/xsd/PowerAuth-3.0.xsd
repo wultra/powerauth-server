@@ -557,6 +557,31 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Update status for activations //-->
+
+    <xs:element name="UpdateStatusForActivationsRequest">
+        <xs:annotation>
+            <xs:documentation>Request for updating status for activations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationIds" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateStatusForActivationsResponse">
+        <xs:annotation>
+            <xs:documentation>Response for updating status for activations.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="updated" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- Verify signature //-->
 
     <xs:element name="VerifySignatureRequest">

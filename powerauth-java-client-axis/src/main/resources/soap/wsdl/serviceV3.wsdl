@@ -549,6 +549,31 @@
                 </xs:complexType>
             </xs:element>
 
+            <!-- Update status for activations //-->
+
+            <xs:element name="UpdateStatusForActivationsRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for updating status for activations.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationIds" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateStatusForActivationsResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for updating status for activations.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="updated" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
             <!-- Verify signature //-->
 
             <xs:element name="VerifySignatureRequest">
@@ -1672,6 +1697,10 @@
         <wsdl:part element="tns:LookupActivationsRequest" name="LookupActivationsRequest">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="UpdateStatusForActivationsRequest">
+        <wsdl:part element="tns:UpdateStatusForActivationsRequest" name="UpdateStatusForActivationsRequest">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="LookupApplicationByAppKeyResponse">
         <wsdl:part element="tns:LookupApplicationByAppKeyResponse" name="LookupApplicationByAppKeyResponse">
         </wsdl:part>
@@ -1682,6 +1711,10 @@
     </wsdl:message>
     <wsdl:message name="LookupActivationsResponse">
         <wsdl:part element="tns:LookupActivationsResponse" name="LookupActivationsResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateStatusForActivationsResponse">
+        <wsdl:part element="tns:UpdateStatusForActivationsResponse" name="UpdateStatusForActivationsResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="GetIntegrationListResponse">
@@ -2051,6 +2084,12 @@
             <wsdl:input message="tns:LookupActivationsRequest" name="LookupActivationsRequest">
             </wsdl:input>
             <wsdl:output message="tns:LookupActivationsResponse" name="LookupActivationsResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateStatusForActivations">
+            <wsdl:input message="tns:UpdateStatusForActivationsRequest" name="UpdateStatusForActivationsRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:UpdateStatusForActivationsResponse" name="UpdateStatusForActivationsResponse">
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="GetIntegrationList">
@@ -2425,6 +2464,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="LookupActivationsResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateStatusForActivations">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="UpdateStatusForActivationsRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="UpdateStatusForActivationsResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

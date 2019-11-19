@@ -183,6 +183,20 @@ public class PowerAuthEndpoint {
     }
 
     /**
+     * Call {@link PowerAuthService#updateStatusForActivations(UpdateStatusForActivationsRequest)} method and
+     * return the response.
+     *
+     * @param request Update status for activations request.
+     * @return Update status for activations response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateStatusForActivationsRequest")
+    @ResponsePayload
+    public UpdateStatusForActivationsResponse updateStatusForActivations(@RequestPayload UpdateStatusForActivationsRequest request) throws Exception {
+        return powerAuthService.updateStatusForActivations(request);
+    }
+
+    /**
      * Call {@link PowerAuthService#verifySignature(VerifySignatureRequest)} method and
      * return the response.
      *

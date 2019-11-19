@@ -174,6 +174,28 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
     }
 
+    @Override
+    @Transactional
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request)  throws GenericServiceException {
+        if (request.getActivationIds().isEmpty()) {
+            logger.warn("Invalid request");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            List<String> activationIds = request.getActivationIds();
+            ActivationStatus activationStatus = null;
+            if (request.getActivationStatus() != null) {
+                activationStatus = activationStatusConverter.convert(request.getActivationStatus());
+            }
+            logger.info("UpdateStatusForActivationsRequest received");
+            UpdateStatusForActivationsResponse response = behavior.getActivationServiceBehavior().updateStatusForActivation(activationIds, activationStatus);
+            logger.info("UpdateStatusForActivationsRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
 
     @Override
     @Transactional

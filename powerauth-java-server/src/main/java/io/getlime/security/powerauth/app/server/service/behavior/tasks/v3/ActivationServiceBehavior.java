@@ -309,6 +309,27 @@ public class ActivationServiceBehavior {
     }
 
     /**
+     * Update status for activations.
+     * @param activationIds Identifiers of activations to update.
+     * @param activationStatus Activation status to use.
+     * @return Response with indication whether status update succeeded.
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivation(List<String> activationIds, ActivationStatus activationStatus) {
+        final UpdateStatusForActivationsResponse response = new UpdateStatusForActivationsResponse();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        activationIds.forEach(activationId -> {
+            ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+            activation.setActivationStatus(activationStatus);
+            activationRepository.save(activation);
+        });
+
+        response.setUpdated(true);
+
+        return response;
+    }
+
+    /**
      * Get activation status for given activation ID
      *
      * @param activationId           Activation ID
