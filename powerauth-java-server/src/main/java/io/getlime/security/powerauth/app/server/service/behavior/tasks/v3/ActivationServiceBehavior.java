@@ -320,8 +320,12 @@ public class ActivationServiceBehavior {
 
         activationIds.forEach(activationId -> {
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-            activation.setActivationStatus(activationStatus);
-            activationRepository.save(activation);
+            if (!activation.getActivationStatus().equals(activationStatus)) {
+                // Update activation status, persist change and notify callback listeners
+                activation.setActivationStatus(activationStatus);
+                activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            }
         });
 
         response.setUpdated(true);
