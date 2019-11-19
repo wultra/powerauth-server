@@ -594,7 +594,7 @@ Lookup activations using query parameters.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `userIds` | User IDs to use in query, at least one needs to be specified |
+| `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
 | `String` | `applicationIds` | Application IDs to use in the query, use empty value for all applications |
 | `String` | `timestampLastUsed` | Filter activations by timestamp when the activation was last used, use empty value for any timestamp |
 | `String` | `activationStatus` | Filter activations by their status, use empty value for any status |
