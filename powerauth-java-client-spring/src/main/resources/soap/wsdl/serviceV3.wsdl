@@ -515,7 +515,8 @@
                     <xs:sequence>
                         <xs:element minOccurs="1" maxOccurs="unbounded" name="userIds" type="xs:string" />
                         <xs:element minOccurs="0" maxOccurs="unbounded" name="applicationIds" type="xs:long"/>
-                        <xs:element minOccurs="0" maxOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="timestampLastUsedBefore" type="xs:dateTime"/>
+                        <xs:element minOccurs="0" maxOccurs="1" name="timestampLastUsedAfter" type="xs:dateTime"/>
                         <xs:element minOccurs="0" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                     </xs:sequence>
                 </xs:complexType>

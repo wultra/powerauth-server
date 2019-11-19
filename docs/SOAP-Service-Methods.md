@@ -596,7 +596,8 @@ Lookup activations using query parameters.
 |------|------|-------------|
 | `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
 | `String` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
-| `String` | `timestampLastUsed` | Filter activations by timestamp when the activation was last used, do not specify value for any timestamp |
+| `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), do not specify value for any timestamp |
+| `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), do not specify value for any timestamp |
 | `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
 
 #### Response

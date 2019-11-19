@@ -404,19 +404,23 @@ public class PowerAuthServiceClient {
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
      * @param userIds User IDs to be used in the activations query.
      * @param applicationIds Application IDs to be used in the activations query (optional).
-     * @param timestampLastUsed Last used timestamp to be used in the activations query (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed < timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed >= timestampLastUsedAfter (optional).
      * @param activationStatus Activation status to be used in the activations query (optional).
      * @return List of activation instances satisfying given query parameters.
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsed, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
+    public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
         PowerAuthPortV3ServiceStub.LookupActivationsRequest request = new PowerAuthPortV3ServiceStub.LookupActivationsRequest();
         request.setUserIds(userIds.stream().toArray(String[]::new));
         if (applicationIds != null) {
             request.setApplicationIds(applicationIds.stream().mapToLong(l -> l).toArray());
         }
-        if (timestampLastUsed != null) {
-            request.setTimestampLastUsed(calendarWithDate(timestampLastUsed));
+        if (timestampLastUsedBefore!= null) {
+            request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
+        }
+        if (timestampLastUsedBefore!= null) {
+            request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
         }
         if (activationStatus != null) {
             request.setActivationStatus(activationStatus);

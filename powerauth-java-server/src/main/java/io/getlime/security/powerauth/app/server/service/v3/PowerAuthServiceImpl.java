@@ -156,16 +156,20 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             List<String> userIds = request.getUserIds();
             List<Long> applicationIds = request.getApplicationIds();
-            Date timestampLastUsed = null;
-            if (request.getTimestampLastUsed() != null) {
-                timestampLastUsed = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsed());
+            Date timestampLastUsedBefore = null;
+            if (request.getTimestampLastUsedBefore() != null) {
+                timestampLastUsedBefore = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedBefore());
+            }
+            Date timestampLastUsedAfter = null;
+            if (request.getTimestampLastUsedAfter() != null) {
+                timestampLastUsedAfter = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedAfter());
             }
             ActivationStatus activationStatus = null;
             if (request.getActivationStatus() != null) {
                 activationStatus = activationStatusConverter.convert(request.getActivationStatus());
             }
             logger.info("LookupActivationsRequest received");
-            LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsed, activationStatus);
+            LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, activationStatus);
             logger.info("LookupActivationsRequest succeeded");
             return response;
         } catch (Exception ex) {

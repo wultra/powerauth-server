@@ -262,12 +262,13 @@ public class ActivationServiceBehavior {
      *
      * @param userIds User IDs to be used in the activations query.
      * @param applicationIds Application IDs to be used in the activations query (optional).
-     * @param timestampLastUsed Last used timestamp to be used in the activations query (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed < timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed >= timestampLastUsedAfter (optional).
      * @param activationStatus Activation status to be used in the activations query (optional).
      * @return Response with list of matching activations.
      * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsed, ActivationStatus activationStatus) throws DatatypeConfigurationException {
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
@@ -282,7 +283,7 @@ public class ActivationServiceBehavior {
         } else {
             statuses.add(activationStatus);
         }
-        List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsed, statuses);
+        List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
 
         if (activationsList != null) {
             for (ActivationRecordEntity activation : activationsList) {
