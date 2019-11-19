@@ -595,9 +595,9 @@ Lookup activations using query parameters.
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
-| `String` | `applicationIds` | Application IDs to use in the query, use empty value for all applications |
-| `String` | `timestampLastUsed` | Filter activations by timestamp when the activation was last used, use empty value for any timestamp |
-| `String` | `activationStatus` | Filter activations by their status, use empty value for any status |
+| `String` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
+| `String` | `timestampLastUsed` | Filter activations by timestamp when the activation was last used, do not specify value for any timestamp |
+| `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
 
 #### Response
 
@@ -633,7 +633,7 @@ Update status for activations identified using their identifiers.
 | Type | Name | Description |
 |------|------|-------------|
 | `String[]` | `activationIds` | Identifiers of activations whose status needs to be updated |
-| `ActivationStatus` | `activationStatus` | Activation status to use during the update |
+| `ActivationStatus` | `activationStatus` | Activation status to use when updating the activations |
 
 #### Response
 
