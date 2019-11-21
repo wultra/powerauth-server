@@ -596,8 +596,8 @@ Lookup activations using query parameters.
 |------|------|-------------|
 | `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
 | `String` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
-| `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), do not specify value for any timestamp |
-| `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), do not specify value for any timestamp |
+| `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
+| `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
 | `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
 
 #### Response
@@ -642,7 +642,7 @@ Update status for activations identified using their identifiers.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `boolean` | `updated` | Whether status update succeeded for given activations |
+| `boolean` | `updated` | Whether status update succeeded for all provided activations, either all activation statuses are updated or none of the statuses is updated in case of an error |
 
 ## Signature verification
 

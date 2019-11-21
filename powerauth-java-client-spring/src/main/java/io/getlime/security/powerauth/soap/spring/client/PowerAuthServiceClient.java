@@ -286,10 +286,10 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         if (request.getApplicationIds() != null) {
             request.getApplicationIds().addAll(applicationIds);
         }
-        if (timestampLastUsedBefore!= null) {
+        if (timestampLastUsedBefore != null) {
             request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
         }
-        if (timestampLastUsedBefore!= null) {
+        if (timestampLastUsedBefore != null) {
             request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
         }
         if (request.getActivationStatus() != null) {

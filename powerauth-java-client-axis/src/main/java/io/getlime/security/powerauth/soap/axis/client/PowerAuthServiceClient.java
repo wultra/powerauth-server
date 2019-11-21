@@ -416,10 +416,10 @@ public class PowerAuthServiceClient {
         if (applicationIds != null) {
             request.setApplicationIds(applicationIds.stream().mapToLong(l -> l).toArray());
         }
-        if (timestampLastUsedBefore!= null) {
+        if (timestampLastUsedBefore != null) {
             request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
         }
-        if (timestampLastUsedBefore!= null) {
+        if (timestampLastUsedBefore != null) {
             request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
         }
         if (activationStatus != null) {
