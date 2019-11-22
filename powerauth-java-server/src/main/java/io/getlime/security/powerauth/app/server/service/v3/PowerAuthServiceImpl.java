@@ -19,7 +19,9 @@ package io.getlime.security.powerauth.app.server.service.v3;
 
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -57,6 +59,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private LocalizationProvider localizationProvider;
 
     private BuildProperties buildProperties;
+
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceImpl.class);
@@ -125,7 +129,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter userId in method getActivationListForUser");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The applicationId can be null, in this case all applications are used
@@ -144,9 +148,64 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws GenericServiceException {
+        if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+            logger.warn("Invalid request parameter userIds in method lookupActivations");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            List<String> userIds = request.getUserIds();
+            List<Long> applicationIds = request.getApplicationIds();
+            Date timestampLastUsedBefore = null;
+            if (request.getTimestampLastUsedBefore() != null) {
+                timestampLastUsedBefore = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedBefore());
+            }
+            Date timestampLastUsedAfter = null;
+            if (request.getTimestampLastUsedAfter() != null) {
+                timestampLastUsedAfter = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedAfter());
+            }
+            ActivationStatus activationStatus = null;
+            if (request.getActivationStatus() != null) {
+                activationStatus = activationStatusConverter.convert(request.getActivationStatus());
+            }
+            logger.info("LookupActivationsRequest received");
+            LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, activationStatus);
+            logger.info("LookupActivationsRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request)  throws GenericServiceException {
+        if (request.getActivationIds() == null || request.getActivationIds().isEmpty()) {
+            logger.warn("Invalid request parameter activationIds in method updateStatusForActivations");
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            List<String> activationIds = request.getActivationIds();
+            ActivationStatus activationStatus = null;
+            if (request.getActivationStatus() != null) {
+                activationStatus = activationStatusConverter.convert(request.getActivationStatus());
+            }
+            logger.info("UpdateStatusForActivationsRequest received");
+            UpdateStatusForActivationsResponse response = behavior.getActivationServiceBehavior().updateStatusForActivation(activationIds, activationStatus);
+            logger.info("UpdateStatusForActivationsRequest succeeded");
+            return response;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter activationId in method getActivationStatus");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -170,7 +229,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public InitActivationResponse initActivation(InitActivationRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter userId in method initActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
@@ -196,7 +255,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
         if (request.getActivationCode() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in prepareActivation method");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -223,7 +282,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         if (request.getUserId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in createActivation method");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -277,7 +336,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null
                 || request.getSignature() == null || request.getSignatureType() == null || request.getSignatureVersion() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method verifySignature");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -299,7 +358,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method createPersonalizedOfflineSignaturePayload");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -322,7 +381,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         if (request.getData() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter data in method createNonPersonalizedOfflineSignaturePayload");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -345,7 +404,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method verifyOfflineSignature");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -378,7 +437,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CommitActivationResponse commitActivation(CommitActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter activationId in method commitActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -401,7 +460,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter activationId in method removeActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -424,7 +483,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public BlockActivationResponse blockActivation(BlockActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter activationId in method blockActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -448,7 +507,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter activationId in method unblockActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -474,7 +533,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
                 || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
                 || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method vaultUnlock");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -521,7 +580,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method verifyECDSASignature");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -547,7 +606,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter userId in method getSignatureAuditLog");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -573,7 +632,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter activationId in method getActivationHistory");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -633,7 +692,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter applicationKey in method lookupApplicationByAppKey");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -654,7 +713,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional(rollbackFor = GenericServiceException.class)
     public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
         if (request.getApplicationName() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter applicationName in method createApplication");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -675,7 +734,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws GenericServiceException {
         if (request.getApplicationVersionName() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter applicationVersionName in method createApplicationVersion");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -730,7 +789,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws GenericServiceException {
         if (request.getName() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter name in method createIntegration");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -776,7 +835,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
         if (request.getName() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter name in method createCallbackUrl");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -825,7 +884,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method createToken");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -846,7 +905,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method validateToken");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // Verify the token timestamp validity
@@ -872,7 +931,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
         if (request.getTokenId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter tokenId in method removeToken");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -890,7 +949,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method getEciesDecryptor");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The activationId value can be null in case the decryptor is used in application scope
@@ -912,7 +971,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method startUpgrade");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -933,7 +992,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method commitUpgrade");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -954,7 +1013,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws Exception {
         if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method createRecoveryCode");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -976,7 +1035,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws Exception {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
                 || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method confirmRecoveryCode");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -997,7 +1056,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws Exception {
         if (request.getApplicationId() == null && request.getUserId() == null && request.getActivationId() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method lookupRecoveryCodes");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1018,7 +1077,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws Exception {
         if (request.getRecoveryCodeIds() == null || request.getRecoveryCodeIds().isEmpty()) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method revokeRecoveryCodes");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1040,7 +1099,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception {
         if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
             || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1061,7 +1120,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1082,7 +1141,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameter applicationId in method updateRecoveryConfig");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {

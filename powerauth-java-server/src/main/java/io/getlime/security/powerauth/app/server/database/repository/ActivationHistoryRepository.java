@@ -31,6 +31,6 @@ import java.util.List;
  */
 public interface ActivationHistoryRepository extends CrudRepository<ActivationHistoryEntity, Long> {
 
-    @Query("SELECT h FROM ActivationHistoryEntity h WHERE h.activation.activationId = ?1 AND h.timestampCreated BETWEEN ?2 AND ?3 ORDER BY h.timestampCreated DESC, h.id DESC")
+    @Query("SELECT h FROM ActivationHistoryEntity h WHERE h.activation.activationId = :activationId AND h.timestampCreated BETWEEN :startingDate AND :endingDate ORDER BY h.timestampCreated DESC, h.id DESC")
     List<ActivationHistoryEntity> findActivationHistory(String activationId, Date startingDate, Date endingDate);
 }

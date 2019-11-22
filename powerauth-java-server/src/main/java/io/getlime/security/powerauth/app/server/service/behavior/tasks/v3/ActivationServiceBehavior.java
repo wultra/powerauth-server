@@ -33,6 +33,7 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.*;
+import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery;
@@ -89,6 +90,7 @@ public class ActivationServiceBehavior {
     private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
 
     private final RepositoryCatalogue repositoryCatalogue;
+    private final ServiceBehaviorCatalogue behaviorCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
@@ -112,8 +114,9 @@ public class ActivationServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue behaviorCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
+        this.behaviorCatalogue = behaviorCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
@@ -251,6 +254,83 @@ public class ActivationServiceBehavior {
                 response.getActivations().add(activationServiceItem);
             }
         }
+        return response;
+    }
+
+    /**
+     * Lookup activations using various query parameters.
+     *
+     * @param userIds User IDs to be used in the activations query.
+     * @param applicationIds Application IDs to be used in the activations query (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed < timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed >= timestampLastUsedAfter (optional).
+     * @param activationStatus Activation status to be used in the activations query (optional).
+     * @return Response with list of matching activations.
+     * @throws DatatypeConfigurationException If calendar conversion fails.
+     */
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
+        final LookupActivationsResponse response = new LookupActivationsResponse();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+        if (applicationIds != null && applicationIds.isEmpty()) {
+            // Make sure application ID list is null in case no application ID is specified
+            applicationIds = null;
+        }
+        List<ActivationStatus> statuses = new ArrayList<>();
+        if (activationStatus == null) {
+            // In case activation status is not specified, consider all statuses
+            statuses.addAll(Arrays.asList(ActivationStatus.values()));
+        } else {
+            statuses.add(activationStatus);
+        }
+        List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
+
+        if (activationsList != null) {
+            for (ActivationRecordEntity activation : activationsList) {
+                // Map between database object and service objects
+                LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
+                activationServiceItem.setActivationId(activation.getActivationId());
+                activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                activationServiceItem.setBlockedReason(activation.getBlockedReason());
+                activationServiceItem.setActivationName(activation.getActivationName());
+                activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+                activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+                activationServiceItem.setUserId(activation.getUserId());
+                activationServiceItem.setApplicationId(activation.getApplication().getId());
+                activationServiceItem.setApplicationName(activation.getApplication().getName());
+                // Unknown version is converted to 0 in SOAP
+                activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                response.getActivations().add(activationServiceItem);
+            }
+        }
+
+        return response;
+    }
+
+    /**
+     * Update status for activations.
+     * @param activationIds Identifiers of activations to update.
+     * @param activationStatus Activation status to use.
+     * @return Response with indication whether status update succeeded.
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivation(List<String> activationIds, ActivationStatus activationStatus) {
+        final UpdateStatusForActivationsResponse response = new UpdateStatusForActivationsResponse();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        activationIds.forEach(activationId -> {
+            ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+            if (!activation.getActivationStatus().equals(activationStatus)) {
+                // Update activation status, persist change and notify callback listeners
+                activation.setActivationStatus(activationStatus);
+                activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            }
+        });
+
+        response.setUpdated(true);
+
         return response;
     }
 
@@ -1258,6 +1338,7 @@ public class ActivationServiceBehavior {
                 for (RecoveryPukEntity recoveryPukEntity : recoveryCodeEntity.getRecoveryPuks()) {
                     if (RecoveryPukStatus.VALID.equals(recoveryPukEntity.getStatus())) {
                         validPukExists = true;
+                        break;
                     }
                 }
                 if (!validPukExists) {

@@ -263,6 +263,66 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
+     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link LookupActivationsRequest} instance
+     * @return {@link LookupActivationsResponse}
+     */
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) {
+        return (LookupActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userIds User IDs to be used in the activations query.
+     * @param applicationIds Application IDs to be used in the activations query (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed < timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed >= timestampLastUsedAfter (optional).
+     * @param activationStatus Activation status to be used in the activations query (optional).
+     * @return List of activation instances satisfying given query parameters.
+     */
+    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) {
+        LookupActivationsRequest request = new LookupActivationsRequest();
+        request.getUserIds().addAll(userIds);
+        if (request.getApplicationIds() != null) {
+            request.getApplicationIds().addAll(applicationIds);
+        }
+        if (timestampLastUsedBefore != null) {
+            request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
+        }
+        if (timestampLastUsedBefore != null) {
+            request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
+        }
+        if (request.getActivationStatus() != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return this.lookupActivations(request).getActivations();
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link UpdateStatusForActivationsRequest} instance
+     * @return {@link UpdateStatusForActivationsResponse}
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) {
+        return (UpdateStatusForActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationIds Identifiers of activations whose status should be updated.
+     * @param activationStatus Activation status to be used.
+     * @return Response indicating whether activation status update succeeded.
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) {
+        UpdateStatusForActivationsRequest request = new UpdateStatusForActivationsRequest();
+        request.getActivationIds().addAll(activationIds);
+        if (activationStatus != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return this.updateStatusForActivations(request);
+    }
+
+    /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link RemoveActivationRequest} instance.
      * @return {@link RemoveActivationResponse}

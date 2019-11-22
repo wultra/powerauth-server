@@ -31,6 +31,8 @@ The following `v3` methods are published using the service:
     - [removeActivation](#method-removeactivation)
     - [blockActivation](#method-blockactivation)
     - [unblockActivation](#method-unblockactivation)
+    - [lookupActivations](#method-lookupactivations)
+    - [updateStatusForActivations](#method-updatestatusforactivations)
 - Signature Verification
     - [verifySignature](#method-verifysignature)
     - [verifyECDSASignature](#method-verifyecdsasignature)
@@ -581,6 +583,66 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status |
+
+### Method 'lookupActivations'
+
+Lookup activations using query parameters.
+
+#### Request
+
+`LookupActivationsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
+| `String` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
+| `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
+| `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
+| `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
+
+#### Response
+
+`LookupActivationsResponse`
+
+| `Activation[]` | `activations` | A collection of activations for given query parameters |
+
+`LookupActivationsResponse.Activation`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `ActivationStatus` | `activationStatus` | An activation status |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String` | `activationName` | An activation name |
+| `String` | `extras` | Any custom attributes |
+| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
+| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
+| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
+| `String` | `userId` | An identifier of a user |
+| `Long` | `applicationId` | An identifier fo an application |
+| `String` | `applicationName` | An application name |
+| `Long` | `version` | Activation version |
+
+### Method 'updateStatusForActivations'
+
+Update status for activations identified using their identifiers.
+
+#### Request
+
+`UpdateStatusForActivationsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String[]` | `activationIds` | Identifiers of activations whose status needs to be updated |
+| `ActivationStatus` | `activationStatus` | Activation status to use when updating the activations |
+
+#### Response
+
+`UpdateStatusForActivationsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `boolean` | `updated` | Whether status update succeeded for all provided activations, either all activation statuses are updated or none of the statuses is updated in case of an error |
 
 ## Signature verification
 
