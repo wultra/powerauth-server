@@ -1010,8 +1010,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws GenericServiceException {
         if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
             logger.warn("Invalid request parameters in method createRecoveryCode");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1031,8 +1031,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
                 || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method confirmRecoveryCode");
@@ -1053,8 +1053,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws GenericServiceException {
         if (request.getApplicationId() == null && request.getUserId() == null && request.getActivationId() == null) {
             logger.warn("Invalid request parameters in method lookupRecoveryCodes");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1074,8 +1074,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws GenericServiceException {
         if (request.getRecoveryCodeIds() == null || request.getRecoveryCodeIds().isEmpty()) {
             logger.warn("Invalid request parameters in method revokeRecoveryCodes");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1095,8 +1095,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
         if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
             || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
@@ -1117,8 +1117,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1138,8 +1138,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = Exception.class)
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws GenericServiceException {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method updateRecoveryConfig");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
