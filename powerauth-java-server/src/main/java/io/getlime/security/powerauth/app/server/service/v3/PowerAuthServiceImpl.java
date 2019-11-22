@@ -126,7 +126,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method getActivationListForUser");
@@ -147,7 +147,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws GenericServiceException {
         if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
             logger.warn("Invalid request parameter userIds in method lookupActivations");
@@ -179,8 +179,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
-    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request)  throws GenericServiceException {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws GenericServiceException {
         if (request.getActivationIds() == null || request.getActivationIds().isEmpty()) {
             logger.warn("Invalid request parameter activationIds in method updateStatusForActivations");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -202,7 +202,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method getActivationStatus");
@@ -226,7 +226,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public InitActivationResponse initActivation(InitActivationRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method initActivation");
@@ -252,7 +252,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
         if (request.getActivationCode() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
             logger.warn("Invalid request parameters in prepareActivation method");
@@ -279,7 +279,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         if (request.getUserId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
             logger.warn("Invalid request parameters in createActivation method");
@@ -332,7 +332,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null
                 || request.getSignature() == null || request.getSignatureType() == null || request.getSignatureVersion() == null) {
@@ -355,7 +355,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null) {
             logger.warn("Invalid request parameters in method createPersonalizedOfflineSignaturePayload");
@@ -378,7 +378,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         if (request.getData() == null) {
             logger.warn("Invalid request parameter data in method createNonPersonalizedOfflineSignaturePayload");
@@ -401,7 +401,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
             logger.warn("Invalid request parameters in method verifyOfflineSignature");
@@ -434,7 +434,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CommitActivationResponse commitActivation(CommitActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method commitActivation");
@@ -457,7 +457,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method removeActivation");
@@ -480,7 +480,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public BlockActivationResponse blockActivation(BlockActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method blockActivation");
@@ -504,7 +504,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method unblockActivation");
@@ -528,7 +528,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
                 || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
@@ -577,7 +577,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
             logger.warn("Invalid request parameters in method verifyECDSASignature");
@@ -603,7 +603,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method getSignatureAuditLog");
@@ -629,7 +629,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method getActivationHistory");
@@ -650,7 +650,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws GenericServiceException {
         try {
             logger.info("GetApplicationListRequest received");
@@ -664,7 +664,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
         try {
             GetApplicationDetailResponse response;
@@ -689,7 +689,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null) {
             logger.warn("Invalid request parameter applicationKey in method lookupApplicationByAppKey");
@@ -731,7 +731,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws GenericServiceException {
         if (request.getApplicationVersionName() == null) {
             logger.warn("Invalid request parameter applicationVersionName in method createApplicationVersion");
@@ -752,7 +752,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws GenericServiceException {
         try {
             logger.info("UnsupportApplicationVersionRequest received, application version ID: {}", request.getApplicationVersionId());
@@ -769,7 +769,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws GenericServiceException {
         try {
             logger.info("SupportApplicationVersionRequest received, application version ID: {}", request.getApplicationVersionId());
@@ -786,7 +786,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws GenericServiceException {
         if (request.getName() == null) {
             logger.warn("Invalid request parameter name in method createIntegration");
@@ -804,7 +804,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetIntegrationListResponse getIntegrationList() throws GenericServiceException {
         try {
             logger.info("GetIntegrationListRequest received");
@@ -818,7 +818,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws GenericServiceException {
         try {
             logger.info("RemoveIntegrationRequest received, id: {}", request.getId());
@@ -832,7 +832,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
         if (request.getName() == null) {
             logger.warn("Invalid request parameter name in method createCallbackUrl");
@@ -853,7 +853,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws GenericServiceException {
         try {
             logger.info("GetCallbackUrlListRequest received, application ID: {}", request.getApplicationId());
@@ -867,7 +867,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws GenericServiceException {
         try {
             logger.info("RemoveCallbackUrlRequest received, id: {}", request.getId());
@@ -881,7 +881,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method createToken");
@@ -902,7 +902,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null) {
             logger.warn("Invalid request parameters in method validateToken");
@@ -928,7 +928,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
         if (request.getTokenId() == null) {
             logger.warn("Invalid request parameter tokenId in method removeToken");
@@ -946,7 +946,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             logger.warn("Invalid request parameters in method getEciesDecryptor");
@@ -968,7 +968,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method startUpgrade");
@@ -989,7 +989,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = GenericServiceException.class)
     public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method commitUpgrade");
@@ -1010,7 +1010,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws Exception {
         if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
             logger.warn("Invalid request parameters in method createRecoveryCode");
@@ -1031,7 +1031,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws Exception {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
                 || request.getEncryptedData() == null || request.getMac() == null) {
@@ -1053,7 +1053,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws Exception {
         if (request.getApplicationId() == null && request.getUserId() == null && request.getActivationId() == null) {
             logger.warn("Invalid request parameters in method lookupRecoveryCodes");
@@ -1074,7 +1074,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws Exception {
         if (request.getRecoveryCodeIds() == null || request.getRecoveryCodeIds().isEmpty()) {
             logger.warn("Invalid request parameters in method revokeRecoveryCodes");
@@ -1095,7 +1095,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws Exception {
         if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
             || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
@@ -1117,7 +1117,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
@@ -1138,7 +1138,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method updateRecoveryConfig");
