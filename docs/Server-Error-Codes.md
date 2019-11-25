@@ -34,5 +34,6 @@ PowerAuth Server may return following errors:
 | ERR0027    | Recovery code was not found. | An action was attempted on a recovery code which does not exist. |
 | ERR0028    | Invalid recovery code. | Used combination of recovery code and PUK is invalid. | 
 | ERR0029    | Invalid recovery configuration. | Recovery code configuration is missing or incomplete. |
+| ERR0030    | Token timestamp is too old. | In case token validation fails due to token being no longer valid. |
  
 For each of these issues, more details about the specific nature and cause can be found in the server log.

@@ -911,7 +911,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         // Verify the token timestamp validity
         if (request.getTimestamp() < System.currentTimeMillis() - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
         }
         try {
             logger.info("ValidateTokenRequest received, token ID: {}", request.getTokenId());
