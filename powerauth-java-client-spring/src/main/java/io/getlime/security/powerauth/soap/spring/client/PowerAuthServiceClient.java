@@ -275,8 +275,8 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
      * @param userIds User IDs to be used in the activations query.
      * @param applicationIds Application IDs to be used in the activations query (optional).
-     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed < timestampLastUsedBefore (optional).
-     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed >= timestampLastUsedAfter (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
      * @param activationStatus Activation status to be used in the activations query (optional).
      * @return List of activation instances satisfying given query parameters.
      */
