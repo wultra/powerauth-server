@@ -160,8 +160,8 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * Find all activations which match the query criteria.
      * @param userIds List of user IDs, at least one user ID should be specified.
      * @param applicationIds List of application IDs, use null value for all applications.
-     * @param timestampLastUsedBefore Last used timestamp (timestampLastUsed < timestampLastUsedBefore), use null value for any date.
-     * @param timestampLastUsedAfter Last used timestamp (timestampLastUsed >= timestampLastUsedAfter), use null value for any date.
+     * @param timestampLastUsedBefore Last used timestamp (timestampLastUsed &lt; timestampLastUsedBefore), use null value for any date.
+     * @param timestampLastUsedAfter Last used timestamp (timestampLastUsed &gt;= timestampLastUsedAfter), use null value for any date.
      * @param states List of activation states to consider.
      * @return List of activations which match the query criteria.
      */
