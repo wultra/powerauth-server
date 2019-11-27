@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -47,7 +49,7 @@ public class CreateApplicationTest {
 
     @Test
     public void testCreateApplicationWithDuplicateName() {
-        String testId = "Test_" + System.currentTimeMillis();
+        String testId = UUID.randomUUID().toString();
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(testId);
         assertDoesNotThrow(()-> powerAuthService.createApplication(request));

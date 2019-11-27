@@ -28,6 +28,7 @@ import java.security.interfaces.ECPublicKey;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -45,7 +46,7 @@ public class VerifySignatureConcurrencyTest {
     public void testVerifySignatureConcurrent() throws Exception {
 
         // Generate test application
-        String testId = "Test_"+System.currentTimeMillis();
+        String testId = UUID.randomUUID().toString();
         CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
         createApplicationRequest.setApplicationName(testId);
         CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
