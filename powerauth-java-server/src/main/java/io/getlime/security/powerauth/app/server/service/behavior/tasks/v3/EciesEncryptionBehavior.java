@@ -147,7 +147,7 @@ public class EciesEncryptionBehavior {
 
             // Initialize decryptor with ephemeral public key
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes, null);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
             final EciesEnvelopeKey envelopeKey = decryptor.getEnvelopeKey();
@@ -230,7 +230,7 @@ public class EciesEncryptionBehavior {
 
             // Initialize decryptor with ephemeral public key
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes, null);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
             final EciesEnvelopeKey envelopeKey = decryptor.getEnvelopeKey();

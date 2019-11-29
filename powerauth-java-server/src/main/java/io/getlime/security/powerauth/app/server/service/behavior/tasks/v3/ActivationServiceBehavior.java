@@ -1204,7 +1204,8 @@ public class ActivationServiceBehavior {
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
             byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
             byte[] macBytes = BaseEncoding.base64().decode(mac);
-            final EciesCryptogram eciesCryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
+            byte[] nonceBytes = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            final EciesCryptogram eciesCryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
 
             // Prepare repositories
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();

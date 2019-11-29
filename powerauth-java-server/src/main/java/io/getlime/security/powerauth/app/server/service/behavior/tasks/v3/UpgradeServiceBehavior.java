@@ -99,7 +99,7 @@ public class UpgradeServiceBehavior {
         final String ephemeralPublicKey = request.getEphemeralPublicKey();
         final String encryptedData = request.getEncryptedData();
         final String mac = request.getMac();
-
+        final String nonce = request.getNonce();
         // Verify input data
         if (activationId == null || applicationKey == null || ephemeralPublicKey == null || encryptedData == null || mac == null) {
             logger.warn("Invalid start upgrade request");
@@ -109,7 +109,8 @@ public class UpgradeServiceBehavior {
         byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
         byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
         byte[] macBytes = BaseEncoding.base64().decode(mac);
-        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
+        byte[] nonceBytes = nonce != null ? BaseEncoding.base64().decode(nonce) : null;
+        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
 
         // Lookup the activation
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);

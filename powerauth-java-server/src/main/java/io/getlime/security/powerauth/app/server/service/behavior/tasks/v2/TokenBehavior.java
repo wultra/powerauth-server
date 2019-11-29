@@ -185,7 +185,7 @@ public class TokenBehavior {
 
             final EciesDecryptor decryptor = new EciesDecryptor((ECPrivateKey) privateKey);
             // There is no encrypted request data to decrypt, the envelope key in needs to be initialized before encryption
-            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes, null);
             return decryptor.encryptResponse(tokenBytes);
         } catch (InvalidKeySpecException ex) {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);

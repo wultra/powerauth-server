@@ -53,6 +53,17 @@ PowerAuth server in version `0.23.0` slightly changed SOAP interface for protoco
 - `GetActivationStatusRequest` request object has now new optional parameter `challenge`, which is now provided by `V3.1` mobile clients.
 - `GetActivationStatusResponse` response object has now new optional parameter `encryptedStatusBlobNonce`, which is provided only if `challenge` in request is present.
 
+The following request objects were updated due to changes in our ECIES encryption scheme. The optional parameter `nonce` must be provided for protocol `V3.1` and later: 
+
+- `PrepareActivationRequest` request object now contains optional parameter `nonce`.
+- `CreateActivationRequest` request object now contains optional parameter `nonce`.
+- `VaultUnlockRequest` request object now contains optional parameter `nonce`.
+- `CreateTokenRequest` request object now contains optional parameter `nonce`.
+- `StartUpgradeRequest` request object now contains optional parameter `nonce`.
+- `ConfirmRecoveryCodeRequest` request object now contains optional parameter `nonce`.
+- `RecoveryCodeActivationRequest` request object now contains optional parameter `nonce`.
+
+
 You can access the WSDL files in following URLs:
 - version `3`: `http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl`
 - version `2`: `http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl`

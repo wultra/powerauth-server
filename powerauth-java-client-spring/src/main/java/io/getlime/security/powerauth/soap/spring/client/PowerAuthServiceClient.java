@@ -131,15 +131,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link PrepareActivationResponse}
      */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
         PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return prepareActivation(request);
     }
 
@@ -162,9 +164,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link CreateActivationResponse}
      */
-    public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) {
+    public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
+                                                     String applicationKey, String ephemeralPublicKey, String encryptedData,
+                                                     String mac, String nonce) {
         CreateActivationRequest request = new CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
@@ -177,6 +182,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return createActivation(request);
     }
 
@@ -410,11 +416,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link VaultUnlockResponse}
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                            SignatureType signatureType, String signatureVersion, String signedData,
-                                           String ephemeralPublicKey, String encryptedData, String mac) {
+                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -425,6 +432,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return unlockVault(request);
     }
 
@@ -908,17 +916,19 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
+     * @param nonce Nonce for ECIES.
      * @param signatureType Type of the signature used for validating the create request.
      * @return Response with created token.
      */
     public CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                           String encryptedData, String mac, SignatureType signatureType) {
+                                           String encryptedData, String mac, String nonce, SignatureType signatureType) {
         CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setNonce(nonce);
         request.setSignatureType(signatureType);
         return createToken(request);
     }
@@ -1011,16 +1021,18 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
+     * @param nonce Nonce for ECIES.
      * @return Start upgrade response.
      */
     public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                 String encryptedData, String mac) {
+                                                 String encryptedData, String mac, String nonce) {
         StartUpgradeRequest request = new StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return startUpgrade(request);
     }
 
@@ -1086,16 +1098,18 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return Confirm recovery code response.
      */
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                           String encryptedData, String mac) {
+                                                           String encryptedData, String mac, String nonce) {
         ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return confirmRecoveryCode(request);
     }
 
@@ -1166,10 +1180,11 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce nonce for ECIES.
      * @return Create activation using recovery code response.
      */
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                            String ephemeralPublicKey, String encryptedData, String mac) {
+                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
         RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -1180,6 +1195,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return createActivationUsingRecoveryCode(request);
     }
 

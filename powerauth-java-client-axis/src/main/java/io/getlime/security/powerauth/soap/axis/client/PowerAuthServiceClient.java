@@ -249,16 +249,18 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.PrepareActivationRequest request = new PowerAuthPortV3ServiceStub.PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return this.prepareActivation(request);
     }
 
@@ -282,10 +284,11 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateActivationRequest request = new PowerAuthPortV3ServiceStub.CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
@@ -298,6 +301,7 @@ public class PowerAuthServiceClient {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return this.createActivation(request);
     }
 
@@ -549,12 +553,13 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                                                       PowerAuthPortV3ServiceStub.SignatureType signatureType, String signatureVersion,
-                                                                      String signedData, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+                                                                      String signedData, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.VaultUnlockRequest request = new PowerAuthPortV3ServiceStub.VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -565,6 +570,7 @@ public class PowerAuthServiceClient {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return unlockVault(request);
     }
 
@@ -1066,17 +1072,20 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
+     * @param nonce Nonce for ECIES.
      * @param signatureType Type of the signature used for validating the create request.
      * @return Response with created token.
      */
     public PowerAuthPortV3ServiceStub.CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                                      String encryptedData, String mac, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
+                                                                      String encryptedData, String mac, String nonce,
+                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateTokenRequest request = new PowerAuthPortV3ServiceStub.CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setNonce(nonce);
         request.setSignatureType(signatureType);
         return createToken(request);
     }
@@ -1172,16 +1181,18 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
+     * @param nonce Nonce for ECIES.
      * @return Start upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.StartUpgradeRequest request = new PowerAuthPortV3ServiceStub.StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return startUpgrade(request);
     }
 
@@ -1252,17 +1263,19 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return Confirm recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                                                      String encryptedData, String mac) throws RemoteException {
+                                                                                      String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest request = new PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return confirmRecoveryCode(request);
     }
 
@@ -1340,11 +1353,12 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return Create activation using recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                                                       String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+                                                                                                       String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest request = new PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -1355,6 +1369,7 @@ public class PowerAuthServiceClient {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return createActivationUsingRecoveryCode(request);
     }
 
