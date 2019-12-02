@@ -320,6 +320,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -353,6 +354,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -769,6 +771,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1081,6 +1084,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="signatureType" type="tns:SignatureType"/>
                     </xs:sequence>
                 </xs:complexType>
@@ -1191,6 +1195,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1280,6 +1285,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1378,6 +1384,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="ephemeralPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

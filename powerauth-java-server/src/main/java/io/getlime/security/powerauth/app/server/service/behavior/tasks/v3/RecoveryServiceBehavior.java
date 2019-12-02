@@ -262,6 +262,7 @@ public class RecoveryServiceBehavior {
             final String ephemeralPublicKey = request.getEphemeralPublicKey();
             final String encryptedData = request.getEncryptedData();
             final String mac = request.getMac();
+            final String nonce = request.getNonce();
 
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
@@ -310,7 +311,8 @@ public class RecoveryServiceBehavior {
             final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
             final byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
             final byte[] macBytes = BaseEncoding.base64().decode(mac);
-            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
+            final byte[] nonceBytes = nonce != null ? BaseEncoding.base64().decode(nonce) : null;
+            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
 
             // Convert JSON data to confirm recovery request object

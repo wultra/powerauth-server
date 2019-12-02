@@ -264,7 +264,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             byte[] mac = BaseEncoding.base64().decode(request.getMac());
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
-            EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+            byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
             PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConversionUtilities);
             logger.info("PrepareActivationRequest succeeded");
@@ -294,7 +295,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             byte[] mac = BaseEncoding.base64().decode(request.getMac());
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
-            EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+            byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("CreateActivationRequest received, user ID: {}", userId);
             CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
                     userId,
@@ -547,6 +549,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
             byte[] mac = BaseEncoding.base64().decode(request.getMac());
+            byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
 
             logger.info("VaultUnlockRequest received, activation ID: {}", activationId);
 
@@ -561,7 +564,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             }
 
             // Convert received ECIES request data to cryptogram
-            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
 
             VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
                     signature, signatureType, signatureVersion, signedData, cryptogram, keyConversionUtilities);

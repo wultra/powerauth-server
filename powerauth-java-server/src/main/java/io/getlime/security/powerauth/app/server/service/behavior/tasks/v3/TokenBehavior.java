@@ -113,10 +113,11 @@ public class TokenBehavior {
         final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
         final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
         final byte[] mac = BaseEncoding.base64().decode(request.getMac());
+        final byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
         final SignatureType signatureType = request.getSignatureType();
 
         // Convert received ECIES request data to cryptogram
-        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData);
+        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
 
         EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.value(), keyConversion);
 
