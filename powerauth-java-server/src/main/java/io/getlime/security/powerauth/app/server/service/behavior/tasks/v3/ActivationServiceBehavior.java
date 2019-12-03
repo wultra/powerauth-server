@@ -51,6 +51,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.HashBasedCounterUtils;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -442,13 +443,19 @@ public class ActivationServiceBehavior {
                         SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
                         String ctrDataBase64 = activation.getCtrDataBase64();
-                        byte[] ctrDataForStatusBlob;
+                        byte[] ctrDataHashForStatusBlob;
                         if (ctrDataBase64 != null) {
-                            // In crypto v3 counter data is stored with activation
-                            ctrDataForStatusBlob = BaseEncoding.base64().decode(ctrDataBase64);
+                            // In crypto v3 counter data is stored with activation. We have to calculate hash from
+                            // the counter value, before it's encoded into the status blob. The value might be replaced
+                            // in `encryptedStatusBlob()` function that injects random data, depending on the version
+                            // of the status blob encryption.
+                            final byte[] ctrData = BaseEncoding.base64().decode(ctrDataBase64);
+                            ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, transportKey);
                         } else {
-                            // In crypto v2 counter data is not present, generate random bytes
-                            ctrDataForStatusBlob = keyGenerator.generateRandomBytes(16);
+                            // In crypto v2 counter data is not present, so use an array of zero bytes. This might be
+                            // replaced in `encryptedStatusBlob()` function that injects random data automatically,
+                            // depending on the version of the status blob encryption.
+                            ctrDataHashForStatusBlob = new byte[16];
                         }
                         byte[] statusChallenge;
                         byte[] statusNonce;
@@ -471,7 +478,8 @@ public class ActivationServiceBehavior {
                         statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
                         statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
                         statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getSignatureValidationLookahead());
-                        statusBlobInfo.setCtrData(ctrDataForStatusBlob);
+                        statusBlobInfo.setCtrInfo(activation.getCounter().byteValue());
+                        statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
                         encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey);
 
                         // Assign the activation fingerprint
