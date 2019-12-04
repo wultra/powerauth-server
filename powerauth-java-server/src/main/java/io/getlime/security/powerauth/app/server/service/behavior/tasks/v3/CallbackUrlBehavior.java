@@ -226,7 +226,7 @@ public class CallbackUrlBehavior {
                     .post()
                     .uri(callbackUrl.getCallbackUrl())
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromObject(callbackData))
+                    .body(BodyInserters.fromValue(callbackData))
                     .retrieve()
                     .bodyToMono(ClientResponse.class)
                     .subscribe(onSuccess, onError);
