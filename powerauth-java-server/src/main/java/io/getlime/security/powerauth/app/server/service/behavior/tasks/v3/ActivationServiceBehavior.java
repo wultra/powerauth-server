@@ -51,7 +51,6 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import io.getlime.security.powerauth.crypto.lib.util.HashBasedCounterUtils;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -478,7 +477,7 @@ public class ActivationServiceBehavior {
                         statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
                         statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
                         statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getSignatureValidationLookahead());
-                        statusBlobInfo.setCtrInfo(activation.getCounter().byteValue());
+                        statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
                         statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
                         encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey);
 
