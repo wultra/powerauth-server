@@ -78,7 +78,7 @@ ALTER TABLE `pa_activation` ADD `version` INT(2) DEFAULT 2;
 --
 --  Added Column TIMESTAMP_LAST_CHANGE in Table PA_ACTIVATION
 --
-ALTER TABLE `pa_activation` ADD  `timestamp_last_change` datetime
+ALTER TABLE `pa_activation` ADD `timestamp_last_change` datetime;
 
 
 --
