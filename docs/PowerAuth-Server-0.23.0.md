@@ -56,6 +56,8 @@ PowerAuth protocol version `3.1` support has been introduced in PowerAuth server
 The main changes in PowerAuth protocol are following:
 - Improved information entropy in PowerAuth online signatures. The signature is now encoded into BASE64 instead of decimal string.
 - Improved protection of encrypted status blob against possible replay attacks. 
+- Improved protection of payload encrypted by our ECIES scheme.
+- Improved protocol reliability by allowing the mobile client to synchronize its counter with the server.
 
 The changes of cryptography are documented in details in the [powerauth-crypto](https://github.com/wultra/powerauth-crypto) project. 
 
