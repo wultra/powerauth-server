@@ -46,6 +46,22 @@ public interface PowerAuthService {
     GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws Exception;
 
     /**
+     * Lookup activations using various query parameters.
+     * @param request Lookup activations request.
+     * @return Lookup activations response.
+     * @throws Exception In case of a business logic error.
+     */
+    LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws Exception;
+
+    /**
+     * Update status for activations.
+     * @param request Update status for activations request.
+     * @return Update status for activations response.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws Exception;
+
+    /**
      * Get activation status for given activation ID.
      *
      * @param request Activation status request object.

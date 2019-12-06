@@ -75,7 +75,7 @@ public class VaultUnlockServiceBehavior {
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
 
     // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired

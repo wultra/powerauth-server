@@ -50,8 +50,8 @@ import java.util.Optional;
 @Component
 public class ApplicationServiceBehavior {
 
-    private RepositoryCatalogue repositoryCatalogue;
-    private LocalizationProvider localizationProvider;
+    private final RepositoryCatalogue repositoryCatalogue;
+    private final LocalizationProvider localizationProvider;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ApplicationServiceBehavior.class);
@@ -63,23 +63,37 @@ public class ApplicationServiceBehavior {
     }
 
     /**
-     * Get application details.
+     * Get application details by ID.
      *
      * @param applicationId Application ID
      * @return Response with application details
      * @throws GenericServiceException Thrown when application does not exist.
      */
     public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws GenericServiceException {
-
         ApplicationEntity application = findApplicationById(applicationId);
+        return createApplicationDetailResponse(application);
+    }
 
+    /**
+     * Get application details by name.
+     *
+     * @param applicationName Application name
+     * @return Response with application details
+     * @throws GenericServiceException Thrown when application does not exist.
+     */
+    public GetApplicationDetailResponse getApplicationDetailByName(String applicationName) throws GenericServiceException {
+        ApplicationEntity application = findApplicationByName(applicationName);
+        return createApplicationDetailResponse(application);
+    }
+
+    private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
         GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(application.getId());
         response.setApplicationName(application.getName());
-        MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+        MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
-            logger.error("Missing key pair for application ID: {}", applicationId);
+            logger.error("Missing key pair for application ID: {}", application.getId());
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
@@ -276,6 +290,21 @@ public class ApplicationServiceBehavior {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application ID: {}", applicationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+        return applicationOptional.get();
+    }
+
+    /**
+     * Find application entity by name.
+     * @param applicationName Application name.
+     * @return Application entity.
+     * @throws GenericServiceException Thrown when application does not exist.
+     */
+    private ApplicationEntity findApplicationByName(String applicationName) throws GenericServiceException {
+        final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findByName(applicationName);
+        if (!applicationOptional.isPresent()) {
+            logger.info("Application not found, application name: '{}'", applicationName);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationOptional.get();

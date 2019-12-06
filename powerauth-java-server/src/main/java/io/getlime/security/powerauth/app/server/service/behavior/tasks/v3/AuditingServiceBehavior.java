@@ -22,7 +22,6 @@ import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusCon
 import io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
-import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
@@ -46,8 +45,6 @@ import java.util.List;
 public class AuditingServiceBehavior {
 
     private final SignatureAuditRepository signatureAuditRepository;
-    private final RepositoryCatalogue repositoryCatalogue;
-    private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -55,10 +52,8 @@ public class AuditingServiceBehavior {
     private final KeyValueMapConverter keyValueMapConverter = new KeyValueMapConverter();
 
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, RepositoryCatalogue repositoryCatalogue, ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository) {
         this.signatureAuditRepository = signatureAuditRepository;
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
 
     /**
@@ -94,6 +89,7 @@ public class AuditingServiceBehavior {
                 item.setAdditionalInfo(keyValueMapConverter.fromString(signatureEntity.getAdditionalInfo()));
                 item.setActivationId(signatureEntity.getActivation().getActivationId());
                 item.setDataBase64(signatureEntity.getDataBase64());
+                item.setSignatureVersion(signatureEntity.getSignatureVersion());
                 item.setSignature(signatureEntity.getSignature());
                 item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
                 item.setValid(signatureEntity.getValid());
@@ -131,6 +127,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(signatureData.getData()));
         signatureAuditRecord.setSignature(signatureData.getSignature());
         signatureAuditRecord.setSignatureType(signatureType.value());
+        signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
         signatureAuditRecord.setValid(valid);
         signatureAuditRecord.setVersion(version);
         signatureAuditRecord.setNote(note);

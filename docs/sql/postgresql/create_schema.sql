@@ -45,7 +45,7 @@ CREATE TABLE "pa_activation"
 CREATE TABLE "pa_application"
 (
     "id"                          INTEGER NOT NULL PRIMARY KEY,
-    "name"                        VARCHAR(255)
+    "name"                        VARCHAR(255) NOT NULL
 );
 
 
@@ -80,7 +80,7 @@ CREATE TABLE "pa_master_keypair"
 --
 CREATE TABLE "pa_signature_audit"
 (
-    "id"                  INTEGER NOT NULL PRIMARY KEY,
+    "id"                  BIGINT NOT NULL PRIMARY KEY,
     "activation_id"       VARCHAR(37) NOT NULL,
     "activation_counter"  INTEGER NOT NULL,
     "activation_ctr_data" VARCHAR(255),
@@ -92,7 +92,8 @@ CREATE TABLE "pa_signature_audit"
     "signature"           VARCHAR(255) NOT NULL,
     "timestamp_created"   TIMESTAMP (6) NOT NULL,
     "valid"               BOOLEAN,
-    "version"             INTEGER DEFAULT 2
+    "version"             INTEGER DEFAULT 2,
+    "signature_version"   VARCHAR(255)
 );
 
 --
@@ -135,7 +136,7 @@ CREATE TABLE "pa_token"
 --
 CREATE TABLE "pa_activation_history"
 (
-    "id"                 INTEGER NOT NULL PRIMARY KEY,
+    "id"                 BIGINT NOT NULL PRIMARY KEY,
     "activation_id"      VARCHAR(37) NOT NULL,
     "activation_status"  INTEGER,
     "blocked_reason"     VARCHAR(255),
@@ -148,7 +149,7 @@ CREATE TABLE "pa_activation_history"
 --
 
 CREATE TABLE "pa_recovery_code" (
-    "id"                    INTEGER NOT NULL PRIMARY KEY,
+    "id"                    BIGINT NOT NULL PRIMARY KEY,
     "recovery_code"         VARCHAR(23) NOT NULL,
     "application_id"        INTEGER NOT NULL,
     "user_id"               VARCHAR(255) NOT NULL,
@@ -166,11 +167,11 @@ CREATE TABLE "pa_recovery_code" (
 --
 
 CREATE TABLE "pa_recovery_puk" (
-    "id"                    INTEGER NOT NULL PRIMARY KEY,
-    "recovery_code_id"      INTEGER NOT NULL,
+    "id"                    BIGINT NOT NULL PRIMARY KEY,
+    "recovery_code_id"      BIGINT NOT NULL,
     "puk"                   VARCHAR(255),
     "puk_encryption"        INTEGER DEFAULT 0 NOT NULL,
-    "puk_index"             INTEGER NOT NULL,
+    "puk_index"             BIGINT NOT NULL,
     "status"                INTEGER NOT NULL,
     "timestamp_last_change" TIMESTAMP (6)
 );
@@ -180,8 +181,8 @@ CREATE TABLE "pa_recovery_puk" (
 --
 
 CREATE TABLE "pa_recovery_config" (
-    "id"                            NUMBER(19,0) NOT NULL PRIMARY KEY,
-    "application_id"                NUMBER(19,0) NOT NULL,
+    "id"                            INTEGER NOT NULL PRIMARY KEY,
+    "application_id"                INTEGER NOT NULL,
     "activation_recovery_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
     "recovery_postcard_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
     "allow_multiple_recovery_codes" BOOLEAN NOT NULL DEFAULT FALSE,
@@ -274,7 +275,7 @@ CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED)
 
 CREATE INDEX PA_TOKEN_ACTIVATION ON PA_TOKEN(ACTIVATION_ID);
 
-CREATE INDEX PA_RECOVERY_CODE ON PA_RECOVERY_CODE(RECOVERY_CODE);
+CREATE INDEX PA_RECOVERY_CODE_CODE ON PA_RECOVERY_CODE(RECOVERY_CODE);
 
 CREATE INDEX PA_RECOVERY_CODE_APP ON PA_RECOVERY_CODE(APPLICATION_ID);
 
@@ -285,3 +286,5 @@ CREATE INDEX PA_RECOVERY_CODE_ACT ON PA_RECOVERY_CODE(ACTIVATION_ID);
 CREATE UNIQUE INDEX PA_RECOVERY_CODE_PUK ON PA_RECOVERY_PUK(RECOVERY_CODE_ID, PUK_INDEX);
 
 CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);
+
+CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);

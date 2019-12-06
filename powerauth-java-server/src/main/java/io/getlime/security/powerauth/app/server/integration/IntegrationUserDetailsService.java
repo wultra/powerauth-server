@@ -43,7 +43,7 @@ import java.util.List;
 @Qualifier("integrationUserDetailsService")
 public class IntegrationUserDetailsService implements UserDetailsService {
 
-    private IntegrationRepository integrationRepository;
+    private final IntegrationRepository integrationRepository;
 
     /**
      * Constructor to autowire {@link IntegrationRepository} instance.

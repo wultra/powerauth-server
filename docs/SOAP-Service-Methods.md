@@ -1,10 +1,10 @@
 # SOAP Service Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server SOAP service. 
+This is a reference documentation of the methods published by the PowerAuth Server SOAP service.
 It reflects the SOAP service methods as they are defined in the WSDL files:
- 
-- [service-v3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v3.wsdl)
-- [service-v2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/service-v2.wsdl)
+
+- [serviceV3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV3.wsdl)
+- [serviceV2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV2.wsdl)
 
 The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
 
@@ -31,6 +31,8 @@ The following `v3` methods are published using the service:
     - [removeActivation](#method-removeactivation)
     - [blockActivation](#method-blockactivation)
     - [unblockActivation](#method-unblockactivation)
+    - [lookupActivations](#method-lookupactivations)
+    - [updateStatusForActivations](#method-updatestatusforactivations)
 - Signature Verification
     - [verifySignature](#method-verifysignature)
     - [verifyECDSASignature](#method-verifyecdsasignature)
@@ -167,7 +169,7 @@ Get list of all applications that are present in this PowerAuth Server instance.
 
 ### Method 'getApplicationDetail'
 
-Get detail of application with given ID, including the list of versions.
+Get detail of application with given ID or name, including the list of versions.
 
 #### Request
 
@@ -175,7 +177,8 @@ Get detail of application with given ID, including the list of versions.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| `Long` | `applicationId` | An identifier of an application (required if applicationName not specified) |
+| `String` | `applicationName` | An application name (required if applicationId not specified) |
 
 #### Response
 
@@ -472,7 +475,7 @@ Get status information and all important details for activation with given ID.
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
-| `Long` | `version` | Activation version | 
+| `Long` | `version` | Activation version |
 
 ### Method 'removeActivation'
 
@@ -533,7 +536,7 @@ Get the list of all activations for given user and application ID. If no applica
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier fo an application |
 | `String` | `applicationName` | An application name |
-| `Long` | `version` | Activation version | 
+| `Long` | `version` | Activation version |
 
 ### Method 'blockActivation'
 
@@ -580,6 +583,66 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status |
+
+### Method 'lookupActivations'
+
+Lookup activations using query parameters.
+
+#### Request
+
+`LookupActivationsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
+| `String` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
+| `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
+| `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
+| `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
+
+#### Response
+
+`LookupActivationsResponse`
+
+| `Activation[]` | `activations` | A collection of activations for given query parameters |
+
+`LookupActivationsResponse.Activation`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `ActivationStatus` | `activationStatus` | An activation status |
+| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String` | `activationName` | An activation name |
+| `String` | `extras` | Any custom attributes |
+| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
+| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
+| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
+| `String` | `userId` | An identifier of a user |
+| `Long` | `applicationId` | An identifier fo an application |
+| `String` | `applicationName` | An application name |
+| `Long` | `version` | Activation version |
+
+### Method 'updateStatusForActivations'
+
+Update status for activations identified using their identifiers.
+
+#### Request
+
+`UpdateStatusForActivationsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String[]` | `activationIds` | Identifiers of activations whose status needs to be updated |
+| `ActivationStatus` | `activationStatus` | Activation status to use when updating the activations |
+
+#### Response
+
+`UpdateStatusForActivationsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `boolean` | `updated` | Whether status update succeeded for all provided activations, either all activation statuses are updated or none of the statuses is updated in case of an error |
 
 ## Signature verification
 
@@ -897,6 +960,7 @@ Get the signature audit log for given user, application and date range. In case 
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
 | `KeyValueMap` | `additionalInfo` | Key-value map with additional information |
 | `String` | `dataBase64` | A base64 encoded data sent with the signature |
+| `String` | `signatureVersion` | Requested signature version |
 | `SignatureType` | `signatureType` | Requested signature type |
 | `String` | `signature` | Submitted value of a signature |
 | `String` | `note` | Extra info about the result of the signature verification |
@@ -1094,7 +1158,7 @@ Remove callback URL with given ID.
 
 ### Method 'getEciesDecryptor'
 
-Get ECIES decryptor data for request/response decryption on intermediate server. 
+Get ECIES decryptor data for request/response decryption on intermediate server.
 
 #### Request
 
@@ -1247,7 +1311,7 @@ Lookup recovery codes.
 | `String` | `activationId` | An UUID4 identifier of an activation |
 | `String` | `applicationId` | An identifier of an application |
 | `RecoveryCodeStatus` | `recoveryCodeStatus` | Recovery code status |
-| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status | 
+| `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status |
 
 #### Response
 
@@ -1331,8 +1395,8 @@ ECIES response contains following data (as JSON):
  - `activationRecovery` - Information about activation recovery.
     - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
     - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
-    
-In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex` 
+
+In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex`
 value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
 
 ### Method `getRecoveryConfig`
@@ -1383,7 +1447,7 @@ Update configuration of activation recovery.
 | Type | Name | Description |
 |------|------|-------------|
 | `Boolean` | `updated` | Whether recovery configuration was updated |   
-    
+
 ## Activation management (v2)
 
 ### Method 'prepareActivation' (v2)
@@ -1581,13 +1645,13 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
     - POSSESSION_KNOWLEDGE
     - POSSESSION_BIOMETRY
     - POSSESSION_KNOWLEDGE_BIOMETRY
-    
+
 - `RecoveryCodeStatus` - Represent status of the recovery code, one of the following values:
     - CREATED
     - ACTIVE
     - BLOCKED
     - REVOKED
-    
+
 - `RecoveryPukStatus` - Represents status of the recovery PUK, one of the following values:
     - VALID
     - USED

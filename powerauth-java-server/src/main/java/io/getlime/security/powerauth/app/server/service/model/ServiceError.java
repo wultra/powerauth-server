@@ -182,6 +182,12 @@ public class ServiceError {
      */
     public static final String INVALID_RECOVERY_CONFIGURATION = "ERR0029";
 
+    /**
+     * Token timestamp is too old.
+     */
+    public static final String TOKEN_TIMESTAMP_TOO_OLD = "ERR0030";
+
+
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);
         list.add(UNKNOWN_ERROR);
@@ -214,6 +220,7 @@ public class ServiceError {
         list.add(RECOVERY_CODE_NOT_FOUND);
         list.add(INVALID_RECOVERY_CODE);
         list.add(INVALID_RECOVERY_CONFIGURATION);
+        list.add(TOKEN_TIMESTAMP_TOO_OLD);
         return list;
     }
 

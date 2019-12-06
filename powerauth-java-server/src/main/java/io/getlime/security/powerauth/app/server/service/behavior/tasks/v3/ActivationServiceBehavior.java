@@ -33,6 +33,7 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.*;
+import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery;
@@ -47,6 +48,7 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesShare
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
@@ -87,7 +89,8 @@ public class ActivationServiceBehavior {
      */
     private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
 
-    private RepositoryCatalogue repositoryCatalogue;
+    private final RepositoryCatalogue repositoryCatalogue;
+    private final ServiceBehaviorCatalogue behaviorCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
@@ -95,25 +98,25 @@ public class ActivationServiceBehavior {
 
     private LocalizationProvider localizationProvider;
 
-    private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
     private RecoveryPukConverter recoveryPukConverter;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final KeyGenerator keyGenerator = new KeyGenerator();
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue behaviorCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
+        this.behaviorCatalogue = behaviorCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
@@ -255,15 +258,93 @@ public class ActivationServiceBehavior {
     }
 
     /**
+     * Lookup activations using various query parameters.
+     *
+     * @param userIds User IDs to be used in the activations query.
+     * @param applicationIds Application IDs to be used in the activations query (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
+     * @param activationStatus Activation status to be used in the activations query (optional).
+     * @return Response with list of matching activations.
+     * @throws DatatypeConfigurationException If calendar conversion fails.
+     */
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
+        final LookupActivationsResponse response = new LookupActivationsResponse();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+        if (applicationIds != null && applicationIds.isEmpty()) {
+            // Make sure application ID list is null in case no application ID is specified
+            applicationIds = null;
+        }
+        List<ActivationStatus> statuses = new ArrayList<>();
+        if (activationStatus == null) {
+            // In case activation status is not specified, consider all statuses
+            statuses.addAll(Arrays.asList(ActivationStatus.values()));
+        } else {
+            statuses.add(activationStatus);
+        }
+        List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
+
+        if (activationsList != null) {
+            for (ActivationRecordEntity activation : activationsList) {
+                // Map between database object and service objects
+                LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
+                activationServiceItem.setActivationId(activation.getActivationId());
+                activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                activationServiceItem.setBlockedReason(activation.getBlockedReason());
+                activationServiceItem.setActivationName(activation.getActivationName());
+                activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+                activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+                activationServiceItem.setUserId(activation.getUserId());
+                activationServiceItem.setApplicationId(activation.getApplication().getId());
+                activationServiceItem.setApplicationName(activation.getApplication().getName());
+                // Unknown version is converted to 0 in SOAP
+                activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                response.getActivations().add(activationServiceItem);
+            }
+        }
+
+        return response;
+    }
+
+    /**
+     * Update status for activations.
+     * @param activationIds Identifiers of activations to update.
+     * @param activationStatus Activation status to use.
+     * @return Response with indication whether status update succeeded.
+     */
+    public UpdateStatusForActivationsResponse updateStatusForActivation(List<String> activationIds, ActivationStatus activationStatus) {
+        final UpdateStatusForActivationsResponse response = new UpdateStatusForActivationsResponse();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        activationIds.forEach(activationId -> {
+            ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+            if (!activation.getActivationStatus().equals(activationStatus)) {
+                // Update activation status, persist change and notify callback listeners
+                activation.setActivationStatus(activationStatus);
+                activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            }
+        });
+
+        response.setUpdated(true);
+
+        return response;
+    }
+
+    /**
      * Get activation status for given activation ID
      *
      * @param activationId           Activation ID
+     * @param challenge              Challenge for activation status blob encryption (since protocol V3.1)
      * @param keyConversionUtilities Key conversion utility class
      * @return Activation status response
      * @throws DatatypeConfigurationException Thrown when calendar conversion fails.
      * @throws GenericServiceException        Thrown when cryptography error occurs.
      */
-    public GetActivationStatusResponse getActivationStatus(String activationId, CryptoProviderUtil keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
+    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, CryptoProviderUtil keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
@@ -271,6 +352,9 @@ public class ActivationServiceBehavior {
             // Get the repository
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+
+            // Prepare key generator
+            final KeyGenerator keyGenerator = new KeyGenerator();
 
             ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
 
@@ -285,7 +369,9 @@ public class ActivationServiceBehavior {
 
                     // Created activations are not able to transfer valid status blob to the client
                     // since both keys were not exchanged yet and transport cannot be secured.
-                    byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(32);
+                    byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
+                    // Use random nonce in case that challenge was provided.
+                    String randomStatusBlobNonce = challenge == null ? null : BaseEncoding.base64().encode(keyGenerator.generateRandomBytes(16));
 
                     // Activation signature
                     MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(activation.getApplication().getId());
@@ -313,6 +399,7 @@ public class ActivationServiceBehavior {
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                     response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                     response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
+                    response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                     response.setActivationCode(activation.getActivationCode());
                     response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
                     response.setDevicePublicKeyFingerprint(null);
@@ -336,14 +423,15 @@ public class ActivationServiceBehavior {
 
                     // If an activation was turned to REMOVED directly from CREATED state,
                     // there is not device public key in the database - we need to handle
-                    // that case by defaulting the C_statusBlob to random value...
-                    byte[] C_statusBlob = new KeyGenerator().generateRandomBytes(32);
+                    // that case by defaulting the encryptedStatusBlob to random value...
+                    byte[] encryptedStatusBlob = keyGenerator.generateRandomBytes(32);
+                    String encryptedStatusBlobNonce = null;
 
                     // Prepare a value for the device public key fingerprint
                     String activationFingerPrint = null;
 
                     // There is a device public key available, therefore we can compute
-                    // the real C_statusBlob value.
+                    // the real encryptedStatusBlob value.
                     if (devicePublicKeyBase64 != null) {
 
                         PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
@@ -354,25 +442,44 @@ public class ActivationServiceBehavior {
                         SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
 
                         String ctrDataBase64 = activation.getCtrDataBase64();
-                        byte[] ctrDataForStatusBlob;
+                        byte[] ctrDataHashForStatusBlob;
                         if (ctrDataBase64 != null) {
-                            // In crypto v3 counter data is stored with activation
-                            ctrDataForStatusBlob = BaseEncoding.base64().decode(ctrDataBase64);
+                            // In crypto v3 counter data is stored with activation. We have to calculate hash from
+                            // the counter value, before it's encoded into the status blob. The value might be replaced
+                            // in `encryptedStatusBlob()` function that injects random data, depending on the version
+                            // of the status blob encryption.
+                            final byte[] ctrData = BaseEncoding.base64().decode(ctrDataBase64);
+                            ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, transportKey);
                         } else {
-                            // In crypto v2 counter data is not present, generate random bytes
-                            ctrDataForStatusBlob = new KeyGenerator().generateRandomBytes(16);
+                            // In crypto v2 counter data is not present, so use an array of zero bytes. This might be
+                            // replaced in `encryptedStatusBlob()` function that injects random data automatically,
+                            // depending on the version of the status blob encryption.
+                            ctrDataHashForStatusBlob = new byte[16];
+                        }
+                        byte[] statusChallenge;
+                        byte[] statusNonce;
+                        if (challenge != null) {
+                            // If challenge is present, then also generate a new nonce. Protocol V3.1+
+                            statusChallenge = BaseEncoding.base64().decode(challenge);
+                            statusNonce = keyGenerator.generateRandomBytes(16);
+                            encryptedStatusBlobNonce = BaseEncoding.base64().encode(statusNonce);
+                        } else {
+                            // Older protocol versions, where IV derivation is not available.
+                            statusChallenge = null;
+                            statusNonce = null;
                         }
 
                         // Encrypt the status blob
-                        C_statusBlob = powerAuthServerActivation.encryptedStatusBlob(
-                                activation.getActivationStatus().getByte(),
-                                activation.getVersion().byteValue(),
-                                POWERAUTH_PROTOCOL_VERSION,
-                                activation.getFailedAttempts().byteValue(),
-                                activation.getMaxFailedAttempts().byteValue(),
-                                ctrDataForStatusBlob,
-                                transportKey
-                        );
+                        ActivationStatusBlobInfo statusBlobInfo = new ActivationStatusBlobInfo();
+                        statusBlobInfo.setActivationStatus(activation.getActivationStatus().getByte());
+                        statusBlobInfo.setCurrentVersion(activation.getVersion().byteValue());
+                        statusBlobInfo.setUpgradeVersion(POWERAUTH_PROTOCOL_VERSION);
+                        statusBlobInfo.setFailedAttempts(activation.getFailedAttempts().byteValue());
+                        statusBlobInfo.setMaxFailedAttempts(activation.getMaxFailedAttempts().byteValue());
+                        statusBlobInfo.setCtrLookAhead((byte)powerAuthServiceConfiguration.getSignatureValidationLookahead());
+                        statusBlobInfo.setCtrByte(activation.getCounter().byteValue());
+                        statusBlobInfo.setCtrDataHash(ctrDataHashForStatusBlob);
+                        encryptedStatusBlob = powerAuthServerActivation.encryptedStatusBlob(statusBlobInfo, statusChallenge, statusNonce, transportKey);
 
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
@@ -403,7 +510,8 @@ public class ActivationServiceBehavior {
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                     response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
-                    response.setEncryptedStatusBlob(BaseEncoding.base64().encode(C_statusBlob));
+                    response.setEncryptedStatusBlob(BaseEncoding.base64().encode(encryptedStatusBlob));
+                    response.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
                     response.setActivationCode(null);
                     response.setActivationSignature(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
@@ -416,7 +524,9 @@ public class ActivationServiceBehavior {
 
                 // Activations that do not exist should return REMOVED state and
                 // a random status blob
-                byte[] randomStatusBlob = new KeyGenerator().generateRandomBytes(32);
+                byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
+                // Use random nonce in case that challenge was provided.
+                String randomStatusBlobNonce = challenge == null ? null : BaseEncoding.base64().encode(keyGenerator.generateRandomBytes(16));
 
                 // Generate date
                 XMLGregorianCalendar zeroDate = XMLGregorianCalendarConverter.convertFrom(new Date(0));
@@ -434,6 +544,7 @@ public class ActivationServiceBehavior {
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
                 response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
+                response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                 response.setActivationCode(null);
                 response.setActivationSignature(null);
                 response.setDevicePublicKeyFingerprint(null);
@@ -673,11 +784,14 @@ public class ActivationServiceBehavior {
             ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(application.getId(), activationCode, states, timestamp);
 
             // Make sure to deactivate the activation if it is expired
-            if (activation != null) {
-                // Search for activation again to aquire PESSIMISTIC_WRITE lock for activation row
-                activation = activationRepository.findActivationWithLock(activation.getActivationId());
-                deactivatePendingActivation(timestamp, activation, true);
+            if (activation == null) {
+                logger.warn("Activation not found with activation ID: {}", activationCode);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
+
+            // Search for activation again to acquire PESSIMISTIC_WRITE lock for activation row
+            activation = activationRepository.findActivationWithLock(activation.getActivationId());
+            deactivatePendingActivation(timestamp, activation, true);
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application);
@@ -714,7 +828,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, keyConversion);
+                activationRecovery = createRecoveryCodeForActivation(activation);
             }
 
             // Generate activation layer 2 response
@@ -807,10 +921,13 @@ public class ActivationServiceBehavior {
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
-            // Make sure to deactivate the activation if it is expired
-            if (activation != null) {
-                deactivatePendingActivation(timestamp, activation, true);
+            if (activation == null) { // should not happen, activation was just created above via "init" call
+                logger.warn("Activation not found for activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
+
+            // Make sure to deactivate the activation if it is expired
+            deactivatePendingActivation(timestamp, activation, true);
 
             validateCreatedActivation(activation, application);
 
@@ -874,7 +991,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, keyConversion);
+                activationRecovery = createRecoveryCodeForActivation(activation);
             }
 
             // Generate activation layer 2 response
@@ -1094,7 +1211,8 @@ public class ActivationServiceBehavior {
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
             byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
             byte[] macBytes = BaseEncoding.base64().decode(mac);
-            final EciesCryptogram eciesCryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
+            byte[] nonceBytes = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            final EciesCryptogram eciesCryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
 
             // Prepare repositories
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -1228,6 +1346,7 @@ public class ActivationServiceBehavior {
                 for (RecoveryPukEntity recoveryPukEntity : recoveryCodeEntity.getRecoveryPuks()) {
                     if (RecoveryPukStatus.VALID.equals(recoveryPukEntity.getStatus())) {
                         validPukExists = true;
+                        break;
                     }
                 }
                 if (!validPukExists) {
@@ -1282,7 +1401,7 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Create a new recovery code and PUK for new activation
-            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation, keyConversion);
+            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation);
 
             // Generate activation layer 2 response
             ActivationLayer2Response layer2Response = new ActivationLayer2Response();
@@ -1324,7 +1443,7 @@ public class ActivationServiceBehavior {
      * @return Activation recovery code and PUK.
      * @throws GenericServiceException In case of any error.
      */
-    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity) throws GenericServiceException {
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
         try {
@@ -1407,8 +1526,7 @@ public class ActivationServiceBehavior {
 
             recoveryCodeRepository.save(recoveryCodeEntity);
 
-            final ActivationRecovery activationRecovery = new ActivationRecovery(recoveryCode, puk);
-            return activationRecovery;
+            return new ActivationRecovery(recoveryCode, puk);
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);

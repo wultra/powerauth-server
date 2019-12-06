@@ -46,7 +46,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation with given ID or null if not found
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
     ActivationRecordEntity findActivationWithLock(String activationId);
 
     /**
@@ -56,7 +56,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param activationId Activation ID
      * @return Activation with given ID or null if not found
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
     ActivationRecordEntity findActivationWithoutLock(String activationId);
 
     /**
@@ -65,7 +65,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param activationId Activation ID
      * @return Count of activations with given activation ID
      */
-    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.activationId = ?1")
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
     Long getActivationCount(String activationId);
 
     /**
@@ -100,7 +100,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param currentTimestamp  Current timestamp
      * @return Activation matching the search criteria or null if not found
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode = ?2 AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode = :activationCode AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
     ActivationRecordEntity findCreatedActivationWithoutLock(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
@@ -116,7 +116,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param activationIdShort Activation ID short
      * @return Count of activations matching the search criteria
      */
-    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2%")
+    @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort%")
     Long getActivationCountByActivationIdShort(Long applicationId, String activationIdShort);
 
     /**
@@ -153,7 +153,18 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param currentTimestamp  Current timestamp
      * @return Activation matching the search criteria or null if not found
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = ?1 AND a.activationCode LIKE ?2% AND a.activationStatus IN ?3 AND a.timestampActivationExpire > ?4")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort% AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
     ActivationRecordEntity findCreatedActivationByShortIdWithoutLock(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
+    /**
+     * Find all activations which match the query criteria.
+     * @param userIds List of user IDs, at least one user ID should be specified.
+     * @param applicationIds List of application IDs, use null value for all applications.
+     * @param timestampLastUsedBefore Last used timestamp (timestampLastUsed &lt; timestampLastUsedBefore), use null value for any date.
+     * @param timestampLastUsedAfter Last used timestamp (timestampLastUsed &gt;= timestampLastUsedAfter), use null value for any date.
+     * @param states List of activation states to consider.
+     * @return List of activations which match the query criteria.
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND (:applicationIds IS NULL OR a.application.id IN :applicationIds) AND (:timestampLastUsedBefore IS NULL OR a.timestampLastUsed < :timestampLastUsedBefore) AND (:timestampLastUsedAfter IS NULL OR a.timestampLastUsed >= :timestampLastUsedAfter) AND a.activationStatus IN :states")
+    List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
 }

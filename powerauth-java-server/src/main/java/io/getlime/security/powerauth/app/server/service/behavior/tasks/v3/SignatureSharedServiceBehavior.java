@@ -80,7 +80,7 @@ public class SignatureSharedServiceBehavior {
 
     private final PowerAuthServerSignature powerAuthServerSignature = new PowerAuthServerSignature();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
-    private SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
     /**
      * Constuctor for shared signature service behavior.
@@ -305,7 +305,7 @@ public class SignatureSharedServiceBehavior {
                 final PowerAuthSignatureTypes powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureType);
                 List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
-                signatureValid = powerAuthServerSignature.verifySignatureForData(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData);
+                signatureValid = powerAuthServerSignature.verifySignatureForData(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getSignatureFormat());
                 if (signatureValid) {
                     // Set the next valid value of numeric counter based on current iteration counter +1
                     ctrNext = iteratedCounter + 1;
@@ -356,7 +356,7 @@ public class SignatureSharedServiceBehavior {
         // Update failed attempts and block the activation, if necessary
         if (notPossessionFactorSignature(signatureType)) {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
-            Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+            long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
@@ -455,7 +455,7 @@ public class SignatureSharedServiceBehavior {
             signatureData.getAdditionalInfo().getEntry().add(entryBiometry);
         }
 
-        Long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);

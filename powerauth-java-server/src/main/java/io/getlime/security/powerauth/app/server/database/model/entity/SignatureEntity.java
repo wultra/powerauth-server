@@ -43,24 +43,27 @@ public class SignatureEntity implements Serializable {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
     @Column(name = "activation_counter", nullable = false)
     private Long activationCounter;
 
-    @Column(name = "activation_ctr_data", nullable = true)
+    @Column(name = "activation_ctr_data")
     private String activationCtrDataBase64;
 
-    @Column(name = "activation_status", nullable = true)
+    @Column(name = "activation_status")
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
-    @Column(name = "additional_info", nullable = true)
+    @Column(name = "additional_info")
     private String additionalInfo;
 
     @Column(name = "data_base64", updatable = false)
     private String dataBase64;
+
+    @Column(name = "signature_version", updatable = false)
+    private String signatureVersion;
 
     @Column(name = "signature_type", nullable = false, updatable = false)
     private String signatureType;
@@ -95,6 +98,7 @@ public class SignatureEntity implements Serializable {
      * @param activationCtrDataBase64 Activation counter data at the time of signature computation attempt, or null if only numeric counter is used.
      * @param activationStatus        Activation status at the time of signature computation attempt.
      * @param dataBase64              Data that were sent alongside the signature.
+     * @param signatureVersion        Requested signature version.
      * @param signatureType           Requested signature type.
      * @param signature               Signature value.
      * @param additionalInfo          Additional information related to this signature.
@@ -102,7 +106,21 @@ public class SignatureEntity implements Serializable {
      * @param valid                   True if the signature was valid, false otherwise.
      * @param timestampCreated        Created timestapm.
      */
-    public SignatureEntity(Long id, ActivationRecordEntity activation, Long activationCounter, String activationCtrDataBase64, ActivationStatus activationStatus, String dataBase64, String signatureType, String signature, String additionalInfo, String note, Boolean valid, Date timestampCreated, Integer version) {
+    public SignatureEntity(
+            Long id,
+            ActivationRecordEntity activation,
+            Long activationCounter,
+            String activationCtrDataBase64,
+            ActivationStatus activationStatus,
+            String dataBase64,
+            String signatureVersion,
+            String signatureType,
+            String signature,
+            String additionalInfo,
+            String note,
+            Boolean valid,
+            Date timestampCreated,
+            Integer version) {
         super();
         this.id = id;
         this.activation = activation;
@@ -110,6 +128,7 @@ public class SignatureEntity implements Serializable {
         this.activationCtrDataBase64 = activationCtrDataBase64;
         this.activationStatus = activationStatus;
         this.dataBase64 = dataBase64;
+        this.signatureVersion = signatureVersion;
         this.signatureType = signatureType;
         this.signature = signature;
         this.additionalInfo = additionalInfo;
@@ -241,6 +260,24 @@ public class SignatureEntity implements Serializable {
      */
     public void setNote(String note) {
         this.note = note;
+    }
+
+    /**
+     * Get requested signature version.
+     *
+     * @return Requested signature version.
+     */
+    public String getSignatureVersion() {
+        return this.signatureVersion;
+    }
+
+    /**
+     * Set requested signature version.
+     *
+     * @param signatureVersion Requested signature version.
+     */
+    public void setSignatureVersion(String signatureVersion) {
+        this.signatureVersion = signatureVersion;
     }
 
     /**

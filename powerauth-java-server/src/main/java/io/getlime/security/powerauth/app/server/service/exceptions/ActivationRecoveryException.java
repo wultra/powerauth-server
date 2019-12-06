@@ -24,7 +24,9 @@ package io.getlime.security.powerauth.app.server.service.exceptions;
  */
 public class ActivationRecoveryException extends GenericServiceException {
 
-    private int currentRecoveryPukIndex;
+    private static final long serialVersionUID = 3813163488487380284L;
+
+    private final int currentRecoveryPukIndex;
 
     /**
      * Constructor with error code and error message.

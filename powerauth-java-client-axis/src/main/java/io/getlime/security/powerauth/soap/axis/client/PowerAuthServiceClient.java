@@ -249,16 +249,18 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.PrepareActivationRequest request = new PowerAuthPortV3ServiceStub.PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return this.prepareActivation(request);
     }
 
@@ -282,10 +284,11 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateActivationRequest request = new PowerAuthPortV3ServiceStub.CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
@@ -298,6 +301,7 @@ public class PowerAuthServiceClient {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return this.createActivation(request);
     }
 
@@ -336,14 +340,35 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. This method should be used only
+     * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
+     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
+     * method instead.
+     *
      * @param activationId Activation Id to lookup information for.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatus(String activationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
+        response.setEncryptedStatusBlob(null);
+        return response;
+    }
+
+    /**
+     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. The method should be used to
+     * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
+     * contains an encrypted activation status blob.
+     *
+     * @param activationId Activation Id to lookup information for.
+     * @param challenge Cryptographic challenge for activation status blob encryption.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws RemoteException {
         PowerAuthPortV3ServiceStub.GetActivationStatusRequest request = new PowerAuthPortV3ServiceStub.GetActivationStatusRequest();
         request.setActivationId(activationId);
+        request.setChallenge(challenge);
         return this.getActivationStatus(request);
     }
 
@@ -367,6 +392,70 @@ public class PowerAuthServiceClient {
         PowerAuthPortV3ServiceStub.GetActivationListForUserRequest request = new PowerAuthPortV3ServiceStub.GetActivationListForUserRequest();
         request.setUserId(userId);
         return Arrays.asList(this.getActivationListForUser(request).getActivations());
+    }
+
+    /**
+     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupActivationsRequest} instance
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupActivationsResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.LookupActivationsResponse lookupActivations(PowerAuthPortV3ServiceStub.LookupActivationsRequest request) throws RemoteException {
+        return clientStubV3.lookupActivations(request);
+    }
+
+    /**
+     * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userIds User IDs to be used in the activations query.
+     * @param applicationIds Application IDs to be used in the activations query (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
+     * @param activationStatus Activation status to be used in the activations query (optional).
+     * @return List of activation instances satisfying given query parameters.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
+        PowerAuthPortV3ServiceStub.LookupActivationsRequest request = new PowerAuthPortV3ServiceStub.LookupActivationsRequest();
+        request.setUserIds(userIds.stream().toArray(String[]::new));
+        if (applicationIds != null) {
+            request.setApplicationIds(applicationIds.stream().mapToLong(l -> l).toArray());
+        }
+        if (timestampLastUsedBefore != null) {
+            request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
+        }
+        if (timestampLastUsedBefore != null) {
+            request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
+        }
+        if (activationStatus != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return Arrays.asList(this.lookupActivations(request).getActivations());
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest} instance
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse updateStatusForActivations(PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest request) throws RemoteException {
+        return clientStubV3.updateStatusForActivations(request);
+    }
+
+    /**
+     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationIds Identifiers of activations whose status should be updated.
+     * @param activationStatus Activation status to be used.
+     * @return Response indicating whether activation status update succeeded.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest request = new PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest();
+        request.setActivationIds(activationIds.toArray(new String[0]));
+        if (activationStatus != null) {
+            request.setActivationStatus(activationStatus);
+        }
+        return updateStatusForActivations(request);
     }
 
     /**
@@ -460,24 +549,28 @@ public class PowerAuthServiceClient {
      * @param signedData Data to be signed encoded in format as specified by PowerAuth data normalization.
      * @param signature Vault opening request signature.
      * @param signatureType Vault opening request signature type.
+     * @param signatureVersion Signature version.
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
-                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType, String signedData,
-                                                                      String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType, String signatureVersion,
+                                                                      String signedData, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.VaultUnlockRequest request = new PowerAuthPortV3ServiceStub.VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setSignedData(signedData);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setSignatureVersion(signatureVersion);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return unlockVault(request);
     }
 
@@ -574,16 +667,18 @@ public class PowerAuthServiceClient {
      * @param data Data to be signed encoded in format as specified by PowerAuth 3.0 data normalization.
      * @param signature Request signature.
      * @param signatureType Request signature type.
+     * @param signatureVersion Signature version.
      * @return Verify signature and return SOAP response with the verification results.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, PowerAuthPortV3ServiceStub.SignatureType signatureType, String signatureVersion) throws RemoteException {
         PowerAuthPortV3ServiceStub.VerifySignatureRequest request = new PowerAuthPortV3ServiceStub.VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setData(data);
         request.setSignature(signature);
         request.setSignatureType(signatureType);
+        request.setSignatureVersion(signatureVersion);
         return this.verifySignature(request);
     }
 
@@ -698,6 +793,18 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws RemoteException {
         PowerAuthPortV3ServiceStub.GetApplicationDetailRequest request = new PowerAuthPortV3ServiceStub.GetApplicationDetailRequest();
         request.setApplicationId(applicationId);
+        return this.getApplicationDetail(request);
+    }
+
+    /**
+     * Get the detail of an application with given name, including the version list.
+     * @param applicationName name of an application to fetch.
+     * @return Application with given name, including the version list.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.GetApplicationDetailResponse getApplicationDetail(String applicationName) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetApplicationDetailRequest request = new PowerAuthPortV3ServiceStub.GetApplicationDetailRequest();
+        request.setApplicationName(applicationName);
         return this.getApplicationDetail(request);
     }
 
@@ -965,17 +1072,20 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
+     * @param nonce Nonce for ECIES.
      * @param signatureType Type of the signature used for validating the create request.
      * @return Response with created token.
      */
     public PowerAuthPortV3ServiceStub.CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                                      String encryptedData, String mac, PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
+                                                                      String encryptedData, String mac, String nonce,
+                                                                      PowerAuthPortV3ServiceStub.SignatureType signatureType) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateTokenRequest request = new PowerAuthPortV3ServiceStub.CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setNonce(nonce);
         request.setSignatureType(signatureType);
         return createToken(request);
     }
@@ -1071,16 +1181,18 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key used for response encryption.
      * @param encryptedData Encrypted request data.
      * @param mac MAC computed for request key and data.
+     * @param nonce Nonce for ECIES.
      * @return Start upgrade response.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.StartUpgradeRequest request = new PowerAuthPortV3ServiceStub.StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return startUpgrade(request);
     }
 
@@ -1151,17 +1263,19 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return Confirm recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                                                      String encryptedData, String mac) throws RemoteException {
+                                                                                      String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest request = new PowerAuthPortV3ServiceStub.ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return confirmRecoveryCode(request);
     }
 
@@ -1239,11 +1353,12 @@ public class PowerAuthServiceClient {
      * @param ephemeralPublicKey Ephemeral public key for ECIES.
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
+     * @param nonce Nonce for ECIES.
      * @return Create activation using recovery code response.
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                                                       String ephemeralPublicKey, String encryptedData, String mac) throws RemoteException {
+                                                                                                       String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
         PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest request = new PowerAuthPortV3ServiceStub.RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -1254,6 +1369,7 @@ public class PowerAuthServiceClient {
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
+        request.setNonce(nonce);
         return createActivationUsingRecoveryCode(request);
     }
 

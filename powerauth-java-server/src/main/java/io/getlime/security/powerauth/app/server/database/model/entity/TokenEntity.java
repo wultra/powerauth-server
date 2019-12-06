@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import javax.persistence.*;
 import java.util.Date;
+import java.util.Objects;
 
 /**
  * Database entity for the tokens used during token-based authentication.
@@ -36,7 +37,7 @@ public class TokenEntity {
     private String tokenSecret;
 
     @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", nullable = true, updatable = false)
+    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
     @Column(name = "signature_type", nullable = false, updatable = false)
@@ -125,4 +126,20 @@ public class TokenEntity {
         this.timestampCreated = timestampCreated;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TokenEntity that = (TokenEntity) o;
+        return Objects.equals(tokenId, that.tokenId) &&
+                tokenSecret.equals(that.tokenSecret) &&
+                Objects.equals(activation, that.activation) &&
+                signatureTypeCreated.equals(that.signatureTypeCreated) &&
+                timestampCreated.equals(that.timestampCreated);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tokenId, tokenSecret, activation, signatureTypeCreated, timestampCreated);
+    }
 }

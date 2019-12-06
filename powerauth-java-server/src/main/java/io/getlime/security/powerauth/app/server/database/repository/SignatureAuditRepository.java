@@ -39,7 +39,7 @@ public interface SignatureAuditRepository extends CrudRepository<SignatureEntity
      * @param endingDate   Ending date (date "to").
      * @return List of {@link SignatureEntity} instances.
      */
-    @Query("SELECT s FROM SignatureEntity s WHERE s.activation.userId = ?1 AND s.timestampCreated BETWEEN ?2 AND ?3 ORDER BY s.timestampCreated DESC, s.id DESC")
+    @Query("SELECT s FROM SignatureEntity s WHERE s.activation.userId = :userId AND s.timestampCreated BETWEEN :startingDate AND :endingDate ORDER BY s.timestampCreated DESC, s.id DESC")
     List<SignatureEntity> findSignatureAutitRecordsForUser(String userId, Date startingDate, Date endingDate);
 
     /**
@@ -51,7 +51,7 @@ public interface SignatureAuditRepository extends CrudRepository<SignatureEntity
      * @param endingDate    Ending date (date "to").
      * @return List of {@link SignatureEntity} instances.
      */
-    @Query("SELECT s FROM SignatureEntity s WHERE s.activation.application.id = ?1 AND s.activation.userId = ?2 AND s.timestampCreated BETWEEN ?3 AND ?4 ORDER BY s.timestampCreated DESC, s.id DESC")
+    @Query("SELECT s FROM SignatureEntity s WHERE s.activation.application.id = :applicationId AND s.activation.userId = :userId AND s.timestampCreated BETWEEN :startingDate AND :endingDate ORDER BY s.timestampCreated DESC, s.id DESC")
     List<SignatureEntity> findSignatureAutitRecordsForApplicationAndUser(Long applicationId, String userId, Date startingDate, Date endingDate);
 
 }

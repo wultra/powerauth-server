@@ -41,4 +41,20 @@ public class ActivationStatusConverter {
         return io.getlime.security.powerauth.v3.ActivationStatus.REMOVED;
     }
 
+    public io.getlime.security.powerauth.app.server.database.model.ActivationStatus convert(io.getlime.security.powerauth.v3.ActivationStatus activationStatus) {
+        switch (activationStatus) {
+            case CREATED:
+                return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED;
+            case OTP_USED:
+                return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED;
+            case ACTIVE:
+                return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE;
+            case BLOCKED:
+                return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.BLOCKED;
+            case REMOVED:
+                return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED;
+        }
+        return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED;
+    }
+
 }

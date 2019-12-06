@@ -45,7 +45,7 @@ public class ActivationHistoryServiceBehavior {
     private final ActivationRepository activationRepository;
 
     // Prepare converters
-    private ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
     public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository) {

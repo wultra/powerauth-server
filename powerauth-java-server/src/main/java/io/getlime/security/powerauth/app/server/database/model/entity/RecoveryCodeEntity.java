@@ -53,7 +53,7 @@ public class RecoveryCodeEntity implements Serializable {
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
-    @Column(name = "activation_id", nullable = true)
+    @Column(name = "activation_id")
     private String activationId;
 
     @Column(name = "status", nullable = false)
@@ -72,12 +72,12 @@ public class RecoveryCodeEntity implements Serializable {
     @Column(name = "timestamp_last_used", nullable = false)
     private Date timestampLastUsed;
 
-    @Column(name = "timestamp_last_change", nullable = true)
+    @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
 
     @OneToMany(mappedBy = "recoveryCode", cascade = CascadeType.ALL)
     @OrderBy("puk_index")
-    private List<RecoveryPukEntity> recoveryPuks = new ArrayList<>();
+    private final List<RecoveryPukEntity> recoveryPuks = new ArrayList<>();
 
     /**
      * Default constructor.

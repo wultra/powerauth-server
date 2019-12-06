@@ -72,11 +72,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
 
     @Override
-    @Transactional
-    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
         if (request.getActivationIdShort() == null || request.getActivationNonce() == null || request.getEncryptedDevicePublicKey() == null
             || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationKey() == null || request.getApplicationSignature() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method prepareActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -103,11 +103,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
-    public CreateActivationResponse createActivation(CreateActivationRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getUserId() == null || request.getActivationOtp() == null || request.getActivationNonce() == null || request.getEncryptedDevicePublicKey() == null
-                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationKey() == null || request.getApplicationSignature() == null) {
-            logger.warn("Invalid request");
+                || request.getActivationName() == null || request.getEphemeralPublicKey() == null || request.getApplicationSignature() == null) {
+            logger.warn("Invalid request parameters in method createActivation");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
@@ -153,11 +153,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
-    public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
                 || request.getSignatureType() == null || request.getData() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method vaultUnlock");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // Vault unlock reason can be null, in this case unspecified reason is used
@@ -214,10 +214,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
-    public GetPersonalizedEncryptionKeyResponse generateE2EPersonalizedEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public GetPersonalizedEncryptionKeyResponse generateE2EPersonalizedEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getSessionIndex() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method generateE2EPersonalizedEncryptionKey");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -239,10 +239,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
-    public GetNonPersonalizedEncryptionKeyResponse generateE2ENonPersonalizedEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public GetNonPersonalizedEncryptionKeyResponse generateE2ENonPersonalizedEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getSessionIndex() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method generateE2ENonPersonalizedEncryptionKey");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -265,10 +265,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws Exception {
+    @Transactional(rollbackFor = GenericServiceException.class)
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getEphemeralPublicKey() == null) {
-            logger.warn("Invalid request");
+            logger.warn("Invalid request parameters in method createToken");
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -288,7 +288,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
         io.getlime.security.powerauth.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
         io.getlime.security.powerauth.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
-        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, "2.1", additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
     }
 
 }
