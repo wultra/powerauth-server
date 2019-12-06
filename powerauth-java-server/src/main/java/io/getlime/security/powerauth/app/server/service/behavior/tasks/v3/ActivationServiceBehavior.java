@@ -271,7 +271,6 @@ public class ActivationServiceBehavior {
     public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         if (applicationIds != null && applicationIds.isEmpty()) {
             // Make sure application ID list is null in case no application ID is specified
             applicationIds = null;

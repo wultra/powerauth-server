@@ -423,7 +423,7 @@ public class PowerAuthServiceClient {
         if (timestampLastUsedBefore != null) {
             request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
         }
-        if (timestampLastUsedBefore != null) {
+        if (timestampLastUsedAfter != null) {
             request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
         }
         if (activationStatus != null) {
