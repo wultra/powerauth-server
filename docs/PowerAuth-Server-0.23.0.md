@@ -20,7 +20,7 @@ For more details about installation of the library see [Installing Bouncy Castle
 ## Database Changes
 
 Following DB changes occurred between version 0.22.0 and 0.23.0:
-- Table `pa_application` - added not null constraint to column `name`, inserted default `application_%id` where null
+- Table `pa_application` - added not null constraint to column `name`, inserted default `application_id` where null
 - Table `pa_application` - added unique index constraint to column `name`
   - This index is mandatory. The script will fail when there are already duplicated names. In such case ensure unique
   values manually and repeat adding the unique index constraint.
