@@ -355,6 +355,7 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -397,6 +398,7 @@ Create an activation for given user and application, with provided maximum numbe
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -793,6 +795,7 @@ Create a new token for the simple token-based authentication.
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
 
 ECIES request should contain following data (an empty JSON object):
@@ -886,6 +889,7 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data:
 ```json
@@ -1196,6 +1200,7 @@ Upgrade activation to the most recent version supported by the server.
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 #### Response
 
@@ -1279,6 +1284,7 @@ Confirm a recovery code recieved using recovery postcard.
 | `String` | `ephemeralPublicKey` | Base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `recoveryCode` - Recovery code which should be confirmed in this request.
@@ -1371,6 +1377,7 @@ Create an activation using recovery code.
 | `String` | `ephemeralPublicKey` | Base64 encoded encrypted data for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
