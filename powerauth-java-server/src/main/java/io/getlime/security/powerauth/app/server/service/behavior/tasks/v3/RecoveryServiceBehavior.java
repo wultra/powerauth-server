@@ -45,11 +45,11 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesShare
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,7 +117,7 @@ public class RecoveryServiceBehavior {
      * @return Create recovery code response.
      * @throws GenericServiceException In case of any error.
      */
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             final Long applicationId = request.getApplicationId();
             final String userId = request.getUserId();
@@ -255,7 +255,7 @@ public class RecoveryServiceBehavior {
      * @return Confirm recovery code response.
      * @throws GenericServiceException In case of any error.
      */
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
@@ -573,7 +573,7 @@ public class RecoveryServiceBehavior {
      * @return Update recovery configuration response.
      * @throws GenericServiceException In case of any error.
      */
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             long applicationId = request.getApplicationId();
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();

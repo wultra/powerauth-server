@@ -26,8 +26,8 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -162,7 +162,7 @@ public class ApplicationServiceBehavior {
      * @return Response with new application information
      * @throws GenericServiceException In case cryptography provider is initialized incorrectly.
      */
-    public CreateApplicationResponse createApplication(String name, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public CreateApplicationResponse createApplication(String name, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             ApplicationEntity application = new ApplicationEntity();
             application.setName(name);

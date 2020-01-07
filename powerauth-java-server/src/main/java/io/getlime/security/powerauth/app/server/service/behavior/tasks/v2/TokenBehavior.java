@@ -34,10 +34,10 @@ import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.CreateTokenRequest;
 import io.getlime.security.powerauth.v2.CreateTokenResponse;
 import io.getlime.security.powerauth.v2.SignatureType;
@@ -101,7 +101,7 @@ public class TokenBehavior {
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    public CreateTokenResponse createToken(CreateTokenRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public CreateTokenResponse createToken(CreateTokenRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String ephemeralPublicKeyBase64 = request.getEphemeralPublicKey();
         final SignatureType signatureType = request.getSignatureType();
@@ -124,7 +124,7 @@ public class TokenBehavior {
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EciesCryptogram createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private EciesCryptogram createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);

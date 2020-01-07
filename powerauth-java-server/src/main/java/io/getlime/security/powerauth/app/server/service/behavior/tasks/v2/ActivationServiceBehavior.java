@@ -32,10 +32,10 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.CreateActivationResponse;
 import io.getlime.security.powerauth.v2.PrepareActivationResponse;
 import io.getlime.security.powerauth.v3.InitActivationResponse;
@@ -178,7 +178,7 @@ public class ActivationServiceBehavior {
      * @return Prepared activation information
      * @throws GenericServiceException      In case prepare activation fails
      */
-    public PrepareActivationResponse prepareActivation(String activationIdShort, String activationNonceBase64, String clientEphemeralPublicKeyBase64, String cDevicePublicKeyBase64, String activationName, String extras, String applicationKey, String applicationSignature, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationIdShort, String activationNonceBase64, String clientEphemeralPublicKeyBase64, String cDevicePublicKeyBase64, String activationName, String extras, String applicationKey, String applicationSignature, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -347,7 +347,7 @@ public class ActivationServiceBehavior {
             String activationName,
             String extras,
             String applicationSignature,
-            CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+            KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
