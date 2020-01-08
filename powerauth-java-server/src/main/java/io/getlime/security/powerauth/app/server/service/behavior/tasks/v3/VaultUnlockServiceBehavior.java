@@ -39,11 +39,11 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.KeyValueMap;
 import io.getlime.security.powerauth.v3.SignatureType;
 import io.getlime.security.powerauth.v3.VaultUnlockResponse;
@@ -115,7 +115,7 @@ public class VaultUnlockServiceBehavior {
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType, String signatureVersion,
-                                           String signedData, EciesCryptogram cryptogram, CryptoProviderUtil keyConversion)
+                                           String signedData, EciesCryptogram cryptogram, KeyConvertor keyConversion)
             throws GenericServiceException {
         try {
             // Lookup the activation

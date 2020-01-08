@@ -33,11 +33,11 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.HMACHashUtilities;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.GetNonPersonalizedEncryptionKeyResponse;
 import io.getlime.security.powerauth.v2.GetPersonalizedEncryptionKeyResponse;
 import org.slf4j.Logger;
@@ -101,7 +101,7 @@ public class EncryptionServiceBehavior {
      * @return Response with a generated encryption key details.
      * @throws GenericServiceException In case of business logic error.
      */
-    public GetPersonalizedEncryptionKeyResponse generateEncryptionKeyForActivation(String activationId, String sessionIndex, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public GetPersonalizedEncryptionKeyResponse generateEncryptionKeyForActivation(String activationId, String sessionIndex, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
@@ -175,7 +175,7 @@ public class EncryptionServiceBehavior {
      * @return Response with a generated encryption key details.
      * @throws GenericServiceException In case of business logic error.
      */
-    public GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedEncryptionKeyForApplication(String applicationKey, String sessionIndexBase64, String ephemeralPublicKeyBase64, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedEncryptionKeyForApplication(String applicationKey, String sessionIndexBase64, String ephemeralPublicKeyBase64, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
             ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);

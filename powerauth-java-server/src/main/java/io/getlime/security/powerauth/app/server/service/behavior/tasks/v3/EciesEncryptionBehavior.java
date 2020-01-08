@@ -30,16 +30,15 @@ import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyP
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEnvelopeKey;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.GetEciesDecryptorRequest;
 import io.getlime.security.powerauth.v3.GetEciesDecryptorResponse;
 import org.slf4j.Logger;
@@ -75,7 +74,7 @@ public class EciesEncryptionBehavior {
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
-    private final CryptoProviderUtil keyConvertor = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(EciesEncryptionBehavior.class);
@@ -177,7 +176,7 @@ public class EciesEncryptionBehavior {
      * @return ECIES decryptor parameters for activation scope.
      * @throws GenericServiceException In case ECIES decryptor parameters could not be extracted.
      */
-    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             logger.warn("Invalid request for ECIES decryptor");
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);

@@ -50,12 +50,12 @@ import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -343,7 +343,7 @@ public class ActivationServiceBehavior {
      * @throws DatatypeConfigurationException Thrown when calendar conversion fails.
      * @throws GenericServiceException        Thrown when cryptography error occurs.
      */
-    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, CryptoProviderUtil keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
+    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, KeyConvertor keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
@@ -574,7 +574,7 @@ public class ActivationServiceBehavior {
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
@@ -726,7 +726,7 @@ public class ActivationServiceBehavior {
      * @return ECIES encrypted activation information.
      * @throws GenericServiceException If invalid values are provided.
      */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -890,7 +890,7 @@ public class ActivationServiceBehavior {
             Long maxFailureCount,
             String applicationKey,
             EciesCryptogram eciesCryptogram,
-            CryptoProviderUtil keyConversion) throws GenericServiceException {
+            KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -1195,7 +1195,7 @@ public class ActivationServiceBehavior {
      * @return Create activation using recovery code response.
      * @throws GenericServiceException In case of any error.
      */
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Extract request data
             final String recoveryCode = request.getRecoveryCode();

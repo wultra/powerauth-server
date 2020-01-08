@@ -24,12 +24,11 @@ import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,7 @@ public class ServerPrivateKeyConverter {
     // Utility classes for crypto
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
-    private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ServerPrivateKeyConverter.class);
@@ -99,7 +98,7 @@ public class ServerPrivateKeyConverter {
 
                 try {
                     // Convert master DB encryption key
-                    SecretKey masterDbEncryptionKey = keyConversionUtilities.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
                     SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, userId, activationId);
@@ -161,7 +160,7 @@ public class ServerPrivateKeyConverter {
 
         try {
             // Convert master DB encryption key
-            SecretKey masterDbEncryptionKey = keyConversionUtilities.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
             SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, userId, activationId);

@@ -29,9 +29,9 @@ import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSi
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v3.KeyValueMap;
 import io.getlime.security.powerauth.v3.SignatureType;
 import io.getlime.security.powerauth.v3.VerifySignatureResponse;
@@ -89,7 +89,7 @@ public class OnlineSignatureServiceBehavior {
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, String signatureVersion, KeyValueMap additionalInfo,
-                                                   String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
+                                                   String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
             throws GenericServiceException {
         try {
             return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
@@ -124,7 +124,7 @@ public class OnlineSignatureServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, String signatureVersion, KeyValueMap additionalInfo,
-                                                        String dataString, String applicationKey, Integer forcedSignatureVersion, CryptoProviderUtil keyConversionUtilities)
+                                                        String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         Date currentTimestamp = new Date();

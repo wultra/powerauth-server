@@ -27,9 +27,8 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.Recove
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +84,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         this.buildProperties = buildProperties;
     }
 
-    private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Override
     public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws Exception {
@@ -212,7 +211,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             String challenge = request.getChallenge();
             logger.info("GetActivationStatusRequest received, activation ID: {}", activationId);
-            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, challenge, keyConversionUtilities);
+            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, challenge, keyConvertor);
             logger.info("GetActivationStatusResponse succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -239,7 +238,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Long maxFailedCount = request.getMaxFailureCount();
             Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
             logger.info("InitActivationRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(applicationId, userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
+            InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(applicationId, userId, maxFailedCount, activationExpireTimestamp, keyConvertor);
             logger.info("InitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -267,7 +266,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
             EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConversionUtilities);
+            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -304,7 +303,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                     maxFailedCount,
                     applicationKey,
                     cryptogram,
-                    keyConversionUtilities
+                    keyConvertor
             );
             logger.info("CreateActivationRequest succeeded");
             return response;
@@ -330,7 +329,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
             forcedSignatureVersion = 3;
         }
-        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConvertor);
     }
 
     @Override
@@ -367,7 +366,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             String data = request.getData();
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", activationId);
-            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConversionUtilities);
+            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConvertor);
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -390,7 +389,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             long applicationId = request.getApplicationId();
             String data = request.getData();
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received, application ID: {}", applicationId);
-            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
+            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConvertor);
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -423,7 +422,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             }
             KeyValueMap additionalInfo = new KeyValueMap();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConversionUtilities);
+            VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConvertor);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -567,7 +566,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
 
             VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
-                    signature, signatureType, signatureVersion, signedData, cryptogram, keyConversionUtilities);
+                    signature, signatureType, signatureVersion, signedData, cryptogram, keyConvertor);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -591,7 +590,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String signedData = request.getData();
             String signature  = request.getSignature();
             logger.info("VerifyECDSASignatureRequest received, activation ID: {}", activationId);
-            boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConversionUtilities);
+            boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConvertor);
             VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
             response.setSignatureValid(matches);
             logger.info("VerifyECDSASignatureRequest succeeded");
@@ -721,7 +720,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("CreateApplicationRequest received, application name: {}", request.getApplicationName());
-            CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConversionUtilities);
+            CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConvertor);
             logger.info("CreateApplicationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -892,7 +891,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("CreateTokenRequest received, activation ID: {}", request.getActivationId());
-            CreateTokenResponse response = behavior.getTokenBehavior().createToken(request, keyConversionUtilities);
+            CreateTokenResponse response = behavior.getTokenBehavior().createToken(request, keyConvertor);
             logger.info("CreateTokenRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1021,7 +1020,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("CreateRecoveryCodeRequest received, application ID: {}, user ID: {}", request.getApplicationId(), request.getUserId());
-            CreateRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCode(request, keyConversionUtilities);
+            CreateRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCode(request, keyConvertor);
             logger.info("CreateRecoveryCodeRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1043,7 +1042,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("ConfirmRecoveryCodeRequest received, activation ID: {}, application key: {}", request.getActivationId(), request.getApplicationKey());
-            ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request, keyConversionUtilities);
+            ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request, keyConvertor);
             logger.info("ConfirmRecoveryCodeRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1107,7 +1106,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("RecoveryCodeActivationRequest received, recovery code: {}, application key: {}", request.getRecoveryCode(), request.getApplicationKey());
-            RecoveryCodeActivationResponse response = behavior.getActivationServiceBehavior().createActivationUsingRecoveryCode(request, keyConversionUtilities);
+            RecoveryCodeActivationResponse response = behavior.getActivationServiceBehavior().createActivationUsingRecoveryCode(request, keyConvertor);
             logger.info("RecoveryCodeActivationRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1149,7 +1148,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
-            UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConversionUtilities);
+            UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConvertor);
             logger.info("GetRecoveryConfigRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {

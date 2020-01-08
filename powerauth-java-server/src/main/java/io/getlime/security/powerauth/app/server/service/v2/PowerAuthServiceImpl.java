@@ -23,8 +23,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehavior
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v2.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         this.localizationProvider = localizationProvider;
     }
 
-    private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Override
     @Transactional(rollbackFor = GenericServiceException.class)
@@ -90,7 +89,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String applicationSignature = request.getApplicationSignature();
             String extras = request.getExtras();
             logger.info("PrepareActivationRequest received, activation ID short: {}", activationIdShort);
-            PrepareActivationResponse response = behavior.v2().getActivationServiceBehavior().prepareActivation(activationIdShort, activationNonceBase64, ephemeralPublicKey, cDevicePublicKeyBase64, activationName, extras, applicationKey, applicationSignature, keyConversionUtilities);
+            PrepareActivationResponse response = behavior.v2().getActivationServiceBehavior().prepareActivation(activationIdShort, activationNonceBase64, ephemeralPublicKey, cDevicePublicKeyBase64, activationName, extras, applicationKey, applicationSignature, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -139,7 +138,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                     activationName,
                     extras,
                     applicationSignature,
-                    keyConversionUtilities
+                    keyConvertor
             );
             logger.info("CreateActivationRequest succeeded");
             return response;
@@ -201,7 +200,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             // Verify the signature
             boolean isSignatureValid = this.verifySignatureImplNonTransaction(activationId, applicationKey, data, signature, signatureType, additionalInfo);
 
-            VaultUnlockResponse response = behavior.v2().getVaultUnlockServiceBehavior().unlockVault(activationId, isSignatureValid, keyConversionUtilities);
+            VaultUnlockResponse response = behavior.v2().getVaultUnlockServiceBehavior().unlockVault(activationId, isSignatureValid, keyConvertor);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -225,7 +224,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             GetPersonalizedEncryptionKeyResponse response = behavior.v2().getEncryptionServiceBehavior().generateEncryptionKeyForActivation(
                     request.getActivationId(),
                     request.getSessionIndex(),
-                    keyConversionUtilities
+                    keyConvertor
             );
             logger.info("GetPersonalizedEncryptionKeyRequest succeeded");
             return response;
@@ -251,7 +250,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                     request.getApplicationKey(),
                     request.getSessionIndex(),
                     request.getEphemeralPublicKey(),
-                    keyConversionUtilities
+                    keyConvertor
             );
             logger.info("GetNonPersonalizedEncryptionKeyRequest succeeded");
             return response;
@@ -273,7 +272,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("CreateTokenRequest received, activation ID: {}", request.getActivationId());
-            CreateTokenResponse response = behavior.v2().getTokenBehavior().createToken(request, keyConversionUtilities);
+            CreateTokenResponse response = behavior.v2().getTokenBehavior().createToken(request, keyConvertor);
             logger.info("CreateTokenRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -288,7 +287,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
         io.getlime.security.powerauth.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
         io.getlime.security.powerauth.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
-        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, "2.1", additionalInfoV3, dataString, applicationKey, null, keyConversionUtilities).isSignatureValid();
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, "2.1", additionalInfoV3, dataString, applicationKey, null, keyConvertor).isSignatureValid();
     }
 
 }
