@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.Platform;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -54,6 +55,12 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "extras")
     private String extras;
+
+    @Column(name = "platform")
+    private Platform platform;
+
+    @Column(name = "device_info")
+    private String deviceInfo;
 
     @Column(name = "server_private_key_base64", nullable = false)
     private String serverPrivateKeyBase64;
@@ -124,15 +131,17 @@ public class ActivationRecordEntity implements Serializable {
     /**
      * Constructor with all parameters.
      *
-     * @param activationId               Activation ID
-     * @param activationCode             Activation code
-     * @param userId                     User Id
-     * @param activationName             Activation name
-     * @param extras                     Extra parameter
-     * @param serverPrivateKeyBase64     Server private key encoded as Base64
+     * @param activationId               Activation ID.
+     * @param activationCode             Activation code.
+     * @param userId                     User Id.
+     * @param activationName             Activation name.
+     * @param extras                     Extra parameters.
+     * @param platform                   User device platform.
+     * @param deviceInfo                 User device information.
+     * @param serverPrivateKeyBase64     Server private key encoded as Base64.
      * @param serverPublicKeyBase64      Server public key encoded as Base64.
      * @param devicePublicKeyBase64      Device public key encoded as Base64.
-     * @param counter                    Counter
+     * @param counter                    Counter.
      * @param failedAttempts             Current failed attempt count.
      * @param maxFailedAttempts          Maximum allowed failed attempt count.
      * @param timestampCreated           Created timestamp.
@@ -149,6 +158,8 @@ public class ActivationRecordEntity implements Serializable {
                                   String userId,
                                   String activationName,
                                   String extras,
+                                  Platform platform,
+                                  String deviceInfo,
                                   String serverPrivateKeyBase64,
                                   String serverPublicKeyBase64,
                                   String devicePublicKeyBase64,
@@ -172,6 +183,8 @@ public class ActivationRecordEntity implements Serializable {
         this.userId = userId;
         this.activationName = activationName;
         this.extras = extras;
+        this.deviceInfo = deviceInfo;
+        this.platform = platform;
         this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
         this.serverPublicKeyBase64 = serverPublicKeyBase64;
         this.devicePublicKeyBase64 = devicePublicKeyBase64;
@@ -279,6 +292,38 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setExtras(String extras) {
         this.extras = extras;
+    }
+
+    /**
+     * Get user device platform.
+     * @return User device platform.
+     */
+    public Platform getPlatform() {
+        return platform;
+    }
+
+    /**
+     * Set user device platform.
+     * @param platform User device platform.
+     */
+    public void setPlatform(Platform platform) {
+        this.platform = platform;
+    }
+
+    /**
+     * Get user device information.
+     * @return User device information.
+     */
+    public String getDeviceInfo() {
+        return deviceInfo;
+    }
+
+    /**
+     * Set user device information.
+     * @param deviceInfo User device information.
+     */
+    public void setDeviceInfo(String deviceInfo) {
+        this.deviceInfo = deviceInfo;
     }
 
     /**
@@ -604,6 +649,9 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.activationCode);
         hash = 71 * hash + Objects.hashCode(this.userId);
         hash = 71 * hash + Objects.hashCode(this.activationName);
+        hash = 71 * hash + Objects.hashCode(this.extras);
+        hash = 71 * hash + Objects.hashCode(this.platform);
+        hash = 71 * hash + Objects.hashCode(this.deviceInfo);
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.serverPublicKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.devicePublicKeyBase64);
@@ -643,6 +691,15 @@ public class ActivationRecordEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.activationName, other.activationName)) {
+            return false;
+        }
+        if (!Objects.equals(this.extras, other.extras)) {
+            return false;
+        }
+        if (!Objects.equals(this.platform, other.platform)) {
+            return false;
+        }
+        if (!Objects.equals(this.deviceInfo, other.deviceInfo)) {
             return false;
         }
         if (!Objects.equals(this.activationId, other.activationId)) {
@@ -706,6 +763,9 @@ public class ActivationRecordEntity implements Serializable {
                 + ", activationCode=" + activationCode
                 + ", userId=" + userId
                 + ", activationName=" + activationName
+                + ", extras=" + extras
+                + ", platform=" +platform
+                + ", deviceInfo=" +deviceInfo
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter

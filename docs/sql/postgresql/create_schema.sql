@@ -26,6 +26,8 @@ CREATE TABLE "pa_activation"
     "ctr_data"                      VARCHAR(255),
     "device_public_key_base64"      VARCHAR(255),
     "extras"                        VARCHAR(255),
+    "platform"                      VARCHAR(255),
+    "device_info"                   VARCHAR(255),
     "failed_attempts"               INTEGER NOT NULL,
     "max_failed_attempts"           INTEGER DEFAULT 5 NOT NULL,
     "server_private_key_base64"     VARCHAR(255) NOT NULL,
