@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.model.Platform;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -57,7 +56,7 @@ public class ActivationRecordEntity implements Serializable {
     private String extras;
 
     @Column(name = "platform")
-    private Platform platform;
+    private String platform;
 
     @Column(name = "device_info")
     private String deviceInfo;
@@ -158,7 +157,7 @@ public class ActivationRecordEntity implements Serializable {
                                   String userId,
                                   String activationName,
                                   String extras,
-                                  Platform platform,
+                                  String platform,
                                   String deviceInfo,
                                   String serverPrivateKeyBase64,
                                   String serverPublicKeyBase64,
@@ -298,7 +297,7 @@ public class ActivationRecordEntity implements Serializable {
      * Get user device platform.
      * @return User device platform.
      */
-    public Platform getPlatform() {
+    public String getPlatform() {
         return platform;
     }
 
@@ -306,7 +305,7 @@ public class ActivationRecordEntity implements Serializable {
      * Set user device platform.
      * @param platform User device platform.
      */
-    public void setPlatform(Platform platform) {
+    public void setPlatform(String platform) {
         this.platform = platform;
     }
 
