@@ -47,6 +47,8 @@ CREATE TABLE `pa_activation` (
   `application_id` bigint(20) NOT NULL,
   `user_id` varchar(255) NOT NULL,
   `extras` text,
+  `platform` varchar(255),
+  `device_info` varchar(255),
   `counter` bigint(20) NOT NULL,
   `ctr_data` varchar(255),
   `device_public_key_base64` text,

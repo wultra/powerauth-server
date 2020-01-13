@@ -243,6 +243,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setBlockedReason(activation.getBlockedReason());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setPlatform(activation.getPlatform());
+                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -293,6 +295,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setBlockedReason(activation.getBlockedReason());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setPlatform(activation.getPlatform());
+                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -402,6 +406,8 @@ public class ActivationServiceBehavior {
                     response.setActivationCode(activation.getActivationCode());
                     response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
                     response.setDevicePublicKeyFingerprint(null);
+                    response.setPlatform(activation.getPlatform());
+                    response.setDeviceInfo(activation.getDeviceInfo());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -514,6 +520,8 @@ public class ActivationServiceBehavior {
                     response.setActivationCode(null);
                     response.setActivationSignature(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
+                    response.setPlatform(activation.getPlatform());
+                    response.setDeviceInfo(activation.getDeviceInfo());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -539,6 +547,8 @@ public class ActivationServiceBehavior {
                 response.setUserId("unknown");
                 response.setApplicationId(0L);
                 response.setExtras(null);
+                response.setPlatform(null);
+                response.setDeviceInfo(null);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -670,6 +680,8 @@ public class ActivationServiceBehavior {
             activation.setCtrDataBase64(null);
             activation.setDevicePublicKeyBase64(null);
             activation.setExtras(null);
+            activation.setPlatform(null);
+            activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);
@@ -816,6 +828,12 @@ public class ActivationServiceBehavior {
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
+            if (request.getPlatform() != null) {
+                activation.setPlatform(request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
             // Set initial counter data
@@ -979,6 +997,12 @@ public class ActivationServiceBehavior {
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
+            if (request.getPlatform() != null) {
+                activation.setPlatform(request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
             // Set initial counter data
@@ -1387,6 +1411,12 @@ public class ActivationServiceBehavior {
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExtras(layer2Request.getExtras());
+            if (layer2Request.getPlatform() != null) {
+                activation.setPlatform(layer2Request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(layer2Request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
             // Set initial counter data

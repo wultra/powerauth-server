@@ -430,6 +430,8 @@
                 <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
@@ -500,6 +502,8 @@
                             <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
@@ -546,6 +550,8 @@
                             <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>

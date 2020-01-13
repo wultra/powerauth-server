@@ -361,6 +361,8 @@ ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
  - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+ - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
+ - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
 
 #### Response
 
@@ -404,6 +406,8 @@ ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
  - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+ - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
+ - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
 
 #### Response
 
@@ -1383,6 +1387,8 @@ ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
  - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+ - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
+ - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
 
 #### Response
 
