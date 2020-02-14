@@ -854,6 +854,23 @@ public class ActivationServiceBehavior {
             byte[] ctrData = counter.init();
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
+            // Update the activation record
+            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
+            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setActivationName(request.getActivationName());
+            activation.setExtras(request.getExtras());
+            if (request.getPlatform() != null) {
+                activation.setPlatform(request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(request.getDeviceInfo());
+            // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
+            activation.setVersion(3);
+            // Set initial counter data
+            activation.setCtrDataBase64(ctrDataBase64);
+
             // Create a new recovery code and PUK for new activation if activation recovery is enabled.
             // Perform these operations before writing to database to avoid rollbacks.
             ActivationRecovery activationRecovery = null;
@@ -877,22 +894,7 @@ public class ActivationServiceBehavior {
             String encryptedData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
             String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
 
-            // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
-            // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
-            activation.setActivationName(request.getActivationName());
-            activation.setExtras(request.getExtras());
-            if (request.getPlatform() != null) {
-                activation.setPlatform(request.getPlatform().toLowerCase());
-            } else {
-                activation.setPlatform("unknown");
-            }
-            activation.setDeviceInfo(request.getDeviceInfo());
-            // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
-            activation.setVersion(3);
-            // Set initial counter data
-            activation.setCtrDataBase64(ctrDataBase64);
+            // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 

@@ -194,18 +194,11 @@ public class VaultUnlockServiceBehavior {
             }
             additionalInfo.getEntry().add(entry);
 
-            // Perform the following operations before writing to database to avoid rollbacks
-            VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
-            byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
-
-            // Encrypt response payload
-            EciesCryptogram responseCryptogram = decryptor.encryptResponse(reponsePayloadBytes);
-            String responseData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
-            String responseMac = BaseEncoding.base64().encode(responseCryptogram.getMac());
-
             // Verify the signature
             VerifySignatureResponse signatureResponse = behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType,
                     signature, signatureVersion, additionalInfo, signedData, applicationKey, null, keyConversion);
+
+            VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
 
             if (signatureResponse.isSignatureValid()) {
                 // Store encrypted vault unlock key in response
@@ -213,6 +206,14 @@ public class VaultUnlockServiceBehavior {
                 String encryptedVaultEncryptionKey = BaseEncoding.base64().encode(encryptedVaultEncryptionKeyBytes);
                 responsePayload.setEncryptedVaultEncryptionKey(encryptedVaultEncryptionKey);
             }
+
+            // Convert response payload to bytes
+            byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
+
+            // Encrypt response payload
+            EciesCryptogram responseCryptogram = decryptor.encryptResponse(reponsePayloadBytes);
+            String responseData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
+            String responseMac = BaseEncoding.base64().encode(responseCryptogram.getMac());
 
             // Return vault unlock response, set signature validity
             VaultUnlockResponse response = new VaultUnlockResponse();
@@ -222,23 +223,33 @@ public class VaultUnlockServiceBehavior {
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, serialization error can only occur before writing to database
+            // Rollback is not required, serialization errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
-            // Rollback is not required, cryptography errors can only occur before writing to database
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server;
 
-import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.getlime.security.powerauth.v3.CreateApplicationRequest;
 import org.junit.Test;
@@ -25,6 +24,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.UnexpectedRollbackException;
 
 import java.util.UUID;
 
@@ -53,7 +53,7 @@ public class CreateApplicationTest {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(testId);
         assertDoesNotThrow(()-> powerAuthService.createApplication(request));
-        assertThrows(GenericServiceException.class, ()-> powerAuthService.createApplication(request));
+        assertThrows(UnexpectedRollbackException.class, ()-> powerAuthService.createApplication(request));
     }
 
 }
