@@ -23,8 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.transaction.UnexpectedRollbackException;
 
 import java.util.UUID;
 
@@ -53,7 +53,7 @@ public class CreateApplicationTest {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(testId);
         assertDoesNotThrow(()-> powerAuthService.createApplication(request));
-        assertThrows(UnexpectedRollbackException.class, ()-> powerAuthService.createApplication(request));
+        assertThrows(DataIntegrityViolationException.class, ()-> powerAuthService.createApplication(request));
     }
 
 }
