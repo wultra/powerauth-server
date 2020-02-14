@@ -80,12 +80,15 @@ public class AsymmetricSignatureServiceBehavior {
             return signatureUtils.validateECDSASignature(BaseEncoding.base64().decode(data), BaseEncoding.base64().decode(signature), devicePublicKey);
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
 

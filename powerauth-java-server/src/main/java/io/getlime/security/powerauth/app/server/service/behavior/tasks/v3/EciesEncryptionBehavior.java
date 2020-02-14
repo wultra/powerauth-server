@@ -116,6 +116,7 @@ public class EciesEncryptionBehavior {
     private GetEciesDecryptorResponse getEciesDecryptorParametersForApplication(GetEciesDecryptorRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             logger.warn("Invalid request for ECIES decryptor");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -124,6 +125,7 @@ public class EciesEncryptionBehavior {
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
@@ -132,6 +134,7 @@ public class EciesEncryptionBehavior {
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             if (masterKeyPairEntity == null) {
                 logger.error("Missing key pair for application ID: {}", application.getId());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
@@ -156,15 +159,19 @@ public class EciesEncryptionBehavior {
             return response;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (EciesException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -179,6 +186,7 @@ public class EciesEncryptionBehavior {
     private GetEciesDecryptorResponse getEciesDecryptorParametersForActivation(GetEciesDecryptorRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             logger.warn("Invalid request for ECIES decryptor");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -187,12 +195,14 @@ public class EciesEncryptionBehavior {
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(request.getActivationId());
             if (activation == null) {
                 logger.info("Activation does not exist, activation ID: {}", request.getActivationId());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Check if the activation is in correct state
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", request.getActivationId());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -200,12 +210,14 @@ public class EciesEncryptionBehavior {
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
             // Check that application key from request belongs to same application as activation ID from request
             if (!applicationVersion.getApplication().getId().equals(activation.getApplication().getId())) {
                 logger.warn("Application version is does not match, application key: {}", request.getApplicationKey());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
@@ -239,15 +251,19 @@ public class EciesEncryptionBehavior {
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

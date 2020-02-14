@@ -144,12 +144,14 @@ public class TokenBehavior {
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Check if the activation is in correct state
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -179,6 +181,7 @@ public class TokenBehavior {
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
             if (decryptedData.length == 0) {
                 logger.warn("Invalid decrypted request data");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
@@ -194,41 +197,51 @@ public class TokenBehavior {
             }
             if (tokenId == null) {
                 logger.error("Unable to generate token");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
-
-            // Create a new token
-            TokenEntity token = new TokenEntity();
-            token.setTokenId(tokenId);
-            token.setTokenSecret(BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret()));
-            token.setActivation(activation);
-            token.setTimestampCreated(Calendar.getInstance().getTime());
-            token.setSignatureTypeCreated(signatureType);
-            token = repositoryCatalogue.getTokenRepository().save(token);
-
+            // Perform the following operations before writing to database to avoid rollbacks.
+            String tokenSecret = BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret());
             final TokenInfo tokenInfo = new TokenInfo();
-            tokenInfo.setTokenId(token.getTokenId());
-            tokenInfo.setTokenSecret(token.getTokenSecret());
+            tokenInfo.setTokenId(tokenId);
+            tokenInfo.setTokenSecret(tokenSecret);
 
             final ObjectMapper mapper = new ObjectMapper();
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response using previously created ECIES decryptor
-            return decryptor.encryptResponse(tokenBytes);
+            EciesCryptogram response = decryptor.encryptResponse(tokenBytes);
+
+            // Create a new token
+            TokenEntity token = new TokenEntity();
+            token.setTokenId(tokenId);
+            token.setTokenSecret(tokenSecret);
+            token.setActivation(activation);
+            token.setTimestampCreated(Calendar.getInstance().getTime());
+            token.setSignatureTypeCreated(signatureType);
+            token = repositoryCatalogue.getTokenRepository().save(token);
+
+            return response;
+
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, serialization error can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -261,6 +274,7 @@ public class TokenBehavior {
             final ActivationRecordEntity activation = token.getActivation();
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -283,9 +297,11 @@ public class TokenBehavior {
             }
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

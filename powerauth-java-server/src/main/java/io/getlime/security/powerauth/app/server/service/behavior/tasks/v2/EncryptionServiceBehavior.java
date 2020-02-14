@@ -109,6 +109,7 @@ public class EncryptionServiceBehavior {
             // If there is no such activation or activation is not active, return error
             if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
@@ -155,12 +156,15 @@ public class EncryptionServiceBehavior {
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -182,6 +186,7 @@ public class EncryptionServiceBehavior {
 
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
@@ -189,6 +194,7 @@ public class EncryptionServiceBehavior {
             MasterKeyPairEntity keypair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
             if (keypair == null) {
                 logger.error("Missing key pair for application ID: {}", applicationVersion.getApplication().getId());
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
@@ -230,12 +236,15 @@ public class EncryptionServiceBehavior {
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
