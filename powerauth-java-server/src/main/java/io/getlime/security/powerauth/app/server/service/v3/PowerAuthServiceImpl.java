@@ -231,7 +231,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-\        } catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
