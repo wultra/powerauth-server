@@ -332,6 +332,7 @@ public class SignatureSharedServiceBehavior {
     private void validateActivationVersion(Integer activationVersion) throws GenericServiceException {
         if (activationVersion == null || activationVersion < 2 || activationVersion > 3) {
             logger.warn("Invalid activation version: {}", activationVersion);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
     }

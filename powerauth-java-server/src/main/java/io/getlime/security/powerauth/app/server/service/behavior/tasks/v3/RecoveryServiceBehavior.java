@@ -129,6 +129,7 @@ public class RecoveryServiceBehavior {
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (!applicationOptional.isPresent()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -136,16 +137,19 @@ public class RecoveryServiceBehavior {
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             if (!recoveryConfigEntity.getRecoveryPostcardEnabled()) {
                 logger.warn("Activation recovery using recovery postcard is disabled");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             if (recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null
                     || recoveryConfigEntity.getRemotePostcardPublicKeyBase64() == null) {
                 logger.error("Missing key when deriving shared secret key for recovery code, application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_RECOVERY_CONFIGURATION);
             }
 
@@ -157,6 +161,7 @@ public class RecoveryServiceBehavior {
                     if (recoveryCodeEntity.getActivationId() == null
                             && (recoveryCodeEntity.getStatus() == RecoveryCodeStatus.CREATED || recoveryCodeEntity.getStatus() == RecoveryCodeStatus.ACTIVE)) {
                         logger.warn("Create recovery code failed because of existing recovery code, application ID: {}, user ID: {}", applicationId, userId);
+                        // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_ALREADY_EXISTS);
                     }
                 }
@@ -191,6 +196,7 @@ public class RecoveryServiceBehavior {
                     || pukDerivationIndexes == null
                     || !puks.keySet().equals(pukDerivationIndexes.keySet())) {
                 logger.error("Unable to generate recovery code");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_RECOVERY_CODE);
             }
 
@@ -239,12 +245,15 @@ public class RecoveryServiceBehavior {
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -271,6 +280,7 @@ public class RecoveryServiceBehavior {
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.warn("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
@@ -278,12 +288,14 @@ public class RecoveryServiceBehavior {
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activation.getApplication().getId());
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             // Check if the activation is in ACTIVE state
             if (!io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.warn("Activation is not ACTIVE, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -322,10 +334,12 @@ public class RecoveryServiceBehavior {
             final String recoveryCode = requestPayload.getRecoveryCode();
             if (recoveryCode == null || recoveryCode.isEmpty()) {
                 logger.warn("Missing recovery code in confirm recovery, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             if (!identifierGenerator.validateActivationCode(recoveryCode)) {
                 logger.warn("Invalid recovery code in confirm recovery, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -333,12 +347,14 @@ public class RecoveryServiceBehavior {
             final RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(applicationVersion.getApplication().getId(), recoveryCode);
             if (recoveryCodeEntity == null) {
                 logger.warn("Recovery code does not exist in confirm recovery, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_NOT_FOUND);
             }
 
             // Check that user ID from activation matches user ID from recovery entity
             if (!recoveryCodeEntity.getUserId().equals(activation.getUserId())) {
                 logger.warn("User ID from activation does not match user ID from recovery code in confirm recovery, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -348,17 +364,11 @@ public class RecoveryServiceBehavior {
             // Check recovery code status
             if (!inCreatedState && !alreadyConfirmed) {
                 logger.warn("Recovery code is not in CREATED or ACTIVE state in confirm recovery, recovery code ID: {}", recoveryCodeEntity.getId());
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            // Confirm recovery code and persist it
-            if (inCreatedState) {
-                recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
-                recoveryCodeEntity.setTimestampLastChange(new Date());
-                recoveryCodeRepository.save(recoveryCodeEntity);
-            }
-
-            // Prepare response payload
+            // Prepare response payload before writing to database to avoid rollbacks
             final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload(alreadyConfirmed);
 
             // Convert response payload
@@ -376,19 +386,31 @@ public class RecoveryServiceBehavior {
             response.setUserId(recoveryCodeEntity.getUserId());
             response.setEncryptedData(encryptedDataResponse);
             response.setMac(macResponse);
+
+            // Confirm recovery code and persist it
+            if (inCreatedState) {
+                recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
+                recoveryCodeEntity.setTimestampLastChange(new Date());
+                recoveryCodeRepository.save(recoveryCodeEntity);
+            }
+
             return response;
 
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException | IOException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -426,6 +448,7 @@ public class RecoveryServiceBehavior {
         } else {
             // Only application ID is specified, such request is not allowed
             logger.warn("Invalid request for lookup of recovery codes");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
@@ -493,6 +516,7 @@ public class RecoveryServiceBehavior {
         for (Long recoveryCodeId : recoveryCodeIds) {
             if (recoveryCodeId == null || recoveryCodeId < 0L) {
                 logger.warn("Invalid revoke recovery codes request");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
         }
@@ -544,6 +568,7 @@ public class RecoveryServiceBehavior {
         final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
         if (!applicationOptional.isPresent()) {
             logger.warn("Application does not exist, application ID: {}", applicationId);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
@@ -581,6 +606,7 @@ public class RecoveryServiceBehavior {
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
             if (!applicationOptional.isPresent()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
@@ -617,6 +643,7 @@ public class RecoveryServiceBehavior {
             return new UpdateRecoveryConfigResponse();
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

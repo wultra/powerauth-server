@@ -102,6 +102,7 @@ public class UpgradeServiceBehavior {
         // Verify input data
         if (activationId == null || applicationKey == null || ephemeralPublicKey == null || encryptedData == null || mac == null) {
             logger.warn("Invalid start upgrade request");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -115,12 +116,14 @@ public class UpgradeServiceBehavior {
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
         // Check if the activation is in correct state and version is 2
         if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
             logger.info("Activation state is invalid, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
@@ -130,6 +133,7 @@ public class UpgradeServiceBehavior {
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
         if (applicationVersion == null || !applicationVersion.getSupported()) {
             logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -158,11 +162,13 @@ public class UpgradeServiceBehavior {
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
             if (decryptedData.length == 0) {
                 logger.warn("Invalid decrypted request data");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
             // Request is valid, generate hash based counter if it does not exist yet
             final String ctrDataBase64;
+            boolean activationShouldBeSaved = false;
             if (activation.getCtrDataBase64() == null) {
                 // Initialize hash based counter
                 final HashBasedCounter hashBasedCounter = new HashBasedCounter();
@@ -171,7 +177,7 @@ public class UpgradeServiceBehavior {
                 activation.setCtrDataBase64(ctrDataBase64);
 
                 // Store activation with generated ctr_data in database
-                repositoryCatalogue.getActivationRepository().save(activation);
+                activationShouldBeSaved = true;
             } else {
                 // Hash based counter already exists, use the stored value.
                 // Concurrency is handled using @Lock(LockModeType.PESSIMISTIC_WRITE).
@@ -188,21 +194,32 @@ public class UpgradeServiceBehavior {
             final StartUpgradeResponse response = new StartUpgradeResponse();
             response.setEncryptedData(BaseEncoding.base64().encode(cryptogramResponse.getEncryptedData()));
             response.setMac(BaseEncoding.base64().encode(cryptogramResponse.getMac()));
+
+            // Save activation as last step to avoid rollbacks
+            if (activationShouldBeSaved) {
+                repositoryCatalogue.getActivationRepository().save(activation);
+            }
+
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, serialization errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
 
@@ -221,6 +238,7 @@ public class UpgradeServiceBehavior {
         // Verify input data
         if (activationId == null || applicationKey == null) {
             logger.warn("Invalid commit upgrade request");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
@@ -228,18 +246,21 @@ public class UpgradeServiceBehavior {
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
         // Check if the activation is in correct state and version is 2
         if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
             logger.info("Activation state is invalid, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
         // Check if the activation hash based counter was generated (upgrade has been started)
         if (activation.getCtrDataBase64() == null) {
             logger.warn("Activation counter data is missing, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
@@ -247,6 +268,7 @@ public class UpgradeServiceBehavior {
         final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
         if (applicationVersion == null || !applicationVersion.getSupported()) {
             logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 

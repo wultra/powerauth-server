@@ -178,6 +178,7 @@ public class VaultUnlockServiceBehavior {
 
             if (reason != null && !reason.matches("[A-Za-z0-9_\\-.]{3,255}")) {
                 logger.warn("Invalid vault unlock reason: {}", reason);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
@@ -222,18 +223,33 @@ public class VaultUnlockServiceBehavior {
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, serialization errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database.
+            // The only possible error could occur while generating ECIES response after signature validation,
+            // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

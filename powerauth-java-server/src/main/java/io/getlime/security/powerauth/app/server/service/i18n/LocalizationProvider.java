@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.i18n;
 
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
@@ -67,7 +68,7 @@ public class LocalizationProvider {
     }
 
     /**
-     * Build exception for given error code in English.
+     * Build exception that doesn't cause transaction rollback for given error code in English.
      * @param code Error code.
      * @return Generic service exception.
      */
@@ -76,7 +77,7 @@ public class LocalizationProvider {
     }
 
     /**
-     * Build exception for given error code and locale.
+     * Build exception that doesn't cause transaction rollback for given error code and locale.
      * @param code Error code.
      * @param locale Locale.
      * @return Generic service exception.
@@ -85,6 +86,27 @@ public class LocalizationProvider {
         String message = getLocalizedErrorMessage(code);
         String localizedMessage = getLocalizedErrorMessage(code, locale);
         return new GenericServiceException(code, message, localizedMessage);
+    }
+
+    /**
+     * Build rollbacking exception for given error code in English.
+     * @param code Error code.
+     * @return Rollbacking service exception.
+     */
+    public RollbackingServiceException buildRollbackingExceptionForCode(String code) {
+        return this.buildRollbackingExceptionForCode(code, Locale.ENGLISH);
+    }
+
+    /**
+     * Build rollbacking exception for given error code and locale.
+     * @param code Error code.
+     * @param locale Locale.
+     * @return Rollbacking service exception.
+     */
+    public RollbackingServiceException buildRollbackingExceptionForCode(String code, Locale locale) {
+        String message = getLocalizedErrorMessage(code);
+        String localizedMessage = getLocalizedErrorMessage(code, locale);
+        return new RollbackingServiceException(code, message, localizedMessage);
     }
 
     /**

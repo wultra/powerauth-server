@@ -81,6 +81,7 @@ public class RecoveryPukConverter {
         final EncryptionMode encryptionMode = pukHash.getEncryptionMode();
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
 
@@ -95,6 +96,7 @@ public class RecoveryPukConverter {
                 // In case master DB encryption key does not exist, do not encrypt the server private key
                 if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
                     logger.error("Missing master DB encryption key");
+                    // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_MASTER_DB_ENCRYPTION_KEY);
                 }
 
@@ -111,6 +113,7 @@ public class RecoveryPukConverter {
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (pukHashBytes == null || pukHashBytes.length < 16) {
                         logger.error("Invalid encrypted PUK hash format - the byte array is too short");
+                        // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                     }
 
@@ -128,17 +131,21 @@ public class RecoveryPukConverter {
 
                 } catch (InvalidKeyException ex) {
                     logger.error(ex.getMessage(), ex);
+                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                 } catch (GenericCryptoException ex) {
                     logger.error(ex.getMessage(), ex);
+                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 } catch (CryptoProviderException ex) {
                     logger.error(ex.getMessage(), ex);
+                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
                 }
 
             default:
                 logger.error("Unknown key encryption mode: {}", encryptionMode.getValue());
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
     }
@@ -189,15 +196,19 @@ public class RecoveryPukConverter {
 
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, serialization is executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         }
     }
