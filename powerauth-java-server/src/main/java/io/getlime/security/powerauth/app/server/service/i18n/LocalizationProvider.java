@@ -68,7 +68,7 @@ public class LocalizationProvider {
     }
 
     /**
-     * Build exception for given error code in English.
+     * Build exception that doesn't cause transaction rollback for given error code in English.
      * @param code Error code.
      * @return Generic service exception.
      */
@@ -77,7 +77,7 @@ public class LocalizationProvider {
     }
 
     /**
-     * Build exception for given error code and locale.
+     * Build exception that doesn't cause transaction rollback for given error code and locale.
      * @param code Error code.
      * @param locale Locale.
      * @return Generic service exception.
