@@ -21,6 +21,7 @@ import io.getlime.security.powerauth.app.server.controller.RESTRequestWrapper;
 import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.getlime.security.powerauth.v3.*;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController("restControllerV3")
 @RequestMapping(value = "/rest/v3")
+@Api(tags={"PowerAuth Controller V3"})
 public class PowerAuthController {
 
     private PowerAuthService powerAuthService;
