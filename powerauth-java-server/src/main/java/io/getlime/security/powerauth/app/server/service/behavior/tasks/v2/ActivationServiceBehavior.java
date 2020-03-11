@@ -38,6 +38,7 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.v2.CreateActivationResponse;
 import io.getlime.security.powerauth.v2.PrepareActivationResponse;
+import io.getlime.security.powerauth.v3.ActivationOtpValidation;
 import io.getlime.security.powerauth.v3.InitActivationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -394,7 +395,14 @@ public class ActivationServiceBehavior {
             }
 
             // Create an activation record and obtain the activation database record
-            InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
+            InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(
+                    application.getId(),
+                    userId,
+                    maxFailedCount,
+                    activationExpireTimestamp,
+                    ActivationOtpValidation.NONE,
+                    null,
+                    keyConversionUtilities);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 

@@ -330,6 +330,32 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
+     * @param activationId Activation ID for activation to be updated.
+     * @param externalUserId User ID of user who updated the activation. Use null value if activation owner caused the change,
+     *                       or if OTP value is automatically generated.
+     * @param activationOtp Value of activation OTP
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest request = new PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest();
+        request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
+        request.setActivationOtp(activationOtp);
+        return this.updateActivationOtp(request);
+    }
+
+    /**
+     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest} instance
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
+     */
+    public PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse updateActivationOtp(PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest request) throws RemoteException {
+        return clientStubV3.updateActivationOtp(request);
+    }
+
+    /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusRequest} instance
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}

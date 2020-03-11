@@ -255,8 +255,17 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Long applicationId = request.getApplicationId();
             Long maxFailedCount = request.getMaxFailureCount();
             Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
+            ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
+            String activationOtp = request.getActivationOtp();
             logger.info("InitActivationRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(applicationId, userId, maxFailedCount, activationExpireTimestamp, keyConvertor);
+            InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(
+                    applicationId,
+                    userId,
+                    maxFailedCount,
+                    activationExpireTimestamp,
+                    activationOtpValidation,
+                    activationOtp,
+                    keyConvertor);
             logger.info("InitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -317,6 +326,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
             Long maxFailedCount = request.getMaxFailureCount();
             String applicationKey = request.getApplicationKey();
+            String activationOtp = request.getActivationOtp();
             byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             byte[] mac = BaseEncoding.base64().decode(request.getMac());
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
@@ -329,6 +339,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                     maxFailedCount,
                     applicationKey,
                     cryptogram,
+                    activationOtp,
                     keyConvertor
             );
             logger.info("CreateActivationRequest succeeded");
@@ -481,6 +492,34 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
+    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method commitActivation");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            final String activationId = request.getActivationId();
+            final String externalUserId = request.getExternalUserId();
+            final String activationOtp = request.getActivationOtp();
+            logger.info("UpdateActivationOtp received, activation ID: {}", activationId);
+            final UpdateActivationOtpResponse response = behavior.getActivationServiceBehavior().updateActivationOtp(activationId, externalUserId, activationOtp);
+            logger.info("UpdateActivationOtp succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public CommitActivationResponse commitActivation(CommitActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method commitActivation");
@@ -490,8 +529,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             String activationId = request.getActivationId();
             String externalUserId = request.getExternalUserId();
+            String activationOtp = request.getActivationOtp();
             logger.info("CommitActivationRequest received, activation ID: {}", activationId);
-            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId, externalUserId);
+            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId, externalUserId, activationOtp);
             logger.info("CommitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {

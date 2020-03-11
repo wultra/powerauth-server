@@ -17,9 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -45,6 +43,13 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "activation_code", nullable = false, updatable = false)
     private String activationCode;
+
+    @Column(name = "activation_otp_validation", nullable = false)
+    @Convert(converter = ActivationOtpValidationConverter.class)
+    private ActivationOtpValidation activationOtpValidation;
+
+    @Column(name = "activation_otp")
+    private String activationOtp;
 
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
@@ -132,6 +137,8 @@ public class ActivationRecordEntity implements Serializable {
      *
      * @param activationId               Activation ID.
      * @param activationCode             Activation code.
+     * @param activationOtpValidation    Activation OTP validation mode.
+     * @param activationOtp              Activation OTP value.
      * @param userId                     User Id.
      * @param activationName             Activation name.
      * @param extras                     Extra parameters.
@@ -154,6 +161,8 @@ public class ActivationRecordEntity implements Serializable {
      */
     public ActivationRecordEntity(String activationId,
                                   String activationCode,
+                                  ActivationOtpValidation activationOtpValidation,
+                                  String activationOtp,
                                   String userId,
                                   String activationName,
                                   String extras,
@@ -179,6 +188,8 @@ public class ActivationRecordEntity implements Serializable {
         super();
         this.activationId = activationId;
         this.activationCode = activationCode;
+        this.activationOtpValidation = activationOtpValidation;
+        this.activationOtp = activationOtp;
         this.userId = userId;
         this.activationName = activationName;
         this.extras = extras;
@@ -237,6 +248,42 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setActivationCode(String activationCode) {
         this.activationCode = activationCode;
+    }
+
+    /**
+     * Get activation OTP validation.
+     *
+     * @return Activation OTP validation.
+     */
+    public ActivationOtpValidation getActivationOtpValidation() {
+        return activationOtpValidation;
+    }
+
+    /**
+     * Set activation OTP validation.
+     *
+     * @param activationOtpValidation Activation OTP validation.
+     */
+    public void setActivationOtpValidation(ActivationOtpValidation activationOtpValidation) {
+        this.activationOtpValidation = activationOtpValidation;
+    }
+
+    /**
+     * Get activation OTP.
+     *
+     * @return Activation OTP.
+     */
+    public String getActivationOtp() {
+        return activationOtp;
+    }
+
+    /**
+     * Set activation OTP.
+     *
+     * @param activationOtp Activation OTP.
+     */
+    public void setActivationOtp(String activationOtp) {
+        this.activationOtp = activationOtp;
     }
 
     /**
@@ -646,6 +693,8 @@ public class ActivationRecordEntity implements Serializable {
         int hash = 5;
         hash = 71 * hash + Objects.hashCode(this.activationId);
         hash = 71 * hash + Objects.hashCode(this.activationCode);
+        hash = 71 * hash + Objects.hashCode(this.activationOtpValidation);
+        hash = 71 * hash + Objects.hashCode(this.activationOtp);
         hash = 71 * hash + Objects.hashCode(this.userId);
         hash = 71 * hash + Objects.hashCode(this.activationName);
         hash = 71 * hash + Objects.hashCode(this.extras);
@@ -684,6 +733,12 @@ public class ActivationRecordEntity implements Serializable {
         }
         final ActivationRecordEntity other = (ActivationRecordEntity) obj;
         if (!Objects.equals(this.activationCode, other.activationCode)) {
+            return false;
+        }
+        if (this.activationOtpValidation != other.activationOtpValidation) {
+            return false;
+        }
+        if (!Objects.equals(this.activationOtp, other.activationOtp)) {
             return false;
         }
         if (!Objects.equals(this.userId, other.userId)) {
@@ -760,6 +815,8 @@ public class ActivationRecordEntity implements Serializable {
         return "ActivationRecordEntity{"
                 + "activationId=" + activationId
                 + ", activationCode=" + activationCode
+                + ", activationOtpValidation=" + activationOtpValidation
+                + ", activationOtp=" + activationOtp
                 + ", userId=" + userId
                 + ", activationName=" + activationName
                 + ", extras=" + extras
@@ -782,5 +839,4 @@ public class ActivationRecordEntity implements Serializable {
                 + ", application=" + application
                 + '}';
     }
-
 }

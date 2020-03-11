@@ -41,7 +41,7 @@ public enum ActivationStatus {
     /**
      * OTP_USED - status right after PowerAuth Server receives PowerAuth Client public
      * key, via {@link PowerAuthService#prepareActivation(io.getlime.security.powerauth.v3.PrepareActivationRequest)}
-     * method.
+     * method. This status means that activation is awaiting commit.
      */
     OTP_USED((byte) 2),
 

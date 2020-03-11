@@ -91,7 +91,8 @@ public interface PowerAuthService {
 
     /**
      * Receive a PowerAuth 3.0 Client public key and return own PowerAuth 3.0 Server public key. The
-     * activation with provided ID is in OTP_USED state after calling this method.
+     * activation with provided ID is in OTP_USED or ACTIVE state after calling this method, depending on
+     * presence of activation OTP in encrypted data.
      *
      * <p><b>PowerAuth protocol versions:</b>
      * <ul>
@@ -168,6 +169,15 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws Exception;
+
+    /**
+     * Update activation OTP before activation commit.
+     *
+     * @param request Activation OTP update request object.
+     * @return Activation OTP update response object.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws Exception;
 
     /**
      * Commit a created activation. Only activations in OTP_USED state can be committed - in case activation

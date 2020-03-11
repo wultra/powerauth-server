@@ -11,16 +11,22 @@ Migration script for Oracle:
 ```sql
 ALTER TABLE "PA_ACTIVATION" ADD "PLATFORM" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_ACTIVATION" ADD "DEVICE_INFO" VARCHAR2(255 CHAR);
+ALTER TABLE "PA_ACTIVATION" ADD "ACTIVATION_OTP" VARCHAR2(255 CHAR);
+ALTER TABLE "PA_ACTIVATION" ADD "ACTIVATION_OTP_VALIDATION" NUMBER(2,0) DEFAULT 0 NOT NULL;
 ```
 
 Migration script for MySQL:
 ```sql
 ALTER TABLE `pa_activation` ADD `platform` varchar(255);
 ALTER TABLE `pa_activation` ADD `device_info` varchar(255);
+ALTER TABLE `pa_activation` ADD `activation_otp` varchar(255);
+ALTER TABLE `pa_activation` ADD `activation_otp_validation` int DEFAULT 0 NOT NULL;
 ```
 
 Migration script for PostgreSQL:
 ```sql
 ALTER TABLE "pa_activation" ADD "platform" VARCHAR(255);
 ALTER TABLE "pa_activation" ADD "device_info" VARCHAR(255);
+ALTER TABLE "pa_activation" ADD "activation_otp" VARCHAR(255);
+ALTER TABLE `pa_activation` ADD `activation_otp_validation` INTEGER DEFAULT 0 NOT NULL;
 ```

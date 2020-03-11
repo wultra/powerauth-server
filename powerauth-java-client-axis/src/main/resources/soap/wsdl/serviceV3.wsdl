@@ -288,6 +288,8 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="timestampActivationExpire" type="xs:dateTime"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="maxFailureCount" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="activationOtpValidation" type="tns:ActivationOtpValidation"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="activationOtp" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -335,6 +337,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -355,6 +358,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="activationOtp" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -372,6 +376,33 @@
                 </xs:complexType>
             </xs:element>
 
+            <!-- Update activation OTP //-->
+
+            <xs:element name="UpdateActivationOtpRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for update activation OTP before activation commit.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="externalUserId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationOtp" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateActivationOtpResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for update activation OTP before activation commit.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="updated" type="xs:boolean"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
             <!-- Commit activation //-->
 
             <xs:element name="CommitActivationRequest">
@@ -382,6 +413,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="externalUserId" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="activationOtp" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1391,6 +1423,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="nonce" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="0" name="activationOtp" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1479,6 +1512,17 @@
                 </xs:restriction>
             </xs:simpleType>
 
+            <xs:simpleType name="ActivationOtpValidation">
+                <xs:annotation>
+                    <xs:documentation>Enum representing the possible modes of OTP validation (NONE, ON_KEYS_EXCHANGE, ON_COMMIT).</xs:documentation>
+                </xs:annotation>
+                <xs:restriction base="xs:string">
+                    <xs:enumeration value="NONE"/>
+                    <xs:enumeration value="ON_KEYS_EXCHANGE"/>
+                    <xs:enumeration value="ON_COMMIT"/>
+                </xs:restriction>
+            </xs:simpleType>
+
             <xs:simpleType name="RecoveryCodeStatus">
                 <xs:annotation>
                     <xs:documentation>Enum representing the possible recovery code states (CREATED, ACTIVE, BLOCKED, REVOKED).</xs:documentation>
@@ -1547,6 +1591,10 @@
         <wsdl:part element="tns:GetCallbackUrlListResponse" name="GetCallbackUrlListResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="UpdateActivationOtpRequest">
+        <wsdl:part element="tns:UpdateActivationOtpRequest" name="UpdateActivationOtpRequest">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="CommitActivationRequest">
         <wsdl:part element="tns:CommitActivationRequest" name="CommitActivationRequest">
         </wsdl:part>
@@ -1569,6 +1617,10 @@
     </wsdl:message>
     <wsdl:message name="GetActivationStatusResponse">
         <wsdl:part element="tns:GetActivationStatusResponse" name="GetActivationStatusResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateActivationOtpResponse">
+        <wsdl:part element="tns:UpdateActivationOtpResponse" name="UpdateActivationOtpResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="CommitActivationResponse">
@@ -1932,6 +1984,12 @@
             <wsdl:output message="tns:GetCallbackUrlListResponse" name="GetCallbackUrlListResponse">
             </wsdl:output>
         </wsdl:operation>
+        <wsdl:operation name="UpdateActivationOtp">
+            <wsdl:input message="tns:UpdateActivationOtpRequest" name="UpdateActivationOtpRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:UpdateActivationOtpResponse" name="UpdateActivationOtpResponse">
+            </wsdl:output>
+        </wsdl:operation>
         <wsdl:operation name="CommitActivation">
             <wsdl:input message="tns:CommitActivationRequest" name="CommitActivationRequest">
             </wsdl:input>
@@ -2226,6 +2284,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="GetCallbackUrlListResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateActivationOtp">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="UpdateActivationOtpRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="UpdateActivationOtpResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>
