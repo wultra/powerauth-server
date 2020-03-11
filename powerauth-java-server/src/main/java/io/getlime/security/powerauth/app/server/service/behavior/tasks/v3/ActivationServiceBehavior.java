@@ -1333,16 +1333,26 @@ public class ActivationServiceBehavior {
         }
 
         // Confirmation OTP doesn't match value stored in the database.
-        // We must increase the number of failed attempts and validate the maximum number of failed attempts.
-        activation.setFailedAttempts(activation.getFailedAttempts() + 1);
-        final boolean removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
-        final String activationSaveReason = removeActivation ? AdditionalInformation.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.ACTIVATION_OTP_FAILED_ATTEMPT;
+
+        final boolean removeActivation;
+        if (expectedStage == ActivationOtpValidation.ON_COMMIT) {
+            // For ON_COMMIT, we must increase the number of failed attempts and validate the maximum number of failed attempts.
+            activation.setFailedAttempts(activation.getFailedAttempts() + 1);
+            removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
+        } else {
+            // For ON_KEYS_EXCHANGE stage remove activation immediately. This is due the fact, that we don't propagate
+            // the reason of the failure back to the mobile application. So, mobile SDK doesn't know whether the activation
+            // failed due to invalid activation code, wrong OTP, etc.
+            removeActivation = true;
+        }
+
+        // If activation should be removed then set its status to REMOVED.
         if (removeActivation) {
-            // Max failed attempts reached.
             activation.setActivationStatus(ActivationStatus.REMOVED);
         }
 
         // Save activation state with the reason.
+        final String activationSaveReason = removeActivation ? AdditionalInformation.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.ACTIVATION_OTP_FAILED_ATTEMPT;
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, activationSaveReason);
 
         // Also notify the listeners in case that the state of the activation was changed.
