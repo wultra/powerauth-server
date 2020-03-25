@@ -646,11 +646,12 @@ public class ActivationServiceBehavior {
             }
 
             // Validate combination of activation OTP and OTP validation mode.
+            final boolean hasActivationOtp = activationOtp != null && !activationOtp.isEmpty();
             if (activationOtpValidation == null) {
                 activationOtpValidation = ActivationOtpValidation.NONE;
             }
-            if ((activationOtpValidation == ActivationOtpValidation.NONE && activationOtp != null) ||
-                    (activationOtpValidation != ActivationOtpValidation.NONE && activationOtp == null)) {
+            if ((activationOtpValidation == ActivationOtpValidation.NONE && hasActivationOtp) ||
+                    (activationOtpValidation != ActivationOtpValidation.NONE && !hasActivationOtp)) {
                 logger.warn("Activation OTP doesn't match its validation mode.");
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
@@ -1214,7 +1215,7 @@ public class ActivationServiceBehavior {
 
         // Validate provided OTP
         if (activationOtp == null || activationOtp.isEmpty()) {
-            logger.warn("Activation OTP not specified");
+            logger.warn("Activation OTP not specified in update");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
