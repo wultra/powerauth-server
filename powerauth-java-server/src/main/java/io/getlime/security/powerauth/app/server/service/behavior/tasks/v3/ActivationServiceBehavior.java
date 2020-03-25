@@ -412,6 +412,7 @@ public class ActivationServiceBehavior {
                     response.setActivationId(activationId);
                     response.setUserId(activation.getUserId());
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
@@ -526,6 +527,7 @@ public class ActivationServiceBehavior {
                     GetActivationStatusResponse response = new GetActivationStatusResponse();
                     response.setActivationId(activationId);
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
@@ -561,6 +563,7 @@ public class ActivationServiceBehavior {
                 GetActivationStatusResponse response = new GetActivationStatusResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+                response.setActivationOtpValidation(ActivationOtpValidation.NONE);
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
