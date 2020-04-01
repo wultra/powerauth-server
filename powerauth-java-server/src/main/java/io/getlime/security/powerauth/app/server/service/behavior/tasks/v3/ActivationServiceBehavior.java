@@ -1181,9 +1181,12 @@ public class ActivationServiceBehavior {
                 final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
                 final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
                 for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
-                    recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
-                    recoveryCode.setTimestampLastChange(new Date());
-                    recoveryCodeRepository.save(recoveryCode);
+                    // revoke only codes that are not yet revoked, to avoid messing up with timestamp
+                    if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                        recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                        recoveryCode.setTimestampLastChange(new Date());
+                        recoveryCodeRepository.save(recoveryCode);
+                    }
                 }
             }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
