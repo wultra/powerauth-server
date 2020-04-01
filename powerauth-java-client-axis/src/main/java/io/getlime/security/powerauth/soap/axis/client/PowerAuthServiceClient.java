@@ -491,7 +491,7 @@ public class PowerAuthServiceClient {
         PowerAuthPortV3ServiceStub.RemoveActivationRequest request = new PowerAuthPortV3ServiceStub.RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
-        //request.setRevokeRecoveryCodes(revokeRecoveryCodes);
+        request.setRevokeRecoveryCodes(revokeRecoveryCodes);
         return this.removeActivation(request);
     }
 

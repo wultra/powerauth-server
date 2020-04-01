@@ -495,6 +495,7 @@ Remove activation with given ID. This operation is irreversible. Activations can
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `externalUserId` | User ID of user who removed the activation. Use null value if activation owner caused the change. |
+| `boolean` | `revokeRecoveryCodes` | An optional flag that indicates if recovery codes, that were created in the scope of the removed activation, should be also revoked. |
 
 #### Response
 

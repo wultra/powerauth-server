@@ -358,7 +358,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
-        //request.setRevokeRecoveryCodes(revokeRecoveryCodes);
+        request.setRevokeRecoveryCodes(revokeRecoveryCodes);
         return this.removeActivation(request);
     }
 
