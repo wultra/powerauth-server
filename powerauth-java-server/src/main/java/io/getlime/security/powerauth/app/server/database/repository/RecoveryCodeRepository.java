@@ -50,6 +50,14 @@ public interface RecoveryCodeRepository extends CrudRepository<RecoveryCodeEntit
     List<RecoveryCodeEntity> findAllByUserId(String userId);
 
     /**
+     * Find all recovery codes for given activation ID.
+     * @param activationId Activation ID.
+     * @return Recovery codes matching search criteria.
+     */
+    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.activationId = :activationId ORDER BY r.timestampCreated DESC")
+    List<RecoveryCodeEntity> findAllByActivationId(String activationId);
+
+    /**
      * Find all recovery codes for given application ID and user ID.
      * @param applicationId Application ID.
      * @param userId User ID.
