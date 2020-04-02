@@ -445,6 +445,9 @@ public class RecoveryServiceBehavior {
         } else if (userId != null) {
             // User ID is specified
             recoveryCodesEntities = recoveryCodeRepository.findAllByUserId(userId);
+        }  else if (activationId != null) {
+            // Activation ID is specified
+            recoveryCodesEntities = recoveryCodeRepository.findAllByActivationId(activationId);
         } else {
             // Only application ID is specified, such request is not allowed
             logger.warn("Invalid request for lookup of recovery codes");

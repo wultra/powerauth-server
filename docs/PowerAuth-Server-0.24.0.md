@@ -8,6 +8,7 @@ Following DB changes occurred between version 0.23.0 and 0.24.0:
 - Table `pa_activation` - added columns `device_info`, `platform`, `activation_otp`, `activation_otp_validation`.
 
 Migration script for Oracle:
+
 ```sql
 ALTER TABLE "PA_ACTIVATION" ADD "PLATFORM" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_ACTIVATION" ADD "DEVICE_INFO" VARCHAR2(255 CHAR);
@@ -16,6 +17,7 @@ ALTER TABLE "PA_ACTIVATION" ADD "ACTIVATION_OTP_VALIDATION" NUMBER(2,0) DEFAULT 
 ```
 
 Migration script for MySQL:
+
 ```sql
 ALTER TABLE `pa_activation` ADD `platform` varchar(255);
 ALTER TABLE `pa_activation` ADD `device_info` varchar(255);
@@ -24,6 +26,7 @@ ALTER TABLE `pa_activation` ADD `activation_otp_validation` int DEFAULT 0 NOT NU
 ```
 
 Migration script for PostgreSQL:
+
 ```sql
 ALTER TABLE "pa_activation" ADD "platform" VARCHAR(255);
 ALTER TABLE "pa_activation" ADD "device_info" VARCHAR(255);
@@ -31,9 +34,11 @@ ALTER TABLE "pa_activation" ADD "activation_otp" VARCHAR(255);
 ALTER TABLE `pa_activation` ADD `activation_otp_validation` INTEGER DEFAULT 0 NOT NULL;
 ```
 
-## SOAP Interface Changes
+## Service Interface Changes
 
 PowerAuth server in version `0.24.0` slightly changed SOAP interface for protocol version `3` (namespace `http://getlime.io/security/powerauth/v3`):
+
+### Support for Additional Activation OTP
 
 - Added new enumeration `ActivationOtpValidation` with following values:
   - `NONE` – no additional OTP validation is required during the activation.
@@ -47,7 +52,11 @@ PowerAuth server in version `0.24.0` slightly changed SOAP interface for protoco
 - `GetActivationStatusResponse` response object now contains new `activationOtpValidation`, `platform` and `deviceInfo` properties.
 - `UpdateActivationOtp` is a new SOAP API method with `UpdateActivationOtpRequest` and `UpdateActivationOtpResponse` objects.
 
-Both Spring and Axis2 clients have been updated to support latest changes in SOAP interface.
+Check [Additional Activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) document for more details.
+
+### Revoking Recovery Codes on Activation Removal
+
+We added an optional `revokeRecoveryCodes` attribute to [activation removal service call](./SOAP-Service-Methods.md#method-removeactivation). This flag indicates if recovery codes that are associated with removed activation should be also revoked. By default, the value of the flag is `false`, hence omitting the flag results in the same behavior as before this change. 
 
 ## RESTful integration Changes
 

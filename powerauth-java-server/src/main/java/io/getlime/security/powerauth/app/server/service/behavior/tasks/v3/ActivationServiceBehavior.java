@@ -34,7 +34,6 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.*;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery;
@@ -92,7 +91,6 @@ public class ActivationServiceBehavior {
     private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
 
     private final RepositoryCatalogue repositoryCatalogue;
-    private final ServiceBehaviorCatalogue behaviorCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
@@ -117,9 +115,8 @@ public class ActivationServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue behaviorCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
-        this.behaviorCatalogue = behaviorCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
@@ -1375,13 +1372,34 @@ public class ActivationServiceBehavior {
      *
      * @param activationId Activation ID.
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @param revokeRecoveryCodes Flag that indicates if a recover codes associated with this activation should be also revoked.
      * @return Response with confirmation of removal.
      * @throws GenericServiceException In case activation does not exist.
      */
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws GenericServiceException {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
+            if (revokeRecoveryCodes) {
+                final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+                final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
+                final Date now = new Date();
+                for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
+                    // revoke only codes that are not yet revoked, to avoid messing up with timestamp
+                    if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                        recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                        recoveryCode.setTimestampLastChange(now);
+                        // Change status of PUKs with status VALID to INVALID
+                        for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                            if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                                puk.setStatus(RecoveryPukStatus.INVALID);
+                                puk.setTimestampLastChange(now);
+                            }
+                        }
+                        recoveryCodeRepository.save(recoveryCode);
+                    }
+                }
+            }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
@@ -1635,19 +1653,7 @@ public class ActivationServiceBehavior {
 
             // If recovery code is bound to an existing activation, remove this activation
             if (recoveryCodeEntity.getActivationId() != null) {
-                removeActivation(recoveryCodeEntity.getActivationId(), null);
-                // If there are no PUKs in VALID state left, set the recovery code status to REVOKED
-                boolean validPukExists = false;
-                for (RecoveryPukEntity recoveryPukEntity : recoveryCodeEntity.getRecoveryPuks()) {
-                    if (RecoveryPukStatus.VALID.equals(recoveryPukEntity.getStatus())) {
-                        validPukExists = true;
-                        break;
-                    }
-                }
-                if (!validPukExists) {
-                    recoveryCodeEntity.setStatus(RecoveryCodeStatus.REVOKED);
-                    recoveryCodeEntity.setTimestampLastChange(new Date());
-                }
+                removeActivation(recoveryCodeEntity.getActivationId(), null, true);
             }
 
             // Persist recovery code changes
