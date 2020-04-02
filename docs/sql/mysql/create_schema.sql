@@ -42,6 +42,8 @@ CREATE TABLE `pa_activation` (
   `activation_id` varchar(37) NOT NULL,
   `activation_code` varchar(255),
   `activation_status` int(11) NOT NULL,
+  `activation_otp` varchar(255),
+  `activation_otp_validation` int DEFAULT 0 NOT NULL,
   `blocked_reason` varchar(255) DEFAULT NULL,
   `activation_name` varchar(255) DEFAULT NULL,
   `application_id` bigint(20) NOT NULL,
