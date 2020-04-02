@@ -1180,11 +1180,12 @@ public class ActivationServiceBehavior {
             if (revokeRecoveryCodes) {
                 final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
                 final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
+                final Date now = new Date();
                 for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
                     // revoke only codes that are not yet revoked, to avoid messing up with timestamp
                     if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
                         recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
-                        recoveryCode.setTimestampLastChange(new Date());
+                        recoveryCode.setTimestampLastChange(now);
                         recoveryCodeRepository.save(recoveryCode);
                     }
                 }
