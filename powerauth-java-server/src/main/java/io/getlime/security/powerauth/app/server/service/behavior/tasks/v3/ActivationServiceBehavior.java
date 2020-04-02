@@ -1186,6 +1186,13 @@ public class ActivationServiceBehavior {
                     if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
                         recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
                         recoveryCode.setTimestampLastChange(now);
+                        // Change status of PUKs with status VALID to INVALID
+                        for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                            if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                                puk.setStatus(RecoveryPukStatus.INVALID);
+                                puk.setTimestampLastChange(now);
+                            }
+                        }
                         recoveryCodeRepository.save(recoveryCode);
                     }
                 }
