@@ -387,9 +387,22 @@ public class PowerAuthServiceClient {
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws RemoteException {
+        return this.removeActivation(activationId, externalUserId, false);
+    }
+
+    /**
+     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationId Activation ID of activation to be removed.
+     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws RemoteException {
         PowerAuthPortV3ServiceStub.RemoveActivationRequest request = new PowerAuthPortV3ServiceStub.RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
+        request.setRevokeRecoveryCodes(revokeRecoveryCodes);
         return this.removeActivation(request);
     }
 

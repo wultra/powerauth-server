@@ -979,10 +979,11 @@ public class ActivationServiceBehavior {
      *
      * @param activationId Activation ID.
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @param revokeRecoveryCodes Flag that indicates if a recover codes associated with this activation should be also revoked.
      * @return Response with confirmation of removal.
      * @throws GenericServiceException In case activation does not exist.
      */
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws GenericServiceException {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
@@ -991,6 +992,26 @@ public class ActivationServiceBehavior {
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);
             response.setRemoved(true);
+            if (revokeRecoveryCodes) {
+                final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+                final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
+                final Date now = new Date();
+                for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
+                    // revoke only codes that are not yet revoked, to avoid messing up with timestamp
+                    if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                        recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                        recoveryCode.setTimestampLastChange(now);
+                        // Change status of PUKs with status VALID to INVALID
+                        for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                            if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                                puk.setStatus(RecoveryPukStatus.INVALID);
+                                puk.setTimestampLastChange(now);
+                            }
+                        }
+                        recoveryCodeRepository.save(recoveryCode);
+                    }
+                }
+            }
             return response;
         } else {
             logger.info("Activation does not exist, activation ID: {}", activationId);
@@ -1222,18 +1243,7 @@ public class ActivationServiceBehavior {
 
             // If recovery code is bound to an existing activation, remove this activation
             if (recoveryCodeEntity.getActivationId() != null) {
-                removeActivation(recoveryCodeEntity.getActivationId(), null);
-                // If there are no PUKs in VALID state left, set the recovery code status to REVOKED
-                boolean validPukExists = false;
-                for (RecoveryPukEntity recoveryPukEntity : recoveryCodeEntity.getRecoveryPuks()) {
-                    if (RecoveryPukStatus.VALID.equals(recoveryPukEntity.getStatus())) {
-                        validPukExists = true;
-                    }
-                }
-                if (!validPukExists) {
-                    recoveryCodeEntity.setStatus(RecoveryCodeStatus.REVOKED);
-                    recoveryCodeEntity.setTimestampLastChange(new Date());
-                }
+                removeActivation(recoveryCodeEntity.getActivationId(), null, true);
             }
 
             // Persist recovery code changes
