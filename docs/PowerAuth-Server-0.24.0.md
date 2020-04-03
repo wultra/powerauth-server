@@ -42,7 +42,7 @@ PowerAuth server in version `0.24.0` slightly changed SOAP interface for protoco
 
 - Added new enumeration `ActivationOtpValidation` with following values:
   - `NONE` – no additional OTP validation is required during the activation.
-  - `ON_KEYS_EXCHANGE` – an additional OTP is validated during the keys-exchange activation phase.
+  - `ON_KEY_EXCHANGE` – an additional OTP is validated during the key exchange activation phase.
   - `ON_COMMIT` – an additional OTP is validated during the activation commit phase.
 - `InitActivationRequest` request object has now optional `activationOtp` and `activationOtpValidation` properties. 
 - `PrepareActivationResponse` response object now contains `activationStatus` property that contains the current status of the activation.

@@ -1533,11 +1533,11 @@
 
     <xs:simpleType name="ActivationOtpValidation">
         <xs:annotation>
-            <xs:documentation>Enum representing the possible modes of OTP validation (NONE, ON_KEYS_EXCHANGE, ON_COMMIT).</xs:documentation>
+            <xs:documentation>Enum representing the possible modes of OTP validation (NONE, ON_KEY_EXCHANGE, ON_COMMIT).</xs:documentation>
         </xs:annotation>
         <xs:restriction base="xs:string">
             <xs:enumeration value="NONE"/>
-            <xs:enumeration value="ON_KEYS_EXCHANGE"/>
+            <xs:enumeration value="ON_KEY_EXCHANGE"/>
             <xs:enumeration value="ON_COMMIT"/>
         </xs:restriction>
     </xs:simpleType>

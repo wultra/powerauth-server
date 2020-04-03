@@ -33,9 +33,9 @@ public enum ActivationOtpValidation {
     NONE((byte) 0),
 
     /**
-     * ON_KEYS_EXCHANGE - an additional OTP is validated during the keys-exchange activation phase.
+     * ON_KEY_EXCHANGE - an additional OTP is validated during the keys-exchange activation phase.
      */
-    ON_KEYS_EXCHANGE((byte) 1),
+    ON_KEY_EXCHANGE((byte) 1),
 
     /**
      * ON_COMMIT - an additional OTP is validated during the commit activation phase.

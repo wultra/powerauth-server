@@ -861,7 +861,7 @@ public class ActivationServiceBehavior {
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
             // Validate activation OTP
-            validateActivationOtp(ActivationOtpValidation.ON_KEYS_EXCHANGE, request.getActivationOtp(), activation, null);
+            validateActivationOtp(ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
@@ -1245,8 +1245,8 @@ public class ActivationServiceBehavior {
         }
 
         // Check OTP validation mode
-         if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEYS_EXCHANGE) {
-            logger.info("Activation OTP update is not allowed for ON_KEYS_EXCHANGE mode. Activation ID: {}", activationId);
+         if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE) {
+            logger.info("Activation OTP update is not allowed for ON_KEY_EXCHANGE mode. Activation ID: {}", activationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP_MODE);
         }
@@ -1341,7 +1341,7 @@ public class ActivationServiceBehavior {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
             removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
         } else {
-            // For ON_KEYS_EXCHANGE stage remove activation immediately. This is due the fact, that we don't propagate
+            // For ON_KEY_EXCHANGE stage remove activation immediately. This is due the fact, that we don't propagate
             // the reason of the failure back to the mobile application. So, mobile SDK doesn't know whether the activation
             // failed due to invalid activation code, wrong OTP, etc.
             removeActivation = true;

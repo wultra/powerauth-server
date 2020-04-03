@@ -36,8 +36,8 @@ public class ActivationOtpValidationConverter {
                 return io.getlime.security.powerauth.v3.ActivationOtpValidation.NONE;
             case ON_COMMIT:
                 return io.getlime.security.powerauth.v3.ActivationOtpValidation.ON_COMMIT;
-            case ON_KEYS_EXCHANGE:
-                return io.getlime.security.powerauth.v3.ActivationOtpValidation.ON_KEYS_EXCHANGE;
+            case ON_KEY_EXCHANGE:
+                return io.getlime.security.powerauth.v3.ActivationOtpValidation.ON_KEY_EXCHANGE;
         }
         return io.getlime.security.powerauth.v3.ActivationOtpValidation.NONE;
     }
@@ -53,8 +53,8 @@ public class ActivationOtpValidationConverter {
                 return io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.NONE;
             case ON_COMMIT:
                 return io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_COMMIT;
-            case ON_KEYS_EXCHANGE:
-                return io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEYS_EXCHANGE;
+            case ON_KEY_EXCHANGE:
+                return io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE;
         }
         return io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.NONE;
     }

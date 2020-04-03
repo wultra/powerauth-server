@@ -316,7 +316,7 @@ Methods related to activation management.
 
 ### Method 'initActivation'
 
-Create (initialize) a new activation for given user and application. If both, `activationOtpValidation` and `activationOtp` optional parameters are set, then the same value of activation OTP must be later provided for the confirmation.
+Create (initialize) a new activation for given user and application. If both `activationOtpValidation` and `activationOtp` optional parameters are set, then the same value of activation OTP must be later provided for the confirmation.
 
 After calling this method, a new activation record is created in CREATED state.
 
@@ -349,7 +349,7 @@ After calling this method, a new activation record is created in CREATED state.
 
 Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared.
 
-If optional `activationOtp` value is present in ECIES payload, then the value must match the OTP stored in activation's record and OTP validation mode must be ON_KEYS_EXCHANGE. 
+If optional `activationOtp` value is present in ECIES payload, then the value must match the OTP stored in activation's record and OTP validation mode must be ON_KEY_EXCHANGE. 
 
 After successfully calling this method, activation is in OTP_USED or ACTIVE state, depending on the presence of an activation OTP in ECIES payload:
 
@@ -378,7 +378,7 @@ ECIES request should contain following data (as JSON):
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
  - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
  - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
- - `activationOtp` - Optional activation OTP for confirmation. The value must be provided in case that activation was initialized with `ActivationOtpValidation` set to `ON_KEYS_EXCHANGE`. 
+ - `activationOtp` - Optional activation OTP for confirmation. The value must be provided in case that activation was initialized with `ActivationOtpValidation` set to `ON_KEY_EXCHANGE`. 
 
 #### Response
 
@@ -1710,7 +1710,7 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
 
 - `ActivationOtpValidation` - Represents mode of validation of additional OTP:
     - NONE
-    - ON_KEYS_EXCHANGE
+    - ON_KEY_EXCHANGE
     - ON_COMMIT
 
 - `SignatureType` - Represents the type of the signature, one of the following values:
