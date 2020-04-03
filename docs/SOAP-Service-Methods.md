@@ -353,8 +353,8 @@ If optional `activationOtp` value is present in ECIES payload, then the value mu
 
 After successfully calling this method, activation is in OTP_USED or ACTIVE state, depending on the presence of an activation OTP in ECIES payload:
 
-| Situation | State after `prepareActivation`             |
-|-----------|---------------------------------------------|
+| Situation | State after `prepareActivation` |
+|-----------|---------------------------------|
 | Activation OTP is not required and is not provided | `OTP_USED` |
 | Activation OTP is required and is valid            | `ACTIVE`   |
 | Activation OTP is required, but is not valid       | `REMOVED`  |

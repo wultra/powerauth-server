@@ -363,9 +363,9 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
-     * @param activationId Activation ID for activation to be updated.
-     * @param externalUserId User ID of user who updated the activation. Use null value if activation owner caused the change,
-     *                       or if OTP value is automatically generated.
+     * @param activationId      Activation ID for activation to be updated.
+     * @param externalUserId    User ID of user who updated the activation. Use null value if activation owner caused the change,
+     *                          or if OTP value is automatically generated.
      * @param activationOtp Value of activation OTP
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
      * @throws RemoteException In case of a business logic error.

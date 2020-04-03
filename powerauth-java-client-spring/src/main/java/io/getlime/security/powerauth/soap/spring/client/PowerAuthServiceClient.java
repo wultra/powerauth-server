@@ -239,9 +239,9 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
 
     /**
      * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
-     * @param activationId Activation ID for activation to be updated.
-     * @param externalUserId User ID of user who updated the activation. Use null value if activation owner caused the change,
-     *                       or if OTP value is automatically generated.
+     * @param activationId      Activation ID for activation to be updated.
+     * @param externalUserId    User ID of user who updated the activation. Use null value if activation owner caused the change,
+     *                          or if OTP value is automatically generated.
      * @param activationOtp Value of activation OTP
      * @return {@link UpdateActivationOtpResponse}
      */
