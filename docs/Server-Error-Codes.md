@@ -35,5 +35,7 @@ PowerAuth Server may return following errors:
 | ERR0028    | Invalid recovery code. | Used combination of recovery code and PUK is invalid. | 
 | ERR0029    | Invalid recovery configuration. | Recovery code configuration is missing or incomplete. |
 | ERR0030    | Token timestamp is too old. | In case token validation fails due to token being no longer valid. |
- 
+| ERR0031    | Activation OTP doesn't match value stored in database, or the OTP value is provided for the wrong validation step. |
+| ERR0032    | Activation OTP operation is performed for the wrong validation mode. |
+
 For each of these issues, more details about the specific nature and cause can be found in the server log.

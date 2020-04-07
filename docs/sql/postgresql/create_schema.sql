@@ -21,6 +21,8 @@ CREATE TABLE "pa_activation"
     "activation_name"               VARCHAR(255),
     "activation_code"               VARCHAR(255),
     "activation_status"             INTEGER NOT NULL,
+    "activation_otp"                VARCHAR(255),
+    "activation_otp_validation"     INTEGER DEFAULT 0 NOT NULL,
     "blocked_reason"                VARCHAR(255),
     "counter"                       INTEGER NOT NULL,
     "ctr_data"                      VARCHAR(255),

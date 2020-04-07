@@ -113,6 +113,19 @@ public class PowerAuthEndpoint {
     }
 
     /**
+     * Call {@link PowerAuthService#updateActivationOtp(UpdateActivationOtpRequest)} method and return the response.
+     *
+     * @param request Update activation OTP request.
+     * @return Update activation OTP activation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateActivationOtpRequest")
+    @ResponsePayload
+    public UpdateActivationOtpResponse updateActivationOtp(@RequestPayload UpdateActivationOtpRequest request) throws Exception {
+        return powerAuthService.updateActivationOtp(request);
+    }
+
+    /**
      * Call {@link PowerAuthService#commitActivation(CommitActivationRequest)} method and
      * return the response.
      *

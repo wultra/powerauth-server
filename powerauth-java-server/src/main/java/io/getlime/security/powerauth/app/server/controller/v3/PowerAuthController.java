@@ -111,6 +111,17 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#updateActivationOtp(UpdateActivationOtpRequest)} method and return the response.
+     * @param request Update activation OTP request.
+     * @return Update activation OTP response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/otp/update", method = RequestMethod.POST)
+    public RESTResponseWrapper<UpdateActivationOtpResponse> updateActivationOtp(@RequestBody RESTRequestWrapper<UpdateActivationOtpRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.updateActivationOtp(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#commitActivation(CommitActivationRequest)} method and
      * return the response.
      *

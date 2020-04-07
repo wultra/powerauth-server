@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -59,7 +60,7 @@ public class ActivationHistoryServiceBehavior {
      * @param activation Activation.
      */
     public void saveActivationAndLogChange(ActivationRecordEntity activation) {
-        saveActivationAndLogChange(activation, null);
+        saveActivationAndLogChange(activation, null, null);
     }
 
     /**
@@ -68,7 +69,18 @@ public class ActivationHistoryServiceBehavior {
      * @param activation Activation.
      * @param externalUserId User ID of user who caused the change.
      */
-    public void saveActivationAndLogChange(ActivationRecordEntity activation, String externalUserId) {
+    public void saveActivationAndLogChange(ActivationRecordEntity activation,  String externalUserId) {
+        saveActivationAndLogChange(activation, externalUserId, null);
+    }
+
+    /**
+     * Log activation status change into activation history.
+     *
+     * @param activation Activation.
+     * @param externalUserId User ID of user who caused the change.
+     * @param historyEventReason Optional reason, why this activation save event happened.
+     */
+    public void saveActivationAndLogChange(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
         Date changeTimestamp = new Date();
         activation.setTimestampLastChange(changeTimestamp);
         ActivationHistoryEntity activationHistoryEntity = new ActivationHistoryEntity();
@@ -76,6 +88,8 @@ public class ActivationHistoryServiceBehavior {
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
         if (activation.getActivationStatus() == ActivationStatus.BLOCKED) {
             activationHistoryEntity.setBlockedReason(activation.getBlockedReason());
+        } else {
+            activationHistoryEntity.setBlockedReason(historyEventReason);
         }
         activationHistoryEntity.setExternalUserId(externalUserId);
         activationHistoryEntity.setTimestampCreated(changeTimestamp);

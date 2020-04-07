@@ -30,5 +30,7 @@ public class AdditionalInformation {
     public static final String BLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
     public static final String VAULT_UNLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
     public static final String BIOMETRY_ALLOWED = "BIOMETRY_ALLOWED";
-
+    public static final String ACTIVATION_OTP_FAILED_ATTEMPT = "OTP_FAILED_ATTEMPT";
+    public static final String ACTIVATION_OTP_MAX_FAILED_ATTEMPTS = "OTP_MAX_FAILED_ATTEMPTS";
+    public static final String ACTIVATION_OTP_VALUE_UPDATE = "OTP_VALUE_UPDATE";
 }

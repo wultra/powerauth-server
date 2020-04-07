@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -56,6 +57,7 @@ import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.v3.*;
+import io.getlime.security.powerauth.v3.ActivationOtpValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +102,7 @@ public class ActivationServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
     private RecoveryPukConverter recoveryPukConverter;
 
@@ -406,6 +409,7 @@ public class ActivationServiceBehavior {
                     response.setActivationId(activationId);
                     response.setUserId(activation.getUserId());
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
@@ -520,6 +524,7 @@ public class ActivationServiceBehavior {
                     GetActivationStatusResponse response = new GetActivationStatusResponse();
                     response.setActivationId(activationId);
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
@@ -555,6 +560,7 @@ public class ActivationServiceBehavior {
                 GetActivationStatusResponse response = new GetActivationStatusResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+                response.setActivationOtpValidation(ActivationOtpValidation.NONE);
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
@@ -597,10 +603,14 @@ public class ActivationServiceBehavior {
      * @param maxFailureCount            Maximum failed attempt count (5)
      * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
      * @param keyConversionUtilities    Utility class for key conversion
+     * @param activationOtpValidation   Activation OTP validation mode
+     * @param activationOtp             Activation OTP
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
+                                                 ActivationOtpValidation activationOtpValidation, String activationOtp,
+                                                 KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
@@ -634,6 +644,19 @@ public class ActivationServiceBehavior {
             if (timestampExpiration == null) {
                 timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
             }
+
+            // Validate combination of activation OTP and OTP validation mode.
+            final boolean hasActivationOtp = activationOtp != null && !activationOtp.isEmpty();
+            if (activationOtpValidation == null) {
+                activationOtpValidation = ActivationOtpValidation.NONE;
+            }
+            if ((activationOtpValidation == ActivationOtpValidation.NONE && hasActivationOtp) ||
+                    (activationOtpValidation != ActivationOtpValidation.NONE && !hasActivationOtp)) {
+                logger.warn("Activation OTP doesn't match its validation mode.");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            // Generate hash from activation OTP
+            final String activationOtpHash = activationOtp == null ? null : PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
 
             // Fetch the latest master private key
             MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
@@ -695,6 +718,8 @@ public class ActivationServiceBehavior {
             ActivationRecordEntity activation = new ActivationRecordEntity();
             activation.setActivationId(activationId);
             activation.setActivationCode(activationCode);
+            activation.setActivationOtpValidation(activationOtpValidationConverter.convertTo(activationOtpValidation));
+            activation.setActivationOtp(activationOtpHash);
             activation.setActivationName(null);
             activation.setActivationStatus(ActivationStatus.CREATED);
             activation.setCounter(0L);
@@ -835,6 +860,8 @@ public class ActivationServiceBehavior {
 
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
+            // Validate activation OTP
+            validateActivationOtp(ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
@@ -851,8 +878,12 @@ public class ActivationServiceBehavior {
             byte[] ctrData = counter.init();
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
+            // If Activation OTP is available, then the status is set directly to "ACTIVE".
+            // We don't need to commit such activation afterwards.
+            final ActivationStatus activationStatus = request.getActivationOtp() == null ? ActivationStatus.OTP_USED : ActivationStatus.ACTIVE;
+
             // Update the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(activationStatus);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
@@ -901,6 +932,7 @@ public class ActivationServiceBehavior {
             encryptedResponse.setUserId(activation.getUserId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
+            encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
@@ -935,6 +967,7 @@ public class ActivationServiceBehavior {
      * @param applicationKey                 Application key
      * @param eciesCryptogram                ECIES cryptogram
      * @param keyConversion                  Utility class for key conversion
+     * @param activationOtp                  Additional activation OTP
      * @return ECIES encrypted activation information
      * @throws GenericServiceException       In case create activation fails
      */
@@ -944,6 +977,7 @@ public class ActivationServiceBehavior {
             Long maxFailureCount,
             String applicationKey,
             EciesCryptogram eciesCryptogram,
+            String activationOtp,
             KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
@@ -971,8 +1005,11 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
+            // Prepare activation OTP mode
+            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
+
             // Create an activation record and obtain the activation database record
-            InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, keyConversion);
+            InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, keyConversion);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
@@ -1105,63 +1142,233 @@ public class ActivationServiceBehavior {
      *
      * @param activationId Activation ID.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
+     * @param activationOtp Activation OTP.
      * @return Response with activation commit confirmation.
      * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
      */
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId) throws GenericServiceException {
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws GenericServiceException {
 
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
+        // Find activation
         ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        if (activation == null) {
+            // Activation does not exist
+            logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
 
         // Get current timestamp
         Date timestamp = new Date();
 
-        // Does the activation exist?
-        if (activation != null) {
+        // Check already deactivated activation
+        deactivatePendingActivation(timestamp, activation, true);
+        if (activation.getActivationStatus() == ActivationStatus.REMOVED) {
+            logger.info("Activation is already REMOVED, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
 
-            // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation, true);
-            if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED)) {
-                logger.info("Activation is already REMOVED, activation ID: {}", activationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        // Check whether Activation is in correct state
+        if (activation.getActivationStatus() != ActivationStatus.OTP_USED) {
+            logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        // Validate activation OTP
+        validateActivationOtp(ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
+
+        // Change activation state to ACTIVE
+        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
+        // Update recovery code status in case a related recovery code exists in CREATED state
+        RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+        List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(activation.getApplication().getId(), activation.getActivationId());
+        for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodeEntities) {
+            if (RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus())) {
+                recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
+                recoveryCodeEntity.setTimestampLastChange(new Date());
+                recoveryCodeRepository.save(recoveryCodeEntity);
             }
+        }
 
-            // Activation is in correct state
-            if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) {
-                activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
-                activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        CommitActivationResponse response = new CommitActivationResponse();
+        response.setActivationId(activationId);
+        response.setActivated(true);
+        return response;
+    }
 
-                // Update recovery code status in case a related recovery code exists in CREATED state
-                RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-                List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(activation.getApplication().getId(), activation.getActivationId());
-                for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodeEntities) {
-                    if (RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus())) {
-                        recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
-                        recoveryCodeEntity.setTimestampLastChange(new Date());
-                        recoveryCodeRepository.save(recoveryCodeEntity);
-                    }
-                }
+    /**
+     * Update activation OTP for given activation ID.
+     *
+     * @param activationId Activation ID.
+     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
+     * @param activationOtp Activation OTP.
+     * @return Response with activation UTP update result.
+     * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
+     */
+    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws GenericServiceException {
 
-                CommitActivationResponse response = new CommitActivationResponse();
-                response.setActivationId(activationId);
-                response.setActivated(true);
-                return response;
-            } else {
-                logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
+        // Validate provided OTP
+        if (activationOtp == null || activationOtp.isEmpty()) {
+            logger.warn("Activation OTP not specified in update");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
 
-        } else {
+        // Get the repository
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        // Find activation
+        ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        if (activation == null) {
             // Activation does not exist
             logger.info("Activation does not exist, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+
+        // Get current timestamp
+        final Date timestamp = new Date();
+
+        // Check already deactivated activation
+        deactivatePendingActivation(timestamp, activation, true);
+
+        // Check activation state
+        if (activation.getActivationStatus() != ActivationStatus.OTP_USED) {
+            logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        // Check OTP validation mode
+         if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE) {
+            logger.info("Activation OTP update is not allowed for ON_KEY_EXCHANGE mode. Activation ID: {}", activationId);
+             // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP_MODE);
+        }
+
+        final String activationOtpHash = PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+
+        // Change activation OTP and set mode to ON_COMMIT
+        activation.setActivationOtp(activationOtpHash);
+        activation.setActivationOtpValidation(io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_COMMIT);
+
+        // Save activation record
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.ACTIVATION_OTP_VALUE_UPDATE);
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
+        UpdateActivationOtpResponse response = new UpdateActivationOtpResponse();
+        response.setActivationId(activationId);
+        response.setUpdated(true);
+        return response;
+    }
+
+    /**
+     * Validate activation OTP against value set in the activation's record.
+     *
+     * @param currentStage      Determines in which step of the activation is this method called.
+     * @param confirmationOtp   OTP value to be validated.
+     * @param activation        Activation record.
+     * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
+     * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
+     */
+    private void validateActivationOtp(ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
+
+        final String activationId = activation.getActivationId();
+        final ActivationOtpValidation expectedStage = activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation());
+        final String expectedOtpHash = activation.getActivationOtp();
+
+        if (currentStage == ActivationOtpValidation.NONE) {
+            // This should never happen.
+            logger.info("Internal error in activation OTP validation: {}", activationId);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        }
+
+        // Check whether activation OTP validation is turned OFF. In this case, the confirmation OTP must not
+        // be provided.
+        if (expectedStage == ActivationOtpValidation.NONE) {
+            if (confirmationOtp != null) {
+                logger.info("Activation OTP is not used, but is provided: {}", activationId);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            return;
+        }
+        // Check whether this is validation in the different step of activation. If yes, then the confirmation
+        // OTP must not be provided.
+        if (expectedStage != currentStage) {
+            if (confirmationOtp != null) {
+                logger.info("Activation OTP is not expected, but is provided: {}", activationId);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            return;
+        }
+        // We're in the right step, so the confirmation OTP must be provided.
+        if (confirmationOtp == null) {
+            logger.info("Activation OTP is expected, but is missing: {}", activationId);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+        }
+        // The final test only checks, whether hash is present in the database.
+        if (expectedOtpHash == null) {
+            logger.info("Activation OTP is missing in activation data: {}", activationId);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+        }
+
+        // Now verify OTP value
+        try {
+            if (PasswordHash.verify(confirmationOtp.getBytes(StandardCharsets.UTF_8), expectedOtpHash)) {
+                // Everything looks fine. Reset the failed attempts counter.
+                activation.setFailedAttempts(0L);
+                return;
+            }
+        } catch (IOException e) {
+            // This exception typically means that the hash stored in DB is in wrong format. The rest of this method
+            // will treat this as an invalid OTP.
+            logger.warn("Invalid activation OTP hash: {}", activationId);
+        }
+
+        // Confirmation OTP doesn't match value stored in the database.
+
+        final boolean removeActivation;
+        if (expectedStage == ActivationOtpValidation.ON_COMMIT) {
+            // For ON_COMMIT, we must increase the number of failed attempts and validate the maximum number of failed attempts.
+            activation.setFailedAttempts(activation.getFailedAttempts() + 1);
+            removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
+        } else {
+            // For ON_KEY_EXCHANGE stage remove activation immediately. This is due the fact, that we don't propagate
+            // the reason of the failure back to the mobile application. So, mobile SDK doesn't know whether the activation
+            // failed due to invalid activation code, wrong OTP, etc.
+            removeActivation = true;
+        }
+
+        // If activation should be removed then set its status to REMOVED.
+        if (removeActivation) {
+            activation.setActivationStatus(ActivationStatus.REMOVED);
+        }
+
+        // Save activation state with the reason.
+        final String activationSaveReason = removeActivation ? AdditionalInformation.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.ACTIVATION_OTP_FAILED_ATTEMPT;
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, activationSaveReason);
+
+        // Also notify the listeners in case that the state of the activation was changed.
+        if (removeActivation) {
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        }
+
+        // ...and finally throw an exception.
+        logger.info("Invalid activation OTP: {}", activationId);
+        // Exception must not be rollbacking, otherwise data written to database in this method would be lost.
+        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
     }
 
     /**
@@ -1305,6 +1512,7 @@ public class ActivationServiceBehavior {
             final String ephemeralPublicKey = request.getEphemeralPublicKey();
             final String encryptedData = request.getEncryptedData();
             final String mac = request.getMac();
+            final String activationOtp = request.getActivationOtp();
 
             // Prepare ECIES request cryptogram
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
@@ -1455,9 +1663,19 @@ public class ActivationServiceBehavior {
             // Persist recovery code changes
             recoveryCodeRepository.save(recoveryCodeEntity);
 
+            // Prepare activation OTP mode
+            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
+
             // Initialize version 3 activation entity.
             // Parameter maxFailureCount can be customized, activationExpireTime is null because activation is committed immediately.
-            InitActivationResponse initResponse = initActivation(application.getId(), recoveryCodeEntity.getUserId(), maxFailureCount, null, keyConversion);
+            InitActivationResponse initResponse = initActivation(
+                    application.getId(),
+                    recoveryCodeEntity.getUserId(),
+                    maxFailureCount,
+                    null,
+                    activationOtpValidation,
+                    activationOtp,
+                    keyConversion);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
@@ -1481,7 +1699,7 @@ public class ActivationServiceBehavior {
             byte[] ctrData = counter.init();
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
-            // Update and persist the activation record, activation is automatically committed in the next step
+            // Update and persist the activation record, activation is automatically committed in the next step in RESTful integration.
             activation.setActivationStatus(ActivationStatus.OTP_USED);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));

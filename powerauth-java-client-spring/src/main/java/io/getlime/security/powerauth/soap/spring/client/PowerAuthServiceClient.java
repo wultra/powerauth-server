@@ -91,7 +91,19 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @return {@link InitActivationResponse}
      */
     public InitActivationResponse initActivation(String userId, Long applicationId) {
-        return this.initActivation(userId, applicationId, null, null);
+        return this.initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
+    }
+
+    /**
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userId User ID for which a new CREATED activation should be created.
+     * @param applicationId Application ID for which a new CREATED activation should be created.
+     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
+     * @param otp Additional OTP value.
+     * @return {@link InitActivationResponse}
+     */
+    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) {
+        return this.initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
     /**
@@ -103,9 +115,26 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @return {@link InitActivationResponse}
      */
     public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) {
+        return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
+    }
+
+    /**
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userId User ID for which a new CREATED activation should be created.
+     * @param applicationId Application ID for which a new CREATED activation should be created.
+     * @param maxFailureCount How many failed attempts should be allowed for this activation.
+     * @param timestampActivationExpire Timestamp until when the activation can be committed.
+     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
+     * @param otp Additional OTP value.
+     * @return {@link InitActivationResponse}
+     */
+    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
+                                                 ActivationOtpValidation otpValidation, String otp) {
         InitActivationRequest request = new InitActivationRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
+        request.setActivationOtpValidation(otpValidation);
+        request.setActivationOtp(otp);
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
         }
@@ -206,6 +235,31 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
         return this.commitActivation(request);
+    }
+
+    /**
+     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
+     * @param activationId      Activation ID for activation to be updated.
+     * @param externalUserId    User ID of user who updated the activation. Use null value if activation owner caused the change,
+     *                          or if OTP value is automatically generated.
+     * @param activationOtp Value of activation OTP
+     * @return {@link UpdateActivationOtpResponse}
+     */
+    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) {
+        UpdateActivationOtpRequest request = new UpdateActivationOtpRequest();
+        request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
+        request.setActivationOtp(activationOtp);
+        return updateActivationOtp(request);
+    }
+
+    /**
+     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
+     * @param request {@link UpdateActivationOtpRequest} instance
+     * @return {@link UpdateActivationOtpResponse}
+     */
+    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) {
+        return (UpdateActivationOtpResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
     /**

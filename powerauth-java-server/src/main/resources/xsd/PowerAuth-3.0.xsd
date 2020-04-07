@@ -294,6 +294,8 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampActivationExpire" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="maxFailureCount" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationOtpValidation" type="tns:ActivationOtpValidation" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationOtp" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -341,6 +343,7 @@
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -361,6 +364,7 @@
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="nonce" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationOtp" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -378,6 +382,33 @@
         </xs:complexType>
     </xs:element>
 
+    <!-- Update activation OTP //-->
+
+    <xs:element name="UpdateActivationOtpRequest">
+        <xs:annotation>
+            <xs:documentation>Request for update activation OTP before activation commit.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationOtp" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateActivationOtpResponse">
+        <xs:annotation>
+            <xs:documentation>Response for update activation OTP before activation commit.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="updated" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
     <!-- Commit activation //-->
 
     <xs:element name="CommitActivationRequest">
@@ -388,6 +419,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="externalUserId" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationOtp" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -426,6 +458,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationOtpValidation" type="tns:ActivationOtpValidation" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -1409,6 +1442,7 @@
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="nonce" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationOtp" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1494,6 +1528,17 @@
             <xs:enumeration value="ACTIVE"/>
             <xs:enumeration value="BLOCKED"/>
             <xs:enumeration value="REMOVED"/>
+        </xs:restriction>
+    </xs:simpleType>
+
+    <xs:simpleType name="ActivationOtpValidation">
+        <xs:annotation>
+            <xs:documentation>Enum representing the possible modes of OTP validation (NONE, ON_KEY_EXCHANGE, ON_COMMIT).</xs:documentation>
+        </xs:annotation>
+        <xs:restriction base="xs:string">
+            <xs:enumeration value="NONE"/>
+            <xs:enumeration value="ON_KEY_EXCHANGE"/>
+            <xs:enumeration value="ON_COMMIT"/>
         </xs:restriction>
     </xs:simpleType>
 

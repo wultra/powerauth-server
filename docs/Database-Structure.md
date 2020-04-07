@@ -61,6 +61,8 @@ Columns:
 |------|------|---------|------|
 | activation_id  | VARCHAR(37) | primary key, UUID (level 4) | Unique activation ID. Uses UUID Level 4 format, for example "099e5e30-47b1-41c7-b49b-3bf28e811fca". |
 | activation_code | VARCHAR(255) | index | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA". |
+| activation_otp | VARCHAR(255) | - | Activation OTP value |
+| activation_otp_validation | INT(11) | - | Activation OTP validation, can be one of following values:<br><br>0 - NONE<br>1 - ON_KEY_EXCHANGE<br>2 - ON_COMMIT |
 | activation_status  | INT(11) | - | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
 | blocked_reason | VARCHAR(255) | - | Reason why activation is blocked (used when activation_status = 4, BLOCKED). |
 | activation_name  | VARCHAR(255 | - | Name of the activation, typically a name of the client device, for example "John's iPhone 6" |
@@ -81,6 +83,8 @@ Columns:
 | timestamp_last_used | DATETIME | - | Timestamp of the last signature verification attempt. |
 | timestamp_last_change | DATETIME | - | Timestamp of the last signature verification attempt. |
 | version | BIGINT(2) | - | Cryptography protocol version. |
+| platform | VARCHAR(255) | - | User device platform. |
+| device_info | VARCHAR(255) | - | User device information. |
 
 ### Master Key Pair Table
 
