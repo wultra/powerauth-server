@@ -1156,6 +1156,7 @@ public class ActivationServiceBehavior {
         if (activation == null) {
             // Activation does not exist
             logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
@@ -1173,7 +1174,7 @@ public class ActivationServiceBehavior {
         // Check whether Activation is in correct state
         if (activation.getActivationStatus() != ActivationStatus.OTP_USED) {
             logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
@@ -1228,6 +1229,7 @@ public class ActivationServiceBehavior {
         if (activation == null) {
             // Activation does not exist
             logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
@@ -1240,14 +1242,14 @@ public class ActivationServiceBehavior {
         // Check activation state
         if (activation.getActivationStatus() != ActivationStatus.OTP_USED) {
             logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
 
         // Check OTP validation mode
          if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE) {
             logger.info("Activation OTP update is not allowed for ON_KEY_EXCHANGE mode. Activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
+             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP_MODE);
         }
 
@@ -1330,6 +1332,8 @@ public class ActivationServiceBehavior {
                 return;
             }
         } catch (IOException e) {
+            // This exception typically means that the hash stored in DB is in wrong format. The rest of this method
+            // will treat this as an invalid OTP.
             logger.warn("Invalid activation OTP hash: {}", activationId);
         }
 

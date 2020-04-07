@@ -502,9 +502,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String activationId = request.getActivationId();
             final String externalUserId = request.getExternalUserId();
             final String activationOtp = request.getActivationOtp();
-            logger.info("UpdateActivationOtp received, activation ID: {}", activationId);
+            logger.info("UpdateActivationOtpRequest received, activation ID: {}", activationId);
             final UpdateActivationOtpResponse response = behavior.getActivationServiceBehavior().updateActivationOtp(activationId, externalUserId, activationOtp);
-            logger.info("UpdateActivationOtp succeeded");
+            logger.info("UpdateActivationOtpRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged

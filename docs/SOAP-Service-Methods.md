@@ -472,7 +472,7 @@ After successful, activation OTP is updated and the OTP validation is set to ON_
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
-| `Boolean` | `updated` | Flag indicating that OTP has been updated |
+| `boolean` | `updated` | Flag indicating that OTP has been updated |
 
 ### Method 'commitActivation'
 
