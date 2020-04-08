@@ -557,7 +557,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             String activationId = request.getActivationId();
             String externalUserId = request.getExternalUserId();
-            boolean revokeRecoveryCodes = request.isRevokeRecoveryCodes();
+            Boolean revokeRecoveryCodes = request.isRevokeRecoveryCodes();
+            if (revokeRecoveryCodes == null) {
+                // The default value is false for revokeRecoveryCodes
+                revokeRecoveryCodes = false;
+            }
             logger.info("RemoveActivationRequest received, activation ID: {}, revoke recovery codes: {}", activationId, revokeRecoveryCodes);
             RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId, externalUserId, revokeRecoveryCodes);
             logger.info("RemoveActivationRequest succeeded");

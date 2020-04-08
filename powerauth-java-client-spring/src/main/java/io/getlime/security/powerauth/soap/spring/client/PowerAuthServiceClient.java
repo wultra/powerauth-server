@@ -408,7 +408,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
      * @return {@link RemoveActivationResponse}
      */
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
