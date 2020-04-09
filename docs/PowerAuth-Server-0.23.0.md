@@ -97,3 +97,9 @@ The reason for the change is that the original function is no longer usable for 
 ## Database record encryption
 
 If you turned on additional database record encryption in any previous PowerAuth Server version (see [Encrypting Records in Database](Encrypting-Records-in-Database.md#additional-record-encryption)), please contact us at [support@wultra.com](mailto:support@wultra.com). The encryption scheme has been slightly changed, so we can help you with the migration.
+
+## SOAP Endpoint Changes
+
+### Revoking Recovery Codes on Activation Removal
+
+We added an optional `revokeRecoveryCodes` attribute to [activation removal service call](./SOAP-Service-Methods.md#method-removeactivation). This flag indicates if recovery codes that are associated with removed activation should be also revoked. By default, the value of the flag is `false`, hence omitting the flag results in the same behavior as before this change. 

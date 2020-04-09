@@ -313,3 +313,7 @@ The [VerifyOfflineSignature](./SOAP-Service-Methods.md#method-verifyofflinesigna
 ### External User Identifier
 
 The [CommitActivation](./SOAP-Service-Methods.md#method-commitactivation), [RemoveActivation](./SOAP-Service-Methods.md#method-removeactivation), [BlockActivation](./SOAP-Service-Methods.md#method-blockactivation) and [UnblockActivation](./SOAP-Service-Methods.md#method-unblockactivation) methods have been updated to allow specification of external user identifier. The related PowerAuth client methods have been updated to reflect the change of parameters. If you use any of these methods, please update the SOAP method call.
+
+### Revoking Recovery Codes on Activation Removal
+
+We added an optional `revokeRecoveryCodes` attribute to [activation removal service call](./SOAP-Service-Methods.md#method-removeactivation). This flag indicates if recovery codes that are associated with removed activation should be also revoked. By default, the value of the flag is `false`, hence omitting the flag results in the same behavior as before this change. 
