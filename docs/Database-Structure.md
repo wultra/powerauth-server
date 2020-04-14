@@ -63,7 +63,7 @@ Columns:
 | activation_code | VARCHAR(255) | index | Activation code used during the activation process. Uses 4x5 characters in Base32 encoding separated by a "-" character, for example "KA4PD-RTIE2-KOP3U-H53EA". |
 | activation_otp | VARCHAR(255) | - | Activation OTP value |
 | activation_otp_validation | INT(11) | - | Activation OTP validation, can be one of following values:<br><br>0 - NONE<br>1 - ON_KEY_EXCHANGE<br>2 - ON_COMMIT |
-| activation_status  | INT(11) | - | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
+| activation_status  | INT(11) | - | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
 | blocked_reason | VARCHAR(255) | - | Reason why activation is blocked (used when activation_status = 4, BLOCKED). |
 | activation_name  | VARCHAR(255 | - | Name of the activation, typically a name of the client device, for example "John's iPhone 6" |
 | application_id  | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
@@ -185,7 +185,7 @@ Columns:
 |------|------|---------|------|
 | id | INT(37) | primary key | Unique record ID. |
 | activation_id | VARCHAR(37) | foreign key: pa\_activation.activation_id | Reference to associated activation. |
-| activation_status | INT(11) | index | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - OTP_USED<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
+| activation_status | INT(11) | index | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
 | blocked_reason | VARCHAR(255) | - | Reason why activation was blocked (used when activation_status = 4, BLOCKED). |
 | external_user_id | VARCHAR(255) | - | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |

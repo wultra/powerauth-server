@@ -36,7 +36,7 @@ public class ActivationStatusConverter implements AttributeConverter<ActivationS
         switch (status) {
             case CREATED:
                 return 1;
-            case OTP_USED:
+            case PENDING_COMMIT:
                 return 2;
             case ACTIVE:
                 return 3;
@@ -53,7 +53,7 @@ public class ActivationStatusConverter implements AttributeConverter<ActivationS
             case 1:
                 return ActivationStatus.CREATED;
             case 2:
-                return ActivationStatus.OTP_USED;
+                return ActivationStatus.PENDING_COMMIT;
             case 3:
                 return ActivationStatus.ACTIVE;
             case 4:

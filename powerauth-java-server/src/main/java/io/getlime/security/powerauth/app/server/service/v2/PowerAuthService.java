@@ -36,7 +36,7 @@ public interface PowerAuthService {
 
     /**
      * Receive a PowerAuth Client public key and return own PowerAuth Server public key. The
-     * activation with provided ID is in OTP_USED state after calling this method.
+     * activation with provided ID is in PENDING_COMMIT state after calling this method.
      *
      * @param request Prepare activation request object.
      * @return Prepare activation response.
@@ -45,9 +45,9 @@ public interface PowerAuthService {
     PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws Exception;
 
     /**
-     * Create a new activation in OTP_USED state, without the InitActivation / PrepareActivation cycle.
+     * Create a new activation in PENDING_COMMIT state, without the InitActivation / PrepareActivation cycle.
      * This method receives a PowerAuth Client public key and returns own PowerAuth Server public key.
-     * The activation with is in OTP_USED state after calling this method.
+     * The activation with is in PENDING_COMMIT state after calling this method.
      *
      * Note: This method should be used in case of activation performed directly, without the external
      * master front end application.
