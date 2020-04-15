@@ -149,14 +149,14 @@ public class ActivationServiceBehavior {
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
 
     /**
-     * Deactivate the activation in CREATED or OTP_USED if it's activation expiration timestamp
+     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
      * is below the given timestamp.
      *
      * @param timestamp  Timestamp to check activations against.
      * @param activation Activation to check.
      */
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) {
-        if ((activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED) || activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             if (!isActivationLocked) {
                 // Make sure activation is locked until the end of transaction in case it was not locked yet
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
@@ -880,7 +880,7 @@ public class ActivationServiceBehavior {
 
             // If Activation OTP is available, then the status is set directly to "ACTIVE".
             // We don't need to commit such activation afterwards.
-            final ActivationStatus activationStatus = request.getActivationOtp() == null ? ActivationStatus.OTP_USED : ActivationStatus.ACTIVE;
+            final ActivationStatus activationStatus = request.getActivationOtp() == null ? ActivationStatus.PENDING_COMMIT : ActivationStatus.ACTIVE;
 
             // Update the activation record
             activation.setActivationStatus(activationStatus);
@@ -1072,7 +1072,7 @@ public class ActivationServiceBehavior {
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
             // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
@@ -1172,8 +1172,8 @@ public class ActivationServiceBehavior {
         }
 
         // Check whether Activation is in correct state
-        if (activation.getActivationStatus() != ActivationStatus.OTP_USED) {
-            logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
+        if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT) {
+            logger.info("Activation is not in PENDING_COMMIT state during commit, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
@@ -1240,8 +1240,8 @@ public class ActivationServiceBehavior {
         deactivatePendingActivation(timestamp, activation, true);
 
         // Check activation state
-        if (activation.getActivationStatus() != ActivationStatus.OTP_USED) {
-            logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
+        if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT) {
+            logger.info("Activation is not in PENDING_COMMIT state during commit, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
@@ -1700,7 +1700,7 @@ public class ActivationServiceBehavior {
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
             // Update and persist the activation record, activation is automatically committed in the next step in RESTful integration.
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
@@ -1793,7 +1793,7 @@ public class ActivationServiceBehavior {
             final String userId = activationEntity.getUserId();
 
             // Verify activation state
-            if (!ActivationStatus.OTP_USED.equals(activationEntity.getActivationStatus()) && !ActivationStatus.ACTIVE.equals(activationEntity.getActivationStatus())) {
+            if (!ActivationStatus.PENDING_COMMIT.equals(activationEntity.getActivationStatus()) && !ActivationStatus.ACTIVE.equals(activationEntity.getActivationStatus())) {
                 logger.warn("Create recovery code failed because of invalid activation state, application ID: {}, activation ID: {}, activation state: {}", applicationId, activationId, activationEntity.getActivationStatus());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);

@@ -91,7 +91,7 @@ public interface PowerAuthService {
 
     /**
      * Receive a PowerAuth 3.0 Client public key and return own PowerAuth 3.0 Server public key. The
-     * activation with provided ID is in OTP_USED or ACTIVE state after calling this method, depending on
+     * activation with provided ID is in PENDING_COMMIT or ACTIVE state after calling this method, depending on
      * presence of activation OTP in encrypted data.
      *
      * <p><b>PowerAuth protocol versions:</b>
@@ -106,9 +106,9 @@ public interface PowerAuthService {
     PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws Exception;
 
     /**
-     * Create a new activation in OTP_USED state, without the InitActivation / PrepareActivation cycle.
+     * Create a new activation in PENDING_COMMIT state, without the InitActivation / PrepareActivation cycle.
      * This method receives a PowerAuth 3.0 Client public key and returns own PowerAuth 3.0 Server public key.
-     * The activation with is in OTP_USED state after calling this method.
+     * The activation with is in PENDING_COMMIT state after calling this method.
      *
      * Note: This method should be used in case of activation performed directly, without the external
      * master front end application.
@@ -180,7 +180,7 @@ public interface PowerAuthService {
     UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws Exception;
 
     /**
-     * Commit a created activation. Only activations in OTP_USED state can be committed - in case activation
+     * Commit a created activation. Only activations in PENDING_COMMIT state can be committed - in case activation
      * is in other state, exception is raised. In case of successful call of this method, activation with
      * provided ID is in ACTIVE state.
      *

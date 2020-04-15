@@ -111,14 +111,14 @@ public class ActivationServiceBehavior {
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
 
     /**
-     * Deactivate the activation in CREATED or OTP_USED if it's activation expiration timestamp
+     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
      * is below the given timestamp.
      *
      * @param timestamp  Timestamp to check activations against.
      * @param activation Activation to check.
      */
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation) {
-        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             activation.setActivationStatus(ActivationStatus.REMOVED);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
@@ -303,7 +303,7 @@ public class ActivationServiceBehavior {
             }
 
             // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(activationName);
             activation.setExtras(extras);
@@ -467,7 +467,7 @@ public class ActivationServiceBehavior {
             }
 
             // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(activationName);
             activation.setExtras(extras);

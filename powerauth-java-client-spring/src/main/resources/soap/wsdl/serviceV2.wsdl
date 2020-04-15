@@ -220,11 +220,11 @@
 
             <xs:simpleType name="ActivationStatus">
                 <xs:annotation>
-                    <xs:documentation>Enum representing the possible activation states (CREATED, OTP_USED, ACTIVE, BLOCKED, REMOVED).</xs:documentation>
+                    <xs:documentation>Enum representing the possible activation states (CREATED, PENDING_COMMIT, ACTIVE, BLOCKED, REMOVED).</xs:documentation>
                 </xs:annotation>
                 <xs:restriction base="xs:string">
                     <xs:enumeration value="CREATED"/>
-                    <xs:enumeration value="OTP_USED"/>
+                    <xs:enumeration value="PENDING_COMMIT"/>
                     <xs:enumeration value="ACTIVE"/>
                     <xs:enumeration value="BLOCKED"/>
                     <xs:enumeration value="REMOVED"/>

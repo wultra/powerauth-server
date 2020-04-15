@@ -351,11 +351,11 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 If optional `activationOtp` value is present in ECIES payload, then the value must match the OTP stored in activation's record and OTP validation mode must be ON_KEY_EXCHANGE. 
 
-After successfully calling this method, activation is in OTP_USED or ACTIVE state, depending on the presence of an activation OTP in ECIES payload:
+After successfully calling this method, activation is in PENDING_COMMIT or ACTIVE state, depending on the presence of an activation OTP in ECIES payload:
 
 | Situation | State after `prepareActivation` |
 |-----------|---------------------------------|
-| Activation OTP is not required and is not provided | `OTP_USED` |
+| Activation OTP is not required and is not provided | `PENDING_COMMIT` |
 | Activation OTP is required and is valid            | `ACTIVE`   |
 | Activation OTP is required, but is not valid       | `REMOVED`  |
 
@@ -406,7 +406,7 @@ Create an activation for given user and application, with provided maximum numbe
 
 If optional `activationOtp` value is set, then the activation's OTP validation mode is set to `ON_COMMIT`. The same OTP value must be later provided in [CommitActivation](#method-commitactivation) method, to complete the activation. 
 
-After successfully calling this method, activation is in OTP_USED state.
+After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
@@ -451,7 +451,7 @@ ECIES response contains following data (as JSON):
 
 ### Method 'updateActivationOtp'
 
-Update activation OTP for activation with given ID. Only non-expired activations in OTP_USED state, with OTP validation set to NONE or ON_COMMIT, can be altered. 
+Update activation OTP for activation with given ID. Only non-expired activations in PENDING_COMMIT state, with OTP validation set to NONE or ON_COMMIT, can be altered. 
 
 After successful, activation OTP is updated and the OTP validation is set to ON_COMMIT.
 
@@ -476,7 +476,7 @@ After successful, activation OTP is updated and the OTP validation is set to ON_
 
 ### Method 'commitActivation'
 
-Commit activation with given ID. Only non-expired activations in OTP_USED state can be committed.
+Commit activation with given ID. Only non-expired activations in PENDING_COMMIT state can be committed.
 
 If optional `activationOtp` value is set, then the value must match the OTP stored in activation's record and OTP validation mode must be `ON_COMMIT`.
 
@@ -1420,7 +1420,7 @@ Revoke recovery codes.
 
 ### Method `recoveryCodeActivation`
 
-Create an activation using recovery code. After successfully calling this method, activation is in OTP_USED state.
+Create an activation using recovery code. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 If optional `activationOtp` value is set, then the activation's OTP validation mode is set to `ON_COMMIT`. The same OTP value must be later provided in [CommitActivation](#method-commitactivation) method, to complete the activation.
 
@@ -1522,7 +1522,7 @@ Update configuration of activation recovery.
 
 ### Method 'prepareActivation' (v2)
 
-Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in OTP_USED state.
+Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
@@ -1553,7 +1553,7 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 ### Method 'createActivation' (v2)
 
-Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in OTP_USED state.
+Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
@@ -1703,7 +1703,7 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
 
 - `ActivationStatus` - Represents the status of activation, one of the following values:
     - CREATED
-    - OTP_USED
+    - PENDING_COMMIT
     - ACTIVE
     - BLOCKED
     - REMOVED

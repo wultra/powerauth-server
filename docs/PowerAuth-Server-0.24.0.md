@@ -38,6 +38,13 @@ ALTER TABLE `pa_activation` ADD `activation_otp_validation` INTEGER DEFAULT 0 NO
 
 PowerAuth server in version `0.24.0` slightly changed SOAP interface for protocol version `3` (namespace `http://getlime.io/security/powerauth/v3`):
 
+### Activation Status Enumeration Change
+
+The `ActivationStatus.OTP_USED` enumeration was renamed to `ActivationStatus.PENDING_COMMIT`. 
+This change was done to avoid a terminology clash with the new Activation OTP feature.
+In case you call the PowerAuth Server web service methods directly, make sure to rebuild 
+the web service client code with updated model classes.   
+
 ### Support for Additional Activation OTP
 
 - Added new enumeration `ActivationOtpValidation` with following values:
