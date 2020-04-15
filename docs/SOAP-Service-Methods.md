@@ -1063,7 +1063,7 @@ Get the status change log for given activation and date range.
 | `Long` | `id` | Change ID |
 | `String` | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String` | `eventReason` | Reason why this activation history record was created (default: null) |
 | `String` | `externalUserId` | User ID of user who modified the activation. Null value is used if activation owner caused the change. |
 | `DateTime` | `timestampCreated` | Timestamp when the record was created |
 

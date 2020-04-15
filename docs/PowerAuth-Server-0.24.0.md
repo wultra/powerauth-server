@@ -21,6 +21,7 @@ For more details about installation of the library see [Installing Bouncy Castle
 
 Following DB changes occurred between version 0.23.0 and 0.24.0:
 - Table `pa_activation` - added columns `device_info`, `platform`, `activation_otp`, `activation_otp_validation`.
+- Table `pa_activation_history` - renamed column `blocked_reason` to `event_reason`.
 
 Migration script for Oracle:
 
@@ -29,6 +30,7 @@ ALTER TABLE "PA_ACTIVATION" ADD "PLATFORM" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_ACTIVATION" ADD "DEVICE_INFO" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_ACTIVATION" ADD "ACTIVATION_OTP" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_ACTIVATION" ADD "ACTIVATION_OTP_VALIDATION" NUMBER(2,0) DEFAULT 0 NOT NULL;
+ALTER TABLE "PA_ACTIVATION_HISTORY" RENAME COLUMN "BLOCKED_REASON" TO "EVENT_REASON";
 ```
 
 Migration script for MySQL:
@@ -38,6 +40,7 @@ ALTER TABLE `pa_activation` ADD `platform` varchar(255);
 ALTER TABLE `pa_activation` ADD `device_info` varchar(255);
 ALTER TABLE `pa_activation` ADD `activation_otp` varchar(255);
 ALTER TABLE `pa_activation` ADD `activation_otp_validation` int DEFAULT 0 NOT NULL;
+ALTER TABLE `pa_activation_history` RENAME COLUMN `blocked_reason` TO `event_reason`;
 ```
 
 Migration script for PostgreSQL:
@@ -46,7 +49,8 @@ Migration script for PostgreSQL:
 ALTER TABLE "pa_activation" ADD "platform" VARCHAR(255);
 ALTER TABLE "pa_activation" ADD "device_info" VARCHAR(255);
 ALTER TABLE "pa_activation" ADD "activation_otp" VARCHAR(255);
-ALTER TABLE `pa_activation` ADD `activation_otp_validation` INTEGER DEFAULT 0 NOT NULL;
+ALTER TABLE "pa_activation" ADD "activation_otp_validation" INTEGER DEFAULT 0 NOT NULL;
+ALTER TABLE "pa_activation_history" RENAME COLUMN "blocked_reason" TO "event_reason";
 ```
 
 ## Service Interface Changes
@@ -73,6 +77,7 @@ the web service client code with updated model classes.
 - `RecoveryCodeActivationRequest` request object has now optional `activationOtp` property.
 - `GetActivationStatusResponse` response object now contains new `activationOtpValidation`, `platform` and `deviceInfo` properties.
 - `UpdateActivationOtp` is a new SOAP API method with `UpdateActivationOtpRequest` and `UpdateActivationOtpResponse` objects.
+- `ActivationHistoryResponse` request object has `blockedReason` property renamed to `eventReason`. The property now contains also reasons unrelated to the activation block. 
 
 Check [Additional Activation OTP](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Additional-Activation-OTP.md) document for more details.
 
