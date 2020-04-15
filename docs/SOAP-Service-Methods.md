@@ -355,9 +355,10 @@ After successfully calling this method, activation is in PENDING_COMMIT or ACTIV
 
 | Situation | State after `prepareActivation` |
 |-----------|---------------------------------|
-| Activation OTP is not required and is not provided | `PENDING_COMMIT` |
-| Activation OTP is required and is valid            | `ACTIVE`   |
-| Activation OTP is required, but is not valid       | `REMOVED`  |
+| OTP is not required and is not provided             | `PENDING_COMMIT` |
+| OTP is required and is valid                        | `ACTIVE`         |
+| OTP is required, but is not valid                   | `CREATED`        |
+| OTP is required, but is not valid, no attempts left | `REMOVED`        |
 
 #### Request
 
