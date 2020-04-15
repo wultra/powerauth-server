@@ -143,7 +143,7 @@ CREATE TABLE "pa_activation_history"
     "id"                 BIGINT NOT NULL PRIMARY KEY,
     "activation_id"      VARCHAR(37) NOT NULL,
     "activation_status"  INTEGER,
-    "blocked_reason"     VARCHAR(255),
+    "event_reason"       VARCHAR(255),
     "external_user_id"   VARCHAR(255),
     "timestamp_created"  TIMESTAMP (6) NOT NULL
 );

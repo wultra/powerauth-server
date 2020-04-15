@@ -140,7 +140,7 @@ CREATE TABLE `pa_activation_history` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `activation_id` varchar(37) NOT NULL,
   `activation_status` int(11) NOT NULL,
-  `blocked_reason` varchar(255),
+  `event_reason` varchar(255),
   `external_user_id` varchar(255),
   `timestamp_created` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),

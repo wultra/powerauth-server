@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
-import io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -87,9 +86,9 @@ public class ActivationHistoryServiceBehavior {
         activationHistoryEntity.setActivation(activation);
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
         if (activation.getActivationStatus() == ActivationStatus.BLOCKED) {
-            activationHistoryEntity.setBlockedReason(activation.getBlockedReason());
+            activationHistoryEntity.setEventReason(activation.getBlockedReason());
         } else {
-            activationHistoryEntity.setBlockedReason(historyEventReason);
+            activationHistoryEntity.setEventReason(historyEventReason);
         }
         activationHistoryEntity.setExternalUserId(externalUserId);
         activationHistoryEntity.setTimestampCreated(changeTimestamp);
@@ -119,7 +118,7 @@ public class ActivationHistoryServiceBehavior {
                 item.setId(activationHistoryEntity.getId());
                 item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
                 item.setActivationStatus(activationStatusConverter.convert(activationHistoryEntity.getActivationStatus()));
-                item.setBlockedReason(activationHistoryEntity.getBlockedReason());
+                item.setEventReason(activationHistoryEntity.getEventReason());
                 item.setExternalUserId(activationHistoryEntity.getExternalUserId());
                 item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activationHistoryEntity.getTimestampCreated()));
 
