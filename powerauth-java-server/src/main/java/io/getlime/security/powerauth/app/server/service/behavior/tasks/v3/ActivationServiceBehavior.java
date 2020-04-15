@@ -1339,17 +1339,9 @@ public class ActivationServiceBehavior {
 
         // Confirmation OTP doesn't match value stored in the database.
 
-        final boolean removeActivation;
-        if (expectedStage == ActivationOtpValidation.ON_COMMIT) {
-            // For ON_COMMIT, we must increase the number of failed attempts and validate the maximum number of failed attempts.
-            activation.setFailedAttempts(activation.getFailedAttempts() + 1);
-            removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
-        } else {
-            // For ON_KEY_EXCHANGE stage remove activation immediately. This is due the fact, that we don't propagate
-            // the reason of the failure back to the mobile application. So, mobile SDK doesn't know whether the activation
-            // failed due to invalid activation code, wrong OTP, etc.
-            removeActivation = true;
-        }
+        // Increase the number of failed attempts and validate the maximum number of failed attempts.
+        activation.setFailedAttempts(activation.getFailedAttempts() + 1L);
+        final boolean removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
 
         // If activation should be removed then set its status to REMOVED.
         if (removeActivation) {
