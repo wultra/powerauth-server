@@ -880,7 +880,8 @@ public class ActivationServiceBehavior {
 
             // If Activation OTP is available, then the status is set directly to "ACTIVE".
             // We don't need to commit such activation afterwards.
-            final ActivationStatus activationStatus = request.getActivationOtp() == null ? ActivationStatus.PENDING_COMMIT : ActivationStatus.ACTIVE;
+            final boolean isActive = request.getActivationOtp() != null;
+            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
 
             // Update the activation record
             activation.setActivationStatus(activationStatus);
@@ -904,7 +905,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation);
+                activationRecovery = createRecoveryCodeForActivation(activation, isActive);
             }
 
             // Generate activation layer 2 response
@@ -1094,7 +1095,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation);
+                activationRecovery = createRecoveryCodeForActivation(activation, false);
             }
 
             // Generate activation layer 2 response
@@ -1716,7 +1717,7 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Create a new recovery code and PUK for new activation
-            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation);
+            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation, false);
 
             // Generate activation layer 2 response
             ActivationLayer2Response layer2Response = new ActivationLayer2Response();
@@ -1759,10 +1760,11 @@ public class ActivationServiceBehavior {
     /**
      * Create recovery code for given activation and set its status to ACTIVE.
      * @param activationEntity Activation entity.
+     * @param isActive Make recovery code active from the beginning.
      * @return Activation recovery code and PUK.
      * @throws GenericServiceException In case of any error.
      */
-    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity) throws GenericServiceException {
+    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity, boolean isActive) throws GenericServiceException {
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
         try {
@@ -1831,7 +1833,7 @@ public class ActivationServiceBehavior {
             recoveryCodeEntity.setFailedAttempts(0L);
             recoveryCodeEntity.setMaxFailedAttempts(powerAuthServiceConfiguration.getRecoveryMaxFailedAttempts());
             recoveryCodeEntity.setRecoveryCode(recoveryCode);
-            recoveryCodeEntity.setStatus(RecoveryCodeStatus.CREATED);
+            recoveryCodeEntity.setStatus(isActive ? RecoveryCodeStatus.ACTIVE : RecoveryCodeStatus.CREATED);
             recoveryCodeEntity.setTimestampCreated(new Date());
 
             // Only one PUK was generated
