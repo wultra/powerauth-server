@@ -68,6 +68,8 @@ public class ServerPrivateKeyConverter {
 
     /**
      * Convert server private key from composite database value to Base64-encoded string value.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
      * @param serverPrivateKey Server private key composite database value server private key and encryption mode.
      * @param userId User ID used for derivation of secret key.
      * @param activationId Activation ID used for derivation of secret key.
@@ -151,6 +153,8 @@ public class ServerPrivateKeyConverter {
     /**
      * Convert server private key to composite database value. Server private key is encrypted
      * in case master DB encryption key is configured in PA server configuration.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
      * @param serverPrivateKey Server private key.
      * @param userId User ID used for derivation of secret key.
      * @param activationId Activation ID used for derivation of secret key.
