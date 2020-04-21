@@ -576,7 +576,7 @@
                                     <xs:element minOccurs="0" maxOccurs="1" name="blockedReason" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="activationName" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="extras" type="xs:string"/>
-                                    <xs:element maxOccurs="1" minOccurs="0" name="platform" type="xs:string"/>
+                                    <xs:element minOccurs="0" maxOccurs="1" name="platform" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="deviceInfo" type="xs:string"/>
                                     <xs:element minOccurs="1" maxOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                     <xs:element minOccurs="1" maxOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
