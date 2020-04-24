@@ -68,6 +68,8 @@ public class RecoveryPukConverter {
 
     /**
      * Convert recovery PUK hash from composite database value to value to string value.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
      * @param pukHash Recovery PUK hash composite database value including PUK hash and encryption mode.
      * @param applicationId Application ID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
@@ -153,6 +155,8 @@ public class RecoveryPukConverter {
     /**
      * Convert PUK hash to composite database value. PUK hash is encrypted
      * in case master DB encryption key is configured in PA server configuration.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
      * @param pukHash PUK hash to encrypt if master DB encryption key is present.
      * @param applicationId Application ID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
