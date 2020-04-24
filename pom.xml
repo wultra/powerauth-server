@@ -26,7 +26,7 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>0.24.0-SNAPSHOT</version>
+    <version>0.24.0</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -93,7 +93,7 @@
         <spring-cloud-vault.version>2.2.2.RELEASE</spring-cloud-vault.version>
 
         <!-- PowerAuth Dependencies -->
-        <powerauth-java-crypto.version>0.24.0-SNAPSHOT</powerauth-java-crypto.version>
+        <powerauth-java-crypto.version>0.24.0</powerauth-java-crypto.version>
         <bcprov-jdk15on.version>1.65</bcprov-jdk15on.version>
 
         <!-- Java 11 Dependencies -->
