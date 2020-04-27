@@ -25,11 +25,11 @@ import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +85,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         this.buildProperties = buildProperties;
     }
 
-    private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Override
     public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws Exception {
@@ -126,10 +126,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method getActivationListForUser");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The applicationId can be null, in this case all applications are used
@@ -140,6 +141,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -147,10 +151,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws GenericServiceException {
         if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
             logger.warn("Invalid request parameter userIds in method lookupActivations");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -172,6 +177,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, activationStatus);
             logger.info("LookupActivationsRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -179,10 +187,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws GenericServiceException {
         if (request.getActivationIds() == null || request.getActivationIds().isEmpty()) {
             logger.warn("Invalid request parameter activationIds in method updateStatusForActivations");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -195,6 +204,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             UpdateStatusForActivationsResponse response = behavior.getActivationServiceBehavior().updateStatusForActivation(activationIds, activationStatus);
             logger.info("UpdateStatusForActivationsRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -202,21 +214,25 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method getActivationStatus");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             String activationId = request.getActivationId();
             String challenge = request.getChallenge();
             logger.info("GetActivationStatusRequest received, activation ID: {}", activationId);
-            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, challenge, keyConversionUtilities);
+            GetActivationStatusResponse response = behavior.getActivationServiceBehavior().getActivationStatus(activationId, challenge, keyConvertor);
             logger.info("GetActivationStatusResponse succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -226,10 +242,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public InitActivationResponse initActivation(InitActivationRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method initActivation");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
@@ -238,12 +255,24 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Long applicationId = request.getApplicationId();
             Long maxFailedCount = request.getMaxFailureCount();
             Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
+            ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
+            String activationOtp = request.getActivationOtp();
             logger.info("InitActivationRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(applicationId, userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
+            InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(
+                    applicationId,
+                    userId,
+                    maxFailedCount,
+                    activationExpireTimestamp,
+                    activationOtpValidation,
+                    activationOtp,
+                    keyConvertor);
             logger.info("InitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -252,10 +281,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
         if (request.getActivationCode() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
             logger.warn("Invalid request parameters in prepareActivation method");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -267,11 +297,14 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
             EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConversionUtilities);
+            PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -280,10 +313,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
         if (request.getUserId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
             logger.warn("Invalid request parameters in createActivation method");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -292,6 +326,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
             Long maxFailedCount = request.getMaxFailureCount();
             String applicationKey = request.getApplicationKey();
+            String activationOtp = request.getActivationOtp();
             byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             byte[] mac = BaseEncoding.base64().decode(request.getMac());
             byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
@@ -304,12 +339,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                     maxFailedCount,
                     applicationKey,
                     cryptogram,
-                    keyConversionUtilities
+                    activationOtp,
+                    keyConvertor
             );
             logger.info("CreateActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -330,15 +369,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
             forcedSignatureVersion = 3;
         }
-        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
+        return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConvertor);
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getData() == null
                 || request.getSignature() == null || request.getSignatureType() == null || request.getSignatureVersion() == null) {
             logger.warn("Invalid request parameters in method verifySignature");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -350,6 +390,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -357,21 +400,25 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null) {
             logger.warn("Invalid request parameters in method createPersonalizedOfflineSignaturePayload");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             String activationId = request.getActivationId();
             String data = request.getData();
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", activationId);
-            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConversionUtilities);
+            CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConvertor);
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -380,21 +427,25 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         if (request.getData() == null) {
             logger.warn("Invalid request parameter data in method createNonPersonalizedOfflineSignaturePayload");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             long applicationId = request.getApplicationId();
             String data = request.getData();
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received, application ID: {}", applicationId);
-            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConversionUtilities);
+            CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConvertor);
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -403,10 +454,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
             logger.warn("Invalid request parameters in method verifyOfflineSignature");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -423,12 +475,15 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             }
             KeyValueMap additionalInfo = new KeyValueMap();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConversionUtilities);
+            VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConvertor);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -436,44 +491,54 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
+    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method commitActivation");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            final String activationId = request.getActivationId();
+            final String externalUserId = request.getExternalUserId();
+            final String activationOtp = request.getActivationOtp();
+            logger.info("UpdateActivationOtpRequest received, activation ID: {}", activationId);
+            final UpdateActivationOtpResponse response = behavior.getActivationServiceBehavior().updateActivationOtp(activationId, externalUserId, activationOtp);
+            logger.info("UpdateActivationOtpRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public CommitActivationResponse commitActivation(CommitActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method commitActivation");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             String activationId = request.getActivationId();
             String externalUserId = request.getExternalUserId();
+            String activationOtp = request.getActivationOtp();
             logger.info("CommitActivationRequest received, activation ID: {}", activationId);
-            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId, externalUserId);
+            CommitActivationResponse response = behavior.getActivationServiceBehavior().commitActivation(activationId, externalUserId, activationOtp);
             logger.info("CommitActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null) {
-            logger.warn("Invalid request parameter activationId in method removeActivation");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        try {
-            String activationId = request.getActivationId();
-            String externalUserId = request.getExternalUserId();
-            logger.info("RemoveActivationRequest received, activation ID: {}", activationId);
-            RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId, externalUserId);
-            logger.info("RemoveActivationRequest succeeded");
-            return response;
-        } catch (GenericServiceException ex) {
-            // already logged
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -482,10 +547,43 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
+    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method removeActivation");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            String activationId = request.getActivationId();
+            String externalUserId = request.getExternalUserId();
+            Boolean revokeRecoveryCodes = request.isRevokeRecoveryCodes();
+            if (revokeRecoveryCodes == null) {
+                // The default value is false for revokeRecoveryCodes
+                revokeRecoveryCodes = false;
+            }
+            logger.info("RemoveActivationRequest received, activation ID: {}, revoke recovery codes: {}", activationId, revokeRecoveryCodes);
+            RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId, externalUserId, revokeRecoveryCodes);
+            logger.info("RemoveActivationRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public BlockActivationResponse blockActivation(BlockActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method blockActivation");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -499,6 +597,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -506,10 +607,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method unblockActivation");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -522,6 +624,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -530,12 +635,13 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
                 || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
                 || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method vaultUnlock");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -559,6 +665,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                 if (!(signatureType.equals(SignatureType.POSSESSION_BIOMETRY) &&
                         powerAuthServiceConfiguration.isSecureVaultBiometricAuthenticationEnabled())) {
                     logger.warn("Invalid signature type: {}", signatureType);
+                    // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
                 }
             }
@@ -567,11 +674,14 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
 
             VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
-                    signature, signatureType, signatureVersion, signedData, cryptogram, keyConversionUtilities);
+                    signature, signatureType, signatureVersion, signedData, cryptogram, keyConvertor);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -580,10 +690,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
             logger.warn("Invalid request parameters in method verifyECDSASignature");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -591,13 +702,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String signedData = request.getData();
             String signature  = request.getSignature();
             logger.info("VerifyECDSASignatureRequest received, activation ID: {}", activationId);
-            boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConversionUtilities);
+            boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConvertor);
             VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
             response.setSignatureValid(matches);
             logger.info("VerifyECDSASignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -606,10 +720,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method getSignatureAuditLog");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -623,7 +738,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             SignatureAuditResponse response = behavior.getAuditingServiceBehavior().getSignatureAuditLog(userId, applicationId, startingDate, endingDate);
             logger.info("SignatureAuditRequest succeeded");
             return response;
-
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -632,10 +749,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
             logger.warn("Invalid request parameter activationId in method getActivationHistory");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -646,6 +764,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             ActivationHistoryResponse response = behavior.getActivationHistoryServiceBehavior().getActivationHistory(activationId, startingDate, endingDate);
             logger.info("ActivationHistoryRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -653,13 +774,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws GenericServiceException {
         try {
             logger.info("GetApplicationListRequest received");
             GetApplicationListResponse response = behavior.getApplicationServiceBehavior().getApplicationList();
             logger.info("GetApplicationListRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -667,7 +791,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
         try {
             GetApplicationDetailResponse response;
@@ -678,12 +802,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                 logger.info("GetApplicationDetailRequest received, application name: '{}'", request.getApplicationName());
                 response = behavior.getApplicationServiceBehavior().getApplicationDetailByName(request.getApplicationName());
             } else {
+                // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             logger.info("GetApplicationDetailRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -692,10 +820,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null) {
             logger.warn("Invalid request parameter applicationKey in method lookupApplicationByAppKey");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -706,26 +835,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
-        if (request.getApplicationName() == null) {
-            logger.warn("Invalid request parameter applicationName in method createApplication");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        try {
-            logger.info("CreateApplicationRequest received, application name: {}", request.getApplicationName());
-            CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConversionUtilities);
-            logger.info("CreateApplicationRequest succeeded");
-            return response;
-        } catch (GenericServiceException ex) {
-            // already logged
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -734,10 +845,36 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
+    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
+        if (request.getApplicationName() == null) {
+            logger.warn("Invalid request parameter applicationName in method createApplication");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("CreateApplicationRequest received, application name: {}", request.getApplicationName());
+            CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConvertor);
+            logger.info("CreateApplicationRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws GenericServiceException {
         if (request.getApplicationVersionName() == null) {
             logger.warn("Invalid request parameter applicationVersionName in method createApplicationVersion");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -748,6 +885,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -755,7 +895,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws GenericServiceException {
         try {
             logger.info("UnsupportApplicationVersionRequest received, application version ID: {}", request.getApplicationVersionId());
@@ -765,6 +905,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -772,7 +915,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws GenericServiceException {
         try {
             logger.info("SupportApplicationVersionRequest received, application version ID: {}", request.getApplicationVersionId());
@@ -782,6 +925,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -789,10 +935,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws GenericServiceException {
         if (request.getName() == null) {
             logger.warn("Invalid request parameter name in method createIntegration");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -800,6 +947,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             CreateIntegrationResponse response = behavior.getIntegrationBehavior().createIntegration(request);
             logger.info("CreateIntegrationRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -807,13 +957,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public GetIntegrationListResponse getIntegrationList() throws GenericServiceException {
         try {
             logger.info("GetIntegrationListRequest received");
             GetIntegrationListResponse response = behavior.getIntegrationBehavior().getIntegrationList();
             logger.info("GetIntegrationListRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -821,13 +974,16 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws GenericServiceException {
         try {
             logger.info("RemoveIntegrationRequest received, id: {}", request.getId());
             RemoveIntegrationResponse response = behavior.getIntegrationBehavior().removeIntegration(request);
             logger.info("RemoveIntegrationRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -835,10 +991,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
         if (request.getName() == null) {
             logger.warn("Invalid request parameter name in method createCallbackUrl");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -849,54 +1006,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws GenericServiceException {
-        try {
-            logger.info("GetCallbackUrlListRequest received, application ID: {}", request.getApplicationId());
-            GetCallbackUrlListResponse response = behavior.getCallbackUrlBehavior().getCallbackUrlList(request);
-            logger.info("GetCallbackUrlListRequest succeeded");
-            return response;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws GenericServiceException {
-        try {
-            logger.info("RemoveCallbackUrlRequest received, id: {}", request.getId());
-            RemoveCallbackUrlResponse response = behavior.getCallbackUrlBehavior().removeCallbackUrl(request);
-            logger.info("RemoveCallbackUrlRequest succeeded");
-            return response;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request parameters in method createToken");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        try {
-            logger.info("CreateTokenRequest received, activation ID: {}", request.getActivationId());
-            CreateTokenResponse response = behavior.getTokenBehavior().createToken(request, keyConversionUtilities);
-            logger.info("CreateTokenRequest succeeded");
-            return response;
-        } catch (GenericServiceException ex) {
-            // already logged
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -905,15 +1016,76 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
+    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws GenericServiceException {
+        try {
+            logger.info("GetCallbackUrlListRequest received, application ID: {}", request.getApplicationId());
+            GetCallbackUrlListResponse response = behavior.getCallbackUrlBehavior().getCallbackUrlList(request);
+            logger.info("GetCallbackUrlListRequest succeeded");
+            return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws GenericServiceException {
+        try {
+            logger.info("RemoveCallbackUrlRequest received, id: {}", request.getId());
+            RemoveCallbackUrlResponse response = behavior.getCallbackUrlBehavior().removeCallbackUrl(request);
+            logger.info("RemoveCallbackUrlRequest succeeded");
+            return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request parameters in method createToken");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("CreateTokenRequest received, activation ID: {}", request.getActivationId());
+            CreateTokenResponse response = behavior.getTokenBehavior().createToken(request, keyConvertor);
+            logger.info("CreateTokenRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null) {
             logger.warn("Invalid request parameters in method validateToken");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // Verify the token timestamp validity
         if (request.getTimestamp() < System.currentTimeMillis() - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
         }
         try {
@@ -924,6 +1096,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -931,10 +1106,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
         if (request.getTokenId() == null) {
             logger.warn("Invalid request parameter tokenId in method removeToken");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -942,6 +1118,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             RemoveTokenResponse response = behavior.getTokenBehavior().removeToken(request);
             logger.info("RemoveTokenRequest succeeded");
             return response;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -949,10 +1128,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
         if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
             logger.warn("Invalid request parameters in method getEciesDecryptor");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // The activationId value can be null in case the decryptor is used in application scope
@@ -964,6 +1144,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -971,10 +1154,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method startUpgrade");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -985,6 +1169,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -992,10 +1179,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method commitUpgrade");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1006,6 +1194,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -1013,41 +1204,23 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws GenericServiceException {
         if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
             logger.warn("Invalid request parameters in method createRecoveryCode");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             logger.info("CreateRecoveryCodeRequest received, application ID: {}, user ID: {}", request.getApplicationId(), request.getUserId());
-            CreateRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCode(request, keyConversionUtilities);
+            CreateRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCode(request, keyConvertor);
             logger.info("CreateRecoveryCodeRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
-                || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request parameters in method confirmRecoveryCode");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        try {
-            logger.info("ConfirmRecoveryCodeRequest received, activation ID: {}, application key: {}", request.getActivationId(), request.getApplicationKey());
-            ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request, keyConversionUtilities);
-            logger.info("ConfirmRecoveryCodeRequest succeeeded");
-            return response;
-        } catch (GenericServiceException ex) {
-            // already logged
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -1056,10 +1229,37 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
+                || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request parameters in method confirmRecoveryCode");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("ConfirmRecoveryCodeRequest received, activation ID: {}, application key: {}", request.getActivationId(), request.getApplicationKey());
+            ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request, keyConvertor);
+            logger.info("ConfirmRecoveryCodeRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws GenericServiceException {
         if (request.getApplicationId() == null && request.getUserId() == null && request.getActivationId() == null) {
             logger.warn("Invalid request parameters in method lookupRecoveryCodes");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1070,6 +1270,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -1077,10 +1280,11 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws GenericServiceException {
         if (request.getRecoveryCodeIds() == null || request.getRecoveryCodeIds().isEmpty()) {
             logger.warn("Invalid request parameters in method revokeRecoveryCodes");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1091,27 +1295,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
-        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
-            || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
-            logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        try {
-            logger.info("RecoveryCodeActivationRequest received, recovery code: {}, application key: {}", request.getRecoveryCode(), request.getApplicationKey());
-            RecoveryCodeActivationResponse response = behavior.getActivationServiceBehavior().createActivationUsingRecoveryCode(request, keyConversionUtilities);
-            logger.info("RecoveryCodeActivationRequest succeeeded");
-            return response;
-        } catch (GenericServiceException ex) {
-            // already logged
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
@@ -1120,10 +1305,37 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
+        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
+            || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+            logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RecoveryCodeActivationRequest received, recovery code: {}, application key: {}", request.getRecoveryCode(), request.getApplicationKey());
+            RecoveryCodeActivationResponse response = behavior.getActivationServiceBehavior().createActivationUsingRecoveryCode(request, keyConvertor);
+            logger.info("RecoveryCodeActivationRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
@@ -1134,6 +1346,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
@@ -1141,19 +1356,23 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
-    @Transactional(rollbackFor = GenericServiceException.class)
+    @Transactional
     public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws GenericServiceException {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method updateRecoveryConfig");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
-            UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConversionUtilities);
+            UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConvertor);
             logger.info("GetRecoveryConfigRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);

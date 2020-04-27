@@ -24,12 +24,11 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,7 +55,7 @@ public class RecoveryPukConverter {
     // Utility classes for crypto
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
-    private final CryptoProviderUtil keyConversionUtilities = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(RecoveryPukConverter.class);
@@ -69,6 +68,8 @@ public class RecoveryPukConverter {
 
     /**
      * Convert recovery PUK hash from composite database value to value to string value.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
      * @param pukHash Recovery PUK hash composite database value including PUK hash and encryption mode.
      * @param applicationId Application ID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
@@ -82,6 +83,7 @@ public class RecoveryPukConverter {
         final EncryptionMode encryptionMode = pukHash.getEncryptionMode();
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
 
@@ -96,12 +98,13 @@ public class RecoveryPukConverter {
                 // In case master DB encryption key does not exist, do not encrypt the server private key
                 if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
                     logger.error("Missing master DB encryption key");
+                    // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.MISSING_MASTER_DB_ENCRYPTION_KEY);
                 }
 
                 try {
                     // Convert master DB encryption key
-                    SecretKey masterDbEncryptionKey = keyConversionUtilities.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
                     SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationId, userId, recoveryCode, pukIndex);
@@ -112,6 +115,7 @@ public class RecoveryPukConverter {
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (pukHashBytes == null || pukHashBytes.length < 16) {
                         logger.error("Invalid encrypted PUK hash format - the byte array is too short");
+                        // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                     }
 
@@ -129,17 +133,21 @@ public class RecoveryPukConverter {
 
                 } catch (InvalidKeyException ex) {
                     logger.error(ex.getMessage(), ex);
+                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
                 } catch (GenericCryptoException ex) {
                     logger.error(ex.getMessage(), ex);
+                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                 } catch (CryptoProviderException ex) {
                     logger.error(ex.getMessage(), ex);
+                    // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
                 }
 
             default:
                 logger.error("Unknown key encryption mode: {}", encryptionMode.getValue());
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
         }
     }
@@ -147,6 +155,8 @@ public class RecoveryPukConverter {
     /**
      * Convert PUK hash to composite database value. PUK hash is encrypted
      * in case master DB encryption key is configured in PA server configuration.
+     * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
+     * the transaction is not rolled back.
      * @param pukHash PUK hash to encrypt if master DB encryption key is present.
      * @param applicationId Application ID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
@@ -165,7 +175,7 @@ public class RecoveryPukConverter {
 
         try {
             // Convert master DB encryption key
-            SecretKey masterDbEncryptionKey = keyConversionUtilities.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
             SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationId, userId, recoveryCode, pukIndex);
@@ -190,15 +200,19 @@ public class RecoveryPukConverter {
 
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         } catch (IOException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, serialization is executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         }
     }

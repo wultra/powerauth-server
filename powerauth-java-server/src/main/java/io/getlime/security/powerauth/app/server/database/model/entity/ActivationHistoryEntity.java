@@ -48,8 +48,8 @@ public class ActivationHistoryEntity implements Serializable {
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
-    @Column(name = "blocked_reason")
-    private String blockedReason;
+    @Column(name = "event_reason")
+    private String eventReason;
 
     @Column(name = "external_user_id")
     private String externalUserId;
@@ -134,19 +134,19 @@ public class ActivationHistoryEntity implements Serializable {
     }
 
     /**
-     * Get reason why activation was blocked.
-     * @return Reason why activation was blocked.
+     * Get reason why activation history record was created.
+     * @return Reason why activation history record was created.
      */
-    public String getBlockedReason() {
-        return blockedReason;
+    public String getEventReason() {
+        return eventReason;
     }
 
     /**
-     * Set reason why activation was blocked.
-     * @param blockedReason Reason why activation was blocked.
+     * Set reason why activation history record was created.
+     * @param eventReason Reason why activation history record was created.
      */
-    public void setBlockedReason(String blockedReason) {
-        this.blockedReason = blockedReason;
+    public void setEventReason(String eventReason) {
+        this.eventReason = eventReason;
     }
 
     /**
@@ -188,7 +188,7 @@ public class ActivationHistoryEntity implements Serializable {
         int hash = 7;
         hash = 23 * hash + Objects.hashCode(this.activation);
         hash = 23 * hash + Objects.hashCode(this.activationStatus);
-        hash = 23 * hash + Objects.hashCode(this.blockedReason);
+        hash = 23 * hash + Objects.hashCode(this.eventReason);
         hash = 23 * hash + Objects.hashCode(this.externalUserId);
         hash = 23 * hash + Objects.hashCode(this.timestampCreated);
         return hash;
@@ -212,7 +212,7 @@ public class ActivationHistoryEntity implements Serializable {
         if (!Objects.equals(this.activationStatus, other.activationStatus)) {
             return false;
         }
-        if (!Objects.equals(this.blockedReason, other.blockedReason)) {
+        if (!Objects.equals(this.eventReason, other.eventReason)) {
             return false;
         }
         if (!Objects.equals(this.externalUserId, other.externalUserId)) {
@@ -225,7 +225,7 @@ public class ActivationHistoryEntity implements Serializable {
     public String toString() {
         return "ActivationHistoryEntity{" +
                 "id=" + id + ", activation=" + activation + ", activationStatus=" + activationStatus +
-                ", blockedReason=" + blockedReason + ", externalUserId=" + externalUserId + ", timestampCreated=" + timestampCreated + '}';
+                ", eventReason=" + eventReason + ", externalUserId=" + externalUserId + ", timestampCreated=" + timestampCreated + '}';
     }
 
 }

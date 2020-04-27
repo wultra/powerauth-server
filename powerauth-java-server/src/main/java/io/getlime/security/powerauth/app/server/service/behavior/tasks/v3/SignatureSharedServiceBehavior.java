@@ -37,11 +37,11 @@ import io.getlime.security.powerauth.app.server.service.model.signature.Signatur
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.KeyValueMap;
 import io.getlime.security.powerauth.v3.SignatureType;
 import org.slf4j.Logger;
@@ -122,7 +122,7 @@ public class SignatureSharedServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider initialization fails.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    public SignatureResponse verifySignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    public SignatureResponse verifySignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         List<SignatureType> signatureTypes = Collections.singletonList(signatureRequest.getSignatureType());
         return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureTypes, keyConversionUtilities);
     }
@@ -139,7 +139,7 @@ public class SignatureSharedServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider initialization fails.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    public SignatureResponse verifySignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    public SignatureResponse verifySignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureTypes(), keyConversionUtilities);
     }
 
@@ -244,7 +244,7 @@ public class SignatureSharedServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      * @throws GenericCryptoException In case of any other cryptography error.
      */
-    private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes, CryptoProviderUtil keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+    private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
         // Get the server private and device public keys
 
         // Decrypt server private key (depending on encryption mode)
@@ -332,6 +332,7 @@ public class SignatureSharedServiceBehavior {
     private void validateActivationVersion(Integer activationVersion) throws GenericServiceException {
         if (activationVersion == null || activationVersion < 2 || activationVersion > 3) {
             logger.warn("Invalid activation version: {}", activationVersion);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
     }

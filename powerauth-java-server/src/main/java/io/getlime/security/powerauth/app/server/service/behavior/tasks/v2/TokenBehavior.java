@@ -34,10 +34,10 @@ import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.CreateTokenRequest;
 import io.getlime.security.powerauth.v2.CreateTokenResponse;
 import io.getlime.security.powerauth.v2.SignatureType;
@@ -101,7 +101,7 @@ public class TokenBehavior {
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    public CreateTokenResponse createToken(CreateTokenRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public CreateTokenResponse createToken(CreateTokenRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String ephemeralPublicKeyBase64 = request.getEphemeralPublicKey();
         final SignatureType signatureType = request.getSignatureType();
@@ -124,18 +124,20 @@ public class TokenBehavior {
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EciesCryptogram createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    private EciesCryptogram createToken(String activationId, String ephemeralPublicKeyBase64, String signatureType, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Check if the activation is in correct state
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -143,6 +145,7 @@ public class TokenBehavior {
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
                 logger.error("Missing key pair for application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
@@ -164,34 +167,44 @@ public class TokenBehavior {
             }
             if (tokenId == null) {
                 logger.error("Unable to generate token");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
+
+            // Initialize decryptor before writing to database to avoid rollback in case of an error
+            final EciesDecryptor decryptor = new EciesDecryptor((ECPrivateKey) privateKey);
+            // There is no encrypted request data to decrypt, the envelope key in needs to be initialized before encryption
+            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+
+            // Perform the following operations before writing to database to avoid rollbacks
+            String tokenSecret = BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret());
+            final TokenInfo tokenInfo = new TokenInfo();
+            tokenInfo.setTokenId(tokenId);
+            tokenInfo.setTokenSecret(tokenSecret);
+
+            final ObjectMapper mapper = new ObjectMapper();
+            final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
+
+            EciesCryptogram response = decryptor.encryptResponse(tokenBytes);
 
             // Create a new token
             TokenEntity token = new TokenEntity();
             token.setTokenId(tokenId);
-            token.setTokenSecret(BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret()));
+            token.setTokenSecret(tokenSecret);
             token.setActivation(activation);
             token.setTimestampCreated(Calendar.getInstance().getTime());
             token.setSignatureTypeCreated(signatureType);
             token = repositoryCatalogue.getTokenRepository().save(token);
 
-            final TokenInfo tokenInfo = new TokenInfo();
-            tokenInfo.setTokenId(token.getTokenId());
-            tokenInfo.setTokenSecret(token.getTokenSecret());
-
-            final ObjectMapper mapper = new ObjectMapper();
-            final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
-
-            final EciesDecryptor decryptor = new EciesDecryptor((ECPrivateKey) privateKey);
-            // There is no encrypted request data to decrypt, the envelope key in needs to be initialized before encryption
-            decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
-            return decryptor.encryptResponse(tokenBytes);
+            return response;
         } catch (InvalidKeySpecException ex) {
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException | JsonProcessingException ex) {
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
         } catch (CryptoProviderException ex) {
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

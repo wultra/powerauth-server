@@ -98,7 +98,7 @@ public class PowerAuthServiceConfiguration {
     private int generateRecoveryCodeIterations;
 
     /**
-     * How many milliseconds should be CREATED or OTP_USED record usable for
+     * How many milliseconds should be CREATED or PENDING_COMMIT record usable for
      * completing the activation.
      */
     @Value("${powerauth.service.crypto.activationValidityInMilliseconds}")

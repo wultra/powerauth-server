@@ -59,7 +59,7 @@ public class ActivationHistoryServiceBehavior {
      * @param activation Activation.
      */
     public void saveActivationAndLogChange(ActivationRecordEntity activation) {
-        saveActivationAndLogChange(activation, null);
+        saveActivationAndLogChange(activation, null, null);
     }
 
     /**
@@ -68,14 +68,27 @@ public class ActivationHistoryServiceBehavior {
      * @param activation Activation.
      * @param externalUserId User ID of user who caused the change.
      */
-    public void saveActivationAndLogChange(ActivationRecordEntity activation, String externalUserId) {
+    public void saveActivationAndLogChange(ActivationRecordEntity activation,  String externalUserId) {
+        saveActivationAndLogChange(activation, externalUserId, null);
+    }
+
+    /**
+     * Log activation status change into activation history.
+     *
+     * @param activation Activation.
+     * @param externalUserId User ID of user who caused the change.
+     * @param historyEventReason Optional reason, why this activation save event happened.
+     */
+    public void saveActivationAndLogChange(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
         Date changeTimestamp = new Date();
         activation.setTimestampLastChange(changeTimestamp);
         ActivationHistoryEntity activationHistoryEntity = new ActivationHistoryEntity();
         activationHistoryEntity.setActivation(activation);
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
         if (activation.getActivationStatus() == ActivationStatus.BLOCKED) {
-            activationHistoryEntity.setBlockedReason(activation.getBlockedReason());
+            activationHistoryEntity.setEventReason(activation.getBlockedReason());
+        } else {
+            activationHistoryEntity.setEventReason(historyEventReason);
         }
         activationHistoryEntity.setExternalUserId(externalUserId);
         activationHistoryEntity.setTimestampCreated(changeTimestamp);
@@ -105,7 +118,7 @@ public class ActivationHistoryServiceBehavior {
                 item.setId(activationHistoryEntity.getId());
                 item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
                 item.setActivationStatus(activationStatusConverter.convert(activationHistoryEntity.getActivationStatus()));
-                item.setBlockedReason(activationHistoryEntity.getBlockedReason());
+                item.setEventReason(activationHistoryEntity.getEventReason());
                 item.setExternalUserId(activationHistoryEntity.getExternalUserId());
                 item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activationHistoryEntity.getTimestampCreated()));
 

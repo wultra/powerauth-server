@@ -21,6 +21,7 @@ import io.getlime.security.powerauth.app.server.controller.RESTRequestWrapper;
 import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.getlime.security.powerauth.v3.*;
+import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController("restControllerV3")
 @RequestMapping(value = "/rest/v3")
+@Api(tags={"PowerAuth Controller V3"})
 public class PowerAuthController {
 
     private PowerAuthService powerAuthService;
@@ -106,6 +108,17 @@ public class PowerAuthController {
     @RequestMapping(value = "/activation/create", method = RequestMethod.POST)
     public RESTResponseWrapper<CreateActivationResponse> createActivation(@RequestBody RESTRequestWrapper<CreateActivationRequest> request) throws Exception {
         return new RESTResponseWrapper<>("OK", powerAuthService.createActivation(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateActivationOtp(UpdateActivationOtpRequest)} method and return the response.
+     * @param request Update activation OTP request.
+     * @return Update activation OTP response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/otp/update", method = RequestMethod.POST)
+    public RESTResponseWrapper<UpdateActivationOtpResponse> updateActivationOtp(@RequestBody RESTRequestWrapper<UpdateActivationOtpRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.updateActivationOtp(request.getRequestObject()));
     }
 
     /**

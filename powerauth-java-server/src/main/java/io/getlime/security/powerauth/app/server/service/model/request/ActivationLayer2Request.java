@@ -26,8 +26,11 @@ package io.getlime.security.powerauth.app.server.service.model.request;
 public class ActivationLayer2Request {
 
     private String devicePublicKey;
+    private String activationOtp;
     private String activationName;
     private String extras;
+    private String platform;
+    private String deviceInfo;
 
     /**
      * Default constructor.
@@ -64,6 +67,22 @@ public class ActivationLayer2Request {
     }
 
     /**
+     * Get additional activation OTP.
+     * @return Additional activation OTP.
+     */
+    public String getActivationOtp() {
+        return activationOtp;
+    }
+
+    /**
+     * Set additional activation OTP.
+     * @param activationOtp Additional activation OTP.
+     */
+    public void setActivationOtp(String activationOtp) {
+        this.activationOtp = activationOtp;
+    }
+
+    /**
      * Get activation name.
      * @return Activation name.
      */
@@ -93,5 +112,37 @@ public class ActivationLayer2Request {
      */
     public void setExtras(String extras) {
         this.extras = extras;
+    }
+
+    /**
+     * Get user device platform.
+     * @return User device platform.
+     */
+    public String getPlatform() {
+        return platform;
+    }
+
+    /**
+     * Set user device platform.
+     * @param platform User device platform.
+     */
+    public void setPlatform(String platform) {
+        this.platform = platform;
+    }
+
+    /**
+     * Get information about user device.
+     * @return Information about user device.
+     */
+    public String getDeviceInfo() {
+        return deviceInfo;
+    }
+
+    /**
+     * Set information about user device.
+     * @param deviceInfo Information about user device.
+     */
+    public void setDeviceInfo(String deviceInfo) {
+        this.deviceInfo = deviceInfo;
     }
 }

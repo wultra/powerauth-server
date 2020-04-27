@@ -147,6 +147,7 @@ public class CallbackUrlBehavior {
             new URL(request.getCallbackUrl());
         } catch (MalformedURLException e) {
             logger.warn("Invalid callback URL: "+request.getCallbackUrl());
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 

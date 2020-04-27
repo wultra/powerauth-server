@@ -23,7 +23,7 @@ import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
  * Enum representing possible activation states. Following values are supported:
  * <p>
  * - CREATED = 1
- * - OTP_USED = 2
+ * - PENDING_COMMIT = 2
  * - ACTIVE = 3
  * - BLOCKED = 4
  * - REMOVED = 5
@@ -39,11 +39,11 @@ public enum ActivationStatus {
     CREATED((byte) 1),
 
     /**
-     * OTP_USED - status right after PowerAuth Server receives PowerAuth Client public
+     * PENDING_COMMIT - status right after PowerAuth Server receives PowerAuth Client public
      * key, via {@link PowerAuthService#prepareActivation(io.getlime.security.powerauth.v3.PrepareActivationRequest)}
-     * method.
+     * method. This status means that activation is awaiting commit.
      */
-    OTP_USED((byte) 2),
+    PENDING_COMMIT((byte) 2),
 
     /**
      * ACTIVE - status after the activation record was committed by calling

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -33,7 +34,6 @@ import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.*;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery;
@@ -50,13 +50,14 @@ import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v3.*;
+import io.getlime.security.powerauth.v3.ActivationOtpValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +91,6 @@ public class ActivationServiceBehavior {
     private static final byte POWERAUTH_PROTOCOL_VERSION = 0x3;
 
     private final RepositoryCatalogue repositoryCatalogue;
-    private final ServiceBehaviorCatalogue behaviorCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
 
@@ -102,6 +102,7 @@ public class ActivationServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
     private RecoveryPukConverter recoveryPukConverter;
 
@@ -114,9 +115,8 @@ public class ActivationServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue behaviorCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
-        this.behaviorCatalogue = behaviorCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
@@ -149,14 +149,14 @@ public class ActivationServiceBehavior {
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
 
     /**
-     * Deactivate the activation in CREATED or OTP_USED if it's activation expiration timestamp
+     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
      * is below the given timestamp.
      *
      * @param timestamp  Timestamp to check activations against.
      * @param activation Activation to check.
      */
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) {
-        if ((activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED) || activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             if (!isActivationLocked) {
                 // Make sure activation is locked until the end of transaction in case it was not locked yet
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
@@ -179,6 +179,7 @@ public class ActivationServiceBehavior {
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+        // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
     }
 
@@ -188,21 +189,34 @@ public class ActivationServiceBehavior {
      *
      * @param activation Activation used in prepare activation step.
      * @param application Application used in prepare activation step.
+     * @param rollbackInCaseOfError Whether transaction should be rolled back in case of validation error.
      * @throws GenericServiceException In case activation state is invalid.
      */
-    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application, boolean rollbackInCaseOfError) throws GenericServiceException {
         // If there is no such activation or application does not match the activation application, fail validation
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
                 || !Objects.equals(activation.getApplication().getId(), application.getId())) {
             logger.info("Activation state is invalid, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            if (rollbackInCaseOfError) {
+                // Rollback is used during createActivation and createActivationUsingRecoveryCode, because activation has just been initialized and it is invalid
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            } else {
+                // Regular exception is used during prepareActivation
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            }
         }
 
         // Make sure activation code has 23 characters
-        if (!identifierGenerator.validateActivationCode(activation.getActivationCode())) {
-            logger.info("Activation code is invalid, activation ID: {}", activation.getActivationId());
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        if (activation.getActivationCode().length() != 23) {
+            logger.warn("Activation code is invalid, activation ID: {}", activation.getActivationId());
+            if (rollbackInCaseOfError) {
+                // Rollback is used during createActivation and createActivationUsingRecoveryCode, because activation has just been initialized and it is invalid
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            } else {
+                // Regular exception is used during prepareActivation
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            }
         }
     }
 
@@ -243,6 +257,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setBlockedReason(activation.getBlockedReason());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setPlatform(activation.getPlatform());
+                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -271,7 +287,6 @@ public class ActivationServiceBehavior {
     public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         if (applicationIds != null && applicationIds.isEmpty()) {
             // Make sure application ID list is null in case no application ID is specified
             applicationIds = null;
@@ -294,6 +309,8 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setBlockedReason(activation.getBlockedReason());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setPlatform(activation.getPlatform());
+                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -344,7 +361,7 @@ public class ActivationServiceBehavior {
      * @throws DatatypeConfigurationException Thrown when calendar conversion fails.
      * @throws GenericServiceException        Thrown when cryptography error occurs.
      */
-    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, CryptoProviderUtil keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
+    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, KeyConvertor keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
@@ -377,6 +394,7 @@ public class ActivationServiceBehavior {
                     MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(activation.getApplication().getId());
                     if (masterKeyPairEntity == null) {
                         logger.error("Missing key pair for application ID: {}", activation.getApplication().getId());
+                        // Rollback is not required, database is not used for writing
                         throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
                     }
                     String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
@@ -391,6 +409,7 @@ public class ActivationServiceBehavior {
                     response.setActivationId(activationId);
                     response.setUserId(activation.getUserId());
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
@@ -403,6 +422,8 @@ public class ActivationServiceBehavior {
                     response.setActivationCode(activation.getActivationCode());
                     response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
                     response.setDevicePublicKeyFingerprint(null);
+                    response.setPlatform(activation.getPlatform());
+                    response.setDeviceInfo(activation.getDeviceInfo());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -493,6 +514,7 @@ public class ActivationServiceBehavior {
 
                             default:
                                 logger.error("Unsupported activation version: {}", activation.getVersion());
+                                // Rollback is not required, database is not used for writing
                                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
                         }
 
@@ -502,6 +524,7 @@ public class ActivationServiceBehavior {
                     GetActivationStatusResponse response = new GetActivationStatusResponse();
                     response.setActivationId(activationId);
                     response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                    response.setActivationOtpValidation(activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation()));
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
@@ -515,6 +538,8 @@ public class ActivationServiceBehavior {
                     response.setActivationCode(null);
                     response.setActivationSignature(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
+                    response.setPlatform(activation.getPlatform());
+                    response.setDeviceInfo(activation.getDeviceInfo());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -535,11 +560,14 @@ public class ActivationServiceBehavior {
                 GetActivationStatusResponse response = new GetActivationStatusResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
+                response.setActivationOtpValidation(ActivationOtpValidation.NONE);
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
                 response.setApplicationId(0L);
                 response.setExtras(null);
+                response.setPlatform(null);
+                response.setDeviceInfo(null);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -554,12 +582,15 @@ public class ActivationServiceBehavior {
             }
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            /// Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -572,21 +603,27 @@ public class ActivationServiceBehavior {
      * @param maxFailureCount            Maximum failed attempt count (5)
      * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
      * @param keyConversionUtilities    Utility class for key conversion
+     * @param activationOtpValidation   Activation OTP validation mode
+     * @param activationOtp             Activation OTP
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
+                                                 ActivationOtpValidation activationOtpValidation, String activationOtp,
+                                                 KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
             Date timestamp = new Date();
 
             if (userId == null || userId.isEmpty() || userId.length() > 255) {
                 logger.warn("User ID not specified or invalid");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_USER_ID);
             }
 
             if (applicationId == 0L) {
                 logger.warn("Application ID not specified");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
             }
 
@@ -608,10 +645,24 @@ public class ActivationServiceBehavior {
                 timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
             }
 
+            // Validate combination of activation OTP and OTP validation mode.
+            final boolean hasActivationOtp = activationOtp != null && !activationOtp.isEmpty();
+            if (activationOtpValidation == null) {
+                activationOtpValidation = ActivationOtpValidation.NONE;
+            }
+            if ((activationOtpValidation == ActivationOtpValidation.NONE && hasActivationOtp) ||
+                    (activationOtpValidation != ActivationOtpValidation.NONE && !hasActivationOtp)) {
+                logger.warn("Activation OTP doesn't match its validation mode.");
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            // Generate hash from activation OTP
+            final String activationOtpHash = activationOtp == null ? null : PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+
             // Fetch the latest master private key
             MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPair == null) {
                 GenericServiceException ex = localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                // Rollback is not required, error occurs before writing to database
                 logger.error("No master key pair found for application ID: {}", applicationId);
                 throw ex;
             }
@@ -630,6 +681,7 @@ public class ActivationServiceBehavior {
             }
             if (activationId == null) {
                 logger.error("Unable to generate activation ID");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_ID);
             }
 
@@ -646,6 +698,7 @@ public class ActivationServiceBehavior {
             }
             if (activationCode == null) {
                 logger.error("Unable to generate activation code");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_ACTIVATION_CODE);
             }
 
@@ -665,12 +718,16 @@ public class ActivationServiceBehavior {
             ActivationRecordEntity activation = new ActivationRecordEntity();
             activation.setActivationId(activationId);
             activation.setActivationCode(activationCode);
+            activation.setActivationOtpValidation(activationOtpValidationConverter.convertTo(activationOtpValidation));
+            activation.setActivationOtp(activationOtpHash);
             activation.setActivationName(null);
             activation.setActivationStatus(ActivationStatus.CREATED);
             activation.setCounter(0L);
             activation.setCtrDataBase64(null);
             activation.setDevicePublicKeyBase64(null);
             activation.setExtras(null);
+            activation.setPlatform(null);
+            activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);
@@ -703,12 +760,15 @@ public class ActivationServiceBehavior {
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -727,7 +787,7 @@ public class ActivationServiceBehavior {
      * @return ECIES encrypted activation information.
      * @throws GenericServiceException If invalid values are provided.
      */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -742,11 +802,13 @@ public class ActivationServiceBehavior {
             ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, activation code: {}", activationCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
             ApplicationEntity application = applicationVersion.getApplication();
             if (application == null) {
                 logger.warn("Application does not exist, activation code: {}", activationCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
@@ -754,6 +816,7 @@ public class ActivationServiceBehavior {
             MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             if (masterKeyPairEntity == null) {
                 logger.error("Missing key pair for application ID: {}", application.getId());
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
@@ -775,6 +838,7 @@ public class ActivationServiceBehavior {
                 request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, activation code: {}", activationCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
@@ -786,6 +850,7 @@ public class ActivationServiceBehavior {
             // Make sure to deactivate the activation if it is expired
             if (activation == null) {
                 logger.warn("Activation not found with activation ID: {}", activationCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
@@ -794,7 +859,9 @@ public class ActivationServiceBehavior {
             deactivatePendingActivation(timestamp, activation, true);
 
             // Validate that the activation is in correct state for the prepare step
-            validateCreatedActivation(activation, application);
+            validateCreatedActivation(activation, application, false);
+            // Validate activation OTP
+            validateActivationOtp(ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
@@ -811,24 +878,34 @@ public class ActivationServiceBehavior {
             byte[] ctrData = counter.init();
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
-            // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            // If Activation OTP is available, then the status is set directly to "ACTIVE".
+            // We don't need to commit such activation afterwards.
+            final boolean isActive = request.getActivationOtp() != null;
+            final ActivationStatus activationStatus = isActive ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
+
+            // Update the activation record
+            activation.setActivationStatus(activationStatus);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
+            if (request.getPlatform() != null) {
+                activation.setPlatform(request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
 
-            // Create a new recovery code and PUK for new activation if activation recovery is enabled
+            // Create a new recovery code and PUK for new activation if activation recovery is enabled.
+            // Perform these operations before writing to database to avoid rollbacks.
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation);
+                activationRecovery = createRecoveryCodeForActivation(activation, isActive);
             }
 
             // Generate activation layer 2 response
@@ -846,24 +923,33 @@ public class ActivationServiceBehavior {
             String encryptedData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
             String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
 
+            // Persist activation report and notify listeners
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
             // Generate encrypted response
             PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
+            encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException | JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -882,6 +968,7 @@ public class ActivationServiceBehavior {
      * @param applicationKey                 Application key
      * @param eciesCryptogram                ECIES cryptogram
      * @param keyConversion                  Utility class for key conversion
+     * @param activationOtp                  Additional activation OTP
      * @return ECIES encrypted activation information
      * @throws GenericServiceException       In case create activation fails
      */
@@ -891,7 +978,8 @@ public class ActivationServiceBehavior {
             Long maxFailureCount,
             String applicationKey,
             EciesCryptogram eciesCryptogram,
-            CryptoProviderUtil keyConversion) throws GenericServiceException {
+            String activationOtp,
+            KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -906,6 +994,7 @@ public class ActivationServiceBehavior {
             // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
@@ -913,29 +1002,35 @@ public class ActivationServiceBehavior {
             // If there is no such application, exit
             if (application == null) {
                 logger.warn("Application is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
+            // Prepare activation OTP mode
+            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
+
             // Create an activation record and obtain the activation database record
-            InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, keyConversion);
+            InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, keyConversion);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
             if (activation == null) { // should not happen, activation was just created above via "init" call
                 logger.warn("Activation not found for activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                // The whole transaction is rolled back in case of this unexpected state
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Make sure to deactivate the activation if it is expired
             deactivatePendingActivation(timestamp, activation, true);
 
-            validateCreatedActivation(activation, application);
+            validateCreatedActivation(activation, application, true);
 
             // Get master server private key
             MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             if (masterKeyPairEntity == null) {
                 logger.error("Missing key pair for application ID: {}", application.getId());
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                // Master key pair is missing, rollback this transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
             String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
@@ -956,7 +1051,8 @@ public class ActivationServiceBehavior {
                 request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+                // Activation failed due to invalid ECIES request, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
             // Extract the device public key from request
@@ -966,7 +1062,9 @@ public class ActivationServiceBehavior {
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
-                handleInvalidPublicKey(activation);
+                logger.warn("Device public key is invalid, activation ID: {}", activationId);
+                // Device public key is invalid, rollback this transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
             // Initialize hash based counter
@@ -975,11 +1073,17 @@ public class ActivationServiceBehavior {
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
             // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
+            if (request.getPlatform() != null) {
+                activation.setPlatform(request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
             // Set initial counter data
@@ -991,7 +1095,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation);
+                activationRecovery = createRecoveryCodeForActivation(activation, false);
             }
 
             // Generate activation layer 2 response
@@ -1017,16 +1121,20 @@ public class ActivationServiceBehavior {
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException | JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 
@@ -1035,60 +1143,225 @@ public class ActivationServiceBehavior {
      *
      * @param activationId Activation ID.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
+     * @param activationOtp Activation OTP.
      * @return Response with activation commit confirmation.
      * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
      */
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId) throws GenericServiceException {
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws GenericServiceException {
 
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
+        // Find activation
         ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        if (activation == null) {
+            // Activation does not exist
+            logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
 
         // Get current timestamp
         Date timestamp = new Date();
 
-        // Does the activation exist?
-        if (activation != null) {
+        // Check already deactivated activation
+        deactivatePendingActivation(timestamp, activation, true);
+        if (activation.getActivationStatus() == ActivationStatus.REMOVED) {
+            logger.info("Activation is already REMOVED, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        }
 
-            // Check already deactivated activation
-            deactivatePendingActivation(timestamp, activation, true);
-            if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED)) {
-                logger.info("Activation is already REMOVED, activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+        // Check whether Activation is in correct state
+        if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT) {
+            logger.info("Activation is not in PENDING_COMMIT state during commit, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        // Validate activation OTP
+        validateActivationOtp(ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
+
+        // Change activation state to ACTIVE
+        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
+        // Update recovery code status in case a related recovery code exists in CREATED state
+        RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+        List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(activation.getApplication().getId(), activation.getActivationId());
+        for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodeEntities) {
+            if (RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus())) {
+                recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
+                recoveryCodeEntity.setTimestampLastChange(new Date());
+                recoveryCodeRepository.save(recoveryCodeEntity);
             }
+        }
 
-            // Activation is in correct state
-            if (activation.getActivationStatus().equals(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.OTP_USED)) {
-                activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
-                activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        CommitActivationResponse response = new CommitActivationResponse();
+        response.setActivationId(activationId);
+        response.setActivated(true);
+        return response;
+    }
 
-                // Update recovery code status in case a related recovery code exists in CREATED state
-                RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-                List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByApplicationIdAndActivationId(activation.getApplication().getId(), activation.getActivationId());
-                for (RecoveryCodeEntity recoveryCodeEntity : recoveryCodeEntities) {
-                    if (RecoveryCodeStatus.CREATED.equals(recoveryCodeEntity.getStatus())) {
-                        recoveryCodeEntity.setStatus(RecoveryCodeStatus.ACTIVE);
-                        recoveryCodeEntity.setTimestampLastChange(new Date());
-                        recoveryCodeRepository.save(recoveryCodeEntity);
-                    }
-                }
+    /**
+     * Update activation OTP for given activation ID.
+     *
+     * @param activationId Activation ID.
+     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
+     * @param activationOtp Activation OTP.
+     * @return Response with activation UTP update result.
+     * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
+     */
+    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws GenericServiceException {
 
-                CommitActivationResponse response = new CommitActivationResponse();
-                response.setActivationId(activationId);
-                response.setActivated(true);
-                return response;
-            } else {
-                logger.info("Activation is not in OTP_USED state during commit, activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
+        // Validate provided OTP
+        if (activationOtp == null || activationOtp.isEmpty()) {
+            logger.warn("Activation OTP not specified in update");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
 
-        } else {
+        // Get the repository
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        // Find activation
+        ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        if (activation == null) {
             // Activation does not exist
             logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+
+        // Get current timestamp
+        final Date timestamp = new Date();
+
+        // Check already deactivated activation
+        deactivatePendingActivation(timestamp, activation, true);
+
+        // Check activation state
+        if (activation.getActivationStatus() != ActivationStatus.PENDING_COMMIT) {
+            logger.info("Activation is not in PENDING_COMMIT state during commit, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        // Check OTP validation mode
+         if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE) {
+            logger.info("Activation OTP update is not allowed for ON_KEY_EXCHANGE mode. Activation ID: {}", activationId);
+             // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP_MODE);
+        }
+
+        final String activationOtpHash = PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+
+        // Change activation OTP and set mode to ON_COMMIT
+        activation.setActivationOtp(activationOtpHash);
+        activation.setActivationOtpValidation(io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_COMMIT);
+
+        // Save activation record
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.ACTIVATION_OTP_VALUE_UPDATE);
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
+        UpdateActivationOtpResponse response = new UpdateActivationOtpResponse();
+        response.setActivationId(activationId);
+        response.setUpdated(true);
+        return response;
+    }
+
+    /**
+     * Validate activation OTP against value set in the activation's record.
+     *
+     * @param currentStage      Determines in which step of the activation is this method called.
+     * @param confirmationOtp   OTP value to be validated.
+     * @param activation        Activation record.
+     * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
+     * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
+     */
+    private void validateActivationOtp(ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
+
+        final String activationId = activation.getActivationId();
+        final ActivationOtpValidation expectedStage = activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation());
+        final String expectedOtpHash = activation.getActivationOtp();
+
+        if (currentStage == ActivationOtpValidation.NONE) {
+            // This should never happen.
+            logger.info("Internal error in activation OTP validation: {}", activationId);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.UNKNOWN_ERROR);
+        }
+
+        // Check whether activation OTP validation is turned OFF. In this case, the confirmation OTP must not
+        // be provided.
+        if (expectedStage == ActivationOtpValidation.NONE) {
+            if (confirmationOtp != null) {
+                logger.info("Activation OTP is not used, but is provided: {}", activationId);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            return;
+        }
+        // Check whether this is validation in the different step of activation. If yes, then the confirmation
+        // OTP must not be provided.
+        if (expectedStage != currentStage) {
+            if (confirmationOtp != null) {
+                logger.info("Activation OTP is not expected, but is provided: {}", activationId);
+                // Rollback is not required, database is not used for writing yet.
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+            }
+            return;
+        }
+        // We're in the right step, so the confirmation OTP must be provided.
+        if (confirmationOtp == null) {
+            logger.info("Activation OTP is expected, but is missing: {}", activationId);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+        }
+        // The final test only checks, whether hash is present in the database.
+        if (expectedOtpHash == null) {
+            logger.info("Activation OTP is missing in activation data: {}", activationId);
+            // Rollback is not required, database is not used for writing yet.
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
+        }
+
+        // Now verify OTP value
+        try {
+            if (PasswordHash.verify(confirmationOtp.getBytes(StandardCharsets.UTF_8), expectedOtpHash)) {
+                // Everything looks fine. Reset the failed attempts counter.
+                activation.setFailedAttempts(0L);
+                return;
+            }
+        } catch (IOException e) {
+            // This exception typically means that the hash stored in DB is in wrong format. The rest of this method
+            // will treat this as an invalid OTP.
+            logger.warn("Invalid activation OTP hash: {}", activationId);
+        }
+
+        // Confirmation OTP doesn't match value stored in the database.
+
+        // Increase the number of failed attempts and validate the maximum number of failed attempts.
+        activation.setFailedAttempts(activation.getFailedAttempts() + 1L);
+        final boolean removeActivation = activation.getFailedAttempts() >= activation.getMaxFailedAttempts();
+
+        // If activation should be removed then set its status to REMOVED.
+        if (removeActivation) {
+            activation.setActivationStatus(ActivationStatus.REMOVED);
+        }
+
+        // Save activation state with the reason.
+        final String activationSaveReason = removeActivation ? AdditionalInformation.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.ACTIVATION_OTP_FAILED_ATTEMPT;
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, activationSaveReason);
+
+        // Also notify the listeners in case that the state of the activation was changed.
+        if (removeActivation) {
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        }
+
+        // ...and finally throw an exception.
+        logger.info("Invalid activation OTP: {}", activationId);
+        // Exception must not be rollbacking, otherwise data written to database in this method would be lost.
+        throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP);
     }
 
     /**
@@ -1096,13 +1369,34 @@ public class ActivationServiceBehavior {
      *
      * @param activationId Activation ID.
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @param revokeRecoveryCodes Flag that indicates if a recover codes associated with this activation should be also revoked.
      * @return Response with confirmation of removal.
      * @throws GenericServiceException In case activation does not exist.
      */
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws GenericServiceException {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws GenericServiceException {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
+            if (revokeRecoveryCodes) {
+                final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+                final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
+                final Date now = new Date();
+                for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
+                    // revoke only codes that are not yet revoked, to avoid messing up with timestamp
+                    if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                        recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                        recoveryCode.setTimestampLastChange(now);
+                        // Change status of PUKs with status VALID to INVALID
+                        for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                            if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                                puk.setStatus(RecoveryPukStatus.INVALID);
+                                puk.setTimestampLastChange(now);
+                            }
+                        }
+                        recoveryCodeRepository.save(recoveryCode);
+                    }
+                }
+            }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
             RemoveActivationResponse response = new RemoveActivationResponse();
@@ -1111,6 +1405,7 @@ public class ActivationServiceBehavior {
             return response;
         } else {
             logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
     }
@@ -1128,6 +1423,7 @@ public class ActivationServiceBehavior {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
@@ -1145,6 +1441,7 @@ public class ActivationServiceBehavior {
         } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
             // In case activation status is not ACTIVE or BLOCKED, throw an exception
             logger.info("Activation cannot be blocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
         BlockActivationResponse response = new BlockActivationResponse();
@@ -1166,6 +1463,7 @@ public class ActivationServiceBehavior {
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation does not exist, activation ID: {}", activationId);
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
@@ -1181,6 +1479,7 @@ public class ActivationServiceBehavior {
         } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             // In case activation status is not BLOCKED or ACTIVE, throw an exception
             logger.info("Activation cannot be unblocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }
         UnblockActivationResponse response = new UnblockActivationResponse();
@@ -1196,7 +1495,7 @@ public class ActivationServiceBehavior {
      * @return Create activation using recovery code response.
      * @throws GenericServiceException In case of any error.
      */
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, CryptoProviderUtil keyConversion) throws GenericServiceException {
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Extract request data
             final String recoveryCode = request.getRecoveryCode();
@@ -1206,6 +1505,7 @@ public class ActivationServiceBehavior {
             final String ephemeralPublicKey = request.getEphemeralPublicKey();
             final String encryptedData = request.getEncryptedData();
             final String mac = request.getMac();
+            final String activationOtp = request.getActivationOtp();
 
             // Prepare ECIES request cryptogram
             byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
@@ -1225,11 +1525,13 @@ public class ActivationServiceBehavior {
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             final ApplicationEntity application = applicationVersion.getApplication();
             if (application == null) {
                 logger.warn("Application does not exist, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -1237,6 +1539,7 @@ public class ActivationServiceBehavior {
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -1244,6 +1547,7 @@ public class ActivationServiceBehavior {
             MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
             if (masterKeyPairEntity == null) {
                 logger.error("Missing key pair for application ID: {}", application.getId());
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
@@ -1265,6 +1569,7 @@ public class ActivationServiceBehavior {
                 layer2Request = objectMapper.readValue(activationData, ActivationLayer2Request.class);
             } catch (IOException ex) {
                 logger.warn("Invalid activation request, recovery code: {}", recoveryCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
@@ -1272,10 +1577,12 @@ public class ActivationServiceBehavior {
             RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(application.getId(), recoveryCode);
             if (recoveryCodeEntity == null) {
                 logger.warn("Recovery code does not exist: {}", recoveryCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             if (!io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus.ACTIVE.equals(recoveryCodeEntity.getStatus())) {
                 logger.warn("Recovery code is not in ACTIVE state: {}", recoveryCode);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -1302,6 +1609,7 @@ public class ActivationServiceBehavior {
                             }
                         } catch (IOException ex) {
                             logger.warn("Invalid PUK hash for recovery code: {}", recoveryCode);
+                            // Rollback is not required, error occurs before writing to database
                             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
                         }
                     }
@@ -1324,9 +1632,11 @@ public class ActivationServiceBehavior {
                 }
                 recoveryCodeRepository.save(recoveryCodeEntity);
                 if (firstValidPuk != null && !RecoveryPukStatus.INVALID.equals(firstValidPuk.getStatus())) {
-                    // Provide current recovery PUK index in error response in case PUK in VALID state exists
+                    // Provide current recovery PUK index in error response in case PUK in VALID state exists.
+                    // Exception must not be rollbacking, otherwise the data saved into DB would be lost.
                     throw localizationProvider.buildActivationRecoveryExceptionForCode(ServiceError.INVALID_RECOVERY_CODE, firstValidPuk.getPukIndex().intValue());
                 } else {
+                    // Exception must not be rollbacking, otherwise the data saved into DB would be lost.
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_RECOVERY_CODE);
                 }
             }
@@ -1340,32 +1650,30 @@ public class ActivationServiceBehavior {
 
             // If recovery code is bound to an existing activation, remove this activation
             if (recoveryCodeEntity.getActivationId() != null) {
-                removeActivation(recoveryCodeEntity.getActivationId(), null);
-                // If there are no PUKs in VALID state left, set the recovery code status to REVOKED
-                boolean validPukExists = false;
-                for (RecoveryPukEntity recoveryPukEntity : recoveryCodeEntity.getRecoveryPuks()) {
-                    if (RecoveryPukStatus.VALID.equals(recoveryPukEntity.getStatus())) {
-                        validPukExists = true;
-                        break;
-                    }
-                }
-                if (!validPukExists) {
-                    recoveryCodeEntity.setStatus(RecoveryCodeStatus.REVOKED);
-                    recoveryCodeEntity.setTimestampLastChange(new Date());
-                }
+                removeActivation(recoveryCodeEntity.getActivationId(), null, true);
             }
 
             // Persist recovery code changes
             recoveryCodeRepository.save(recoveryCodeEntity);
 
+            // Prepare activation OTP mode
+            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
+
             // Initialize version 3 activation entity.
             // Parameter maxFailureCount can be customized, activationExpireTime is null because activation is committed immediately.
-            InitActivationResponse initResponse = initActivation(application.getId(), recoveryCodeEntity.getUserId(), maxFailureCount, null, keyConversion);
+            InitActivationResponse initResponse = initActivation(
+                    application.getId(),
+                    recoveryCodeEntity.getUserId(),
+                    maxFailureCount,
+                    null,
+                    activationOtpValidation,
+                    activationOtp,
+                    keyConversion);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
             // Validate created activation
-            validateCreatedActivation(activation, application);
+            validateCreatedActivation(activation, application, true);
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(layer2Request.getDevicePublicKey());
@@ -1374,7 +1682,9 @@ public class ActivationServiceBehavior {
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
-                handleInvalidPublicKey(activation);
+                logger.warn("Device public key is invalid, activation ID: {}", activationId);
+                // Device public key is invalid, rollback this transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
             // Initialize hash based counter
@@ -1382,12 +1692,18 @@ public class ActivationServiceBehavior {
             byte[] ctrData = counter.init();
             String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
 
-            // Update and persist the activation record, activation is automatically committed in the next step
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            // Update and persist the activation record, activation is automatically committed in the next step in RESTful integration.
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExtras(layer2Request.getExtras());
+            if (layer2Request.getPlatform() != null) {
+                activation.setPlatform(layer2Request.getPlatform().toLowerCase());
+            } else {
+                activation.setPlatform("unknown");
+            }
+            activation.setDeviceInfo(layer2Request.getDeviceInfo());
             // PowerAuth protocol version 3.0 uses 0x3 as version in activation status
             activation.setVersion(3);
             // Set initial counter data
@@ -1401,7 +1717,7 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Create a new recovery code and PUK for new activation
-            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation);
+            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation, false);
 
             // Generate activation layer 2 response
             ActivationLayer2Response layer2Response = new ActivationLayer2Response();
@@ -1424,26 +1740,31 @@ public class ActivationServiceBehavior {
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (EciesException | JsonProcessingException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.DECRYPTION_FAILED);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 
     /**
      * Create recovery code for given activation and set its status to ACTIVE.
      * @param activationEntity Activation entity.
+     * @param isActive Make recovery code active from the beginning.
      * @return Activation recovery code and PUK.
      * @throws GenericServiceException In case of any error.
      */
-    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity) throws GenericServiceException {
+    private ActivationRecovery createRecoveryCodeForActivation(ActivationRecordEntity activationEntity, boolean isActive) throws GenericServiceException {
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
         try {
@@ -1451,6 +1772,7 @@ public class ActivationServiceBehavior {
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activationEntity.getApplication().getId());
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
@@ -1465,8 +1787,9 @@ public class ActivationServiceBehavior {
             final String userId = activationEntity.getUserId();
 
             // Verify activation state
-            if (!ActivationStatus.OTP_USED.equals(activationEntity.getActivationStatus()) && !ActivationStatus.ACTIVE.equals(activationEntity.getActivationStatus())) {
+            if (!ActivationStatus.PENDING_COMMIT.equals(activationEntity.getActivationStatus()) && !ActivationStatus.ACTIVE.equals(activationEntity.getActivationStatus())) {
                 logger.warn("Create recovery code failed because of invalid activation state, application ID: {}, activation ID: {}, activation state: {}", applicationId, activationId, activationEntity.getActivationStatus());
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
@@ -1475,6 +1798,7 @@ public class ActivationServiceBehavior {
             for (RecoveryCodeEntity recoveryCodeEntity: existingRecoveryCodes) {
                 if (recoveryCodeEntity.getStatus() == io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus.CREATED || recoveryCodeEntity.getStatus() == io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus.ACTIVE) {
                     logger.warn("Create recovery code failed because of existing recovery codes, application ID: {}, activation ID: {}", applicationId, activationId);
+                    // Rollback is not required, error occurs before writing to database
                     throw localizationProvider.buildExceptionForCode(ServiceError.RECOVERY_CODE_ALREADY_EXISTS);
                 }
             }
@@ -1497,6 +1821,7 @@ public class ActivationServiceBehavior {
             // In case recovery code generation failed, throw an exception
             if (recoveryCode == null || puks == null || puks.size() != 1) {
                 logger.error("Unable to generate recovery code");
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_RECOVERY_CODE);
             }
 
@@ -1508,7 +1833,7 @@ public class ActivationServiceBehavior {
             recoveryCodeEntity.setFailedAttempts(0L);
             recoveryCodeEntity.setMaxFailedAttempts(powerAuthServiceConfiguration.getRecoveryMaxFailedAttempts());
             recoveryCodeEntity.setRecoveryCode(recoveryCode);
-            recoveryCodeEntity.setStatus(RecoveryCodeStatus.CREATED);
+            recoveryCodeEntity.setStatus(isActive ? RecoveryCodeStatus.ACTIVE : RecoveryCodeStatus.CREATED);
             recoveryCodeEntity.setTimestampCreated(new Date());
 
             // Only one PUK was generated
@@ -1529,12 +1854,15 @@ public class ActivationServiceBehavior {
             return new ActivationRecovery(recoveryCode, puk);
         } catch (InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }

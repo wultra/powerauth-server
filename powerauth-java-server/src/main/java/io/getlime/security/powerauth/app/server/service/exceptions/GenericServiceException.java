@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.exceptions;
 
 /**
- * Exception for any SOAP interface error.
+ * Exception for any SOAP interface error. Note that this type of exception doesn't cause the transaction rollback.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

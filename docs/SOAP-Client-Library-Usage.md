@@ -40,7 +40,7 @@ InitActivationResponse response = powerAuthServiceClient.initActivation(request)
 
 ## Committing Activation
 
-To commit an activation with given `activationId`, call the `commitActivation` method of the `PowerAuthServiceClient` instance. You should allow committing an activation as soon as it changes it's state from `CREATED` (initial state) to `OTP_USED` (state after the key exchange is complete).
+To commit an activation with given `activationId`, call the `commitActivation` method of the `PowerAuthServiceClient` instance. You should allow committing an activation as soon as it changes it's state from `CREATED` (initial state) to `PENDING_COMMIT` (state after the key exchange is complete).
 
 ```java
 // Your actual activation identifier
@@ -60,7 +60,7 @@ CommitActivationResponse response = powerAuthServiceClient.commitActivation(requ
 To get the list of activations for a given user ID, call the `getActivationListForUser` method of the `PowerAuthServiceClient` instance. Use this method to display the list of activations in a user interface, for the purpose of activation management. Each activation contains following attributes:
 
 - `activationId` - Identifier of the activation.
-- `activationStatus` - Status of the activation: `CREATED`, `OTP_USED`, `ACTIVE`, `BLOCKED`, or `REMOVED`.
+- `activationStatus` - Status of the activation: `CREATED`, `PENDING_COMMIT`, `ACTIVE`, `BLOCKED`, or `REMOVED`.
 - `blockedReason` - Reason why activation was blocked (only in activation state `BLOCKED`).
 - `activationName` - Name of the activation, as the user created it.
 - `userId` - Reference to the user to whom the activation belongs.
@@ -156,7 +156,7 @@ To get the list of performed signature attempts for a given user ID, call the `g
 - `activationId` - Identifier of the activation that was used to construct the signature.
 - `activationCounter` - Value of the numeric counter.
 - `activationCtrData` - Value of the hash based counter (available only in version `3.0`).
-- `activationStatus` - Status of the activation: `CREATED`, `OTP_USED`, `ACTIVE`, `BLOCKED`, or `REMOVED`. 
+- `activationStatus` - Status of the activation: `CREATED`, `PENDING_COMMIT`, `ACTIVE`, `BLOCKED`, or `REMOVED`. 
 - `additionalInfo` - Additional information related to the signature request in JSON format.
 - `dataBase64` - Data used for the signature, base64 encoded.
 - `signatureType` - Type of the signature that was requested.

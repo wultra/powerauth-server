@@ -12,7 +12,7 @@ PowerAuth Server may return following errors:
 | ERR0005    | Too many failed attempts to generate activation ID. | In order to uniquely identify an activation, a random UUID (level 4) is generated as an activation ID. In a very unlikely case of a collision, server attempts to generate a new one, at most 10 times. When the new activation ID generation fails 10 times, this error is returned. |
 | ERR0006    | Too many failed attempts to generate activation code. | In order to uniquely identify an activation during the activation process, a random activation code (4x5 characters in Base32 encoding) is generated. In a very unlikely case of a collision, server attempts to generate a new one, at most 10 times. When the new activation code generation fails 10 times, this error is returned. |
 | ERR0007    | This activation is already expired. | In case activation is in the state when it cannot be completed. This may be either due to time-out (activation was not committed fast enough) or in case someone tries to commit random / expired / blocked activations. |
-| ERR0008    | Incorrect activation state. | Activation state is invalid. For instance, when client attempts to commit an activation in any other state than OTP_USED, or when client attempts to commit a non-existing activation. |
+| ERR0008    | Incorrect activation state. | Activation state is invalid. For instance, when client attempts to commit an activation in any other state than PENDING_COMMIT, or when client attempts to commit a non-existing activation. |
 | ERR0009    | Activation with given activation ID was not found. | Service didn't find an activation with given ID. |
 | ERR0010    | Key with invalid format was provided. | In case the cryptographic method in initActivation method was provided with a key in incorrect format. |
 | ERR0011    | Invalid input parameter format. | Provided data was not in a correct format. For example, values that were expected to be Base64 encoded or dates in specific date format were invalid. |
@@ -35,5 +35,7 @@ PowerAuth Server may return following errors:
 | ERR0028    | Invalid recovery code. | Used combination of recovery code and PUK is invalid. | 
 | ERR0029    | Invalid recovery configuration. | Recovery code configuration is missing or incomplete. |
 | ERR0030    | Token timestamp is too old. | In case token validation fails due to token being no longer valid. |
- 
+| ERR0031    | Activation OTP doesn't match value stored in database, or the OTP value is provided for the wrong validation step. |
+| ERR0032    | Activation OTP operation is performed for the wrong validation mode. |
+
 For each of these issues, more details about the specific nature and cause can be found in the server log.

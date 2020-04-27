@@ -187,6 +187,15 @@ public class ServiceError {
      */
     public static final String TOKEN_TIMESTAMP_TOO_OLD = "ERR0030";
 
+    /**
+     * Activation OTP doesn't match value stored in database, or the OTP value is provided for the wrong validation mode.
+     */
+    public static final String INVALID_ACTIVATION_OTP = "ERR0031";
+
+    /**
+     * Activation OTP operation is performed for the wrong validation mode.
+     */
+    public static final String INVALID_ACTIVATION_OTP_MODE = "ERR0032";
 
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(20);
@@ -221,6 +230,8 @@ public class ServiceError {
         list.add(INVALID_RECOVERY_CODE);
         list.add(INVALID_RECOVERY_CONFIGURATION);
         list.add(TOKEN_TIMESTAMP_TOO_OLD);
+        list.add(INVALID_ACTIVATION_OTP);
+        list.add(INVALID_ACTIVATION_OTP_MODE);
         return list;
     }
 

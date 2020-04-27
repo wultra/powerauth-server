@@ -26,8 +26,8 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +94,7 @@ public class ApplicationServiceBehavior {
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
             logger.error("Missing key pair for application ID: {}", application.getId());
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
@@ -125,6 +126,7 @@ public class ApplicationServiceBehavior {
         ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
         if (applicationVersion == null) {
             logger.warn("Application version is incorrect, application key: {}", appKey);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
@@ -162,7 +164,7 @@ public class ApplicationServiceBehavior {
      * @return Response with new application information
      * @throws GenericServiceException In case cryptography provider is initialized incorrectly.
      */
-    public CreateApplicationResponse createApplication(String name, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public CreateApplicationResponse createApplication(String name, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             ApplicationEntity application = new ApplicationEntity();
             application.setName(name);
@@ -172,6 +174,10 @@ public class ApplicationServiceBehavior {
             KeyPair kp = keyGen.generateKeyPair();
             PrivateKey privateKey = kp.getPrivate();
             PublicKey publicKey = kp.getPublic();
+
+            // Use cryptography methods before writing to database to avoid rollbacks
+            byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
+            byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
 
             // Generate the default master key pair
             MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
@@ -183,8 +189,6 @@ public class ApplicationServiceBehavior {
             repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
 
             // Create the default application version
-            byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-            byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
             ApplicationVersionEntity version = new ApplicationVersionEntity();
             version.setApplication(application);
             version.setName("default");
@@ -200,6 +204,7 @@ public class ApplicationServiceBehavior {
             return response;
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, exception can be triggered only before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -290,6 +295,7 @@ public class ApplicationServiceBehavior {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application ID: {}", applicationId);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationOptional.get();
@@ -305,6 +311,7 @@ public class ApplicationServiceBehavior {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findByName(applicationName);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application name: '{}'", applicationName);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationOptional.get();
@@ -320,6 +327,7 @@ public class ApplicationServiceBehavior {
         final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().findById(versionId);
         if (!applicationVersionOptional.isPresent()) {
             logger.info("Application version not found, application version ID: {}", versionId);
+            // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         return applicationVersionOptional.get();

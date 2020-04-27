@@ -26,6 +26,7 @@ The following `v3` methods are published using the service:
     - [initActivation](#method-initactivation)
     - [prepareActivation](#method-prepareactivation)
     - [createActivation](#method-createactivation)
+    - [updateActivationOtp](#method-updateactivationotp)
     - [commitActivation](#method-commitactivation)
     - [getActivationStatus](#method-getactivationstatus)
     - [removeActivation](#method-removeactivation)
@@ -315,7 +316,9 @@ Methods related to activation management.
 
 ### Method 'initActivation'
 
-Create (initialize) a new activation for given user and application. After calling this method, a new activation record is created in CREATED state.
+Create (initialize) a new activation for given user and application. If both `activationOtpValidation` and `activationOtp` optional parameters are set, then the same value of activation OTP must be later provided for the confirmation.
+
+After calling this method, a new activation record is created in CREATED state.
 
 #### Request
 
@@ -327,6 +330,8 @@ Create (initialize) a new activation for given user and application. After calli
 | `Long` | `applicationId` | An identifier of an application |
 | `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
 | `Long` | `maxFailureCount` | How many failures are allowed for this activation |
+| `ActivationOtpValidation` | `activationOtpValidation` | Optional activation OTP validation mode |
+| `String` | `activationOtp` | Optional activation OTP |
 
 #### Response
 
@@ -342,7 +347,18 @@ Create (initialize) a new activation for given user and application. After calli
 
 ### Method 'prepareActivation'
 
-Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in OTP_USED state.
+Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared.
+
+If optional `activationOtp` value is present in ECIES payload, then the value must match the OTP stored in activation's record and OTP validation mode must be ON_KEY_EXCHANGE. 
+
+After successfully calling this method, activation is in PENDING_COMMIT or ACTIVE state, depending on the presence of an activation OTP in ECIES payload:
+
+| Situation | State after `prepareActivation` |
+|-----------|---------------------------------|
+| OTP is not required and is not provided             | `PENDING_COMMIT` |
+| OTP is required and is valid                        | `ACTIVE`         |
+| OTP is required, but is not valid                   | `CREATED`        |
+| OTP is required, but is not valid, no attempts left | `REMOVED`        |
 
 #### Request
 
@@ -355,11 +371,15 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
  - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+ - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
+ - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
+ - `activationOtp` - Optional activation OTP for confirmation. The value must be provided in case that activation was initialized with `ActivationOtpValidation` set to `ON_KEY_EXCHANGE`. 
 
 #### Response
 
@@ -371,6 +391,7 @@ ECIES request should contain following data (as JSON):
 | `String` | `userId` | User ID |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `ActivationStatus` | `activationStatus` | An activation status |
 
 ECIES response contains following data (as JSON):
  - `activationId` - Represents a long `ACTIVATION_ID` that uniquely identifies given activation records.
@@ -382,7 +403,11 @@ ECIES response contains following data (as JSON):
 
 ### Method 'createActivation'
 
-Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in OTP_USED state.
+Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. 
+
+If optional `activationOtp` value is set, then the activation's OTP validation mode is set to `ON_COMMIT`. The same OTP value must be later provided in [CommitActivation](#method-commitactivation) method, to complete the activation. 
+
+After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
@@ -397,11 +422,15 @@ Create an activation for given user and application, with provided maximum numbe
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `activationOtp` | Optional activation OTP |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
  - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+ - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
+ - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
 
 #### Response
 
@@ -421,9 +450,38 @@ ECIES response contains following data (as JSON):
    - `recoveryCode` - Recovery code which uses 4x5 characters in Base32 encoding separated by a "-" character.
    - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
+### Method 'updateActivationOtp'
+
+Update activation OTP for activation with given ID. Only non-expired activations in PENDING_COMMIT state, with OTP validation set to NONE or ON_COMMIT, can be altered. 
+
+After successful, activation OTP is updated and the OTP validation is set to ON_COMMIT.
+
+#### Request
+
+`UpdateActivationOtpRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `String` | `externalUserId` | User ID of user who changes the activation. Use null value if activation owner caused the change. |
+| `String` | `activationOtp` | A new value of activation OTP |
+
+#### Response
+
+`UpdateActivationOtpResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | An identifier of an activation |
+| `boolean` | `updated` | Flag indicating that OTP has been updated |
+
 ### Method 'commitActivation'
 
-Commit activation with given ID. Only non-expired activations in OTP_USED state can be committed. After successful commit, activation is in ACTIVE state.
+Commit activation with given ID. Only non-expired activations in PENDING_COMMIT state can be committed.
+
+If optional `activationOtp` value is set, then the value must match the OTP stored in activation's record and OTP validation mode must be `ON_COMMIT`.
+
+After successful commit, activation is in ACTIVE state.
 
 #### Request
 
@@ -433,6 +491,7 @@ Commit activation with given ID. Only non-expired activations in OTP_USED state 
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `externalUserId` | User ID of user who committed the activation. Use null value if activation owner caused the change. |
+| `String` | `activationOtp` | An optional activation OTP for confirmation. |
 
 #### Response
 
@@ -463,6 +522,7 @@ Get status information and all important details for activation with given ID.
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status |
+| `ActivationOtpValidation` | `activationOtpValidation` | An activation OTP validation mode |
 | `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationName` | An activation name |
 | `String` | `userId` | An identifier of a user |
@@ -489,6 +549,7 @@ Remove activation with given ID. This operation is irreversible. Activations can
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `String` | `externalUserId` | User ID of user who removed the activation. Use null value if activation owner caused the change. |
+| `Boolean` | `revokeRecoveryCodes` | An optional flag that indicates if recovery codes, that were created in the scope of the removed activation, should be also revoked. |
 
 #### Response
 
@@ -793,6 +854,7 @@ Create a new token for the simple token-based authentication.
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
 
 ECIES request should contain following data (an empty JSON object):
@@ -886,6 +948,7 @@ Get the encrypted vault unlock key upon successful authentication using PowerAut
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data:
 ```json
@@ -1000,7 +1063,7 @@ Get the status change log for given activation and date range.
 | `Long` | `id` | Change ID |
 | `String` | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String` | `eventReason` | Reason why this activation history record was created (default: null) |
 | `String` | `externalUserId` | User ID of user who modified the activation. Null value is used if activation owner caused the change. |
 | `DateTime` | `timestampCreated` | Timestamp when the record was created |
 
@@ -1196,6 +1259,7 @@ Upgrade activation to the most recent version supported by the server.
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 #### Response
 
@@ -1279,6 +1343,7 @@ Confirm a recovery code recieved using recovery postcard.
 | `String` | `ephemeralPublicKey` | Base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `recoveryCode` - Recovery code which should be confirmed in this request.
@@ -1356,7 +1421,9 @@ Revoke recovery codes.
 
 ### Method `recoveryCodeActivation`
 
-Create an activation using recovery code.
+Create an activation using recovery code. After successfully calling this method, activation is in PENDING_COMMIT state.
+
+If optional `activationOtp` value is set, then the activation's OTP validation mode is set to `ON_COMMIT`. The same OTP value must be later provided in [CommitActivation](#method-commitactivation) method, to complete the activation.
 
 #### Request
 
@@ -1371,11 +1438,15 @@ Create an activation using recovery code.
 | `String` | `ephemeralPublicKey` | Base64 encoded encrypted data for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `activationOtp` | Optional activation OTP |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
  - `devicePublicKey` - Represents a public key `KEY_DEVICE_PUBLIC`  (base64-encoded).
  - `extras` - Any client side attributes associated with this activation, like a more detailed information about the client, etc.
+ - `platform` - User device platform, e.g. `ios`, `android`, `hw` and `unknown`.
+ - `deviceInfo` - Information about user device, e.g. `iPhone12,3`.
 
 #### Response
 
@@ -1452,7 +1523,7 @@ Update configuration of activation recovery.
 
 ### Method 'prepareActivation' (v2)
 
-Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in OTP_USED state.
+Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
@@ -1483,7 +1554,7 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 ### Method 'createActivation' (v2)
 
-Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in OTP_USED state.
+Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
@@ -1633,10 +1704,15 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
 
 - `ActivationStatus` - Represents the status of activation, one of the following values:
     - CREATED
-    - OTP_USED
+    - PENDING_COMMIT
     - ACTIVE
     - BLOCKED
     - REMOVED
+
+- `ActivationOtpValidation` - Represents mode of validation of additional OTP:
+    - NONE
+    - ON_KEY_EXCHANGE
+    - ON_COMMIT
 
 - `SignatureType` - Represents the type of the signature, one of the following values:
     - POSSESSION

@@ -6,12 +6,12 @@ import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalenda
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.v3.*;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -37,6 +37,8 @@ public class VerifySignatureConcurrencyTest {
 
     private PowerAuthService powerAuthService;
 
+    private final KeyConvertor keyConvertor = new KeyConvertor();
+
     @Autowired
     public void setPowerAuthService(PowerAuthService powerAuthService) {
         this.powerAuthService = powerAuthService;
@@ -61,7 +63,7 @@ public class VerifySignatureConcurrencyTest {
         KeyGenerator keyGenerator = new KeyGenerator();
         KeyPair keyPair = keyGenerator.generateKeyPair();
         PublicKey publicKey = keyPair.getPublic();
-        byte[] publicKeyBytes = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertPublicKeyToBytes(publicKey);
+        byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
 
         // Compute application signature
         PowerAuthClientActivation clientActivation = new PowerAuthClientActivation();
@@ -78,7 +80,7 @@ public class VerifySignatureConcurrencyTest {
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
 
-        ECPublicKey masterPublicKey = (ECPublicKey) PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(BaseEncoding.base64().decode(detailResponse.getMasterPublicKey()));
+        ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(detailResponse.getMasterPublicKey()));
 
         EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey, createApplicationVersionResponse.getApplicationSecret().getBytes(StandardCharsets.UTF_8), EciesSharedInfo1.ACTIVATION_LAYER_2);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();

@@ -207,7 +207,21 @@ public class PowerAuthServiceClient {
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId) throws RemoteException {
-        return this.initActivation(userId, applicationId, null, null);
+        return this.initActivation(userId, applicationId, null, null, PowerAuthPortV3ServiceStub.ActivationOtpValidation.NONE, null);
+    }
+
+    /**
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userId User ID for which a new CREATED activation should be created.
+     * @param applicationId Application ID for which a new CREATED activation should be created.
+     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
+     * @param otp Additional OTP value.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId,
+                                                                            PowerAuthPortV3ServiceStub.ActivationOtpValidation otpValidation, String otp) throws RemoteException {
+        return this.initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
     /**
@@ -220,9 +234,27 @@ public class PowerAuthServiceClient {
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws RemoteException {
+        return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, PowerAuthPortV3ServiceStub.ActivationOtpValidation.NONE, null);
+    }
+
+    /**
+     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param userId User ID for which a new CREATED activation should be created.
+     * @param applicationId Application ID for which a new CREATED activation should be created.
+     * @param maxFailureCount How many failed attempts should be allowed for this activation.
+     * @param timestampActivationExpire Timestamp until when the activation can be committed.
+     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
+     * @param otp Additional OTP value.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
+                                                                            PowerAuthPortV3ServiceStub.ActivationOtpValidation otpValidation, String otp) throws RemoteException {
         PowerAuthPortV3ServiceStub.InitActivationRequest request = new PowerAuthPortV3ServiceStub.InitActivationRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
+        request.setActivationOtpValidation(otpValidation);
+        request.setActivationOtp(otp);
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
         }
@@ -330,6 +362,32 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
+     * @param activationId      Activation ID for activation to be updated.
+     * @param externalUserId    User ID of user who updated the activation. Use null value if activation owner caused the change,
+     *                          or if OTP value is automatically generated.
+     * @param activationOtp Value of activation OTP
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest request = new PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest();
+        request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
+        request.setActivationOtp(activationOtp);
+        return this.updateActivationOtp(request);
+    }
+
+    /**
+     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
+     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest} instance
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
+     */
+    public PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse updateActivationOtp(PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest request) throws RemoteException {
+        return clientStubV3.updateActivationOtp(request);
+    }
+
+    /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
      * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusRequest} instance
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
@@ -423,7 +481,7 @@ public class PowerAuthServiceClient {
         if (timestampLastUsedBefore != null) {
             request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
         }
-        if (timestampLastUsedBefore != null) {
+        if (timestampLastUsedAfter != null) {
             request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
         }
         if (activationStatus != null) {
@@ -476,9 +534,22 @@ public class PowerAuthServiceClient {
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws RemoteException {
+        return this.removeActivation(activationId, externalUserId, false);
+    }
+
+    /**
+     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationId Activation ID of activation to be removed.
+     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws RemoteException {
         PowerAuthPortV3ServiceStub.RemoveActivationRequest request = new PowerAuthPortV3ServiceStub.RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
+        request.setRevokeRecoveryCodes(revokeRecoveryCodes);
         return this.removeActivation(request);
     }
 

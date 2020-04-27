@@ -32,12 +32,13 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.exception.CryptoProviderException;
 import io.getlime.security.powerauth.v2.CreateActivationResponse;
 import io.getlime.security.powerauth.v2.PrepareActivationResponse;
+import io.getlime.security.powerauth.v3.ActivationOtpValidation;
 import io.getlime.security.powerauth.v3.InitActivationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,14 +111,14 @@ public class ActivationServiceBehavior {
     private final PowerAuthServerActivation powerAuthServerActivation = new PowerAuthServerActivation();
 
     /**
-     * Deactivate the activation in CREATED or OTP_USED if it's activation expiration timestamp
+     * Deactivate the activation in CREATED or PENDING_COMMIT if it's activation expiration timestamp
      * is below the given timestamp.
      *
      * @param timestamp  Timestamp to check activations against.
      * @param activation Activation to check.
      */
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation) {
-        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.OTP_USED)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             activation.setActivationStatus(ActivationStatus.REMOVED);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
@@ -136,6 +137,7 @@ public class ActivationServiceBehavior {
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
         callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+        // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
     }
 
@@ -145,21 +147,34 @@ public class ActivationServiceBehavior {
      *
      * @param activation Activation used in prepare activation step.
      * @param application Application used in prepare activation step.
+     * @param rollbackInCaseOfError Whether transaction should be rolled back in case of validation error.
      * @throws GenericServiceException In case activation state is invalid.
      */
-    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application) throws GenericServiceException {
+    private void validateCreatedActivation(ActivationRecordEntity activation, ApplicationEntity application, boolean rollbackInCaseOfError) throws GenericServiceException {
         // If there is no such activation or application does not match the activation application, fail validation
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
                 || !Objects.equals(activation.getApplication().getId(), application.getId())) {
             logger.info("Activation state is invalid, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            if (rollbackInCaseOfError) {
+                // Rollback is used during createActivation, because activation has just been initialized and it is invalid
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            } else {
+                // Regular exception is used during prepareActivation
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            }
         }
 
         // Make sure activation code has 23 characters
         if (activation.getActivationCode().length() != 23) {
             logger.warn("Activation code is invalid, activation ID: {}", activation.getActivationId());
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            if (rollbackInCaseOfError) {
+                // Rollback is used during createActivation, because activation has just been initialized and it is invalid
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            } else {
+                // Regular exception is used during prepareActivation
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+            }
         }
     }
 
@@ -178,7 +193,7 @@ public class ActivationServiceBehavior {
      * @return Prepared activation information
      * @throws GenericServiceException      In case prepare activation fails
      */
-    public PrepareActivationResponse prepareActivation(String activationIdShort, String activationNonceBase64, String clientEphemeralPublicKeyBase64, String cDevicePublicKeyBase64, String activationName, String extras, String applicationKey, String applicationSignature, CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationIdShort, String activationNonceBase64, String clientEphemeralPublicKeyBase64, String cDevicePublicKeyBase64, String activationName, String extras, String applicationKey, String applicationSignature, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -191,6 +206,7 @@ public class ActivationServiceBehavior {
             // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
@@ -198,6 +214,7 @@ public class ActivationServiceBehavior {
             // If there is no such application, exit
             if (application == null) {
                 logger.warn("Application does not exist, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
@@ -208,6 +225,7 @@ public class ActivationServiceBehavior {
 
             if (activation == null) {
                 logger.warn("Activation does not exist for short activation ID: {}", activationIdShort);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
@@ -217,7 +235,7 @@ public class ActivationServiceBehavior {
             deactivatePendingActivation(timestamp, activation);
 
             // Validate that the activation is in correct state for the prepare step
-            validateCreatedActivation(activation, application);
+            validateCreatedActivation(activation, application, false);
 
             // Extract activation OTP from activation code
             String activationOtp = activation.getActivationCode().substring(12);
@@ -262,21 +280,11 @@ public class ActivationServiceBehavior {
                     BaseEncoding.base64().decode(applicationVersion.getApplicationSecret()),
                     applicationSignatureBytes)) {
                 logger.warn("Activation signature is invalid, activation ID short: {}", activationIdShort);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
-            // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
-            activation.setActivationName(activationName);
-            activation.setExtras(extras);
-            // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version in activation status
-            activation.setVersion(2);
-            // Counter data is null, numeric counter is used in this version
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
-
-            // Generate response data
+            // Generate response data before writing to database to avoid rollbacks
             byte[] activationNonceServer = powerAuthServerActivation.generateActivationNonce();
             String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
             PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(serverPublicKeyBase64));
@@ -294,6 +302,17 @@ public class ActivationServiceBehavior {
                 C_serverPubKeySignature = new KeyGenerator().generateRandomBytes(71);
             }
 
+            // Update and persist the activation record
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
+            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setActivationName(activationName);
+            activation.setExtras(extras);
+            // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version in activation status
+            activation.setVersion(2);
+            // Counter data is null, numeric counter is used in this version
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+
             // Compute the response
             PrepareActivationResponse response = new PrepareActivationResponse();
             response.setActivationId(activation.getActivationId());
@@ -305,12 +324,15 @@ public class ActivationServiceBehavior {
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
@@ -347,7 +369,7 @@ public class ActivationServiceBehavior {
             String activationName,
             String extras,
             String applicationSignature,
-            CryptoProviderUtil keyConversionUtilities) throws GenericServiceException {
+            KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Get current timestamp
             Date timestamp = new Date();
@@ -360,6 +382,7 @@ public class ActivationServiceBehavior {
             // If there is no such activation version or activation version is unsupported, exit
             if (applicationVersion == null || !applicationVersion.getSupported()) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
@@ -367,24 +390,35 @@ public class ActivationServiceBehavior {
             // If there is no such application, exit
             if (application == null) {
                 logger.warn("Application is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
             // Create an activation record and obtain the activation database record
-            InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(application.getId(), userId, maxFailedCount, activationExpireTimestamp, keyConversionUtilities);
+            InitActivationResponse initResponse = activationServiceBehaviorV3.initActivation(
+                    application.getId(),
+                    userId,
+                    maxFailedCount,
+                    activationExpireTimestamp,
+                    ActivationOtpValidation.NONE,
+                    null,
+                    keyConversionUtilities);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
             if (activation == null) { // this should not happen - activation was just created above by calling "init" method
                 logger.warn("Activation does not exist for activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                // The whole transaction is rolled back in case of this unexpected state
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
             // Make sure to deactivate the activation if it is expired
             deactivatePendingActivation(timestamp, activation);
 
-            // Validate that the activation is in correct state for the create step, it could be removed because of expiration
-            validateCreatedActivation(activation, application);
+            // Validate that the activation is in correct state for the create step.
+            // Transaction is rolled back in case validation fails, because this state is very suspicious, the activation
+            // was just created using init, so it should not be invalid.
+            validateCreatedActivation(activation, application, true);
 
             // Get master private key
             String masterPrivateKeyBase64 = activation.getMasterKeyPair().getMasterKeyPrivateBase64();
@@ -413,7 +447,9 @@ public class ActivationServiceBehavior {
                         activationNonce
                 );
             } catch (GenericCryptoException ex) {
-                handleInvalidPublicKey(activation);
+                logger.warn("Device public key is invalid, activation ID: {}", activationId);
+                // Device public key is invalid, rollback this transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
             byte[] applicationSignatureBytes = BaseEncoding.base64().decode(applicationSignature);
@@ -426,11 +462,12 @@ public class ActivationServiceBehavior {
                     BaseEncoding.base64().decode(applicationVersion.getApplicationSecret()),
                     applicationSignatureBytes)) {
                 logger.warn("Activation signature is invalid, activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
+                // Activation signature is invalid, rollback this transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
             // Update and persist the activation record
-            activation.setActivationStatus(ActivationStatus.OTP_USED);
+            activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(activationName);
             activation.setExtras(extras);
@@ -470,13 +507,16 @@ public class ActivationServiceBehavior {
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+            // Rollback transaction to avoid data inconsistency because of cryptography errors
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
     }
 
