@@ -348,7 +348,7 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
@@ -362,7 +362,7 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @param activationOtp Value of activation OTP. Specify the value only when activation OTP should be validated during activation commit.
