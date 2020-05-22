@@ -348,7 +348,7 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
@@ -358,6 +358,22 @@ public class PowerAuthServiceClient {
         PowerAuthPortV3ServiceStub.CommitActivationRequest request = new PowerAuthPortV3ServiceStub.CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
+        return this.commitActivation(request);
+    }
+
+    /**
+     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
+     * @param activationId Activation ID for activation to be committed.
+     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
+     * @param activationOtp Value of activation OTP. Specify the value only when activation OTP should be validated during activation commit.
+     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws RemoteException {
+        PowerAuthPortV3ServiceStub.CommitActivationRequest request = new PowerAuthPortV3ServiceStub.CommitActivationRequest();
+        request.setActivationId(activationId);
+        request.setExternalUserId(externalUserId);
+        request.setActivationOtp(activationOtp);
         return this.commitActivation(request);
     }
 
