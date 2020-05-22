@@ -310,23 +310,25 @@ public class OfflineSignatureServiceBehavior {
                 signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, offlineSignatureRequest, currentTimestamp);
 
                 // return the data
-                return invalidStateResponse(activation.getActivationStatus());
+                return invalidStateResponse(activationId, activation.getActivationStatus());
 
             }
         } else { // Activation does not exist
 
-            return invalidStateResponse(ActivationStatus.REMOVED);
+            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
 
         }
     }
 
     /**
      * Generates an invalid signature reponse when state is invalid (invalid applicationVersion, activation is not active, activation does not exist, etc.).
-     *
+     * @param activationId Activation ID.
+     * @param activationStatus Activation status.
      * @return Invalid signature response.
      */
-    private VerifyOfflineSignatureResponse invalidStateResponse(ActivationStatus activationStatus) {
+    private VerifyOfflineSignatureResponse invalidStateResponse(String activationId, ActivationStatus activationStatus) {
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
+        response.setActivationId(activationId);
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activationStatus));
         return response;
