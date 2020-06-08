@@ -60,7 +60,7 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
         try {
 
             // Log the exception
-            logger.warn("An exception occurred in Spring Framework while processing the request.", exception);
+            logger.warn("An exception occurred in Spring Framework while processing the request", exception);
 
             // Build the error list
             List<RESTErrorModel> errorList = new LinkedList<>();
@@ -92,7 +92,7 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
             response.flushBuffer();
         } catch (IOException e) {
             // Response object does have an output stream here
-            logger.error("An exception occurred while serializing JSON error response.", e);
+            logger.error("An exception occurred while serializing JSON error response", e);
         }
         return new ModelAndView();
     }
