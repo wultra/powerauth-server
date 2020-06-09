@@ -459,7 +459,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="platform" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="deviceInfo" type="xs:string"/>
-                        <xs:element maxOccurs="unbounded" minOccurs="0" name="flags" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
@@ -532,7 +532,7 @@
                                     <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="platform" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="deviceInfo" type="xs:string"/>
-                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="flags" type="xs:string"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="timestampLastChange" type="xs:dateTime"/>
@@ -581,7 +581,7 @@
                                     <xs:element minOccurs="0" maxOccurs="1" name="extras" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="platform" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="deviceInfo" type="xs:string"/>
-                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="flags" type="xs:string"/>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
                                     <xs:element minOccurs="1" maxOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                     <xs:element minOccurs="1" maxOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="timestampLastChange" type="xs:dateTime"/>

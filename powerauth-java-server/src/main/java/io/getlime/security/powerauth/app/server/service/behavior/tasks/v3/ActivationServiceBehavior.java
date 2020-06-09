@@ -258,7 +258,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExtras(activation.getExtras());
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
-                activationServiceItem.getFlags().addAll(activation.getFlags());
+                activationServiceItem.getActivationFlags().addAll(activation.getFlags());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -320,7 +320,7 @@ public class ActivationServiceBehavior {
             activationServiceItem.setExtras(activation.getExtras());
             activationServiceItem.setPlatform(activation.getPlatform());
             activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
-            activationServiceItem.getFlags().addAll(activation.getFlags());
+            activationServiceItem.getActivationFlags().addAll(activation.getFlags());
             activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
             activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
             activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -434,7 +434,7 @@ public class ActivationServiceBehavior {
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
-                    response.getFlags().addAll(activation.getFlags());
+                    response.getActivationFlags().addAll(activation.getFlags());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -551,7 +551,7 @@ public class ActivationServiceBehavior {
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
-                    response.getFlags().addAll(activation.getFlags());
+                    response.getActivationFlags().addAll(activation.getFlags());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -581,7 +581,7 @@ public class ActivationServiceBehavior {
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
                 // Initialize empty flags
-                response.getFlags().addAll(Collections.EMPTY_LIST);
+                response.getActivationFlags().addAll(Collections.EMPTY_LIST);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
