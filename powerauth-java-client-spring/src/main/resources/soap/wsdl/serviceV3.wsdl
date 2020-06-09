@@ -1575,7 +1575,7 @@
 
             <xs:element name="RemoveActivationFlagsRequest">
                 <xs:annotation>
-                    <xs:documentation>Update activation flags request.</xs:documentation>
+                    <xs:documentation>Remove activation flags request.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1587,7 +1587,7 @@
 
             <xs:element name="RemoveActivationFlagsResponse">
                 <xs:annotation>
-                    <xs:documentation>Update activation flags response.</xs:documentation>
+                    <xs:documentation>Remove activation flags response.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
