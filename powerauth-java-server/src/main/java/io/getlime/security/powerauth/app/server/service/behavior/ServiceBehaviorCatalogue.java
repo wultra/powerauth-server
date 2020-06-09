@@ -32,6 +32,8 @@ public class ServiceBehaviorCatalogue {
 
     private ActivationServiceBehavior activationServiceBehavior;
 
+    private ActivationFlagsServiceBehavior activationFlagsServiceBehavior;
+
     private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
 
     private ApplicationServiceBehavior applicationServiceBehavior;
@@ -60,13 +62,14 @@ public class ServiceBehaviorCatalogue {
 
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
-    public ActivationServiceBehavior getActivationServiceBehavior() {
-        return activationServiceBehavior;
-    }
-
     @Autowired
     public void setActivationServiceBehavior(ActivationServiceBehavior activationServiceBehavior) {
         this.activationServiceBehavior = activationServiceBehavior;
+    }
+
+    @Autowired
+    public void setActivationFlagsServiceBehavior(ActivationFlagsServiceBehavior activationFlagsServiceBehavior) {
+        this.activationFlagsServiceBehavior = activationFlagsServiceBehavior;
     }
 
     @Autowired
@@ -137,6 +140,14 @@ public class ServiceBehaviorCatalogue {
     @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
+    }
+
+    public ActivationServiceBehavior getActivationServiceBehavior() {
+        return activationServiceBehavior;
+    }
+
+    public ActivationFlagsServiceBehavior getActivationFlagsServiceBehavior() {
+        return activationFlagsServiceBehavior;
     }
 
     public ApplicationServiceBehavior getApplicationServiceBehavior() {

@@ -339,7 +339,7 @@ After calling this method, a new activation record is created in CREATED state.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `userId` | An identifier of a user |
@@ -387,7 +387,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `userId` | User ID |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
@@ -438,7 +438,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
@@ -527,6 +527,9 @@ Get status information and all important details for activation with given ID.
 | `String` | `activationName` | An activation name |
 | `String` | `userId` | An identifier of a user |
 | `String` | `extras` | Any custom attributes |
+| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]` | `activationFlags` | Activation flags |
 | `Long` | `applicationId` | An identifier fo an application |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
@@ -591,6 +594,9 @@ Get the list of all activations for given user and application ID. If no applica
 | `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationName` | An activation name |
 | `String` | `extras` | Any custom attributes |
+| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]` | `activationFlags` | Activation flags |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
 | `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
@@ -660,6 +666,7 @@ Lookup activations using query parameters.
 | `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
 | `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
 | `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
+| `String[]` | `activationFlags` | Filter activations by activation flags |
 
 #### Response
 
@@ -676,6 +683,9 @@ Lookup activations using query parameters.
 | `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationName` | An activation name |
 | `String` | `extras` | Any custom attributes |
+| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]` | `activationFlags` | Activation flags |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
 | `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
@@ -1229,7 +1239,7 @@ Get ECIES decryptor data for request/response decryption on intermediate server.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 
@@ -1254,7 +1264,7 @@ Upgrade activation to the most recent version supported by the server.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
@@ -1280,7 +1290,7 @@ Commint activation upgrade.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 
 #### Response
@@ -1338,7 +1348,7 @@ Confirm a recovery code recieved using recovery postcard.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | Base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
@@ -1354,7 +1364,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
@@ -1373,7 +1383,7 @@ Lookup recovery codes.
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `userId` | An identifier of a user |
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `applicationId` | An identifier of an application |
 | `RecoveryCodeStatus` | `recoveryCodeStatus` | Recovery code status |
 | `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status |
@@ -1388,7 +1398,7 @@ Lookup recovery codes.
 | `String` | `recoveryCodeMasked` | Recovery code with partial masking to avoid leaking recovery code |
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier of an application |
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `RecoveryCodeStatus` | `status` | Recovery code status |
 | `Puk[]` | `puks` | Recovery code PUKs |
 
@@ -1454,7 +1464,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
@@ -1519,6 +1529,94 @@ Update configuration of activation recovery.
 |------|------|-------------|
 | `Boolean` | `updated` | Whether recovery configuration was updated |   
 
+### Method `listActivationFlags`
+
+List flags for an activation.
+
+#### Request
+
+`ListActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+
+#### Response
+
+`ListActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation |
+
+### Method `createActivationFlags`
+
+Add activation flags to an activation. Duplicate flags are ignored.
+
+#### Request
+
+`CreateActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+| `String[]` | `activationFlags` | Activation flags to be added to the activation |
+
+#### Response
+
+`CreateActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation after the addition |
+
+### Method `updateActivationFlags`
+
+Update activation flags to an activation. Existing flags are removed.
+
+#### Request
+
+`UpdateActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+| `String[]` | `activationFlags` | Activation flags for the update |
+
+#### Response
+
+`UpdateActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation after the update |
+
+### Method `removeActivationFlags`
+
+Remove activation flags for an activation.
+
+#### Request
+
+`RemoveActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+| `String[]` | `activationFlags` | Activation flags to be removed from the activation |
+
+#### Response
+
+`RemoveActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation after the removal |
+
+
 ## Activation management (v2)
 
 ### Method 'prepareActivation' (v2)
@@ -1546,7 +1644,7 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationNonce` | A base64 encoded activation nonce |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
@@ -1581,7 +1679,7 @@ Create an activation for given user and application, with provided maximum numbe
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationNonce` | A base64 encoded activation nonce |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |

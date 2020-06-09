@@ -24,9 +24,7 @@ import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
@@ -56,8 +54,8 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.v3.*;
 import io.getlime.security.powerauth.v3.ActivationOtpValidation;
+import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +73,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Behavior class implementing processes related with activations. Used to move the
@@ -259,6 +258,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExtras(activation.getExtras());
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
+                activationServiceItem.getFlags().addAll(activation.getFlags());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -284,7 +284,7 @@ public class ActivationServiceBehavior {
      * @return Response with list of matching activations.
      * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws DatatypeConfigurationException {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         if (applicationIds != null && applicationIds.isEmpty()) {
@@ -300,27 +300,37 @@ public class ActivationServiceBehavior {
         }
         List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
 
-        if (activationsList != null) {
-            for (ActivationRecordEntity activation : activationsList) {
-                // Map between database object and service objects
-                LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
-                activationServiceItem.setActivationId(activation.getActivationId());
-                activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-                activationServiceItem.setBlockedReason(activation.getBlockedReason());
-                activationServiceItem.setActivationName(activation.getActivationName());
-                activationServiceItem.setExtras(activation.getExtras());
-                activationServiceItem.setPlatform(activation.getPlatform());
-                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
-                activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
-                activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
-                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
-                activationServiceItem.setUserId(activation.getUserId());
-                activationServiceItem.setApplicationId(activation.getApplication().getId());
-                activationServiceItem.setApplicationName(activation.getApplication().getName());
-                // Unknown version is converted to 0 in SOAP
-                activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
-                response.getActivations().add(activationServiceItem);
-            }
+        List<ActivationRecordEntity> filteredActivationList = new ArrayList<>();
+        // Filter activation by activation flags in case they are specified
+        if (activationFlags != null && !activationFlags.isEmpty()) {
+            List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
+                    activationFlags.stream().allMatch(activation.getFlags()::contains)).collect(Collectors.toList());
+            filteredActivationList.addAll(activationsWithFlags);
+        } else {
+            filteredActivationList.addAll(activationsList);
+        }
+
+        for (ActivationRecordEntity activation : filteredActivationList) {
+            // Map between database object and service objects
+            LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
+            activationServiceItem.setActivationId(activation.getActivationId());
+            activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+            activationServiceItem.setBlockedReason(activation.getBlockedReason());
+            activationServiceItem.setActivationName(activation.getActivationName());
+            activationServiceItem.setExtras(activation.getExtras());
+            activationServiceItem.setPlatform(activation.getPlatform());
+            activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
+            activationServiceItem.getFlags().addAll(activation.getFlags());
+            activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+            activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+            activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+            activationServiceItem.setUserId(activation.getUserId());
+            activationServiceItem.setApplicationId(activation.getApplication().getId());
+            activationServiceItem.setApplicationName(activation.getApplication().getName());
+            // Unknown version is converted to 0 in SOAP
+            activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+            response.getActivations().add(activationServiceItem);
+            response.setUserId(activation.getUserId());
         }
 
         return response;
@@ -424,6 +434,7 @@ public class ActivationServiceBehavior {
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
+                    response.getFlags().addAll(activation.getFlags());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -540,6 +551,7 @@ public class ActivationServiceBehavior {
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
+                    response.getFlags().addAll(activation.getFlags());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -568,6 +580,8 @@ public class ActivationServiceBehavior {
                 response.setExtras(null);
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
+                // Initialize empty flags
+                response.getFlags().addAll(Collections.EMPTY_LIST);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -728,6 +742,8 @@ public class ActivationServiceBehavior {
             activation.setExtras(null);
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
+            // Initialize empty flags
+            activation.getFlags().addAll(Collections.EMPTY_LIST);
             activation.setFailedAttempts(0L);
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);

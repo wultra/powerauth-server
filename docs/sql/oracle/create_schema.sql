@@ -30,6 +30,7 @@ CREATE TABLE "PA_ACTIVATION"
     "EXTRAS"                        VARCHAR2(255 CHAR),
     "PLATFORM"                      VARCHAR2(255 CHAR),
     "DEVICE_INFO"                   VARCHAR2(255 CHAR),
+    "FLAGS"                         VARCHAR2(255 CHAR),
     "FAILED_ATTEMPTS"               NUMBER(19,0) NOT NULL,
     "MAX_FAILED_ATTEMPTS"           NUMBER(19,0) DEFAULT 5 NOT NULL,
     "SERVER_PRIVATE_KEY_BASE64"     VARCHAR2(255 CHAR) NOT NULL,

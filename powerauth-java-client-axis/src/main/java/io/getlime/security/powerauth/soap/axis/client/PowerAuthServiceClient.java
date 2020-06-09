@@ -46,7 +46,7 @@ public class PowerAuthServiceClient {
     private PowerAuthPortV3ServiceStub clientStubV3;
     private PowerAuthPortV2ServiceStub clientStubV2;
     private boolean isAuthenticationEnabled;
-    private PowerAuthServiceClientV2 serviceClientV2;
+    private final PowerAuthServiceClientV2 serviceClientV2;
 
     /**
      * Create a SOAP service client with the default URL:
@@ -485,10 +485,11 @@ public class PowerAuthServiceClient {
      * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
      * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
      * @param activationStatus Activation status to be used in the activations query (optional).
+     * @param activationFlags Activation flags (optional).
      * @return List of activation instances satisfying given query parameters.
      * @throws RemoteException In case of a business logic error.
      */
-    public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus) throws RemoteException {
+    public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.LookupActivationsRequest request = new PowerAuthPortV3ServiceStub.LookupActivationsRequest();
         request.setUserIds(userIds.stream().toArray(String[]::new));
         if (applicationIds != null) {
@@ -502,6 +503,9 @@ public class PowerAuthServiceClient {
         }
         if (activationStatus != null) {
             request.setActivationStatus(activationStatus);
+        }
+        if (activationFlags != null) {
+            request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
         }
         return Arrays.asList(this.lookupActivations(request).getActivations());
     }
@@ -1510,6 +1514,92 @@ public class PowerAuthServiceClient {
         request.setAllowMultipleRecoveryCodes(allowMultipleRecoveryCodes);
         request.setRemotePostcardPublicKey(remoteRecoveryPublicKeyBase64);
         return updateRecoveryConfig(request);
+    }
+
+    /**
+     * List activation flags.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.ListActivationFlagsResponse listActivationFlags(PowerAuthPortV3ServiceStub.ListActivationFlagsRequest request) throws RemoteException {
+        return clientStubV3.listActivationFlags(request);
+    }
+
+    /**
+     * List activation flags.
+     * @param activationId Activation ID.
+     * @return List activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.ListActivationFlagsResponse listActivationFlags(String activationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.ListActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.ListActivationFlagsRequest();
+        request.setActivationId(activationId);
+        return listActivationFlags(request);
+    }
+
+    /**
+     * Create activation flags.
+     * @param request Create activation flags request.
+     * @return Create activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.CreateActivationFlagsResponse createActivationFlags(PowerAuthPortV3ServiceStub.CreateActivationFlagsRequest request) throws RemoteException {
+        return clientStubV3.createActivationFlags(request);
+    }
+
+    /**
+     * Create activation flags.
+     * @param activationId Activation ID.
+     * @param activationFlags Activation flags.
+     * @return Create activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
+        PowerAuthPortV3ServiceStub.CreateActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.CreateActivationFlagsRequest();
+        request.setActivationId(activationId);
+        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        return createActivationFlags(request);
+    }
+
+    /**
+     * Update activation flags.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateActivationFlagsResponse updateActivationFlags(PowerAuthPortV3ServiceStub.UpdateActivationFlagsRequest request) throws RemoteException {
+        return clientStubV3.updateActivationFlags(request);
+    }
+
+    /**
+     * Update activation flags.
+     * @param activationId Activation ID.
+     * @param activationFlags Activation flags.
+     * @return Update activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.UpdateActivationFlagsRequest();
+        request.setActivationId(activationId);
+        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        return updateActivationFlags(request);
+    }
+
+    /**
+     * Remove activation flags.
+     * @param request Remove activation flags request.
+     * @return Remove activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveActivationFlagsResponse removeActivationFlags(PowerAuthPortV3ServiceStub.RemoveActivationFlagsRequest request) throws RemoteException {
+        return clientStubV3.removeActivationFlags(request);
+    }
+
+    /**
+     * Remove activation flags.
+     * @param activationId Activation ID.
+     * @param activationFlags Activation flags.
+     * @return Remove activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
+        PowerAuthPortV3ServiceStub.RemoveActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.RemoveActivationFlagsRequest();
+        request.setActivationId(activationId);
+        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        return removeActivationFlags(request);
     }
 
     /**

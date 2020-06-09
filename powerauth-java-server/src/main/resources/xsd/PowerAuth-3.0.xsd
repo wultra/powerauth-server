@@ -465,6 +465,7 @@
                 <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="flags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
@@ -538,6 +539,7 @@
                             <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="flags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                             <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
@@ -565,6 +567,7 @@
                 <xs:element name="timestampLastUsedBefore" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="timestampLastUsedAfter" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -586,6 +589,7 @@
                             <xs:element name="extras" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="flags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                             <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
@@ -1510,6 +1514,101 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="updated" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ListActivationFlagsRequest">
+        <xs:annotation>
+            <xs:documentation>List activation flags request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ListActivationFlagsResponse">
+        <xs:annotation>
+            <xs:documentation>List activation flags response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateActivationFlagsRequest">
+        <xs:annotation>
+            <xs:documentation>Create activation flags request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="CreateActivationFlagsResponse">
+        <xs:annotation>
+            <xs:documentation>Create activation flags response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateActivationFlagsRequest">
+        <xs:annotation>
+            <xs:documentation>Update activation flags request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateActivationFlagsResponse">
+        <xs:annotation>
+            <xs:documentation>Update activation flags response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveActivationFlagsRequest">
+        <xs:annotation>
+            <xs:documentation>Update activation flags request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveActivationFlagsResponse">
+        <xs:annotation>
+            <xs:documentation>Update activation flags response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
