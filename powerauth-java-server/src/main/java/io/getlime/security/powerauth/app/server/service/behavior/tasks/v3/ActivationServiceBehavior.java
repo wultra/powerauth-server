@@ -333,7 +333,6 @@ public class ActivationServiceBehavior {
             // Unknown version is converted to 0 in SOAP
             activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
             response.getActivations().add(activationServiceItem);
-            response.setUserId(activation.getUserId());
         }
 
         return response;
