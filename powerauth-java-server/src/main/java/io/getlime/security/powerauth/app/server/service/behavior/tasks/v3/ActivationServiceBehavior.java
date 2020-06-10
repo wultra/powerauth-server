@@ -299,6 +299,9 @@ public class ActivationServiceBehavior {
             statuses.add(activationStatus);
         }
         List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
+        if (activationsList.isEmpty()) {
+            return response;
+        }
 
         List<ActivationRecordEntity> filteredActivationList = new ArrayList<>();
         // Filter activation by activation flags in case they are specified
