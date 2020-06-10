@@ -219,7 +219,7 @@ public class CallbackUrlBehavior {
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
             Consumer<ClientResponse> onSuccess = response -> {
                 if (response.statusCode().isError()) {
-                    logger.warn( "Callback failed, URL: {}, status code: {}", callbackUrl.getCallbackUrl(), response.statusCode().toString());
+                    logger.warn("Callback failed, URL: {}, status code: {}", callbackUrl.getCallbackUrl(), response.statusCode().toString());
                 }
             };
             Consumer<Throwable> onError = error -> logger.warn( "Callback failed, URL: {}, error: {}", callbackUrl.getCallbackUrl(), error.getMessage());
