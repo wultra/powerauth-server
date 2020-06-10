@@ -712,4 +712,56 @@ public class PowerAuthEndpoint {
         return powerAuthService.updateRecoveryConfig(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#listActivationFlags(ListActivationFlagsRequest)} method and
+     * return the response.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ListActivationFlagsRequest")
+    @ResponsePayload
+    public ListActivationFlagsResponse listActivationFlags(@RequestPayload ListActivationFlagsRequest request) throws Exception {
+        return powerAuthService.listActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#createActivationFlags(CreateActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Create activation flags request.
+     * @return Create activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateActivationFlagsRequest")
+    @ResponsePayload
+    public CreateActivationFlagsResponse createActivationFlags(@RequestPayload CreateActivationFlagsRequest request) throws Exception {
+        return powerAuthService.createActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateActivationFlags(UpdateActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateActivationFlagsRequest")
+    @ResponsePayload
+    public UpdateActivationFlagsResponse updateActivationFlags(@RequestPayload UpdateActivationFlagsRequest request) throws Exception {
+        return powerAuthService.updateActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeActivationFlags(RemoveActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Remove activation flags request.
+     * @return Remove activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveActivationFlagsRequest")
+    @ResponsePayload
+    public RemoveActivationFlagsResponse removeActivationFlags(@RequestPayload RemoveActivationFlagsRequest request) throws Exception {
+        return powerAuthService.removeActivationFlags(request);
+    }
+
 }

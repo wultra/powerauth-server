@@ -173,8 +173,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             if (request.getActivationStatus() != null) {
                 activationStatus = activationStatusConverter.convert(request.getActivationStatus());
             }
+            List<String> activationFlags = request.getActivationFlags();
             logger.info("LookupActivationsRequest received");
-            LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, activationStatus);
+            LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, activationStatus, activationFlags);
             logger.info("LookupActivationsRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1367,6 +1368,128 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
             UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConvertor);
             logger.info("GetRecoveryConfigRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method listActivationFlags");
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("ListActivationFlagsRequest received, activation ID: {}", request.getActivationId());
+            String activationId = request.getActivationId();
+            ListActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().listActivationFlags(activationId);
+            logger.info("ListActivationFlagsRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method createActivationFlags");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getActivationFlags() == null || request.getActivationFlags().isEmpty()) {
+            logger.warn("Invalid request parameter activationFlags in method createActivationFlags");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("CreateActivationFlagsRequest received, activation ID: {}", request.getActivationId());
+            String activationId = request.getActivationId();
+            List<String> flags = request.getActivationFlags();
+            CreateActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().createActivationFlags(activationId, flags);
+            logger.info("CreateActivationFlagsRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method updateActivationFlags");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getActivationFlags() == null || request.getActivationFlags().isEmpty()) {
+            logger.warn("Invalid request parameter activationFlags in method updateActivationFlags");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("UpdateActivationFlagsRequest received, activation ID: {}", request.getActivationId());
+            String activationId = request.getActivationId();
+            List<String> flags = request.getActivationFlags();
+            UpdateActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().updateActivationFlags(activationId, flags);
+            logger.info("UpdateActivationFlagsRequest succeeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    @Transactional
+    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            logger.warn("Invalid request parameter activationId in method RemoveActivationFlags");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getActivationFlags() == null || request.getActivationFlags().isEmpty()) {
+            logger.warn("Invalid request parameter activationFlags in method RemoveActivationFlags");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RemoveActivationFlagsRequest received, activation ID: {}", request.getActivationId());
+            String activationId = request.getActivationId();
+            List<String> flags = request.getActivationFlags();
+            RemoveActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().removeActivationFlags(activationId, flags);
+            logger.info("RemoveActivationFlagsRequest succeeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged

@@ -459,6 +459,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="platform" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="deviceInfo" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
@@ -531,6 +532,7 @@
                                     <xs:element maxOccurs="1" minOccurs="0" name="extras" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="platform" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="deviceInfo" type="xs:string"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
                                     <xs:element maxOccurs="1" minOccurs="0" name="timestampLastChange" type="xs:dateTime"/>
@@ -558,6 +560,7 @@
                         <xs:element minOccurs="0" maxOccurs="1" name="timestampLastUsedBefore" type="xs:dateTime"/>
                         <xs:element minOccurs="0" maxOccurs="1" name="timestampLastUsedAfter" type="xs:dateTime"/>
                         <xs:element minOccurs="0" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -578,6 +581,7 @@
                                     <xs:element minOccurs="0" maxOccurs="1" name="extras" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="platform" type="xs:string"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="deviceInfo" type="xs:string"/>
+                                    <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
                                     <xs:element minOccurs="1" maxOccurs="1" name="timestampCreated" type="xs:dateTime"/>
                                     <xs:element minOccurs="1" maxOccurs="1" name="timestampLastUsed" type="xs:dateTime"/>
                                     <xs:element minOccurs="0" maxOccurs="1" name="timestampLastChange" type="xs:dateTime"/>
@@ -1498,6 +1502,100 @@
                 </xs:complexType>
             </xs:element>
 
+            <xs:element name="ListActivationFlagsRequest">
+                <xs:annotation>
+                    <xs:documentation>List activation flags request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ListActivationFlagsResponse">
+                <xs:annotation>
+                    <xs:documentation>List activation flags response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="CreateActivationFlagsRequest">
+                <xs:annotation>
+                    <xs:documentation>Create activation flags request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="CreateActivationFlagsResponse">
+                <xs:annotation>
+                    <xs:documentation>Create activation flags response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateActivationFlagsRequest">
+                <xs:annotation>
+                    <xs:documentation>Update activation flags request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateActivationFlagsResponse">
+                <xs:annotation>
+                    <xs:documentation>Update activation flags response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="RemoveActivationFlagsRequest">
+                <xs:annotation>
+                    <xs:documentation>Remove activation flags request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="RemoveActivationFlagsResponse">
+                <xs:annotation>
+                    <xs:documentation>Remove activation flags response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
 
             <!-- PowerAuth 2.0 Enumerations //-->
 
@@ -1961,6 +2059,38 @@
         <wsdl:part element="tns:UpdateRecoveryConfigResponse" name="UpdateRecoveryConfigResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="ListActivationFlagsRequest">
+        <wsdl:part element="tns:ListActivationFlagsRequest" name="ListActivationFlagsRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="ListActivationFlagsResponse">
+        <wsdl:part element="tns:ListActivationFlagsResponse" name="ListActivationFlagsResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CreateActivationFlagsRequest">
+        <wsdl:part element="tns:CreateActivationFlagsRequest" name="CreateActivationFlagsRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="CreateActivationFlagsResponse">
+        <wsdl:part element="tns:CreateActivationFlagsResponse" name="CreateActivationFlagsResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateActivationFlagsRequest">
+        <wsdl:part element="tns:UpdateActivationFlagsRequest" name="UpdateActivationFlagsRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateActivationFlagsResponse">
+        <wsdl:part element="tns:UpdateActivationFlagsResponse" name="UpdateActivationFlagsResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="RemoveActivationFlagsRequest">
+        <wsdl:part element="tns:RemoveActivationFlagsRequest" name="RemoveActivationFlagsRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="RemoveActivationFlagsResponse">
+        <wsdl:part element="tns:RemoveActivationFlagsResponse" name="RemoveActivationFlagsResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:portType name="PowerAuthPortV3">
         <wsdl:operation name="UnsupportApplicationVersion">
             <wsdl:input message="tns:UnsupportApplicationVersionRequest" name="UnsupportApplicationVersionRequest">
@@ -2248,6 +2378,30 @@
             <wsdl:input message="tns:UpdateRecoveryConfigRequest" name="UpdateRecoveryConfigRequest">
             </wsdl:input>
             <wsdl:output message="tns:UpdateRecoveryConfigResponse" name="UpdateRecoveryConfigResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ListActivationFlags">
+            <wsdl:input message="tns:ListActivationFlagsRequest" name="ListActivationFlagsRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:ListActivationFlagsResponse" name="ListActivationFlagsResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateActivationFlags">
+            <wsdl:input message="tns:CreateActivationFlagsRequest" name="CreateActivationFlagsRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:CreateActivationFlagsResponse" name="CreateActivationFlagsResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateActivationFlags">
+            <wsdl:input message="tns:UpdateActivationFlagsRequest" name="UpdateActivationFlagsRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:UpdateActivationFlagsResponse" name="UpdateActivationFlagsResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveActivationFlags">
+            <wsdl:input message="tns:RemoveActivationFlagsRequest" name="RemoveActivationFlagsRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:RemoveActivationFlagsResponse" name="RemoveActivationFlagsResponse">
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
@@ -2682,6 +2836,42 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="UpdateRecoveryConfigResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ListActivationFlags">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="ListActivationFlagsRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="ListActivationFlagsResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="CreateActivationFlags">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="CreateActivationFlagsRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="CreateActivationFlagsResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateActivationFlags">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="UpdateActivationFlagsRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="UpdateActivationFlagsResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveActivationFlags">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="RemoveActivationFlagsRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="RemoveActivationFlagsResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

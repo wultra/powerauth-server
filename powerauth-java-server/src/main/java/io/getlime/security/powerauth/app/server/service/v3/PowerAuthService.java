@@ -485,4 +485,37 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception;
+
+    /**
+     * List activation flags.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws Exception;
+
+    /**
+     * Create activation flags.
+     * @param request Create activation flags request.
+     * @return Create activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws Exception;
+
+    /**
+     * Update activation flags.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws Exception;
+
+    /**
+     * Delete activation flags.
+     * @param request Delete activation flags request.
+     * @return Delete activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws Exception;
+
 }

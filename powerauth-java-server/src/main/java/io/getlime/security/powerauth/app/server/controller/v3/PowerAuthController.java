@@ -657,4 +657,52 @@ public class PowerAuthController {
         return new RESTResponseWrapper<>("OK", powerAuthService.updateRecoveryConfig(request.getRequestObject()));
     }
 
+    /**
+     * Call {@link PowerAuthService#listActivationFlags(ListActivationFlagsRequest)} method and
+     * return the response.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/flags/list", method = RequestMethod.POST)
+    public RESTResponseWrapper<ListActivationFlagsResponse> listActivationFlags(@RequestBody RESTRequestWrapper<ListActivationFlagsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.listActivationFlags(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#createActivationFlags(CreateActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Create activation flags request.
+     * @return Create activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/flags/create", method = RequestMethod.POST)
+    public RESTResponseWrapper<CreateActivationFlagsResponse> createActivationFlags(@RequestBody RESTRequestWrapper<CreateActivationFlagsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.createActivationFlags(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateActivationFlags(UpdateActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/flags/update", method = RequestMethod.POST)
+    public RESTResponseWrapper<UpdateActivationFlagsResponse> updateActivationFlags(@RequestBody RESTRequestWrapper<UpdateActivationFlagsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.updateActivationFlags(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeActivationFlags(RemoveActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Remove activation flags request.
+     * @return Remove activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/flags/remove", method = RequestMethod.POST)
+    public RESTResponseWrapper<RemoveActivationFlagsResponse> removeActivationFlags(@RequestBody RESTRequestWrapper<RemoveActivationFlagsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.removeActivationFlags(request.getRequestObject()));
+    }
+
 }

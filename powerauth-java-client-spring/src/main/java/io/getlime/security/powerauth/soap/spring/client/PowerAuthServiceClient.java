@@ -353,12 +353,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
      * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
      * @param activationStatus Activation status to be used in the activations query (optional).
+     * @param activationFlags Activation flags (optional).
      * @return List of activation instances satisfying given query parameters.
      */
-    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) {
+    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) {
         LookupActivationsRequest request = new LookupActivationsRequest();
         request.getUserIds().addAll(userIds);
-        if (request.getApplicationIds() != null) {
+        if (applicationIds != null) {
             request.getApplicationIds().addAll(applicationIds);
         }
         if (timestampLastUsedBefore != null) {
@@ -367,8 +368,11 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         if (timestampLastUsedAfter != null) {
             request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
         }
-        if (request.getActivationStatus() != null) {
+        if (activationStatus != null) {
             request.setActivationStatus(activationStatus);
+        }
+        if (activationFlags != null) {
+            request.getActivationFlags().addAll(activationFlags);
         }
         return this.lookupActivations(request).getActivations();
     }
@@ -1326,6 +1330,92 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setAllowMultipleRecoveryCodes(allowMultipleRecoveryCodes);
         request.setRemotePostcardPublicKey(remoteRecoveryPublicKeyBase64);
         return updateRecoveryConfig(request);
+    }
+
+    /**
+     * List activation flags.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     */
+    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) {
+        return (ListActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * List activation flags.
+     * @param activationId Activation ID.
+     * @return List activation flags response.
+     */
+    public ListActivationFlagsResponse listActivationFlags(String activationId) {
+        ListActivationFlagsRequest request = new ListActivationFlagsRequest();
+        request.setActivationId(activationId);
+        return listActivationFlags(request);
+    }
+
+    /**
+     * Create activation flags.
+     * @param request Create activation flags request.
+     * @return Create activation flags response.
+     */
+    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) {
+        return (CreateActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Create activation flags.
+     * @param activationId Activation ID.
+     * @param activationFlags Activation flags.
+     * @return Create activation flags response.
+     */
+    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) {
+        CreateActivationFlagsRequest request = new CreateActivationFlagsRequest();
+        request.setActivationId(activationId);
+        request.getActivationFlags().addAll(activationFlags);
+        return createActivationFlags(request);
+    }
+
+    /**
+     * Update activation flags.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     */
+    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) {
+        return (UpdateActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Update activation flags.
+     * @param activationId Activation ID.
+     * @param activationFlags Activation flags.
+     * @return Update activation flags response.
+     */
+    public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) {
+        UpdateActivationFlagsRequest request = new UpdateActivationFlagsRequest();
+        request.setActivationId(activationId);
+        request.getActivationFlags().addAll(activationFlags);
+        return updateActivationFlags(request);
+    }
+
+    /**
+     * Remove activation flags.
+     * @param request Remove activation flags request.
+     * @return Remove activation flags response.
+     */
+    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) {
+        return (RemoveActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Remove activation flags.
+     * @param activationId Activation ID.
+     * @param activationFlags Activation flags.
+     * @return Remove activation flags response.
+     */
+    public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) {
+        RemoveActivationFlagsRequest request = new RemoveActivationFlagsRequest();
+        request.setActivationId(activationId);
+        request.getActivationFlags().addAll(activationFlags);
+        return removeActivationFlags(request);
     }
 
     /**
