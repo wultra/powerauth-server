@@ -1757,8 +1757,10 @@ public class ActivationServiceBehavior {
             final RecoveryCodeActivationResponse encryptedResponse = new RecoveryCodeActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
+            encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedDataResponse);
             encryptedResponse.setMac(macResponse);
+            encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
