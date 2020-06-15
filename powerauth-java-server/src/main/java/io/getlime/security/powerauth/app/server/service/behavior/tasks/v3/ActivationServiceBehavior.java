@@ -1139,6 +1139,7 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
+            encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
