@@ -307,7 +307,7 @@ public class ActivationServiceBehavior {
         // Filter activation by activation flags in case they are specified
         if (activationFlags != null && !activationFlags.isEmpty()) {
             List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
-                    activationFlags.stream().allMatch(activation.getFlags()::contains)).collect(Collectors.toList());
+                    activation.getFlags().containsAll(activationFlags)).collect(Collectors.toList());
             filteredActivationList.addAll(activationsWithFlags);
         } else {
             filteredActivationList.addAll(activationsList);
@@ -943,12 +943,13 @@ public class ActivationServiceBehavior {
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation.getActivationId());
 
             // Generate encrypted response
             PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
+            encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
@@ -1107,7 +1108,7 @@ public class ActivationServiceBehavior {
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation.getActivationId());
 
             // Create a new recovery code and PUK for new activation if activation recovery is enabled
             ActivationRecovery activationRecovery = null;
@@ -1134,6 +1135,8 @@ public class ActivationServiceBehavior {
             // Generate encrypted response
             CreateActivationResponse encryptedResponse = new CreateActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
+            encryptedResponse.setUserId(activation.getUserId());
+            encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
             return encryptedResponse;

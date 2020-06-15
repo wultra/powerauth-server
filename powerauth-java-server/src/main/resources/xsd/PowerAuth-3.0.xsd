@@ -341,6 +341,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
@@ -376,8 +377,11 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
