@@ -90,6 +90,7 @@ public class ApplicationServiceBehavior {
         GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(application.getId());
         response.setApplicationName(application.getName());
+        response.getApplicationRoles().addAll(application.getRoles());
         MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
@@ -150,6 +151,7 @@ public class ApplicationServiceBehavior {
             GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
             app.setId(application.getId());
             app.setApplicationName(application.getName());
+            app.getApplicationRoles().addAll(application.getRoles());
             response.getApplications().add(app);
         }
 

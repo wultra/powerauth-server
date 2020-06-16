@@ -72,6 +72,16 @@ The following `v3` methods are published using the service:
     - [recoveryCodeActivation](#method-recoverycodeactivation)
     - [getRecoveryConfig](#method-getrecoveryconfig)
     - [updateRecoveryConfig](#method-updaterecoveryconfig)
+- Activation Flags
+    - [listActivationFlags](#method-listactivationflags)
+    - [addActivationFlags](#method-addactivationflags)
+    - [updateActivationFlags](#method-updateactivationflags)
+    - [removeActivationFlags](#method-removeactivationflags)
+- Application Roles
+    - [listApplicationRoles](#method-listactivationflags)
+    - [addApplicationRoles](#method-addapplicationroles)
+    - [updateApplicationRoles](#method-updateapplicationroles)
+    - [removeApplicationFlags](#method-removeapplicationflags)
 The following `v2` methods are published using the service:
 - Activation Management
     - [prepareActivation (v2)](#method-prepareactivation-v2)
@@ -167,6 +177,7 @@ Get list of all applications that are present in this PowerAuth Server instance.
 |------|------|-------------|
 | `Long` | `id` | An application ID |
 | `String` | `applicationName` | Application name |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'getApplicationDetail'
 
@@ -180,6 +191,7 @@ Get detail of application with given ID or name, including the list of versions.
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application (required if applicationName not specified) |
 | `String` | `applicationName` | An application name (required if applicationId not specified) |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 
 #### Response
 
@@ -189,6 +201,7 @@ Get detail of application with given ID or name, including the list of versions.
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application |
 | `String` | `applicationName` | An application name |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 | `String` | `masterPublicKey` | Base64 encoded master public key |
 | `Version[]` | `versions` | Collection of application versions |
 
@@ -242,6 +255,7 @@ Create a new application with given name.
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application |
 | `String` | `applicationName` | An application name |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'createApplicationVersion'
 
@@ -1550,13 +1564,13 @@ List flags for an activation.
 | `String` | `activationId` | The UUID4 identifier of the activation |
 | `String[]` | `activationFlags` | Activation flags for the activation |
 
-### Method `createActivationFlags`
+### Method `addActivationFlags`
 
 Add activation flags to an activation. Duplicate flags are ignored.
 
 #### Request
 
-`CreateActivationFlagsRequest`
+`AddActivationFlagsRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
@@ -1565,7 +1579,7 @@ Add activation flags to an activation. Duplicate flags are ignored.
 
 #### Response
 
-`CreateActivationFlagsResponse`
+`AddActivationFlagsResponse`
 
 | Type | Name | Description |
 |------|------|-------------|
@@ -1615,6 +1629,93 @@ Remove activation flags for an activation.
 |------|------|-------------|
 | `String` | `activationId` | The UUID4 identifier of the activation |
 | `String[]` | `activationFlags` | Activation flags for the activation after the removal |
+
+### Method `listApplicationRoles`
+
+List roles for an application.
+
+#### Request
+
+`ListApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+
+#### Response
+
+`ListApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | The identifier of the application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application |
+
+### Method `addApplicationRoles`
+
+Add application roles to an application. Duplicate roles are ignored.
+
+#### Request
+
+`AddApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles to be added to the application |
+
+#### Response
+
+`AddApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | The identifier of the application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application after the addition |
+
+### Method `updateApplicationRoles`
+
+Update application roles assigned to an application. Existing roles are removed.
+
+#### Request
+
+`UpdateApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles to be assigned to the application |
+
+#### Response
+
+`UpdateApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | The identifier of the application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application after the update |
+
+### Method `removeApplicationFlags`
+
+Remove application roles from an activation.
+
+#### Request
+
+`RemoveApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles to be removed from the application |
+
+#### Response
+
+`RemoveApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application after the removal |
 
 
 ## Activation management (v2)

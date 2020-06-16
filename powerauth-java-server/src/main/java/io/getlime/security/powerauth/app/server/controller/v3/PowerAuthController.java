@@ -670,15 +670,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#createActivationFlags(CreateActivationFlagsRequest)} method and
+     * Call {@link PowerAuthService#addActivationFlags(AddActivationFlagsRequest)} method and
      * return the response.
      * @param request Create activation flags request.
      * @return Create activation flags response.
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/flags/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateActivationFlagsResponse> createActivationFlags(@RequestBody RESTRequestWrapper<CreateActivationFlagsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createActivationFlags(request.getRequestObject()));
+    public RESTResponseWrapper<AddActivationFlagsResponse> addActivationFlags(@RequestBody RESTRequestWrapper<AddActivationFlagsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.addActivationFlags(request.getRequestObject()));
     }
 
     /**

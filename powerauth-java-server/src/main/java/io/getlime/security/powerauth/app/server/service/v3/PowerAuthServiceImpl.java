@@ -1165,7 +1165,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("StartUpgradeRequest received, application key: {}, activation ID: {}", request.getApplicationKey(), request.getActivationId());
             StartUpgradeResponse response = behavior.getUpgradeServiceBehavior().startUpgrade(request);
-            logger.info("StartUpgradeRequest succeeeded");
+            logger.info("StartUpgradeRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1190,7 +1190,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("CommitUpgradeRequest received, application key: {}, activation ID: {}", request.getApplicationKey(), request.getActivationId());
             CommitUpgradeResponse response = behavior.getUpgradeServiceBehavior().commitUpgrade(request);
-            logger.info("CommitUpgradeRequest succeeeded");
+            logger.info("CommitUpgradeRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1215,7 +1215,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("CreateRecoveryCodeRequest received, application ID: {}, user ID: {}", request.getApplicationId(), request.getUserId());
             CreateRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().createRecoveryCode(request, keyConvertor);
-            logger.info("CreateRecoveryCodeRequest succeeeded");
+            logger.info("CreateRecoveryCodeRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1241,7 +1241,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("ConfirmRecoveryCodeRequest received, activation ID: {}, application key: {}", request.getActivationId(), request.getApplicationKey());
             ConfirmRecoveryCodeResponse response = behavior.getRecoveryServiceBehavior().confirmRecoveryCode(request, keyConvertor);
-            logger.info("ConfirmRecoveryCodeRequest succeeeded");
+            logger.info("ConfirmRecoveryCodeRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1266,7 +1266,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("LookupRecoveryCodesRequest received, application ID: {}, user ID: {}, activation ID: {}", request.getApplicationId(), request.getUserId(), request.getActivationId());
             LookupRecoveryCodesResponse response = behavior.getRecoveryServiceBehavior().lookupRecoveryCodes(request);
-            logger.info("LookupRecoveryCodesRequest succeeeded");
+            logger.info("LookupRecoveryCodesRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1291,7 +1291,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("RevokeRecoveryCodesRequest received, recovery code IDs: {}", request.getRecoveryCodeIds());
             RevokeRecoveryCodesResponse response = behavior.getRecoveryServiceBehavior().revokeRecoveryCodes(request);
-            logger.info("RevokeRecoveryCodesRequest succeeeded");
+            logger.info("RevokeRecoveryCodesRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1317,7 +1317,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("RecoveryCodeActivationRequest received, recovery code: {}, application key: {}", request.getRecoveryCode(), request.getApplicationKey());
             RecoveryCodeActivationResponse response = behavior.getActivationServiceBehavior().createActivationUsingRecoveryCode(request, keyConvertor);
-            logger.info("RecoveryCodeActivationRequest succeeeded");
+            logger.info("RecoveryCodeActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1342,7 +1342,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
             GetRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().getRecoveryConfig(request);
-            logger.info("GetRecoveryConfigRequest succeeeded");
+            logger.info("GetRecoveryConfigRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1367,7 +1367,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
             UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConvertor);
-            logger.info("GetRecoveryConfigRequest succeeeded");
+            logger.info("GetRecoveryConfigRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1393,7 +1393,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("ListActivationFlagsRequest received, activation ID: {}", request.getActivationId());
             String activationId = request.getActivationId();
             ListActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().listActivationFlags(activationId);
-            logger.info("ListActivationFlagsRequest succeeeded");
+            logger.info("ListActivationFlagsRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1409,23 +1409,23 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws GenericServiceException {
+    public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request parameter activationId in method createActivationFlags");
+            logger.warn("Invalid request parameter activationId in method addActivationFlags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         if (request.getActivationFlags() == null || request.getActivationFlags().isEmpty()) {
-            logger.warn("Invalid request parameter activationFlags in method createActivationFlags");
+            logger.warn("Invalid request parameter activationFlags in method addActivationFlags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            logger.info("CreateActivationFlagsRequest received, activation ID: {}", request.getActivationId());
+            logger.info("addActivationFlagsRequest received, activation ID: {}", request.getActivationId());
             String activationId = request.getActivationId();
             List<String> flags = request.getActivationFlags();
-            CreateActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().createActivationFlags(activationId, flags);
-            logger.info("CreateActivationFlagsRequest succeeeded");
+            AddActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().addActivationFlags(activationId, flags);
+            logger.info("addActivationFlagsRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1457,7 +1457,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             List<String> flags = request.getActivationFlags();
             UpdateActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().updateActivationFlags(activationId, flags);
-            logger.info("UpdateActivationFlagsRequest succeeeded");
+            logger.info("UpdateActivationFlagsRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1475,12 +1475,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws GenericServiceException {
         if (request.getActivationId() == null) {
-            logger.warn("Invalid request parameter activationId in method RemoveActivationFlags");
+            logger.warn("Invalid request parameter activationId in method removeActivationFlags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         if (request.getActivationFlags() == null || request.getActivationFlags().isEmpty()) {
-            logger.warn("Invalid request parameter activationFlags in method RemoveActivationFlags");
+            logger.warn("Invalid request parameter activationFlags in method removeActivationFlags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -1489,7 +1489,125 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             String activationId = request.getActivationId();
             List<String> flags = request.getActivationFlags();
             RemoveActivationFlagsResponse response = behavior.getActivationFlagsServiceBehavior().removeActivationFlags(activationId, flags);
-            logger.info("RemoveActivationFlagsRequest succeeeded");
+            logger.info("RemoveActivationFlagsRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L) {
+            logger.warn("Invalid request parameter applicationId in method listApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("ListApplicationRolesRequest received, application ID: {}", request.getApplicationId());
+            long applicationId = request.getApplicationId();
+            ListApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().listApplicationRoles(applicationId);
+            logger.info("ListApplicationRolesRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L) {
+            logger.warn("Invalid request parameter applicationId in method addApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getApplicationRoles() == null || request.getApplicationRoles().isEmpty()) {
+            logger.warn("Invalid request parameter applicationRoles in method addApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("AddApplicationRolesRequest received, application ID: {}", request.getApplicationId());
+            long applicationId = request.getApplicationId();
+            List<String> applicationRoles = request.getApplicationRoles();
+            AddApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().addApplicationRoles(applicationId, applicationRoles);
+            logger.info("AddApplicationRolesRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L) {
+            logger.warn("Invalid request parameter applicationId in method updateApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getApplicationRoles() == null || request.getApplicationRoles().isEmpty()) {
+            logger.warn("Invalid request parameter applicationRoles in method updateApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("UpdateApplicationRolesRequest received, application ID: {}", request.getApplicationId());
+            long applicationId = request.getApplicationId();
+            List<String> applicationRoles = request.getApplicationRoles();
+            UpdateApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().updateApplicationRoles(applicationId, applicationRoles);
+            logger.info("UpdateApplicationRolesRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws Exception {
+        if (request.getApplicationId() <= 0L) {
+            logger.warn("Invalid request parameter applicationId in method removeApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getApplicationRoles() == null || request.getApplicationRoles().isEmpty()) {
+            logger.warn("Invalid request parameter applicationRoles in method removeApplicationRoles");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("RemoveApplicationRolesRequest received, application ID: {}", request.getApplicationId());
+            long applicationId = request.getApplicationId();
+            List<String> applicationRoles = request.getApplicationRoles();
+            RemoveApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().removeApplicationRoles(applicationId, applicationRoles);
+            logger.info("RemoveApplicationRolesRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged

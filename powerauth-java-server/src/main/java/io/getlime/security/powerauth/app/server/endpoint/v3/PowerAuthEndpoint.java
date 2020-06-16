@@ -726,16 +726,16 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#createActivationFlags(CreateActivationFlagsRequest)} method and
+     * Call {@link PowerAuthService#addActivationFlags(AddActivationFlagsRequest)} method and
      * return the response.
      * @param request Create activation flags request.
      * @return Create activation flags response.
      * @throws Exception In case the service throws exception.
      */
-    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateActivationFlagsRequest")
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "AddActivationFlagsRequest")
     @ResponsePayload
-    public CreateActivationFlagsResponse createActivationFlags(@RequestPayload CreateActivationFlagsRequest request) throws Exception {
-        return powerAuthService.createActivationFlags(request);
+    public AddActivationFlagsResponse addActivationFlags(@RequestPayload AddActivationFlagsRequest request) throws Exception {
+        return powerAuthService.addActivationFlags(request);
     }
 
     /**

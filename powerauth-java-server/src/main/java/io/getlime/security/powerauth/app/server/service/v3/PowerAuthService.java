@@ -495,12 +495,12 @@ public interface PowerAuthService {
     ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws Exception;
 
     /**
-     * Create activation flags.
-     * @param request Create activation flags request.
+     * Add activation flags.
+     * @param request Add activation flags request.
      * @return Create activation flags response.
      * @throws Exception In case of a business logic error.
      */
-    CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws Exception;
+    AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws Exception;
 
     /**
      * Update activation flags.
@@ -511,11 +511,44 @@ public interface PowerAuthService {
     UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws Exception;
 
     /**
-     * Delete activation flags.
-     * @param request Delete activation flags request.
+     * Remove activation flags.
+     * @param request Remove activation flags request.
      * @return Delete activation flags response.
      * @throws Exception In case of a business logic error.
      */
     RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws Exception;
+
+
+    /**
+     * List application roles.
+     * @param request List application roles request.
+     * @return List application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Add application roles.
+     * @param request Add application roles request.
+     * @return Create application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Update application roles.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Remove application roles.
+     * @param request Remove application roles request.
+     * @return Delete application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws Exception;
 
 }

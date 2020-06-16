@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.database.model.ApplicationRolesConverter;
+
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
@@ -41,21 +43,25 @@ public class ApplicationEntity implements Serializable {
     @Column(name = "name", unique = true)
     private String name;
 
+    @Column(name = "roles")
+    @Convert(converter = ApplicationRolesConverter.class)
+    private List<String> roles;
+
     @OneToMany(mappedBy = "application")
     private List<ApplicationVersionEntity> versions;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public ApplicationEntity() {
     }
 
     /**
-     * Constructor for a new application
+     * Constructor for a new application.
      *
-     * @param id       Application ID
-     * @param name     Application name
-     * @param versions Collection of versions
+     * @param id       Application ID.
+     * @param name     Application name.
+     * @param versions Collection of versions.
      */
     public ApplicationEntity(Long id, String name, List<ApplicationVersionEntity> versions) {
         super();
@@ -65,39 +71,55 @@ public class ApplicationEntity implements Serializable {
     }
 
     /**
-     * Get application ID
+     * Get application ID.
      *
-     * @return Application ID
+     * @return Application ID.
      */
     public Long getId() {
         return id;
     }
 
     /**
-     * Set application ID
+     * Set application ID.
      *
-     * @param id Application ID
+     * @param id Application ID.
      */
     public void setId(Long id) {
         this.id = id;
     }
 
     /**
-     * Get application name
+     * Get application name.
      *
-     * @return Application name
+     * @return Application name.
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Set application name
+     * Set application name.
      *
-     * @param name Application name
+     * @param name Application name.
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Get application roles.
+     * @return Application roles.
+     */
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    /**
+     * Set application roles.
+     * @param roles Application roles.
+     */
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
     }
 
     /**

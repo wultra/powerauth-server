@@ -307,7 +307,7 @@ public class ActivationServiceBehavior {
         // Filter activation by activation flags in case they are specified
         if (activationFlags != null && !activationFlags.isEmpty()) {
             List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
-                    activationFlags.stream().allMatch(activation.getFlags()::contains)).collect(Collectors.toList());
+                    activationFlags.containsAll(activation.getFlags())).collect(Collectors.toList());
             filteredActivationList.addAll(activationsWithFlags);
         } else {
             filteredActivationList.addAll(activationsList);
@@ -583,7 +583,7 @@ public class ActivationServiceBehavior {
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
                 // Initialize empty flags
-                response.getActivationFlags().addAll(Collections.EMPTY_LIST);
+                response.getActivationFlags();
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -745,7 +745,7 @@ public class ActivationServiceBehavior {
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
             // Initialize empty flags
-            activation.setFlags(Collections.EMPTY_LIST);
+            activation.setFlags(Collections.emptyList());
             activation.setFailedAttempts(0L);
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);

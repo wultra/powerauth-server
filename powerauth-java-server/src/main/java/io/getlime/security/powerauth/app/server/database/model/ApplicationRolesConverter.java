@@ -30,30 +30,30 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Converter for activation flags.
+ * Converter for application roles.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Converter
 @Component
-public class ActivationFlagConverter implements AttributeConverter<List<String>, String> {
+public class ApplicationRolesConverter implements AttributeConverter<List<String>, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ActivationFlagConverter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationRolesConverter.class);
 
-    private static final String EMPTY_FLAGS = "[]";
+    private static final String EMPTY_ROLES = "[]";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     public String convertToDatabaseColumn(List<String> flags) {
         if (flags == null) {
-            return EMPTY_FLAGS;
+            return EMPTY_ROLES;
         }
         try {
             return objectMapper.writeValueAsString(flags);
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
-            return EMPTY_FLAGS;
+            logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
+            return EMPTY_ROLES;
         }
     }
 
@@ -65,7 +65,7 @@ public class ActivationFlagConverter implements AttributeConverter<List<String>,
         try {
             return objectMapper.readValue(flags, new TypeReference<List<String>>(){});
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
             return Collections.emptyList();
         }
 
