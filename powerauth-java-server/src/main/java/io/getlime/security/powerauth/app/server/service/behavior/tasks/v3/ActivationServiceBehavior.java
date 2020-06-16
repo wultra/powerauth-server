@@ -307,7 +307,7 @@ public class ActivationServiceBehavior {
         // Filter activation by activation flags in case they are specified
         if (activationFlags != null && !activationFlags.isEmpty()) {
             List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
-                    activationFlags.containsAll(activation.getFlags())).collect(Collectors.toList());
+                    activation.getFlags().containsAll(activationFlags)).collect(Collectors.toList());
             filteredActivationList.addAll(activationsWithFlags);
         } else {
             filteredActivationList.addAll(activationsList);
