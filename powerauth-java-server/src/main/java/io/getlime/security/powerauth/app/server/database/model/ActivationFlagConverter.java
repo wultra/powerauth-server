@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,13 +60,13 @@ public class ActivationFlagConverter implements AttributeConverter<List<String>,
     @Override
     public List<String> convertToEntityAttribute(String flags) {
         if (flags == null) {
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
         try {
             return objectMapper.readValue(flags, new TypeReference<List<String>>(){});
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
     }

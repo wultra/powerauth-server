@@ -1487,7 +1487,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @param request Remove application roles request.
      * @return Remove application roles response.
      */
-    public RemoveApplicationRolesResponse removeApplicationRoles(UpdateApplicationRolesRequest request) {
+    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) {
         return (RemoveApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
@@ -1498,7 +1498,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
      * @return Remove application roles response.
      */
     public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) {
-        UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
+        RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
         return removeApplicationRoles(request);

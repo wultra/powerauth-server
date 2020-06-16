@@ -17,10 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.ApplicationRolesConverter;
+import io.getlime.security.powerauth.app.server.database.model.ApplicationRoleConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -44,11 +45,11 @@ public class ApplicationEntity implements Serializable {
     private String name;
 
     @Column(name = "roles")
-    @Convert(converter = ApplicationRolesConverter.class)
-    private List<String> roles;
+    @Convert(converter = ApplicationRoleConverter.class)
+    private List<String> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "application")
-    private List<ApplicationVersionEntity> versions;
+    private final List<ApplicationVersionEntity> versions = new ArrayList<>();
 
     /**
      * Default constructor.
@@ -61,13 +62,15 @@ public class ApplicationEntity implements Serializable {
      *
      * @param id       Application ID.
      * @param name     Application name.
+     * @param roles    Application roles.
      * @param versions Collection of versions.
      */
-    public ApplicationEntity(Long id, String name, List<ApplicationVersionEntity> versions) {
+    public ApplicationEntity(Long id, String name, List<String> roles, List<ApplicationVersionEntity> versions) {
         super();
         this.id = id;
         this.name = name;
-        this.versions = versions;
+        this.roles.addAll(roles);
+        this.versions.addAll(versions);
     }
 
     /**
@@ -115,14 +118,6 @@ public class ApplicationEntity implements Serializable {
     }
 
     /**
-     * Set application roles.
-     * @param roles Application roles.
-     */
-    public void setRoles(List<String> roles) {
-        this.roles = roles;
-    }
-
-    /**
      * Get list of versions associated with given application.
      * @return Application versions.
      */
@@ -135,11 +130,13 @@ public class ApplicationEntity implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApplicationEntity that = (ApplicationEntity) o;
-        return Objects.equals(name, that.name);
+        return Objects.equals(name, that.name) &&
+                Objects.equals(roles, that.roles) &&
+                Objects.equals(versions, that.versions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(name, roles, versions);
     }
 }

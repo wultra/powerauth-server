@@ -744,8 +744,6 @@ public class ActivationServiceBehavior {
             activation.setExtras(null);
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
-            // Initialize empty flags
-            activation.setFlags(Collections.emptyList());
             activation.setFailedAttempts(0L);
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);

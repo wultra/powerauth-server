@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -36,21 +36,21 @@ import java.util.List;
  */
 @Converter
 @Component
-public class ApplicationRolesConverter implements AttributeConverter<List<String>, String> {
+public class ApplicationRoleConverter implements AttributeConverter<List<String>, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationRolesConverter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationRoleConverter.class);
 
     private static final String EMPTY_ROLES = "[]";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(List<String> flags) {
-        if (flags == null) {
+    public String convertToDatabaseColumn(List<String> roles) {
+        if (roles == null) {
             return EMPTY_ROLES;
         }
         try {
-            return objectMapper.writeValueAsString(flags);
+            return objectMapper.writeValueAsString(roles);
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
             return EMPTY_ROLES;
@@ -58,15 +58,15 @@ public class ApplicationRolesConverter implements AttributeConverter<List<String
     }
 
     @Override
-    public List<String> convertToEntityAttribute(String flags) {
-        if (flags == null) {
-            return Collections.emptyList();
+    public List<String> convertToEntityAttribute(String roles) {
+        if (roles == null) {
+            return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(flags, new TypeReference<List<String>>(){});
+            return objectMapper.readValue(roles, new TypeReference<List<String>>(){});
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
-            return Collections.emptyList();
+            return new ArrayList<>();
         }
 
     }

@@ -103,8 +103,8 @@ public class ApplicationRolesServiceBehavior {
         }
         ApplicationEntity application = applicationOptional.get();
         List<String> currentRoles = application.getRoles();
-        List<String> newFlags = applicationRoles.stream().filter(flag -> !currentRoles.contains(flag)).collect(Collectors.toList());
-        application.getRoles().addAll(newFlags);
+        List<String> newRoles = applicationRoles.stream().filter(role -> !currentRoles.contains(role)).collect(Collectors.toList());
+        application.getRoles().addAll(newRoles);
         applicationRepository.save(application);
         response.getApplicationRoles().addAll(application.getRoles());
         return response;

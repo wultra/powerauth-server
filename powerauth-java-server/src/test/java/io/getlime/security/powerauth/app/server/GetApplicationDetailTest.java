@@ -31,7 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for getting application detail.
@@ -102,7 +103,7 @@ public class GetApplicationDetailTest {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(applicationName);
         CreateApplicationResponse response = powerAuthService.createApplication(request);
-        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList());
+        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList(), Lists.emptyList());
     }
 
 }
