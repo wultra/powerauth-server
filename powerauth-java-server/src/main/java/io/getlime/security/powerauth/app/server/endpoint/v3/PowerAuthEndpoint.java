@@ -764,4 +764,56 @@ public class PowerAuthEndpoint {
         return powerAuthService.removeActivationFlags(request);
     }
 
+    /**
+     * Call {@link PowerAuthService#listApplicationRoles(ListApplicationRolesRequest)} method and
+     * return the response.
+     * @param request List application roles request.
+     * @return List application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ListApplicationRolesRequest")
+    @ResponsePayload
+    public ListApplicationRolesResponse listApplicationRoles(@RequestPayload ListApplicationRolesRequest request) throws Exception {
+        return powerAuthService.listApplicationRoles(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#addApplicationRoles(AddApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Create application roles request.
+     * @return Create application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "AddApplicationRolesRequest")
+    @ResponsePayload
+    public AddApplicationRolesResponse addApplicationRoles(@RequestPayload AddApplicationRolesRequest request) throws Exception {
+        return powerAuthService.addApplicationRoles(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateApplicationRoles(UpdateApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateApplicationRolesRequest")
+    @ResponsePayload
+    public UpdateApplicationRolesResponse updateApplicationRoles(@RequestPayload UpdateApplicationRolesRequest request) throws Exception {
+        return powerAuthService.updateApplicationRoles(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeApplicationRoles(RemoveApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Remove application roles request.
+     * @return Remove application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveApplicationRolesRequest")
+    @ResponsePayload
+    public RemoveApplicationRolesResponse removeApplicationRoles(@RequestPayload RemoveApplicationRolesRequest request) throws Exception {
+        return powerAuthService.removeApplicationRoles(request);
+    }
+
 }
