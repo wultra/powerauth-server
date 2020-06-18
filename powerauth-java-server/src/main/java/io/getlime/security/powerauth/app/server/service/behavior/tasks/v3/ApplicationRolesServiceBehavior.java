@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -104,7 +106,11 @@ public class ApplicationRolesServiceBehavior {
         ApplicationEntity application = applicationOptional.get();
         List<String> currentRoles = application.getRoles();
         List<String> newRoles = applicationRoles.stream().filter(role -> !currentRoles.contains(role)).collect(Collectors.toList());
-        application.getRoles().addAll(newRoles);
+        List<String> allRoles = new ArrayList<>(currentRoles);
+        allRoles.addAll(newRoles);
+        Collections.sort(allRoles);
+        application.getRoles().clear();
+        application.getRoles().addAll(allRoles);
         applicationRepository.save(application);
         response.getApplicationRoles().addAll(application.getRoles());
         return response;
@@ -132,6 +138,7 @@ public class ApplicationRolesServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
+        Collections.sort(applicationRoles);
         ApplicationEntity application = applicationOptional.get();
         application.getRoles().clear();
         application.getRoles().addAll(applicationRoles);

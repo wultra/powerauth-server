@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -101,7 +103,11 @@ public class ActivationFlagsServiceBehavior {
         }
         List<String> currentFlags = activation.getFlags();
         List<String> newFlags = activationFlags.stream().filter(flag -> !currentFlags.contains(flag)).collect(Collectors.toList());
-        activation.getFlags().addAll(newFlags);
+        List<String> allFlags = new ArrayList<>(currentFlags);
+        allFlags.addAll(newFlags);
+        Collections.sort(allFlags);
+        activation.getFlags().clear();
+        activation.getFlags().addAll(allFlags);
         activationRepository.save(activation);
         response.getActivationFlags().addAll(activation.getFlags());
         return response;
@@ -129,6 +135,7 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+        Collections.sort(activationFlags);
         activation.getFlags().clear();
         activation.getFlags().addAll(activationFlags);
         activationRepository.save(activation);
