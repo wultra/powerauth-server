@@ -28,6 +28,7 @@ In order to connect to the correct PowerAuth Server, you need to add following c
 
 ```java
 @Configuration
+@ComponentScan(basePackages = {"com.wultra.security.powerauth"})
 public class PowerAuthClientConfiguration {
 
     @Value("${powerauth.rest.url}")
