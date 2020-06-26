@@ -17,17 +17,17 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v2;
 
-import io.getlime.security.powerauth.v2.ActivationStatus;
+import com.wultra.security.powerauth.client.v2.ActivationStatus;
 
 /**
- * Converter class between {@link io.getlime.security.powerauth.v2.ActivationStatus} and
+ * Converter class between {@link com.wultra.security.powerauth.client.v2.ActivationStatus} and
  * {@link io.getlime.security.powerauth.app.server.database.model.ActivationStatus}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 public class ActivationStatusConverter {
 
-    public io.getlime.security.powerauth.v2.ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.ActivationStatus activationStatus) {
+    public com.wultra.security.powerauth.client.v2.ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.ActivationStatus activationStatus) {
         switch (activationStatus) {
             case CREATED:
                 return ActivationStatus.CREATED;

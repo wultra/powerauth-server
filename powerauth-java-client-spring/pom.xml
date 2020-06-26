@@ -34,6 +34,13 @@
     </parent>
 
     <dependencies>
+        <!-- PowerAuth dependencies -->
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-client-model</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+
         <!-- Spring Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -62,51 +69,5 @@
             <version>${jaxb-impl.version}</version>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
-                <executions>
-                    <execution>
-                        <id>PowerAuth 2.0</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaLanguage>WSDL</schemaLanguage>
-                            <schemaDirectory>src/main/resources/soap/wsdl</schemaDirectory>
-                            <schemaIncludes>
-                                <include>serviceV2.wsdl</include>
-                            </schemaIncludes>
-                            <generatePackage>io.getlime.powerauth.soap.v2</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v2</generateDirectory>
-                            <episode>false</episode>
-                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>PowerAuth 3.0</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaLanguage>WSDL</schemaLanguage>
-                            <schemaDirectory>src/main/resources/soap/wsdl</schemaDirectory>
-                            <schemaIncludes>
-                                <include>serviceV3.wsdl</include>
-                            </schemaIncludes>
-                            <generatePackage>io.getlime.powerauth.soap.v3</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v3</generateDirectory>
-                            <episode>false</episode>
-                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

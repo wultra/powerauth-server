@@ -17,10 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.controller.v2;
 
+import com.wultra.security.powerauth.client.v2.*;
 import io.getlime.security.powerauth.app.server.controller.RESTRequestWrapper;
 import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
 import io.getlime.security.powerauth.app.server.service.v2.PowerAuthService;
-import io.getlime.security.powerauth.v2.*;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
@@ -50,7 +51,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -232,14 +232,14 @@ public class RecoveryServiceBehavior {
             response.setUserId(userId);
             response.setRecoveryCodeId(recoveryCodeEntity.getId());
             response.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
-            response.setStatus(io.getlime.security.powerauth.v3.RecoveryCodeStatus.CREATED);
+            response.setStatus(com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.CREATED);
             List<CreateRecoveryCodeResponse.Puks> pukListResponse = response.getPuks();
             for (int i = 1; i <= pukDerivationIndexes.size(); i++) {
                 Long pukDerivationIndex = pukDerivationIndexes.get(i);
                 CreateRecoveryCodeResponse.Puks pukResponse = new CreateRecoveryCodeResponse.Puks();
                 pukResponse.setPukIndex(i);
                 pukResponse.setPukDerivationIndex(pukDerivationIndex);
-                pukResponse.setStatus(io.getlime.security.powerauth.v3.RecoveryPukStatus.VALID);
+                pukResponse.setStatus(com.wultra.security.powerauth.client.v3.RecoveryPukStatus.VALID);
                 pukListResponse.add(pukResponse);
             }
             return response;
@@ -643,7 +643,9 @@ public class RecoveryServiceBehavior {
                 }
             }
             recoveryConfigRepository.save(recoveryConfigEntity);
-            return new UpdateRecoveryConfigResponse();
+            UpdateRecoveryConfigResponse response = new UpdateRecoveryConfigResponse();
+            response.setUpdated(true);
+            return response;
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing

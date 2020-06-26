@@ -17,6 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
+import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.v3.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -32,9 +35,6 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import io.getlime.security.powerauth.v3.KeyValueMap;
-import io.getlime.security.powerauth.v3.SignatureType;
-import io.getlime.security.powerauth.v3.VerifySignatureResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

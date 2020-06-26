@@ -19,6 +19,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v2.CreateActivationResponse;
+import com.wultra.security.powerauth.client.v2.PrepareActivationResponse;
+import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.v3.InitActivationResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -36,10 +40,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
-import io.getlime.security.powerauth.v2.CreateActivationResponse;
-import io.getlime.security.powerauth.v2.PrepareActivationResponse;
-import io.getlime.security.powerauth.v3.ActivationOtpValidation;
-import io.getlime.security.powerauth.v3.InitActivationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

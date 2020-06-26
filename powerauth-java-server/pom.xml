@@ -101,6 +101,11 @@
         <!-- PowerAuth Dependencies -->
         <dependency>
             <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-client-model</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
             <version>${powerauth-java-crypto.version}</version>
         </dependency>
@@ -201,48 +206,6 @@
                 <configuration>
                     <skip>true</skip>
                 </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
-                <executions>
-                    <execution>
-                        <id>PowerAuth 2.0</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                            <schemaDirectory>${basedir}/src/main/resources/xsd</schemaDirectory>
-                            <schemaIncludes>
-                                <include>PowerAuth-2.0.xsd</include>
-                            </schemaIncludes>
-                            <generatePackage>io.getlime.security.powerauth.v2</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v2</generateDirectory>
-                            <episode>false</episode>
-                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>PowerAuth 3.0</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                            <schemaDirectory>${basedir}/src/main/resources/xsd</schemaDirectory>
-                            <schemaIncludes>
-                                <include>PowerAuth-3.0.xsd</include>
-                            </schemaIncludes>
-                            <generatePackage>io.getlime.security.powerauth.v3</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v3</generateDirectory>
-                            <episode>false</episode>
-                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
 
         </plugins>

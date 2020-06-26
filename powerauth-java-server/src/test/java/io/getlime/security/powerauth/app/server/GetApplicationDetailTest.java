@@ -17,13 +17,13 @@
  */
 package io.getlime.security.powerauth.app.server;
 
+import com.wultra.security.powerauth.client.v3.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.v3.CreateApplicationResponse;
+import com.wultra.security.powerauth.client.v3.GetApplicationDetailRequest;
+import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import io.getlime.security.powerauth.v3.CreateApplicationRequest;
-import io.getlime.security.powerauth.v3.CreateApplicationResponse;
-import io.getlime.security.powerauth.v3.GetApplicationDetailRequest;
-import io.getlime.security.powerauth.v3.GetApplicationDetailResponse;
 import org.assertj.core.util.Lists;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for getting application detail.

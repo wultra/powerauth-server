@@ -5,14 +5,14 @@ This tutorial shows the way internet banking (or other similar application) deve
 ## Prerequisites For the Tutorial
 
 - Running PowerAuth Server with available SOAP interface.
-- Knowledge of Java EE applications based on Spring Framework.
-- Software: IDE - Spring Tool Suite, Java EE Application Server (Pivotal Server, Tomcat, ...)
+- Knowledge of web applications based on Spring Framework.
+- Software: IDE, Application Server (Tomcat, Wildfly...)
 
 ## Integration Manual
 
 ### Add a Maven Dependency
 
-To add a PowerAuth SOAP service client support in your application, add Maven dependency for PowerAuth RESTful Client module in your `pom.xml` file:
+To add a PowerAuth SOAP service client support in your application, add Maven dependency for PowerAuth SOAP client module in your `pom.xml` file:
 
 ```xml
 <dependency>
@@ -37,7 +37,7 @@ public class PowerAuthWebServiceConfiguration {
     @Bean
     public Jaxb2Marshaller marshaller() {
         Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setContextPath("io.getlime.powerauth.soap.v3");
+        marshaller.setContextPath("com.wultra.security.powerauth.client.v3");
         return marshaller;
     }
 
@@ -55,7 +55,7 @@ public class PowerAuthWebServiceConfiguration {
 _Note: The `v3` endpoints provide the most current implementation of PowerAuth cryptography protocol. If you still need to use the `v2` endpoints, include the `v2` context path for the Marshaller:_
 
 ```
-marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth.soap.v3");
+marshaller.setContextPaths("com.wultra.security.powerauth.client.v2", "com.wultra.security.powerauth.client.v3");
 ```
 
 ### Setting Up Credentials

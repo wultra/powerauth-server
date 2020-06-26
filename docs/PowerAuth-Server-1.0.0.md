@@ -24,3 +24,30 @@ Migration script for PostgreSQL:
 ```sql
 ALTER TABLE "pa_activation" ADD "flags" VARCHAR(255);
 ```
+
+## New REST Client and SOAP Client Updates
+
+We introduced a new REST client in release 1.0.0 and recommend migrating to the REST client in case you use the SOAP client,
+the provided functionality is identical.
+
+The SOAP clients for Spring and Java EE are still available, however these clients are marked as deprecated, and they will 
+be removed in a future release.
+
+Marshaller context path setting have been updated due to the migration of client model classes and due to company name change to Wultra. 
+
+Original context path setting:
+
+```java
+marshaller.setContextPath("io.getlime.powerauth.soap.v3");
+```
+
+New context path setting:
+```java
+marshaller.setContextPath("com.wultra.security.powerauth.client.v3");
+```
+
+The version 2 context path package has changed the same way, so you will need to update the version 2 path in case you still use the version 2 interface, too.
+
+In your client projects, use the new `com.wultra.security.powerauth.client` packages for the client model classes.
+
+For more information about the new REST client, see [the REST client documentation](./Configuring-REST-Client-for-Spring.md)

@@ -73,9 +73,11 @@
     </issueManagement>
 
     <modules>
-        <module>powerauth-java-server</module>
-        <module>powerauth-java-client-axis</module>
+        <module>powerauth-client-model</module>
+        <module>powerauth-rest-client-spring</module>
         <module>powerauth-java-client-spring</module>
+        <module>powerauth-java-client-axis</module>
+        <module>powerauth-java-server</module>
     </modules>
 
     <properties>

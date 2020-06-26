@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
-import io.getlime.security.powerauth.v3.KeyValueMap;
 
 /**
  * Data related to both online and offline signatures.

@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.v3;
 
-import io.getlime.security.powerauth.v3.*;
+import com.wultra.security.powerauth.client.v3.*;
 
 /**
  * Interface containing all methods that are published by the PowerAuth 3.0 Server
