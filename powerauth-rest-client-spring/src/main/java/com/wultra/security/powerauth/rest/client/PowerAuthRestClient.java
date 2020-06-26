@@ -82,7 +82,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         HttpClient httpClient = HttpClient.create();
         SslContext sslContext;
         try {
-            if (config.skipSslCertificateValidation()) {
+            if (config.getSkipSslCertificateValidation()) {
                 sslContext = SslContextBuilder
                         .forClient()
                         .trustManager(InsecureTrustManagerFactory.INSTANCE)

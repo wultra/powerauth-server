@@ -186,7 +186,7 @@ public class PowerAuthRestClientConfiguration {
      * Get whether SSL certificate errors are ignored.
      * @return Whether SSL certificate errors are ignored.
      */
-    public boolean skipSslCertificateValidation() {
+    public boolean getSkipSslCertificateValidation() {
         return skipSslCertificateValidation;
     }
 
