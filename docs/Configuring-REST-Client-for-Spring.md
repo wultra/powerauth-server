@@ -63,7 +63,7 @@ The following REST client options are available:
 - `proxyPassword` - proxy password in case proxy authentication is required
 - `powerAuthClientToken` - client token for PowerAuth server authentication, used in case authentication is enabled on PowerAuth server
 - `powerAuthClientSecret` - client secret for PowerAuth server authentication, used in case authentication is enabled on PowerAuth server
-- `skipSslCertificateValidation` - whether SSL certificates should be validated, used during development
+- `acceptInvalidSslCertificate` - whether SSL certificates should be validated, used during development
 
 ### Using the PowerAuth REST Client
 

@@ -36,7 +36,7 @@ public class PowerAuthRestClientConfiguration {
     private String proxyPassword;
     private String powerAuthClientToken;
     private String powerAuthClientSecret;
-    private boolean skipSslCertificateValidation;
+    private boolean acceptInvalidSslCertificate;
 
     /**
      * Get maximum memory size for HTTP requests in bytes.
@@ -186,15 +186,15 @@ public class PowerAuthRestClientConfiguration {
      * Get whether SSL certificate errors are ignored.
      * @return Whether SSL certificate errors are ignored.
      */
-    public boolean getSkipSslCertificateValidation() {
-        return skipSslCertificateValidation;
+    public boolean getAcceptInvalidSslCertificate() {
+        return acceptInvalidSslCertificate;
     }
 
     /**
      * Set whether SSL certificate errors are ignored.
-     * @param skipSslCertificateValidation Whether SSL certificate errors are ignored.
+     * @param acceptInvalidSslCertificate Whether SSL certificate errors are ignored.
      */
-    public void setSkipSslCertificateValidation(boolean skipSslCertificateValidation) {
-        this.skipSslCertificateValidation = skipSslCertificateValidation;
+    public void setAcceptInvalidSslCertificate(boolean acceptInvalidSslCertificate) {
+        this.acceptInvalidSslCertificate = acceptInvalidSslCertificate;
     }
 }
