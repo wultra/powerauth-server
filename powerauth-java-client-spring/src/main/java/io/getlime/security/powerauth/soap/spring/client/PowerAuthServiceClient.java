@@ -18,16 +18,25 @@
 package io.getlime.security.powerauth.soap.spring.client;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.error.PowerAuthError;
+import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.security.powerauth.client.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
+import org.springframework.ws.soap.SoapFaultDetail;
+import org.springframework.ws.soap.SoapFaultDetailElement;
+import org.springframework.ws.soap.client.SoapFaultClientException;
+import org.w3c.dom.Node;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.dom.DOMSource;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -44,6 +53,71 @@ import java.util.List;
 public class PowerAuthServiceClient extends WebServiceGatewaySupport implements PowerAuthClient {
 
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceClient.class);
+
+    /**
+     * Call web service endpoint and return a response.
+     * @param request Request object.
+     * @return Response object.
+     * @throws PowerAuthClientException Thrown in case web service call fails.
+     */
+    private Object callWsApi(Object request) throws PowerAuthClientException {
+        try {
+            return getWebServiceTemplate().marshalSendAndReceive(request);
+        } catch (SoapFaultClientException ex) {
+            throw handleSoapError(ex);
+        }
+    }
+
+    /**
+     * Handle SOAP client error and convert it to PowerAuth client exception..
+     * @param ex SOAP client error.
+     * @return PowerAuth client exception.
+     */
+    private PowerAuthClientException handleSoapError(SoapFaultClientException ex) {
+        SoapFaultDetail faultDetail = ex.getSoapFault().getFaultDetail();
+        String errorCode = null;
+        String errorMessage = null;
+        String localizedErrorMessage = null;
+        Integer currentRecoveryPukIndex = null;
+        Iterator<SoapFaultDetailElement> iter = faultDetail.getDetailEntries();
+        while (iter.hasNext()) {
+            SoapFaultDetailElement detail = iter.next();
+            Node node = ((DOMSource) detail.getSource()).getNode();
+            switch (node.getLocalName()) {
+                case "errorCode":
+                    errorCode = node.getTextContent();
+                    break;
+                case "message":
+                    errorMessage = node.getTextContent();
+                    break;
+                case "localizedMessage":
+                    localizedErrorMessage = node.getTextContent();
+                    break;
+                case "currentRecoveryPukIndex":
+                    try {
+                        currentRecoveryPukIndex = Integer.parseInt(node.getTextContent());
+                    } catch (NumberFormatException ex2) {
+                        // Ignore invalid index
+                    }
+                    break;
+            }
+        }
+        // Handle error ERR0028 - Invalid recovery code, other errors are handled as regular activation errors
+        PowerAuthError error;
+        if ("ERR0028".equals(errorCode)) {
+            PowerAuthErrorRecovery errorRecovery = new PowerAuthErrorRecovery();
+            if (currentRecoveryPukIndex != null) {
+                errorRecovery.setCurrentRecoveryPukIndex(currentRecoveryPukIndex);
+            }
+            error = errorRecovery;
+        } else {
+            error = new PowerAuthError();
+        }
+        error.setCode(errorCode);
+        error.setMessage(errorMessage);
+        error.setLocalizedMessage(localizedErrorMessage);
+        return new PowerAuthClientException(errorMessage, ex, error);
+    }
 
     /**
      * Convert date to XMLGregorianCalendar
@@ -63,51 +137,51 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) {
-        return (GetSystemStatusResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException {
+        return (GetSystemStatusResponse) callWsApi(request);
     }
 
     @Override
-    public GetSystemStatusResponse getSystemStatus() {
+    public GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException {
         GetSystemStatusRequest request = new GetSystemStatusRequest();
-        return (GetSystemStatusResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        return (GetSystemStatusResponse) callWsApi(request);
     }
 
     @Override
-    public GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) {
-        return (GetErrorCodeListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException {
+        return (GetErrorCodeListResponse) callWsApi(request);
     }
 
     @Override
-    public GetErrorCodeListResponse getErrorList(String language) {
+    public GetErrorCodeListResponse getErrorList(String language) throws PowerAuthClientException {
         GetErrorCodeListRequest request = new GetErrorCodeListRequest();
         request.setLanguage(language);
-        return (GetErrorCodeListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        return (GetErrorCodeListResponse) callWsApi(request);
     }
 
     @Override
-    public InitActivationResponse initActivation(InitActivationRequest request) {
-        return (InitActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException {
+        return (InitActivationResponse) callWsApi(request);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId) {
+    public InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) {
+    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) {
+    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
     }
 
     @Override
     public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                                 ActivationOtpValidation otpValidation, String otp) {
+                                                 ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         InitActivationRequest request = new InitActivationRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -123,12 +197,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) {
-        return (PrepareActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException {
+        return (PrepareActivationResponse) callWsApi(request);
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
@@ -140,14 +214,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreateActivationResponse createActivation(CreateActivationRequest request) {
-        return (CreateActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException {
+        return (CreateActivationResponse) callWsApi(request);
     }
 
     @Override
     public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                                      String applicationKey, String ephemeralPublicKey, String encryptedData,
-                                                     String mac, String nonce) {
+                                                     String mac, String nonce) throws PowerAuthClientException {
         CreateActivationRequest request = new CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
@@ -165,12 +239,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CommitActivationResponse commitActivation(CommitActivationRequest request) {
-        return (CommitActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException {
+        return (CommitActivationResponse) callWsApi(request);
     }
 
     @Override
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId) {
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -178,7 +252,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) {
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -187,7 +261,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) {
+    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
         UpdateActivationOtpRequest request = new UpdateActivationOtpRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -196,24 +270,24 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) {
-        return (UpdateActivationOtpResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException {
+        return (UpdateActivationOtpResponse) callWsApi(request);
     }
 
     @Override
-    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) {
-        return (GetActivationStatusResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException {
+        return (GetActivationStatusResponse) callWsApi(request);
     }
 
     @Override
-    public GetActivationStatusResponse getActivationStatus(String activationId) {
+    public GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException {
         GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
         response.setEncryptedStatusBlob(null);
         return response;
     }
 
     @Override
-    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) {
+    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException {
         GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
@@ -221,24 +295,24 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) {
-        return (GetActivationListForUserResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException {
+        return (GetActivationListForUserResponse) callWsApi(request);
     }
 
     @Override
-    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) {
+    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) throws PowerAuthClientException {
         GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId(userId);
         return this.getActivationListForUser(request).getActivations();
     }
 
     @Override
-    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) {
-        return (LookupActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException {
+        return (LookupActivationsResponse) callWsApi(request);
     }
 
     @Override
-    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) {
+    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
         LookupActivationsRequest request = new LookupActivationsRequest();
         request.getUserIds().addAll(userIds);
         if (applicationIds != null) {
@@ -260,12 +334,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) {
-        return (UpdateStatusForActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException {
+        return (UpdateStatusForActivationsResponse) callWsApi(request);
     }
 
     @Override
-    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) {
+    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) throws PowerAuthClientException {
         UpdateStatusForActivationsRequest request = new UpdateStatusForActivationsRequest();
         request.getActivationIds().addAll(activationIds);
         if (activationStatus != null) {
@@ -275,17 +349,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) {
-        return (RemoveActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException {
+        return (RemoveActivationResponse) callWsApi(request);
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         return this.removeActivation(activationId, externalUserId, false);
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -294,12 +368,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public BlockActivationResponse blockActivation(BlockActivationRequest request) {
-        return (BlockActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException {
+        return (BlockActivationResponse) callWsApi(request);
     }
 
     @Override
-    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) {
+    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws PowerAuthClientException {
         BlockActivationRequest request = new BlockActivationRequest();
         request.setActivationId(activationId);
         request.setReason(reason);
@@ -308,12 +382,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) {
-        return (UnblockActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException {
+        return (UnblockActivationResponse) callWsApi(request);
     }
 
     @Override
-    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) {
+    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         UnblockActivationRequest request = new UnblockActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -321,14 +395,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) {
-        return (VaultUnlockResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException {
+        return (VaultUnlockResponse) callWsApi(request);
     }
 
     @Override
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                            SignatureType signatureType, String signatureVersion, String signedData,
-                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
+                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -344,7 +418,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) {
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws PowerAuthClientException {
         CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -352,12 +426,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) {
-        return (CreatePersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return (CreatePersonalizedOfflineSignaturePayloadResponse) callWsApi(request);
     }
 
     @Override
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) {
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException {
         CreateNonPersonalizedOfflineSignaturePayloadRequest request = new CreateNonPersonalizedOfflineSignaturePayloadRequest();
         request.setApplicationId(applicationId);
         request.setData(data);
@@ -365,12 +439,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) {
-        return (CreateNonPersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return (CreateNonPersonalizedOfflineSignaturePayloadResponse) callWsApi(request);
     }
 
     @Override
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) {
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException {
         VerifyOfflineSignatureRequest request = new VerifyOfflineSignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -380,17 +454,17 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) {
-        return (VerifyOfflineSignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException {
+        return (VerifyOfflineSignatureResponse) callWsApi(request);
     }
 
     @Override
-    public VerifySignatureResponse verifySignature(VerifySignatureRequest request) {
-        return (VerifySignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException {
+        return (VerifySignatureResponse) callWsApi(request);
     }
 
     @Override
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) {
+    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException {
         VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -403,12 +477,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) {
-        return (VerifyECDSASignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException {
+        return (VerifyECDSASignatureResponse) callWsApi(request);
     }
 
     @Override
-    public VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) {
+    public VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws PowerAuthClientException {
         VerifyECDSASignatureRequest request = new VerifyECDSASignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -417,12 +491,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) {
-        return (SignatureAuditResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException {
+        return (SignatureAuditResponse) callWsApi(request);
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) {
+    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setTimestampFrom(calendarWithDate(startingDate));
@@ -431,7 +505,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) {
+    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -441,12 +515,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) {
-        return (ActivationHistoryResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException {
+        return (ActivationHistoryResponse) callWsApi(request);
     }
 
     @Override
-    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) {
+    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         ActivationHistoryRequest request = new ActivationHistoryRequest();
         request.setActivationId(activationId);
         request.setTimestampFrom(calendarWithDate(startingDate));
@@ -455,65 +529,65 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) {
-        return (GetApplicationListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException {
+        return (GetApplicationListResponse) callWsApi(request);
     }
 
     @Override
-    public List<GetApplicationListResponse.Applications> getApplicationList() {
+    public List<GetApplicationListResponse.Applications> getApplicationList() throws PowerAuthClientException {
         return this.getApplicationList(new GetApplicationListRequest()).getApplications();
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) {
-        return (GetApplicationDetailResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException {
+        return (GetApplicationDetailResponse) callWsApi(request);
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) {
+    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(applicationId);
         return this.getApplicationDetail(request);
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(String applicationName) {
+    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationName(applicationName);
         return this.getApplicationDetail(request);
     }
 
     @Override
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) {
-        return (LookupApplicationByAppKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException {
+        return (LookupApplicationByAppKeyResponse) callWsApi(request);
     }
 
     @Override
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) {
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws PowerAuthClientException {
         LookupApplicationByAppKeyRequest request = new LookupApplicationByAppKeyRequest();
         request.setApplicationKey(applicationKey);
         return this.lookupApplicationByAppKey(request);
     }
 
     @Override
-    public CreateApplicationResponse createApplication(CreateApplicationRequest request) {
-        return (CreateApplicationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException {
+        return (CreateApplicationResponse) callWsApi(request);
     }
 
     @Override
-    public CreateApplicationResponse createApplication(String name) {
+    public CreateApplicationResponse createApplication(String name) throws PowerAuthClientException {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(name);
         return this.createApplication(request);
     }
 
     @Override
-    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) {
-        return (CreateApplicationVersionResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException {
+        return (CreateApplicationVersionResponse) callWsApi(request);
     }
 
     @Override
-    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) {
+    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException {
         CreateApplicationVersionRequest request = new CreateApplicationVersionRequest();
         request.setApplicationId(applicationId);
         request.setApplicationVersionName(versionName);
@@ -521,70 +595,70 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) {
-        return (UnsupportApplicationVersionResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return (UnsupportApplicationVersionResponse) callWsApi(request);
     }
 
     @Override
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) {
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException {
         UnsupportApplicationVersionRequest request = new UnsupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
         return this.unsupportApplicationVersion(request);
     }
 
     @Override
-    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) {
-        return (SupportApplicationVersionResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return (SupportApplicationVersionResponse) callWsApi(request);
     }
 
     @Override
-    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) {
+    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException {
         SupportApplicationVersionRequest request = new SupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
         return this.supportApplicationVersion(request);
     }
 
     @Override
-    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) {
-        return (CreateIntegrationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException {
+        return (CreateIntegrationResponse) callWsApi(request);
     }
 
     @Override
-    public CreateIntegrationResponse createIntegration(String name) {
+    public CreateIntegrationResponse createIntegration(String name) throws PowerAuthClientException {
         CreateIntegrationRequest request = new CreateIntegrationRequest();
         request.setName(name);
         return this.createIntegration(request);
     }
 
     @Override
-    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) {
-        return (GetIntegrationListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException {
+        return (GetIntegrationListResponse) callWsApi(request);
     }
 
     @Override
-    public List<GetIntegrationListResponse.Items> getIntegrationList() {
+    public List<GetIntegrationListResponse.Items> getIntegrationList() throws PowerAuthClientException {
         return this.getIntegrationList(new GetIntegrationListRequest()).getItems();
     }
 
     @Override
-    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) {
-        return (RemoveIntegrationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException {
+        return (RemoveIntegrationResponse) callWsApi(request);
     }
 
     @Override
-    public RemoveIntegrationResponse removeIntegration(String id) {
+    public RemoveIntegrationResponse removeIntegration(String id) throws PowerAuthClientException {
         RemoveIntegrationRequest request = new RemoveIntegrationRequest();
         request.setId(id);
         return this.removeIntegration(request);
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) {
-        return (CreateCallbackUrlResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException {
+        return (CreateCallbackUrlResponse) callWsApi(request);
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) {
+    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
@@ -593,37 +667,37 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) {
-        return (GetCallbackUrlListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException {
+        return (GetCallbackUrlListResponse) callWsApi(request);
     }
 
     @Override
-    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) {
+    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) throws PowerAuthClientException {
         GetCallbackUrlListRequest request = new GetCallbackUrlListRequest();
         request.setApplicationId(applicationId);
         return getCallbackUrlList(request).getCallbackUrlList();
     }
 
     @Override
-    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) {
-        return (RemoveCallbackUrlResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException {
+        return (RemoveCallbackUrlResponse) callWsApi(request);
     }
 
     @Override
-    public RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) {
+    public RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) throws PowerAuthClientException {
         RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlId);
         return removeCallbackUrl(request);
     }
 
     @Override
-    public CreateTokenResponse createToken(CreateTokenRequest request) {
-        return (CreateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException {
+        return (CreateTokenResponse) callWsApi(request);
     }
 
     @Override
     public CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                           String encryptedData, String mac, String nonce, SignatureType signatureType) {
+                                           String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException {
         CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -636,12 +710,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public ValidateTokenResponse validateToken(ValidateTokenRequest request) {
-        return (ValidateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException {
+        return (ValidateTokenResponse) callWsApi(request);
     }
 
     @Override
-    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) {
+    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException {
         ValidateTokenRequest request = new ValidateTokenRequest();
         request.setTokenId(tokenId);
         request.setNonce(nonce);
@@ -651,12 +725,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
-        return (RemoveTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException {
+        return (RemoveTokenResponse) callWsApi(request);
     }
 
     @Override
-    public RemoveTokenResponse removeToken(String tokenId, String activationId) {
+    public RemoveTokenResponse removeToken(String tokenId, String activationId) throws PowerAuthClientException {
         RemoveTokenRequest request = new RemoveTokenRequest();
         request.setTokenId(tokenId);
         request.setActivationId(activationId);
@@ -664,12 +738,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) {
-        return (GetEciesDecryptorResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException {
+        return (GetEciesDecryptorResponse) callWsApi(request);
     }
 
     @Override
-    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) {
+    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException {
         GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -678,13 +752,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) {
-        return (StartUpgradeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
+        return (StartUpgradeResponse) callWsApi(request);
     }
 
     @Override
     public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                 String encryptedData, String mac, String nonce) {
+                                                 String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         StartUpgradeRequest request = new StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -696,12 +770,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) {
-        return (CommitUpgradeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
+        return (CommitUpgradeResponse) callWsApi(request);
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) {
+    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException {
         CommitUpgradeRequest request = new CommitUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -709,12 +783,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) {
-        return (CreateRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException {
+        return (CreateRecoveryCodeResponse) callWsApi(request);
     }
 
     @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) {
+    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException {
         CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
@@ -723,13 +797,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) {
-        return (ConfirmRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException {
+        return (ConfirmRecoveryCodeResponse) callWsApi(request);
     }
 
     @Override
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                           String encryptedData, String mac, String nonce) {
+                                                           String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -741,13 +815,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) {
-        return (LookupRecoveryCodesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException {
+        return (LookupRecoveryCodesResponse) callWsApi(request);
     }
 
     @Override
     public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
-                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) {
+                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException {
         LookupRecoveryCodesRequest request = new LookupRecoveryCodesRequest();
         request.setUserId(userId);
         request.setActivationId(activationId);
@@ -758,25 +832,25 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) {
-        return (RevokeRecoveryCodesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException {
+        return (RevokeRecoveryCodesResponse) callWsApi(request);
     }
 
     @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) {
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException {
         RevokeRecoveryCodesRequest request = new RevokeRecoveryCodesRequest();
         request.getRecoveryCodeIds().addAll(recoveryCodeIds);
         return revokeRecoveryCodes(request);
     }
 
     @Override
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) {
-        return (RecoveryCodeActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException {
+        return (RecoveryCodeActivationResponse) callWsApi(request);
     }
 
     @Override
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
+                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -792,24 +866,24 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) {
-        return (GetRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException {
+        return (GetRecoveryConfigResponse) callWsApi(request);
     }
 
     @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) {
+    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException {
         GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         return getRecoveryConfig(request);
     }
 
     @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) {
-        return (UpdateRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException {
+        return (UpdateRecoveryConfigResponse) callWsApi(request);
     }
 
     @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) {
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
         UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);
@@ -820,24 +894,24 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) {
-        return (ListActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException {
+        return (ListActivationFlagsResponse) callWsApi(request);
     }
 
     @Override
-    public ListActivationFlagsResponse listActivationFlags(String activationId) {
+    public ListActivationFlagsResponse listActivationFlags(String activationId) throws PowerAuthClientException {
         ListActivationFlagsRequest request = new ListActivationFlagsRequest();
         request.setActivationId(activationId);
         return listActivationFlags(request);
     }
 
     @Override
-    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) {
-        return (CreateActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws PowerAuthClientException {
+        return (CreateActivationFlagsResponse) callWsApi(request);
     }
 
     @Override
-    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) {
+    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         CreateActivationFlagsRequest request = new CreateActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
@@ -845,12 +919,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) {
-        return (UpdateActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException {
+        return (UpdateActivationFlagsResponse) callWsApi(request);
     }
 
     @Override
-    public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) {
+    public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         UpdateActivationFlagsRequest request = new UpdateActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
@@ -858,12 +932,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) {
-        return (RemoveActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException {
+        return (RemoveActivationFlagsResponse) callWsApi(request);
     }
 
     @Override
-    public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) {
+    public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         RemoveActivationFlagsRequest request = new RemoveActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
@@ -881,12 +955,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     public class PowerAuthServiceClientV2 implements PowerAuthClient.PowerAuthClientV2 {
 
         @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) {
-            return (com.wultra.security.powerauth.client.v2.PrepareActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.PrepareActivationResponse) callWsApi(request);
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) {
+        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws PowerAuthClientException {
             com.wultra.security.powerauth.client.v2.PrepareActivationRequest request = new com.wultra.security.powerauth.client.v2.PrepareActivationRequest();
             request.setActivationIdShort(activationIdShort);
             request.setActivationName(activationName);
@@ -900,12 +974,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) {
-            return (com.wultra.security.powerauth.client.v2.CreateActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.CreateActivationResponse) callWsApi(request);
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
             return this.createActivation(
                     applicationKey,
                     userId,
@@ -923,7 +997,7 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
             com.wultra.security.powerauth.client.v2.CreateActivationRequest request = new com.wultra.security.powerauth.client.v2.CreateActivationRequest();
             request.setApplicationKey(applicationKey);
             request.setUserId(userId);
@@ -945,12 +1019,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) {
-            return (com.wultra.security.powerauth.client.v2.VaultUnlockResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.VaultUnlockResponse) callWsApi(request);
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason) {
+        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason) throws PowerAuthClientException {
             com.wultra.security.powerauth.client.v2.VaultUnlockRequest request = new com.wultra.security.powerauth.client.v2.VaultUnlockRequest();
             request.setActivationId(activationId);
             request.setApplicationKey(applicationKey);
@@ -962,12 +1036,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request) {
-            return (com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse) callWsApi(request);
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) {
+        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws PowerAuthClientException {
             com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest();
             request.setActivationId(activationId);
             request.setSessionIndex(sessionIndex);
@@ -975,12 +1049,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request) {
-            return (com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse) callWsApi(request);
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) {
+        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws PowerAuthClientException {
             com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest();
             request.setApplicationKey(applicationKey);
             request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
@@ -989,12 +1063,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) {
-            return (com.wultra.security.powerauth.client.v2.CreateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.CreateTokenResponse) callWsApi(request);
         }
 
         @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType) {
+        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType) throws PowerAuthClientException {
             com.wultra.security.powerauth.client.v2.CreateTokenRequest request = new com.wultra.security.powerauth.client.v2.CreateTokenRequest();
             request.setActivationId(activationId);
             request.setEphemeralPublicKey(ephemeralPublicKey);

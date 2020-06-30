@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.client;
 
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest;
@@ -39,14 +40,14 @@ public interface PowerAuthClient {
      * @param request {@link GetSystemStatusRequest} instance
      * @return {@link GetSystemStatusResponse}
      */
-    GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request);
+    GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException;
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
      *
      * @return {@link GetSystemStatusResponse}
      */
-    GetSystemStatusResponse getSystemStatus();
+    GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException;
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
@@ -54,7 +55,7 @@ public interface PowerAuthClient {
      * @param request {@link GetSystemStatusRequest} instance
      * @return {@link GetSystemStatusResponse}
      */
-    GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request);
+    GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException;
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
@@ -62,7 +63,7 @@ public interface PowerAuthClient {
      * @param language ISO code for language.
      * @return {@link GetSystemStatusResponse}
      */
-    GetErrorCodeListResponse getErrorList(String language);
+    GetErrorCodeListResponse getErrorList(String language) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -70,7 +71,7 @@ public interface PowerAuthClient {
      * @param request {@link InitActivationRequest} instance
      * @return {@link InitActivationResponse}
      */
-    InitActivationResponse initActivation(InitActivationRequest request);
+    InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -79,7 +80,7 @@ public interface PowerAuthClient {
      * @param applicationId Application ID for which a new CREATED activation should be created.
      * @return {@link InitActivationResponse}
      */
-    InitActivationResponse initActivation(String userId, Long applicationId);
+    InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -90,7 +91,7 @@ public interface PowerAuthClient {
      * @param otp           Additional OTP value.
      * @return {@link InitActivationResponse}
      */
-    InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp);
+    InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -101,7 +102,7 @@ public interface PowerAuthClient {
      * @param timestampActivationExpire Timestamp until when the activation can be committed.
      * @return {@link InitActivationResponse}
      */
-    InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire);
+    InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -115,7 +116,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      */
     InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                          ActivationOtpValidation otpValidation, String otp);
+                                          ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
@@ -123,7 +124,7 @@ public interface PowerAuthClient {
      * @param request {@link PrepareActivationRequest} instance
      * @return {@link PrepareActivationResponse}
      */
-    PrepareActivationResponse prepareActivation(PrepareActivationRequest request);
+    PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
@@ -136,7 +137,7 @@ public interface PowerAuthClient {
      * @param nonce              Nonce for ECIES.
      * @return {@link PrepareActivationResponse}
      */
-    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce);
+    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Create a new activation directly, using the createActivation method of the PowerAuth Server
@@ -145,7 +146,7 @@ public interface PowerAuthClient {
      * @param request Create activation request.
      * @return Create activation response.
      */
-    CreateActivationResponse createActivation(CreateActivationRequest request);
+    CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the createActivation method of the PowerAuth 3.0 Server interface.
@@ -162,7 +163,7 @@ public interface PowerAuthClient {
      */
     CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                               String applicationKey, String ephemeralPublicKey, String encryptedData,
-                                              String mac, String nonce);
+                                              String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Call the updateActivationOtp method of PowerAuth 3.1 Server interface.
@@ -173,7 +174,7 @@ public interface PowerAuthClient {
      * @param activationOtp  Value of activation OTP
      * @return {@link UpdateActivationOtpResponse}
      */
-    UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp);
+    UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException;
 
     /**
      * Call the updateActivationOtp method of PowerAuth 3.1 Server interface.
@@ -181,7 +182,7 @@ public interface PowerAuthClient {
      * @param request {@link UpdateActivationOtpRequest} instance
      * @return {@link UpdateActivationOtpResponse}
      */
-    UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request);
+    UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException;
 
     /**
      * Call the commitActivation method of the PowerAuth 3.0 Server interface.
@@ -189,7 +190,7 @@ public interface PowerAuthClient {
      * @param request {@link CommitActivationRequest} instance
      * @return {@link CommitActivationResponse}
      */
-    CommitActivationResponse commitActivation(CommitActivationRequest request);
+    CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the commitActivation method of the PowerAuth 3.0 Server interface.
@@ -198,7 +199,7 @@ public interface PowerAuthClient {
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @return {@link CommitActivationResponse}
      */
-    CommitActivationResponse commitActivation(String activationId, String externalUserId);
+    CommitActivationResponse commitActivation(String activationId, String externalUserId) throws PowerAuthClientException;
 
     /**
      * Call the commitActivation method of the PowerAuth 3.0 Server interface.
@@ -208,7 +209,7 @@ public interface PowerAuthClient {
      * @param activationOtp  Value of activation OTP. Specify the value only when activation OTP should be validated during activation commit.
      * @return {@link CommitActivationResponse}
      */
-    CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp);
+    CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException;
 
     /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server interface.
@@ -216,7 +217,7 @@ public interface PowerAuthClient {
      * @param request {@link GetActivationStatusRequest} instance
      * @return {@link GetActivationStatusResponse}
      */
-    GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request);
+    GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException;
 
     /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server interface. This method should be used only
@@ -227,7 +228,7 @@ public interface PowerAuthClient {
      * @param activationId Activation Id to lookup information for.
      * @return {@link GetActivationStatusResponse}
      */
-    GetActivationStatusResponse getActivationStatus(String activationId);
+    GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException;
 
     /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server interface. The method should be used to
@@ -238,7 +239,7 @@ public interface PowerAuthClient {
      * @param challenge    Cryptographic challenge for activation status blob encryption.
      * @return {@link GetActivationStatusResponse}
      */
-    GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge);
+    GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException;
 
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server interface.
@@ -246,7 +247,7 @@ public interface PowerAuthClient {
      * @param request {@link RemoveActivationRequest} instance.
      * @return {@link RemoveActivationResponse}
      */
-    RemoveActivationResponse removeActivation(RemoveActivationRequest request);
+    RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server interface.
@@ -255,7 +256,7 @@ public interface PowerAuthClient {
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
      * @return {@link RemoveActivationResponse}
      */
-    RemoveActivationResponse removeActivation(String activationId, String externalUserId);
+    RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException;
 
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server interface.
@@ -265,7 +266,7 @@ public interface PowerAuthClient {
      * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
      * @return {@link RemoveActivationResponse}
      */
-    RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes);
+    RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException;
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
@@ -273,7 +274,7 @@ public interface PowerAuthClient {
      * @param request {@link GetActivationListForUserRequest} instance
      * @return {@link GetActivationListForUserResponse}
      */
-    GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request);
+    GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException;
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
@@ -281,7 +282,7 @@ public interface PowerAuthClient {
      * @param userId User ID to fetch the activations for.
      * @return List of activation instances for given user.
      */
-    List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId);
+    List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) throws PowerAuthClientException;
 
     /**
      * Call the lookupActivations method of the PowerAuth 3.0 Server interface.
@@ -289,7 +290,7 @@ public interface PowerAuthClient {
      * @param request {@link LookupActivationsRequest} instance
      * @return {@link LookupActivationsResponse}
      */
-    LookupActivationsResponse lookupActivations(LookupActivationsRequest request);
+    LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException;
 
     /**
      * Call the lookupActivations method of the PowerAuth 3.0 Server interface.
@@ -302,7 +303,7 @@ public interface PowerAuthClient {
      * @param activationFlags         Activation flags (optional).
      * @return List of activation instances satisfying given query parameters.
      */
-    List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags);
+    List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException;
 
     /**
      * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
@@ -310,7 +311,7 @@ public interface PowerAuthClient {
      * @param request {@link UpdateStatusForActivationsRequest} instance
      * @return {@link UpdateStatusForActivationsResponse}
      */
-    UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request);
+    UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException;
 
     /**
      * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
@@ -319,7 +320,7 @@ public interface PowerAuthClient {
      * @param activationStatus Activation status to be used.
      * @return Response indicating whether activation status update succeeded.
      */
-    UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus);
+    UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) throws PowerAuthClientException;
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server interface.
@@ -327,7 +328,7 @@ public interface PowerAuthClient {
      * @param request {@link VerifySignatureRequest} instance.
      * @return {@link VerifySignatureResponse}
      */
-    VerifySignatureResponse verifySignature(VerifySignatureRequest request);
+    VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException;
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server interface.
@@ -341,7 +342,7 @@ public interface PowerAuthClient {
      * @param forcedSignatureVersion Forced signature version.
      * @return Verify signature and return REST response with the verification results.
      */
-    VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion);
+    VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException;
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
@@ -349,7 +350,7 @@ public interface PowerAuthClient {
      * @param request {@link CreatePersonalizedOfflineSignaturePayloadRequest} instance.
      * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
      */
-    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request);
+    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException;
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
@@ -358,7 +359,7 @@ public interface PowerAuthClient {
      * @param data         Data for offline signature.
      * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
      */
-    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data);
+    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws PowerAuthClientException;
 
     /**
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
@@ -366,7 +367,7 @@ public interface PowerAuthClient {
      * @param request {@link CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      */
-    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request);
+    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException;
 
     /**
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
@@ -375,7 +376,7 @@ public interface PowerAuthClient {
      * @param data          Data for offline signature.
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      */
-    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data);
+    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException;
 
     /**
      * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
@@ -383,7 +384,7 @@ public interface PowerAuthClient {
      * @param request {@link VerifyOfflineSignatureRequest} instance.
      * @return {@link VerifyOfflineSignatureResponse}
      */
-    VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request);
+    VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException;
 
     /**
      * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
@@ -394,7 +395,7 @@ public interface PowerAuthClient {
      * @param allowBiometry Whether POSSESSION_BIOMETRY signature type is allowed during signature verification.
      * @return Offline signature verification response.
      */
-    VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry);
+    VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException;
 
     /**
      * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
@@ -402,7 +403,7 @@ public interface PowerAuthClient {
      * @param request {@link VaultUnlockRequest} instance
      * @return {@link VaultUnlockResponse}
      */
-    VaultUnlockResponse unlockVault(VaultUnlockRequest request);
+    VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException;
 
     /**
      * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
@@ -421,7 +422,7 @@ public interface PowerAuthClient {
      */
     VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                     SignatureType signatureType, String signatureVersion, String signedData,
-                                    String ephemeralPublicKey, String encryptedData, String mac, String nonce);
+                                    String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
@@ -429,7 +430,7 @@ public interface PowerAuthClient {
      * @param request {@link VerifyECDSASignatureRequest} instance.
      * @return {@link VerifyECDSASignatureResponse}
      */
-    VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request);
+    VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException;
 
     /**
      * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
@@ -439,7 +440,7 @@ public interface PowerAuthClient {
      * @param signature    Request signature.
      * @return Verify ECDSA signature and return REST response with the verification results.
      */
-    VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature);
+    VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws PowerAuthClientException;
 
     /**
      * Call the getSignatureAuditLog method of the PowerAuth 3.0 Server interface.
@@ -447,7 +448,7 @@ public interface PowerAuthClient {
      * @param request {@link SignatureAuditRequest} instance.
      * @return {@link SignatureAuditResponse}
      */
-    SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request);
+    SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException;
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server interface and get
@@ -458,7 +459,7 @@ public interface PowerAuthClient {
      * @param endingDate   Limit the results to given ending date (= "older than").
      * @return List of signature audit items. See: {@link com.wultra.security.powerauth.client.v3.SignatureAuditResponse.Items}.
      */
-    List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate);
+    List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server interface and get
@@ -470,7 +471,7 @@ public interface PowerAuthClient {
      * @param endingDate    Limit the results to given ending date (= "older than").
      * @return List of signature audit items. See: {@link com.wultra.security.powerauth.client.v3.SignatureAuditResponse.Items}.
      */
-    List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate);
+    List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
      * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
@@ -478,7 +479,7 @@ public interface PowerAuthClient {
      * @param request {@link ActivationHistoryRequest} instance.
      * @return {@link ActivationHistoryResponse}
      */
-    ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request);
+    ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException;
 
     /**
      * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
@@ -488,7 +489,7 @@ public interface PowerAuthClient {
      * @param endingDate   Limit the results to given ending date (= "older than").
      * @return List of activation history items. See: {@link com.wultra.security.powerauth.client.v3.ActivationHistoryResponse.Items}.
      */
-    List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate);
+    List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
      * Call the blockActivation method of the PowerAuth 3.0 Server interface.
@@ -496,7 +497,7 @@ public interface PowerAuthClient {
      * @param request {@link BlockActivationRequest} instance.
      * @return {@link BlockActivationResponse}
      */
-    BlockActivationResponse blockActivation(BlockActivationRequest request);
+    BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the blockActivation method of the PowerAuth 3.0 Server interface.
@@ -506,7 +507,7 @@ public interface PowerAuthClient {
      * @param reason         Reason why activation is being blocked.
      * @return {@link BlockActivationResponse}
      */
-    BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId);
+    BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws PowerAuthClientException;
 
     /**
      * Call the unblockActivation method of the PowerAuth 3.0 Server interface.
@@ -514,7 +515,7 @@ public interface PowerAuthClient {
      * @param request {@link UnblockActivationRequest} instance.
      * @return {@link UnblockActivationResponse}
      */
-    UnblockActivationResponse unblockActivation(UnblockActivationRequest request);
+    UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Call the unblockActivation method of the PowerAuth 3.0 Server interface.
@@ -523,7 +524,7 @@ public interface PowerAuthClient {
      * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
      * @return {@link UnblockActivationResponse}
      */
-    UnblockActivationResponse unblockActivation(String activationId, String externalUserId);
+    UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws PowerAuthClientException;
 
     /**
      * Get the list of all applications that are registered in PowerAuth Server.
@@ -531,14 +532,14 @@ public interface PowerAuthClient {
      * @param request {@link GetApplicationListRequest} instance.
      * @return {@link GetApplicationListResponse}
      */
-    GetApplicationListResponse getApplicationList(GetApplicationListRequest request);
+    GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException;
 
     /**
      * Get the list of all applications that are registered in PowerAuth Server.
      *
      * @return List of applications.
      */
-    List<GetApplicationListResponse.Applications> getApplicationList();
+    List<GetApplicationListResponse.Applications> getApplicationList() throws PowerAuthClientException;
 
     /**
      * Return the detail of given application, including all application versions.
@@ -546,7 +547,7 @@ public interface PowerAuthClient {
      * @param request {@link GetApplicationDetailRequest} instance.
      * @return {@link GetApplicationDetailResponse}
      */
-    GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request);
+    GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException;
 
     /**
      * Get the detail of an application with given ID, including the version list.
@@ -554,7 +555,7 @@ public interface PowerAuthClient {
      * @param applicationId ID of an application to fetch.
      * @return Application with given ID, including the version list.
      */
-    GetApplicationDetailResponse getApplicationDetail(Long applicationId);
+    GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException;
 
     /**
      * Get the detail of an application with given name, including the version list.
@@ -562,7 +563,7 @@ public interface PowerAuthClient {
      * @param applicationName name of an application to fetch.
      * @return Application with given name, including the version list.
      */
-    GetApplicationDetailResponse getApplicationDetail(String applicationName);
+    GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException;
 
     /**
      * Lookup an application by application key.
@@ -570,7 +571,7 @@ public interface PowerAuthClient {
      * @param request {@link LookupApplicationByAppKeyRequest} instance.
      * @return {@link LookupApplicationByAppKeyResponse}
      */
-    LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request);
+    LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException;
 
     /**
      * Lookup an application by application key.
@@ -578,7 +579,7 @@ public interface PowerAuthClient {
      * @param applicationKey Application key.
      * @return Response with application ID.
      */
-    LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey);
+    LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws PowerAuthClientException;
 
     /**
      * Create a new application with given name.
@@ -586,7 +587,7 @@ public interface PowerAuthClient {
      * @param request {@link CreateApplicationRequest} instance.
      * @return {@link CreateApplicationResponse}
      */
-    CreateApplicationResponse createApplication(CreateApplicationRequest request);
+    CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException;
 
     /**
      * Create a new application with given name.
@@ -594,7 +595,7 @@ public interface PowerAuthClient {
      * @param name Name of the new application.
      * @return Application with a given name.
      */
-    CreateApplicationResponse createApplication(String name);
+    CreateApplicationResponse createApplication(String name) throws PowerAuthClientException;
 
     /**
      * Create a version with a given name for an application with given ID.
@@ -602,7 +603,7 @@ public interface PowerAuthClient {
      * @param request {@link CreateApplicationVersionRequest} instance.
      * @return {@link CreateApplicationVersionResponse}
      */
-    CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request);
+    CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException;
 
     /**
      * Create a version with a given name for an application with given ID.
@@ -611,7 +612,7 @@ public interface PowerAuthClient {
      * @param versionName   Name of the version. The value should follow some well received conventions (such as "1.0.3", for example).
      * @return A new version with a given name and application key / secret.
      */
-    CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName);
+    CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException;
 
     /**
      * Cancel the support for a given application version.
@@ -619,7 +620,7 @@ public interface PowerAuthClient {
      * @param request {@link UnsupportApplicationVersionRequest} instance.
      * @return {@link UnsupportApplicationVersionResponse}
      */
-    UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request);
+    UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException;
 
     /**
      * Cancel the support for a given application version.
@@ -627,7 +628,7 @@ public interface PowerAuthClient {
      * @param versionId Version to be unsupported.
      * @return Information about success / failure.
      */
-    UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId);
+    UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException;
 
     /**
      * Renew the support for a given application version.
@@ -635,7 +636,7 @@ public interface PowerAuthClient {
      * @param request {@link SupportApplicationVersionRequest} instance.
      * @return {@link SupportApplicationVersionResponse}
      */
-    SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request);
+    SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException;
 
     /**
      * Renew the support for a given application version.
@@ -643,7 +644,7 @@ public interface PowerAuthClient {
      * @param versionId Version to be supported again.
      * @return Information about success / failure.
      */
-    SupportApplicationVersionResponse supportApplicationVersion(Long versionId);
+    SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException;
 
     /**
      * Create a new integration with given name.
@@ -651,7 +652,7 @@ public interface PowerAuthClient {
      * @param request Request specifying the integration name.
      * @return New integration information.
      */
-    CreateIntegrationResponse createIntegration(CreateIntegrationRequest request);
+    CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException;
 
     /**
      * Create a new integration with given name.
@@ -659,7 +660,7 @@ public interface PowerAuthClient {
      * @param name Integration name.
      * @return New integration information.
      */
-    CreateIntegrationResponse createIntegration(String name);
+    CreateIntegrationResponse createIntegration(String name) throws PowerAuthClientException;
 
     /**
      * Get the list of integrations.
@@ -667,14 +668,14 @@ public interface PowerAuthClient {
      * @param request REST request object.
      * @return List of integrations.
      */
-    GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request);
+    GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException;
 
     /**
      * Get the list of integrations.
      *
      * @return List of integrations.
      */
-    List<GetIntegrationListResponse.Items> getIntegrationList();
+    List<GetIntegrationListResponse.Items> getIntegrationList() throws PowerAuthClientException;
 
     /**
      * Remove integration with given ID.
@@ -682,7 +683,7 @@ public interface PowerAuthClient {
      * @param request REST object with integration ID to be removed.
      * @return Removal status.
      */
-    RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request);
+    RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException;
 
     /**
      * Remove integration with given ID.
@@ -690,7 +691,7 @@ public interface PowerAuthClient {
      * @param id ID of integration to be removed.
      * @return Removal status.
      */
-    RemoveIntegrationResponse removeIntegration(String id);
+    RemoveIntegrationResponse removeIntegration(String id) throws PowerAuthClientException;
 
     /**
      * Create a new callback URL with given request object.
@@ -698,7 +699,7 @@ public interface PowerAuthClient {
      * @param request REST request object with callback URL details.
      * @return Information about new callback URL object.
      */
-    CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request);
+    CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException;
 
     /**
      * Create a new callback URL with given parameters.
@@ -708,7 +709,7 @@ public interface PowerAuthClient {
      * @param callbackUrl   Callback URL value.
      * @return Information about new callback URL object.
      */
-    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl);
+    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws PowerAuthClientException;
 
     /**
      * Get the response with list of callback URL objects.
@@ -716,7 +717,7 @@ public interface PowerAuthClient {
      * @param request REST request object with application ID.
      * @return Response with the list of all callback URLs for given application.
      */
-    GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request);
+    GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException;
 
     /**
      * Get the list of callback URL objects.
@@ -724,7 +725,7 @@ public interface PowerAuthClient {
      * @param applicationId Application ID.
      * @return List of all callback URLs for given application.
      */
-    List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId);
+    List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) throws PowerAuthClientException;
 
     /**
      * Remove callback URL.
@@ -732,7 +733,7 @@ public interface PowerAuthClient {
      * @param request Remove callback URL request.
      * @return Information about removal status.
      */
-    RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request);
+    RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException;
 
     /**
      * Remove callback URL.
@@ -740,7 +741,7 @@ public interface PowerAuthClient {
      * @param callbackUrlId Callback URL ID.
      * @return Information about removal status.
      */
-    RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId);
+    RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) throws PowerAuthClientException;
 
     /**
      * Create a new token for basic token-based authentication.
@@ -748,7 +749,7 @@ public interface PowerAuthClient {
      * @param request Request with token information.
      * @return Response with created token.
      */
-    CreateTokenResponse createToken(CreateTokenRequest request);
+    CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException;
 
     /**
      * Create a new token for basic token-based authentication.
@@ -763,7 +764,7 @@ public interface PowerAuthClient {
      * @return Response with created token.
      */
     CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                    String encryptedData, String mac, String nonce, SignatureType signatureType);
+                                    String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException;
 
     /**
      * Validate credentials used for basic token-based authentication.
@@ -771,7 +772,7 @@ public interface PowerAuthClient {
      * @param request Credentials to validate.
      * @return Response with the credentials validation status.
      */
-    ValidateTokenResponse validateToken(ValidateTokenRequest request);
+    ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException;
 
     /**
      * Validate credentials used for basic token-based authentication.
@@ -782,7 +783,7 @@ public interface PowerAuthClient {
      * @param tokenDigest Token digest.
      * @return Response with the credentials validation status.
      */
-    ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest);
+    ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException;
 
     /**
      * Remove token with given token ID.
@@ -790,7 +791,7 @@ public interface PowerAuthClient {
      * @param request Request with token ID.
      * @return Response token removal result.
      */
-    RemoveTokenResponse removeToken(RemoveTokenRequest request);
+    RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException;
 
     /**
      * Remove token with given token ID.
@@ -799,7 +800,7 @@ public interface PowerAuthClient {
      * @param activationId ActivationId ID.
      * @return Response token removal result.
      */
-    RemoveTokenResponse removeToken(String tokenId, String activationId);
+    RemoveTokenResponse removeToken(String tokenId, String activationId) throws PowerAuthClientException;
 
     /**
      * Get ECIES decryptor parameters.
@@ -807,7 +808,7 @@ public interface PowerAuthClient {
      * @param request Request for ECIES decryptor parameters.
      * @return ECIES decryptor parameters.
      */
-    GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request);
+    GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException;
 
     /**
      * Get ECIES decryptor parameters.
@@ -817,7 +818,7 @@ public interface PowerAuthClient {
      * @param ephemeralPublicKey Ephemeral key for ECIES.
      * @return ECIES decryptor parameters.
      */
-    GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey);
+    GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.
@@ -825,7 +826,7 @@ public interface PowerAuthClient {
      * @param request Start upgrade request.
      * @return Start upgrade response.
      */
-    StartUpgradeResponse startUpgrade(StartUpgradeRequest request);
+    StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.
@@ -839,7 +840,7 @@ public interface PowerAuthClient {
      * @return Start upgrade response.
      */
     StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                      String encryptedData, String mac, String nonce);
+                                      String encryptedData, String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Commit upgrade of activations to version 3.
@@ -847,7 +848,7 @@ public interface PowerAuthClient {
      * @param request Commit upgrade request.
      * @return Commit upgrade response.
      */
-    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request);
+    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException;
 
     /**
      * Commit upgrade of activations to version 3.
@@ -856,7 +857,7 @@ public interface PowerAuthClient {
      * @param applicationKey Application key.
      * @return Commit upgrade response.
      */
-    CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey);
+    CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException;
 
     /**
      * Create recovery code.
@@ -864,7 +865,7 @@ public interface PowerAuthClient {
      * @param request Create recovery code request.
      * @return Create recovery code response.
      */
-    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request);
+    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException;
 
     /**
      * Create recovery code for user.
@@ -874,7 +875,7 @@ public interface PowerAuthClient {
      * @param pukCount      Number of PUKs to create.
      * @return Create recovery code response.
      */
-    CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount);
+    CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException;
 
     /**
      * Confirm recovery code.
@@ -882,7 +883,7 @@ public interface PowerAuthClient {
      * @param request Confirm recovery code request.
      * @return Confirm recovery code response.
      */
-    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request);
+    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException;
 
     /**
      * Confirm recovery code.
@@ -896,7 +897,7 @@ public interface PowerAuthClient {
      * @return Confirm recovery code response.
      */
     ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                    String encryptedData, String mac, String nonce);
+                                                    String encryptedData, String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Lookup recovery codes.
@@ -904,7 +905,7 @@ public interface PowerAuthClient {
      * @param request Lookup recovery codes request.
      * @return Lookup recovery codes response.
      */
-    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request);
+    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException;
 
     /**
      * Lookup recovery codes.
@@ -917,7 +918,7 @@ public interface PowerAuthClient {
      * @return Lookup recovery codes response.
      */
     LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
-                                                    RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus);
+                                                    RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException;
 
     /**
      * Revoke recovery codes.
@@ -925,7 +926,7 @@ public interface PowerAuthClient {
      * @param request Revoke recovery codes request.
      * @return Revoke recovery codes response.
      */
-    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request);
+    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException;
 
     /**
      * Revoke recovery codes.
@@ -933,7 +934,7 @@ public interface PowerAuthClient {
      * @param recoveryCodeIds Identifiers of recovery codes to revoke.
      * @return Revoke recovery code response.
      */
-    RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds);
+    RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException;
 
     /**
      * Create activation using recovery code.
@@ -941,7 +942,7 @@ public interface PowerAuthClient {
      * @param request Create activation using recovery code request.
      * @return Create activation using recovery code response.
      */
-    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request);
+    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException;
 
     /**
      * Create activation using recovery code.
@@ -957,7 +958,7 @@ public interface PowerAuthClient {
      * @return Create activation using recovery code response.
      */
     RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce);
+                                                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Get recovery configuration.
@@ -965,7 +966,7 @@ public interface PowerAuthClient {
      * @param request Get recovery configuration request.
      * @return Get recovery configuration response.
      */
-    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request);
+    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException;
 
     /**
      * Get recovery configuration.
@@ -973,7 +974,7 @@ public interface PowerAuthClient {
      * @param applicationId Application ID.
      * @return Get recovery configuration response.
      */
-    GetRecoveryConfigResponse getRecoveryConfig(Long applicationId);
+    GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException;
 
     /**
      * Update recovery configuration.
@@ -981,7 +982,7 @@ public interface PowerAuthClient {
      * @param request Update recovery configuration request.
      * @return Update recovery configuration response.
      */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request);
+    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException;
 
     /**
      * Update recovery configuration.
@@ -993,7 +994,7 @@ public interface PowerAuthClient {
      * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote key.
      * @return Update recovery configuration response.
      */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64);
+    UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException;
 
     /**
      * List activation flags.
@@ -1001,7 +1002,7 @@ public interface PowerAuthClient {
      * @param request List activation flags request.
      * @return List activation flags response.
      */
-    ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request);
+    ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException;
 
     /**
      * List activation flags.
@@ -1009,7 +1010,7 @@ public interface PowerAuthClient {
      * @param activationId Activation ID.
      * @return List activation flags response.
      */
-    ListActivationFlagsResponse listActivationFlags(String activationId);
+    ListActivationFlagsResponse listActivationFlags(String activationId) throws PowerAuthClientException;
 
     /**
      * Create activation flags.
@@ -1017,7 +1018,7 @@ public interface PowerAuthClient {
      * @param request Create activation flags request.
      * @return Create activation flags response.
      */
-    CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request);
+    CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws PowerAuthClientException;
 
     /**
      * Create activation flags.
@@ -1026,7 +1027,7 @@ public interface PowerAuthClient {
      * @param activationFlags Activation flags.
      * @return Create activation flags response.
      */
-    CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags);
+    CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException;
 
     /**
      * Update activation flags.
@@ -1034,7 +1035,7 @@ public interface PowerAuthClient {
      * @param request Update activation flags request.
      * @return Update activation flags response.
      */
-    UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request);
+    UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException;
 
     /**
      * Update activation flags.
@@ -1043,7 +1044,7 @@ public interface PowerAuthClient {
      * @param activationFlags Activation flags.
      * @return Update activation flags response.
      */
-    UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags);
+    UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException;
 
     /**
      * Remove activation flags.
@@ -1051,7 +1052,7 @@ public interface PowerAuthClient {
      * @param request Remove activation flags request.
      * @return Remove activation flags response.
      */
-    RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request);
+    RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException;
 
     /**
      * Remove activation flags.
@@ -1060,22 +1061,22 @@ public interface PowerAuthClient {
      * @param activationFlags Activation flags.
      * @return Remove activation flags response.
      */
-    RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags);
+    RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException;
 
     /**
      * Get the PowerAuth version 2 client (legacy).
      * @return PowerAuth version 2 client.
      */
-    PowerAuthClientV2 v2();
+    PowerAuthClientV2 v2() throws PowerAuthClientException;
 
-    public interface PowerAuthClientV2 {
+    interface PowerAuthClientV2 {
 
         /**
          * Call the prepareActivation method of the PowerAuth 2.0 Server interface.
          * @param request {@link com.wultra.security.powerauth.client.v2.PrepareActivationRequest} instance
          * @return {@link com.wultra.security.powerauth.client.v2.PrepareActivationResponse}
          */
-        com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request);
+        com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException;
 
         /**
          * Call the prepareActivation method of the PowerAuth 2.0 Server interface.
@@ -1088,14 +1089,14 @@ public interface PowerAuthClient {
          * @param extras Additional, application specific information.
          * @return {@link com.wultra.security.powerauth.client.v2.PrepareActivationResponse}
          */
-        com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature);
+        com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws PowerAuthClientException;
 
         /**
          * Create a new activation directly, using the createActivation method of the PowerAuth 2.0 Server interface.
          * @param request Create activation request.
          * @return Create activation response.
          */
-        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request);
+        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException;
 
         /**
          * Call the createActivation method of the PowerAuth 2.0 Server interface.
@@ -1110,7 +1111,7 @@ public interface PowerAuthClient {
          * @param extras Additional, application specific information.
          * @return {@link com.wultra.security.powerauth.client.v2.CreateActivationResponse}
          */
-        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature);
+        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException;
 
         /**
          * Call the createActivation method of the PowerAuth 2.0 Server interface.
@@ -1128,14 +1129,14 @@ public interface PowerAuthClient {
          * @param extras Additional, application specific information.
          * @return {@link com.wultra.security.powerauth.client.v2.CreateActivationResponse}
          */
-        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature);
+        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException;
 
         /**
          * Call the vaultUnlock method of the PowerAuth 2.0 Server interface.
          * @param request {@link com.wultra.security.powerauth.client.v2.VaultUnlockRequest} instance
          * @return {@link com.wultra.security.powerauth.client.v2.VaultUnlockResponse}
          */
-        com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request);
+        com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException;
 
         /**
          * Call the vaultUnlock method of the PowerAuth 2.0 Server interface.
@@ -1147,14 +1148,14 @@ public interface PowerAuthClient {
          * @param reason Reason why vault is being unlocked.
          * @return {@link com.wultra.security.powerauth.client.v2.VaultUnlockResponse}
          */
-        com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason);
+        com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason) throws PowerAuthClientException;
 
         /**
          * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server interface.
          * @param request {@link GetPersonalizedEncryptionKeyRequest} instance.
          * @return {@link GetPersonalizedEncryptionKeyResponse}
          */
-        GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request);
+        GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException;
 
         /**
          * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server interface and get
@@ -1162,14 +1163,14 @@ public interface PowerAuthClient {
          * @param activationId Activation ID used for the key generation.
          * @return {@link GetPersonalizedEncryptionKeyResponse}
          */
-        GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex);
+        GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws PowerAuthClientException;
 
         /**
          * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server interface.
          * @param request {@link GetNonPersonalizedEncryptionKeyRequest} instance.
          * @return {@link GetNonPersonalizedEncryptionKeyResponse}
          */
-        GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request);
+        GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException;
 
         /**
          * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server interface and get
@@ -1177,14 +1178,14 @@ public interface PowerAuthClient {
          * @param applicationKey Application key of application used for the key generation.
          * @return {@link GetNonPersonalizedEncryptionKeyResponse}
          */
-        GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex);
+        GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws PowerAuthClientException;
 
         /**
          * Create a new token for basic token-based authentication.
          * @param request Request with token information.
          * @return Response with created token.
          */
-        com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request);
+        com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException;
 
         /**
          * Create a new token for basic token-based authentication.
@@ -1193,7 +1194,7 @@ public interface PowerAuthClient {
          * @param signatureType Type of the signature used for validating the create request.
          * @return Response with created token.
          */
-        com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType);
+        com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType) throws PowerAuthClientException;
     }
 
 }

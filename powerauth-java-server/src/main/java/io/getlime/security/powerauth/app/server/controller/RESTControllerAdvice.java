@@ -17,6 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.controller;
 
+import com.wultra.security.powerauth.client.model.PowerAuthResponseWrapper;
+import com.wultra.security.powerauth.client.model.error.PowerAuthError;
+import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.springframework.http.HttpStatus;
@@ -24,9 +27,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Class used for handling RESTful service errors.
@@ -44,14 +44,13 @@ public class RESTControllerAdvice {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = GenericServiceException.class)
-    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnGenericError(GenericServiceException ex) {
-        RESTErrorModel error = new RESTErrorModel();
+    public @ResponseBody
+    PowerAuthResponseWrapper<PowerAuthError> returnGenericError(GenericServiceException ex) {
+        PowerAuthError error = new PowerAuthError();
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
-        List<RESTErrorModel> errorList = new LinkedList<>();
-        errorList.add(error);
-        return new RESTResponseWrapper<>("ERROR", errorList);
+        return new PowerAuthResponseWrapper<>("ERROR", error);
     }
 
     /**
@@ -61,15 +60,14 @@ public class RESTControllerAdvice {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = ActivationRecoveryException.class)
-    public @ResponseBody RESTResponseWrapper<List<RESTErrorModel>> returnActivationRecoveryError(ActivationRecoveryException ex) {
-        RESTErrorModelRecovery error = new RESTErrorModelRecovery();
+    public @ResponseBody
+    PowerAuthResponseWrapper<PowerAuthError> returnActivationRecoveryError(ActivationRecoveryException ex) {
+        PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
         error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
-        List<RESTErrorModel> errorList = new LinkedList<>();
-        errorList.add(error);
-        return new RESTResponseWrapper<>("ERROR", errorList);
+        return new PowerAuthResponseWrapper<>("ERROR", error);
     }
 
 }

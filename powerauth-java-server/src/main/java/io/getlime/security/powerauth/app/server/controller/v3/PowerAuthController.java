@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.controller.v3;
 
+import com.wultra.security.powerauth.client.model.PowerAuthRequestWrapper;
+import com.wultra.security.powerauth.client.model.PowerAuthResponseWrapper;
 import com.wultra.security.powerauth.client.v3.*;
-import io.getlime.security.powerauth.app.server.controller.RESTRequestWrapper;
-import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,8 +54,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/status", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetSystemStatusResponse> getSystemStatus(@RequestBody RESTRequestWrapper<GetSystemStatusRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getSystemStatus(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetSystemStatusResponse> getSystemStatus(@RequestBody PowerAuthRequestWrapper<GetSystemStatusRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getSystemStatus(request.getRequestObject()));
     }
 
     /**
@@ -67,8 +67,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/error/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetErrorCodeListResponse> getErrorCodeList(@RequestBody RESTRequestWrapper<GetErrorCodeListRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getErrorCodeList(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetErrorCodeListResponse> getErrorCodeList(@RequestBody PowerAuthRequestWrapper<GetErrorCodeListRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getErrorCodeList(request.getRequestObject()));
     }
 
     /**
@@ -80,8 +80,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/init", method = RequestMethod.POST)
-    public RESTResponseWrapper<InitActivationResponse> initActivation(@RequestBody RESTRequestWrapper<InitActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.initActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<InitActivationResponse> initActivation(@RequestBody PowerAuthRequestWrapper<InitActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.initActivation(request.getRequestObject()));
     }
 
     /**
@@ -93,8 +93,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/prepare", method = RequestMethod.POST)
-    public RESTResponseWrapper<PrepareActivationResponse> prepareActivation(@RequestBody RESTRequestWrapper<PrepareActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.prepareActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<PrepareActivationResponse> prepareActivation(@RequestBody PowerAuthRequestWrapper<PrepareActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.prepareActivation(request.getRequestObject()));
     }
 
     /**
@@ -106,8 +106,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateActivationResponse> createActivation(@RequestBody RESTRequestWrapper<CreateActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateActivationResponse> createActivation(@RequestBody PowerAuthRequestWrapper<CreateActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createActivation(request.getRequestObject()));
     }
 
     /**
@@ -117,8 +117,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/otp/update", method = RequestMethod.POST)
-    public RESTResponseWrapper<UpdateActivationOtpResponse> updateActivationOtp(@RequestBody RESTRequestWrapper<UpdateActivationOtpRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.updateActivationOtp(request.getRequestObject()));
+    public PowerAuthResponseWrapper<UpdateActivationOtpResponse> updateActivationOtp(@RequestBody PowerAuthRequestWrapper<UpdateActivationOtpRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.updateActivationOtp(request.getRequestObject()));
     }
 
     /**
@@ -130,8 +130,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/commit", method = RequestMethod.POST)
-    public RESTResponseWrapper<CommitActivationResponse> commitActivation(@RequestBody RESTRequestWrapper<CommitActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.commitActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CommitActivationResponse> commitActivation(@RequestBody PowerAuthRequestWrapper<CommitActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.commitActivation(request.getRequestObject()));
     }
 
     /**
@@ -143,8 +143,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/status", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetActivationStatusResponse> getActivationStatus(@RequestBody RESTRequestWrapper<GetActivationStatusRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getActivationStatus(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetActivationStatusResponse> getActivationStatus(@RequestBody PowerAuthRequestWrapper<GetActivationStatusRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getActivationStatus(request.getRequestObject()));
     }
 
     /**
@@ -156,8 +156,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/remove", method = RequestMethod.POST)
-    public RESTResponseWrapper<RemoveActivationResponse> removeActivation(@RequestBody RESTRequestWrapper<RemoveActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.removeActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RemoveActivationResponse> removeActivation(@RequestBody PowerAuthRequestWrapper<RemoveActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.removeActivation(request.getRequestObject()));
     }
 
     /**
@@ -169,8 +169,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetActivationListForUserResponse> getActivationListForUser(@RequestBody RESTRequestWrapper<GetActivationListForUserRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetActivationListForUserResponse> getActivationListForUser(@RequestBody PowerAuthRequestWrapper<GetActivationListForUserRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
     }
 
     /**
@@ -182,8 +182,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/lookup", method = RequestMethod.POST)
-    public RESTResponseWrapper<LookupActivationsResponse> lookupActivations(@RequestBody RESTRequestWrapper<LookupActivationsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.lookupActivations(request.getRequestObject()));
+    public PowerAuthResponseWrapper<LookupActivationsResponse> lookupActivations(@RequestBody PowerAuthRequestWrapper<LookupActivationsRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.lookupActivations(request.getRequestObject()));
     }
 
     /**
@@ -195,8 +195,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/status/update", method = RequestMethod.POST)
-    public RESTResponseWrapper<UpdateStatusForActivationsResponse> updateStatusForActivations(@RequestBody RESTRequestWrapper<UpdateStatusForActivationsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.updateStatusForActivations(request.getRequestObject()));
+    public PowerAuthResponseWrapper<UpdateStatusForActivationsResponse> updateStatusForActivations(@RequestBody PowerAuthRequestWrapper<UpdateStatusForActivationsRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.updateStatusForActivations(request.getRequestObject()));
     }
 
     /**
@@ -208,8 +208,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/signature/verify", method = RequestMethod.POST)
-    public RESTResponseWrapper<VerifySignatureResponse> verifySignature(@RequestBody RESTRequestWrapper<VerifySignatureRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.verifySignature(request.getRequestObject()));
+    public PowerAuthResponseWrapper<VerifySignatureResponse> verifySignature(@RequestBody PowerAuthRequestWrapper<VerifySignatureRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.verifySignature(request.getRequestObject()));
     }
 
     /**
@@ -221,8 +221,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/signature/offline/personalized/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@RequestBody RESTRequestWrapper<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@RequestBody PowerAuthRequestWrapper<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
     }
 
     /**
@@ -234,8 +234,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/signature/offline/non-personalized/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateNonPersonalizedOfflineSignaturePayloadResponse> createNonPersonalizedOfflineSignaturePayload(@RequestBody RESTRequestWrapper<CreateNonPersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createNonPersonalizedOfflineSignaturePayload(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateNonPersonalizedOfflineSignaturePayloadResponse> createNonPersonalizedOfflineSignaturePayload(@RequestBody PowerAuthRequestWrapper<CreateNonPersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createNonPersonalizedOfflineSignaturePayload(request.getRequestObject()));
     }
 
     /**
@@ -247,8 +247,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/signature/offline/verify", method = RequestMethod.POST)
-    public RESTResponseWrapper<VerifyOfflineSignatureResponse> verifyOfflineSignature(@RequestBody RESTRequestWrapper<VerifyOfflineSignatureRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.verifyOfflineSignature(request.getRequestObject()));
+    public PowerAuthResponseWrapper<VerifyOfflineSignatureResponse> verifyOfflineSignature(@RequestBody PowerAuthRequestWrapper<VerifyOfflineSignatureRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.verifyOfflineSignature(request.getRequestObject()));
     }
 
     /**
@@ -260,8 +260,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/vault/unlock", method = RequestMethod.POST)
-    public RESTResponseWrapper<VaultUnlockResponse> vaultUnlock(@RequestBody RESTRequestWrapper<VaultUnlockRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.vaultUnlock(request.getRequestObject()));
+    public PowerAuthResponseWrapper<VaultUnlockResponse> vaultUnlock(@RequestBody PowerAuthRequestWrapper<VaultUnlockRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.vaultUnlock(request.getRequestObject()));
     }
 
     /**
@@ -273,8 +273,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/signature/ecdsa/verify", method = RequestMethod.POST)
-    public RESTResponseWrapper<VerifyECDSASignatureResponse> verifyECDSASignature(@RequestBody RESTRequestWrapper<VerifyECDSASignatureRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.verifyECDSASignature(request.getRequestObject()));
+    public PowerAuthResponseWrapper<VerifyECDSASignatureResponse> verifyECDSASignature(@RequestBody PowerAuthRequestWrapper<VerifyECDSASignatureRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.verifyECDSASignature(request.getRequestObject()));
     }
 
     /**
@@ -286,8 +286,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/signature/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<SignatureAuditResponse> getSignatureAuditLog(@RequestBody RESTRequestWrapper<SignatureAuditRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getSignatureAuditLog(request.getRequestObject()));
+    public PowerAuthResponseWrapper<SignatureAuditResponse> getSignatureAuditLog(@RequestBody PowerAuthRequestWrapper<SignatureAuditRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getSignatureAuditLog(request.getRequestObject()));
     }
 
     /**
@@ -299,8 +299,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/history", method = RequestMethod.POST)
-    public RESTResponseWrapper<ActivationHistoryResponse> getActivationHistory(@RequestBody RESTRequestWrapper<ActivationHistoryRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getActivationHistory(request.getRequestObject()));
+    public PowerAuthResponseWrapper<ActivationHistoryResponse> getActivationHistory(@RequestBody PowerAuthRequestWrapper<ActivationHistoryRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getActivationHistory(request.getRequestObject()));
     }
 
     /**
@@ -312,8 +312,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/block", method = RequestMethod.POST)
-    public RESTResponseWrapper<BlockActivationResponse> blockActivation(@RequestBody RESTRequestWrapper<BlockActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.blockActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<BlockActivationResponse> blockActivation(@RequestBody PowerAuthRequestWrapper<BlockActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.blockActivation(request.getRequestObject()));
     }
 
     /**
@@ -325,8 +325,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/unblock", method = RequestMethod.POST)
-    public RESTResponseWrapper<UnblockActivationResponse> unblockActivation(@RequestBody RESTRequestWrapper<UnblockActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.unblockActivation(request.getRequestObject()));
+    public PowerAuthResponseWrapper<UnblockActivationResponse> unblockActivation(@RequestBody PowerAuthRequestWrapper<UnblockActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.unblockActivation(request.getRequestObject()));
     }
 
     /**
@@ -338,8 +338,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetApplicationListResponse> getApplicationList(@RequestBody RESTRequestWrapper<GetApplicationListRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getApplicationList(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetApplicationListResponse> getApplicationList(@RequestBody PowerAuthRequestWrapper<GetApplicationListRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getApplicationList(request.getRequestObject()));
     }
 
     /**
@@ -351,8 +351,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/detail", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetApplicationDetailResponse> getApplicationDetail(@RequestBody RESTRequestWrapper<GetApplicationDetailRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getApplicationDetail(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetApplicationDetailResponse> getApplicationDetail(@RequestBody PowerAuthRequestWrapper<GetApplicationDetailRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getApplicationDetail(request.getRequestObject()));
     }
 
     /**
@@ -364,8 +364,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/detail/version", method = RequestMethod.POST)
-    public RESTResponseWrapper<LookupApplicationByAppKeyResponse> lookupApplicationByAppKey(@RequestBody RESTRequestWrapper<LookupApplicationByAppKeyRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.lookupApplicationByAppKey(request.getRequestObject()));
+    public PowerAuthResponseWrapper<LookupApplicationByAppKeyResponse> lookupApplicationByAppKey(@RequestBody PowerAuthRequestWrapper<LookupApplicationByAppKeyRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.lookupApplicationByAppKey(request.getRequestObject()));
     }
 
     /**
@@ -377,8 +377,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateApplicationResponse> createApplication(@RequestBody RESTRequestWrapper<CreateApplicationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createApplication(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateApplicationResponse> createApplication(@RequestBody PowerAuthRequestWrapper<CreateApplicationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createApplication(request.getRequestObject()));
     }
 
     /**
@@ -390,8 +390,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/version/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateApplicationVersionResponse> createApplicationVersion(@RequestBody RESTRequestWrapper<CreateApplicationVersionRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createApplicationVersion(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateApplicationVersionResponse> createApplicationVersion(@RequestBody PowerAuthRequestWrapper<CreateApplicationVersionRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createApplicationVersion(request.getRequestObject()));
     }
 
     /**
@@ -403,8 +403,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/version/unsupport", method = RequestMethod.POST)
-    public RESTResponseWrapper<UnsupportApplicationVersionResponse> unsupportApplicationVersion(@RequestBody RESTRequestWrapper<UnsupportApplicationVersionRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.unsupportApplicationVersion(request.getRequestObject()));
+    public PowerAuthResponseWrapper<UnsupportApplicationVersionResponse> unsupportApplicationVersion(@RequestBody PowerAuthRequestWrapper<UnsupportApplicationVersionRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.unsupportApplicationVersion(request.getRequestObject()));
     }
 
     /**
@@ -416,8 +416,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/version/support", method = RequestMethod.POST)
-    public RESTResponseWrapper<SupportApplicationVersionResponse> supportApplicationVersion(@RequestBody RESTRequestWrapper<SupportApplicationVersionRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.supportApplicationVersion(request.getRequestObject()));
+    public PowerAuthResponseWrapper<SupportApplicationVersionResponse> supportApplicationVersion(@RequestBody PowerAuthRequestWrapper<SupportApplicationVersionRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.supportApplicationVersion(request.getRequestObject()));
     }
 
     /**
@@ -429,8 +429,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/integration/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateIntegrationResponse> createIntegration(@RequestBody RESTRequestWrapper<CreateIntegrationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createIntegration(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateIntegrationResponse> createIntegration(@RequestBody PowerAuthRequestWrapper<CreateIntegrationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createIntegration(request.getRequestObject()));
     }
 
     /**
@@ -441,8 +441,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/integration/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetIntegrationListResponse> getIntegrationList() throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getIntegrationList());
+    public PowerAuthResponseWrapper<GetIntegrationListResponse> getIntegrationList() throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getIntegrationList());
     }
 
     /**
@@ -454,8 +454,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/integration/remove", method = RequestMethod.POST)
-    public RESTResponseWrapper<RemoveIntegrationResponse> removeIntegration(@RequestBody RESTRequestWrapper<RemoveIntegrationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.removeIntegration(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RemoveIntegrationResponse> removeIntegration(@RequestBody PowerAuthRequestWrapper<RemoveIntegrationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.removeIntegration(request.getRequestObject()));
     }
 
     /**
@@ -467,8 +467,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/callback/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateCallbackUrlResponse> createCallbackUrl(@RequestBody RESTRequestWrapper<CreateCallbackUrlRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createCallbackUrl(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateCallbackUrlResponse> createCallbackUrl(@RequestBody PowerAuthRequestWrapper<CreateCallbackUrlRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createCallbackUrl(request.getRequestObject()));
     }
 
     /**
@@ -480,8 +480,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/callback/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetCallbackUrlListResponse> getCallbackUrlList(@RequestBody RESTRequestWrapper<GetCallbackUrlListRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getCallbackUrlList(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetCallbackUrlListResponse> getCallbackUrlList(@RequestBody PowerAuthRequestWrapper<GetCallbackUrlListRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getCallbackUrlList(request.getRequestObject()));
     }
 
     /**
@@ -493,8 +493,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/callback/remove", method = RequestMethod.POST)
-    public RESTResponseWrapper<RemoveCallbackUrlResponse> removeCallbackUrl(@RequestBody RESTRequestWrapper<RemoveCallbackUrlRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.removeCallbackUrl(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RemoveCallbackUrlResponse> removeCallbackUrl(@RequestBody PowerAuthRequestWrapper<RemoveCallbackUrlRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.removeCallbackUrl(request.getRequestObject()));
     }
 
     /**
@@ -506,8 +506,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/token/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateTokenResponse> createToken(@RequestBody RESTRequestWrapper<CreateTokenRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createToken(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateTokenResponse> createToken(@RequestBody PowerAuthRequestWrapper<CreateTokenRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createToken(request.getRequestObject()));
     }
 
     /**
@@ -519,8 +519,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/token/validate", method = RequestMethod.POST)
-    public RESTResponseWrapper<ValidateTokenResponse> validateToken(@RequestBody RESTRequestWrapper<ValidateTokenRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.validateToken(request.getRequestObject()));
+    public PowerAuthResponseWrapper<ValidateTokenResponse> validateToken(@RequestBody PowerAuthRequestWrapper<ValidateTokenRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.validateToken(request.getRequestObject()));
     }
 
     /**
@@ -532,8 +532,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/token/remove", method = RequestMethod.POST)
-    public RESTResponseWrapper<RemoveTokenResponse> removeToken(@RequestBody RESTRequestWrapper<RemoveTokenRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.removeToken(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RemoveTokenResponse> removeToken(@RequestBody PowerAuthRequestWrapper<RemoveTokenRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.removeToken(request.getRequestObject()));
     }
 
     /**
@@ -545,8 +545,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/ecies/decryptor", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetEciesDecryptorResponse> getEciesDecryptor(@RequestBody RESTRequestWrapper<GetEciesDecryptorRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getEciesDecryptor(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetEciesDecryptorResponse> getEciesDecryptor(@RequestBody PowerAuthRequestWrapper<GetEciesDecryptorRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getEciesDecryptor(request.getRequestObject()));
     }
 
     /**
@@ -557,8 +557,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/upgrade/start", method = RequestMethod.POST)
-    public RESTResponseWrapper<StartUpgradeResponse> startUpgrade(@RequestBody RESTRequestWrapper<StartUpgradeRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.startUpgrade(request.getRequestObject()));
+    public PowerAuthResponseWrapper<StartUpgradeResponse> startUpgrade(@RequestBody PowerAuthRequestWrapper<StartUpgradeRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.startUpgrade(request.getRequestObject()));
     }
 
     /**
@@ -569,8 +569,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/upgrade/commit", method = RequestMethod.POST)
-    public RESTResponseWrapper<CommitUpgradeResponse> commitUpgrade(@RequestBody RESTRequestWrapper<CommitUpgradeRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.commitUpgrade(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CommitUpgradeResponse> commitUpgrade(@RequestBody PowerAuthRequestWrapper<CommitUpgradeRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.commitUpgrade(request.getRequestObject()));
     }
 
     /**
@@ -581,8 +581,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/recovery/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@RequestBody RESTRequestWrapper<CreateRecoveryCodeRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createRecoveryCode(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@RequestBody PowerAuthRequestWrapper<CreateRecoveryCodeRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createRecoveryCode(request.getRequestObject()));
     }
 
     /**
@@ -593,8 +593,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/recovery/confirm", method = RequestMethod.POST)
-    public RESTResponseWrapper<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@RequestBody RESTRequestWrapper<ConfirmRecoveryCodeRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.confirmRecoveryCode(request.getRequestObject()));
+    public PowerAuthResponseWrapper<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@RequestBody PowerAuthRequestWrapper<ConfirmRecoveryCodeRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.confirmRecoveryCode(request.getRequestObject()));
     }
 
     /**
@@ -605,8 +605,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/recovery/lookup", method = RequestMethod.POST)
-    public RESTResponseWrapper<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@RequestBody RESTRequestWrapper<LookupRecoveryCodesRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.lookupRecoveryCodes(request.getRequestObject()));
+    public PowerAuthResponseWrapper<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@RequestBody PowerAuthRequestWrapper<LookupRecoveryCodesRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.lookupRecoveryCodes(request.getRequestObject()));
     }
 
     /**
@@ -617,8 +617,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/recovery/revoke", method = RequestMethod.POST)
-    public RESTResponseWrapper<RevokeRecoveryCodesResponse> revokeRecoveryCodesRequest(@RequestBody RESTRequestWrapper<RevokeRecoveryCodesRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.revokeRecoveryCodes(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RevokeRecoveryCodesResponse> revokeRecoveryCodesRequest(@RequestBody PowerAuthRequestWrapper<RevokeRecoveryCodesRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.revokeRecoveryCodes(request.getRequestObject()));
     }
 
     /**
@@ -629,8 +629,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/recovery/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@RequestBody RESTRequestWrapper<RecoveryCodeActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createActivationUsingRecoveryCode(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@RequestBody PowerAuthRequestWrapper<RecoveryCodeActivationRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createActivationUsingRecoveryCode(request.getRequestObject()));
     }
 
     /**
@@ -641,8 +641,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/recovery/config/detail", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetRecoveryConfigResponse> getRecoveryConfig(@RequestBody RESTRequestWrapper<GetRecoveryConfigRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.getRecoveryConfig(request.getRequestObject()));
+    public PowerAuthResponseWrapper<GetRecoveryConfigResponse> getRecoveryConfig(@RequestBody PowerAuthRequestWrapper<GetRecoveryConfigRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.getRecoveryConfig(request.getRequestObject()));
     }
 
     /**
@@ -653,8 +653,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/recovery/config/update", method = RequestMethod.POST)
-    public RESTResponseWrapper<UpdateRecoveryConfigResponse> updateRecoveryConfig(@RequestBody RESTRequestWrapper<UpdateRecoveryConfigRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.updateRecoveryConfig(request.getRequestObject()));
+    public PowerAuthResponseWrapper<UpdateRecoveryConfigResponse> updateRecoveryConfig(@RequestBody PowerAuthRequestWrapper<UpdateRecoveryConfigRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.updateRecoveryConfig(request.getRequestObject()));
     }
 
     /**
@@ -665,8 +665,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/flags/list", method = RequestMethod.POST)
-    public RESTResponseWrapper<ListActivationFlagsResponse> listActivationFlags(@RequestBody RESTRequestWrapper<ListActivationFlagsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.listActivationFlags(request.getRequestObject()));
+    public PowerAuthResponseWrapper<ListActivationFlagsResponse> listActivationFlags(@RequestBody PowerAuthRequestWrapper<ListActivationFlagsRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.listActivationFlags(request.getRequestObject()));
     }
 
     /**
@@ -677,8 +677,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/flags/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateActivationFlagsResponse> createActivationFlags(@RequestBody RESTRequestWrapper<CreateActivationFlagsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createActivationFlags(request.getRequestObject()));
+    public PowerAuthResponseWrapper<CreateActivationFlagsResponse> createActivationFlags(@RequestBody PowerAuthRequestWrapper<CreateActivationFlagsRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.createActivationFlags(request.getRequestObject()));
     }
 
     /**
@@ -689,8 +689,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/flags/update", method = RequestMethod.POST)
-    public RESTResponseWrapper<UpdateActivationFlagsResponse> updateActivationFlags(@RequestBody RESTRequestWrapper<UpdateActivationFlagsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.updateActivationFlags(request.getRequestObject()));
+    public PowerAuthResponseWrapper<UpdateActivationFlagsResponse> updateActivationFlags(@RequestBody PowerAuthRequestWrapper<UpdateActivationFlagsRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.updateActivationFlags(request.getRequestObject()));
     }
 
     /**
@@ -701,8 +701,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/flags/remove", method = RequestMethod.POST)
-    public RESTResponseWrapper<RemoveActivationFlagsResponse> removeActivationFlags(@RequestBody RESTRequestWrapper<RemoveActivationFlagsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.removeActivationFlags(request.getRequestObject()));
+    public PowerAuthResponseWrapper<RemoveActivationFlagsResponse> removeActivationFlags(@RequestBody PowerAuthRequestWrapper<RemoveActivationFlagsRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.removeActivationFlags(request.getRequestObject()));
     }
 
 }

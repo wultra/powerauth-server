@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.controller;
+package com.wultra.security.powerauth.client.model;
 
 import javax.validation.constraints.NotNull;
 
@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
  * @param <T> Type of the response object instance.
  * @author Petr Dvorak, petr@wultra.com
  */
-public class RESTResponseWrapper<T> {
+public class PowerAuthResponseWrapper<T> {
 
     @NotNull
     private T responseObject;
@@ -36,7 +36,7 @@ public class RESTResponseWrapper<T> {
     /**
      * Default constructor.
      */
-    public RESTResponseWrapper() {
+    public PowerAuthResponseWrapper() {
     }
 
     /**
@@ -45,7 +45,7 @@ public class RESTResponseWrapper<T> {
      * @param status         Status - "OK" or "ERROR".
      * @param responseObject Response object instance.
      */
-    public RESTResponseWrapper(@NotNull String status, @NotNull T responseObject) {
+    public PowerAuthResponseWrapper(@NotNull String status, @NotNull T responseObject) {
         this.status = status;
         this.responseObject = responseObject;
     }
@@ -107,7 +107,7 @@ public class RESTResponseWrapper<T> {
             return false;
         }
         @SuppressWarnings("rawtypes")
-        RESTResponseWrapper other = (RESTResponseWrapper) obj;
+        PowerAuthResponseWrapper other = (PowerAuthResponseWrapper) obj;
         if (responseObject == null) {
             if (other.responseObject != null) {
                 return false;

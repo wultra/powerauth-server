@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.controller;
+package com.wultra.security.powerauth.client.model;
 
 import javax.validation.constraints.NotNull;
 
@@ -25,7 +25,7 @@ import javax.validation.constraints.NotNull;
  * @param <T> Type of the request object instance.
  * @author Petr Dvorak, petr@wultra.com
  */
-public class RESTRequestWrapper<T> {
+public class PowerAuthRequestWrapper<T> {
 
     @NotNull
     private T requestObject;
@@ -33,7 +33,7 @@ public class RESTRequestWrapper<T> {
     /**
      * Default constructor.
      */
-    public RESTRequestWrapper() {
+    public PowerAuthRequestWrapper() {
     }
 
     /**
@@ -41,7 +41,7 @@ public class RESTRequestWrapper<T> {
      *
      * @param requestObject Request object.
      */
-    public RESTRequestWrapper(@NotNull T requestObject) {
+    public PowerAuthRequestWrapper(@NotNull T requestObject) {
         this.requestObject = requestObject;
     }
 
@@ -84,7 +84,7 @@ public class RESTRequestWrapper<T> {
             return false;
         }
         @SuppressWarnings("rawtypes")
-        RESTRequestWrapper other = (RESTRequestWrapper) obj;
+        PowerAuthRequestWrapper other = (PowerAuthRequestWrapper) obj;
         if (requestObject == null) {
             return other.requestObject == null;
         } else {
