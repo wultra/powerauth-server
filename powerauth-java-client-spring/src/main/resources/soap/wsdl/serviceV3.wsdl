@@ -335,6 +335,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
@@ -370,8 +371,11 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1442,8 +1446,10 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
