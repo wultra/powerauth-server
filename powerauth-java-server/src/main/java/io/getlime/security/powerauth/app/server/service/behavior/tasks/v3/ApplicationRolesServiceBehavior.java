@@ -69,7 +69,6 @@ public class ApplicationRolesServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final ListApplicationRolesResponse response = new ListApplicationRolesResponse();
         Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application ID: {}", applicationId);
@@ -77,6 +76,7 @@ public class ApplicationRolesServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         ApplicationEntity application = applicationOptional.get();
+        final ListApplicationRolesResponse response = new ListApplicationRolesResponse();
         response.getApplicationRoles().addAll(application.getRoles());
         return response;
     }
@@ -94,9 +94,7 @@ public class ApplicationRolesServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final AddApplicationRolesResponse response = new AddApplicationRolesResponse();
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-        response.setApplicationId(applicationId);
         Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application ID: {}", applicationId);
@@ -112,6 +110,8 @@ public class ApplicationRolesServiceBehavior {
         application.getRoles().clear();
         application.getRoles().addAll(allRoles);
         applicationRepository.save(application);
+        final AddApplicationRolesResponse response = new AddApplicationRolesResponse();
+        response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
         return response;
     }
@@ -160,9 +160,7 @@ public class ApplicationRolesServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final RemoveApplicationRolesResponse response = new RemoveApplicationRolesResponse();
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-        response.setApplicationId(applicationId);
         Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
         if (!applicationOptional.isPresent()) {
             logger.info("Application not found, application ID: {}", applicationId);
@@ -172,6 +170,8 @@ public class ApplicationRolesServiceBehavior {
         ApplicationEntity application = applicationOptional.get();
         application.getRoles().removeAll(applicationRoles);
         applicationRepository.save(application);
+        final RemoveApplicationRolesResponse response = new RemoveApplicationRolesResponse();
+        response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
         return response;
     }

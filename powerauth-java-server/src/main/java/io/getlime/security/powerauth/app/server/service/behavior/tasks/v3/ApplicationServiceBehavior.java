@@ -87,10 +87,6 @@ public class ApplicationServiceBehavior {
     }
 
     private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
-        GetApplicationDetailResponse response = new GetApplicationDetailResponse();
-        response.setApplicationId(application.getId());
-        response.setApplicationName(application.getName());
-        response.getApplicationRoles().addAll(application.getRoles());
         MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
@@ -98,6 +94,10 @@ public class ApplicationServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
+        GetApplicationDetailResponse response = new GetApplicationDetailResponse();
+        response.setApplicationId(application.getId());
+        response.setApplicationName(application.getName());
+        response.getApplicationRoles().addAll(application.getRoles());
         response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
 
         List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(application.getId());
