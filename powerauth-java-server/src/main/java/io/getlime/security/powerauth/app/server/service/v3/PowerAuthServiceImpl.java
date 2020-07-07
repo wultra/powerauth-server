@@ -1504,6 +1504,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method listApplicationRoles");
@@ -1529,6 +1530,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method addApplicationRoles");
@@ -1560,6 +1562,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method updateApplicationRoles");
@@ -1591,6 +1594,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws Exception {
         if (request.getApplicationId() <= 0L) {
             logger.warn("Invalid request parameter applicationId in method removeApplicationRoles");
