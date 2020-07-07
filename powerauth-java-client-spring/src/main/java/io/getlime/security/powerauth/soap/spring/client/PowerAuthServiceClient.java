@@ -1353,25 +1353,25 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     }
 
     /**
-     * Create activation flags.
+     * Add activation flags.
      * @param request Create activation flags request.
-     * @return Create activation flags response.
+     * @return Add activation flags response.
      */
-    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) {
-        return (CreateActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) {
+        return (AddActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
     /**
-     * Create activation flags.
+     * Add activation flags.
      * @param activationId Activation ID.
      * @param activationFlags Activation flags.
-     * @return Create activation flags response.
+     * @return Add activation flags response.
      */
-    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) {
-        CreateActivationFlagsRequest request = new CreateActivationFlagsRequest();
+    public AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) {
+        AddActivationFlagsRequest request = new AddActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
-        return createActivationFlags(request);
+        return addActivationFlags(request);
     }
 
     /**
@@ -1416,6 +1416,92 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
         return removeActivationFlags(request);
+    }
+
+    /**
+     * List application roles.
+     * @param request List application roles request.
+     * @return List application roles response.
+     */
+    public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) {
+        return (ListApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * List application roles.
+     * @param applicationId Application ID.
+     * @return List application roles response.
+     */
+    public ListApplicationRolesResponse listApplicationRoles(Long applicationId) {
+        ListApplicationRolesRequest request = new ListApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        return listApplicationRoles(request);
+    }
+
+    /**
+     * Add application roles.
+     * @param request Create application roles request.
+     * @return Add application roles response.
+     */
+    public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) {
+        return (AddApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Add application roles.
+     * @param applicationId Application ID.
+     * @param applicationRoles Application roles.
+     * @return Add application roles response.
+     */
+    public AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) {
+        AddApplicationRolesRequest request = new AddApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return addApplicationRoles(request);
+    }
+
+    /**
+     * Update application roles.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     */
+    public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) {
+        return (UpdateApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Update application roles.
+     * @param applicationId Application ID.
+     * @param applicationRoles Application roles.
+     * @return Update application roles response.
+     */
+    public UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) {
+        UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return updateApplicationRoles(request);
+    }
+
+    /**
+     * Remove application roles.
+     * @param request Remove application roles request.
+     * @return Remove application roles response.
+     */
+    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) {
+        return (RemoveApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    /**
+     * Remove application roles.
+     * @param applicationId Application ID.
+     * @param applicationRoles Application roles.
+     * @return Remove application roles response.
+     */
+    public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) {
+        RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return removeApplicationRoles(request);
     }
 
     /**

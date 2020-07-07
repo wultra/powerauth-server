@@ -30,42 +30,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Converter for activation flags.
+ * Converter for application roles.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Converter
 @Component
-public class ActivationFlagConverter implements AttributeConverter<List<String>, String> {
+public class ApplicationRoleConverter implements AttributeConverter<List<String>, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ActivationFlagConverter.class);
+    private static final Logger logger = LoggerFactory.getLogger(ApplicationRoleConverter.class);
 
-    private static final String EMPTY_FLAGS = "[]";
+    private static final String EMPTY_ROLES = "[]";
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public String convertToDatabaseColumn(List<String> flags) {
-        if (flags == null) {
-            return EMPTY_FLAGS;
+    public String convertToDatabaseColumn(List<String> roles) {
+        if (roles == null) {
+            return EMPTY_ROLES;
         }
         try {
-            return objectMapper.writeValueAsString(flags);
+            return objectMapper.writeValueAsString(roles);
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
-            return EMPTY_FLAGS;
+            logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
+            return EMPTY_ROLES;
         }
     }
 
     @Override
-    public List<String> convertToEntityAttribute(String flags) {
-        if (flags == null) {
+    public List<String> convertToEntityAttribute(String roles) {
+        if (roles == null) {
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(flags, new TypeReference<List<String>>(){});
+            return objectMapper.readValue(roles, new TypeReference<List<String>>(){});
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
             return new ArrayList<>();
         }
 

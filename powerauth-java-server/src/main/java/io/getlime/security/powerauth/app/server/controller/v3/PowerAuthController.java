@@ -670,15 +670,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#createActivationFlags(CreateActivationFlagsRequest)} method and
+     * Call {@link PowerAuthService#addActivationFlags(AddActivationFlagsRequest)} method and
      * return the response.
      * @param request Create activation flags request.
      * @return Create activation flags response.
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/flags/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateActivationFlagsResponse> createActivationFlags(@RequestBody RESTRequestWrapper<CreateActivationFlagsRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createActivationFlags(request.getRequestObject()));
+    public RESTResponseWrapper<AddActivationFlagsResponse> addActivationFlags(@RequestBody RESTRequestWrapper<AddActivationFlagsRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.addActivationFlags(request.getRequestObject()));
     }
 
     /**
@@ -704,5 +704,54 @@ public class PowerAuthController {
     public RESTResponseWrapper<RemoveActivationFlagsResponse> removeActivationFlags(@RequestBody RESTRequestWrapper<RemoveActivationFlagsRequest> request) throws Exception {
         return new RESTResponseWrapper<>("OK", powerAuthService.removeActivationFlags(request.getRequestObject()));
     }
+
+    /**
+     * Call {@link PowerAuthService#listApplicationRoles(ListApplicationRolesRequest)} method and
+     * return the response.
+     * @param request List application roles request.
+     * @return List application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/application/roles/list", method = RequestMethod.POST)
+    public RESTResponseWrapper<ListApplicationRolesResponse> listApplicationRoles(@RequestBody RESTRequestWrapper<ListApplicationRolesRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.listApplicationRoles(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#addApplicationRoles(AddApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Create application roles request.
+     * @return Create application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/application/roles/create", method = RequestMethod.POST)
+    public RESTResponseWrapper<AddApplicationRolesResponse> addApplicationRoles(@RequestBody RESTRequestWrapper<AddApplicationRolesRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.addApplicationRoles(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateApplicationRoles(UpdateApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/roles/update", method = RequestMethod.POST)
+    public RESTResponseWrapper<UpdateApplicationRolesResponse> updateApplicationRoles(@RequestBody RESTRequestWrapper<UpdateApplicationRolesRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.updateApplicationRoles(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeApplicationRoles(RemoveApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Remove application roles request.
+     * @return Remove application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/activation/roles/remove", method = RequestMethod.POST)
+    public RESTResponseWrapper<RemoveApplicationRolesResponse> removeApplicationRoles(@RequestBody RESTRequestWrapper<RemoveApplicationRolesRequest> request) throws Exception {
+        return new RESTResponseWrapper<>("OK", powerAuthService.removeApplicationRoles(request.getRequestObject()));
+    }
+
 
 }

@@ -68,7 +68,7 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "flags")
     @Convert(converter = ActivationFlagConverter.class)
-    private List<String> flags;
+    private List<String> flags = new ArrayList<>();
 
     @Column(name = "server_private_key_base64", nullable = false)
     private String serverPrivateKeyBase64;
@@ -200,7 +200,7 @@ public class ActivationRecordEntity implements Serializable {
         this.extras = extras;
         this.deviceInfo = deviceInfo;
         this.platform = platform;
-        this.flags = flags;
+        this.flags.addAll(flags);
         this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
         this.serverPublicKeyBase64 = serverPublicKeyBase64;
         this.devicePublicKeyBase64 = devicePublicKeyBase64;
@@ -384,14 +384,6 @@ public class ActivationRecordEntity implements Serializable {
      */
     public List<String> getFlags() {
         return flags;
-    }
-
-    /**
-     * Set activation flags.
-     * @param flags Activation flags.
-     */
-    public void setFlags(List<String> flags) {
-        this.flags = flags;
     }
 
     /**

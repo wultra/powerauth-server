@@ -38,6 +38,8 @@ public class ServiceBehaviorCatalogue {
 
     private ApplicationServiceBehavior applicationServiceBehavior;
 
+    private ApplicationRolesServiceBehavior applicationRolesServiceBehavior;
+
     private AuditingServiceBehavior auditingServiceBehavior;
 
     private OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
@@ -80,6 +82,11 @@ public class ServiceBehaviorCatalogue {
     @Autowired
     public void setApplicationServiceBehavior(ApplicationServiceBehavior applicationServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
+    }
+
+    @Autowired
+    public void setApplicationRolesServiceBehavior(ApplicationRolesServiceBehavior applicationRolesServiceBehavior) {
+        this.applicationRolesServiceBehavior = applicationRolesServiceBehavior;
     }
 
     @Autowired
@@ -152,6 +159,10 @@ public class ServiceBehaviorCatalogue {
 
     public ApplicationServiceBehavior getApplicationServiceBehavior() {
         return applicationServiceBehavior;
+    }
+
+    public ApplicationRolesServiceBehavior getApplicationRolesServiceBehavior() {
+        return applicationRolesServiceBehavior;
     }
 
     public ActivationHistoryServiceBehavior getActivationHistoryServiceBehavior() {

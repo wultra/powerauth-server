@@ -50,7 +50,8 @@ CREATE TABLE "pa_activation"
 CREATE TABLE "pa_application"
 (
     "id"                          INTEGER NOT NULL PRIMARY KEY,
-    "name"                        VARCHAR(255) NOT NULL
+    "name"                        VARCHAR(255) NOT NULL,
+    "roles"                       VARCHAR(255)
 );
 
 

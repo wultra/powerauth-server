@@ -23,7 +23,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ActivationRe
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.v3.CreateActivationFlagsResponse;
+import io.getlime.security.powerauth.v3.AddActivationFlagsResponse;
 import io.getlime.security.powerauth.v3.ListActivationFlagsResponse;
 import io.getlime.security.powerauth.v3.RemoveActivationFlagsResponse;
 import io.getlime.security.powerauth.v3.UpdateActivationFlagsResponse;
@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,7 +60,7 @@ public class ActivationFlagsServiceBehavior {
      * List activation flags.
      * @param activationId Activation ID.
      * @return List activation flags response.
-     * @throws Exception In case of a business logic error.
+     * @throws GenericServiceException In case of a business logic error.
      */
     public ListActivationFlagsResponse listActivationFlags(String activationId) throws GenericServiceException {
         if (activationId == null || activationId.isEmpty()) {
@@ -66,7 +68,7 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        ListActivationFlagsResponse response = new ListActivationFlagsResponse();
+        final ListActivationFlagsResponse response = new ListActivationFlagsResponse();
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
@@ -78,19 +80,19 @@ public class ActivationFlagsServiceBehavior {
     }
 
     /**
-     * Create activation flags.
+     * Add activation flags.
      * @param activationId Activation ID.
      * @param activationFlags Activation flags.
-     * @return Create activation flags response.
-     * @throws Exception In case of a business logic error.
+     * @return Add activation flags response.
+     * @throws GenericServiceException In case of a business logic error.
      */
-    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws GenericServiceException {
-        CreateActivationFlagsResponse response = new CreateActivationFlagsResponse();
+    public AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws GenericServiceException {
         if (activationId == null || activationId.isEmpty()) {
             logger.info("Missing activation ID for adding activation flags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+        final AddActivationFlagsResponse response = new AddActivationFlagsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         response.setActivationId(activationId);
         ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
@@ -101,7 +103,11 @@ public class ActivationFlagsServiceBehavior {
         }
         List<String> currentFlags = activation.getFlags();
         List<String> newFlags = activationFlags.stream().filter(flag -> !currentFlags.contains(flag)).collect(Collectors.toList());
-        activation.getFlags().addAll(newFlags);
+        List<String> allFlags = new ArrayList<>(currentFlags);
+        allFlags.addAll(newFlags);
+        Collections.sort(allFlags);
+        activation.getFlags().clear();
+        activation.getFlags().addAll(allFlags);
         activationRepository.save(activation);
         response.getActivationFlags().addAll(activation.getFlags());
         return response;
@@ -112,15 +118,15 @@ public class ActivationFlagsServiceBehavior {
      * @param activationId Activation ID.
      * @param activationFlags Activation flags.
      * @return Update activation flags response.
-     * @throws Exception In case of a business logic error.
+     * @throws GenericServiceException In case of a business logic error.
      */
     public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws GenericServiceException {
-        UpdateActivationFlagsResponse response = new UpdateActivationFlagsResponse();
         if (activationId == null || activationId.isEmpty()) {
             logger.info("Missing activation ID for updating activation flags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+        final UpdateActivationFlagsResponse response = new UpdateActivationFlagsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         response.setActivationId(activationId);
         ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
@@ -129,6 +135,7 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+        Collections.sort(activationFlags);
         activation.getFlags().clear();
         activation.getFlags().addAll(activationFlags);
         activationRepository.save(activation);
@@ -141,15 +148,15 @@ public class ActivationFlagsServiceBehavior {
      * @param activationId Activation ID.
      * @param activationFlags Activation flags.
      * @return Delete activation flags response.
-     * @throws Exception In case of a business logic error.
+     * @throws GenericServiceException In case of a business logic error.
      */
     public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws GenericServiceException {
-        RemoveActivationFlagsResponse response = new RemoveActivationFlagsResponse();
         if (activationId == null || activationId.isEmpty()) {
             logger.info("Missing activation ID for deleting activation flags");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
+        final RemoveActivationFlagsResponse response = new RemoveActivationFlagsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         response.setActivationId(activationId);
         ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);

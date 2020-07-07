@@ -17,8 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.database.model.ApplicationRoleConverter;
+
 import javax.persistence.*;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,63 +44,77 @@ public class ApplicationEntity implements Serializable {
     @Column(name = "name", unique = true)
     private String name;
 
+    @Column(name = "roles")
+    @Convert(converter = ApplicationRoleConverter.class)
+    private List<String> roles = new ArrayList<>();
+
     @OneToMany(mappedBy = "application")
-    private List<ApplicationVersionEntity> versions;
+    private final List<ApplicationVersionEntity> versions = new ArrayList<>();
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public ApplicationEntity() {
     }
 
     /**
-     * Constructor for a new application
+     * Constructor for a new application.
      *
-     * @param id       Application ID
-     * @param name     Application name
-     * @param versions Collection of versions
+     * @param id       Application ID.
+     * @param name     Application name.
+     * @param roles    Application roles.
+     * @param versions Collection of versions.
      */
-    public ApplicationEntity(Long id, String name, List<ApplicationVersionEntity> versions) {
+    public ApplicationEntity(Long id, String name, List<String> roles, List<ApplicationVersionEntity> versions) {
         super();
         this.id = id;
         this.name = name;
-        this.versions = versions;
+        this.roles.addAll(roles);
+        this.versions.addAll(versions);
     }
 
     /**
-     * Get application ID
+     * Get application ID.
      *
-     * @return Application ID
+     * @return Application ID.
      */
     public Long getId() {
         return id;
     }
 
     /**
-     * Set application ID
+     * Set application ID.
      *
-     * @param id Application ID
+     * @param id Application ID.
      */
     public void setId(Long id) {
         this.id = id;
     }
 
     /**
-     * Get application name
+     * Get application name.
      *
-     * @return Application name
+     * @return Application name.
      */
     public String getName() {
         return name;
     }
 
     /**
-     * Set application name
+     * Set application name.
      *
-     * @param name Application name
+     * @param name Application name.
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Get application roles.
+     * @return Application roles.
+     */
+    public List<String> getRoles() {
+        return roles;
     }
 
     /**
@@ -113,11 +130,13 @@ public class ApplicationEntity implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApplicationEntity that = (ApplicationEntity) o;
-        return Objects.equals(name, that.name);
+        return Objects.equals(name, that.name) &&
+                Objects.equals(roles, that.roles) &&
+                Objects.equals(versions, that.versions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name);
+        return Objects.hash(name, roles, versions);
     }
 }

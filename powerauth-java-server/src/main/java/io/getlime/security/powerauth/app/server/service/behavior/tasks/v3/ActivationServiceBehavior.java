@@ -583,7 +583,7 @@ public class ActivationServiceBehavior {
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
                 // Initialize empty flags
-                response.getActivationFlags().addAll(Collections.EMPTY_LIST);
+                response.getActivationFlags();
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -744,8 +744,6 @@ public class ActivationServiceBehavior {
             activation.setExtras(null);
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
-            // Initialize empty flags
-            activation.setFlags(Collections.EMPTY_LIST);
             activation.setFailedAttempts(0L);
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);
