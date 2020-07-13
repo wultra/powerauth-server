@@ -1561,25 +1561,25 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Create activation flags.
+     * Add activation flags.
      * @param request Create activation flags request.
-     * @return Create activation flags response.
+     * @return Add activation flags response.
      */
-    public PowerAuthPortV3ServiceStub.CreateActivationFlagsResponse createActivationFlags(PowerAuthPortV3ServiceStub.CreateActivationFlagsRequest request) throws RemoteException {
-        return clientStubV3.createActivationFlags(request);
+    public PowerAuthPortV3ServiceStub.AddActivationFlagsResponse addActivationFlags(PowerAuthPortV3ServiceStub.AddActivationFlagsRequest request) throws RemoteException {
+        return clientStubV3.addActivationFlags(request);
     }
 
     /**
-     * Create activation flags.
+     * Add activation flags.
      * @param activationId Activation ID.
      * @param activationFlags Activation flags.
-     * @return Create activation flags response.
+     * @return Add activation flags response.
      */
-    public PowerAuthPortV3ServiceStub.CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
-        PowerAuthPortV3ServiceStub.CreateActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.CreateActivationFlagsRequest();
+    public PowerAuthPortV3ServiceStub.AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
+        PowerAuthPortV3ServiceStub.AddActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.AddActivationFlagsRequest();
         request.setActivationId(activationId);
-        request.setActivationFlags(activationFlags.toArray(new String[0]));
-        return createActivationFlags(request);
+        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        return addActivationFlags(request);
     }
 
     /**
@@ -1627,6 +1627,92 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * List application roles.
+     * @param request List application roles request.
+     * @return List application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.ListApplicationRolesResponse listApplicationRoles(PowerAuthPortV3ServiceStub.ListApplicationRolesRequest request) throws RemoteException {
+        return clientStubV3.listApplicationRoles(request);
+    }
+
+    /**
+     * List application roles.
+     * @param applicationId Application ID.
+     * @return List application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.ListApplicationRolesResponse listApplicationRoles(Long applicationId) throws RemoteException {
+        PowerAuthPortV3ServiceStub.ListApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.ListApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        return listApplicationRoles(request);
+    }
+
+    /**
+     * Add application roles.
+     * @param request Create application roles request.
+     * @return Add application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.AddApplicationRolesResponse addApplicationRoles(PowerAuthPortV3ServiceStub.AddApplicationRolesRequest request) throws RemoteException {
+        return clientStubV3.addApplicationRoles(request);
+    }
+
+    /**
+     * Add application roles.
+     * @param applicationId Application ID.
+     * @param applicationRoles Activation flags.
+     * @return Add application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
+        PowerAuthPortV3ServiceStub.AddApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.AddApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        return addApplicationRoles(request);
+    }
+
+    /**
+     * Update application roles.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateApplicationRolesResponse updateApplicationRoles(PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest request) throws RemoteException {
+        return clientStubV3.updateApplicationRoles(request);
+    }
+
+    /**
+     * Update application roles.
+     * @param applicationId Application ID.
+     * @param applicationRoles Activation flags.
+     * @return Update application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        return updateApplicationRoles(request);
+    }
+
+    /**
+     * Remove application roles.
+     * @param request Remove application roles request.
+     * @return Remove application roles response.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveApplicationRolesResponse removeApplicationRoles(PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest request) throws RemoteException {
+        return clientStubV3.removeApplicationRoles(request);
+    }
+
+    /**
+     * Remove application roles.
+     * @param applicationId Application ID.
+     * @param applicationRoles Activation flags.
+     * @return Remove activation flags response.
+     */
+    public PowerAuthPortV3ServiceStub.RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
+        PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        return removeApplicationRoles(request);
+    }
+
+    /**
      * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
      *
      * @return PowerAuth 2.0 client.
@@ -1636,7 +1722,8 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Client with PowerAuth version 2.0 methods. This client will be deprecated in future release.
+     * Client with Power
+     * Auth version 2.0 methods. This client will be deprecated in future release.
      */
     public class PowerAuthServiceClientV2 {
 

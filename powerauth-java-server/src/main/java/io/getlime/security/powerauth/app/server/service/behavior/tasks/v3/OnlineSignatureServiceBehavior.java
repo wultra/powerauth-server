@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -217,8 +218,9 @@ public class OnlineSignatureServiceBehavior {
      * @return Valid signature response.
      */
     private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
-        // Extract application ID
+        // Extract application ID and application roles
         Long applicationId = activation.getApplication().getId();
+        List<String> applicationRoles = activation.getApplication().getRoles();
 
         // Return the data
         VerifySignatureResponse response = new VerifySignatureResponse();
@@ -229,6 +231,7 @@ public class OnlineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
         response.setSignatureType(usedSignatureType);
         return response;
     }
@@ -242,8 +245,9 @@ public class OnlineSignatureServiceBehavior {
     private VerifySignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest) {
         // Calculate remaining attempts
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-        // Extract application ID
+        // Extract application ID and application roles
         Long applicationId = activation.getApplication().getId();
+        List<String> applicationRoles = activation.getApplication().getRoles();
 
         // return the data
         VerifySignatureResponse response = new VerifySignatureResponse();
@@ -254,6 +258,7 @@ public class OnlineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
         // In case multiple signature types are used, use the first one as signature type
         response.setSignatureType(signatureRequest.getSignatureType());
         return response;

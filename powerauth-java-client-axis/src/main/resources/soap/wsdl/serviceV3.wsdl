@@ -103,6 +103,7 @@
                                 <xs:sequence>
                                     <xs:element maxOccurs="1" minOccurs="1" name="id" type="xs:long"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="applicationName" type="xs:string"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
                                 </xs:sequence>
                             </xs:complexType>
                         </xs:element>
@@ -132,6 +133,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationName" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="masterPublicKey" type="xs:string"/>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="versions">
                             <xs:complexType>
@@ -193,6 +195,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationName" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -335,6 +338,7 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
@@ -370,8 +374,11 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -652,6 +659,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="signatureType" type="tns:SignatureType"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="remainingAttempts" type="xs:integer"/>
                     </xs:sequence>
@@ -738,6 +746,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="signatureType" type="tns:SignatureType"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="remainingAttempts" type="xs:integer"/>
                     </xs:sequence>
@@ -1170,6 +1179,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="signatureType" type="tns:SignatureType"/>
                     </xs:sequence>
                 </xs:complexType>
@@ -1442,8 +1452,10 @@
                     <xs:sequence>
                         <xs:element maxOccurs="1" minOccurs="1" name="activationId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="userId" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="encryptedData" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="mac" type="xs:string"/>
+                        <xs:element minOccurs="1" maxOccurs="1" name="activationStatus" type="tns:ActivationStatus"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1520,14 +1532,14 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="CreateActivationFlagsRequest">
+            <xs:element name="AddActivationFlagsRequest">
                 <xs:annotation>
-                    <xs:documentation>Create activation flags request.</xs:documentation>
+                    <xs:documentation>Add activation flags request.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1537,9 +1549,9 @@
                 </xs:complexType>
             </xs:element>
 
-            <xs:element name="CreateActivationFlagsResponse">
+            <xs:element name="AddActivationFlagsResponse">
                 <xs:annotation>
-                    <xs:documentation>Create activation flags response.</xs:documentation>
+                    <xs:documentation>Add activation flags response.</xs:documentation>
                 </xs:annotation>
                 <xs:complexType>
                     <xs:sequence>
@@ -1556,7 +1568,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1568,7 +1580,7 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1592,7 +1604,102 @@
                 <xs:complexType>
                     <xs:sequence>
                         <xs:element minOccurs="1" maxOccurs="1" name="activationId" type="xs:string"/>
-                        <xs:element minOccurs="1" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="activationFlags" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ListApplicationRolesRequest">
+                <xs:annotation>
+                    <xs:documentation>List application roles request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="ListApplicationRolesResponse">
+                <xs:annotation>
+                    <xs:documentation>List application roles response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:string"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="AddApplicationRolesRequest">
+                <xs:annotation>
+                    <xs:documentation>Add application roles request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="AddApplicationRolesResponse">
+                <xs:annotation>
+                    <xs:documentation>Add application roles response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateApplicationRolesRequest">
+                <xs:annotation>
+                    <xs:documentation>Update application roles request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateApplicationRolesResponse">
+                <xs:annotation>
+                    <xs:documentation>Update application roles response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="RemoveApplicationRolesRequest">
+                <xs:annotation>
+                    <xs:documentation>Remove application roles request.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="1" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="RemoveApplicationRolesResponse">
+                <xs:annotation>
+                    <xs:documentation>Remove application roles response.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element minOccurs="1" maxOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element minOccurs="0" maxOccurs="unbounded" name="applicationRoles" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -2067,12 +2174,12 @@
         <wsdl:part element="tns:ListActivationFlagsResponse" name="ListActivationFlagsResponse">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="CreateActivationFlagsRequest">
-        <wsdl:part element="tns:CreateActivationFlagsRequest" name="CreateActivationFlagsRequest">
+    <wsdl:message name="AddActivationFlagsRequest">
+        <wsdl:part element="tns:AddActivationFlagsRequest" name="AddActivationFlagsRequest">
         </wsdl:part>
     </wsdl:message>
-    <wsdl:message name="CreateActivationFlagsResponse">
-        <wsdl:part element="tns:CreateActivationFlagsResponse" name="CreateActivationFlagsResponse">
+    <wsdl:message name="AddActivationFlagsResponse">
+        <wsdl:part element="tns:AddActivationFlagsResponse" name="AddActivationFlagsResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:message name="UpdateActivationFlagsRequest">
@@ -2089,6 +2196,38 @@
     </wsdl:message>
     <wsdl:message name="RemoveActivationFlagsResponse">
         <wsdl:part element="tns:RemoveActivationFlagsResponse" name="RemoveActivationFlagsResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="ListApplicationRolesRequest">
+        <wsdl:part element="tns:ListApplicationRolesRequest" name="ListApplicationRolesRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="ListApplicationRolesResponse">
+        <wsdl:part element="tns:ListApplicationRolesResponse" name="ListApplicationRolesResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="AddApplicationRolesRequest">
+        <wsdl:part element="tns:AddApplicationRolesRequest" name="AddApplicationRolesRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="AddApplicationRolesResponse">
+        <wsdl:part element="tns:AddApplicationRolesResponse" name="AddApplicationRolesResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateApplicationRolesRequest">
+        <wsdl:part element="tns:UpdateApplicationRolesRequest" name="UpdateApplicationRolesRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="UpdateApplicationRolesResponse">
+        <wsdl:part element="tns:UpdateApplicationRolesResponse" name="UpdateApplicationRolesResponse">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="RemoveApplicationRolesRequest">
+        <wsdl:part element="tns:RemoveApplicationRolesRequest" name="RemoveApplicationRolesRequest">
+        </wsdl:part>
+    </wsdl:message>
+    <wsdl:message name="RemoveApplicationRolesResponse">
+        <wsdl:part element="tns:RemoveApplicationRolesResponse" name="RemoveApplicationRolesResponse">
         </wsdl:part>
     </wsdl:message>
     <wsdl:portType name="PowerAuthPortV3">
@@ -2386,10 +2525,10 @@
             <wsdl:output message="tns:ListActivationFlagsResponse" name="ListActivationFlagsResponse">
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="CreateActivationFlags">
-            <wsdl:input message="tns:CreateActivationFlagsRequest" name="CreateActivationFlagsRequest">
+        <wsdl:operation name="AddActivationFlags">
+            <wsdl:input message="tns:AddActivationFlagsRequest" name="AddActivationFlagsRequest">
             </wsdl:input>
-            <wsdl:output message="tns:CreateActivationFlagsResponse" name="CreateActivationFlagsResponse">
+            <wsdl:output message="tns:AddActivationFlagsResponse" name="AddActivationFlagsResponse">
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="UpdateActivationFlags">
@@ -2402,6 +2541,30 @@
             <wsdl:input message="tns:RemoveActivationFlagsRequest" name="RemoveActivationFlagsRequest">
             </wsdl:input>
             <wsdl:output message="tns:RemoveActivationFlagsResponse" name="RemoveActivationFlagsResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ListApplicationRoles">
+            <wsdl:input message="tns:ListApplicationRolesRequest" name="ListApplicationRolesRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:ListApplicationRolesResponse" name="ListApplicationRolesResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="AddApplicationRoles">
+            <wsdl:input message="tns:AddApplicationRolesRequest" name="AddApplicationRolesRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:AddApplicationRolesResponse" name="AddApplicationRolesResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateApplicationRoles">
+            <wsdl:input message="tns:UpdateApplicationRolesRequest" name="UpdateApplicationRolesRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:UpdateApplicationRolesResponse" name="UpdateApplicationRolesResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveApplicationRoles">
+            <wsdl:input message="tns:RemoveApplicationRolesRequest" name="RemoveApplicationRolesRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:RemoveApplicationRolesResponse" name="RemoveApplicationRolesResponse">
             </wsdl:output>
         </wsdl:operation>
     </wsdl:portType>
@@ -2848,12 +3011,12 @@
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>
-        <wsdl:operation name="CreateActivationFlags">
+        <wsdl:operation name="AddActivationFlags">
             <soap:operation soapAction=""/>
-            <wsdl:input name="CreateActivationFlagsRequest">
+            <wsdl:input name="AddActivationFlagsRequest">
                 <soap:body use="literal"/>
             </wsdl:input>
-            <wsdl:output name="CreateActivationFlagsResponse">
+            <wsdl:output name="AddActivationFlagsResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>
@@ -2872,6 +3035,42 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="RemoveActivationFlagsResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="ListApplicationRoles">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="ListApplicationRolesRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="ListApplicationRolesResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="AddApplicationRoles">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="AddApplicationRolesRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="AddApplicationRolesResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateApplicationRoles">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="UpdateApplicationRolesRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="UpdateApplicationRolesResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="RemoveApplicationRoles">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="RemoveApplicationRolesRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="RemoveApplicationRolesResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

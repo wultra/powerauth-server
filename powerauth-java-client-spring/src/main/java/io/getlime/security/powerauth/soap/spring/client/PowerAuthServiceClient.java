@@ -25,18 +25,12 @@ import com.wultra.security.powerauth.client.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
-import org.springframework.ws.soap.SoapFaultDetail;
-import org.springframework.ws.soap.SoapFaultDetailElement;
-import org.springframework.ws.soap.client.SoapFaultClientException;
-import org.w3c.dom.Node;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.transform.dom.DOMSource;
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -906,16 +900,16 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws PowerAuthClientException {
-        return (CreateActivationFlagsResponse) callWsApi(request);
+    public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) {
+        return (AddActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
     @Override
-    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
-        CreateActivationFlagsRequest request = new CreateActivationFlagsRequest();
+    public AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) {
+        AddActivationFlagsRequest request = new AddActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
-        return createActivationFlags(request);
+        return addActivationFlags(request);
     }
 
     @Override
@@ -945,7 +939,61 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public PowerAuthClientV2 v2() {
+    public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) {
+        return (ListApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    @Override
+    public ListApplicationRolesResponse listApplicationRoles(Long applicationId) {
+        ListApplicationRolesRequest request = new ListApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        return listApplicationRoles(request);
+    }
+
+    @Override
+    public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) {
+        return (AddApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    @Override
+    public AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) {
+        AddApplicationRolesRequest request = new AddApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return addApplicationRoles(request);
+    }
+
+    @Override
+    public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) {
+        return (UpdateApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    @Override
+    public UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) {
+        UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return updateApplicationRoles(request);
+    }
+
+    @Override
+    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) {
+        return (RemoveApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    }
+
+    @Override
+    public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) {
+        RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return removeApplicationRoles(request);
+    }
+
+    /**
+     * Get the PowerAuth 2.0 client. This client will be deprecated in future release.
+     * @return PowerAuth 2.0 client.
+     */
+    public PowerAuthServiceClientV2 v2() {
         return new PowerAuthServiceClientV2();
     }
 

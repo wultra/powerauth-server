@@ -104,6 +104,7 @@
                         <xs:sequence>
                             <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
@@ -135,6 +136,7 @@
             <xs:sequence>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="masterPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="versions" minOccurs="0" maxOccurs="unbounded">
                     <xs:complexType>
@@ -198,6 +200,7 @@
             <xs:sequence>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -341,6 +344,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
@@ -376,8 +380,11 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -659,6 +666,7 @@
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remainingAttempts" type="xs:integer" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -750,6 +758,7 @@
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remainingAttempts" type="xs:integer" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -1185,6 +1194,7 @@
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
@@ -1458,8 +1468,10 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1535,14 +1547,14 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="CreateActivationFlagsRequest">
+    <xs:element name="AddActivationFlagsRequest">
         <xs:annotation>
-            <xs:documentation>Create activation flags request.</xs:documentation>
+            <xs:documentation>Add activation flags request.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -1552,9 +1564,9 @@
         </xs:complexType>
     </xs:element>
 
-    <xs:element name="CreateActivationFlagsResponse">
+    <xs:element name="AddActivationFlagsResponse">
         <xs:annotation>
-            <xs:documentation>Create activation flags response.</xs:documentation>
+            <xs:documentation>Add activation flags response.</xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
@@ -1583,7 +1595,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1607,7 +1619,102 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="activationFlags" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ListApplicationRolesRequest">
+        <xs:annotation>
+            <xs:documentation>List application roles request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="ListApplicationRolesResponse">
+        <xs:annotation>
+            <xs:documentation>List application roles response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="AddApplicationRolesRequest">
+        <xs:annotation>
+            <xs:documentation>Add application roles request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="AddApplicationRolesResponse">
+        <xs:annotation>
+            <xs:documentation>Add application roles response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateApplicationRolesRequest">
+        <xs:annotation>
+            <xs:documentation>Update application roles request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="UpdateApplicationRolesResponse">
+        <xs:annotation>
+            <xs:documentation>Update application roles response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveApplicationRolesRequest">
+        <xs:annotation>
+            <xs:documentation>Remove application roles request.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+
+    <xs:element name="RemoveApplicationRolesResponse">
+        <xs:annotation>
+            <xs:documentation>Remove application roles response.</xs:documentation>
+        </xs:annotation>
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>

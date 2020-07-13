@@ -287,6 +287,7 @@ public class TokenBehavior {
                 response.setTokenValid(true);
                 response.setActivationId(activation.getActivationId());
                 response.setApplicationId(activation.getApplication().getId());
+                response.getApplicationRoles().addAll(activation.getApplication().getRoles());
                 response.setUserId(activation.getUserId());
                 response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
                 return response;

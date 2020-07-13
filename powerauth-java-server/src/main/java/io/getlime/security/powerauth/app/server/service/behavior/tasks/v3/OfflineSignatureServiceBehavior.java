@@ -111,6 +111,7 @@ public class OfflineSignatureServiceBehavior {
             response.setActivationStatus(signatureResponse.getActivationStatus());
             response.setBlockedReason(signatureResponse.getBlockedReason());
             response.setApplicationId(signatureResponse.getApplicationId());
+            response.getApplicationRoles().addAll(signatureResponse.getApplicationRoles());
             response.setRemainingAttempts(signatureResponse.getRemainingAttempts());
             response.setSignatureType(signatureResponse.getSignatureType());
             response.setSignatureValid(signatureResponse.isSignatureValid());
@@ -341,8 +342,9 @@ public class OfflineSignatureServiceBehavior {
      * @return Valid signature response.
      */
     private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
-        // Extract application ID
+        // Extract application ID and application roles
         Long applicationId = activation.getApplication().getId();
+        List<String> applicationRoles = activation.getApplication().getRoles();
 
         // Return the data
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
@@ -353,6 +355,7 @@ public class OfflineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
         response.setSignatureType(usedSignatureType);
         return response;
     }
@@ -366,8 +369,9 @@ public class OfflineSignatureServiceBehavior {
     private VerifyOfflineSignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest offlineSignatureRequest) {
         // Calculate remaining attempts
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-        // Extract application ID
+        // Extract application ID and application roles
         Long applicationId = activation.getApplication().getId();
+        List<String> applicationRoles = activation.getApplication().getRoles();
 
         // Return the data
         VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
@@ -378,6 +382,7 @@ public class OfflineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
         // In case multiple signature types are used, use the first one as signature type
         response.setSignatureType(offlineSignatureRequest.getSignatureTypes().iterator().next());
         return response;

@@ -103,7 +103,7 @@ public class GetApplicationDetailTest {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(applicationName);
         CreateApplicationResponse response = powerAuthService.createApplication(request);
-        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList());
+        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList(), Lists.emptyList());
     }
 
 }
