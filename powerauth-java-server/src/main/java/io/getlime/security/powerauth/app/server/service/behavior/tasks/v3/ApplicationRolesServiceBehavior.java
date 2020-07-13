@@ -17,16 +17,16 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.client.v3.AddApplicationRolesResponse;
+import com.wultra.security.powerauth.client.v3.ListApplicationRolesResponse;
+import com.wultra.security.powerauth.client.v3.RemoveApplicationRolesResponse;
+import com.wultra.security.powerauth.client.v3.UpdateApplicationRolesResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.v3.AddApplicationRolesResponse;
-import io.getlime.security.powerauth.v3.ListApplicationRolesResponse;
-import io.getlime.security.powerauth.v3.RemoveApplicationRolesResponse;
-import io.getlime.security.powerauth.v3.UpdateApplicationRolesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

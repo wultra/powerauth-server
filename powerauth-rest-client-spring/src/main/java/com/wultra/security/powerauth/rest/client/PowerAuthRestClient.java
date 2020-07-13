@@ -986,16 +986,16 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateActivationFlagsResponse createActivationFlags(CreateActivationFlagsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/flags/create", request, CreateActivationFlagsResponse.class);
+    public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/flags/create", request, AddActivationFlagsResponse.class);
     }
 
     @Override
-    public CreateActivationFlagsResponse createActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
-        CreateActivationFlagsRequest request = new CreateActivationFlagsRequest();
+    public AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
+        AddActivationFlagsRequest request = new AddActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
-        return createActivationFlags(request);
+        return addActivationFlags(request);
     }
 
     @Override
@@ -1022,6 +1022,57 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
         return removeActivationFlags(request);
+    }
+
+    @Override
+    public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/list", request, ListApplicationRolesResponse.class);
+    }
+
+    @Override
+    public ListApplicationRolesResponse listApplicationRoles(Long applicationId) throws PowerAuthClientException {
+        ListApplicationRolesRequest request = new ListApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        return listApplicationRoles(request);
+    }
+
+    @Override
+    public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/create", request, AddApplicationRolesResponse.class);
+    }
+
+    @Override
+    public AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+        AddApplicationRolesRequest request = new AddApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return addApplicationRoles(request);
+    }
+
+    @Override
+    public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/update", request, UpdateApplicationRolesResponse.class);
+    }
+
+    @Override
+    public UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+        UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return updateApplicationRoles(request);
+    }
+
+    @Override
+    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/remove", request, RemoveApplicationRolesResponse.class);
+    }
+
+    @Override
+    public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+        RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
+        request.setApplicationId(applicationId);
+        request.getApplicationRoles().addAll(applicationRoles);
+        return removeApplicationRoles(request);
     }
 
     @Override
