@@ -222,7 +222,7 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericCryptoException In case key derivation fails.
      */
     private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId) throws GenericCryptoException, CryptoProviderException {
-        // Use concatenated application ID, user ID, recovery code and PUK index bytes as index for KDF_INTERNAL
+        // Use application ID bytes as index for KDF_INTERNAL
         byte[] index = String.valueOf(applicationId).getBytes(StandardCharsets.UTF_8);
 
         // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
