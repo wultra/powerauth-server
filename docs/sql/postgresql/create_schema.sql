@@ -188,14 +188,15 @@ CREATE TABLE "pa_recovery_puk" (
 --
 
 CREATE TABLE "pa_recovery_config" (
-    "id"                            INTEGER NOT NULL PRIMARY KEY,
-    "application_id"                INTEGER NOT NULL,
-    "activation_recovery_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_postcard_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
-    "allow_multiple_recovery_codes" BOOLEAN NOT NULL DEFAULT FALSE,
-    "postcard_private_key_base64"   VARCHAR(255),
-    "postcard_public_key_base64"    VARCHAR(255),
-    "remote_public_key_base64"      VARCHAR(255)
+    "id"                              INTEGER NOT NULL PRIMARY KEY,
+    "application_id"                  INTEGER NOT NULL,
+    "activation_recovery_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
+    "recovery_postcard_enabled"       BOOLEAN NOT NULL DEFAULT FALSE,
+    "allow_multiple_recovery_codes"   BOOLEAN NOT NULL DEFAULT FALSE,
+    "postcard_private_key_base64"     VARCHAR(255),
+    "postcard_public_key_base64"      VARCHAR(255),
+    "remote_public_key_base64"        VARCHAR(255),
+    "postcard_private_key_encryption" INTEGER DEFAULT 0 NOT NULL
 );
 
 --

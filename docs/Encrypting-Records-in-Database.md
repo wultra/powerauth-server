@@ -76,6 +76,19 @@ public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicati
 
 Note that PUK values are hashed using the Argon2i hashing algorithm before optional encryption. Raw PUK values are never stored in PowerAuth database.
 
+### Note on Recovery Private Key Encryption Cryptography
+
+The recovery postcard private keys are encrypted using the same `encrypt` and `decrypt` methods as described above, however the secret key derivation index parameters differ:
+
+```java
+public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId) {
+    // Use application ID bytes as index for KDF_INTERNAL
+    byte[] index = String.valueOf(applicationId).getBytes(StandardCharsets.UTF_8);
+    // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
+    return KDF_INTERNAL.deriveSecretKeyHmac(masterDbEncryptionKey, index);
+}
+```
+
 ### Note on the Backward Compatibility
 
 Every database record carries an information about how it was created - with encryption or without encryption. In case you do not use encryption in the beginning, you can turn it on anytime later. However, the records that were created before you enabled the encryption will remain un-encrypted. You need to convert them manually in the database in case you need them encrypted.

@@ -22,9 +22,8 @@ import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
@@ -85,6 +84,7 @@ public class RecoveryServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
 
     // Business logic implementation classes
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -103,11 +103,12 @@ public class RecoveryServiceBehavior {
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior,
-                                   RecoveryPukConverter recoveryPukConverter) {
+                                   RecoveryPrivateKeyConverter recoveryPrivateKeyConverter, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
         this.recoveryPukConverter = recoveryPukConverter;
     }
 
@@ -167,7 +168,11 @@ public class RecoveryServiceBehavior {
                 }
             }
 
-            final byte[] privateKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64());
+            EncryptionMode encryptionMode = recoveryConfigEntity.getPrivateKeyEncryption();
+            String recoveryPrivateKeyBase64 = recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64();
+            final RecoveryPrivateKey recoveryPrivateKeyEncrypted = new RecoveryPrivateKey(encryptionMode, recoveryPrivateKeyBase64);
+            String decryptedPrivateKey = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, applicationId);
+            final byte[] privateKeyBytes = BaseEncoding.base64().decode(decryptedPrivateKey);
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(privateKeyBytes);
             final byte[] publicKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
             final PublicKey publicKey = keyConversion.convertBytesToPublicKey(publicKeyBytes);
@@ -625,11 +630,12 @@ public class RecoveryServiceBehavior {
                 PrivateKey privateKey = kp.getPrivate();
                 PublicKey publicKey = kp.getPublic();
                 byte[] privateKeyBytes = keyConversion.convertPrivateKeyToBytes(privateKey);
-                String privateKeyBase64 = BaseEncoding.base64().encode(privateKeyBytes);
                 byte[] publicKeyBytes = keyConversion.convertPublicKeyToBytes(publicKey);
                 String publicKeyBase64 = BaseEncoding.base64().encode(publicKeyBytes);
 
-                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(privateKeyBase64);
+                RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationId);
+                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(recoveryPrivateKey.getRecoveryPrivateKeyBase64());
+                recoveryConfigEntity.setPrivateKeyEncryption(recoveryPrivateKey.getEncryptionMode());
                 recoveryConfigEntity.setRecoveryPostcardPublicKeyBase64(publicKeyBase64);
             }
             recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());
