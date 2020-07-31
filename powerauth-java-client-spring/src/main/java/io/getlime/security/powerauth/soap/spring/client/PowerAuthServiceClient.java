@@ -658,12 +658,33 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws PowerAuthClientException {
+    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
         request.setCallbackUrl(callbackUrl);
+        if (attributes != null) {
+            request.getAttributes().addAll(attributes);
+        }
         return this.createCallbackUrl(request);
+    }
+
+    @Override
+    public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws PowerAuthClientException {
+        return (UpdateCallbackUrlResponse) callWsApi(request);
+    }
+
+    @Override
+    public UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
+        UpdateCallbackUrlRequest request = new UpdateCallbackUrlRequest();
+        request.setId(id);
+        request.setApplicationId(applicationId);
+        request.setName(name);
+        request.setCallbackUrl(callbackUrl);
+        if (attributes != null) {
+            request.getAttributes().addAll(attributes);
+        }
+        return this.updateCallbackUrl(request);
     }
 
     @Override

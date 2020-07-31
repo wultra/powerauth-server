@@ -503,6 +503,20 @@ public class PowerAuthEndpoint {
     }
 
     /**
+     * Call {@link PowerAuthService#updateCallbackUrl(UpdateCallbackUrlRequest)} method and
+     * return the response.
+     *
+     * @param request Update callback UR: request.
+     * @return Update callback URL response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateCallbackUrlRequest")
+    @ResponsePayload
+    public UpdateCallbackUrlResponse createCallbackUrl(@RequestPayload UpdateCallbackUrlRequest request) throws Exception {
+        return powerAuthService.updateCallbackUrl(request);
+    }
+
+    /**
      * Call {@link PowerAuthService#getCallbackUrlList(GetCallbackUrlListRequest)}  method and
      * return the response.
      *

@@ -29,10 +29,7 @@ import org.apache.axis2.addressing.EndpointReference;
 
 import javax.xml.namespace.QName;
 import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class implementing a PowerAuth SOAP service client based on provided WSDL
@@ -1099,7 +1096,6 @@ public class PowerAuthServiceClient {
         return this.removeIntegration(request);
     }
 
-
     /**
      * Create a new callback URL with given request object.
      * @param request SOAP request object with callback URL details.
@@ -1115,17 +1111,51 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID.
      * @param name Callback URL display name.
      * @param callbackUrl Callback URL value.
+     * @param attributes Attributes to send in the callback data.
      * @return Information about new callback URL object.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateCallbackUrlRequest request = new PowerAuthPortV3ServiceStub.CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
         request.setCallbackUrl(callbackUrl);
+        if (attributes != null) {
+            request.setAttributes(attributes.toArray(new String[0]));
+        }
         return this.createCallbackUrl(request);
     }
 
+    /**
+     * Update a callback URL with given request object.
+     * @param request SOAP request object with callback URL details.
+     * @return Information about new callback URL object.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateCallbackUrlResponse updateCallbackUrl(PowerAuthPortV3ServiceStub.UpdateCallbackUrlRequest request) throws RemoteException {
+        return clientStubV3.updateCallbackUrl(request);
+    }
+
+    /**
+     * Create a new callback URL with given parameters.
+     * @param id Callback URL ID.
+     * @param applicationId Application ID.
+     * @param name Callback URL display name.
+     * @param callbackUrl Callback URL value.
+     * @return Information about new callback URL object.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateCallbackUrlRequest request = new PowerAuthPortV3ServiceStub.UpdateCallbackUrlRequest();
+        request.setId(id);
+        request.setApplicationId(applicationId);
+        request.setName(name);
+        request.setCallbackUrl(callbackUrl);
+        if (attributes != null) {
+            request.setAttributes(attributes.toArray(new String[0]));
+        }
+        return this.updateCallbackUrl(request);
+    }
     /**
      * Get the response with list of callback URL objects.
      * @param request SOAP request object with application ID.
@@ -1578,7 +1608,11 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.AddActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.AddActivationFlagsRequest();
         request.setActivationId(activationId);
-        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        List<String> list = new ArrayList<>();
+        for (String activationFlag : activationFlags) {
+            list.add(activationFlag);
+        }
+        request.setActivationFlags(list.toArray(new String[0]));
         return addActivationFlags(request);
     }
 
@@ -1664,7 +1698,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
         PowerAuthPortV3ServiceStub.AddApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.AddApplicationRolesRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        request.setApplicationRoles(applicationRoles.toArray(new String[0]));
         return addApplicationRoles(request);
     }
 
@@ -1686,7 +1720,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
         PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        request.setApplicationRoles(applicationRoles.toArray(new String[0]));
         return updateApplicationRoles(request);
     }
 
@@ -1708,7 +1742,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
         PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        request.setApplicationRoles(applicationRoles.toArray(new String[0]));
         return removeApplicationRoles(request);
     }
 

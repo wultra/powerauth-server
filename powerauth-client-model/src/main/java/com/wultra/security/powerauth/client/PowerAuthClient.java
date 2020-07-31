@@ -780,10 +780,33 @@ public interface PowerAuthClient {
      * @param applicationId Application ID.
      * @param name          Callback URL display name.
      * @param callbackUrl   Callback URL value.
+     * @param attributes    Attributes to send in the callback data.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException;
+
+    /**
+     * Update a callback URL with given request object.
+     *
+     * @param request REST request object with callback URL details.
+     * @return Information about new callback URL object.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws PowerAuthClientException;
+
+    /**
+     * Update a callback URL with given parameters.
+     *
+     * @param id            Callback URL identifier.
+     * @param applicationId Application ID.
+     * @param name          Callback URL display name.
+     * @param callbackUrl   Callback URL value.
+     * @param attributes    Attributes to send in the callback data.
+     * @return Information about new callback URL object.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException;
 
     /**
      * Get the response with list of callback URL objects.

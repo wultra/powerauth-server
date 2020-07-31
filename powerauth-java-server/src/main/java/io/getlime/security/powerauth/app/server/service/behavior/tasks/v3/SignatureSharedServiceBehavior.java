@@ -384,7 +384,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 
@@ -480,7 +480,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 

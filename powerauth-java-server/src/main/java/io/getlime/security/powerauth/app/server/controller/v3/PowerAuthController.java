@@ -472,6 +472,19 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#updateCallbackUrl(UpdateCallbackUrlRequest)} method and
+     * return the response.
+     *
+     * @param request Update callback URL request.
+     * @return Update callback URL response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/application/callback/update", method = RequestMethod.POST)
+    public PowerAuthResponseWrapper<UpdateCallbackUrlResponse> updateCallbackUrl(@RequestBody PowerAuthRequestWrapper<UpdateCallbackUrlRequest> request) throws Exception {
+        return new PowerAuthResponseWrapper<>("OK", powerAuthService.updateCallbackUrl(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#getCallbackUrlList(GetCallbackUrlListRequest)} method and
      * return the response.
      *

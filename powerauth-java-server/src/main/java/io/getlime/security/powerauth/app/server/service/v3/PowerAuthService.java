@@ -361,6 +361,14 @@ public interface PowerAuthService {
     CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws Exception;
 
     /**
+     * Update callback URL for given application.
+     * @param request Request with application ID and callback URL parameters.
+     * @return New callback URL information.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws Exception;
+
+    /**
      * Get the list of all callback URLs for given application.
      * @param request Request with application ID.
      * @return List of all callback URLs for given applications, ordered by name alphabetically.
