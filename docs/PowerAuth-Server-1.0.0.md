@@ -22,7 +22,7 @@ Migration script for MySQL:
 ```sql
 ALTER TABLE `pa_activation` ADD `flags` varchar(255);
 ALTER TABLE `pa_application` ADD `roles` varchar(255);
-ALTER TABLE `pa_application_callback` `attributes` text NOT NULL;
+ALTER TABLE `pa_application_callback` ADD `attributes` text NOT NULL;
 ```
 
 Migration script for PostgreSQL:
