@@ -749,7 +749,7 @@ public class PowerAuthController {
      * @return Update application roles response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/activation/roles/update", method = RequestMethod.POST)
+    @RequestMapping(value = "/application/roles/update", method = RequestMethod.POST)
     public PowerAuthResponseWrapper<UpdateApplicationRolesResponse> updateApplicationRoles(@RequestBody PowerAuthRequestWrapper<UpdateApplicationRolesRequest> request) throws Exception {
         return new PowerAuthResponseWrapper<>("OK", powerAuthService.updateApplicationRoles(request.getRequestObject()));
     }
@@ -761,7 +761,7 @@ public class PowerAuthController {
      * @return Remove application roles response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/activation/roles/remove", method = RequestMethod.POST)
+    @RequestMapping(value = "/application/roles/remove", method = RequestMethod.POST)
     public PowerAuthResponseWrapper<RemoveApplicationRolesResponse> removeApplicationRoles(@RequestBody PowerAuthRequestWrapper<RemoveApplicationRolesRequest> request) throws Exception {
         return new PowerAuthResponseWrapper<>("OK", powerAuthService.removeApplicationRoles(request.getRequestObject()));
     }
