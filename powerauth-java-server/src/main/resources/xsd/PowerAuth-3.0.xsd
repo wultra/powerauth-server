@@ -1063,7 +1063,7 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="attributes" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1078,7 +1078,7 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="attributes" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1096,7 +1096,7 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="attributes" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1111,7 +1111,7 @@
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="attributes" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1142,7 +1142,7 @@
                             <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="attributes" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
+                            <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
