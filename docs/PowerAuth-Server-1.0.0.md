@@ -25,7 +25,7 @@ Migration script for MySQL:
 ALTER TABLE `pa_activation` ADD `flags` varchar(255);
 ALTER TABLE `pa_application` ADD `roles` varchar(255);
 ALTER TABLE `pa_application_callback` ADD `attributes` text NOT NULL;
-¨ALTER TABLE `pa_recovery_config` ADD `postcard_private_key_encryption` int(11) NOT NULL DEFAULT 0;
+ALTER TABLE `pa_recovery_config` ADD `postcard_private_key_encryption` int(11) NOT NULL DEFAULT 0;
 >``
 
 Migration script for PostgreSQL:
