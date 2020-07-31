@@ -498,7 +498,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateCallbackUrlRequest")
     @ResponsePayload
-    public CreateCallbackUrlResponse createCallbackUrl(@RequestPayload CreateCallbackUrlRequest request) throws Exception {
+    public CreateCallbackUrlResponse updateCallbackUrl(@RequestPayload CreateCallbackUrlRequest request) throws Exception {
         return powerAuthService.createCallbackUrl(request);
     }
 
@@ -512,7 +512,7 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateCallbackUrlRequest")
     @ResponsePayload
-    public UpdateCallbackUrlResponse createCallbackUrl(@RequestPayload UpdateCallbackUrlRequest request) throws Exception {
+    public UpdateCallbackUrlResponse updateCallbackUrl(@RequestPayload UpdateCallbackUrlRequest request) throws Exception {
         return powerAuthService.updateCallbackUrl(request);
     }
 
