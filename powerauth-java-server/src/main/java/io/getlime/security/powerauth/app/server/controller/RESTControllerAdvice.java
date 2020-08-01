@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.controller;
 
-import com.wultra.security.powerauth.client.model.PowerAuthResponseWrapper;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.springframework.http.HttpStatus;
@@ -44,13 +44,12 @@ public class RESTControllerAdvice {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = GenericServiceException.class)
-    public @ResponseBody
-    PowerAuthResponseWrapper<PowerAuthError> returnGenericError(GenericServiceException ex) {
+    public @ResponseBody ObjectResponse<PowerAuthError> returnGenericError(GenericServiceException ex) {
         PowerAuthError error = new PowerAuthError();
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
-        return new PowerAuthResponseWrapper<>("ERROR", error);
+        return new ObjectResponse<>("ERROR", error);
     }
 
     /**
@@ -60,14 +59,13 @@ public class RESTControllerAdvice {
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = ActivationRecoveryException.class)
-    public @ResponseBody
-    PowerAuthResponseWrapper<PowerAuthError> returnActivationRecoveryError(ActivationRecoveryException ex) {
+    public @ResponseBody ObjectResponse<PowerAuthError> returnActivationRecoveryError(ActivationRecoveryException ex) {
         PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
         error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
-        return new PowerAuthResponseWrapper<>("ERROR", error);
+        return new ObjectResponse<>("ERROR", error);
     }
 
 }
