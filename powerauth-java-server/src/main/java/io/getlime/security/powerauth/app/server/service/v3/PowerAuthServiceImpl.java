@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
@@ -30,7 +31,6 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,7 +109,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         logger.info("GetErrorCodeListRequest received");
         String language = request.getLanguage();
         // Check if the language is valid ISO language, use EN as default
-        if (Arrays.binarySearch(Locale.getISOLanguages(), language) < 0) {
+        if (language == null || Arrays.binarySearch(Locale.getISOLanguages(), language) < 0) {
             language = Locale.ENGLISH.getLanguage();
         }
         Locale locale = new Locale(language);
@@ -1003,6 +1003,30 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("CreateCallbackUrlRequest received, name: {}", request.getName());
             CreateCallbackUrlResponse response = behavior.getCallbackUrlBehavior().createCallbackUrl(request);
             logger.info("CreateCallbackUrlRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Override
+    public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws Exception {
+        if (request.getId() == null || request.getApplicationId() <= 0 || request.getName() == null || request.getAttributes() == null) {
+            logger.warn("Invalid request in method updateCallbackUrl");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        try {
+            logger.info("UpdateCallbackUrlRequest received, name: {}", request.getName());
+            UpdateCallbackUrlResponse response = behavior.getCallbackUrlBehavior().updateCallbackUrl(request);
+            logger.info("UpdateCallbackUrlRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged

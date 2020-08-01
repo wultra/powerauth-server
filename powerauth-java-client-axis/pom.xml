@@ -70,7 +70,7 @@
 							<goal>wsdl2code</goal>
 						</goals>
 						<configuration>
-							<packageName>io.getlime.powerauth.soap.v2</packageName>
+							<packageName>com.wultra.security.powerauth.client.v2</packageName>
 							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/serviceV2.wsdl</wsdlFile>
 							<databindingName>adb</databindingName>
 							<outputDirectory>${project.build.directory}/generated-sources/axis2/wsdl2code/v2</outputDirectory>
@@ -82,7 +82,7 @@
 							<goal>wsdl2code</goal>
 						</goals>
 						<configuration>
-							<packageName>io.getlime.powerauth.soap.v3</packageName>
+							<packageName>com.wultra.security.powerauth.client.v3</packageName>
 							<wsdlFile>${basedir}/src/main/resources/soap/wsdl/serviceV3.wsdl</wsdlFile>
 							<databindingName>adb</databindingName>
 							<outputDirectory>${project.build.directory}/generated-sources/axis2/wsdl2code/v3</outputDirectory>

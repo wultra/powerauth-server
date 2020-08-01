@@ -17,16 +17,16 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.client.v3.AddActivationFlagsResponse;
+import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
+import com.wultra.security.powerauth.client.v3.RemoveActivationFlagsResponse;
+import com.wultra.security.powerauth.client.v3.UpdateActivationFlagsResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.v3.AddActivationFlagsResponse;
-import io.getlime.security.powerauth.v3.ListActivationFlagsResponse;
-import io.getlime.security.powerauth.v3.RemoveActivationFlagsResponse;
-import io.getlime.security.powerauth.v3.UpdateActivationFlagsResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

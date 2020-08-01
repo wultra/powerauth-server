@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.endpoint.v3;
 
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import io.getlime.security.powerauth.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
@@ -498,8 +498,22 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateCallbackUrlRequest")
     @ResponsePayload
-    public CreateCallbackUrlResponse createCallbackUrl(@RequestPayload CreateCallbackUrlRequest request) throws Exception {
+    public CreateCallbackUrlResponse updateCallbackUrl(@RequestPayload CreateCallbackUrlRequest request) throws Exception {
         return powerAuthService.createCallbackUrl(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateCallbackUrl(UpdateCallbackUrlRequest)} method and
+     * return the response.
+     *
+     * @param request Update callback UR: request.
+     * @return Update callback URL response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateCallbackUrlRequest")
+    @ResponsePayload
+    public UpdateCallbackUrlResponse updateCallbackUrl(@RequestPayload UpdateCallbackUrlRequest request) throws Exception {
+        return powerAuthService.updateCallbackUrl(request);
     }
 
     /**

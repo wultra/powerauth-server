@@ -5,14 +5,14 @@ This tutorial shows the way internet banking (or other "master front-end applica
 ## Prerequisites For the Tutorial
 
 - Running PowerAuth Server with available SOAP interface.
-- Knowledge of Java EE applications based on JAX-RS.
-- Software: IDE - Spring Tool Suite, Java EE Application Server (Pivotal Server, Tomcat, ...)
+- Knowledge of web applications based on JAX-RS.
+- Software: IDE, Application Server (Tomcat, Wildfly...)
 
 ## Integration Manual
 
 ### Add a Maven Dependency
 
-To add a PowerAuth support in your application, add Maven dependency for PowerAuth RESTful Client module in your `pom.xml` file:
+To add a PowerAuth support in your application, add Maven dependency for PowerAuth SOAP client module in your `pom.xml` file:
 
 ```xml
 <dependency>

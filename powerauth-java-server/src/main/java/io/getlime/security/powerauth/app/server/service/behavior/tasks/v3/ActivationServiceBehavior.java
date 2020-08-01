@@ -21,6 +21,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
@@ -54,8 +56,6 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.v3.ActivationOtpValidation;
-import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,7 +162,7 @@ public class ActivationServiceBehavior {
             }
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 
@@ -176,7 +176,7 @@ public class ActivationServiceBehavior {
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -354,7 +354,7 @@ public class ActivationServiceBehavior {
                 // Update activation status, persist change and notify callback listeners
                 activation.setActivationStatus(activationStatus);
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
             }
         });
 
@@ -763,7 +763,7 @@ public class ActivationServiceBehavior {
             activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
             // Return the server response
             InitActivationResponse response = new InitActivationResponse();
@@ -941,7 +941,7 @@ public class ActivationServiceBehavior {
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation);
 
             // Generate encrypted response
             PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
@@ -1106,7 +1106,7 @@ public class ActivationServiceBehavior {
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation);
 
             // Create a new recovery code and PUK for new activation if activation recovery is enabled
             ActivationRecovery activationRecovery = null;
@@ -1205,7 +1205,7 @@ public class ActivationServiceBehavior {
         // Change activation state to ACTIVE
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
         // Update recovery code status in case a related recovery code exists in CREATED state
         RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
@@ -1282,7 +1282,7 @@ public class ActivationServiceBehavior {
 
         // Save activation record
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.ACTIVATION_OTP_VALUE_UPDATE);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
         UpdateActivationOtpResponse response = new UpdateActivationOtpResponse();
         response.setActivationId(activationId);
@@ -1375,7 +1375,7 @@ public class ActivationServiceBehavior {
 
         // Also notify the listeners in case that the state of the activation was changed.
         if (removeActivation) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
 
         // ...and finally throw an exception.
@@ -1418,7 +1418,7 @@ public class ActivationServiceBehavior {
                 }
             }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);
             response.setRemoved(true);
@@ -1457,7 +1457,7 @@ public class ActivationServiceBehavior {
                 activation.setBlockedReason(reason);
             }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
             // In case activation status is not ACTIVE or BLOCKED, throw an exception
             logger.info("Activation cannot be blocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
@@ -1495,7 +1495,7 @@ public class ActivationServiceBehavior {
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             // In case activation status is not BLOCKED or ACTIVE, throw an exception
             logger.info("Activation cannot be unblocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
@@ -1729,7 +1729,7 @@ public class ActivationServiceBehavior {
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
             // Activation has been successfully committed, set PUK state to USED and persist the change
             pukUsedDuringActivation.setStatus(RecoveryPukStatus.USED);

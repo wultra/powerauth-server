@@ -18,6 +18,8 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
+import com.wultra.security.powerauth.client.v3.SignatureType;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
@@ -42,8 +44,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.signature.PowerAuthServerSignature;
-import io.getlime.security.powerauth.v3.KeyValueMap;
-import io.getlime.security.powerauth.v3.SignatureType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -384,7 +384,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 
@@ -480,7 +480,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 

@@ -19,7 +19,7 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
+import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.app.server.integration.IntegrationUserDetailsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -85,7 +85,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (httpServletRequest, httpServletResponse, e) -> {
-            RESTResponseWrapper<String> errorResponse = new RESTResponseWrapper<>("ERROR", "Authentication failed");
+            ErrorResponse errorResponse = new ErrorResponse("ERR_AUTHENTICATION", "Authentication failed");
             httpServletResponse.setContentType("application/json");
             httpServletResponse.setCharacterEncoding("UTF-8");
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

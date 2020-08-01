@@ -1048,6 +1048,7 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="name" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="callbackUrl" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="attributes" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1062,6 +1063,39 @@
                         <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="name" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="1" name="callbackUrl" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="attributes" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <!-- Update a callback URL //-->
+
+            <xs:element name="UpdateCallbackUrlRequest">
+                <xs:annotation>
+                    <xs:documentation>Request for updating a callback URL record associated with given application.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="id" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="name" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="callbackUrl" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="attributes" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+
+            <xs:element name="UpdateCallbackUrlResponse">
+                <xs:annotation>
+                    <xs:documentation>Response for creating a new callback URL.</xs:documentation>
+                </xs:annotation>
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element maxOccurs="1" minOccurs="1" name="id" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="name" type="xs:string"/>
+                        <xs:element maxOccurs="1" minOccurs="1" name="callbackUrl" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="attributes" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
@@ -1092,6 +1126,7 @@
                                     <xs:element maxOccurs="1" minOccurs="1" name="applicationId" type="xs:long"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="name" type="xs:string"/>
                                     <xs:element maxOccurs="1" minOccurs="1" name="callbackUrl" type="xs:string"/>
+                                    <xs:element maxOccurs="unbounded" minOccurs="0" name="attributes" type="xs:string"/>
                                 </xs:sequence>
                             </xs:complexType>
                         </xs:element>
@@ -1794,6 +1829,10 @@
         <wsdl:part element="tns:CreateCallbackUrlResponse" name="CreateCallbackUrlResponse">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="UpdateCallbackUrlResponse">
+        <wsdl:part element="tns:UpdateCallbackUrlResponse" name="UpdateCallbackUrlResponse">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="GetCallbackUrlListResponse">
         <wsdl:part element="tns:GetCallbackUrlListResponse" name="GetCallbackUrlListResponse">
         </wsdl:part>
@@ -2082,6 +2121,10 @@
         <wsdl:part element="tns:CreateCallbackUrlRequest" name="CreateCallbackUrlRequest">
         </wsdl:part>
     </wsdl:message>
+    <wsdl:message name="UpdateCallbackUrlRequest">
+        <wsdl:part element="tns:UpdateCallbackUrlRequest" name="UpdateCallbackUrlRequest">
+        </wsdl:part>
+    </wsdl:message>
     <wsdl:message name="RemoveCallbackUrlResponse">
         <wsdl:part element="tns:RemoveCallbackUrlResponse" name="RemoveCallbackUrlResponse">
         </wsdl:part>
@@ -2247,6 +2290,12 @@
             <wsdl:input message="tns:CreateCallbackUrlRequest" name="CreateCallbackUrlRequest">
             </wsdl:input>
             <wsdl:output message="tns:CreateCallbackUrlResponse" name="CreateCallbackUrlResponse">
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateCallbackUrl">
+            <wsdl:input message="tns:UpdateCallbackUrlRequest" name="UpdateCallbackUrlRequest">
+            </wsdl:input>
+            <wsdl:output message="tns:UpdateCallbackUrlResponse" name="UpdateCallbackUrlResponse">
             </wsdl:output>
         </wsdl:operation>
         <wsdl:operation name="GetCallbackUrlList">
@@ -2594,6 +2643,15 @@
                 <soap:body use="literal"/>
             </wsdl:input>
             <wsdl:output name="CreateCallbackUrlResponse">
+                <soap:body use="literal"/>
+            </wsdl:output>
+        </wsdl:operation>
+        <wsdl:operation name="UpdateCallbackUrl">
+            <soap:operation soapAction=""/>
+            <wsdl:input name="UpdateCallbackUrlRequest">
+                <soap:body use="literal"/>
+            </wsdl:input>
+            <wsdl:output name="UpdateCallbackUrlResponse">
                 <soap:body use="literal"/>
             </wsdl:output>
         </wsdl:operation>

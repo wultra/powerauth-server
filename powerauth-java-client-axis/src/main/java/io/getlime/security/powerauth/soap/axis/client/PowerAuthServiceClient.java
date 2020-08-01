@@ -19,8 +19,8 @@
 package io.getlime.security.powerauth.soap.axis.client;
 
 
-import io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub;
-import io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub;
+import com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub;
+import com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub;
 import org.apache.axiom.om.OMAbstractFactory;
 import org.apache.axiom.om.OMElement;
 import org.apache.axiom.om.OMFactory;
@@ -29,18 +29,19 @@ import org.apache.axis2.addressing.EndpointReference;
 
 import javax.xml.namespace.QName;
 import java.rmi.RemoteException;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class implementing a PowerAuth SOAP service client based on provided WSDL
  * service description. This class uses Axis 2 under the hood.
  *
+ * The SOAP interface is deprecated. Use the REST interface from module powerauth-rest-client-spring
+ * using REST client class PowerAuthRestClient.
+ *
  * @author Petr Dvorak, petr@wultra.com
  *
  */
+@Deprecated
 public class PowerAuthServiceClient {
 
     private PowerAuthPortV3ServiceStub clientStubV3;
@@ -171,8 +172,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetSystemStatusRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetSystemStatusResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetSystemStatusRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetSystemStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetSystemStatusResponse getSystemStatus(PowerAuthPortV3ServiceStub.GetSystemStatusRequest request) throws RemoteException {
@@ -181,7 +182,7 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server SOAP interface.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetSystemStatusResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetSystemStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetSystemStatusResponse getSystemStatus() throws RemoteException {
@@ -190,9 +191,29 @@ public class PowerAuthServiceClient {
     }
 
     /**
+     * Call the getErrorList method of the PowerAuth 3.0 Server SOAP interface.
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetErrorCodeListRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetErrorCodeListResponse}
+     */
+    public PowerAuthPortV3ServiceStub.GetErrorCodeListResponse getErrorList(PowerAuthPortV3ServiceStub.GetErrorCodeListRequest request) throws RemoteException {
+        return clientStubV3.getErrorCodeList(request);
+    }
+
+    /**
+     * Call the getErrorList method of the PowerAuth 3.0 Server SOAP interface.
+     * @param language ISO code for language.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetErrorCodeListResponse}
+     */
+    public PowerAuthPortV3ServiceStub.GetErrorCodeListResponse getErrorList(String language) throws RemoteException {
+        PowerAuthPortV3ServiceStub.GetErrorCodeListRequest request = new PowerAuthPortV3ServiceStub.GetErrorCodeListRequest();
+        request.setLanguage(language);
+        return clientStubV3.getErrorCodeList(request);
+    }
+
+    /**
      * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.InitActivationRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(PowerAuthPortV3ServiceStub.InitActivationRequest request) throws RemoteException {
@@ -203,7 +224,7 @@ public class PowerAuthServiceClient {
      * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param userId User ID for which a new CREATED activation should be created.
      * @param applicationId Application ID for which a new CREATED activation should be created.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId) throws RemoteException {
@@ -216,7 +237,7 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID for which a new CREATED activation should be created.
      * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
      * @param otp Additional OTP value.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId,
@@ -230,7 +251,7 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID for which a new CREATED activation should be created.
      * @param maxFailureCount How many failed attempts should be allowed for this activation.
      * @param timestampActivationExpire Timestamp until when the activation can be committed.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws RemoteException {
@@ -245,7 +266,7 @@ public class PowerAuthServiceClient {
      * @param timestampActivationExpire Timestamp until when the activation can be committed.
      * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
      * @param otp Additional OTP value.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.InitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
@@ -266,8 +287,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.PrepareActivationRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.PrepareActivationRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(PowerAuthPortV3ServiceStub.PrepareActivationRequest request) throws RemoteException {
@@ -282,7 +303,7 @@ public class PowerAuthServiceClient {
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
      * @param nonce Nonce for ECIES.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.PrepareActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
@@ -317,7 +338,7 @@ public class PowerAuthServiceClient {
      * @param encryptedData Encrypted data for ECIES.
      * @param mac Mac of key and data for ECIES.
      * @param nonce Nonce for ECIES.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws RemoteException {
@@ -339,8 +360,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CommitActivationRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CommitActivationResponse commitActivation(PowerAuthPortV3ServiceStub.CommitActivationRequest request) throws RemoteException {
@@ -351,7 +372,7 @@ public class PowerAuthServiceClient {
      * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CommitActivationResponse commitActivation(String activationId, String externalUserId) throws RemoteException {
@@ -366,7 +387,7 @@ public class PowerAuthServiceClient {
      * @param activationId Activation ID for activation to be committed.
      * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
      * @param activationOtp Value of activation OTP. Specify the value only when activation OTP should be validated during activation commit.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CommitActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws RemoteException {
@@ -383,7 +404,7 @@ public class PowerAuthServiceClient {
      * @param externalUserId    User ID of user who updated the activation. Use null value if activation owner caused the change,
      *                          or if OTP value is automatically generated.
      * @param activationOtp Value of activation OTP
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws RemoteException {
@@ -396,8 +417,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse}
      */
     public PowerAuthPortV3ServiceStub.UpdateActivationOtpResponse updateActivationOtp(PowerAuthPortV3ServiceStub.UpdateActivationOtpRequest request) throws RemoteException {
         return clientStubV3.updateActivationOtp(request);
@@ -405,8 +426,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetActivationStatusRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatus(PowerAuthPortV3ServiceStub.GetActivationStatusRequest request) throws RemoteException {
@@ -420,7 +441,7 @@ public class PowerAuthServiceClient {
      * method instead.
      *
      * @param activationId Activation Id to lookup information for.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatus(String activationId) throws RemoteException {
@@ -436,7 +457,7 @@ public class PowerAuthServiceClient {
      *
      * @param activationId Activation Id to lookup information for.
      * @param challenge Cryptographic challenge for activation status blob encryption.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetActivationStatusResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws RemoteException {
@@ -448,8 +469,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationListForUserRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetActivationListForUserResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetActivationListForUserRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetActivationListForUserResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetActivationListForUserResponse getActivationListForUser(PowerAuthPortV3ServiceStub.GetActivationListForUserRequest request) throws RemoteException {
@@ -470,8 +491,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupActivationsRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupActivationsResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.LookupActivationsRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.LookupActivationsResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.LookupActivationsResponse lookupActivations(PowerAuthPortV3ServiceStub.LookupActivationsRequest request) throws RemoteException {
@@ -491,7 +512,7 @@ public class PowerAuthServiceClient {
      */
     public List<PowerAuthPortV3ServiceStub.Activations_type1> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, PowerAuthPortV3ServiceStub.ActivationStatus activationStatus, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.LookupActivationsRequest request = new PowerAuthPortV3ServiceStub.LookupActivationsRequest();
-        request.setUserIds(userIds.stream().toArray(String[]::new));
+        request.setUserIds(userIds.toArray(new String[0]));
         if (applicationIds != null) {
             request.setApplicationIds(applicationIds.stream().mapToLong(l -> l).toArray());
         }
@@ -505,15 +526,15 @@ public class PowerAuthServiceClient {
             request.setActivationStatus(activationStatus);
         }
         if (activationFlags != null) {
-            request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+            request.setActivationFlags(activationFlags.toArray(new String[0]));
         }
         return Arrays.asList(this.lookupActivations(request).getActivations());
     }
 
     /**
      * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.UpdateStatusForActivationsResponse updateStatusForActivations(PowerAuthPortV3ServiceStub.UpdateStatusForActivationsRequest request) throws RemoteException {
@@ -538,8 +559,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.RemoveActivationRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(PowerAuthPortV3ServiceStub.RemoveActivationRequest request) throws RemoteException {
@@ -550,7 +571,7 @@ public class PowerAuthServiceClient {
      * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be removed.
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws RemoteException {
@@ -562,7 +583,7 @@ public class PowerAuthServiceClient {
      * @param activationId Activation ID of activation to be removed.
      * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
      * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.RemoveActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws RemoteException {
@@ -575,8 +596,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.BlockActivationRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.BlockActivationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.BlockActivationRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.BlockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.BlockActivationResponse blockActivation(PowerAuthPortV3ServiceStub.BlockActivationRequest request) throws RemoteException {
@@ -588,7 +609,7 @@ public class PowerAuthServiceClient {
      * @param activationId Activation ID of activation to be blocked.
      * @param reason Reason why activation is being blocked.
      * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.BlockActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.BlockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws RemoteException {
@@ -601,8 +622,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UnblockActivationRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UnblockActivationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UnblockActivationRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UnblockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.UnblockActivationResponse unblockActivation(PowerAuthPortV3ServiceStub.UnblockActivationRequest request) throws RemoteException {
@@ -613,7 +634,7 @@ public class PowerAuthServiceClient {
      * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID of activation to be unblocked.
      * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UnblockActivationResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UnblockActivationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws RemoteException {
@@ -625,8 +646,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VaultUnlockRequest} instance
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VaultUnlockRequest} instance
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(PowerAuthPortV3ServiceStub.VaultUnlockRequest request) throws RemoteException {
@@ -645,7 +666,7 @@ public class PowerAuthServiceClient {
      * @param encryptedData Encrypted data for ECIES.
      * @param mac MAC of key and data for ECIES.
      * @param nonce Nonce for ECIES.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VaultUnlockResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
@@ -669,7 +690,7 @@ public class PowerAuthServiceClient {
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
      * @param activationId Activation ID.
      * @param data Data for offline signature.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws RemoteException {
@@ -681,8 +702,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(PowerAuthPortV3ServiceStub.CreatePersonalizedOfflineSignaturePayloadRequest request) throws RemoteException {
@@ -693,7 +714,7 @@ public class PowerAuthServiceClient {
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
      * @param applicationId Application ID.
      * @param data Data for offline signature.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws RemoteException {
@@ -705,8 +726,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(PowerAuthPortV3ServiceStub.CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws RemoteException {
@@ -733,8 +754,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VerifyOfflineSignatureRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VerifyOfflineSignatureResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VerifyOfflineSignatureRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VerifyOfflineSignatureResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VerifyOfflineSignatureResponse verifyOfflineSignature(PowerAuthPortV3ServiceStub.VerifyOfflineSignatureRequest request) throws RemoteException {
@@ -743,8 +764,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VerifySignatureRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VerifySignatureResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VerifySignatureRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VerifySignatureResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VerifySignatureResponse verifySignature(PowerAuthPortV3ServiceStub.VerifySignatureRequest request) throws RemoteException {
@@ -775,8 +796,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the verifyECDSASignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VerifyECDSASignatureRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.VerifyECDSASignatureResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VerifyECDSASignatureRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.VerifyECDSASignatureResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.VerifyECDSASignatureResponse verifyECDSASignature(PowerAuthPortV3ServiceStub.VerifyECDSASignatureRequest request) throws RemoteException {
@@ -801,8 +822,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Call the getSignatureAuditLog method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.SignatureAuditRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.SignatureAuditResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.SignatureAuditRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.SignatureAuditResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.SignatureAuditResponse getSignatureAuditLog(PowerAuthPortV3ServiceStub.SignatureAuditRequest request) throws RemoteException {
@@ -815,7 +836,7 @@ public class PowerAuthServiceClient {
      * @param userId User ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.Items_type1}
+     * @return List of signature audit items {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.Items_type1}
      * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortV3ServiceStub.Items_type1> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws RemoteException {
@@ -833,7 +854,7 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID to query the audit log against.
      * @param startingDate Limit the results to given starting date (= "newer than")
      * @param endingDate Limit the results to given ending date (= "older than")
-     * @return List of signature audit items {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.Items_type1}
+     * @return List of signature audit items {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.Items_type1}
      * @throws RemoteException In case of a business logic error.
      */
     public List<PowerAuthPortV3ServiceStub.Items_type1> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws RemoteException {
@@ -847,8 +868,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Get the list of all applications that are registered in PowerAuth 3.0 Server.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetApplicationListRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetApplicationListResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetApplicationListRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetApplicationListResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetApplicationListResponse getApplicationList(PowerAuthPortV3ServiceStub.GetApplicationListRequest request) throws RemoteException {
@@ -867,8 +888,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Return the detail of given application, including all application versions.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetApplicationDetailRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.GetApplicationDetailResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetApplicationDetailRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.GetApplicationDetailResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.GetApplicationDetailResponse getApplicationDetail(PowerAuthPortV3ServiceStub.GetApplicationDetailRequest request) throws RemoteException {
@@ -901,8 +922,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Lookup application by application key.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyResponse lookupApplicationByAppKey(PowerAuthPortV3ServiceStub.LookupApplicationByAppKeyRequest request) throws RemoteException {
@@ -923,8 +944,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Create a new application with given name.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateApplicationRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateApplicationResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateApplicationRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateApplicationResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreateApplicationResponse createApplication(PowerAuthPortV3ServiceStub.CreateApplicationRequest request) throws RemoteException {
@@ -945,8 +966,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Create a version with a given name for an application with given ID.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateApplicationVersionRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.CreateApplicationVersionResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateApplicationVersionRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.CreateApplicationVersionResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.CreateApplicationVersionResponse createApplicationVersion(PowerAuthPortV3ServiceStub.CreateApplicationVersionRequest request) throws RemoteException {
@@ -969,8 +990,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Cancel the support for a given application version.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UnsupportApplicationVersionRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.UnsupportApplicationVersionResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UnsupportApplicationVersionRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.UnsupportApplicationVersionResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.UnsupportApplicationVersionResponse unsupportApplicationVersion(PowerAuthPortV3ServiceStub.UnsupportApplicationVersionRequest request) throws RemoteException {
@@ -991,8 +1012,8 @@ public class PowerAuthServiceClient {
 
     /**
      * Renew the support for a given application version.
-     * @param request {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.SupportApplicationVersionRequest} instance.
-     * @return {@link io.getlime.powerauth.soap.v3.PowerAuthPortV3ServiceStub.SupportApplicationVersionResponse}
+     * @param request {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.SupportApplicationVersionRequest} instance.
+     * @return {@link com.wultra.security.powerauth.client.v3.PowerAuthPortV3ServiceStub.SupportApplicationVersionResponse}
      * @throws RemoteException In case of a business logic error.
      */
     public PowerAuthPortV3ServiceStub.SupportApplicationVersionResponse supportApplicationVersion(PowerAuthPortV3ServiceStub.SupportApplicationVersionRequest request) throws RemoteException {
@@ -1075,7 +1096,6 @@ public class PowerAuthServiceClient {
         return this.removeIntegration(request);
     }
 
-
     /**
      * Create a new callback URL with given request object.
      * @param request SOAP request object with callback URL details.
@@ -1091,17 +1111,51 @@ public class PowerAuthServiceClient {
      * @param applicationId Application ID.
      * @param name Callback URL display name.
      * @param callbackUrl Callback URL value.
+     * @param attributes Attributes to send in the callback data.
      * @return Information about new callback URL object.
      * @throws RemoteException In case of a business logic error.
      */
-    public PowerAuthPortV3ServiceStub.CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws RemoteException {
+    public PowerAuthPortV3ServiceStub.CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws RemoteException {
         PowerAuthPortV3ServiceStub.CreateCallbackUrlRequest request = new PowerAuthPortV3ServiceStub.CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
         request.setCallbackUrl(callbackUrl);
+        if (attributes != null) {
+            request.setAttributes(attributes.toArray(new String[0]));
+        }
         return this.createCallbackUrl(request);
     }
 
+    /**
+     * Update a callback URL with given request object.
+     * @param request SOAP request object with callback URL details.
+     * @return Information about new callback URL object.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateCallbackUrlResponse updateCallbackUrl(PowerAuthPortV3ServiceStub.UpdateCallbackUrlRequest request) throws RemoteException {
+        return clientStubV3.updateCallbackUrl(request);
+    }
+
+    /**
+     * Create a new callback URL with given parameters.
+     * @param id Callback URL ID.
+     * @param applicationId Application ID.
+     * @param name Callback URL display name.
+     * @param callbackUrl Callback URL value.
+     * @return Information about new callback URL object.
+     * @throws RemoteException In case of a business logic error.
+     */
+    public PowerAuthPortV3ServiceStub.UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws RemoteException {
+        PowerAuthPortV3ServiceStub.UpdateCallbackUrlRequest request = new PowerAuthPortV3ServiceStub.UpdateCallbackUrlRequest();
+        request.setId(id);
+        request.setApplicationId(applicationId);
+        request.setName(name);
+        request.setCallbackUrl(callbackUrl);
+        if (attributes != null) {
+            request.setAttributes(attributes.toArray(new String[0]));
+        }
+        return this.updateCallbackUrl(request);
+    }
     /**
      * Get the response with list of callback URL objects.
      * @param request SOAP request object with application ID.
@@ -1554,7 +1608,11 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.AddActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.AddActivationFlagsRequest();
         request.setActivationId(activationId);
-        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        List<String> list = new ArrayList<>();
+        for (String activationFlag : activationFlags) {
+            list.add(activationFlag);
+        }
+        request.setActivationFlags(list.toArray(new String[0]));
         return addActivationFlags(request);
     }
 
@@ -1576,7 +1634,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.UpdateActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.UpdateActivationFlagsRequest();
         request.setActivationId(activationId);
-        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        request.setActivationFlags(activationFlags.toArray(new String[0]));
         return updateActivationFlags(request);
     }
 
@@ -1598,7 +1656,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.RemoveActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.RemoveActivationFlagsRequest();
         request.setActivationId(activationId);
-        request.setActivationFlags(activationFlags.stream().toArray(String[]::new));
+        request.setActivationFlags(activationFlags.toArray(new String[0]));
         return removeActivationFlags(request);
     }
 
@@ -1640,7 +1698,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
         PowerAuthPortV3ServiceStub.AddApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.AddApplicationRolesRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        request.setApplicationRoles(applicationRoles.toArray(new String[0]));
         return addApplicationRoles(request);
     }
 
@@ -1662,7 +1720,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
         PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.UpdateApplicationRolesRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        request.setApplicationRoles(applicationRoles.toArray(new String[0]));
         return updateApplicationRoles(request);
     }
 
@@ -1684,7 +1742,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws RemoteException {
         PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest request = new PowerAuthPortV3ServiceStub.RemoveApplicationRolesRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationRoles(applicationRoles.stream().toArray(String[]::new));
+        request.setApplicationRoles(applicationRoles.toArray(new String[0]));
         return removeApplicationRoles(request);
     }
 
@@ -1698,14 +1756,15 @@ public class PowerAuthServiceClient {
     }
 
     /**
-     * Client with PowerAuth version 2.0 methods. This client will be deprecated in future release.
+     * Client with Power
+     * Auth version 2.0 methods. This client will be deprecated in future release.
      */
     public class PowerAuthServiceClientV2 {
 
         /**
          * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.PrepareActivationRequest} instance
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.PrepareActivationResponse}
+         * @param request {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.PrepareActivationRequest} instance
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.PrepareActivationResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.PrepareActivationResponse prepareActivation(PowerAuthPortV2ServiceStub.PrepareActivationRequest request) throws RemoteException {
@@ -1722,7 +1781,7 @@ public class PowerAuthServiceClient {
          * @param applicationSignature Signature proving a correct application is sending the data.
          * @param cDevicePublicKey Device public key encrypted with activation OTP.
          * @param extras Additional, application specific information.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.PrepareActivationResponse}
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.PrepareActivationResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws RemoteException {
@@ -1760,7 +1819,7 @@ public class PowerAuthServiceClient {
          * @param cDevicePublicKey Device public key encrypted with activation OTP.
          * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
          * @param extras Additional, application specific information.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.CreateActivationResponse}
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.CreateActivationResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws RemoteException {
@@ -1794,7 +1853,7 @@ public class PowerAuthServiceClient {
          * @param cDevicePublicKey Device public key encrypted with activation OTP.
          * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
          * @param extras Additional, application specific information.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.CreateActivationResponse}
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.CreateActivationResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws RemoteException {
@@ -1820,8 +1879,8 @@ public class PowerAuthServiceClient {
 
         /**
          * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.VaultUnlockRequest} instance
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.VaultUnlockResponse}
+         * @param request {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.VaultUnlockRequest} instance
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.VaultUnlockResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.VaultUnlockResponse unlockVault(PowerAuthPortV2ServiceStub.VaultUnlockRequest request) throws RemoteException {
@@ -1836,7 +1895,7 @@ public class PowerAuthServiceClient {
          * @param signature Vault opening request signature.
          * @param signatureType Vault opening request signature type.
          * @param reason Reason why vault is being unlocked.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.VaultUnlockResponse}
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.VaultUnlockResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, PowerAuthPortV2ServiceStub.SignatureType signatureType, String reason) throws RemoteException {
@@ -1852,8 +1911,8 @@ public class PowerAuthServiceClient {
 
         /**
          * Call the generateE2EPersonalziedEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyRequest} instance.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyResponse}
+         * @param request {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyRequest} instance.
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyRequest request) throws RemoteException {
@@ -1865,7 +1924,7 @@ public class PowerAuthServiceClient {
          * newly generated derived encryption key.
          * @param activationId Activation ID used for the key generation.
          * @param sessionIndex Session index.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyResponse}
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws RemoteException {
@@ -1877,8 +1936,8 @@ public class PowerAuthServiceClient {
 
         /**
          * Call the generateE2ENonPersonalizedEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyRequest} instance.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyResponse}
+         * @param request {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyRequest} instance.
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyRequest request) throws RemoteException {
@@ -1891,7 +1950,7 @@ public class PowerAuthServiceClient {
          * @param applicationKey Application key related to application used for the key generation.
          * @param ephemeralPublicKeyBase64 Ephemeral public key.
          * @param sessionIndex Session index.
-         * @return {@link io.getlime.powerauth.soap.v2.PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyResponse}
+         * @return {@link com.wultra.security.powerauth.client.v2.PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyResponse}
          * @throws RemoteException In case of a business logic error.
          */
         public PowerAuthPortV2ServiceStub.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws RemoteException {

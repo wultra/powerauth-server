@@ -17,17 +17,17 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
-import io.getlime.security.powerauth.v3.ActivationStatus;
+import com.wultra.security.powerauth.client.v3.ActivationStatus;
 
 /**
- * Converter class between {@link io.getlime.security.powerauth.v3.ActivationStatus} and
+ * Converter class between {@link com.wultra.security.powerauth.client.v3.ActivationStatus} and
  * {@link io.getlime.security.powerauth.app.server.database.model.ActivationStatus}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 public class ActivationStatusConverter {
 
-    public io.getlime.security.powerauth.v3.ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.ActivationStatus activationStatus) {
+    public com.wultra.security.powerauth.client.v3.ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.ActivationStatus activationStatus) {
         switch (activationStatus) {
             case CREATED:
                 return ActivationStatus.CREATED;
@@ -43,7 +43,7 @@ public class ActivationStatusConverter {
         return ActivationStatus.REMOVED;
     }
 
-    public io.getlime.security.powerauth.app.server.database.model.ActivationStatus convert(io.getlime.security.powerauth.v3.ActivationStatus activationStatus) {
+    public io.getlime.security.powerauth.app.server.database.model.ActivationStatus convert(com.wultra.security.powerauth.client.v3.ActivationStatus activationStatus) {
         switch (activationStatus) {
             case CREATED:
                 return io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED;

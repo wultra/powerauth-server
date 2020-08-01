@@ -17,10 +17,14 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
+
 import javax.persistence.Column;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Class representing a callback URL associated with given application.
@@ -39,11 +43,15 @@ public class CallbackUrlEntity implements Serializable {
     @Column(name = "application_id", updatable = false, nullable = false)
     private Long applicationId;
 
-    @Column(name = "name", nullable = false, updatable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
-    @Column(name = "callback_url", nullable = false, updatable = false)
+    @Column(name = "callback_url", nullable = false)
     private String callbackUrl;
+
+    @Column(name = "attributes")
+    @Convert(converter = CallbackAttributeConverter.class)
+    private List<String> attributes;
 
     /**
      * Get the ID of an integration.
@@ -107,5 +115,21 @@ public class CallbackUrlEntity implements Serializable {
      */
     public void setCallbackUrl(String callbackUrl) {
         this.callbackUrl = callbackUrl;
+    }
+
+    /**
+     * Get callback attribute settings.
+     * @return Callback attribute settings.
+     */
+    public List<String> getAttributes() {
+        return attributes;
+    }
+
+    /**
+     * Set callback attribute settings.
+     * @param attributes Callback attribute settings.
+     */
+    public void setAttributes(List<String> attributes) {
+        this.attributes = attributes;
     }
 }

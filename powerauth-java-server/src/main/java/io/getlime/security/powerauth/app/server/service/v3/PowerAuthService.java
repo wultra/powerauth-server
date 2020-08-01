@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.v3;
 
-import io.getlime.security.powerauth.v3.*;
+import com.wultra.security.powerauth.client.v3.*;
 
 /**
  * Interface containing all methods that are published by the PowerAuth 3.0 Server
@@ -359,6 +359,14 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws Exception;
+
+    /**
+     * Update callback URL for given application.
+     * @param request Request with application ID and callback URL parameters.
+     * @return New callback URL information.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws Exception;
 
     /**
      * Get the list of all callback URLs for given application.

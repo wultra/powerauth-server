@@ -121,7 +121,8 @@ CREATE TABLE "pa_application_callback"
     "id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
     "application_id"     INTEGER NOT NULL,
     "name"               VARCHAR(255),
-    "callback_url"       VARCHAR(1024)
+    "callback_url"       VARCHAR(1024),
+    "attributes"         VARCHAR(1024)
 );
 
 --
