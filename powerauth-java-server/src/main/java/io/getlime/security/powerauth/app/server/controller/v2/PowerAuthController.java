@@ -17,10 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.controller.v2;
 
-import io.getlime.security.powerauth.app.server.controller.RESTRequestWrapper;
-import io.getlime.security.powerauth.app.server.controller.RESTResponseWrapper;
+import com.wultra.security.powerauth.client.v2.*;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.v2.PowerAuthService;
-import io.getlime.security.powerauth.v2.*;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -54,8 +53,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/prepare", method = RequestMethod.POST)
-    public RESTResponseWrapper<PrepareActivationResponse> prepareActivation(@RequestBody RESTRequestWrapper<PrepareActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.prepareActivation(request.getRequestObject()));
+    public ObjectResponse<PrepareActivationResponse> prepareActivation(@RequestBody ObjectRequest<PrepareActivationRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.prepareActivation(request.getRequestObject()));
     }
 
     /**
@@ -67,8 +66,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateActivationResponse> createActivation(@RequestBody RESTRequestWrapper<CreateActivationRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createActivation(request.getRequestObject()));
+    public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.createActivation(request.getRequestObject()));
     }
 
     /**
@@ -80,8 +79,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/vault/unlock", method = RequestMethod.POST)
-    public RESTResponseWrapper<VaultUnlockResponse> vaultUnlock(@RequestBody RESTRequestWrapper<VaultUnlockRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.vaultUnlock(request.getRequestObject()));
+    public ObjectResponse<VaultUnlockResponse> vaultUnlock(@RequestBody ObjectRequest<VaultUnlockRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.vaultUnlock(request.getRequestObject()));
     }
 
     /**
@@ -93,8 +92,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/activation/encryption/key/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetPersonalizedEncryptionKeyResponse> generateE2EEncryptionKey(@RequestBody RESTRequestWrapper<GetPersonalizedEncryptionKeyRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.generateE2EPersonalizedEncryptionKey(request.getRequestObject()));
+    public ObjectResponse<GetPersonalizedEncryptionKeyResponse> generateE2EEncryptionKey(@RequestBody ObjectRequest<GetPersonalizedEncryptionKeyRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.generateE2EPersonalizedEncryptionKey(request.getRequestObject()));
     }
 
     /**
@@ -106,8 +105,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/encryption/key/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<GetNonPersonalizedEncryptionKeyResponse> generateE2ENonPersonalizedEncryptionKey(@RequestBody RESTRequestWrapper<GetNonPersonalizedEncryptionKeyRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.generateE2ENonPersonalizedEncryptionKey(request.getRequestObject()));
+    public ObjectResponse<GetNonPersonalizedEncryptionKeyResponse> generateE2ENonPersonalizedEncryptionKey(@RequestBody ObjectRequest<GetNonPersonalizedEncryptionKeyRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.generateE2ENonPersonalizedEncryptionKey(request.getRequestObject()));
     }
 
     /**
@@ -119,8 +118,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/token/create", method = RequestMethod.POST)
-    public RESTResponseWrapper<CreateTokenResponse> createToken(@RequestBody RESTRequestWrapper<CreateTokenRequest> request) throws Exception {
-        return new RESTResponseWrapper<>("OK", powerAuthService.createToken(request.getRequestObject()));
+    public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.createToken(request.getRequestObject()));
     }
 
 }

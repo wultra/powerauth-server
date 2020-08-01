@@ -18,6 +18,9 @@
 package io.getlime.security.powerauth.app.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.error.PowerAuthError;
+import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +36,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Exception resolver responsible for catching Spring errors and rendering them in
@@ -62,25 +63,24 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
             // Log the exception
             logger.warn("An exception occurred in Spring Framework while processing the request", exception);
 
-            // Build the error list
-            List<RESTErrorModel> errorList = new LinkedList<>();
+            // Build the error
+            PowerAuthError error;
             if (exception instanceof ActivationRecoveryException) {
-                RESTErrorModelRecovery recoveryError = new RESTErrorModelRecovery();
-                recoveryError.setCode("ERR_RECOVERY");
-                recoveryError.setMessage(exception.getMessage());
-                recoveryError.setLocalizedMessage(exception.getLocalizedMessage());
-                recoveryError.setCurrentRecoveryPukIndex(((ActivationRecoveryException) exception).getCurrentRecoveryPukIndex());
-                errorList.add(recoveryError);
+                PowerAuthErrorRecovery errorRecovery = new PowerAuthErrorRecovery();
+                errorRecovery.setCode("ERR_RECOVERY");
+                errorRecovery.setMessage(exception.getMessage());
+                errorRecovery.setLocalizedMessage(exception.getLocalizedMessage());
+                errorRecovery.setCurrentRecoveryPukIndex(((ActivationRecoveryException) exception).getCurrentRecoveryPukIndex());
+                error = errorRecovery;
             } else {
-                RESTErrorModel error = new RESTErrorModel();
+                error = new PowerAuthError();
                 error.setCode("ERR_SPRING_JAVA");
                 error.setMessage(exception.getMessage());
                 error.setLocalizedMessage(exception.getLocalizedMessage());
-                errorList.add(error);
             }
 
             // Prepare the response
-            RESTResponseWrapper<List<RESTErrorModel>> errorResponse = new RESTResponseWrapper<>("ERROR", errorList);
+            ObjectResponse<PowerAuthError> errorResponse = new ObjectResponse<>("ERROR", error);
 
             // Write the response in JSON and send it
             ObjectMapper mapper = new ObjectMapper();

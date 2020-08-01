@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.v2;
 
+import com.wultra.security.powerauth.client.v2.*;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
@@ -25,7 +26,6 @@ import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingSe
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import io.getlime.security.powerauth.v2.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -312,8 +312,8 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
-        io.getlime.security.powerauth.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
-        io.getlime.security.powerauth.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
+        com.wultra.security.powerauth.client.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
+        com.wultra.security.powerauth.client.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
         return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, "2.1", additionalInfoV3, dataString, applicationKey, null, keyConvertor).isSignatureValid();
     }
 

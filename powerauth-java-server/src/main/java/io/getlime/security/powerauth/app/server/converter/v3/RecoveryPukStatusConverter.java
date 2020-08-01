@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server.converter.v3;
 
 /**
- * Converter class between {@link io.getlime.security.powerauth.v3.RecoveryPukStatus} and
+ * Converter class between {@link com.wultra.security.powerauth.client.v3.RecoveryPukStatus} and
  * {@link io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -30,19 +30,19 @@ public class RecoveryPukStatusConverter {
      * @param recoveryPukStatus Recovery PUK status.
      * @return Converted recovery PUK status.
      */
-    public io.getlime.security.powerauth.v3.RecoveryPukStatus convertFrom(io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus recoveryPukStatus) {
+    public com.wultra.security.powerauth.client.v3.RecoveryPukStatus convertFrom(io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus recoveryPukStatus) {
         if (recoveryPukStatus == null) {
             return null;
         }
         switch (recoveryPukStatus) {
             case VALID:
-                return io.getlime.security.powerauth.v3.RecoveryPukStatus.VALID;
+                return com.wultra.security.powerauth.client.v3.RecoveryPukStatus.VALID;
             case USED:
-                return io.getlime.security.powerauth.v3.RecoveryPukStatus.USED;
+                return com.wultra.security.powerauth.client.v3.RecoveryPukStatus.USED;
             case INVALID:
-                return io.getlime.security.powerauth.v3.RecoveryPukStatus.INVALID;
+                return com.wultra.security.powerauth.client.v3.RecoveryPukStatus.INVALID;
         }
-        return io.getlime.security.powerauth.v3.RecoveryPukStatus.INVALID;
+        return com.wultra.security.powerauth.client.v3.RecoveryPukStatus.INVALID;
     }
 
     /**
@@ -50,7 +50,7 @@ public class RecoveryPukStatusConverter {
      * @param recoveryPukStatus Recovery PUK status.
      * @return Converted recovery PUK status.
      */
-    public io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus convertTo(io.getlime.security.powerauth.v3.RecoveryPukStatus recoveryPukStatus) {
+    public io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus convertTo(com.wultra.security.powerauth.client.v3.RecoveryPukStatus recoveryPukStatus) {
         if (recoveryPukStatus == null) {
             return null;
         }

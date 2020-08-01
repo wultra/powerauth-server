@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.endpoint.v2;
 
+import com.wultra.security.powerauth.client.v2.*;
 import io.getlime.security.powerauth.app.server.service.v2.PowerAuthService;
-import io.getlime.security.powerauth.v2.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;

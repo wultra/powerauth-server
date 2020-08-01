@@ -17,28 +17,107 @@
  */
 package io.getlime.security.powerauth.soap.spring.client;
 
-import io.getlime.powerauth.soap.v3.*;
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.error.PowerAuthError;
+import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
+import com.wultra.security.powerauth.client.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ws.client.core.support.WebServiceGatewaySupport;
+import org.springframework.ws.soap.SoapFaultDetail;
+import org.springframework.ws.soap.SoapFaultDetailElement;
+import org.springframework.ws.soap.client.SoapFaultClientException;
+import org.w3c.dom.Node;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.transform.dom.DOMSource;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Iterator;
 import java.util.List;
 
 /**
  * Class implementing a PowerAuth SOAP service client based on provided WSDL
  * service description.
  *
+ * The SOAP interface is deprecated. Use the REST interface from module powerauth-rest-client-spring
+ * using REST client class PowerAuthRestClient.
+ *
  * @author Petr Dvorak, petr@wultra.com
  *
  */
-public class PowerAuthServiceClient extends WebServiceGatewaySupport {
+@Deprecated
+public class PowerAuthServiceClient extends WebServiceGatewaySupport implements PowerAuthClient {
 
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceClient.class);
+
+    /**
+     * Call web service endpoint and return a response.
+     * @param request Request object.
+     * @return Response object.
+     * @throws PowerAuthClientException Thrown in case web service call fails.
+     */
+    private Object callWsApi(Object request) throws PowerAuthClientException {
+        try {
+            return getWebServiceTemplate().marshalSendAndReceive(request);
+        } catch (SoapFaultClientException ex) {
+            throw handleSoapError(ex);
+        }
+    }
+
+    /**
+     * Handle SOAP client error and convert it to PowerAuth client exception..
+     * @param ex SOAP client error.
+     * @return PowerAuth client exception.
+     */
+    private PowerAuthClientException handleSoapError(SoapFaultClientException ex) {
+        SoapFaultDetail faultDetail = ex.getSoapFault().getFaultDetail();
+        String errorCode = null;
+        String errorMessage = null;
+        String localizedErrorMessage = null;
+        Integer currentRecoveryPukIndex = null;
+        Iterator<SoapFaultDetailElement> iter = faultDetail.getDetailEntries();
+        while (iter.hasNext()) {
+            SoapFaultDetailElement detail = iter.next();
+            Node node = ((DOMSource) detail.getSource()).getNode();
+            switch (node.getLocalName()) {
+                case "errorCode":
+                    errorCode = node.getTextContent();
+                    break;
+                case "message":
+                    errorMessage = node.getTextContent();
+                    break;
+                case "localizedMessage":
+                    localizedErrorMessage = node.getTextContent();
+                    break;
+                case "currentRecoveryPukIndex":
+                    try {
+                        currentRecoveryPukIndex = Integer.parseInt(node.getTextContent());
+                    } catch (NumberFormatException ex2) {
+                        // Ignore invalid index
+                    }
+                    break;
+            }
+        }
+        // Handle error ERR0028 - Invalid recovery code, other errors are handled as regular activation errors
+        PowerAuthError error;
+        if ("ERR0028".equals(errorCode)) {
+            PowerAuthErrorRecovery errorRecovery = new PowerAuthErrorRecovery();
+            if (currentRecoveryPukIndex != null) {
+                errorRecovery.setCurrentRecoveryPukIndex(currentRecoveryPukIndex);
+            }
+            error = errorRecovery;
+        } else {
+            error = new PowerAuthError();
+        }
+        error.setCode(errorCode);
+        error.setMessage(errorMessage);
+        error.setLocalizedMessage(localizedErrorMessage);
+        return new PowerAuthClientException(errorMessage, ex, error);
+    }
 
     /**
      * Convert date to XMLGregorianCalendar
@@ -57,79 +136,52 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return null;
     }
 
-    /**
-     * Call the getSystemStatus method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link GetSystemStatusRequest} instance
-     * @return {@link GetSystemStatusResponse}
-     */
-    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) {
-        return (GetSystemStatusResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException {
+        return (GetSystemStatusResponse) callWsApi(request);
     }
 
-    /**
-     * Call the getSystemStatus method of the PowerAuth 3.0 Server SOAP interface.
-     * @return {@link GetSystemStatusResponse}
-     */
-    public GetSystemStatusResponse getSystemStatus() {
+    @Override
+    public GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException {
         GetSystemStatusRequest request = new GetSystemStatusRequest();
-        return (GetSystemStatusResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        return (GetSystemStatusResponse) callWsApi(request);
     }
 
-    /**
-     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link InitActivationRequest} instance
-     * @return {@link InitActivationResponse}
-     */
-    public InitActivationResponse initActivation(InitActivationRequest request) {
-        return (InitActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException {
+        return (GetErrorCodeListResponse) callWsApi(request);
     }
 
-    /**
-     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID for which a new CREATED activation should be created.
-     * @param applicationId Application ID for which a new CREATED activation should be created.
-     * @return {@link InitActivationResponse}
-     */
-    public InitActivationResponse initActivation(String userId, Long applicationId) {
+    @Override
+    public GetErrorCodeListResponse getErrorList(String language) throws PowerAuthClientException {
+        GetErrorCodeListRequest request = new GetErrorCodeListRequest();
+        request.setLanguage(language);
+        return (GetErrorCodeListResponse) callWsApi(request);
+    }
+
+    @Override
+    public InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException {
+        return (InitActivationResponse) callWsApi(request);
+    }
+
+    @Override
+    public InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
     }
 
-    /**
-     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID for which a new CREATED activation should be created.
-     * @param applicationId Application ID for which a new CREATED activation should be created.
-     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
-     * @param otp Additional OTP value.
-     * @return {@link InitActivationResponse}
-     */
-    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) {
+    @Override
+    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
-    /**
-     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID for which a new CREATED activation should be created.
-     * @param applicationId Application ID for which a new CREATED activation should be created.
-     * @param maxFailureCount How many failed attempts should be allowed for this activation.
-     * @param timestampActivationExpire Timestamp until when the activation can be committed.
-     * @return {@link InitActivationResponse}
-     */
-    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) {
+    @Override
+    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
     }
 
-    /**
-     * Call the initActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID for which a new CREATED activation should be created.
-     * @param applicationId Application ID for which a new CREATED activation should be created.
-     * @param maxFailureCount How many failed attempts should be allowed for this activation.
-     * @param timestampActivationExpire Timestamp until when the activation can be committed.
-     * @param otpValidation Mode that determines in which stage of activation should be additional OTP validated.
-     * @param otp Additional OTP value.
-     * @return {@link InitActivationResponse}
-     */
+    @Override
     public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                                 ActivationOtpValidation otpValidation, String otp) {
+                                                 ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         InitActivationRequest request = new InitActivationRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -144,26 +196,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.initActivation(request);
     }
 
-    /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link PrepareActivationRequest} instance
-     * @return {@link PrepareActivationResponse}
-     */
-    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) {
-        return (PrepareActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException {
+        return (PrepareActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationCode Activation code.
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @param encryptedData Encrypted data for ECIES.
-     * @param mac Mac of key and data for ECIES.
-     * @param nonce Nonce for ECIES.
-     * @return {@link PrepareActivationResponse}
-     */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
+    @Override
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
@@ -174,31 +213,15 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return prepareActivation(request);
     }
 
-    /**
-     * Create a new activation directly, using the createActivation method of the PowerAuth Server
-     * SOAP interface.
-     * @param request Create activation request.
-     * @return Create activation response.
-     */
-    public CreateActivationResponse createActivation(CreateActivationRequest request) {
-        return (CreateActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException {
+        return (CreateActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Call the createActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID.
-     * @param timestampActivationExpire Expiration timestamp for activation (optional).
-     * @param maxFailureCount Maximum failure count (optional).
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @param encryptedData Encrypted data for ECIES.
-     * @param mac Mac of key and data for ECIES.
-     * @param nonce Nonce for ECIES.
-     * @return {@link CreateActivationResponse}
-     */
+    @Override
     public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                                      String applicationKey, String ephemeralPublicKey, String encryptedData,
-                                                     String mac, String nonce) {
+                                                     String mac, String nonce) throws PowerAuthClientException {
         CreateActivationRequest request = new CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
@@ -215,36 +238,21 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return createActivation(request);
     }
 
-    /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link CommitActivationRequest} instance
-     * @return {@link CommitActivationResponse}
-     */
-    public CommitActivationResponse commitActivation(CommitActivationRequest request) {
-        return (CommitActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException {
+        return (CommitActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID for activation to be commited.
-     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
-     * @return {@link CommitActivationResponse}
-     */
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId) {
+    @Override
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
         return this.commitActivation(request);
     }
 
-    /**
-     * Call the commitActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID for activation to be commited.
-     * @param externalUserId User ID of user who committed the activation. Use null value if activation owner caused the change.
-     * @param activationOtp Value of activation OTP. Specify the value only when activation OTP should be validated during activation commit.
-     * @return {@link CommitActivationResponse}
-     */
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) {
+    @Override
+    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -252,15 +260,8 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.commitActivation(request);
     }
 
-    /**
-     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
-     * @param activationId      Activation ID for activation to be updated.
-     * @param externalUserId    User ID of user who updated the activation. Use null value if activation owner caused the change,
-     *                          or if OTP value is automatically generated.
-     * @param activationOtp Value of activation OTP
-     * @return {@link UpdateActivationOtpResponse}
-     */
-    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) {
+    @Override
+    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
         UpdateActivationOtpRequest request = new UpdateActivationOtpRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -268,95 +269,50 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return updateActivationOtp(request);
     }
 
-    /**
-     * Call the updateActivationOtp method of PowerAuth 3.1 Server SOAP interface.
-     * @param request {@link UpdateActivationOtpRequest} instance
-     * @return {@link UpdateActivationOtpResponse}
-     */
-    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) {
-        return (UpdateActivationOtpResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException {
+        return (UpdateActivationOtpResponse) callWsApi(request);
     }
 
-    /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link GetActivationStatusRequest} instance
-     * @return {@link GetActivationStatusResponse}
-     */
-    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) {
-        return (GetActivationStatusResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException {
+        return (GetActivationStatusResponse) callWsApi(request);
     }
 
-    /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. This method should be used only
-     * to acquire the activation status for other, than PowerAuth standard RESTful API purposes. If you're implementing
-     * the PowerAuth standard RESTful API, then use {@link #getActivationStatusWithEncryptedStatusBlob(String, String)}
-     * method instead.
-     *
-     * @param activationId Activation Id to lookup information for.
-     * @return {@link GetActivationStatusResponse}
-     */
-    public GetActivationStatusResponse getActivationStatus(String activationId) {
+    @Override
+    public GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException {
         GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
         response.setEncryptedStatusBlob(null);
         return response;
     }
 
-    /**
-     * Call the getActivationStatus method of the PowerAuth 3.0 Server SOAP interface. The method should be used to
-     * acquire the activation status for PowerAuth standard RESTful API implementation purposes. The returned object
-     * contains an encrypted activation status blob.
-     *
-     * @param activationId Activation Id to lookup information for.
-     * @param challenge Cryptographic challenge for activation status blob encryption.
-     * @return {@link GetActivationStatusResponse}
-     */
-    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) {
+    @Override
+    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException {
         GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
         return this.getActivationStatus(request);
     }
 
-    /**
-     * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link GetActivationListForUserRequest} instance
-     * @return {@link GetActivationListForUserResponse}
-     */
-    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) {
-        return (GetActivationListForUserResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException {
+        return (GetActivationListForUserResponse) callWsApi(request);
     }
 
-    /**
-     * Call the getActivationListForUser method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userId User ID to fetch the activations for.
-     * @return List of activation instances for given user.
-     */
-    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) {
+    @Override
+    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) throws PowerAuthClientException {
         GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId(userId);
         return this.getActivationListForUser(request).getActivations();
     }
 
-    /**
-     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link LookupActivationsRequest} instance
-     * @return {@link LookupActivationsResponse}
-     */
-    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) {
-        return (LookupActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException {
+        return (LookupActivationsResponse) callWsApi(request);
     }
 
-    /**
-     * Call the lookupActivations method of the PowerAuth 3.0 Server SOAP interface.
-     * @param userIds User IDs to be used in the activations query.
-     * @param applicationIds Application IDs to be used in the activations query (optional).
-     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
-     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
-     * @param activationStatus Activation status to be used in the activations query (optional).
-     * @param activationFlags Activation flags (optional).
-     * @return List of activation instances satisfying given query parameters.
-     */
-    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) {
+    @Override
+    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
         LookupActivationsRequest request = new LookupActivationsRequest();
         request.getUserIds().addAll(userIds);
         if (applicationIds != null) {
@@ -377,22 +333,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.lookupActivations(request).getActivations();
     }
 
-    /**
-     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link UpdateStatusForActivationsRequest} instance
-     * @return {@link UpdateStatusForActivationsResponse}
-     */
-    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) {
-        return (UpdateStatusForActivationsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException {
+        return (UpdateStatusForActivationsResponse) callWsApi(request);
     }
 
-    /**
-     * Call the updateStatusForActivations method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationIds Identifiers of activations whose status should be updated.
-     * @param activationStatus Activation status to be used.
-     * @return Response indicating whether activation status update succeeded.
-     */
-    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) {
+    @Override
+    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) throws PowerAuthClientException {
         UpdateStatusForActivationsRequest request = new UpdateStatusForActivationsRequest();
         request.getActivationIds().addAll(activationIds);
         if (activationStatus != null) {
@@ -401,33 +348,18 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.updateStatusForActivations(request);
     }
 
-    /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link RemoveActivationRequest} instance.
-     * @return {@link RemoveActivationResponse}
-     */
-    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) {
-        return (RemoveActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException {
+        return (RemoveActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID of activation to be removed.
-     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
-     * @return {@link RemoveActivationResponse}
-     */
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) {
+    @Override
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         return this.removeActivation(activationId, externalUserId, false);
     }
 
-    /**
-     * Call the removeActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID of activation to be removed.
-     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
-     * @param revokeRecoveryCodes Indicates if the recovery codes associated with this activation should be also revoked.
-     * @return {@link RemoveActivationResponse}
-     */
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) {
+    @Override
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -435,23 +367,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.removeActivation(request);
     }
 
-    /**
-     * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link BlockActivationRequest} instance.
-     * @return {@link BlockActivationResponse}
-     */
-    public BlockActivationResponse blockActivation(BlockActivationRequest request) {
-        return (BlockActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException {
+        return (BlockActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Call the blockActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID of activation to be blocked.
-     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
-     * @param reason Reason why activation is being blocked.
-     * @return {@link BlockActivationResponse}
-     */
-    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) {
+    @Override
+    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws PowerAuthClientException {
         BlockActivationRequest request = new BlockActivationRequest();
         request.setActivationId(activationId);
         request.setReason(reason);
@@ -459,54 +381,28 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.blockActivation(request);
     }
 
-    /**
-     * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link UnblockActivationRequest} instance.
-     * @return {@link UnblockActivationResponse}
-     */
-    public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) {
-        return (UnblockActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException {
+        return (UnblockActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Call the unblockActivation method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID of activation to be unblocked.
-     * @param externalUserId User ID of user who blocked the activation. Use null value if activation owner caused the change.
-     * @return {@link UnblockActivationResponse}
-     */
-    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) {
+    @Override
+    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         UnblockActivationRequest request = new UnblockActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
         return this.unblockActivation(request);
     }
 
-    /**
-     * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link VaultUnlockRequest} instance
-     * @return {@link VaultUnlockResponse}
-     */
-    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) {
-        return (VaultUnlockResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException {
+        return (VaultUnlockResponse) callWsApi(request);
     }
 
-    /**
-     * Call the vaultUnlock method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation Id of an activation to be used for authentication.
-     * @param applicationKey Application Key of an application related to the activation.
-     * @param signedData Data to be signed encoded in format as specified by PowerAuth data normalization.
-     * @param signature Vault opening request signature.
-     * @param signatureType Vault opening request signature type.
-     * @param signatureVersion Signature version.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @param encryptedData Encrypted data for ECIES.
-     * @param mac MAC of key and data for ECIES.
-     * @param nonce Nonce for ECIES.
-     * @return {@link VaultUnlockResponse}
-     */
+    @Override
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                            SignatureType signatureType, String signatureVersion, String signedData,
-                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
+                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -521,59 +417,34 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return unlockVault(request);
     }
 
-    /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID.
-     * @param data Data for offline signature.
-     * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
-     */
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) {
+    @Override
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws PowerAuthClientException {
         CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(activationId);
         request.setData(data);
         return createPersonalizedOfflineSignaturePayload(request);
     }
 
-    /**
-     * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link CreatePersonalizedOfflineSignaturePayloadRequest} instance.
-     * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
-     */
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) {
-        return (CreatePersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return (CreatePersonalizedOfflineSignaturePayloadResponse) callWsApi(request);
     }
 
-    /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
-     * @param applicationId Application ID.
-     * @param data Data for offline signature.
-     * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
-     */
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) {
+    @Override
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException {
         CreateNonPersonalizedOfflineSignaturePayloadRequest request = new CreateNonPersonalizedOfflineSignaturePayloadRequest();
         request.setApplicationId(applicationId);
         request.setData(data);
         return createNonPersonalizedOfflineSignaturePayload(request);
     }
 
-    /**
-     * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link CreateNonPersonalizedOfflineSignaturePayloadRequest} instance.
-     * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
-     */
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) {
-        return (CreateNonPersonalizedOfflineSignaturePayloadResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return (CreateNonPersonalizedOfflineSignaturePayloadResponse) callWsApi(request);
     }
 
-    /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID.
-     * @param data Data for signature.
-     * @param signature Signature value.
-     * @param allowBiometry Whether POSSESSION_BIOMETRY signature type is allowed during signature verification.
-     * @return Offline signature verification response.
-     */
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) {
+    @Override
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException {
         VerifyOfflineSignatureRequest request = new VerifyOfflineSignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -582,36 +453,18 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return verifyOfflineSignature(request);
     }
 
-    /**
-     * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link VerifyOfflineSignatureRequest} instance.
-     * @return {@link VerifyOfflineSignatureResponse}
-     */
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) {
-        return (VerifyOfflineSignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException {
+        return (VerifyOfflineSignatureResponse) callWsApi(request);
     }
 
-    /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link VerifySignatureRequest} instance.
-     * @return {@link VerifySignatureResponse}
-     */
-    public VerifySignatureResponse verifySignature(VerifySignatureRequest request) {
-        return (VerifySignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException {
+        return (VerifySignatureResponse) callWsApi(request);
     }
 
-    /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID of activation to be used for authentication.
-     * @param applicationKey Application Key of an application related to the activation.
-     * @param data Data to be signed encoded in format as specified by PowerAuth data normalization.
-     * @param signature Request signature.
-     * @param signatureType Request signature type.
-     * @param signatureVersion Signature version.
-     * @param forcedSignatureVersion Forced signature version.
-     * @return Verify signature and return SOAP response with the verification results.
-     */
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) {
+    @Override
+    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException {
         VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -623,23 +476,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.verifySignature(request);
     }
 
-    /**
-     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link VerifyECDSASignatureRequest} instance.
-     * @return {@link VerifyECDSASignatureResponse}
-     */
-    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) {
-        return (VerifyECDSASignatureResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException {
+        return (VerifyECDSASignatureResponse) callWsApi(request);
     }
 
-    /**
-     * Call the verifyECDSASignature method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID of activation to be used for authentication.
-     * @param data Data that were signed by ECDSA algorithm.
-     * @param signature Request signature.
-     * @return Verify ECDSA signature and return SOAP response with the verification results.
-     */
-    public VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) {
+    @Override
+    public VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws PowerAuthClientException {
         VerifyECDSASignatureRequest request = new VerifyECDSASignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -647,24 +490,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.verifyECDSASignature(request);
     }
 
-    /**
-     * Call the getSignatureAuditLog method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link SignatureAuditRequest} instance.
-     * @return {@link SignatureAuditResponse}
-     */
-    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) {
-        return (SignatureAuditResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException {
+        return (SignatureAuditResponse) callWsApi(request);
     }
 
-    /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface and get
-     * signature audit log for all application of a given user.
-     * @param userId User ID to query the audit log against.
-     * @param startingDate Limit the results to given starting date (= "newer than").
-     * @param endingDate Limit the results to given ending date (= "older than").
-     * @return List of signature audit items. See: {@link io.getlime.powerauth.soap.v3.SignatureAuditResponse.Items}.
-     */
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) {
+    @Override
+    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setTimestampFrom(calendarWithDate(startingDate));
@@ -672,16 +504,8 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.getSignatureAuditLog(request).getItems();
     }
 
-    /**
-     * Call the verifySignature method of the PowerAuth 3.0 Server SOAP interface and get
-     * signature audit log for a single application.
-     * @param userId User ID to query the audit log against.
-     * @param applicationId Application ID to query the audit log against.
-     * @param startingDate Limit the results to given starting date (= "newer than").
-     * @param endingDate Limit the results to given ending date (= "older than").
-     * @return List of signature audit items. See: {@link io.getlime.powerauth.soap.v3.SignatureAuditResponse.Items}.
-     */
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) {
+    @Override
+    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -690,23 +514,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.getSignatureAuditLog(request).getItems();
     }
 
-    /**
-     * Call the getActivationHistory method of the PowerAuth 3.0 Server SOAP interface.
-     * @param request {@link ActivationHistoryRequest} instance.
-     * @return {@link ActivationHistoryResponse}
-     */
-    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) {
-        return (ActivationHistoryResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException {
+        return (ActivationHistoryResponse) callWsApi(request);
     }
 
-    /**
-     * Call the getActivationHistory method of the PowerAuth 3.0 Server SOAP interface.
-     * @param activationId Activation ID.
-     * @param startingDate Limit the results to given starting date (= "newer than").
-     * @param endingDate Limit the results to given ending date (= "older than").
-     * @return List of activation history items. See: {@link io.getlime.powerauth.soap.v3.ActivationHistoryResponse.Items}.
-     */
-    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) {
+    @Override
+    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         ActivationHistoryRequest request = new ActivationHistoryRequest();
         request.setActivationId(activationId);
         request.setTimestampFrom(calendarWithDate(startingDate));
@@ -714,230 +528,137 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.getActivationHistory(request).getItems();
     }
 
-    /**
-     * Get the list of all applications that are registered in PowerAuth Server.
-     * @param request {@link GetApplicationListRequest} instance.
-     * @return {@link GetApplicationListResponse}
-     */
-    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) {
-        return (GetApplicationListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException {
+        return (GetApplicationListResponse) callWsApi(request);
     }
 
-    /**
-     * Get the list of all applications that are registered in PowerAuth Server.
-     * @return List of applications.
-     */
-    public List<GetApplicationListResponse.Applications> getApplicationList() {
+    @Override
+    public List<GetApplicationListResponse.Applications> getApplicationList() throws PowerAuthClientException {
         return this.getApplicationList(new GetApplicationListRequest()).getApplications();
     }
 
-    /**
-     * Return the detail of given application, including all application versions.
-     * @param request {@link GetApplicationDetailRequest} instance.
-     * @return {@link GetApplicationDetailResponse}
-     */
-    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) {
-        return (GetApplicationDetailResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException {
+        return (GetApplicationDetailResponse) callWsApi(request);
     }
 
-    /**
-     * Get the detail of an application with given ID, including the version list.
-     * @param applicationId ID of an application to fetch.
-     * @return Application with given ID, including the version list.
-     */
-    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) {
+    @Override
+    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(applicationId);
         return this.getApplicationDetail(request);
     }
 
-    /**
-     * Get the detail of an application with given name, including the version list.
-     * @param applicationName name of an application to fetch.
-     * @return Application with given name, including the version list.
-     */
-    public GetApplicationDetailResponse getApplicationDetail(String applicationName) {
+    @Override
+    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationName(applicationName);
         return this.getApplicationDetail(request);
     }
 
-    /**
-     * Lookup an application by application key.
-     * @param request {@link LookupApplicationByAppKeyRequest} instance.
-     * @return {@link LookupApplicationByAppKeyResponse}
-     */
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) {
-        return (LookupApplicationByAppKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException {
+        return (LookupApplicationByAppKeyResponse) callWsApi(request);
     }
 
-    /**
-     * Lookup an application by application key.
-     * @param applicationKey Application key.
-     * @return Response with application ID.
-     */
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) {
+    @Override
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws PowerAuthClientException {
         LookupApplicationByAppKeyRequest request = new LookupApplicationByAppKeyRequest();
         request.setApplicationKey(applicationKey);
         return this.lookupApplicationByAppKey(request);
     }
 
-    /**
-     * Create a new application with given name.
-     * @param request {@link CreateApplicationRequest} instance.
-     * @return {@link CreateApplicationResponse}
-     */
-    public CreateApplicationResponse createApplication(CreateApplicationRequest request) {
-        return (CreateApplicationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException {
+        return (CreateApplicationResponse) callWsApi(request);
     }
 
-    /**
-     * Create a new application with given name.
-     * @param name Name of the new application.
-     * @return Application with a given name.
-     */
-    public CreateApplicationResponse createApplication(String name) {
+    @Override
+    public CreateApplicationResponse createApplication(String name) throws PowerAuthClientException {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(name);
         return this.createApplication(request);
     }
 
-    /**
-     * Create a version with a given name for an application with given ID.
-     * @param request {@link CreateApplicationVersionRequest} instance.
-     * @return {@link CreateApplicationVersionResponse}
-     */
-    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) {
-        return (CreateApplicationVersionResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException {
+        return (CreateApplicationVersionResponse) callWsApi(request);
     }
 
-    /**
-     * Create a version with a given name for an application with given ID.
-     * @param applicationId ID of an application to create a version for.
-     * @param versionName Name of the version. The value should follow some well received conventions (such as "1.0.3", for example).
-     * @return A new version with a given name and application key / secret.
-     */
-    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) {
+    @Override
+    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException {
         CreateApplicationVersionRequest request = new CreateApplicationVersionRequest();
         request.setApplicationId(applicationId);
         request.setApplicationVersionName(versionName);
         return this.createApplicationVersion(request);
     }
 
-    /**
-     * Cancel the support for a given application version.
-     * @param request {@link UnsupportApplicationVersionRequest} instance.
-     * @return {@link UnsupportApplicationVersionResponse}
-     */
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) {
-        return (UnsupportApplicationVersionResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return (UnsupportApplicationVersionResponse) callWsApi(request);
     }
 
-    /**
-     * Cancel the support for a given application version.
-     * @param versionId Version to be unsupported.
-     * @return Information about success / failure.
-     */
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) {
+    @Override
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException {
         UnsupportApplicationVersionRequest request = new UnsupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
         return this.unsupportApplicationVersion(request);
     }
 
-    /**
-     * Renew the support for a given application version.
-     * @param request {@link SupportApplicationVersionRequest} instance.
-     * @return {@link SupportApplicationVersionResponse}
-     */
-    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) {
-        return (SupportApplicationVersionResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return (SupportApplicationVersionResponse) callWsApi(request);
     }
 
-    /**
-     * Renew the support for a given application version.
-     * @param versionId Version to be supported again.
-     * @return Information about success / failure.
-     */
-    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) {
+    @Override
+    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException {
         SupportApplicationVersionRequest request = new SupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
         return this.supportApplicationVersion(request);
     }
 
-    /**
-     * Create a new integration with given name.
-     * @param request Request specifying the integration name.
-     * @return New integration information.
-     */
-    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) {
-        return (CreateIntegrationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException {
+        return (CreateIntegrationResponse) callWsApi(request);
     }
 
-    /**
-     * Create a new integration with given name.
-     * @param name Integration name.
-     * @return New integration information.
-     */
-    public CreateIntegrationResponse createIntegration(String name) {
+    @Override
+    public CreateIntegrationResponse createIntegration(String name) throws PowerAuthClientException {
         CreateIntegrationRequest request = new CreateIntegrationRequest();
         request.setName(name);
         return this.createIntegration(request);
     }
 
-    /**
-     * Get the list of integrations.
-     * @param request SOAP request object.
-     * @return List of integrations.
-     */
-    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) {
-        return (GetIntegrationListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException {
+        return (GetIntegrationListResponse) callWsApi(request);
     }
 
-    /**
-     * Get the list of integrations.
-     * @return List of integrations.
-     */
-    public List<GetIntegrationListResponse.Items> getIntegrationList() {
+    @Override
+    public List<GetIntegrationListResponse.Items> getIntegrationList() throws PowerAuthClientException {
         return this.getIntegrationList(new GetIntegrationListRequest()).getItems();
     }
 
-    /**
-     * Remove integration with given ID.
-     * @param request SOAP object with integration ID to be removed.
-     * @return Removal status.
-     */
-    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) {
-        return (RemoveIntegrationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException {
+        return (RemoveIntegrationResponse) callWsApi(request);
     }
 
-    /**
-     * Remove integration with given ID.
-     * @param id ID of integration to be removed.
-     * @return Removal status.
-     */
-    public RemoveIntegrationResponse removeIntegration(String id) {
+    @Override
+    public RemoveIntegrationResponse removeIntegration(String id) throws PowerAuthClientException {
         RemoveIntegrationRequest request = new RemoveIntegrationRequest();
         request.setId(id);
         return this.removeIntegration(request);
     }
 
-    /**
-     * Create a new callback URL with given request object.
-     * @param request SOAP request object with callback URL details.
-     * @return Information about new callback URL object.
-     */
-    public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) {
-        return (CreateCallbackUrlResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException {
+        return (CreateCallbackUrlResponse) callWsApi(request);
     }
 
-    /**
-     * Create a new callback URL with given parameters.
-     * @param applicationId Application ID.
-     * @param name Callback URL display name.
-     * @param callbackUrl Callback URL value.
-     * @return Information about new callback URL object.
-     */
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) {
+    @Override
+    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
@@ -945,68 +666,38 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return this.createCallbackUrl(request);
     }
 
-    /**
-     * Get the response with list of callback URL objects.
-     * @param request SOAP request object with application ID.
-     * @return Response with the list of all callback URLs for given application.
-     */
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) {
-        return (GetCallbackUrlListResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException {
+        return (GetCallbackUrlListResponse) callWsApi(request);
     }
 
-    /**
-     * Get the list of callback URL objects.
-     * @param applicationId Application ID.
-     * @return List of all callback URLs for given application.
-     */
-    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) {
+    @Override
+    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) throws PowerAuthClientException {
         GetCallbackUrlListRequest request = new GetCallbackUrlListRequest();
         request.setApplicationId(applicationId);
         return getCallbackUrlList(request).getCallbackUrlList();
     }
 
-    /**
-     * Remove callback URL.
-     * @param request Remove callback URL request.
-     * @return Information about removal status.
-     */
-    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) {
-        return (RemoveCallbackUrlResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException {
+        return (RemoveCallbackUrlResponse) callWsApi(request);
     }
 
-    /**
-     * Remove callback URL.
-     * @param callbackUrlId Callback URL ID.
-     * @return Information about removal status.
-     */
-    public RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) {
+    @Override
+    public RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) throws PowerAuthClientException {
         RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlId);
         return removeCallbackUrl(request);
     }
 
-    /**
-     * Create a new token for basic token-based authentication.
-     * @param request Request with token information.
-     * @return Response with created token.
-     */
-    public CreateTokenResponse createToken(CreateTokenRequest request) {
-        return (CreateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException {
+        return (CreateTokenResponse) callWsApi(request);
     }
 
-    /**
-     * Create a new token for basic token-based authentication.
-     * @param activationId Activation ID for the activation that is associated with the token.
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
-     * @param encryptedData Encrypted request data.
-     * @param mac MAC computed for request key and data.
-     * @param nonce Nonce for ECIES.
-     * @param signatureType Type of the signature used for validating the create request.
-     * @return Response with created token.
-     */
+    @Override
     public CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                           String encryptedData, String mac, String nonce, SignatureType signatureType) {
+                                           String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException {
         CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1018,24 +709,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return createToken(request);
     }
 
-    /**
-     * Validate credentials used for basic token-based authentication.
-     * @param request Credentials to validate.
-     * @return Response with the credentials validation status.
-     */
-    public ValidateTokenResponse validateToken(ValidateTokenRequest request) {
-        return (ValidateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException {
+        return (ValidateTokenResponse) callWsApi(request);
     }
 
-    /**
-     * Validate credentials used for basic token-based authentication.
-     * @param tokenId Token ID.
-     * @param nonce Random token nonce.
-     * @param timestamp Token timestamp.
-     * @param tokenDigest Token digest.
-     * @return Response with the credentials validation status.
-     */
-    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) {
+    @Override
+    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException {
         ValidateTokenRequest request = new ValidateTokenRequest();
         request.setTokenId(tokenId);
         request.setNonce(nonce);
@@ -1044,45 +724,26 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return validateToken(request);
     }
 
-    /**
-     * Remove token with given token ID.
-     * @param request Request with token ID.
-     * @return Response token removal result.
-     */
-    public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
-        return (RemoveTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException {
+        return (RemoveTokenResponse) callWsApi(request);
     }
 
-    /**
-     * Remove token with given token ID.
-     * @param tokenId Token ID.
-     * @param activationId ActivationId ID.
-     * @return Response token removal result.
-     */
-    public RemoveTokenResponse removeToken(String tokenId, String activationId) {
+    @Override
+    public RemoveTokenResponse removeToken(String tokenId, String activationId) throws PowerAuthClientException {
         RemoveTokenRequest request = new RemoveTokenRequest();
         request.setTokenId(tokenId);
         request.setActivationId(activationId);
         return removeToken(request);
     }
 
-    /**
-     * Get ECIES decryptor parameters.
-     * @param request Request for ECIES decryptor parameters.
-     * @return ECIES decryptor parameters.
-     */
-    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) {
-        return (GetEciesDecryptorResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException {
+        return (GetEciesDecryptorResponse) callWsApi(request);
     }
 
-    /**
-     * Get ECIES decryptor parameters.
-     * @param activationId Activation ID.
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @return ECIES decryptor parameters.
-     */
-    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) {
+    @Override
+    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException {
         GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1090,27 +751,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return getEciesDecryptor(request);
     }
 
-    /**
-     * Start upgrade of activations to version 3.
-     * @param request Start upgrade request.
-     * @return Start upgrade response.
-     */
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) {
-        return (StartUpgradeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
+        return (StartUpgradeResponse) callWsApi(request);
     }
 
-    /**
-     * Start upgrade of activations to version 3.
-     * @param activationId Activation ID.
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key used for response encryption.
-     * @param encryptedData Encrypted request data.
-     * @param mac MAC computed for request key and data.
-     * @param nonce Nonce for ECIES.
-     * @return Start upgrade response.
-     */
+    @Override
     public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                 String encryptedData, String mac, String nonce) {
+                                                 String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         StartUpgradeRequest request = new StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1121,45 +769,26 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return startUpgrade(request);
     }
 
-    /**
-     * Commit upgrade of activations to version 3.
-     * @param request Commit upgrade request.
-     * @return Commit upgrade response.
-     */
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) {
-        return (CommitUpgradeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
+        return (CommitUpgradeResponse) callWsApi(request);
     }
 
-    /**
-     * Commit upgrade of activations to version 3.
-     * @param activationId Activation ID.
-     * @param applicationKey Application key.
-     * @return Commit upgrade response.
-     */
-    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) {
+    @Override
+    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException {
         CommitUpgradeRequest request = new CommitUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         return commitUpgrade(request);
     }
 
-    /**
-     * Create recovery code.
-     * @param request Create recovery code request.
-     * @return Create recovery coderesponse.
-     */
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) {
-        return (CreateRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException {
+        return (CreateRecoveryCodeResponse) callWsApi(request);
     }
 
-    /**
-     * Create recovery code for user.
-     * @param applicationId Application ID.
-     * @param userId User ID.
-     * @param pukCount Number of PUKs to create.
-     * @return Create recovery code response.
-     */
-    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) {
+    @Override
+    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException {
         CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
@@ -1167,27 +796,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return createRecoveryCode(request);
     }
 
-    /**
-     * Confirm recovery code.
-     * @param request Confirm recovery code request.
-     * @return Confirm recovery code response.
-     */
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) {
-        return (ConfirmRecoveryCodeResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException {
+        return (ConfirmRecoveryCodeResponse) callWsApi(request);
     }
 
-    /**
-     * Confirm recovery code.
-     * @param activationId Activation ID.
-     * @param applicationKey Application key.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @param encryptedData Encrypted data for ECIES.
-     * @param mac MAC of key and data for ECIES.
-     * @param nonce Nonce for ECIES.
-     * @return Confirm recovery code response.
-     */
+    @Override
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                           String encryptedData, String mac, String nonce) {
+                                                           String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1198,26 +814,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return confirmRecoveryCode(request);
     }
 
-    /**
-     * Lookup recovery codes.
-     * @param request Lookup recovery codes request.
-     * @return Lookup recovery codes response.
-     */
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) {
-        return (LookupRecoveryCodesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException {
+        return (LookupRecoveryCodesResponse) callWsApi(request);
     }
 
-    /**
-     * Lookup recovery codes.
-     * @param userId User ID.
-     * @param activationId Activation ID.
-     * @param applicationId Application ID.
-     * @param recoveryCodeStatus Recovery code status.
-     * @param recoveryPukStatus Recovery PUK status.
-     * @return Lookup recovery codes response.
-     */
+    @Override
     public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
-                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) {
+                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException {
         LookupRecoveryCodesRequest request = new LookupRecoveryCodesRequest();
         request.setUserId(userId);
         request.setActivationId(activationId);
@@ -1227,49 +831,26 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return lookupRecoveryCodes(request);
     }
 
-    /**
-     * Revoke recovery codes.
-     * @param request Revoke recovery codes request.
-     * @return Revoke recovery codes response.
-     */
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) {
-        return (RevokeRecoveryCodesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException {
+        return (RevokeRecoveryCodesResponse) callWsApi(request);
     }
 
-    /**
-     * Revoke recovery codes.
-     * @param recoveryCodeIds Identifiers of recovery codes to revoke.
-     * @return Revoke recovery code response.
-     */
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) {
+    @Override
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException {
         RevokeRecoveryCodesRequest request = new RevokeRecoveryCodesRequest();
         request.getRecoveryCodeIds().addAll(recoveryCodeIds);
         return revokeRecoveryCodes(request);
     }
 
-    /**
-     * Create activation using recovery code.
-     * @param request Create activation using recovery code request.
-     * @return Create activation using recovery code response.
-     */
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) {
-        return (RecoveryCodeActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException {
+        return (RecoveryCodeActivationResponse) callWsApi(request);
     }
 
-    /**
-     * Create activation using recovery code.
-     * @param recoveryCode Recovery code.
-     * @param puk Recovery PUK.
-     * @param applicationKey Application key.
-     * @param maxFailureCount Maximum failure count.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @param encryptedData Encrypted data for ECIES.
-     * @param mac MAC of key and data for ECIES.
-     * @param nonce nonce for ECIES.
-     * @return Create activation using recovery code response.
-     */
+    @Override
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) {
+                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -1284,45 +865,25 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return createActivationUsingRecoveryCode(request);
     }
 
-    /**
-     * Get recovery configuration.
-     * @param request Get recovery configuration request.
-     * @return Get recovery configuration response.
-     */
-    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) {
-        return (GetRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException {
+        return (GetRecoveryConfigResponse) callWsApi(request);
     }
 
-    /**
-     * Get recovery configuration.
-     * @param applicationId Application ID.
-     * @return Get recovery configuration response.
-     */
-    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) {
+    @Override
+    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException {
         GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         return getRecoveryConfig(request);
     }
 
-    /**
-     * Update recovery configuration.
-     * @param request Update recovery configuration request.
-     * @return Update recovery configuration response.
-     */
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) {
-        return (UpdateRecoveryConfigResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException {
+        return (UpdateRecoveryConfigResponse) callWsApi(request);
     }
 
-    /**
-     * Update recovery configuration.
-     * @param applicationId Application ID.
-     * @param activationRecoveryEnabled Whether activation recovery is enabled.
-     * @param recoveryPostcardEnabled Whether recovery postcard is enabled.
-     * @param allowMultipleRecoveryCodes Whether multiple recovery codes are allowed.
-     * @param remoteRecoveryPublicKeyBase64 Base64 encoded remote public key.
-     * @return Update recovery configuration response.
-     */
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) {
+    @Override
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
         UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);
@@ -1332,41 +893,24 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return updateRecoveryConfig(request);
     }
 
-    /**
-     * List activation flags.
-     * @param request List activation flags request.
-     * @return List activation flags response.
-     */
-    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) {
-        return (ListActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException {
+        return (ListActivationFlagsResponse) callWsApi(request);
     }
 
-    /**
-     * List activation flags.
-     * @param activationId Activation ID.
-     * @return List activation flags response.
-     */
-    public ListActivationFlagsResponse listActivationFlags(String activationId) {
+    @Override
+    public ListActivationFlagsResponse listActivationFlags(String activationId) throws PowerAuthClientException {
         ListActivationFlagsRequest request = new ListActivationFlagsRequest();
         request.setActivationId(activationId);
         return listActivationFlags(request);
     }
 
-    /**
-     * Add activation flags.
-     * @param request Create activation flags request.
-     * @return Add activation flags response.
-     */
+    @Override
     public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) {
         return (AddActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
-    /**
-     * Add activation flags.
-     * @param activationId Activation ID.
-     * @param activationFlags Activation flags.
-     * @return Add activation flags response.
-     */
+    @Override
     public AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) {
         AddActivationFlagsRequest request = new AddActivationFlagsRequest();
         request.setActivationId(activationId);
@@ -1374,85 +918,50 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return addActivationFlags(request);
     }
 
-    /**
-     * Update activation flags.
-     * @param request Update activation flags request.
-     * @return Update activation flags response.
-     */
-    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) {
-        return (UpdateActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException {
+        return (UpdateActivationFlagsResponse) callWsApi(request);
     }
 
-    /**
-     * Update activation flags.
-     * @param activationId Activation ID.
-     * @param activationFlags Activation flags.
-     * @return Update activation flags response.
-     */
-    public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) {
+    @Override
+    public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         UpdateActivationFlagsRequest request = new UpdateActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
         return updateActivationFlags(request);
     }
 
-    /**
-     * Remove activation flags.
-     * @param request Remove activation flags request.
-     * @return Remove activation flags response.
-     */
-    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) {
-        return (RemoveActivationFlagsResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+    @Override
+    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException {
+        return (RemoveActivationFlagsResponse) callWsApi(request);
     }
 
-    /**
-     * Remove activation flags.
-     * @param activationId Activation ID.
-     * @param activationFlags Activation flags.
-     * @return Remove activation flags response.
-     */
-    public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) {
+    @Override
+    public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         RemoveActivationFlagsRequest request = new RemoveActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
         return removeActivationFlags(request);
     }
 
-    /**
-     * List application roles.
-     * @param request List application roles request.
-     * @return List application roles response.
-     */
+    @Override
     public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) {
         return (ListApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
-    /**
-     * List application roles.
-     * @param applicationId Application ID.
-     * @return List application roles response.
-     */
+    @Override
     public ListApplicationRolesResponse listApplicationRoles(Long applicationId) {
         ListApplicationRolesRequest request = new ListApplicationRolesRequest();
         request.setApplicationId(applicationId);
         return listApplicationRoles(request);
     }
 
-    /**
-     * Add application roles.
-     * @param request Create application roles request.
-     * @return Add application roles response.
-     */
+    @Override
     public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) {
         return (AddApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
-    /**
-     * Add application roles.
-     * @param applicationId Application ID.
-     * @param applicationRoles Application roles.
-     * @return Add application roles response.
-     */
+    @Override
     public AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) {
         AddApplicationRolesRequest request = new AddApplicationRolesRequest();
         request.setApplicationId(applicationId);
@@ -1460,21 +969,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return addApplicationRoles(request);
     }
 
-    /**
-     * Update application roles.
-     * @param request Update application roles request.
-     * @return Update application roles response.
-     */
+    @Override
     public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) {
         return (UpdateApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
-    /**
-     * Update application roles.
-     * @param applicationId Application ID.
-     * @param applicationRoles Application roles.
-     * @return Update application roles response.
-     */
+    @Override
     public UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) {
         UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
         request.setApplicationId(applicationId);
@@ -1482,21 +982,12 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
         return updateApplicationRoles(request);
     }
 
-    /**
-     * Remove application roles.
-     * @param request Remove application roles request.
-     * @return Remove application roles response.
-     */
+    @Override
     public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) {
         return (RemoveApplicationRolesResponse) getWebServiceTemplate().marshalSendAndReceive(request);
     }
 
-    /**
-     * Remove application roles.
-     * @param applicationId Application ID.
-     * @param applicationRoles Application roles.
-     * @return Remove application roles response.
-     */
+    @Override
     public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) {
         RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
         request.setApplicationId(applicationId);
@@ -1515,30 +1006,16 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
     /**
      * Client with PowerAuth version 2.0 methods. This client will be deprecated in future release.
      */
-    public class PowerAuthServiceClientV2 {
+    public class PowerAuthServiceClientV2 implements PowerAuthClient.PowerAuthClientV2 {
 
-        /**
-         * Call the prepareActivation method of the PowerAuth 3.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.PrepareActivationRequest} instance
-         * @return {@link io.getlime.powerauth.soap.v2.PrepareActivationResponse}
-         */
-        public io.getlime.powerauth.soap.v2.PrepareActivationResponse prepareActivation(io.getlime.powerauth.soap.v2.PrepareActivationRequest request) {
-            return (io.getlime.powerauth.soap.v2.PrepareActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        @Override
+        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.PrepareActivationResponse) callWsApi(request);
         }
 
-        /**
-         * Call the prepareActivation method of the PowerAuth 2.0 Server SOAP interface.
-         * @param activationIdShort Short activation ID.
-         * @param activationName Name of this activation.
-         * @param activationNonce Activation nonce.
-         * @param applicationKey Application key of a given application.
-         * @param applicationSignature Signature proving a correct application is sending the data.
-         * @param cDevicePublicKey Device public key encrypted with activation OTP.
-         * @param extras Additional, application specific information.
-         * @return {@link io.getlime.powerauth.soap.v2.PrepareActivationResponse}
-         */
-        public io.getlime.powerauth.soap.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) {
-            io.getlime.powerauth.soap.v2.PrepareActivationRequest request = new io.getlime.powerauth.soap.v2.PrepareActivationRequest();
+        @Override
+        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws PowerAuthClientException {
+            com.wultra.security.powerauth.client.v2.PrepareActivationRequest request = new com.wultra.security.powerauth.client.v2.PrepareActivationRequest();
             request.setActivationIdShort(activationIdShort);
             request.setActivationName(activationName);
             request.setActivationNonce(activationNonce);
@@ -1550,30 +1027,13 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
             return this.prepareActivation(request);
         }
 
-        /**
-         * Create a new activation directly, using the createActivation method of the PowerAuth 2.0 Server
-         * SOAP interface.
-         * @param request Create activation request.
-         * @return Create activation response.
-         */
-        public io.getlime.powerauth.soap.v2.CreateActivationResponse createActivation(io.getlime.powerauth.soap.v2.CreateActivationRequest request) {
-            return (io.getlime.powerauth.soap.v2.CreateActivationResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.CreateActivationResponse) callWsApi(request);
         }
 
-        /**
-         * Call the createActivation method of the PowerAuth 2.0 Server SOAP interface.
-         * @param userId User ID.
-         * @param applicationKey Application key of a given application.
-         * @param identity Identity fingerprint used during activation.
-         * @param activationName Name of this activation.
-         * @param activationNonce Activation nonce.
-         * @param applicationSignature Signature proving a correct application is sending the data.
-         * @param cDevicePublicKey Device public key encrypted with activation OTP.
-         * @param ephemeralPublicKey Ephemeral public key used for one-time object transfer.
-         * @param extras Additional, application specific information.
-         * @return {@link io.getlime.powerauth.soap.v2.CreateActivationResponse}
-         */
-        public io.getlime.powerauth.soap.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
             return this.createActivation(
                     applicationKey,
                     userId,
@@ -1590,24 +1050,9 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
             );
         }
 
-        /**
-         * Call the createActivation method of the PowerAuth 2.0 Server SOAP interface.
-         * @param userId User ID.
-         * @param maxFailureCount Maximum failure count.
-         * @param timestampActivationExpire Timestamp this activation should expire.
-         * @param applicationKey Application key of a given application.
-         * @param identity Identity fingerprint used during activation.
-         * @param activationOtp Activation OTP.
-         * @param activationName Name of this activation.
-         * @param activationNonce Activation nonce.
-         * @param applicationSignature Signature proving a correct application is sending the data.
-         * @param cDevicePublicKey Device public key encrypted with activation OTP.
-         * @param ephemeralPublicKey Ephemeral public key.
-         * @param extras Additional, application specific information.
-         * @return {@link io.getlime.powerauth.soap.v2.CreateActivationResponse}
-         */
-        public io.getlime.powerauth.soap.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) {
-            io.getlime.powerauth.soap.v2.CreateActivationRequest request = new io.getlime.powerauth.soap.v2.CreateActivationRequest();
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
+            com.wultra.security.powerauth.client.v2.CreateActivationRequest request = new com.wultra.security.powerauth.client.v2.CreateActivationRequest();
             request.setApplicationKey(applicationKey);
             request.setUserId(userId);
             if (maxFailureCount != null) {
@@ -1627,27 +1072,14 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
             return this.createActivation(request);
         }
 
-        /**
-         * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.VaultUnlockRequest} instance
-         * @return {@link io.getlime.powerauth.soap.v2.VaultUnlockResponse}
-         */
-        public io.getlime.powerauth.soap.v2.VaultUnlockResponse unlockVault(io.getlime.powerauth.soap.v2.VaultUnlockRequest request) {
-            return (io.getlime.powerauth.soap.v2.VaultUnlockResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        @Override
+        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.VaultUnlockResponse) callWsApi(request);
         }
 
-        /**
-         * Call the vaultUnlock method of the PowerAuth 2.0 Server SOAP interface.
-         * @param activationId Activation Id of an activation to be used for authentication.
-         * @param applicationKey Application Key of an application related to the activation.
-         * @param data Data to be signed encoded in format as specified by PowerAuth 2.0 data normalization.
-         * @param signature Vault opening request signature.
-         * @param signatureType Vault opening request signature type.
-         * @param reason Reason why vault is being unlocked.
-         * @return {@link io.getlime.powerauth.soap.v2.VaultUnlockResponse}
-         */
-        public io.getlime.powerauth.soap.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, io.getlime.powerauth.soap.v2.SignatureType signatureType, String reason) {
-            io.getlime.powerauth.soap.v2.VaultUnlockRequest request = new io.getlime.powerauth.soap.v2.VaultUnlockRequest();
+        @Override
+        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason) throws PowerAuthClientException {
+            com.wultra.security.powerauth.client.v2.VaultUnlockRequest request = new com.wultra.security.powerauth.client.v2.VaultUnlockRequest();
             request.setActivationId(activationId);
             request.setApplicationKey(applicationKey);
             request.setData(data);
@@ -1657,70 +1089,41 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport {
             return this.unlockVault(request);
         }
 
-        /**
-         * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest} instance.
-         * @return {@link io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse}
-         */
-        public io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest request) {
-            return (io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        @Override
+        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse) callWsApi(request);
         }
 
-        /**
-         * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
-         * newly generated derived encryption key.
-         * @param activationId Activation ID used for the key generation.
-         * @return {@link io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse}
-         */
-        public io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) {
-            io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest request = new io.getlime.powerauth.soap.v2.GetPersonalizedEncryptionKeyRequest();
+        @Override
+        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws PowerAuthClientException {
+            com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest();
             request.setActivationId(activationId);
             request.setSessionIndex(sessionIndex);
             return this.generatePersonalizedE2EEncryptionKey(request);
         }
 
-        /**
-         * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface.
-         * @param request {@link io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest} instance.
-         * @return {@link io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse}
-         */
-        public io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest request) {
-            return (io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        @Override
+        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse) callWsApi(request);
         }
 
-        /**
-         * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server SOAP interface and get
-         * newly generated derived encryption key.
-         * @param applicationKey Application key of application used for the key generation.
-         * @return {@link io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse}
-         */
-        public io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) {
-            io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest request = new io.getlime.powerauth.soap.v2.GetNonPersonalizedEncryptionKeyRequest();
+        @Override
+        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws PowerAuthClientException {
+            com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest();
             request.setApplicationKey(applicationKey);
             request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
             request.setSessionIndex(sessionIndex);
             return this.generateNonPersonalizedE2EEncryptionKey(request);
         }
 
-
-        /**
-         * Create a new token for basic token-based authentication.
-         * @param request Request with token information.
-         * @return Response with created token.
-         */
-        public io.getlime.powerauth.soap.v2.CreateTokenResponse createToken(io.getlime.powerauth.soap.v2.CreateTokenRequest request) {
-            return (io.getlime.powerauth.soap.v2.CreateTokenResponse) getWebServiceTemplate().marshalSendAndReceive(request);
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException {
+            return (com.wultra.security.powerauth.client.v2.CreateTokenResponse) callWsApi(request);
         }
 
-        /**
-         * Create a new token for basic token-based authentication.
-         * @param activationId Activation ID for the activation that is associated with the token.
-         * @param ephemeralPublicKey Ephemeral public key used for response encryption.
-         * @param signatureType Type of the signature used for validating the create request.
-         * @return Response with created token.
-         */
-        public io.getlime.powerauth.soap.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, io.getlime.powerauth.soap.v2.SignatureType signatureType) {
-            io.getlime.powerauth.soap.v2.CreateTokenRequest request = new io.getlime.powerauth.soap.v2.CreateTokenRequest();
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType) throws PowerAuthClientException {
+            com.wultra.security.powerauth.client.v2.CreateTokenRequest request = new com.wultra.security.powerauth.client.v2.CreateTokenRequest();
             request.setActivationId(activationId);
             request.setEphemeralPublicKey(ephemeralPublicKey);
             request.setSignatureType(signatureType);

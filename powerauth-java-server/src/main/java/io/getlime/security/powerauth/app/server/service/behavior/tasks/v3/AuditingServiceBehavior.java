@@ -18,6 +18,8 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.SignatureAuditResponse;
+import com.wultra.security.powerauth.client.v3.SignatureType;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
@@ -26,8 +28,6 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
-import io.getlime.security.powerauth.v3.SignatureAuditResponse;
-import io.getlime.security.powerauth.v3.SignatureType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

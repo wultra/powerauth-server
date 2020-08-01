@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server.converter.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.getlime.security.powerauth.v3.KeyValueMap;
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,10 +75,10 @@ public class KeyValueMapConverter {
      * @param keyValueMap Version 2.0 KeyValueMap to convert.
      * @return Converted KeyValueMap in version 3.0.
      */
-    public KeyValueMap fromKeyValueMap(io.getlime.security.powerauth.v2.KeyValueMap keyValueMap) {
+    public KeyValueMap fromKeyValueMap(com.wultra.security.powerauth.client.v2.KeyValueMap keyValueMap) {
         KeyValueMap result = new KeyValueMap();
         List<KeyValueMap.Entry> entriesV3 = result.getEntry();
-        for (io.getlime.security.powerauth.v2.KeyValueMap.Entry entryV2: keyValueMap.getEntry()) {
+        for (com.wultra.security.powerauth.client.v2.KeyValueMap.Entry entryV2: keyValueMap.getEntry()) {
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
             entry.setKey(entryV2.getKey());
             entry.setValue(entryV2.getValue());

@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server;
 
+import com.wultra.security.powerauth.client.v3.CreateApplicationRequest;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import io.getlime.security.powerauth.v3.CreateApplicationRequest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;

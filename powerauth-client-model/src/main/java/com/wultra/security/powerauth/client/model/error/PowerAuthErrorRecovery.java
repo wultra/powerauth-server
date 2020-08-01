@@ -15,28 +15,28 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.controller;
+package com.wultra.security.powerauth.client.model.error;
 
 /**
- * Class representing a recoverz error returned by RESTful API.
+ * Class representing a PowerAuth recovery error.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class RESTErrorModelRecovery extends RESTErrorModel {
+public class PowerAuthErrorRecovery extends PowerAuthError {
 
     private int currentRecoveryPukIndex;
 
     /**
      * Default constructor.
      */
-    public RESTErrorModelRecovery() {
+    public PowerAuthErrorRecovery() {
     }
 
     /**
      * Current recovery PUK index.
      * @param currentRecoveryPukIndex Current recovery PUK index.
      */
-    public RESTErrorModelRecovery(int currentRecoveryPukIndex) {
+    public PowerAuthErrorRecovery(int currentRecoveryPukIndex) {
         this.currentRecoveryPukIndex = currentRecoveryPukIndex;
     }
 

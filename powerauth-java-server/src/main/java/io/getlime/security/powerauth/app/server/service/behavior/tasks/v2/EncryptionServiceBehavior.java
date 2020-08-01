@@ -18,6 +18,8 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
+import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -38,8 +40,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.HMACHashUtilities;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.v2.GetNonPersonalizedEncryptionKeyResponse;
-import io.getlime.security.powerauth.v2.GetPersonalizedEncryptionKeyResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

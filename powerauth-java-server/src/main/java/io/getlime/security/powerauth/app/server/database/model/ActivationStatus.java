@@ -34,35 +34,35 @@ public enum ActivationStatus {
 
     /**
      * CREATED - status right after the activation record was created by calling
-     * {@link PowerAuthService#initActivation(io.getlime.security.powerauth.v3.InitActivationRequest)}.
+     * {@link PowerAuthService#initActivation(com.wultra.security.powerauth.client.v3.InitActivationRequest)}.
      */
     CREATED((byte) 1),
 
     /**
      * PENDING_COMMIT - status right after PowerAuth Server receives PowerAuth Client public
-     * key, via {@link PowerAuthService#prepareActivation(io.getlime.security.powerauth.v3.PrepareActivationRequest)}
+     * key, via {@link PowerAuthService#prepareActivation(com.wultra.security.powerauth.client.v3.PrepareActivationRequest)}
      * method. This status means that activation is awaiting commit.
      */
     PENDING_COMMIT((byte) 2),
 
     /**
      * ACTIVE - status after the activation record was committed by calling
-     * {@link PowerAuthService#commitActivation(io.getlime.security.powerauth.v3.CommitActivationRequest)},
+     * {@link PowerAuthService#commitActivation(com.wultra.security.powerauth.client.v3.CommitActivationRequest)},
      * or after activation was unblocked from the BLOCKED state by calling
-     * {@link PowerAuthService#unblockActivation(io.getlime.security.powerauth.v3.UnblockActivationRequest)}.
+     * {@link PowerAuthService#unblockActivation(com.wultra.security.powerauth.client.v3.UnblockActivationRequest)}.
      */
     ACTIVE((byte) 3),
 
     /**
      * BLOCKED - status after the activation record was blocked by calling
-     * {@link PowerAuthService#blockActivation(io.getlime.security.powerauth.v3.BlockActivationRequest)} or
+     * {@link PowerAuthService#blockActivation(com.wultra.security.powerauth.client.v3.BlockActivationRequest)} or
      * after too many authentication failed attempt occurred.
      */
     BLOCKED((byte) 4),
 
     /**
      * REMOVED - status after the activation record was removed by calling
-     * {@link PowerAuthService#removeActivation(io.getlime.security.powerauth.v3.RemoveActivationRequest)}.
+     * {@link PowerAuthService#removeActivation(com.wultra.security.powerauth.client.v3.RemoveActivationRequest)}.
      */
     REMOVED((byte) 5);
 
