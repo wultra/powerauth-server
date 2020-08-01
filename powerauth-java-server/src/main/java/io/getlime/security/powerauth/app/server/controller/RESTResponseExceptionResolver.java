@@ -18,9 +18,9 @@
 package io.getlime.security.powerauth.app.server.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.PowerAuthResponseWrapper;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +80,7 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
             }
 
             // Prepare the response
-            PowerAuthResponseWrapper<PowerAuthError> errorResponse = new PowerAuthResponseWrapper<>("ERROR", error);
+            ObjectResponse<PowerAuthError> errorResponse = new ObjectResponse<>("ERROR", error);
 
             // Write the response in JSON and send it
             ObjectMapper mapper = new ObjectMapper();

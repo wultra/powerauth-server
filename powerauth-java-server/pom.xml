@@ -109,6 +109,13 @@
             <artifactId>powerauth-java-crypto</artifactId>
             <version>${powerauth-java-crypto.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.getlime.core</groupId>
+            <artifactId>rest-model-base</artifactId>
+            <version>${powerauth-rest-model-base.version}</version>
+            <scope>compile</scope>
+        </dependency>
+
 
         <!-- Documentation -->
         <dependency>

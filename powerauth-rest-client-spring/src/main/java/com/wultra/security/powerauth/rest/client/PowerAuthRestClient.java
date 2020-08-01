@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.PowerAuthResponseWrapper;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
@@ -183,12 +182,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     private void handleBadRequestError(WebClientResponseException ex) throws PowerAuthClientException {
         // Try to parse exception into PowerAuthError model class
         try {
-            TypeReference<PowerAuthResponseWrapper<PowerAuthError>> typeReference = new TypeReference<PowerAuthResponseWrapper<PowerAuthError>>(){};
-            PowerAuthResponseWrapper<PowerAuthError> error = objectMapper.readValue(ex.getResponseBodyAsByteArray(), typeReference);
+            TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<ObjectResponse<PowerAuthError>>(){};
+            ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponseBodyAsByteArray(), typeReference);
             if ("ERR_RECOVERY".equals(error.getResponseObject().getCode())) {
                 // In case of special recovery errors, return PowerAuthErrorRecovery which includes additional information about recovery
-                TypeReference<PowerAuthResponseWrapper<PowerAuthErrorRecovery>> PowerAuthErrorRecovery = new TypeReference<PowerAuthResponseWrapper<PowerAuthErrorRecovery>>(){};
-                PowerAuthResponseWrapper<PowerAuthErrorRecovery> errorRecovery = objectMapper.readValue(ex.getResponseBodyAsByteArray(), PowerAuthErrorRecovery);
+                TypeReference<ObjectResponse<PowerAuthErrorRecovery>> PowerAuthErrorRecovery = new TypeReference<ObjectResponse<PowerAuthErrorRecovery>>(){};
+                ObjectResponse<PowerAuthErrorRecovery> errorRecovery = objectMapper.readValue(ex.getResponseBodyAsByteArray(), PowerAuthErrorRecovery);
                 throw new PowerAuthClientException(errorRecovery.getResponseObject().getMessage(), ex, errorRecovery.getResponseObject());
             }
             throw new PowerAuthClientException(error.getResponseObject().getMessage(), ex, error.getResponseObject());
