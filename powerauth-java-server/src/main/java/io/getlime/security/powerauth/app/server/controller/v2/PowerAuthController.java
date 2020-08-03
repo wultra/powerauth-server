@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.controller.v2;
 
 import com.wultra.security.powerauth.client.v2.*;
+import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.v2.PowerAuthService;
 import io.swagger.annotations.Api;
