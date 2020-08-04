@@ -57,6 +57,7 @@ The following `v3` methods are published using the service:
     - [removeIntegration](#method-removeintegration)
 - Callback URL Management
     - [createCallbackUrl](#method-createcallbackurl)
+    - [updateCallbackUrl](#method-updatecallbackurl)
     - [getCallbackUrlList](#method-getcallbackurllist)
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
@@ -1168,7 +1169,7 @@ Remove integration with given ID.
 
 ### Method 'createCallbackUrl'
 
-Creates a callback URL with given parameters.
+Create a callback URL with given parameters.
 
 #### Request
 
@@ -1179,6 +1180,7 @@ Creates a callback URL with given parameters.
 | `Long` | `applicationId` | Associated application ID. |
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
 #### Response
 
@@ -1190,6 +1192,34 @@ Creates a callback URL with given parameters.
 | `Long` | `applicationId` | Associated application ID. |
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+
+### Method 'updateCallbackUrl'
+
+Update a callback URL with given parameters.
+
+#### Request
+
+`UpdateCallbackUrlRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | Associated application ID. |
+| `String` | `name` | Callback URL name, for visual identification. |
+| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+
+#### Response
+
+`CreateCallbackUrlResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | Callback URL identifier (UUID4). |
+| `Long` | `applicationId` | Associated application ID. |
+| `String` | `name` | Callback URL name, for visual identification. |
+| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
 ### Method 'getCallbackUrlList'
 
@@ -1219,6 +1249,7 @@ Get the list of all callbacks for given application.
 | `Long` | `applicationId` | Associated application ID. |
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
 ### Method 'removeCallbackUrl'
 
