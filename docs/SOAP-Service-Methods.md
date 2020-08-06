@@ -1182,6 +1182,17 @@ Create a callback URL with given parameters.
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
+The `attributes` list can contain following values:
+- `activationId`
+- `userId`
+- `activationName`
+- `deviceInfo`
+- `platform`
+- `activationFlags`
+- `activationStatus`
+- `blockedReason`
+- `applicationId`
+
 #### Response
 
 `CreateCallbackUrlResponse`
@@ -1209,9 +1220,20 @@ Update a callback URL with given parameters.
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
+The `attributes` list can contain following values:
+- `activationId`
+- `userId`
+- `activationName`
+- `deviceInfo`
+- `platform`
+- `activationFlags`
+- `activationStatus`
+- `blockedReason`
+- `applicationId`
+
 #### Response
 
-`CreateCallbackUrlResponse`
+`UpdateCallbackUrlResponse`
 
 | Type | Name | Description |
 |------|------|-------------|
