@@ -274,8 +274,7 @@ public class CallbackUrlBehavior {
                     .uri(callbackUrlEntity.getCallbackUrl())
                     .contentType(MediaType.APPLICATION_JSON)
                     .body(BodyInserters.fromValue(callbackData))
-                    .retrieve()
-                    .bodyToMono(ClientResponse.class)
+                    .exchange()
                     .subscribe(onSuccess, onError);
         }
     }
