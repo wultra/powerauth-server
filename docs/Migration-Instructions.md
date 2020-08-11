@@ -2,6 +2,7 @@
 
 This page contains PowerAuth Server migration instructions.
 
+- [PowerAuth Server 1.0.0](./PowerAuth-Server-1.0.0.md)
 - [PowerAuth Server 0.24.0](./PowerAuth-Server-0.24.0.md)
 - [PowerAuth Server 0.23.0](./PowerAuth-Server-0.23.0.md)
 - [PowerAuth Server 0.22.0](./PowerAuth-Server-0.22.0.md)
