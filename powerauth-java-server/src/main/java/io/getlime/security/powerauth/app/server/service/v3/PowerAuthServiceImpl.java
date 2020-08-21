@@ -1389,9 +1389,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            logger.info("GetRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
+            logger.info("UpdateRecoveryConfigRequest received, application ID: {}", request.getApplicationId());
             UpdateRecoveryConfigResponse response = behavior.getRecoveryServiceBehavior().updateRecoveryConfig(request, keyConvertor);
-            logger.info("GetRecoveryConfigRequest succeeded");
+            logger.info("UpdateRecoveryConfigRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
