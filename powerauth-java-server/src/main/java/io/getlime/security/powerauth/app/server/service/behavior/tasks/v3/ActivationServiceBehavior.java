@@ -865,7 +865,7 @@ public class ActivationServiceBehavior {
 
             // Make sure to deactivate the activation if it is expired
             if (activation == null) {
-                logger.warn("Activation not found with activation ID: {}", activationCode);
+                logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
