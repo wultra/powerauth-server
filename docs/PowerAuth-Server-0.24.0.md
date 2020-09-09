@@ -40,7 +40,7 @@ ALTER TABLE `pa_activation` ADD `platform` varchar(255);
 ALTER TABLE `pa_activation` ADD `device_info` varchar(255);
 ALTER TABLE `pa_activation` ADD `activation_otp` varchar(255);
 ALTER TABLE `pa_activation` ADD `activation_otp_validation` int DEFAULT 0 NOT NULL;
-ALTER TABLE `pa_activation_history` RENAME COLUMN `blocked_reason` TO `event_reason`;
+ALTER TABLE `pa_activation_history` CHANGE COLUMN `blocked_reason` `event_reason` varchar(255);
 ```
 
 Migration script for PostgreSQL:
