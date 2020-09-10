@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.client.v2.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.v2.PowerAuthService;
-import io.swagger.annotations.Api;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController("restControllerV2")
 @RequestMapping(value = "/rest/v2")
-@Api(tags={"PowerAuth Controller V2"})
+@Tag(name = "PowerAuth Controller V2")
 public class PowerAuthController {
 
     private PowerAuthService powerAuthService;
