@@ -109,7 +109,7 @@
         <saaj-impl.version>1.5.2</saaj-impl.version>
 
         <!-- Swagger Dependencies -->
-        <springfox-swagger.version>2.9.2</springfox-swagger.version>
+        <springfox-swagger.version>2.10.5</springfox-swagger.version>
         <swagger-annotations.version>2.1.4</swagger-annotations.version>
 
         <!-- Test Dependencies -->
