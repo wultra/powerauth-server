@@ -106,7 +106,7 @@
         <istack-commons-runtime.version>3.0.10</istack-commons-runtime.version>
         <javax.xml.soap-api.version>1.4.0</javax.xml.soap-api.version>
         <javax.validation.version>2.0.1.Final</javax.validation.version>
-        <saaj-impl.version>1.5.1</saaj-impl.version>
+        <saaj-impl.version>1.5.2</saaj-impl.version>
 
         <!-- Swagger Dependencies -->
         <springfox-swagger.version>2.9.2</springfox-swagger.version>
