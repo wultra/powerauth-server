@@ -101,7 +101,7 @@
 
         <!-- Java 11 Dependencies -->
         <jaxb-api.version>2.3.1</jaxb-api.version>
-        <jaxb-impl.version>2.3.1</jaxb-impl.version>
+        <jaxb-impl.version>2.3.3</jaxb-impl.version>
         <jaxb-runtime.version>2.3.1</jaxb-runtime.version>
         <istack-commons-runtime.version>3.0.10</istack-commons-runtime.version>
         <javax.xml.soap-api.version>1.4.0</javax.xml.soap-api.version>
