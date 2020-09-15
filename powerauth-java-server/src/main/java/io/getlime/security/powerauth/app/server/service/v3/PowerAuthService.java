@@ -339,10 +339,11 @@ public interface PowerAuthService {
 
     /**
      * Get the list of currently present integrations.
+     * @param request Get integration list request.
      * @return List of currently present integrations.
      * @throws Exception In case of a business logic error.
      */
-    GetIntegrationListResponse getIntegrationList() throws Exception;
+    GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws Exception;
 
     /**
      * Remove integration with given ID.

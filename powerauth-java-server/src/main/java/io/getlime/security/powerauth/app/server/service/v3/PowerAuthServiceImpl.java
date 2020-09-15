@@ -959,7 +959,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     @Transactional
-    public GetIntegrationListResponse getIntegrationList() throws GenericServiceException {
+    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws GenericServiceException {
         try {
             logger.info("GetIntegrationListRequest received");
             GetIntegrationListResponse response = behavior.getIntegrationBehavior().getIntegrationList();
