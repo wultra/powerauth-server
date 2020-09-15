@@ -441,8 +441,8 @@ public class PowerAuthController {
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/integration/list", method = RequestMethod.POST)
-    public ObjectResponse<GetIntegrationListResponse> getIntegrationList() throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getIntegrationList());
+    public ObjectResponse<GetIntegrationListResponse> getIntegrationList(@RequestBody ObjectRequest<GetIntegrationListRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getIntegrationList(request.getRequestObject()));
     }
 
     /**
