@@ -224,8 +224,16 @@ public class ApplicationServiceBehavior {
         ApplicationEntity application = findApplicationById(applicationId);
 
         KeyGenerator keyGen = new KeyGenerator();
-        byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-        byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
+        byte[] applicationKeyBytes;
+        byte[] applicationSecretBytes;
+        try {
+            applicationKeyBytes = keyGen.generateRandomBytes(16);
+            applicationSecretBytes = keyGen.generateRandomBytes(16);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
 
         ApplicationVersionEntity version = new ApplicationVersionEntity();
         version.setApplication(application);
