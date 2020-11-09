@@ -1074,7 +1074,7 @@ public class ActivationServiceBehavior {
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
-            PublicKey devicePublicKey = null;
+            PublicKey devicePublicKey;
 
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -1270,11 +1270,18 @@ public class ActivationServiceBehavior {
         // Check OTP validation mode
          if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE) {
             logger.info("Activation OTP update is not allowed for ON_KEY_EXCHANGE mode. Activation ID: {}", activationId);
-             // Rollback is not required, error occurs before writing to database
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP_MODE);
         }
 
-        final String activationOtpHash = PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+        final String activationOtpHash;
+        try {
+            activationOtpHash = PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
 
         // Change activation OTP and set mode to ON_COMMIT
         activation.setActivationOtp(activationOtpHash);
@@ -1697,7 +1704,7 @@ public class ActivationServiceBehavior {
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(layer2Request.getDevicePublicKey());
-            PublicKey devicePublicKey = null;
+            PublicKey devicePublicKey;
 
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
