@@ -22,11 +22,11 @@ import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPrivateKeyC
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,7 +37,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootTest
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public class RecoveryPrivateKeyConverterTest {
 
     private static final String RECOVERY_PRIVATE_KEY_PLAIN = "ALwHHv90Ixaor+8CkBThDQP/8UUm59Bvdod5u7z97zGm";
