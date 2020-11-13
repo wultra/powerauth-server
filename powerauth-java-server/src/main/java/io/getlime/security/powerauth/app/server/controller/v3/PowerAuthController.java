@@ -434,7 +434,7 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getIntegrationList()} method and
+     * Call {@link PowerAuthService#getIntegrationList(GetIntegrationListRequest)} method and
      * return the response.
      *
      * @return Get integration list response.
