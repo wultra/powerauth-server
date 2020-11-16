@@ -54,7 +54,7 @@ public class OpenApiConfiguration {
         String[] packages = {"io.getlime.security.powerauth.app.server.controller.v2", "io.getlime.security.powerauth.app.server.controller.v3"};
 
         return GroupedOpenApi.builder()
-                .setGroup("powerauth")
+                .group("powerauth")
                 .packagesToScan(packages)
                 .build();
     }
