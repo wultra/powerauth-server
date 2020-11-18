@@ -194,7 +194,7 @@ public class TokenBehavior {
             token.setActivation(activation);
             token.setTimestampCreated(Calendar.getInstance().getTime());
             token.setSignatureTypeCreated(signatureType);
-            token = repositoryCatalogue.getTokenRepository().save(token);
+            repositoryCatalogue.getTokenRepository().save(token);
 
             return response;
         } catch (InvalidKeySpecException ex) {
