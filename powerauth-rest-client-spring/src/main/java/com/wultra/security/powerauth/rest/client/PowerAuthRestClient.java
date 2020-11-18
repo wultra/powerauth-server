@@ -184,6 +184,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
         try {
             TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<ObjectResponse<PowerAuthError>>(){};
             ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponseBodyAsByteArray(), typeReference);
+            if (error.getResponseObject() == null) {
+                throw new PowerAuthClientException("Invalid response object");
+            }
             if ("ERR_RECOVERY".equals(error.getResponseObject().getCode())) {
                 // In case of special recovery errors, return PowerAuthErrorRecovery which includes additional information about recovery
                 TypeReference<ObjectResponse<PowerAuthErrorRecovery>> PowerAuthErrorRecovery = new TypeReference<ObjectResponse<PowerAuthErrorRecovery>>(){};
