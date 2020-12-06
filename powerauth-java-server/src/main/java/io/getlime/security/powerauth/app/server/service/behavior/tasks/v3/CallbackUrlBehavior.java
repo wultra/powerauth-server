@@ -17,6 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.core.rest.client.base.DefaultRestClient;
+import com.wultra.core.rest.client.base.RestClient;
+import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -25,18 +28,11 @@ import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlR
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.netty.channel.ChannelOption;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.ClientResponse;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.netty.http.client.HttpClient;
-import reactor.netty.tcp.ProxyProvider;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -58,7 +54,7 @@ public class CallbackUrlBehavior {
 
     private LocalizationProvider localizationProvider;
 
-    private WebClient webClient;
+    private RestClient restClient;
 
     private PowerAuthServiceConfiguration configuration;
 
@@ -91,9 +87,9 @@ public class CallbackUrlBehavior {
     }
 
     /**
-     * Configure WebClient HTTP connection parameters.
+     * Configure Rest client HTTP connection parameters.
      */
-    private void configureWebClient() {
+    private void configureRestClient() {
         proxyEnabled = configuration.getHttpProxyEnabled();
         if (proxyEnabled) {
             proxyHost = configuration.getHttpProxyHost();
@@ -105,34 +101,21 @@ public class CallbackUrlBehavior {
     }
 
     /**
-     * Initialize WebClient instance and configure it based on client configuration.
+     * Initialize Rest client instance and configure it based on client configuration.
      */
-    private void initializeWebClient() {
-        HttpClient httpClient = HttpClient.create()
-                .tcpConfiguration(tcpClient -> {
-                            if (connectionTimeout != null) {
-                                tcpClient = tcpClient.option(
-                                        ChannelOption.CONNECT_TIMEOUT_MILLIS,
-                                        connectionTimeout);
-                            }
-                            if (proxyEnabled) {
-                                tcpClient = tcpClient.proxy(proxySpec -> {
-                                    ProxyProvider.Builder builder = proxySpec
-                                            .type(ProxyProvider.Proxy.HTTP)
-                                            .host(proxyHost)
-                                            .port(proxyPort);
-                                    if (proxyUsername != null && !proxyUsername.isEmpty()) {
-                                        builder.username(proxyUsername);
-                                        builder.password(s -> proxyPassword);
-                                    }
-                                    builder.build();
-                                });
-                            }
-                            return tcpClient;
-                        }
-                );
-        ReactorClientHttpConnector connector = new ReactorClientHttpConnector(httpClient);
-        webClient = WebClient.builder().clientConnector(connector).build();
+    private void initializeRestClient() throws RestClientException {
+        DefaultRestClient.Builder builder = DefaultRestClient.builder();
+        if (connectionTimeout != null) {
+            builder.connectionTimeout(connectionTimeout);
+        }
+        if (proxyEnabled) {
+            DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(proxyHost).port(proxyPort);
+            if (proxyUsername != null) {
+                proxyBuilder.username(proxyUsername).password(proxyPassword);
+            }
+            proxyBuilder.build();
+        }
+        restClient = builder.build();
     }
 
     /**
@@ -255,27 +238,26 @@ public class CallbackUrlBehavior {
      * @param activation Activation to be notified about.
      */
     public void notifyCallbackListeners(Long applicationId, ActivationRecordEntity activation) {
-        if (webClient == null) {
-            // Initialize Web Client when it is used for the first time
-            configureWebClient();
-            initializeWebClient();
-        }
-        final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(applicationId);
-        for (CallbackUrlEntity callbackUrlEntity: callbackUrlEntities) {
-            Map<String, Object> callbackData = prepareCallbackData(callbackUrlEntity, activation);
-            Consumer<ClientResponse> onSuccess = response -> {
-                if (response.statusCode().isError()) {
-                    logger.warn("Callback failed, URL: {}, status code: {}", callbackUrlEntity.getCallbackUrl(), response.statusCode().toString());
-                }
-            };
-            Consumer<Throwable> onError = error -> logger.warn( "Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-            webClient
-                    .post()
-                    .uri(callbackUrlEntity.getCallbackUrl())
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(BodyInserters.fromValue(callbackData))
-                    .exchange()
-                    .subscribe(onSuccess, onError);
+        try {
+            if (restClient == null) {
+                // Initialize Web Client when it is used for the first time
+                configureRestClient();
+                initializeRestClient();
+            }
+            final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(applicationId);
+            for (CallbackUrlEntity callbackUrlEntity: callbackUrlEntities) {
+                Map<String, Object> callbackData = prepareCallbackData(callbackUrlEntity, activation);
+                Consumer<ClientResponse> onSuccess = response -> {
+                    if (response.statusCode().isError()) {
+                        logger.warn("Callback failed, URL: {}, status code: {}", callbackUrlEntity.getCallbackUrl(), response.statusCode().toString());
+                    }
+                };
+                Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
+                restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, onSuccess, onError);
+            }
+        } catch (RestClientException ex) {
+            // Log the error in case Rest client initialization failed
+            logger.error(ex.getMessage(), ex);
         }
     }
 
