@@ -58,16 +58,6 @@ public class CallbackUrlBehavior {
 
     private PowerAuthServiceConfiguration configuration;
 
-    // HTTP proxy settings
-    private boolean proxyEnabled;
-    private String proxyHost;
-    private int proxyPort;
-    private String proxyUsername;
-    private String proxyPassword;
-
-    // HTTP connection timeout
-    private Integer connectionTimeout;
-
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
 
@@ -87,33 +77,18 @@ public class CallbackUrlBehavior {
     }
 
     /**
-     * Configure Rest client HTTP connection parameters.
-     */
-    private void configureRestClient() {
-        proxyEnabled = configuration.getHttpProxyEnabled();
-        if (proxyEnabled) {
-            proxyHost = configuration.getHttpProxyHost();
-            proxyPort = configuration.getHttpProxyPort();
-            proxyUsername = configuration.getHttpProxyUsername();
-            proxyPassword = configuration.getHttpProxyPassword();
-        }
-        this.connectionTimeout = configuration.getHttpConnectionTimeout();
-    }
-
-    /**
      * Initialize Rest client instance and configure it based on client configuration.
      */
     private void initializeRestClient() throws RestClientException {
         DefaultRestClient.Builder builder = DefaultRestClient.builder();
-        if (connectionTimeout != null) {
-            builder.connectionTimeout(connectionTimeout);
+        if (configuration.getHttpConnectionTimeout() != null) {
+            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
         }
-        if (proxyEnabled) {
-            DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(proxyHost).port(proxyPort);
-            if (proxyUsername != null) {
-                proxyBuilder.username(proxyUsername).password(proxyPassword);
+        if (configuration.getHttpProxyEnabled()) {
+            DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
+            if (configuration.getHttpProxyUsername() != null) {
+                proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
             }
-            proxyBuilder.build();
         }
         restClient = builder.build();
     }
@@ -240,8 +215,7 @@ public class CallbackUrlBehavior {
     public void notifyCallbackListeners(Long applicationId, ActivationRecordEntity activation) {
         try {
             if (restClient == null) {
-                // Initialize Web Client when it is used for the first time
-                configureRestClient();
+                // Initialize Rest Client when it is used for the first time
                 initializeRestClient();
             }
             final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(applicationId);
