@@ -43,12 +43,12 @@
         <dependency>
             <groupId>io.getlime.core</groupId>
             <artifactId>rest-model-base</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${powerauth-rest-base.version}</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.core</groupId>
             <artifactId>rest-client-base</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>${powerauth-rest-base.version}</version>
         </dependency>
 
         <!-- Spring Dependencies -->
