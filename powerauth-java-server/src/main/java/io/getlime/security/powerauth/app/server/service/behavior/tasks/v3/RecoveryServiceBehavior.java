@@ -587,6 +587,7 @@ public class RecoveryServiceBehavior {
             recoveryConfigEntity.setActivationRecoveryEnabled(false);
             recoveryConfigEntity.setRecoveryPostcardEnabled(false);
             recoveryConfigEntity.setAllowMultipleRecoveryCodes(false);
+            recoveryConfigEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
             recoveryConfigRepository.save(recoveryConfigEntity);
         }
         GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
@@ -622,6 +623,7 @@ public class RecoveryServiceBehavior {
                 // Configuration does not exist yet, create it
                 recoveryConfigEntity = new RecoveryConfigEntity();
                 recoveryConfigEntity.setApplication(applicationOptional.get());
+                recoveryConfigEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
             }
             if (request.isRecoveryPostcardEnabled() && recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null) {
                 // Private key does not exist, generate key pair and persist it
