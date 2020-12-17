@@ -436,7 +436,7 @@ public class ActivationServiceBehavior {
             byte[] C_devicePublicKey = BaseEncoding.base64().decode(cDevicePublicKeyBase64);
             byte[] activationNonce = BaseEncoding.base64().decode(activationNonceBase64);
 
-            PublicKey devicePublicKey = null;
+            PublicKey devicePublicKey;
             try {
                 devicePublicKey = powerAuthServerActivation.decryptDevicePublicKey(
                         C_devicePublicKey,

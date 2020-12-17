@@ -667,6 +667,7 @@
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remainingAttempts" type="xs:integer" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -759,6 +760,7 @@
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="remainingAttempts" type="xs:integer" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -1231,6 +1233,7 @@
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>

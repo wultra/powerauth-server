@@ -46,7 +46,7 @@ public class ApplicationEntity implements Serializable {
 
     @Column(name = "roles")
     @Convert(converter = ApplicationRoleConverter.class)
-    private List<String> roles = new ArrayList<>();
+    private final List<String> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "application")
     private final List<ApplicationVersionEntity> versions = new ArrayList<>();

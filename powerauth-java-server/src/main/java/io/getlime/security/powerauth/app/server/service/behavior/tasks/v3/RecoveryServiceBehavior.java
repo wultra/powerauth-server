@@ -554,12 +554,8 @@ public class RecoveryServiceBehavior {
         }
 
         final RevokeRecoveryCodesResponse response = new RevokeRecoveryCodesResponse();
-        if (revokedCount > 0) {
-            // At least one recovery code was revoked
-            response.setRevoked(true);
-        } else {
-            response.setRevoked(false);
-        }
+        // At least one recovery code was revoked
+        response.setRevoked(revokedCount > 0);
         return response;
     }
 
