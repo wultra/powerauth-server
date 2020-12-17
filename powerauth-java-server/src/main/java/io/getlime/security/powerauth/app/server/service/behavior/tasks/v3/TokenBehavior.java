@@ -119,7 +119,7 @@ public class TokenBehavior {
         // Convert received ECIES request data to cryptogram
         final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
 
-        EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.value(), keyConversion);
+        final EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.value(), keyConversion);
 
         final CreateTokenResponse response = new CreateTokenResponse();
         response.setMac(BaseEncoding.base64().encode(encryptedCryptogram.getMac()));
@@ -160,18 +160,18 @@ public class TokenBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-            byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
 
             // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
-            byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
-            PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
-            SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-            byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
+            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+            final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
             // Get decryptor for the activation
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
@@ -201,7 +201,7 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
             // Perform the following operations before writing to database to avoid rollbacks.
-            String tokenSecret = BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret());
+            final String tokenSecret = BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret());
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);
@@ -210,10 +210,10 @@ public class TokenBehavior {
             final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response using previously created ECIES decryptor
-            EciesCryptogram response = decryptor.encryptResponse(tokenBytes);
+            final EciesCryptogram response = decryptor.encryptResponse(tokenBytes);
 
             // Create a new token
-            TokenEntity token = new TokenEntity();
+            final TokenEntity token = new TokenEntity();
             token.setTokenId(tokenId);
             token.setTokenSecret(tokenSecret);
             token.setActivation(activation);
@@ -288,6 +288,7 @@ public class TokenBehavior {
                 response.setActivationId(activation.getActivationId());
                 response.setApplicationId(activation.getApplication().getId());
                 response.getApplicationRoles().addAll(activation.getApplication().getRoles());
+                response.getActivationFlags().addAll(activation.getFlags());
                 response.setUserId(activation.getUserId());
                 response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
                 return response;
@@ -314,7 +315,7 @@ public class TokenBehavior {
      * @return Token removal response.
      */
     public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
-        String tokenId = request.getTokenId();
+        final String tokenId = request.getTokenId();
         boolean removed = false;
 
         final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
@@ -328,7 +329,7 @@ public class TokenBehavior {
             }
         }
 
-        RemoveTokenResponse response = new RemoveTokenResponse();
+        final RemoveTokenResponse response = new RemoveTokenResponse();
         response.setRemoved(removed);
 
         return response;

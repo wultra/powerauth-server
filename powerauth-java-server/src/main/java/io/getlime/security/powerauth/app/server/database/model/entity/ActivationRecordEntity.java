@@ -68,7 +68,7 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "flags")
     @Convert(converter = ActivationFlagConverter.class)
-    private List<String> flags = new ArrayList<>();
+    private final List<String> flags = new ArrayList<>();
 
     @Column(name = "server_private_key_base64", nullable = false)
     private String serverPrivateKeyBase64;

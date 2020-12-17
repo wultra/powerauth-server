@@ -660,6 +660,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="signatureType" type="tns:SignatureType"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="remainingAttempts" type="xs:integer"/>
                     </xs:sequence>
@@ -747,6 +748,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="signatureType" type="tns:SignatureType"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="remainingAttempts" type="xs:integer"/>
                     </xs:sequence>
@@ -1215,6 +1217,7 @@
                         <xs:element maxOccurs="1" minOccurs="0" name="userId" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="applicationId" type="xs:long"/>
                         <xs:element maxOccurs="unbounded" minOccurs="0" name="applicationRoles" type="xs:string"/>
+                        <xs:element maxOccurs="unbounded" minOccurs="0" name="activationFlags" type="xs:string"/>
                         <xs:element maxOccurs="1" minOccurs="0" name="signatureType" type="tns:SignatureType"/>
                     </xs:sequence>
                 </xs:complexType>

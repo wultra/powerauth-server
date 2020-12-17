@@ -1608,10 +1608,7 @@ public class PowerAuthServiceClient {
     public PowerAuthPortV3ServiceStub.AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws RemoteException {
         PowerAuthPortV3ServiceStub.AddActivationFlagsRequest request = new PowerAuthPortV3ServiceStub.AddActivationFlagsRequest();
         request.setActivationId(activationId);
-        List<String> list = new ArrayList<>();
-        for (String activationFlag : activationFlags) {
-            list.add(activationFlag);
-        }
+        List<String> list = new ArrayList<>(activationFlags);
         request.setActivationFlags(list.toArray(new String[0]));
         return addActivationFlags(request);
     }
