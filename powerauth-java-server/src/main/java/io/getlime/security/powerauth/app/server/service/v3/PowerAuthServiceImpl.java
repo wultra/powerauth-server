@@ -62,6 +62,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
+    // Minimum date for SQL timestamps: 01/01/1970 @ 12:00am (UTC)
+    private static final Date MIN_TIMESTAMP = new Date(1L);
+
+    // Maximum date for SQL timestamps: 01/01/9999 @ 12:00am (UTC)
+    private static final Date MAX_TIMESTAMP = new Date(253370764800000L);
+
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceImpl.class);
 
@@ -161,13 +167,17 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             List<String> userIds = request.getUserIds();
             List<Long> applicationIds = request.getApplicationIds();
-            Date timestampLastUsedBefore = null;
+            Date timestampLastUsedBefore;
             if (request.getTimestampLastUsedBefore() != null) {
                 timestampLastUsedBefore = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedBefore());
+            } else {
+                timestampLastUsedBefore = MAX_TIMESTAMP;
             }
-            Date timestampLastUsedAfter = null;
+            Date timestampLastUsedAfter;
             if (request.getTimestampLastUsedAfter() != null) {
                 timestampLastUsedAfter = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedAfter());
+            } else {
+                timestampLastUsedAfter = MIN_TIMESTAMP;
             }
             ActivationStatus activationStatus = null;
             if (request.getActivationStatus() != null) {

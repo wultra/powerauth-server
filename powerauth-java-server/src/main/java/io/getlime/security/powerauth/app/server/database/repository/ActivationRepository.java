@@ -160,11 +160,11 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * Find all activations which match the query criteria.
      * @param userIds List of user IDs, at least one user ID should be specified.
      * @param applicationIds List of application IDs, use null value for all applications.
-     * @param timestampLastUsedBefore Last used timestamp (timestampLastUsed &lt; timestampLastUsedBefore), use null value for any date.
-     * @param timestampLastUsedAfter Last used timestamp (timestampLastUsed &gt;= timestampLastUsedAfter), use null value for any date.
+     * @param timestampLastUsedBefore Last used timestamp (timestampLastUsed &lt; timestampLastUsedBefore), use the 1.1.9999 value for any date (null date values in query cause problems in PostgreSQL).
+     * @param timestampLastUsedAfter Last used timestamp (timestampLastUsed &gt;= timestampLastUsedAfter), use the 1.1.1970 value for any date (null date values in query cause problems in PostgreSQL).
      * @param states List of activation states to consider.
      * @return List of activations which match the query criteria.
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND (:applicationIds IS NULL OR a.application.id IN :applicationIds) AND (:timestampLastUsedBefore IS NULL OR a.timestampLastUsed < :timestampLastUsedBefore) AND (:timestampLastUsedAfter IS NULL OR a.timestampLastUsed >= :timestampLastUsedAfter) AND a.activationStatus IN :states")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND (:applicationIds IS NULL OR a.application.id IN :applicationIds) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
     List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
 }
