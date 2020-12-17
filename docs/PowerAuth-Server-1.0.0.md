@@ -34,7 +34,7 @@ Migration script for PostgreSQL:
 ALTER TABLE "pa_activation" ADD "flags" VARCHAR(255);
 ALTER TABLE "pa_application" ADD "roles" VARCHAR(255);
 ALTER TABLE "pa_application_callback" ADD "attributes" VARCHAR(1024);
-ALTER TABLE "pa_application" ADD "postcard_private_key_encryption" INTEGER DEFAULT 0 NOT NULL;
+ALTER TABLE "pa_recovery_config" ADD "postcard_private_key_encryption" INTEGER DEFAULT 0 NOT NULL;
 ```
 
 ## New REST Client and SOAP Client Updates
