@@ -15,14 +15,14 @@ Java 11 no longer provides a library extension mechanism and thus Bouncy Castle 
 
 ### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-165.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
+Copy [`bcprov-jdk15on-167.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
 
 _Warning: Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
 Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case._
 
 ### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-165.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-167.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -40,12 +40,12 @@ The module should be defined using a new module XML file in JBoss folder `module
 <?xml version="1.0" encoding="UTF-8"?>
 <module name="org.bouncycastle.external" xmlns="urn:jboss:module:1.8">
     <resources>
-        <resource-root path="bcprov-jdk15on-165.jar"/>
+        <resource-root path="bcprov-jdk15on-167.jar"/>
     </resources>
 </module>
 ```
 
-Finally, copy the Bouncy Castle library `bcprov-jdk15on-165.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
+Finally, copy the Bouncy Castle library `bcprov-jdk15on-167.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
 
 _Warning: do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth._  
 
@@ -74,7 +74,7 @@ Java 8 provides a library extension mechanism which can be used to installed Bou
 
 #### Standalone Tomcat
 
-When running a standalone Tomcat instance, all you need to do is to copy [`bcprov-jdk15on-165.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
+When running a standalone Tomcat instance, all you need to do is to copy [`bcprov-jdk15on-167.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
 
 #### Embedded Tomcat
 
@@ -88,7 +88,7 @@ Make sure to add the provider to the top of the list (ideally, N=2).
 
 ### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-165.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-167.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -106,12 +106,12 @@ The module should be defined using a new module XML file in JBoss folder `module
 <?xml version="1.0" encoding="UTF-8"?>
 <module name="org.bouncycastle.external" xmlns="urn:jboss:module:1.8">
     <resources>
-        <resource-root path="bcprov-jdk15on-165.jar"/>
+        <resource-root path="bcprov-jdk15on-167.jar"/>
     </resources>
 </module>
 ```
 
-Finally, copy the Bouncy Castle library `bcprov-jdk15on-165.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
+Finally, copy the Bouncy Castle library `bcprov-jdk15on-167.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
 
 _Warning: do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth._  
 

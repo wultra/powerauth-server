@@ -2,6 +2,20 @@
 
 This guide contains instructions for migration from PowerAuth Server version `0.24.0` to version `1.0.0`.
 
+## Bouncy Castle Library Update to Version 1.67
+
+Bouncy Castle library has been updated to version `1.67`. The newest version of Bouncy Castle library can be downloaded from: [https://www.bouncycastle.org/download/bcprov-jdk15on-167.jar](https://www.bouncycastle.org/download/bcprov-jdk15on-167.jar)
+
+Installation on **Java 8**:
+- Update Bouncy Castle library the `lib/ext` folder of the Java runtime
+
+Installation on **Java 11**:
+- Tomcat: update Bouncy Castle library in `CATALINA_HOME/lib`
+- JBoss / Wildfly: update Bouncy Castle library global module
+- Other web containers: follow instructions for installing a global library for the web container
+
+For more details about installation of the library see [Installing Bouncy Castle](./Installing-Bouncy-Castle.md).
+
 ## Database Changes
 
 Following DB changes occurred between version 0.24.0 and 1.0.0:
