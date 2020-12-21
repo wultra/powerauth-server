@@ -50,8 +50,9 @@ public class OperationEntity implements Serializable {
     @Column(name = "application_id")
     private Long applicationId;
 
-    @Column(name = "template_id")
-    private Long templateId;
+    @ManyToOne
+    @JoinColumn(name = "template_id", referencedColumnName = "id", nullable = false)
+    private OperationTemplateEntity template;
 
     @Column(name = "external_id")
     private String externalId;
@@ -138,19 +139,19 @@ public class OperationEntity implements Serializable {
     }
 
     /**
-     * Get template ID.
-     * @return Template ID.
+     * Get template.
+     * @return Template.
      */
-    public Long getTemplateId() {
-        return templateId;
+    public OperationTemplateEntity getTemplate() {
+        return template;
     }
 
     /**
-     * Set template ID.
-     * @param templateId Template ID.
+     * Set template.
+     * @param template Template.
      */
-    public void setTemplateId(Long templateId) {
-        this.templateId = templateId;
+    public void setTemplate(OperationTemplateEntity template) {
+        this.template = template;
     }
 
     /**
@@ -336,7 +337,7 @@ public class OperationEntity implements Serializable {
         OperationEntity that = (OperationEntity) o;
         return Objects.equals(id, that.id)
                 && Objects.equals(userId, that.userId)
-                && Objects.equals(templateId, that.templateId)
+                && Objects.equals(template, that.template)
                 && Objects.equals(externalId, that.externalId)
                 && Objects.equals(operationType, that.operationType)
                 && Objects.equals(data, that.data)
@@ -355,7 +356,7 @@ public class OperationEntity implements Serializable {
         return Objects.hash(
                 id,
                 userId,
-                templateId,
+                template,
                 externalId,
                 operationType,
                 data,
@@ -374,7 +375,7 @@ public class OperationEntity implements Serializable {
         return "OperationEntity{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +
-                ", templateId=" + templateId +
+                ", template=" + template.toString() +
                 ", externalId='" + externalId + '\'' +
                 ", operationType='" + operationType + '\'' +
                 ", data='" + data + '\'' +

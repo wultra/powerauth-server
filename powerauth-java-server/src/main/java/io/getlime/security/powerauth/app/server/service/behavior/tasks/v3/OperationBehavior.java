@@ -138,7 +138,7 @@ public class OperationBehavior {
         operationEntity.setId(operationId);
         operationEntity.setUserId(userId);
         operationEntity.setApplicationId(applicationId);
-        operationEntity.setTemplateId(templateEntity.getId());
+        operationEntity.setTemplate(templateEntity);
         operationEntity.setExternalId(externalId);
         operationEntity.setOperationType(templateEntity.getOperationType());
         operationEntity.setData(operationData);
@@ -349,7 +349,7 @@ public class OperationBehavior {
         destination.setId(source.getId());
         destination.setUserId(source.getUserId());
         destination.setApplicationId(source.getApplicationId());
-        destination.setTemplateId(source.getTemplateId());
+        destination.setTemplateName(source.getTemplate().getTemplateName());
         destination.setExternalId(source.getExternalId());
         destination.setOperationType(source.getOperationType());
         destination.setData(source.getData());

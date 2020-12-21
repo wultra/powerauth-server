@@ -32,7 +32,7 @@ public class OperationDetailResponse {
     private String id;
     private String userId;
     private Long applicationId;
-    private Long templateId;
+    private String templateName;
     private String externalId;
     private String operationType;
     private String data;
@@ -69,12 +69,12 @@ public class OperationDetailResponse {
         return applicationId;
     }
 
-    public void setTemplateId(Long templateId) {
-        this.templateId = templateId;
+    public String getTemplateName() {
+        return templateName;
     }
 
-    public Long getTemplateId() {
-        return templateId;
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 
     public void setExternalId(String externalId) {
