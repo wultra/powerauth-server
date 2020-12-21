@@ -1318,6 +1318,15 @@ public interface PowerAuthClient {
     OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException;
 
     /**
+     * Simulate approval failure. Useful when you need to enforce decrement of a counter,
+     * or eventual operation failure.
+     * @param request Failed approval operation request.
+     * @return Failed approval operatin request.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws PowerAuthClientException;
+
+    /**
      * Reject operation.
      * @param request Reject operation request.
      * @return Reject operation response.

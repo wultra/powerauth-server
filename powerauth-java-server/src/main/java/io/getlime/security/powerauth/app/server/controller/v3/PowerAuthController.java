@@ -843,6 +843,18 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#failApprovalOperation(OperationFailApprovalRequest)}  method and
+     * return the response.
+     * @param request Fail approval operation request.
+     * @return Fail approval operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/approve/fail", method = RequestMethod.POST)
+    public ObjectResponse<OperationUserActionResponse> failApprovalOperation(@RequestBody ObjectRequest<OperationFailApprovalRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.failApprovalOperation(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#rejectOperation(OperationRejectRequest)} method and
      * return the response.
      * @param request Reject operation request.

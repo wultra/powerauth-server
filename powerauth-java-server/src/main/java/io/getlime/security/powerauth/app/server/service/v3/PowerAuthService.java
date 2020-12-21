@@ -613,6 +613,17 @@ public interface PowerAuthService {
     OperationUserActionResponse approveOperation(OperationApproveRequest request) throws Exception;
 
     /**
+     * Simulate failed approval for operation by ID and other operation attributes.
+     * This method is useful in case some other system (for example, the Internet banking)
+     * needs to increase the approval failure count.
+     *
+     * @param request Operation failed approval request.
+     * @return Operation failed approval response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws Exception;
+
+    /**
      * Reject operation by ID and other operation attributes.
      * @param request Operation reject request.
      * @return Operation reject response.

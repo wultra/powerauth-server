@@ -16,33 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.response;
-
-import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
+package com.wultra.security.powerauth.client.model.request;
 
 /**
- * Response object for operation approval.
- *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class OperationUserActionResponse {
+public class OperationFailApprovalRequest {
 
-    private UserActionResult result;
-    private OperationDetailResponse operation;
+    private String operationId;
 
-    public UserActionResult getResult() {
-        return result;
+    public String getOperationId() {
+        return operationId;
     }
 
-    public void setResult(UserActionResult result) {
-        this.result = result;
+    public void setOperationId(String operationId) {
+        this.operationId = operationId;
     }
 
-    public OperationDetailResponse getOperation() {
-        return operation;
-    }
-
-    public void setOperation(OperationDetailResponse operation) {
-        this.operation = operation;
-    }
 }

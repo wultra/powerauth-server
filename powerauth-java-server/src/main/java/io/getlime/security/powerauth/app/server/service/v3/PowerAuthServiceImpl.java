@@ -1806,4 +1806,24 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
     }
 
+    @Override
+    public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws Exception {
+        // TODO: Validators
+        try {
+            logger.info("OperationFailApprovalRequest received, operation ID: {}", request.getOperationId());
+            OperationUserActionResponse response = behavior.getOperationBehavior().failApprovalOperation(request);
+            logger.info("OperationFailApprovalRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
 }

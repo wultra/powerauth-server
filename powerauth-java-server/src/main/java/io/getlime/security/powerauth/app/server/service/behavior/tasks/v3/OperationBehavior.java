@@ -21,6 +21,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
@@ -188,7 +189,7 @@ public class OperationBehavior {
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                     OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult("APPROVED");
+                    response.setResult(UserActionResult.APPROVED);
                     response.setOperation(operationDetailResponse);
                     return response;
                 } else {
@@ -204,7 +205,7 @@ public class OperationBehavior {
                         final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                         OperationUserActionResponse response = new OperationUserActionResponse();
-                        response.setResult("APPROVAL_FAILED");
+                        response.setResult(UserActionResult.APPROVAL_FAILED);
                         response.setOperation(operationDetailResponse);
                         return response;
                     } else {
@@ -216,7 +217,7 @@ public class OperationBehavior {
                         final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                         OperationUserActionResponse response = new OperationUserActionResponse();
-                        response.setResult("OPERATION_FAILED");
+                        response.setResult(UserActionResult.OPERATION_FAILED);
                         response.setOperation(operationDetailResponse);
                         return response;
                     }
@@ -254,13 +255,13 @@ public class OperationBehavior {
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                     OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult("REJECTED");
+                    response.setResult(UserActionResult.REJECTED);
                     response.setOperation(operationDetailResponse);
                     return response;
                 } else {
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
                     OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult("REJECT_FAILED");
+                    response.setResult(UserActionResult.REJECT_FAILED);
                     response.setOperation(operationDetailResponse);
                     return response;
                 }
@@ -270,6 +271,54 @@ public class OperationBehavior {
             }
         } else {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+        }
+    }
+
+    public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws GenericServiceException {
+        final Date currentTimestamp = new Date();
+
+        final String operationId = request.getOperationId();
+
+        // TODO: We might need a lock here!!!
+        final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
+        if (operationOptional.isPresent()) {
+            final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+            if (OperationStatus.PENDING.equals(operationEntity.getStatus())) {
+
+                // Update failure count, check the failure count and FAIL operation if needed
+                final Long failureCount = operationEntity.getFailureCount() + 1;
+                final Long maxFailureCount = operationEntity.getMaxFailureCount();
+
+                if (failureCount < maxFailureCount) {
+                    operationEntity.setFailureCount(failureCount);
+
+                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+                    OperationUserActionResponse response = new OperationUserActionResponse();
+                    response.setResult(UserActionResult.APPROVAL_FAILED);
+                    response.setOperation(operationDetailResponse);
+                    return response;
+                } else {
+                    operationEntity.setStatus(OperationStatus.FAILED);
+                    operationEntity.setTimestampFinalized(currentTimestamp);
+                    operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
+
+                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+                    OperationUserActionResponse response = new OperationUserActionResponse();
+                    response.setResult(UserActionResult.OPERATION_FAILED);
+                    response.setOperation(operationDetailResponse);
+                    return response;
+                }
+
+            } else {
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
+            }
+
+        } else {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
     }
 
@@ -416,5 +465,4 @@ public class OperationBehavior {
             expireOperation(op, currentTimestamp);
         }
     }
-
 }

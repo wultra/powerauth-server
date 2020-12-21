@@ -1081,6 +1081,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/approve/fail", request, OperationUserActionResponse.class);
+    }
+
+    @Override
     public OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException {
         return callV3RestApi("/operation/reject", request, OperationUserActionResponse.class);
     }
