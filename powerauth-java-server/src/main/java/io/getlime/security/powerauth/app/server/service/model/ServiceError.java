@@ -197,8 +197,39 @@ public class ServiceError {
      */
     public static final String INVALID_ACTIVATION_OTP_MODE = "ERR0032";
 
+    /**
+     * Operation template cannot be found.
+     */
+    public static final String OPERATION_TEMPLATE_NOT_FOUND = "ERR0033";
+
+    /**
+     * Operation cannot be found.
+     */
+    public static final String OPERATION_NOT_FOUND = "ERR0034";
+
+    /**
+     * Operation ID cannot generated.
+     */
+    public static final String UNABLE_TO_GENERATE_OPERATION_ID = "ERR0035";
+
+    /**
+     * Operation is in invalid state for requested change.
+     */
+    public static final String OPERATION_INVALID_STATE = "ERR0036";
+
+    /**
+     * Operation cannot be approved.
+     */
+    public static final String OPERATION_APPROVE_FAILURE = "ERR0037";
+
+    /**
+     * Operation cannot be approved.
+     */
+    public static final String OPERATION_REJECT_FAILURE = "ERR0038";
+
+
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(20);
+        List<String> list = new ArrayList<>(40);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -232,6 +263,12 @@ public class ServiceError {
         list.add(TOKEN_TIMESTAMP_TOO_OLD);
         list.add(INVALID_ACTIVATION_OTP);
         list.add(INVALID_ACTIVATION_OTP_MODE);
+        list.add(OPERATION_TEMPLATE_NOT_FOUND);
+        list.add(OPERATION_NOT_FOUND);
+        list.add(UNABLE_TO_GENERATE_OPERATION_ID);
+        list.add(OPERATION_INVALID_STATE);
+        list.add(OPERATION_APPROVE_FAILURE);
+        list.add(OPERATION_REJECT_FAILURE);
         return list;
     }
 

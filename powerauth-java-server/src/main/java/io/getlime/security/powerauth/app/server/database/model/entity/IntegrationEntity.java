@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import java.io.Serializable;
 
 /**
@@ -28,7 +29,8 @@ import java.io.Serializable;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Entity(name = "pa_integration")
+@Entity
+@Table(name = "pa_integration")
 public class IntegrationEntity implements Serializable {
 
     private static final long serialVersionUID = 3372029113954119581L;

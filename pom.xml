@@ -117,6 +117,7 @@
 
         <!-- Other Dependencies -->
         <axis2.version>1.7.9</axis2.version>
+        <commons-text.version>1.9</commons-text.version>
 
     </properties>
 

@@ -17,6 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.v3;
 
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.v3.*;
 
 /**
@@ -559,5 +563,61 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Create a new operation.
+     * @param request Create operation request.
+     * @return Create operation response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationDetailResponse createOperation(OperationCreateRequest request) throws Exception;
+
+    /**
+     * Get operation detail.
+     * @param request Operation detail request.
+     * @return Operation detail response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationDetailResponse operationDetail(OperationDetailRequest request) throws Exception;
+
+    /**
+     * Get pending operation list for a user.
+     * @param request Operation list request.
+     * @return Operation list response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws Exception;
+
+    /**
+     * Get complete operation list for a user.
+     * @param request Operation list request.
+     * @return Operation list response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws Exception;
+
+    /**
+     * Cancel operation by ID.
+     * @param request Operation cancel request.
+     * @return Operation cancel response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationDetailResponse cancelOperation(OperationCancelRequest request) throws Exception;
+
+    /**
+     * Approve operation by ID and other operation attributes.
+     * @param request Operation approve request.
+     * @return Operation approve response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationUserActionResponse approveOperation(OperationApproveRequest request) throws Exception;
+
+    /**
+     * Reject operation by ID and other operation attributes.
+     * @param request Operation reject request.
+     * @return Operation reject response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationUserActionResponse rejectOperation(OperationRejectRequest request) throws Exception;
 
 }

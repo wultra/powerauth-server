@@ -98,6 +98,13 @@ public class PowerAuthServiceConfiguration {
     private int generateRecoveryCodeIterations;
 
     /**
+     * When a duplicate operation ID is encountered, how many times generate a new one.
+     */
+    @Value("${powerauth.service.crypto.generateOperationIterations}")
+    @Min(1)
+    private int generateOperationIterations;
+
+    /**
      * How many milliseconds should be CREATED or PENDING_COMMIT record usable for
      * completing the activation.
      */
@@ -323,6 +330,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setGenerateRecoveryCodeIterations(int generateRecoveryCodeIterations) {
         this.generateRecoveryCodeIterations = generateRecoveryCodeIterations;
+    }
+
+    /**
+     * Get number of operation ID generation attempts in case of collision.
+     * @return Retry iteration count (10, by default).
+     */
+    public int getGenerateOperationIterations() {
+        return generateOperationIterations;
+    }
+
+    /**
+     * Set number of operation ID generation attempts in case of collision.
+     * @param generateOperationIterations Retry iteration count (10, by default).
+     */
+    public void setGenerateOperationIterations(int generateOperationIterations) {
+        this.generateOperationIterations = generateOperationIterations;
     }
 
     /**

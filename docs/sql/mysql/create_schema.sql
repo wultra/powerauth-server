@@ -205,6 +205,42 @@ CREATE TABLE `pa_recovery_config` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
+-- Create table for operations
+--
+CREATE TABLE pa_operation (
+    id varchar(37) NOT NULL,
+    user_id varchar(255) NOT NULL,
+    application_id bigint(20) NOT NULL,
+    template_id bigint(20) NULL,
+    external_id varchar(255) NULL,
+    operation_type varchar(255) NOT NULL,
+    data text NOT NULL,
+    parameters text NULL,
+    status int(11) NOT NULL,
+    signature_type varchar(255) NOT NULL,
+    failure_count bigint(20) default 0 NOT NULL,
+    max_failure_count bigint(20) NOT NULL,
+    timestamp_created datetime NOT NULL,
+    timestamp_expires datetime NOT NULL,
+    timestamp_finalized datetime NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
+-- Create table for operation templates
+--
+CREATE TABLE pa_operation_template (
+    id bigint(20) NOT NULL,
+    template_name varchar(255) NOT NULL,
+    operation_type varchar(255) NOT NULL,
+    data_template varchar(255) NOT NULL,
+    signature_type varchar(255) NOT NULL,
+    max_failure_count bigint(20) NOT NULL,
+    expiration bigint(20) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
 -- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
 --
 
@@ -225,6 +261,10 @@ CREATE INDEX `pa_signature_audit_created` ON `pa_signature_audit`(`timestamp_cre
 CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
 
 CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
+
+CREATE INDEX `pa_operation_user` ON `pa_operation`(`user_id`);
+
+CREATE INDEX `pa_operation_template_name_idx` ON pa_operation_template (template_name);
 
 CREATE UNIQUE INDEX `pa_recovery_code_puk` ON `pa_recovery_puk`(`recovery_code_id`, `puk_index`);
 
