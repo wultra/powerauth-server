@@ -26,6 +26,7 @@ package io.getlime.security.powerauth.app.server.database.model;
  * - EXPIRED = 3
  * - APPROVED = 4
  * - REJECTED = 5
+ * - FAILED = 6
  *
  * @author Petr Dvorak, petr@wultra.com
  */
