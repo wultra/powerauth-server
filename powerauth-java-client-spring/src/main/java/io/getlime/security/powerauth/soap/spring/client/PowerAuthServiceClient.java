@@ -21,6 +21,10 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.client.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1014,6 +1018,41 @@ public class PowerAuthServiceClient extends WebServiceGatewaySupport implements 
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
         return removeApplicationRoles(request);
+    }
+
+    @Override
+    public OperationDetailResponse createOperation(OperationCreateRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public OperationDetailResponse operationDetail(OperationDetailRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public OperationListResponse operationList(OperationListForUserRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public OperationListResponse operationPendingList(OperationListForUserRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public OperationDetailResponse operationCancel(OperationCancelRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     /**

@@ -27,12 +27,19 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -1041,6 +1048,41 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
         return removeApplicationRoles(request);
+    }
+
+    @Override
+    public OperationDetailResponse createOperation(OperationCreateRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/create", request, OperationDetailResponse.class);
+    }
+
+    @Override
+    public OperationDetailResponse operationDetail(OperationDetailRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/detail", request, OperationDetailResponse.class);
+    }
+
+    @Override
+    public OperationListResponse operationList(OperationListForUserRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/list", request, OperationListResponse.class);
+    }
+
+    @Override
+    public OperationListResponse operationPendingList(OperationListForUserRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/list/pending", request, OperationListResponse.class);
+    }
+
+    @Override
+    public OperationDetailResponse operationCancel(OperationCancelRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/cancel", request, OperationDetailResponse.class);
+    }
+
+    @Override
+    public OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/approve", request, OperationUserActionResponse.class);
+    }
+
+    @Override
+    public OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/reject", request, OperationUserActionResponse.class);
     }
 
     @Override

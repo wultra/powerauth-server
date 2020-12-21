@@ -18,6 +18,10 @@
 package com.wultra.security.powerauth.client;
 
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest;
@@ -1264,6 +1268,62 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException;
+
+    /**
+     * Create new operation.
+     * @param request Create operation request.
+     * @return Create operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse createOperation(OperationCreateRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get operation detail.
+     * @param request Operation detail request.
+     * @return Operation detail response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse operationDetail(OperationDetailRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get list with all operations for provided user.
+     * @param request Get operation list request.
+     * @return Get operation list response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationListResponse operationList(OperationListForUserRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get pending operation list.
+     * @param request Get pending operation list request.
+     * @return Get pending operation list response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationListResponse operationPendingList(OperationListForUserRequest request) throws PowerAuthClientException;
+
+    /**
+     * Cancel operation.
+     * @param request Cancel operation request.
+     * @return Cancel operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse operationCancel(OperationCancelRequest request) throws PowerAuthClientException;
+
+    /**
+     * Approve operation.
+     * @param request Approve operation request.
+     * @return Approve operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException;
+
+    /**
+     * Reject operation.
+     * @param request Reject operation request.
+     * @return Reject operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException;
 
     /**
      * Get the PowerAuth version 2 client (legacy).
