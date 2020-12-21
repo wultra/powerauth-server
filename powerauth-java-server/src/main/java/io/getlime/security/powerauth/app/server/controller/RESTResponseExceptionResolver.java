@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
@@ -72,6 +73,12 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
                 errorRecovery.setLocalizedMessage(exception.getLocalizedMessage());
                 errorRecovery.setCurrentRecoveryPukIndex(((ActivationRecoveryException) exception).getCurrentRecoveryPukIndex());
                 error = errorRecovery;
+            } else if (exception instanceof GenericServiceException) {
+                GenericServiceException ex = (GenericServiceException) exception;
+                error = new PowerAuthError();
+                error.setCode(ex.getCode());
+                error.setMessage(ex.getMessage());
+                error.setLocalizedMessage(ex.getLocalizedMessage());
             } else {
                 error = new PowerAuthError();
                 error.setCode("ERR_SPRING_JAVA");
