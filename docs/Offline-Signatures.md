@@ -11,7 +11,7 @@ The following endpoints are available for offline signatures:
 
 Personalized offline signatures are used when activation ID is known (e.g. an activated mobile token). A typical use case is offline verification of signature for payments.
 
-SOAP method: [createPersonalizedOfflineSignaturePayload](./SOAP-Service-Methods.md#method-createpersonalizedofflinesignaturepayload)
+REST / SOAP method: [createPersonalizedOfflineSignaturePayload](WebServices-Methods.md#method-createpersonalizedofflinesignaturepayload)
 
 For Web Flow the format of request `data` is documented in the [Offline Signatures QR Code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation chapter.
 
@@ -21,7 +21,7 @@ The `offlineData` in response already contains all data required to display a QR
 
 Non-personalized offline signatures are used when activation ID is not known. A typical use case is offline verification for login operation.
 
-SOAP method: [createNonPersonalizedOfflineSignaturePayload](./SOAP-Service-Methods.md#method-createpersonalizedofflinesignaturepayload)
+REST / SOAP method: [createNonPersonalizedOfflineSignaturePayload](WebServices-Methods.md#method-createpersonalizedofflinesignaturepayload)
 
 For Web Flow the format of request `data` is documented in the [Offline Signatures QR Code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation chapter.
 
@@ -31,7 +31,7 @@ The `offlineData` in response already contains all data required to display a QR
 
 Once the mobile device successfully scans the QR code and verifies the QR code data signature, the signature of the data related to the operation can be computed as described in [Computing and Validating Signatures](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Computing-and-Validating-Signatures.md). The generated signature can be verified against PowerAuth server.
 
-SOAP method: [verifyOfflineSignature](./SOAP-Service-Methods.md#method-verifyofflinesignature)
+REST / SOAP method: [verifyOfflineSignature](WebServices-Methods.md#method-verifyofflinesignature)
 
 The normalized `data` for verifyOfflineSignature requests should be constructed as described in [Normalized data for HTTP requests](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Computing-and-Validating-Signatures.md#normalized-data-for-http-requests). The `nonce` generated in the generate offline signature payload step should be used.
 

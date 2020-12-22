@@ -7,7 +7,7 @@
 
 **Integration Tutorials**
 
-- [Introduction](./Using-SOAP-Service-Client.md)
+- [Introduction](WebServices-Client.md)
 - [Configuring REST Client (Spring)](./Configuring-REST-Client-for-Spring.md)
 - [SOAP Client (Spring WS)](./Configuring-SOAP-Client-for-Spring.md)
 - [SOAP Client (Axis2)](./Configuring-SOAP-Client-for-Axis2.md)
@@ -15,7 +15,7 @@
 
 **Reference Manual**
 
-- [SOAP Interface Methods](./SOAP-Service-Methods.md)
+- [Web Services - Methods](WebServices-Methods.md)
 - [Database Structure](./Database-Structure.md)
 - [Error Codes](./Server-Error-Codes.md)
 

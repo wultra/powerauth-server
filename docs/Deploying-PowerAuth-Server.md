@@ -92,7 +92,7 @@ powerauth.service.applicationDisplayName=PowerAuth Server
 powerauth.service.applicationEnvironment=
 ```
 
-These properties are returned when calling the `getSystemStatus` method of the SOAP interface.
+These properties are returned when calling the `/rest/v3/status` / `getSystemStatus` method of the REST / SOAP interface.
 
 ## Enabling PowerAuth Server Security
 

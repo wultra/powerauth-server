@@ -1,12 +1,16 @@
-# SOAP Service Methods
+# Web Services - Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server SOAP service.
-It reflects the SOAP service methods as they are defined in the WSDL files:
+This is a reference documentation of the methods published by the PowerAuth Server REST / SOAP services.
+
+The REST service methods can be browsed using Swagger on deployed PowerAuth instance:
+- http://localhost:8080/powerauth-java-server/swagger-ui.html
+
+SOAP service methods are defined in the WSDL files:
 
 - [serviceV3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV3.wsdl)
 - [serviceV2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV2.wsdl)
 
-The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
+The versioning of SOAP methods is described in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 The following `v3` methods are published using the service:
 
@@ -106,6 +110,8 @@ Get the server status information.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/status`
+
 `GetSystemStatusRequest`
 
 - _no attributes_
@@ -129,6 +135,8 @@ Get the server status information.
 Get the list of all error codes that PowerAuth Server can return.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/error/list`
 
 `GetErrorCodeListRequest`
 
@@ -161,6 +169,8 @@ Get list of all applications that are present in this PowerAuth Server instance.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/list`
+
 `GetApplicationListRequest`
 
 - _no attributes_
@@ -186,6 +196,8 @@ Get list of all applications that are present in this PowerAuth Server instance.
 Get detail of application with given ID or name, including the list of versions.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/detail`
 
 `GetApplicationDetailRequest`
 
@@ -223,6 +235,8 @@ Find application using application key.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/detail/version`
+
 `LookupApplicationByAppKeyRequest`
 
 | Type | Name | Description |
@@ -242,6 +256,8 @@ Find application using application key.
 Create a new application with given name.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/create`
 
 `CreateApplicationRequest`
 
@@ -264,6 +280,8 @@ Create a new application with given name.
 Create a new application version with given name for a specified application.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/version/create`
 
 `CreateApplicationVersionRequest`
 
@@ -290,6 +308,8 @@ Mark application version with given ID as "unsupported". Signatures constructed 
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/version/unsupport`
+
 `UnsupportApplicationVersionRequest`
 
 | Type | Name | Description |
@@ -310,6 +330,8 @@ Mark application version with given ID as "unsupported". Signatures constructed 
 Mark application version with given ID as "supported". Signatures constructed using application key and application secret associated with this versions will be evaluated the standard way.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/version/support`
 
 `SupportApplicationVersionRequest`
 
@@ -337,6 +359,8 @@ Create (initialize) a new activation for given user and application. If both `ac
 After calling this method, a new activation record is created in CREATED state.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/init`
 
 `InitActivationRequest`
 
@@ -377,6 +401,8 @@ After successfully calling this method, activation is in PENDING_COMMIT or ACTIV
 | OTP is required, but is not valid, no attempts left | `REMOVED`        |
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/prepare`
 
 `PrepareActivationRequest`
 
@@ -427,6 +453,8 @@ After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/create`
+
 `CreateActivationRequest`
 
 | Type | Name | Description |
@@ -474,6 +502,8 @@ After successful, activation OTP is updated and the OTP validation is set to ON_
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/otp/update`
+
 `UpdateActivationOtpRequest`
 
 | Type | Name | Description |
@@ -501,6 +531,8 @@ After successful commit, activation is in ACTIVE state.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/commit`
+
 `CommitActivationRequest`
 
 | Type | Name | Description |
@@ -523,6 +555,8 @@ After successful commit, activation is in ACTIVE state.
 Get status information and all important details for activation with given ID.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusRequest`
 
@@ -562,6 +596,8 @@ Remove activation with given ID. This operation is irreversible. Activations can
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/remove`
+
 `RemoveActivationRequest`
 
 | Type | Name | Description |
@@ -584,6 +620,8 @@ Remove activation with given ID. This operation is irreversible. Activations can
 Get the list of all activations for given user and application ID. If no application ID is provided, return list of all activations for given user.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserRequest`
 
@@ -627,6 +665,8 @@ Block activation with given ID. Activations can be blocked in ACTIVE state only.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/block`
+
 `BlockActivationRequest`
 
 | Type | Name | Description |
@@ -651,6 +691,8 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/unblock`
+
 `UnblockActivationRequest`
 
 | Type | Name | Description |
@@ -672,6 +714,8 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 Lookup activations using query parameters.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/lookup`
 
 `LookupActivationsRequest`
 
@@ -716,6 +760,8 @@ Update status for activations identified using their identifiers.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/status/update`
+
 `UpdateStatusForActivationsRequest`
 
 | Type | Name | Description |
@@ -740,6 +786,8 @@ Methods related to signature verification.
 Verify signature correctness for given activation, application key, data and signature type.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/signature/verify`
 
 `VerifySignatureRequest`
 
@@ -773,6 +821,8 @@ Verify asymmetric ECDSA signature correctness for given activation and data.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/verifyECDSASignature`
+
 `VerifyECDSASignatureRequest`
 
 | Type | Name | Description |
@@ -794,6 +844,8 @@ Verify asymmetric ECDSA signature correctness for given activation and data.
 Create a data payload used as a challenge for personalized off-line signatures.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/signature/offline/personalized/create`
 
 `CreatePersonalizedOfflineSignaturePayloadRequest`
 
@@ -817,6 +869,8 @@ Create a data payload used as a challenge for non-personalized off-line signatur
 
 #### Request
 
+REST endpoint: `POST /rest/v3/signature/offline/non-personalized/create`
+
 `CreateNonPersonalizedOfflineSignaturePayloadRequest`
 
 | Type | Name | Description |
@@ -838,6 +892,8 @@ Create a data payload used as a challenge for non-personalized off-line signatur
 Verify off-line signature of provided data.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/signature/offline/verify`
 
 `VerifyOfflineSignatureRequest`
 
@@ -870,6 +926,8 @@ Verify off-line signature of provided data.
 Create a new token for the simple token-based authentication.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/token/create`
 
 `CreateTokenRequest`
 
@@ -911,6 +969,8 @@ Validate token digest used for the simple token-based authentication.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/token/validate`
+
 `ValidateTokenRequest`
 
 | Type | Name | Description |
@@ -938,6 +998,8 @@ Remove token with given ID.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/token/remove`
+
 `RemoveTokenRequest`
 
 | Type | Name | Description |
@@ -961,6 +1023,8 @@ Methods related to secure vault.
 Get the encrypted vault unlock key upon successful authentication using PowerAuth Signature.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/vault/unlock`
 
 `VaultUnlockRequest`
 
@@ -1019,6 +1083,8 @@ Get the signature audit log for given user, application and date range. In case 
 
 #### Request
 
+REST endpoint: `POST /rest/v3/signature/list`
+
 `SignatureAuditRequest`
 
 | Type | Name | Description |
@@ -1066,6 +1132,8 @@ Get the status change log for given activation and date range.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/history`
+
 `ActivationHistoryRequest`
 
 | Type | Name | Description |
@@ -1103,6 +1171,8 @@ Create a new integration with given name, automatically generate credentials for
 
 #### Request
 
+REST endpoint: `POST /rest/v3/integration/create`
+
 `CreateIntegrationRequest`
 
 | Type | Name | Description |
@@ -1125,6 +1195,8 @@ Create a new integration with given name, automatically generate credentials for
 Get the list of all integrations that are configured on the server instance.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/integration/list`
 
 `GetIntegrationListRequest`
 
@@ -1153,6 +1225,8 @@ Remove integration with given ID.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/integration/remove`
+
 `RemoveIntegrationRequest`
 
 | Type | Name | Description |
@@ -1173,6 +1247,8 @@ Remove integration with given ID.
 Create a callback URL with given parameters.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/callback/create`
 
 `CreateCallbackUrlRequest`
 
@@ -1212,6 +1288,8 @@ Update a callback URL with given parameters.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/callback/update`
+
 `UpdateCallbackUrlRequest`
 
 | Type | Name | Description |
@@ -1250,6 +1328,8 @@ Get the list of all callbacks for given application.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/callback/list`
+
 `GetCallbackUrlListRequest`
 
 | Type | Name | Description |
@@ -1280,6 +1360,8 @@ Remove callback URL with given ID.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/callback/remove`
+
 `RemoveCallbackUrlRequest`
 
 | Type | Name | Description |
@@ -1302,6 +1384,8 @@ Remove callback URL with given ID.
 Get ECIES decryptor data for request/response decryption on intermediate server.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/ecies/decryptor`
 
 `GetEciesDecryptorRequest`
 
@@ -1328,6 +1412,8 @@ Upgrade activation to the most recent version supported by the server.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/upgrade/start`
+
 `StartUpgradeRequest`
 
 | Type | Name | Description |
@@ -1350,9 +1436,11 @@ Upgrade activation to the most recent version supported by the server.
 
 ### Method 'commitUpgrade'
 
-Commint activation upgrade.
+Commit activation upgrade.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/upgrade/commit`
 
 `CommitUpgradeRequest`
 
@@ -1376,6 +1464,8 @@ Commint activation upgrade.
 Create a recovery code for user.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/recovery/create`
 
 `CreateRecoveryCodeRequest`
 
@@ -1412,6 +1502,8 @@ Confirm a recovery code recieved using recovery postcard.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/confirm`
+
 `ConfirmRecoveryCodeRequest`
 
 | Type | Name | Description |
@@ -1445,6 +1537,8 @@ ECIES response contains following data (as JSON):
 Lookup recovery codes.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/recovery/lookup`
 
 `LookupRecoveryCodesRequest`
 
@@ -1483,6 +1577,8 @@ Revoke recovery codes.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/revoke`
+
 `RevokeRecoveryCodesRequest`
 
 | Type | Name | Description |
@@ -1504,6 +1600,8 @@ Create an activation using recovery code. After successfully calling this method
 If optional `activationOtp` value is set, then the activation's OTP validation mode is set to `ON_COMMIT`. The same OTP value must be later provided in [CommitActivation](#method-commitactivation) method, to complete the activation.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/recovery/create`
 
 `RecoveryCodeActivationRequest`
 
@@ -1554,6 +1652,8 @@ Get configuration of activation recovery.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/config/detail`
+
 `GetRecoveryConfigRequest`
 
 | Type | Name | Description |
@@ -1579,6 +1679,8 @@ Update configuration of activation recovery.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/config/update`
+
 `UpdateRecoveryConfigRequest`
 
 | Type | Name | Description |
@@ -1603,6 +1705,8 @@ List flags for an activation.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/flags/list`
+
 `ListActivationFlagsRequest`
 
 | Type | Name | Description |
@@ -1623,6 +1727,8 @@ List flags for an activation.
 Add activation flags to an activation. Duplicate flags are ignored.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/flags/create`
 
 `AddActivationFlagsRequest`
 
@@ -1646,6 +1752,8 @@ Update activation flags to an activation. Existing flags are removed.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/flags/update`
+
 `UpdateActivationFlagsRequest`
 
 | Type | Name | Description |
@@ -1667,6 +1775,8 @@ Update activation flags to an activation. Existing flags are removed.
 Remove activation flags for an activation.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/flags/remove`
 
 `RemoveActivationFlagsRequest`
 
@@ -1690,6 +1800,8 @@ List roles for an application.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/roles/list`
+
 `ListApplicationRolesRequest`
 
 | Type | Name | Description |
@@ -1710,6 +1822,8 @@ List roles for an application.
 Add application roles to an application. Duplicate roles are ignored.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/roles/create`
 
 `AddApplicationRolesRequest`
 
@@ -1733,6 +1847,8 @@ Update application roles assigned to an application. Existing roles are removed.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/roles/update`
+
 `UpdateApplicationRolesRequest`
 
 | Type | Name | Description |
@@ -1749,11 +1865,13 @@ Update application roles assigned to an application. Existing roles are removed.
 | `Long` | `applicationId` | The identifier of the application |
 | `String[]` | `applicationRoles` | Application roles assigned to the application after the update |
 
-### Method `removeApplicationFlags`
+### Method `removeApplicationRoles`
 
 Remove application roles from an activation.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/roles/remove`
 
 `RemoveApplicationRolesRequest`
 
@@ -1779,6 +1897,8 @@ Remove application roles from an activation.
 Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/activation/prepare`
 
 `PrepareActivationRequest`
 
@@ -1810,6 +1930,8 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/activation/create`
 
 `CreateActivationRequest`
 
@@ -1848,6 +1970,8 @@ Create a new token for the simple token-based authentication.
 
 #### Request
 
+REST endpoint: `POST /rest/v2/token/create`
+
 `CreateTokenRequest`
 
 | Type | Name | Description |
@@ -1872,6 +1996,8 @@ Create a new token for the simple token-based authentication.
 Get the encrypted vault unlock key upon successful authentication using PowerAuth Signature.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/vault/unlock`
 
 `VaultUnlockRequest`
 
@@ -1908,6 +2034,8 @@ Establishes a context required for performing a non-personalized (application sp
 
 #### Request
 
+REST endpoint: `POST /rest/v2/application/encryption/key/create`
+
 `GetNonPersonalizedEncryptionKeyRequest`
 
 | Type | Name | Description |
@@ -1933,6 +2061,8 @@ Establishes a context required for performing a non-personalized (application sp
 Establishes a context required for performing a personalized (activation specific) end-to-end encryption.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/activation/encryption/key/create`
 
 `GetPersonalizedEncryptionKeyRequest`
 
