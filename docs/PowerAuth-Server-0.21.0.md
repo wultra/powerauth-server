@@ -215,7 +215,7 @@ Note that the namespaces reflect the WSDL version:
 - version `3`: http://getlime.io/security/powerauth/v3
 - version `2`: http://getlime.io/security/powerauth/v2
 
-The interface changes are described in details in chapter [SOAP Method Compatibility](WebServices-Method-Compatibility.md).
+The interface changes are described in details in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 ### Client API Changes
 
@@ -225,7 +225,7 @@ The version `3` methods are available as default implementation directly on the 
 
 You can access the version `2` specific methods using the `v2()` method in the client. This method will be deprecated in a future release.
 
-The interface changes are described in details in chapter [SOAP Method Compatibility](WebServices-Method-Compatibility.md).
+The interface changes are described in details in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 ### Activation Short ID Change to Activation Code
 
