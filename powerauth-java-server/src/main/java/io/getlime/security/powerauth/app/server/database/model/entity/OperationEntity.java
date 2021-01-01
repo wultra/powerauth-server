@@ -68,7 +68,6 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "status")
     @Convert(converter = OperationStatusConverter.class)
-    @Enumerated(EnumType.ORDINAL)
     private OperationStatus status;
 
     @Column(name = "signature_type")
