@@ -1,6 +1,6 @@
-# SOAP Method Compatibility
+# Web Services - Method Compatibility
 
-This chapter describes SOAP interface changes per each SOAP method between PowerAuth protocol versions `2` and `3`. 
+This chapter describes REST / SOAP interface changes per each REST / SOAP method between PowerAuth protocol versions `2` and `3`. 
 The table below lists which methods are available for each version of PowerAuth protocol and describes how to handle the interface change.
 
 | Method                      | `v2` | `v3` | Compatibility issues | Migration notes |

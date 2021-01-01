@@ -78,4 +78,4 @@ You can access the WSDL files in following URLs:
 
 ## Using the SOAP Service Client
 
-In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage.md) and read the [reference manual](./SOAP-Service-Methods.md).
+In order to use SOAP service client, follow our [generic SOAP client service documentation](./SOAP-Client-Library-Usage.md) and read the [reference manual](WebServices-Methods.md).
