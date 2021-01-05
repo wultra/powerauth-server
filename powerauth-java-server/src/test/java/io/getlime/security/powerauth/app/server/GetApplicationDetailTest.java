@@ -17,21 +17,22 @@
  */
 package io.getlime.security.powerauth.app.server;
 
+import com.wultra.security.powerauth.client.v3.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.v3.CreateApplicationResponse;
+import com.wultra.security.powerauth.client.v3.GetApplicationDetailRequest;
+import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import io.getlime.security.powerauth.v3.CreateApplicationRequest;
-import io.getlime.security.powerauth.v3.CreateApplicationResponse;
-import io.getlime.security.powerauth.v3.GetApplicationDetailRequest;
-import io.getlime.security.powerauth.v3.GetApplicationDetailResponse;
 import org.assertj.core.util.Lists;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Tests for getting application detail.
@@ -39,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Lukas Lukovsky, lukas.lukovsky@gmail.com
  */
 @SpringBootTest
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 public class GetApplicationDetailTest {
 
     private PowerAuthService powerAuthService;
@@ -102,7 +103,7 @@ public class GetApplicationDetailTest {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(applicationName);
         CreateApplicationResponse response = powerAuthService.createApplication(request);
-        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList());
+        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList(), Lists.emptyList());
     }
 
 }

@@ -17,6 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
+import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.v3.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -32,9 +35,6 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import io.getlime.security.powerauth.v3.KeyValueMap;
-import io.getlime.security.powerauth.v3.SignatureType;
-import io.getlime.security.powerauth.v3.VerifySignatureResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +45,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -130,41 +131,41 @@ public class OnlineSignatureServiceBehavior {
                                                         String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
-        Date currentTimestamp = new Date();
+        final Date currentTimestamp = new Date();
 
         // Fetch related activation
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
 
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
-            Long applicationId = activation.getApplication().getId();
+            final Long applicationId = activation.getApplication().getId();
 
             // Convert signature version to expected signature format.
             final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
 
             // Check the activation - application relationship and version support
-            ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
 
             if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getId(), applicationId)) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Get the data and append application KEY in this case, just for auditing reasons
-                byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
-                SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
-                OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
+                final byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
+                final SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
+                final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
                 signatureSharedServiceBehavior.handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
                 // return the data
-                return invalidStateResponse(activation.getActivationStatus());
+                return invalidStateResponse(activationId, activation.getActivationStatus());
             }
 
-            byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
-            OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
+            final byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
+            final SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
+            final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
-                SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, signatureRequest, keyConversionUtilities);
+                final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, signatureRequest, keyConversionUtilities);
 
                 // Check if the signature is valid
                 if (verificationResponse.isSignatureValid()) {
@@ -185,23 +186,25 @@ public class OnlineSignatureServiceBehavior {
                 signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, signatureRequest, currentTimestamp);
 
                 // return the data
-                return invalidStateResponse(activation.getActivationStatus());
+                return invalidStateResponse(activationId, activation.getActivationStatus());
 
             }
         } else { // Activation does not exist
 
-            return invalidStateResponse(ActivationStatus.REMOVED);
+            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
 
         }
     }
 
     /**
-     * Generates an invalid signature reponse when state is invalid (invalid applicationVersion, activation is not active, activation does not exist, etc.).
-     *
+     * Generates an invalid signature response when state is invalid (invalid applicationVersion, activation is not active, activation does not exist, etc.).
+     * @param activationId Activation ID.
+     * @param activationStatus Activation status.
      * @return Invalid signature response.
      */
-    private VerifySignatureResponse invalidStateResponse(ActivationStatus activationStatus) {
-        VerifySignatureResponse response = new VerifySignatureResponse();
+    private VerifySignatureResponse invalidStateResponse(String activationId, ActivationStatus activationStatus) {
+        final VerifySignatureResponse response = new VerifySignatureResponse();
+        response.setActivationId(activationId);
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activationStatus));
         return response;
@@ -215,11 +218,13 @@ public class OnlineSignatureServiceBehavior {
      * @return Valid signature response.
      */
     private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
-        // Extract application ID
-        Long applicationId = activation.getApplication().getId();
+        // Extract application ID and application roles
+        final Long applicationId = activation.getApplication().getId();
+        final List<String> applicationRoles = activation.getApplication().getRoles();
+        final List<String> activationFlags = activation.getFlags();
 
         // Return the data
-        VerifySignatureResponse response = new VerifySignatureResponse();
+        final VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(true);
         response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
         response.setBlockedReason(null);
@@ -227,6 +232,8 @@ public class OnlineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
+        response.getActivationFlags().addAll(activationFlags);
         response.setSignatureType(usedSignatureType);
         return response;
     }
@@ -239,12 +246,14 @@ public class OnlineSignatureServiceBehavior {
      */
     private VerifySignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest) {
         // Calculate remaining attempts
-        long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-        // Extract application ID
-        Long applicationId = activation.getApplication().getId();
+        final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        // Extract application ID and application roles
+        final Long applicationId = activation.getApplication().getId();
+        final List<String> applicationRoles = activation.getApplication().getRoles();
+        final List<String> activationFlags = activation.getFlags();
 
         // return the data
-        VerifySignatureResponse response = new VerifySignatureResponse();
+        final VerifySignatureResponse response = new VerifySignatureResponse();
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
         response.setBlockedReason(activation.getBlockedReason());
@@ -252,6 +261,8 @@ public class OnlineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
+        response.getActivationFlags().addAll(activationFlags);
         // In case multiple signature types are used, use the first one as signature type
         response.setSignatureType(signatureRequest.getSignatureType());
         return response;

@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import io.getlime.security.powerauth.v3.SignatureType;
+import com.wultra.security.powerauth.client.v3.SignatureType;
 
 import java.util.List;
 

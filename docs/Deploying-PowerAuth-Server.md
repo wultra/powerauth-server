@@ -92,7 +92,7 @@ powerauth.service.applicationDisplayName=PowerAuth Server
 powerauth.service.applicationEnvironment=
 ```
 
-These properties are returned when calling the `getSystemStatus` method of the SOAP interface.
+These properties are returned when calling the `/rest/v3/status` / `getSystemStatus` method of the REST / SOAP interface.
 
 ## Enabling PowerAuth Server Security
 
@@ -141,14 +141,16 @@ You can specify the individual properties directly in the server configuration. 
 
 #### 2. Configuring by Pointing to Configuration File
 
-Alternatively, you can create a single property in the server configuration that only points to your custom configuration file `/path/to/some/custom.properties`. This method is especially useful in situations where the server configuration must be as simple as possible (for example, creating a configuration module in JBoss Wildfly). In such case, do not forget to also include the default `application.properties` file that is on the classpath by default (it is bundled inside the WAR) - here is the Tomcat example again: 
+Alternatively, you can create a single property in the server configuration that only points to your custom configuration file `/path/to/some/custom.properties`. This method is especially useful in situations where the server configuration must be as simple as possible (for example, creating a configuration module in JBoss Wildfly). In such case, do not forget to also include the default `application.properties` and `bootstrap.properties` files that are on the classpath by default (it is bundled inside the WAR). Here is the Tomcat example again: 
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
-    <Parameter name="spring.config.location" value="classpath:/application.properties,file:/path/to/some/custom.properties"/>
+    <Parameter name="spring.config.location" value="classpath:/application.properties,classpath:/bootstrap.properties,file:/path/to/some/custom.properties"/>
 </Context>
 ```
+
+_Note: Keep both `classpath:/application.properties` and `classpath:/bootstrap.properties` paths in the `spring.config.location` parameter. Otherwise, Spring Cloud Vault will not initialize properly and application will not start._
 
 To match the previous example, the contents of `/path/to/come/custom.properties` is the following:
 

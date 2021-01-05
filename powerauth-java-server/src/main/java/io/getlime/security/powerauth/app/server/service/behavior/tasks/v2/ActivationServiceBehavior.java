@@ -19,6 +19,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v2.CreateActivationResponse;
+import com.wultra.security.powerauth.client.v2.PrepareActivationResponse;
+import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.v3.InitActivationResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -36,10 +40,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
-import io.getlime.security.powerauth.v2.CreateActivationResponse;
-import io.getlime.security.powerauth.v2.PrepareActivationResponse;
-import io.getlime.security.powerauth.v3.ActivationOtpValidation;
-import io.getlime.security.powerauth.v3.InitActivationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -121,7 +121,7 @@ public class ActivationServiceBehavior {
         if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             activation.setActivationStatus(ActivationStatus.REMOVED);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 
@@ -135,7 +135,7 @@ public class ActivationServiceBehavior {
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -311,7 +311,7 @@ public class ActivationServiceBehavior {
             activation.setVersion(2);
             // Counter data is null, numeric counter is used in this version
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
             // Compute the response
             PrepareActivationResponse response = new PrepareActivationResponse();
@@ -436,7 +436,7 @@ public class ActivationServiceBehavior {
             byte[] C_devicePublicKey = BaseEncoding.base64().decode(cDevicePublicKeyBase64);
             byte[] activationNonce = BaseEncoding.base64().decode(activationNonceBase64);
 
-            PublicKey devicePublicKey = null;
+            PublicKey devicePublicKey;
             try {
                 devicePublicKey = powerAuthServerActivation.decryptDevicePublicKey(
                         C_devicePublicKey,
@@ -476,7 +476,7 @@ public class ActivationServiceBehavior {
             // Hash based counter is not used in this version
             activation.setCtrDataBase64(null);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
             // Generate response data
             byte[] activationNonceServer = powerAuthServerActivation.generateActivationNonce();

@@ -5,6 +5,7 @@
 CREATE TABLE `pa_application` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL,
+  `roles` varchar(255),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -51,6 +52,7 @@ CREATE TABLE `pa_activation` (
   `extras` text,
   `platform` varchar(255),
   `device_info` varchar(255),
+  `flags` varchar(255),
   `counter` bigint(20) NOT NULL,
   `ctr_data` varchar(255),
   `device_public_key_base64` text,
@@ -114,6 +116,7 @@ CREATE TABLE `pa_application_callback` (
   `application_id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `callback_url` text NOT NULL,
+  `attributes` text NOT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_APPLICATION_CALLBACK` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -196,6 +199,7 @@ CREATE TABLE `pa_recovery_config` (
   `postcard_private_key_base64` varchar(255),
   `postcard_public_key_base64` varchar(255),
   `remote_public_key_base64` varchar(255),
+  `postcard_private_key_encryption` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_RECOVERY_CONFIG_APP` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

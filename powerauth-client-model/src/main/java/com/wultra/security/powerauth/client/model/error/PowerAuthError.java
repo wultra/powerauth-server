@@ -15,14 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.controller;
+package com.wultra.security.powerauth.client.model.error;
 
 /**
- * Class representing an error returned by RESTful API
+ * Class representing a PowerAuth error.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class RESTErrorModel {
+public class PowerAuthError {
 
     private String code;
     private String message;

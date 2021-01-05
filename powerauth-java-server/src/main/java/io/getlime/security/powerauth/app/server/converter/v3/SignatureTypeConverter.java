@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
+import com.wultra.security.powerauth.client.v3.SignatureType;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
-import io.getlime.security.powerauth.v3.SignatureType;
 
 /**
  * Converter from {@link SignatureType} to {@link PowerAuthSignatureTypes}.
@@ -48,7 +48,7 @@ final public class SignatureTypeConverter {
         return SignatureType.fromValue(signatureType.toUpperCase());
     }
 
-    public io.getlime.security.powerauth.v3.SignatureType convertFrom(io.getlime.security.powerauth.v2.SignatureType signatureType) {
+    public com.wultra.security.powerauth.client.v3.SignatureType convertFrom(com.wultra.security.powerauth.client.v2.SignatureType signatureType) {
         switch (signatureType) {
             case POSSESSION:
                 return SignatureType.POSSESSION;

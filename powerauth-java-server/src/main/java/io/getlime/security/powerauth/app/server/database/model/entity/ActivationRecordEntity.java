@@ -66,6 +66,10 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "device_info")
     private String deviceInfo;
 
+    @Column(name = "flags")
+    @Convert(converter = ActivationFlagConverter.class)
+    private final List<String> flags = new ArrayList<>();
+
     @Column(name = "server_private_key_base64", nullable = false)
     private String serverPrivateKeyBase64;
 
@@ -168,6 +172,7 @@ public class ActivationRecordEntity implements Serializable {
                                   String extras,
                                   String platform,
                                   String deviceInfo,
+                                  List<String> flags,
                                   String serverPrivateKeyBase64,
                                   String serverPublicKeyBase64,
                                   String devicePublicKeyBase64,
@@ -195,6 +200,7 @@ public class ActivationRecordEntity implements Serializable {
         this.extras = extras;
         this.deviceInfo = deviceInfo;
         this.platform = platform;
+        this.flags.addAll(flags);
         this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
         this.serverPublicKeyBase64 = serverPublicKeyBase64;
         this.devicePublicKeyBase64 = devicePublicKeyBase64;
@@ -370,6 +376,14 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setDeviceInfo(String deviceInfo) {
         this.deviceInfo = deviceInfo;
+    }
+
+    /**
+     * Get activation flags.
+     * @return Activation flags.
+     */
+    public List<String> getFlags() {
+        return flags;
     }
 
     /**
@@ -700,6 +714,7 @@ public class ActivationRecordEntity implements Serializable {
         hash = 71 * hash + Objects.hashCode(this.extras);
         hash = 71 * hash + Objects.hashCode(this.platform);
         hash = 71 * hash + Objects.hashCode(this.deviceInfo);
+        hash = 71 * hash + Objects.hashCode(this.flags);
         hash = 71 * hash + Objects.hashCode(this.serverPrivateKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.serverPublicKeyBase64);
         hash = 71 * hash + Objects.hashCode(this.devicePublicKeyBase64);
@@ -754,6 +769,9 @@ public class ActivationRecordEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.deviceInfo, other.deviceInfo)) {
+            return false;
+        }
+        if (!Objects.equals(this.flags, other.flags)) {
             return false;
         }
         if (!Objects.equals(this.activationId, other.activationId)) {
@@ -820,8 +838,9 @@ public class ActivationRecordEntity implements Serializable {
                 + ", userId=" + userId
                 + ", activationName=" + activationName
                 + ", extras=" + extras
-                + ", platform=" +platform
-                + ", deviceInfo=" +deviceInfo
+                + ", platform=" + platform
+                + ", deviceInfo=" + deviceInfo
+                + ", flags=" + flags
                 + ", serverPublicKeyBase64=" + serverPublicKeyBase64
                 + ", devicePublicKeyBase64=" + devicePublicKeyBase64
                 + ", counter=" + counter

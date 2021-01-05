@@ -1,14 +1,15 @@
 --
---  Create sequences.
+--  Create sequences. Maximum value for PostgreSQL is 9223372036854775807.
+--- See: https://www.postgresql.org/docs/9.6/sql-createsequence.html
 --
-CREATE SEQUENCE "pa_application_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_application_version_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_master_keypair_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_signature_audit_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_activation_history_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_recovery_code_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_recovery_puk_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
-CREATE SEQUENCE "pa_recovery_config_seq" MINVALUE 1 MAXVALUE 999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_application_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_application_version_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_master_keypair_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_signature_audit_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_activation_history_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_recovery_code_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_recovery_puk_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+CREATE SEQUENCE "pa_recovery_config_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
 
 --
 --  DDL for Table PA_ACTIVATION
@@ -30,6 +31,7 @@ CREATE TABLE "pa_activation"
     "extras"                        VARCHAR(255),
     "platform"                      VARCHAR(255),
     "device_info"                   VARCHAR(255),
+    "flags"                         VARCHAR(255),
     "failed_attempts"               INTEGER NOT NULL,
     "max_failed_attempts"           INTEGER DEFAULT 5 NOT NULL,
     "server_private_key_base64"     VARCHAR(255) NOT NULL,
@@ -49,7 +51,8 @@ CREATE TABLE "pa_activation"
 CREATE TABLE "pa_application"
 (
     "id"                          INTEGER NOT NULL PRIMARY KEY,
-    "name"                        VARCHAR(255) NOT NULL
+    "name"                        VARCHAR(255) NOT NULL,
+    "roles"                       VARCHAR(255)
 );
 
 
@@ -119,7 +122,8 @@ CREATE TABLE "pa_application_callback"
     "id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
     "application_id"     INTEGER NOT NULL,
     "name"               VARCHAR(255),
-    "callback_url"       VARCHAR(1024)
+    "callback_url"       VARCHAR(1024),
+    "attributes"         VARCHAR(1024)
 );
 
 --
@@ -185,14 +189,15 @@ CREATE TABLE "pa_recovery_puk" (
 --
 
 CREATE TABLE "pa_recovery_config" (
-    "id"                            INTEGER NOT NULL PRIMARY KEY,
-    "application_id"                INTEGER NOT NULL,
-    "activation_recovery_enabled"   BOOLEAN NOT NULL DEFAULT FALSE,
-    "recovery_postcard_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
-    "allow_multiple_recovery_codes" BOOLEAN NOT NULL DEFAULT FALSE,
-    "postcard_private_key_base64"   VARCHAR(255),
-    "postcard_public_key_base64"    VARCHAR(255),
-    "remote_public_key_base64"      VARCHAR(255)
+    "id"                              INTEGER NOT NULL PRIMARY KEY,
+    "application_id"                  INTEGER NOT NULL,
+    "activation_recovery_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
+    "recovery_postcard_enabled"       BOOLEAN NOT NULL DEFAULT FALSE,
+    "allow_multiple_recovery_codes"   BOOLEAN NOT NULL DEFAULT FALSE,
+    "postcard_private_key_base64"     VARCHAR(255),
+    "postcard_public_key_base64"      VARCHAR(255),
+    "remote_public_key_base64"        VARCHAR(255),
+    "postcard_private_key_encryption" INTEGER DEFAULT 0 NOT NULL
 );
 
 --

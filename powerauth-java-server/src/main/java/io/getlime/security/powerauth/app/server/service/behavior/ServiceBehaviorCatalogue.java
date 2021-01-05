@@ -32,9 +32,13 @@ public class ServiceBehaviorCatalogue {
 
     private ActivationServiceBehavior activationServiceBehavior;
 
+    private ActivationFlagsServiceBehavior activationFlagsServiceBehavior;
+
     private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
 
     private ApplicationServiceBehavior applicationServiceBehavior;
+
+    private ApplicationRolesServiceBehavior applicationRolesServiceBehavior;
 
     private AuditingServiceBehavior auditingServiceBehavior;
 
@@ -60,13 +64,14 @@ public class ServiceBehaviorCatalogue {
 
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
-    public ActivationServiceBehavior getActivationServiceBehavior() {
-        return activationServiceBehavior;
-    }
-
     @Autowired
     public void setActivationServiceBehavior(ActivationServiceBehavior activationServiceBehavior) {
         this.activationServiceBehavior = activationServiceBehavior;
+    }
+
+    @Autowired
+    public void setActivationFlagsServiceBehavior(ActivationFlagsServiceBehavior activationFlagsServiceBehavior) {
+        this.activationFlagsServiceBehavior = activationFlagsServiceBehavior;
     }
 
     @Autowired
@@ -77,6 +82,11 @@ public class ServiceBehaviorCatalogue {
     @Autowired
     public void setApplicationServiceBehavior(ApplicationServiceBehavior applicationServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
+    }
+
+    @Autowired
+    public void setApplicationRolesServiceBehavior(ApplicationRolesServiceBehavior applicationRolesServiceBehavior) {
+        this.applicationRolesServiceBehavior = applicationRolesServiceBehavior;
     }
 
     @Autowired
@@ -139,8 +149,20 @@ public class ServiceBehaviorCatalogue {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
 
+    public ActivationServiceBehavior getActivationServiceBehavior() {
+        return activationServiceBehavior;
+    }
+
+    public ActivationFlagsServiceBehavior getActivationFlagsServiceBehavior() {
+        return activationFlagsServiceBehavior;
+    }
+
     public ApplicationServiceBehavior getApplicationServiceBehavior() {
         return applicationServiceBehavior;
+    }
+
+    public ApplicationRolesServiceBehavior getApplicationRolesServiceBehavior() {
+        return applicationRolesServiceBehavior;
     }
 
     public ActivationHistoryServiceBehavior getActivationHistoryServiceBehavior() {

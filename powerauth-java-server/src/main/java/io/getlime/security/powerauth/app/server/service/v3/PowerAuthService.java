@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.v3;
 
-import io.getlime.security.powerauth.v3.*;
+import com.wultra.security.powerauth.client.v3.*;
 
 /**
  * Interface containing all methods that are published by the PowerAuth 3.0 Server
@@ -339,10 +339,11 @@ public interface PowerAuthService {
 
     /**
      * Get the list of currently present integrations.
+     * @param request Get integration list request.
      * @return List of currently present integrations.
      * @throws Exception In case of a business logic error.
      */
-    GetIntegrationListResponse getIntegrationList() throws Exception;
+    GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws Exception;
 
     /**
      * Remove integration with given ID.
@@ -359,6 +360,14 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws Exception;
+
+    /**
+     * Update callback URL for given application.
+     * @param request Request with application ID and callback URL parameters.
+     * @return New callback URL information.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws Exception;
 
     /**
      * Get the list of all callback URLs for given application.
@@ -485,4 +494,70 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws Exception;
+
+    /**
+     * List activation flags.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws Exception;
+
+    /**
+     * Add activation flags.
+     * @param request Add activation flags request.
+     * @return Create activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws Exception;
+
+    /**
+     * Update activation flags.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws Exception;
+
+    /**
+     * Remove activation flags.
+     * @param request Remove activation flags request.
+     * @return Delete activation flags response.
+     * @throws Exception In case of a business logic error.
+     */
+    RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws Exception;
+
+
+    /**
+     * List application roles.
+     * @param request List application roles request.
+     * @return List application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Add application roles.
+     * @param request Add application roles request.
+     * @return Create application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Update application roles.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws Exception;
+
+    /**
+     * Remove application roles.
+     * @param request Remove application roles request.
+     * @return Delete application roles response.
+     * @throws Exception In case of a business logic error.
+     */
+    RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws Exception;
+
 }

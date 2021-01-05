@@ -21,12 +21,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
@@ -56,8 +56,6 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.v3.*;
-import io.getlime.security.powerauth.v3.ActivationOtpValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +73,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Behavior class implementing processes related with activations. Used to move the
@@ -163,7 +162,7 @@ public class ActivationServiceBehavior {
             }
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
     }
 
@@ -177,7 +176,7 @@ public class ActivationServiceBehavior {
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -259,6 +258,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExtras(activation.getExtras());
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
+                activationServiceItem.getActivationFlags().addAll(activation.getFlags());
                 activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                 activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -278,13 +278,13 @@ public class ActivationServiceBehavior {
      *
      * @param userIds User IDs to be used in the activations query.
      * @param applicationIds Application IDs to be used in the activations query (optional).
-     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore (optional).
-     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter (optional).
+     * @param timestampLastUsedBefore Last used timestamp to be used in the activations query, return all records where timestampLastUsed &lt; timestampLastUsedBefore.
+     * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter.
      * @param activationStatus Activation status to be used in the activations query (optional).
      * @return Response with list of matching activations.
      * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus) throws DatatypeConfigurationException {
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws DatatypeConfigurationException {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         if (applicationIds != null && applicationIds.isEmpty()) {
@@ -299,28 +299,40 @@ public class ActivationServiceBehavior {
             statuses.add(activationStatus);
         }
         List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
+        if (activationsList.isEmpty()) {
+            return response;
+        }
 
-        if (activationsList != null) {
-            for (ActivationRecordEntity activation : activationsList) {
-                // Map between database object and service objects
-                LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
-                activationServiceItem.setActivationId(activation.getActivationId());
-                activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-                activationServiceItem.setBlockedReason(activation.getBlockedReason());
-                activationServiceItem.setActivationName(activation.getActivationName());
-                activationServiceItem.setExtras(activation.getExtras());
-                activationServiceItem.setPlatform(activation.getPlatform());
-                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
-                activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
-                activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
-                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
-                activationServiceItem.setUserId(activation.getUserId());
-                activationServiceItem.setApplicationId(activation.getApplication().getId());
-                activationServiceItem.setApplicationName(activation.getApplication().getName());
-                // Unknown version is converted to 0 in SOAP
-                activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
-                response.getActivations().add(activationServiceItem);
-            }
+        List<ActivationRecordEntity> filteredActivationList = new ArrayList<>();
+        // Filter activation by activation flags in case they are specified
+        if (activationFlags != null && !activationFlags.isEmpty()) {
+            List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
+                    activation.getFlags().containsAll(activationFlags)).collect(Collectors.toList());
+            filteredActivationList.addAll(activationsWithFlags);
+        } else {
+            filteredActivationList.addAll(activationsList);
+        }
+
+        for (ActivationRecordEntity activation : filteredActivationList) {
+            // Map between database object and service objects
+            LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
+            activationServiceItem.setActivationId(activation.getActivationId());
+            activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+            activationServiceItem.setBlockedReason(activation.getBlockedReason());
+            activationServiceItem.setActivationName(activation.getActivationName());
+            activationServiceItem.setExtras(activation.getExtras());
+            activationServiceItem.setPlatform(activation.getPlatform());
+            activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
+            activationServiceItem.getActivationFlags().addAll(activation.getFlags());
+            activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
+            activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
+            activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+            activationServiceItem.setUserId(activation.getUserId());
+            activationServiceItem.setApplicationId(activation.getApplication().getId());
+            activationServiceItem.setApplicationName(activation.getApplication().getName());
+            // Unknown version is converted to 0 in SOAP
+            activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+            response.getActivations().add(activationServiceItem);
         }
 
         return response;
@@ -342,7 +354,7 @@ public class ActivationServiceBehavior {
                 // Update activation status, persist change and notify callback listeners
                 activation.setActivationStatus(activationStatus);
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+                callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
             }
         });
 
@@ -424,6 +436,7 @@ public class ActivationServiceBehavior {
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
+                    response.getActivationFlags().addAll(activation.getFlags());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -540,6 +553,7 @@ public class ActivationServiceBehavior {
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
+                    response.getActivationFlags().addAll(activation.getFlags());
                     // Unknown version is converted to 0 in SOAP
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -568,6 +582,8 @@ public class ActivationServiceBehavior {
                 response.setExtras(null);
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
+                // Initialize empty flags
+                response.getActivationFlags();
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -747,7 +763,7 @@ public class ActivationServiceBehavior {
             activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
             // Return the server response
             InitActivationResponse response = new InitActivationResponse();
@@ -849,7 +865,7 @@ public class ActivationServiceBehavior {
 
             // Make sure to deactivate the activation if it is expired
             if (activation == null) {
-                logger.warn("Activation not found with activation ID: {}", activationCode);
+                logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
@@ -925,12 +941,13 @@ public class ActivationServiceBehavior {
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation);
 
             // Generate encrypted response
             PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
+            encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
@@ -1057,7 +1074,7 @@ public class ActivationServiceBehavior {
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
-            PublicKey devicePublicKey = null;
+            PublicKey devicePublicKey;
 
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -1089,7 +1106,7 @@ public class ActivationServiceBehavior {
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(application.getId(), activation);
 
             // Create a new recovery code and PUK for new activation if activation recovery is enabled
             ActivationRecovery activationRecovery = null;
@@ -1116,8 +1133,11 @@ public class ActivationServiceBehavior {
             // Generate encrypted response
             CreateActivationResponse encryptedResponse = new CreateActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
+            encryptedResponse.setUserId(activation.getUserId());
+            encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
+            encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
@@ -1185,7 +1205,7 @@ public class ActivationServiceBehavior {
         // Change activation state to ACTIVE
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
         // Update recovery code status in case a related recovery code exists in CREATED state
         RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
@@ -1250,11 +1270,18 @@ public class ActivationServiceBehavior {
         // Check OTP validation mode
          if (activation.getActivationOtpValidation() == io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_KEY_EXCHANGE) {
             logger.info("Activation OTP update is not allowed for ON_KEY_EXCHANGE mode. Activation ID: {}", activationId);
-             // Rollback is not required, error occurs before writing to database
+            // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_ACTIVATION_OTP_MODE);
         }
 
-        final String activationOtpHash = PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+        final String activationOtpHash;
+        try {
+            activationOtpHash = PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
 
         // Change activation OTP and set mode to ON_COMMIT
         activation.setActivationOtp(activationOtpHash);
@@ -1262,7 +1289,7 @@ public class ActivationServiceBehavior {
 
         // Save activation record
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.ACTIVATION_OTP_VALUE_UPDATE);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
         UpdateActivationOtpResponse response = new UpdateActivationOtpResponse();
         response.setActivationId(activationId);
@@ -1355,7 +1382,7 @@ public class ActivationServiceBehavior {
 
         // Also notify the listeners in case that the state of the activation was changed.
         if (removeActivation) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         }
 
         // ...and finally throw an exception.
@@ -1398,7 +1425,7 @@ public class ActivationServiceBehavior {
                 }
             }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
             RemoveActivationResponse response = new RemoveActivationResponse();
             response.setActivationId(activationId);
             response.setRemoved(true);
@@ -1437,7 +1464,7 @@ public class ActivationServiceBehavior {
                 activation.setBlockedReason(reason);
             }
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
             // In case activation status is not ACTIVE or BLOCKED, throw an exception
             logger.info("Activation cannot be blocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
@@ -1475,7 +1502,7 @@ public class ActivationServiceBehavior {
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
         } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             // In case activation status is not BLOCKED or ACTIVE, throw an exception
             logger.info("Activation cannot be unblocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
@@ -1677,7 +1704,7 @@ public class ActivationServiceBehavior {
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(layer2Request.getDevicePublicKey());
-            PublicKey devicePublicKey = null;
+            PublicKey devicePublicKey;
 
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -1709,7 +1736,7 @@ public class ActivationServiceBehavior {
             // Set initial counter data
             activation.setCtrDataBase64(ctrDataBase64);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation.getActivationId());
+            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
 
             // Activation has been successfully committed, set PUK state to USED and persist the change
             pukUsedDuringActivation.setStatus(RecoveryPukStatus.USED);
@@ -1735,8 +1762,10 @@ public class ActivationServiceBehavior {
             final RecoveryCodeActivationResponse encryptedResponse = new RecoveryCodeActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
+            encryptedResponse.setApplicationId(application.getId());
             encryptedResponse.setEncryptedData(encryptedDataResponse);
             encryptedResponse.setMac(macResponse);
+            encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);

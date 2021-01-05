@@ -19,11 +19,11 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
@@ -50,7 +50,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,6 +84,7 @@ public class RecoveryServiceBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
 
     // Business logic implementation classes
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -103,11 +103,12 @@ public class RecoveryServiceBehavior {
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior,
-                                   RecoveryPukConverter recoveryPukConverter) {
+                                   RecoveryPrivateKeyConverter recoveryPrivateKeyConverter, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
         this.recoveryPukConverter = recoveryPukConverter;
     }
 
@@ -167,7 +168,11 @@ public class RecoveryServiceBehavior {
                 }
             }
 
-            final byte[] privateKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64());
+            EncryptionMode encryptionMode = recoveryConfigEntity.getPrivateKeyEncryption();
+            String recoveryPrivateKeyBase64 = recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64();
+            final RecoveryPrivateKey recoveryPrivateKeyEncrypted = new RecoveryPrivateKey(encryptionMode, recoveryPrivateKeyBase64);
+            String decryptedPrivateKey = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, applicationId);
+            final byte[] privateKeyBytes = BaseEncoding.base64().decode(decryptedPrivateKey);
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(privateKeyBytes);
             final byte[] publicKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
             final PublicKey publicKey = keyConversion.convertBytesToPublicKey(publicKeyBytes);
@@ -232,14 +237,14 @@ public class RecoveryServiceBehavior {
             response.setUserId(userId);
             response.setRecoveryCodeId(recoveryCodeEntity.getId());
             response.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
-            response.setStatus(io.getlime.security.powerauth.v3.RecoveryCodeStatus.CREATED);
+            response.setStatus(com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.CREATED);
             List<CreateRecoveryCodeResponse.Puks> pukListResponse = response.getPuks();
             for (int i = 1; i <= pukDerivationIndexes.size(); i++) {
                 Long pukDerivationIndex = pukDerivationIndexes.get(i);
                 CreateRecoveryCodeResponse.Puks pukResponse = new CreateRecoveryCodeResponse.Puks();
                 pukResponse.setPukIndex(i);
                 pukResponse.setPukDerivationIndex(pukDerivationIndex);
-                pukResponse.setStatus(io.getlime.security.powerauth.v3.RecoveryPukStatus.VALID);
+                pukResponse.setStatus(com.wultra.security.powerauth.client.v3.RecoveryPukStatus.VALID);
                 pukListResponse.add(pukResponse);
             }
             return response;
@@ -549,12 +554,8 @@ public class RecoveryServiceBehavior {
         }
 
         final RevokeRecoveryCodesResponse response = new RevokeRecoveryCodesResponse();
-        if (revokedCount > 0) {
-            // At least one recovery code was revoked
-            response.setRevoked(true);
-        } else {
-            response.setRevoked(false);
-        }
+        // At least one recovery code was revoked
+        response.setRevoked(revokedCount > 0);
         return response;
     }
 
@@ -582,6 +583,7 @@ public class RecoveryServiceBehavior {
             recoveryConfigEntity.setActivationRecoveryEnabled(false);
             recoveryConfigEntity.setRecoveryPostcardEnabled(false);
             recoveryConfigEntity.setAllowMultipleRecoveryCodes(false);
+            recoveryConfigEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
             recoveryConfigRepository.save(recoveryConfigEntity);
         }
         GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
@@ -617,6 +619,7 @@ public class RecoveryServiceBehavior {
                 // Configuration does not exist yet, create it
                 recoveryConfigEntity = new RecoveryConfigEntity();
                 recoveryConfigEntity.setApplication(applicationOptional.get());
+                recoveryConfigEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
             }
             if (request.isRecoveryPostcardEnabled() && recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null) {
                 // Private key does not exist, generate key pair and persist it
@@ -625,11 +628,12 @@ public class RecoveryServiceBehavior {
                 PrivateKey privateKey = kp.getPrivate();
                 PublicKey publicKey = kp.getPublic();
                 byte[] privateKeyBytes = keyConversion.convertPrivateKeyToBytes(privateKey);
-                String privateKeyBase64 = BaseEncoding.base64().encode(privateKeyBytes);
                 byte[] publicKeyBytes = keyConversion.convertPublicKeyToBytes(publicKey);
                 String publicKeyBase64 = BaseEncoding.base64().encode(publicKeyBytes);
 
-                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(privateKeyBase64);
+                RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationId);
+                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(recoveryPrivateKey.getRecoveryPrivateKeyBase64());
+                recoveryConfigEntity.setPrivateKeyEncryption(recoveryPrivateKey.getEncryptionMode());
                 recoveryConfigEntity.setRecoveryPostcardPublicKeyBase64(publicKeyBase64);
             }
             recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());
@@ -643,7 +647,9 @@ public class RecoveryServiceBehavior {
                 }
             }
             recoveryConfigRepository.save(recoveryConfigEntity);
-            return new UpdateRecoveryConfigResponse();
+            UpdateRecoveryConfigResponse response = new UpdateRecoveryConfigResponse();
+            response.setUpdated(true);
+            return response;
         } catch (CryptoProviderException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing

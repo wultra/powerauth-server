@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -28,7 +29,6 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,9 +87,6 @@ public class ApplicationServiceBehavior {
     }
 
     private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
-        GetApplicationDetailResponse response = new GetApplicationDetailResponse();
-        response.setApplicationId(application.getId());
-        response.setApplicationName(application.getName());
         MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
@@ -97,6 +94,10 @@ public class ApplicationServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
+        GetApplicationDetailResponse response = new GetApplicationDetailResponse();
+        response.setApplicationId(application.getId());
+        response.setApplicationName(application.getName());
+        response.getApplicationRoles().addAll(application.getRoles());
         response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
 
         List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(application.getId());
@@ -150,6 +151,7 @@ public class ApplicationServiceBehavior {
             GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
             app.setId(application.getId());
             app.setApplicationName(application.getName());
+            app.getApplicationRoles().addAll(application.getRoles());
             response.getApplications().add(app);
         }
 
@@ -222,8 +224,16 @@ public class ApplicationServiceBehavior {
         ApplicationEntity application = findApplicationById(applicationId);
 
         KeyGenerator keyGen = new KeyGenerator();
-        byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-        byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
+        byte[] applicationKeyBytes;
+        byte[] applicationSecretBytes;
+        try {
+            applicationKeyBytes = keyGen.generateRandomBytes(16);
+            applicationSecretBytes = keyGen.generateRandomBytes(16);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
 
         ApplicationVersionEntity version = new ApplicationVersionEntity();
         version.setApplication(application);

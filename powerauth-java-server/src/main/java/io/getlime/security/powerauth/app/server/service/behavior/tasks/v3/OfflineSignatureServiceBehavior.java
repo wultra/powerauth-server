@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
@@ -40,7 +41,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
-import io.getlime.security.powerauth.v3.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,17 +105,7 @@ public class OfflineSignatureServiceBehavior {
                                                                  String dataString, KeyConvertor keyConversionUtilities)
             throws GenericServiceException {
         try {
-            final VerifyOfflineSignatureResponse signatureResponse = verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, keyConversionUtilities);
-            VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
-            response.setActivationId(signatureResponse.getActivationId());
-            response.setActivationStatus(signatureResponse.getActivationStatus());
-            response.setBlockedReason(signatureResponse.getBlockedReason());
-            response.setApplicationId(signatureResponse.getApplicationId());
-            response.setRemainingAttempts(signatureResponse.getRemainingAttempts());
-            response.setSignatureType(signatureResponse.getSignatureType());
-            response.setSignatureValid(signatureResponse.isSignatureValid());
-            response.setUserId(signatureResponse.getUserId());
-            return response;
+            return verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, keyConversionUtilities);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -155,7 +145,7 @@ public class OfflineSignatureServiceBehavior {
 
             // Generate nonce
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
-            String nonce = BaseEncoding.base64().encode(nonceBytes);
+            final String nonce = BaseEncoding.base64().encode(nonceBytes);
 
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -176,7 +166,7 @@ public class OfflineSignatureServiceBehavior {
             final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
 
             // Return the result
-            CreatePersonalizedOfflineSignaturePayloadResponse response = new CreatePersonalizedOfflineSignaturePayloadResponse();
+            final CreatePersonalizedOfflineSignaturePayloadResponse response = new CreatePersonalizedOfflineSignaturePayloadResponse();
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
@@ -219,7 +209,7 @@ public class OfflineSignatureServiceBehavior {
 
             // Generate nonce
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
-            String nonce = BaseEncoding.base64().encode(nonceBytes);
+            final String nonce = BaseEncoding.base64().encode(nonceBytes);
 
             // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
@@ -235,7 +225,7 @@ public class OfflineSignatureServiceBehavior {
             final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
 
             // Return the result
-            CreateNonPersonalizedOfflineSignaturePayloadResponse response = new CreateNonPersonalizedOfflineSignaturePayloadResponse();
+            final CreateNonPersonalizedOfflineSignaturePayloadResponse response = new CreateNonPersonalizedOfflineSignaturePayloadResponse();
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
@@ -274,22 +264,22 @@ public class OfflineSignatureServiceBehavior {
                                                                       String dataString, KeyConvertor keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
-        Date currentTimestamp = new Date();
+        final Date currentTimestamp = new Date();
 
         // Fetch related activation
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
 
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
             // Application secret is "offline" in offline mode
-            byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
-            SignatureData signatureData = new SignatureData(data, signature, PowerAuthSignatureFormat.DECIMAL, null, additionalInfo, null);
-            OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
+            final byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
+            final SignatureData signatureData = new SignatureData(data, signature, PowerAuthSignatureFormat.DECIMAL, null, additionalInfo, null);
+            final OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
-                SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, keyConversionUtilities);
+                final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, keyConversionUtilities);
 
                 // Check if the signature is valid
                 if (verificationResponse.isSignatureValid()) {
@@ -310,23 +300,25 @@ public class OfflineSignatureServiceBehavior {
                 signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, offlineSignatureRequest, currentTimestamp);
 
                 // return the data
-                return invalidStateResponse(activation.getActivationStatus());
+                return invalidStateResponse(activationId, activation.getActivationStatus());
 
             }
         } else { // Activation does not exist
 
-            return invalidStateResponse(ActivationStatus.REMOVED);
+            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
 
         }
     }
 
     /**
-     * Generates an invalid signature reponse when state is invalid (invalid applicationVersion, activation is not active, activation does not exist, etc.).
-     *
+     * Generates an invalid signature response when state is invalid (invalid applicationVersion, activation is not active, activation does not exist, etc.).
+     * @param activationId Activation ID.
+     * @param activationStatus Activation status.
      * @return Invalid signature response.
      */
-    private VerifyOfflineSignatureResponse invalidStateResponse(ActivationStatus activationStatus) {
-        VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
+    private VerifyOfflineSignatureResponse invalidStateResponse(String activationId, ActivationStatus activationStatus) {
+        final VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
+        response.setActivationId(activationId);
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activationStatus));
         return response;
@@ -339,11 +331,13 @@ public class OfflineSignatureServiceBehavior {
      * @return Valid signature response.
      */
     private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
-        // Extract application ID
-        Long applicationId = activation.getApplication().getId();
+        // Extract application ID and application roles
+        final Long applicationId = activation.getApplication().getId();
+        final List<String> applicationRoles = activation.getApplication().getRoles();
+        final List<String> activationFlags = activation.getFlags();
 
         // Return the data
-        VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
+        final VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setSignatureValid(true);
         response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
         response.setBlockedReason(null);
@@ -351,6 +345,8 @@ public class OfflineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
+        response.getActivationFlags().addAll(activationFlags);
         response.setSignatureType(usedSignatureType);
         return response;
     }
@@ -363,12 +359,14 @@ public class OfflineSignatureServiceBehavior {
      */
     private VerifyOfflineSignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest offlineSignatureRequest) {
         // Calculate remaining attempts
-        long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
-        // Extract application ID
-        Long applicationId = activation.getApplication().getId();
+        final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+        // Extract application ID and application roles
+        final Long applicationId = activation.getApplication().getId();
+        final List<String> applicationRoles = activation.getApplication().getRoles();
+        final List<String> activationFlags = activation.getFlags();
 
         // Return the data
-        VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
+        final VerifyOfflineSignatureResponse response = new VerifyOfflineSignatureResponse();
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
         response.setBlockedReason(activation.getBlockedReason());
@@ -376,6 +374,8 @@ public class OfflineSignatureServiceBehavior {
         response.setRemainingAttempts(BigInteger.valueOf(remainingAttempts));
         response.setUserId(activation.getUserId());
         response.setApplicationId(applicationId);
+        response.getApplicationRoles().addAll(applicationRoles);
+        response.getActivationFlags().addAll(activationFlags);
         // In case multiple signature types are used, use the first one as signature type
         response.setSignatureType(offlineSignatureRequest.getSignatureTypes().iterator().next());
         return response;

@@ -1,12 +1,16 @@
-# SOAP Service Methods
+# Web Services - Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server SOAP service.
-It reflects the SOAP service methods as they are defined in the WSDL files:
+This is a reference documentation of the methods published by the PowerAuth Server REST / SOAP services.
+
+The REST service methods can be browsed using Swagger on deployed PowerAuth instance:
+- http://localhost:8080/powerauth-java-server/swagger-ui.html
+
+SOAP service methods are defined in the WSDL files:
 
 - [serviceV3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV3.wsdl)
 - [serviceV2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV2.wsdl)
 
-The versioning of SOAP methods is described in chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md).
+The versioning of SOAP methods is described in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 The following `v3` methods are published using the service:
 
@@ -57,6 +61,7 @@ The following `v3` methods are published using the service:
     - [removeIntegration](#method-removeintegration)
 - Callback URL Management
     - [createCallbackUrl](#method-createcallbackurl)
+    - [updateCallbackUrl](#method-updatecallbackurl)
     - [getCallbackUrlList](#method-getcallbackurllist)
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
@@ -72,6 +77,17 @@ The following `v3` methods are published using the service:
     - [recoveryCodeActivation](#method-recoverycodeactivation)
     - [getRecoveryConfig](#method-getrecoveryconfig)
     - [updateRecoveryConfig](#method-updaterecoveryconfig)
+- Activation Flags
+    - [listActivationFlags](#method-listactivationflags)
+    - [addActivationFlags](#method-addactivationflags)
+    - [updateActivationFlags](#method-updateactivationflags)
+    - [removeActivationFlags](#method-removeactivationflags)
+- Application Roles
+    - [listApplicationRoles](#method-listactivationflags)
+    - [addApplicationRoles](#method-addapplicationroles)
+    - [updateApplicationRoles](#method-updateapplicationroles)
+    - [removeApplicationFlags](#method-removeapplicationflags)
+
 The following `v2` methods are published using the service:
 - Activation Management
     - [prepareActivation (v2)](#method-prepareactivation-v2)
@@ -93,6 +109,8 @@ Methods used for getting the PowerAuth Server system status.
 Get the server status information.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/status`
 
 `GetSystemStatusRequest`
 
@@ -117,6 +135,8 @@ Get the server status information.
 Get the list of all error codes that PowerAuth Server can return.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/error/list`
 
 `GetErrorCodeListRequest`
 
@@ -149,6 +169,8 @@ Get list of all applications that are present in this PowerAuth Server instance.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/list`
+
 `GetApplicationListRequest`
 
 - _no attributes_
@@ -167,6 +189,7 @@ Get list of all applications that are present in this PowerAuth Server instance.
 |------|------|-------------|
 | `Long` | `id` | An application ID |
 | `String` | `applicationName` | Application name |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'getApplicationDetail'
 
@@ -174,12 +197,15 @@ Get detail of application with given ID or name, including the list of versions.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/detail`
+
 `GetApplicationDetailRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application (required if applicationName not specified) |
 | `String` | `applicationName` | An application name (required if applicationId not specified) |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 
 #### Response
 
@@ -189,6 +215,7 @@ Get detail of application with given ID or name, including the list of versions.
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application |
 | `String` | `applicationName` | An application name |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 | `String` | `masterPublicKey` | Base64 encoded master public key |
 | `Version[]` | `versions` | Collection of application versions |
 
@@ -207,6 +234,8 @@ Get detail of application with given ID or name, including the list of versions.
 Find application using application key.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/detail/version`
 
 `LookupApplicationByAppKeyRequest`
 
@@ -228,6 +257,8 @@ Create a new application with given name.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/create`
+
 `CreateApplicationRequest`
 
 | Type | Name | Description |
@@ -242,12 +273,15 @@ Create a new application with given name.
 |------|------|-------------|
 | `Long` | `applicationId` | An identifier of an application |
 | `String` | `applicationName` | An application name |
+| `String[]` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'createApplicationVersion'
 
 Create a new application version with given name for a specified application.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/version/create`
 
 `CreateApplicationVersionRequest`
 
@@ -274,6 +308,8 @@ Mark application version with given ID as "unsupported". Signatures constructed 
 
 #### Request
 
+REST endpoint: `POST /rest/v3/application/version/unsupport`
+
 `UnsupportApplicationVersionRequest`
 
 | Type | Name | Description |
@@ -294,6 +330,8 @@ Mark application version with given ID as "unsupported". Signatures constructed 
 Mark application version with given ID as "supported". Signatures constructed using application key and application secret associated with this versions will be evaluated the standard way.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/version/support`
 
 `SupportApplicationVersionRequest`
 
@@ -322,6 +360,8 @@ After calling this method, a new activation record is created in CREATED state.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/init`
+
 `InitActivationRequest`
 
 | Type | Name | Description |
@@ -339,7 +379,7 @@ After calling this method, a new activation record is created in CREATED state.
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `userId` | An identifier of a user |
@@ -361,6 +401,8 @@ After successfully calling this method, activation is in PENDING_COMMIT or ACTIV
 | OTP is required, but is not valid, no attempts left | `REMOVED`        |
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/prepare`
 
 `PrepareActivationRequest`
 
@@ -387,7 +429,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `userId` | User ID |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
@@ -410,6 +452,8 @@ If optional `activationOtp` value is set, then the activation's OTP validation m
 After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/create`
 
 `CreateActivationRequest`
 
@@ -438,7 +482,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 
@@ -457,6 +501,8 @@ Update activation OTP for activation with given ID. Only non-expired activations
 After successful, activation OTP is updated and the OTP validation is set to ON_COMMIT.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/otp/update`
 
 `UpdateActivationOtpRequest`
 
@@ -485,6 +531,8 @@ After successful commit, activation is in ACTIVE state.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/commit`
+
 `CommitActivationRequest`
 
 | Type | Name | Description |
@@ -508,6 +556,8 @@ Get status information and all important details for activation with given ID.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/status`
+
 `GetActivationStatusRequest`
 
 | Type | Name | Description |
@@ -527,6 +577,9 @@ Get status information and all important details for activation with given ID.
 | `String` | `activationName` | An activation name |
 | `String` | `userId` | An identifier of a user |
 | `String` | `extras` | Any custom attributes |
+| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]` | `activationFlags` | Activation flags |
 | `Long` | `applicationId` | An identifier fo an application |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
@@ -542,6 +595,8 @@ Get status information and all important details for activation with given ID.
 Remove activation with given ID. This operation is irreversible. Activations can be removed in any state. After successfully calling this method, activation is in REMOVED state.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/remove`
 
 `RemoveActivationRequest`
 
@@ -565,6 +620,8 @@ Remove activation with given ID. This operation is irreversible. Activations can
 Get the list of all activations for given user and application ID. If no application ID is provided, return list of all activations for given user.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserRequest`
 
@@ -591,6 +648,9 @@ Get the list of all activations for given user and application ID. If no applica
 | `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationName` | An activation name |
 | `String` | `extras` | Any custom attributes |
+| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]` | `activationFlags` | Activation flags |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
 | `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
@@ -604,6 +664,8 @@ Get the list of all activations for given user and application ID. If no applica
 Block activation with given ID. Activations can be blocked in ACTIVE state only. After successfully calling this method, activation is in BLOCKED state.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/block`
 
 `BlockActivationRequest`
 
@@ -629,6 +691,8 @@ Unblock activation with given ID. Activations can be unblocked in BLOCKED state 
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/unblock`
+
 `UnblockActivationRequest`
 
 | Type | Name | Description |
@@ -651,6 +715,8 @@ Lookup activations using query parameters.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/lookup`
+
 `LookupActivationsRequest`
 
 | Type | Name | Description |
@@ -660,6 +726,7 @@ Lookup activations using query parameters.
 | `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
 | `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
 | `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
+| `String[]` | `activationFlags` | Filter activations by activation flags |
 
 #### Response
 
@@ -676,6 +743,9 @@ Lookup activations using query parameters.
 | `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
 | `String` | `activationName` | An activation name |
 | `String` | `extras` | Any custom attributes |
+| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]` | `activationFlags` | Activation flags |
 | `DateTime` | `timestampCreated` | A timestamp when the activation was created |
 | `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
 | `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
@@ -689,6 +759,8 @@ Lookup activations using query parameters.
 Update status for activations identified using their identifiers.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/status/update`
 
 `UpdateStatusForActivationsRequest`
 
@@ -714,6 +786,8 @@ Methods related to signature verification.
 Verify signature correctness for given activation, application key, data and signature type.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/signature/verify`
 
 `VerifySignatureRequest`
 
@@ -747,6 +821,8 @@ Verify asymmetric ECDSA signature correctness for given activation and data.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/verifyECDSASignature`
+
 `VerifyECDSASignatureRequest`
 
 | Type | Name | Description |
@@ -768,6 +844,8 @@ Verify asymmetric ECDSA signature correctness for given activation and data.
 Create a data payload used as a challenge for personalized off-line signatures.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/signature/offline/personalized/create`
 
 `CreatePersonalizedOfflineSignaturePayloadRequest`
 
@@ -791,6 +869,8 @@ Create a data payload used as a challenge for non-personalized off-line signatur
 
 #### Request
 
+REST endpoint: `POST /rest/v3/signature/offline/non-personalized/create`
+
 `CreateNonPersonalizedOfflineSignaturePayloadRequest`
 
 | Type | Name | Description |
@@ -812,6 +892,8 @@ Create a data payload used as a challenge for non-personalized off-line signatur
 Verify off-line signature of provided data.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/signature/offline/verify`
 
 `VerifyOfflineSignatureRequest`
 
@@ -844,6 +926,8 @@ Verify off-line signature of provided data.
 Create a new token for the simple token-based authentication.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/token/create`
 
 `CreateTokenRequest`
 
@@ -885,6 +969,8 @@ Validate token digest used for the simple token-based authentication.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/token/validate`
+
 `ValidateTokenRequest`
 
 | Type | Name | Description |
@@ -912,6 +998,8 @@ Remove token with given ID.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/token/remove`
+
 `RemoveTokenRequest`
 
 | Type | Name | Description |
@@ -935,6 +1023,8 @@ Methods related to secure vault.
 Get the encrypted vault unlock key upon successful authentication using PowerAuth Signature.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/vault/unlock`
 
 `VaultUnlockRequest`
 
@@ -993,6 +1083,8 @@ Get the signature audit log for given user, application and date range. In case 
 
 #### Request
 
+REST endpoint: `POST /rest/v3/signature/list`
+
 `SignatureAuditRequest`
 
 | Type | Name | Description |
@@ -1040,6 +1132,8 @@ Get the status change log for given activation and date range.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/activation/history`
+
 `ActivationHistoryRequest`
 
 | Type | Name | Description |
@@ -1077,6 +1171,8 @@ Create a new integration with given name, automatically generate credentials for
 
 #### Request
 
+REST endpoint: `POST /rest/v3/integration/create`
+
 `CreateIntegrationRequest`
 
 | Type | Name | Description |
@@ -1099,6 +1195,8 @@ Create a new integration with given name, automatically generate credentials for
 Get the list of all integrations that are configured on the server instance.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/integration/list`
 
 `GetIntegrationListRequest`
 
@@ -1127,6 +1225,8 @@ Remove integration with given ID.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/integration/remove`
+
 `RemoveIntegrationRequest`
 
 | Type | Name | Description |
@@ -1144,9 +1244,11 @@ Remove integration with given ID.
 
 ### Method 'createCallbackUrl'
 
-Creates a callback URL with given parameters.
+Create a callback URL with given parameters.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/callback/create`
 
 `CreateCallbackUrlRequest`
 
@@ -1155,6 +1257,18 @@ Creates a callback URL with given parameters.
 | `Long` | `applicationId` | Associated application ID. |
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+
+The `attributes` list can contain following values:
+- `activationId`
+- `userId`
+- `activationName`
+- `deviceInfo`
+- `platform`
+- `activationFlags`
+- `activationStatus`
+- `blockedReason`
+- `applicationId`
 
 #### Response
 
@@ -1166,12 +1280,55 @@ Creates a callback URL with given parameters.
 | `Long` | `applicationId` | Associated application ID. |
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+
+### Method 'updateCallbackUrl'
+
+Update a callback URL with given parameters.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/callback/update`
+
+`UpdateCallbackUrlRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | Associated application ID. |
+| `String` | `name` | Callback URL name, for visual identification. |
+| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+
+The `attributes` list can contain following values:
+- `activationId`
+- `userId`
+- `activationName`
+- `deviceInfo`
+- `platform`
+- `activationFlags`
+- `activationStatus`
+- `blockedReason`
+- `applicationId`
+
+#### Response
+
+`UpdateCallbackUrlResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | Callback URL identifier (UUID4). |
+| `Long` | `applicationId` | Associated application ID. |
+| `String` | `name` | Callback URL name, for visual identification. |
+| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
 ### Method 'getCallbackUrlList'
 
 Get the list of all callbacks for given application.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/callback/list`
 
 `GetCallbackUrlListRequest`
 
@@ -1195,12 +1352,15 @@ Get the list of all callbacks for given application.
 | `Long` | `applicationId` | Associated application ID. |
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 
 ### Method 'removeCallbackUrl'
 
 Remove callback URL with given ID.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/application/callback/remove`
 
 `RemoveCallbackUrlRequest`
 
@@ -1225,11 +1385,13 @@ Get ECIES decryptor data for request/response decryption on intermediate server.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/ecies/decryptor`
+
 `GetEciesDecryptorRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 
@@ -1250,11 +1412,13 @@ Upgrade activation to the most recent version supported by the server.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/upgrade/start`
+
 `StartUpgradeRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
@@ -1272,15 +1436,17 @@ Upgrade activation to the most recent version supported by the server.
 
 ### Method 'commitUpgrade'
 
-Commint activation upgrade.
+Commit activation upgrade.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/upgrade/commit`
 
 `CommitUpgradeRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
+| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 
 #### Response
@@ -1298,6 +1464,8 @@ Commint activation upgrade.
 Create a recovery code for user.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/recovery/create`
 
 `CreateRecoveryCodeRequest`
 
@@ -1334,11 +1502,13 @@ Confirm a recovery code recieved using recovery postcard.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/confirm`
+
 `ConfirmRecoveryCodeRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | Base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
@@ -1354,7 +1524,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
@@ -1368,12 +1538,14 @@ Lookup recovery codes.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/lookup`
+
 `LookupRecoveryCodesRequest`
 
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `userId` | An identifier of a user |
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `applicationId` | An identifier of an application |
 | `RecoveryCodeStatus` | `recoveryCodeStatus` | Recovery code status |
 | `RecoveryPukStatus` | `recoveryPukStatus` | Recovery PUK status |
@@ -1388,7 +1560,7 @@ Lookup recovery codes.
 | `String` | `recoveryCodeMasked` | Recovery code with partial masking to avoid leaking recovery code |
 | `String` | `userId` | An identifier of a user |
 | `Long` | `applicationId` | An identifier of an application |
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `RecoveryCodeStatus` | `status` | Recovery code status |
 | `Puk[]` | `puks` | Recovery code PUKs |
 
@@ -1404,6 +1576,8 @@ Lookup recovery codes.
 Revoke recovery codes.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/recovery/revoke`
 
 `RevokeRecoveryCodesRequest`
 
@@ -1426,6 +1600,8 @@ Create an activation using recovery code. After successfully calling this method
 If optional `activationOtp` value is set, then the activation's OTP validation mode is set to `ON_COMMIT`. The same OTP value must be later provided in [CommitActivation](#method-commitactivation) method, to complete the activation.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/activation/recovery/create`
 
 `RecoveryCodeActivationRequest`
 
@@ -1454,7 +1630,7 @@ ECIES request should contain following data (as JSON):
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `userId` | An identifier of a user |
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
@@ -1475,6 +1651,8 @@ value in the SOAP fault detail. This value contains information about which PUK 
 Get configuration of activation recovery.
 
 #### Request
+
+REST endpoint: `POST /rest/v3/recovery/config/detail`
 
 `GetRecoveryConfigRequest`
 
@@ -1501,6 +1679,8 @@ Update configuration of activation recovery.
 
 #### Request
 
+REST endpoint: `POST /rest/v3/recovery/config/update`
+
 `UpdateRecoveryConfigRequest`
 
 | Type | Name | Description |
@@ -1519,6 +1699,197 @@ Update configuration of activation recovery.
 |------|------|-------------|
 | `Boolean` | `updated` | Whether recovery configuration was updated |   
 
+### Method `listActivationFlags`
+
+List flags for an activation.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/activation/flags/list`
+
+`ListActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+
+#### Response
+
+`ListActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation |
+
+### Method `addActivationFlags`
+
+Add activation flags to an activation. Duplicate flags are ignored.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/activation/flags/create`
+
+`AddActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+| `String[]` | `activationFlags` | Activation flags to be added to the activation |
+
+#### Response
+
+`AddActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation after the addition |
+
+### Method `updateActivationFlags`
+
+Update activation flags to an activation. Existing flags are removed.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/activation/flags/update`
+
+`UpdateActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+| `String[]` | `activationFlags` | Activation flags for the update |
+
+#### Response
+
+`UpdateActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation after the update |
+
+### Method `removeActivationFlags`
+
+Remove activation flags for an activation.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/activation/flags/remove`
+
+`RemoveActivationFlagsRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | A UUID4 identifier of an activation |
+| `String[]` | `activationFlags` | Activation flags to be removed from the activation |
+
+#### Response
+
+`RemoveActivationFlagsResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `activationId` | The UUID4 identifier of the activation |
+| `String[]` | `activationFlags` | Activation flags for the activation after the removal |
+
+### Method `listApplicationRoles`
+
+List roles for an application.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/roles/list`
+
+`ListApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+
+#### Response
+
+`ListApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | The identifier of the application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application |
+
+### Method `addApplicationRoles`
+
+Add application roles to an application. Duplicate roles are ignored.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/roles/create`
+
+`AddApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles to be added to the application |
+
+#### Response
+
+`AddApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | The identifier of the application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application after the addition |
+
+### Method `updateApplicationRoles`
+
+Update application roles assigned to an application. Existing roles are removed.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/roles/update`
+
+`UpdateApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles to be assigned to the application |
+
+#### Response
+
+`UpdateApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `applicationId` | The identifier of the application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application after the update |
+
+### Method `removeApplicationRoles`
+
+Remove application roles from an activation.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/roles/remove`
+
+`RemoveApplicationRolesRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles to be removed from the application |
+
+#### Response
+
+`RemoveApplicationRolesResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String[]` | `applicationRoles` | Application roles assigned to the application after the removal |
+
+
 ## Activation management (v2)
 
 ### Method 'prepareActivation' (v2)
@@ -1526,6 +1897,8 @@ Update configuration of activation recovery.
 Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/activation/prepare`
 
 `PrepareActivationRequest`
 
@@ -1546,7 +1919,7 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationNonce` | A base64 encoded activation nonce |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
@@ -1557,6 +1930,8 @@ Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare 
 Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in PENDING_COMMIT state.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/activation/create`
 
 `CreateActivationRequest`
 
@@ -1581,7 +1956,7 @@ Create an activation for given user and application, with provided maximum numbe
 
 | Type | Name | Description |
 |------|------|-------------|
-| `String` | `activationId` | An UUID4 identifier of an activation |
+| `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationNonce` | A base64 encoded activation nonce |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
 | `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
@@ -1594,6 +1969,8 @@ Create an activation for given user and application, with provided maximum numbe
 Create a new token for the simple token-based authentication.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/token/create`
 
 `CreateTokenRequest`
 
@@ -1619,6 +1996,8 @@ Create a new token for the simple token-based authentication.
 Get the encrypted vault unlock key upon successful authentication using PowerAuth Signature.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/vault/unlock`
 
 `VaultUnlockRequest`
 
@@ -1655,6 +2034,8 @@ Establishes a context required for performing a non-personalized (application sp
 
 #### Request
 
+REST endpoint: `POST /rest/v2/application/encryption/key/create`
+
 `GetNonPersonalizedEncryptionKeyRequest`
 
 | Type | Name | Description |
@@ -1680,6 +2061,8 @@ Establishes a context required for performing a non-personalized (application sp
 Establishes a context required for performing a personalized (activation specific) end-to-end encryption.
 
 #### Request
+
+REST endpoint: `POST /rest/v2/activation/encryption/key/create`
 
 `GetPersonalizedEncryptionKeyRequest`
 

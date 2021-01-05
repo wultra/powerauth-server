@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.endpoint.v3;
 
+import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import io.getlime.security.powerauth.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ws.server.endpoint.annotation.Endpoint;
 import org.springframework.ws.server.endpoint.annotation.PayloadRoot;
@@ -462,16 +462,17 @@ public class PowerAuthEndpoint {
     }
 
     /**
-     * Call {@link PowerAuthService#getIntegrationList()} method and
+     * Call {@link PowerAuthService#getIntegrationList(GetIntegrationListRequest)} method and
      * return the response.
      *
+     * @param request Get integration list request.
      * @return Get integration list response.
      * @throws Exception In case the service throws exception.
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "GetIntegrationListRequest")
     @ResponsePayload
-    public GetIntegrationListResponse getIntegrationList() throws Exception {
-        return powerAuthService.getIntegrationList();
+    public GetIntegrationListResponse getIntegrationList(@RequestPayload GetIntegrationListRequest request) throws Exception {
+        return powerAuthService.getIntegrationList(request);
     }
 
     /**
@@ -498,8 +499,22 @@ public class PowerAuthEndpoint {
      */
     @PayloadRoot(namespace = NAMESPACE_URI, localPart = "CreateCallbackUrlRequest")
     @ResponsePayload
-    public CreateCallbackUrlResponse createCallbackUrl(@RequestPayload CreateCallbackUrlRequest request) throws Exception {
+    public CreateCallbackUrlResponse updateCallbackUrl(@RequestPayload CreateCallbackUrlRequest request) throws Exception {
         return powerAuthService.createCallbackUrl(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateCallbackUrl(UpdateCallbackUrlRequest)} method and
+     * return the response.
+     *
+     * @param request Update callback UR: request.
+     * @return Update callback URL response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateCallbackUrlRequest")
+    @ResponsePayload
+    public UpdateCallbackUrlResponse updateCallbackUrl(@RequestPayload UpdateCallbackUrlRequest request) throws Exception {
+        return powerAuthService.updateCallbackUrl(request);
     }
 
     /**
@@ -710,6 +725,110 @@ public class PowerAuthEndpoint {
     @ResponsePayload
     public UpdateRecoveryConfigResponse updateRecoveryConfig(@RequestPayload UpdateRecoveryConfigRequest request) throws Exception {
         return powerAuthService.updateRecoveryConfig(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#listActivationFlags(ListActivationFlagsRequest)} method and
+     * return the response.
+     * @param request List activation flags request.
+     * @return List activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ListActivationFlagsRequest")
+    @ResponsePayload
+    public ListActivationFlagsResponse listActivationFlags(@RequestPayload ListActivationFlagsRequest request) throws Exception {
+        return powerAuthService.listActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#addActivationFlags(AddActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Create activation flags request.
+     * @return Create activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "AddActivationFlagsRequest")
+    @ResponsePayload
+    public AddActivationFlagsResponse addActivationFlags(@RequestPayload AddActivationFlagsRequest request) throws Exception {
+        return powerAuthService.addActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateActivationFlags(UpdateActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Update activation flags request.
+     * @return Update activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateActivationFlagsRequest")
+    @ResponsePayload
+    public UpdateActivationFlagsResponse updateActivationFlags(@RequestPayload UpdateActivationFlagsRequest request) throws Exception {
+        return powerAuthService.updateActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeActivationFlags(RemoveActivationFlagsRequest)} method and
+     * return the response.
+     * @param request Remove activation flags request.
+     * @return Remove activation flags response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveActivationFlagsRequest")
+    @ResponsePayload
+    public RemoveActivationFlagsResponse removeActivationFlags(@RequestPayload RemoveActivationFlagsRequest request) throws Exception {
+        return powerAuthService.removeActivationFlags(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#listApplicationRoles(ListApplicationRolesRequest)} method and
+     * return the response.
+     * @param request List application roles request.
+     * @return List application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "ListApplicationRolesRequest")
+    @ResponsePayload
+    public ListApplicationRolesResponse listApplicationRoles(@RequestPayload ListApplicationRolesRequest request) throws Exception {
+        return powerAuthService.listApplicationRoles(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#addApplicationRoles(AddApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Create application roles request.
+     * @return Create application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "AddApplicationRolesRequest")
+    @ResponsePayload
+    public AddApplicationRolesResponse addApplicationRoles(@RequestPayload AddApplicationRolesRequest request) throws Exception {
+        return powerAuthService.addApplicationRoles(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateApplicationRoles(UpdateApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Update application roles request.
+     * @return Update application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "UpdateApplicationRolesRequest")
+    @ResponsePayload
+    public UpdateApplicationRolesResponse updateApplicationRoles(@RequestPayload UpdateApplicationRolesRequest request) throws Exception {
+        return powerAuthService.updateApplicationRoles(request);
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeApplicationRoles(RemoveApplicationRolesRequest)} method and
+     * return the response.
+     * @param request Remove application roles request.
+     * @return Remove application roles response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PayloadRoot(namespace = NAMESPACE_URI, localPart = "RemoveApplicationRolesRequest")
+    @ResponsePayload
+    public RemoveApplicationRolesResponse removeApplicationRoles(@RequestPayload RemoveApplicationRolesRequest request) throws Exception {
+        return powerAuthService.removeApplicationRoles(request);
     }
 
 }

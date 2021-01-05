@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.v2;
 
-import io.getlime.security.powerauth.v2.*;
-import io.getlime.security.powerauth.v3.VerifySignatureRequest;
+import com.wultra.security.powerauth.client.v2.*;
+import com.wultra.security.powerauth.client.v3.VerifySignatureRequest;
 
 /**
  * Interface containing all methods that are published by the PowerAuth Server
