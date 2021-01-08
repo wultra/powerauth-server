@@ -22,7 +22,7 @@ package io.getlime.security.powerauth.app.server.database.model;
  * Enum representing possible operation states. Following values are supported:
  * <p>
  * - PENDING = 1
- * - CANCELLED = 2
+ * - CANCELED = 2
  * - EXPIRED = 3
  * - APPROVED = 4
  * - REJECTED = 5
@@ -30,7 +30,7 @@ package io.getlime.security.powerauth.app.server.database.model;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public enum OperationStatus {
+public enum OperationStatusDo {
 
     /**
      * PENDING - status right after the operation record was created.
@@ -38,9 +38,9 @@ public enum OperationStatus {
     PENDING((byte) 1),
 
     /**
-     * CANCELLED - status in the case operation was cancelled by external system.
+     * CANCELED - status in the case operation was canceled by external system.
      */
-    CANCELLED((byte) 2),
+    CANCELED((byte) 2),
 
     /**
      * EXPIRED - status after the operation expired and was accessed (so that the expiration takes effect on the DB level).
@@ -64,7 +64,7 @@ public enum OperationStatus {
 
     final byte value;
 
-    OperationStatus(final byte value) {
+    OperationStatusDo(final byte value) {
         this.value = value;
     }
 

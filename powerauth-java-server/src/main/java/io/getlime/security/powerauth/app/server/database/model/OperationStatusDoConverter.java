@@ -24,20 +24,20 @@ import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
 
 /**
- * Converter between {@link OperationStatus} and integer values.
+ * Converter between {@link OperationStatusDo} and integer values.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Converter
 @Component
-public class OperationStatusConverter implements AttributeConverter<OperationStatus, Integer> {
+public class OperationStatusDoConverter implements AttributeConverter<OperationStatusDo, Integer> {
 
     @Override
-    public Integer convertToDatabaseColumn(OperationStatus status) {
+    public Integer convertToDatabaseColumn(OperationStatusDo status) {
         switch (status) {
             case PENDING:
                 return 1;
-            case CANCELLED:
+            case CANCELED:
                 return 2;
             case EXPIRED:
                 return 3;
@@ -51,20 +51,20 @@ public class OperationStatusConverter implements AttributeConverter<OperationSta
     }
 
     @Override
-    public OperationStatus convertToEntityAttribute(Integer b) {
+    public OperationStatusDo convertToEntityAttribute(Integer b) {
         switch (b) {
             case 1:
-                return OperationStatus.PENDING;
+                return OperationStatusDo.PENDING;
             case 2:
-                return OperationStatus.CANCELLED;
+                return OperationStatusDo.CANCELED;
             case 3:
-                return OperationStatus.EXPIRED;
+                return OperationStatusDo.EXPIRED;
             case 4:
-                return OperationStatus.APPROVED;
+                return OperationStatusDo.APPROVED;
             case 5:
-                return OperationStatus.REJECTED;
+                return OperationStatusDo.REJECTED;
             default: // 6
-                return OperationStatus.FAILED;
+                return OperationStatusDo.FAILED;
         }
     }
 

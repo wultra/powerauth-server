@@ -21,13 +21,14 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.database.model.OperationStatus;
+import io.getlime.security.powerauth.app.server.database.model.OperationStatusDo;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
@@ -144,7 +145,7 @@ public class OperationBehavior {
         operationEntity.setOperationType(templateEntity.getOperationType());
         operationEntity.setData(operationData);
         operationEntity.setParameters(parametersString);
-        operationEntity.setStatus(OperationStatus.PENDING);
+        operationEntity.setStatus(OperationStatusDo.PENDING);
         operationEntity.setSignatureType(templateEntity.getSignatureType());
         operationEntity.setFailureCount(0L);
         operationEntity.setMaxFailureCount(templateEntity.getMaxFailureCount());
@@ -170,7 +171,7 @@ public class OperationBehavior {
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
         if (operationOptional.isPresent()) {
             final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatus.PENDING.equals(operationEntity.getStatus())) {
+            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
 
                 final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType);
 
@@ -182,7 +183,7 @@ public class OperationBehavior {
                     && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
 
                     // Approve the operation
-                    operationEntity.setStatus(OperationStatus.APPROVED);
+                    operationEntity.setStatus(OperationStatusDo.APPROVED);
                     operationEntity.setTimestampFinalized(currentTimestamp);
 
                     final OperationEntity savedEntity = operationRepository.save(operationEntity);
@@ -209,7 +210,7 @@ public class OperationBehavior {
                         response.setOperation(operationDetailResponse);
                         return response;
                     } else {
-                        operationEntity.setStatus(OperationStatus.FAILED);
+                        operationEntity.setStatus(OperationStatusDo.FAILED);
                         operationEntity.setTimestampFinalized(currentTimestamp);
                         operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
@@ -242,13 +243,13 @@ public class OperationBehavior {
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
         if (operationOptional.isPresent()) {
             final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatus.PENDING.equals(operationEntity.getStatus())) {
+            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
 
                 if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
                         && operationEntity.getApplicationId().equals(applicationId)) { // operation is rejected by the expected application
 
                     // Approve the operation
-                    operationEntity.setStatus(OperationStatus.REJECTED);
+                    operationEntity.setStatus(OperationStatusDo.REJECTED);
                     operationEntity.setTimestampFinalized(currentTimestamp);
 
                     final OperationEntity savedEntity = operationRepository.save(operationEntity);
@@ -283,7 +284,7 @@ public class OperationBehavior {
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
         if (operationOptional.isPresent()) {
             final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatus.PENDING.equals(operationEntity.getStatus())) {
+            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
 
                 // Update failure count, check the failure count and FAIL operation if needed
                 final Long failureCount = operationEntity.getFailureCount() + 1;
@@ -300,7 +301,7 @@ public class OperationBehavior {
                     response.setOperation(operationDetailResponse);
                     return response;
                 } else {
-                    operationEntity.setStatus(OperationStatus.FAILED);
+                    operationEntity.setStatus(OperationStatusDo.FAILED);
                     operationEntity.setTimestampFinalized(currentTimestamp);
                     operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
@@ -329,8 +330,8 @@ public class OperationBehavior {
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
         if (operationOptional.isPresent()) {
             final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatus.PENDING.equals(operationEntity.getStatus())) {
-                operationEntity.setStatus(OperationStatus.CANCELLED);
+            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+                operationEntity.setStatus(OperationStatusDo.CANCELED);
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 return convertFromEntity(savedEntity);
             } else {
@@ -382,7 +383,7 @@ public class OperationBehavior {
         for (OperationEntity op: operationsForUser) {
             final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
             // Skip operation that just expired
-            if (OperationStatus.PENDING.equals(operationEntity.getStatus())) {
+            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
                 result.add(convertFromEntity(operationEntity));
             }
         }
@@ -420,22 +421,22 @@ public class OperationBehavior {
         destination.setTimestampFinalized(source.getTimestampFinalized());
         switch (source.getStatus()) {
             case PENDING:
-                destination.setStatus("PENDING");
+                destination.setStatus(OperationStatus.PENDING);
                 break;
-            case CANCELLED:
-                destination.setStatus("CANCELLED");
+            case CANCELED:
+                destination.setStatus(OperationStatus.CANCELED);
                 break;
             case EXPIRED:
-                destination.setStatus("EXPIRED");
+                destination.setStatus(OperationStatus.EXPIRED);
                 break;
             case APPROVED:
-                destination.setStatus("APPROVED");
+                destination.setStatus(OperationStatus.APPROVED);
                 break;
             case REJECTED:
-                destination.setStatus("REJECTED");
+                destination.setStatus(OperationStatus.REJECTED);
                 break;
             case FAILED:
-                destination.setStatus("FAILED");
+                destination.setStatus(OperationStatus.FAILED);
                 break;
         }
         return destination;
@@ -443,10 +444,10 @@ public class OperationBehavior {
 
     private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {
         // Operation is still pending and timestamp is after the expiration.
-        if (OperationStatus.PENDING.equals(source.getStatus())
+        if (OperationStatusDo.PENDING.equals(source.getStatus())
                 && source.getTimestampExpires().before(currentTimestamp)) {
             logger.info("Operation {} expired.", source.getId());
-            source.setStatus(OperationStatus.EXPIRED);
+            source.setStatus(OperationStatusDo.EXPIRED);
             return operationRepository.save(source);
         }
         return source;

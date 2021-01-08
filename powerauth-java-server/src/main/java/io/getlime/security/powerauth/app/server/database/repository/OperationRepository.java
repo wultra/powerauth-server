@@ -48,7 +48,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Iterable<OperationEntity> findAllOperationsForUser(String userId, Long applicationId);
 
     @Query("SELECT o FROM OperationEntity o " +
-            "WHERE o.userId = :userId AND o.applicationId = :applicationId AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatus.PENDING " +
+            "WHERE o.userId = :userId AND o.applicationId = :applicationId AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated DESC")
     Iterable<OperationEntity> findPendingOperationsForUser(String userId, Long applicationId);
 
@@ -56,7 +56,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Iterable<OperationEntity> findOperationsByExternalId(String externalId, Long applicationId);
 
     @Query("SELECT o FROM OperationEntity o " +
-            "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatus.PENDING " +
+            "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated")
     Iterable<OperationEntity> findExpiredPendingOperations(Date timestamp);
 

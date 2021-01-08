@@ -18,8 +18,8 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.OperationStatus;
-import io.getlime.security.powerauth.app.server.database.model.OperationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.database.model.OperationStatusDoConverter;
 import io.getlime.security.powerauth.app.server.database.model.SignatureTypeConverter;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 
@@ -67,8 +67,8 @@ public class OperationEntity implements Serializable {
     private String parameters;
 
     @Column(name = "status")
-    @Convert(converter = OperationStatusConverter.class)
-    private OperationStatus status;
+    @Convert(converter = OperationStatusDoConverter.class)
+    private OperationStatusDo status;
 
     @Column(name = "signature_type")
     @Convert(converter = SignatureTypeConverter.class)
@@ -221,7 +221,7 @@ public class OperationEntity implements Serializable {
      * Get operation status.
      * @return Operation status.
      */
-    public OperationStatus getStatus() {
+    public OperationStatusDo getStatus() {
         return status;
     }
 
@@ -229,7 +229,7 @@ public class OperationEntity implements Serializable {
      * Set operation status.
      * @param status Operation status.
      */
-    public void setStatus(OperationStatus status) {
+    public void setStatus(OperationStatusDo status) {
         this.status = status;
     }
 

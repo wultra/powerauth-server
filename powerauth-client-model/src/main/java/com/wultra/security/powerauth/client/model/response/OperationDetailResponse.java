@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +39,7 @@ public class OperationDetailResponse {
     private String operationType;
     private String data;
     private Map<String, String> parameters;
-    private String status;
+    private OperationStatus status;
     private List<String> signatureType;
     private long failureCount;
     private Long maxFailureCount;
@@ -109,11 +111,11 @@ public class OperationDetailResponse {
         return parameters;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OperationStatus status) {
         this.status = status;
     }
 
-    public String getStatus() {
+    public OperationStatus getStatus() {
         return status;
     }
 
