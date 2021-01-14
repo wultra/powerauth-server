@@ -87,7 +87,7 @@ public class OperationBehavior {
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
         final String templateName = request.getTemplateName();
-        final Map<String, String> parameters = request.getParameters();
+        final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
 
         // Prepare current timestamp in advance
