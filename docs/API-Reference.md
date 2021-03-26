@@ -858,7 +858,7 @@ _//TODO: Prepare example_
 | `Long` | `version` | Activation version |
 <!-- end -->
 
-<!-- begin api POST /rest/v3/activation/{id}/remove` -->
+<!-- begin api POST /rest/v3/activation/{id}/remove -->
 ### Remove Activation
 
 <!-- begin remove -->
