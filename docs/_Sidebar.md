@@ -11,7 +11,7 @@
 
 **Reference Manual**
 
-- [API Reference](WebServices-Methods.md)
+- [API Reference](API-Reference.md)
 - [Database Structure](./Database-Structure.md)
 - [Error Codes](./Server-Error-Codes.md)
 
