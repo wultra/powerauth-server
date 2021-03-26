@@ -8,7 +8,7 @@ The SOAP client supports two versions of PowerAuth protocol:
 - The version `3` methods are available as default implementation directly on the client class. 
 - You can access the version `2` specific methods using the `v2()` method in the client. This method will be deprecated in a future release.
 
-All samples in this chapter use the version `3` client methods. See chapter [SOAP Method Compatibility](./SOAP-Method-Compatibility.md) for additional details about SOAP interface versioning.
+All samples in this chapter use the version `3` client methods. See chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md) for additional details about SOAP interface versioning.
 
 ## Obtaining the New Activation Data
 

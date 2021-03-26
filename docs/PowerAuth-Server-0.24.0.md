@@ -83,7 +83,7 @@ Check [Additional Activation OTP](https://github.com/wultra/powerauth-crypto/blo
 
 ### Revoking Recovery Codes on Activation Removal
 
-We added an optional `revokeRecoveryCodes` attribute to [activation removal service call](./SOAP-Service-Methods.md#method-removeactivation). This flag indicates if recovery codes that are associated with removed activation should be also revoked. By default, the value of the flag is `false`, hence omitting the flag results in the same behavior as before this change. 
+We added an optional `revokeRecoveryCodes` attribute to [activation removal service call](WebServices-Methods.md#method-removeactivation). This flag indicates if recovery codes that are associated with removed activation should be also revoked. By default, the value of the flag is `false`, hence omitting the flag results in the same behavior as before this change. 
 
 ## RESTful integration Changes
 

@@ -10,7 +10,7 @@ PowerAuth Server is a Java EE application (packaged as an executable WAR file) r
 
 ## Integration Tutorials
 
-- [Introduction](./Using-SOAP-Service-Client.md)
+- [Introduction](WebServices-Client.md)
 - [Configuring REST Client (Spring)](./Configuring-REST-Client-for-Spring.md)
 - [Configuring SOAP Client (Spring WS)](./Configuring-SOAP-Client-for-Spring.md)
 - [Configuring SOAP Client (Axis2)](./Configuring-SOAP-Client-for-Axis2.md)
@@ -18,7 +18,7 @@ PowerAuth Server is a Java EE application (packaged as an executable WAR file) r
 
 ## Reference Manual
 
-- [SOAP Interface Methods](./SOAP-Service-Methods.md)
+- [Web Services - Methods](WebServices-Methods.md)
 - [PowerAuth Server Database Structure](./Database-Structure.md)
 - [PowerAuth Server Error Codes](./Server-Error-Codes.md)
 

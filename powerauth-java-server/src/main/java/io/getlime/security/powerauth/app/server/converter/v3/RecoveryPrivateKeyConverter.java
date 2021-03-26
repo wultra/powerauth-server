@@ -212,7 +212,7 @@ public class RecoveryPrivateKeyConverter {
     }
 
     /**
-     * Derive secret key from master DB encryption key, user ID and activation ID.<br/>
+     * Derive secret key from master DB encryption key and application ID.<br/>
      * <br/>
      * See: https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md
      *
