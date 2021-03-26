@@ -1487,7 +1487,7 @@ ECIES response contains following data (example):
 ```
 <!-- end -->
 
-<!-- begin api POST -->
+<!-- begin api POST /rest/v3/token/validate -->
 ### Validate Token
 
 <!-- begin remove -->
@@ -2317,7 +2317,7 @@ _//TODO: Prepare example_
 | `RecoveryPukStatus` | `status` | Recovery PUK status |
 <!-- end -->
 
-<!-- begin api POST -->
+<!-- begin api POST /rest/v3/recovery/confirm -->
 ### Confirm Recovery Code
 
 <!-- begin remove -->
