@@ -104,6 +104,8 @@ Get the server status information.
 <!-- begin api GET /rest/v3/errors -->
 ### Get Error List Codes
 
+Get the list of error codes that API may return.
+
 <!-- begin remove -->
 REST endpoint: `GET /rest/v3/errors`
 <!-- end -->
@@ -459,7 +461,7 @@ Mark application version with given ID as "supported". Signatures constructed us
 |------|------|-------------|
 | `Long` | `applicationVersionId` | An identifier of an application version |
 
-#### Response
+#### Response 200
 
 ```json
 {
