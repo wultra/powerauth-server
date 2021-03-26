@@ -139,6 +139,7 @@ REST endpoint: `GET /rest/v3/errors`
 |------|------|-------------|
 | `String` | `code` | A code of the error. |
 | `String` | `value` | A localized message for the error code. |
+<!-- end -->
 
 ## Application management
 
@@ -2154,6 +2155,7 @@ _//TODO: Prepare example_
 |------|------|-------------|
 | `String` | `secretKey` | Base64 encoded secret key for ECIES |
 | `String` | `sharedInfo2` | The sharedInfo2 parameter for ECIES |
+<!-- end -->
 
 ## Activation Versioning
 
@@ -2990,3 +2992,4 @@ _//TODO: Prepare example_
 |------|------|-------------|
 | `String` | `applicationId` | An identifier of an application |
 | `String[]` | `applicationRoles` | Application roles assigned to the application after the removal |
+<!-- end -->
