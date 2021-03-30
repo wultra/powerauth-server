@@ -18,19 +18,14 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationFailApprovalRequest {
 
     private String operationId;
-
-    public String getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
 
 }

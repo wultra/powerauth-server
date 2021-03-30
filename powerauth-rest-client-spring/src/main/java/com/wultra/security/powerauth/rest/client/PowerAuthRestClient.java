@@ -24,29 +24,84 @@ import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.ActivationHistoryRequest;
+import com.wultra.security.powerauth.client.model.request.AddActivationFlagsRequest;
+import com.wultra.security.powerauth.client.model.request.AddApplicationRolesRequest;
+import com.wultra.security.powerauth.client.model.request.BlockActivationRequest;
+import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
+import com.wultra.security.powerauth.client.model.request.ConfirmRecoveryCodeRequest;
+import com.wultra.security.powerauth.client.model.request.CreateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationVersionRequest;
+import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.CreateIntegrationRequest;
+import com.wultra.security.powerauth.client.model.request.CreateNonPersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.CreatePersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.CreateRecoveryCodeRequest;
+import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.request.GetActivationStatusRequest;
+import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
+import com.wultra.security.powerauth.client.model.request.GetApplicationListRequest;
+import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
+import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.request.GetErrorCodeListRequest;
+import com.wultra.security.powerauth.client.model.request.GetIntegrationListRequest;
+import com.wultra.security.powerauth.client.model.request.GetRecoveryConfigRequest;
+import com.wultra.security.powerauth.client.model.request.GetSystemStatusRequest;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.ListActivationFlagsRequest;
+import com.wultra.security.powerauth.client.model.request.ListApplicationRolesRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
+import com.wultra.security.powerauth.client.model.request.LookupApplicationByAppKeyRequest;
+import com.wultra.security.powerauth.client.model.request.LookupRecoveryCodesRequest;
+import com.wultra.security.powerauth.client.model.request.PrepareActivationRequest;
+import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveActivationFlagsRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveActivationRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveApplicationRolesRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveIntegrationRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
+import com.wultra.security.powerauth.client.model.request.RevokeRecoveryCodesRequest;
+import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
+import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
+import com.wultra.security.powerauth.client.model.request.SupportApplicationVersionRequest;
+import com.wultra.security.powerauth.client.model.request.UnblockActivationRequest;
+import com.wultra.security.powerauth.client.model.request.UnsupportApplicationVersionRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateActivationFlagsRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateActivationOtpRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateApplicationRolesRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateStatusForActivationsRequest;
+import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
+import com.wultra.security.powerauth.client.model.request.VaultUnlockRequest;
+import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
+import com.wultra.security.powerauth.client.model.request.VerifyOfflineSignatureRequest;
+import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
+import com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
-import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 /**
@@ -158,64 +213,56 @@ public class PowerAuthRestClient implements PowerAuthClient {
      * @param date Date to be converted.
      * @return A new instance of {@link XMLGregorianCalendar}.
      */
-    private XMLGregorianCalendar calendarWithDate(Date date) {
-        try {
-            GregorianCalendar c = new GregorianCalendar();
-            c.setTime(date);
-            return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-        } catch (DatatypeConfigurationException e) {
-            // Unless there is a terrible configuration error, this should not happen
-            logger.error("Unable to prepare a new calendar instance", e);
-        }
-        return null;
+    private Instant instantWithDate(Date date) {
+        return Instant.ofEpochMilli(date.getTime());
     }
 
     @Override
-    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/status", request, GetSystemStatusResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/status", request, com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse.class);
     }
 
     @Override
-    public GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException {
         GetSystemStatusRequest request = new GetSystemStatusRequest();
         return getSystemStatus(request);
     }
 
     @Override
-    public GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/error/list", request, GetErrorCodeListResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/error/list", request, com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse.class);
     }
 
     @Override
-    public GetErrorCodeListResponse getErrorList(String language) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse getErrorList(String language) throws PowerAuthClientException {
         GetErrorCodeListRequest request = new GetErrorCodeListRequest();
         request.setLanguage(language);
         return getErrorList(request);
     }
 
     @Override
-    public InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/init", request, InitActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/init", request, com.wultra.security.powerauth.client.model.response.InitActivationResponse.class);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException {
-        return this.initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
+    public com.wultra.security.powerauth.client.model.response.InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException {
+        return this.initActivation(userId, applicationId, null, null, com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE, null);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.InitActivationResponse initActivation(String userId, Long applicationId, com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         return this.initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
-        return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
+    public com.wultra.security.powerauth.client.model.response.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
+        return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE, null);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
-                                                 ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
+                                                                                                     com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         InitActivationRequest request = new InitActivationRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -225,18 +272,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.setMaxFailureCount(maxFailureCount);
         }
         if (timestampActivationExpire != null) {
-            request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
+            request.setTimestampActivationExpire(instantWithDate(timestampActivationExpire));
         }
         return this.initActivation(request);
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/prepare", request, PrepareActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/prepare", request, com.wultra.security.powerauth.client.model.response.PrepareActivationResponse.class);
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
@@ -248,18 +295,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/create", request, CreateActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/create", request, com.wultra.security.powerauth.client.model.response.CreateActivationResponse.class);
     }
 
     @Override
-    public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
-                                                     String applicationKey, String ephemeralPublicKey, String encryptedData,
-                                                     String mac, String nonce) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
+                                                                                                         String applicationKey, String ephemeralPublicKey, String encryptedData,
+                                                                                                         String mac, String nonce) throws PowerAuthClientException {
         CreateActivationRequest request = new CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
-            request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
+            request.setTimestampActivationExpire(instantWithDate(timestampActivationExpire));
         }
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
@@ -273,7 +320,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UpdateActivationOtpResponse updateActivationOtp(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
         UpdateActivationOtpRequest request = new UpdateActivationOtpRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -282,17 +329,17 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/otp/update", request, UpdateActivationOtpResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/otp/update", request, com.wultra.security.powerauth.client.model.response.UpdateActivationOtpResponse.class);
     }
 
     @Override
-    public CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/commit", request, CommitActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/commit", request, com.wultra.security.powerauth.client.model.response.CommitActivationResponse.class);
     }
 
     @Override
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CommitActivationResponse commitActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -300,7 +347,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws PowerAuthClientException {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -309,19 +356,19 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/status", request, GetActivationStatusResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/status", request, com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse.class);
     }
 
     @Override
-    public GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException {
-        GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
+    public com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse getActivationStatus(String activationId) throws PowerAuthClientException {
+        com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse response = this.getActivationStatusWithEncryptedStatusBlob(activationId, null);
         response.setEncryptedStatusBlob(null);
         return response;
     }
 
     @Override
-    public GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse getActivationStatusWithEncryptedStatusBlob(String activationId, String challenge) throws PowerAuthClientException {
         GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
@@ -329,17 +376,17 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/remove", request, RemoveActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/remove", request, com.wultra.security.powerauth.client.model.response.RemoveActivationResponse.class);
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         return this.removeActivation(activationId, externalUserId, false);
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -348,34 +395,34 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/list", request, GetActivationListForUserResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/list", request, com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse.class);
     }
 
     @Override
-    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) throws PowerAuthClientException {
+    public List<Activation> getActivationListForUser(String userId) throws PowerAuthClientException {
         GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId(userId);
         return this.getActivationListForUser(request).getActivations();
     }
 
     @Override
-    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/lookup", request, LookupActivationsResponse.class);
+    public com.wultra.security.powerauth.client.model.response.LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/lookup", request, com.wultra.security.powerauth.client.model.response.LookupActivationsResponse.class);
     }
 
     @Override
-    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
+    public List<Activation> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
         LookupActivationsRequest request = new LookupActivationsRequest();
         request.getUserIds().addAll(userIds);
         if (applicationIds != null) {
             request.getApplicationIds().addAll(applicationIds);
         }
         if (timestampLastUsedBefore != null) {
-            request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
+            request.setTimestampLastUsedBefore(instantWithDate(timestampLastUsedBefore));
         }
         if (timestampLastUsedAfter != null) {
-            request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
+            request.setTimestampLastUsedAfter(instantWithDate(timestampLastUsedAfter));
         }
         if (activationStatus != null) {
             request.setActivationStatus(activationStatus);
@@ -387,12 +434,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/status/update", request, UpdateStatusForActivationsResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/status/update", request, com.wultra.security.powerauth.client.model.response.UpdateStatusForActivationsResponse.class);
     }
 
     @Override
-    public UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UpdateStatusForActivationsResponse updateStatusForActivations(List<String> activationIds, ActivationStatus activationStatus) throws PowerAuthClientException {
         UpdateStatusForActivationsRequest request = new UpdateStatusForActivationsRequest();
         request.getActivationIds().addAll(activationIds);
         if (activationStatus != null) {
@@ -402,12 +449,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/signature/verify", request, VerifySignatureResponse.class);
+    public com.wultra.security.powerauth.client.model.response.VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/signature/verify", request, com.wultra.security.powerauth.client.model.response.VerifySignatureResponse.class);
     }
 
     @Override
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException {
         VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -420,12 +467,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/signature/offline/personalized/create", request, CreatePersonalizedOfflineSignaturePayloadResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/signature/offline/personalized/create", request, com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse.class);
     }
 
     @Override
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data) throws PowerAuthClientException {
         CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -433,12 +480,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/signature/offline/non-personalized/create", request, CreateNonPersonalizedOfflineSignaturePayloadResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/signature/offline/non-personalized/create", request, com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse.class);
     }
 
     @Override
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException {
         CreateNonPersonalizedOfflineSignaturePayloadRequest request = new CreateNonPersonalizedOfflineSignaturePayloadRequest();
         request.setApplicationId(applicationId);
         request.setData(data);
@@ -446,12 +493,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/signature/offline/verify", request, VerifyOfflineSignatureResponse.class);
+    public com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/signature/offline/verify", request, com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse.class);
     }
 
     @Override
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, String data, String signature, boolean allowBiometry) throws PowerAuthClientException {
         VerifyOfflineSignatureRequest request = new VerifyOfflineSignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -461,14 +508,14 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/vault/unlock", request, VaultUnlockResponse.class);
+    public com.wultra.security.powerauth.client.model.response.VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/vault/unlock", request, com.wultra.security.powerauth.client.model.response.VaultUnlockResponse.class);
     }
 
     @Override
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
-                                           SignatureType signatureType, String signatureVersion, String signedData,
-                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
+                                                                                               SignatureType signatureType, String signatureVersion, String signedData,
+                                                                                               String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -484,12 +531,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/signature/ecdsa/verify", request, VerifyECDSASignatureResponse.class);
+    public com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/signature/ecdsa/verify", request, com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse.class);
     }
 
     @Override
-    public VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse verifyECDSASignature(String activationId, String data, String signature) throws PowerAuthClientException {
         VerifyECDSASignatureRequest request = new VerifyECDSASignatureRequest();
         request.setActivationId(activationId);
         request.setData(data);
@@ -498,50 +545,50 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/signature/list", request, SignatureAuditResponse.class);
+    public com.wultra.security.powerauth.client.model.response.SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/signature/list", request, com.wultra.security.powerauth.client.model.response.SignatureAuditResponse.class);
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<SignatureAuditItem> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
-        request.setTimestampFrom(calendarWithDate(startingDate));
-        request.setTimestampTo(calendarWithDate(endingDate));
+        request.setTimestampFrom(instantWithDate(startingDate));
+        request.setTimestampTo(instantWithDate(endingDate));
         return this.getSignatureAuditLog(request).getItems();
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<SignatureAuditItem> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
-        request.setTimestampFrom(calendarWithDate(startingDate));
-        request.setTimestampTo(calendarWithDate(endingDate));
+        request.setTimestampFrom(instantWithDate(startingDate));
+        request.setTimestampTo(instantWithDate(endingDate));
         return this.getSignatureAuditLog(request).getItems();
     }
 
     @Override
-    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/history", request, ActivationHistoryResponse.class);
+    public com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/history", request, com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse.class);
     }
 
     @Override
-    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<ActivationHistoryItem> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         ActivationHistoryRequest request = new ActivationHistoryRequest();
         request.setActivationId(activationId);
-        request.setTimestampFrom(calendarWithDate(startingDate));
-        request.setTimestampTo(calendarWithDate(endingDate));
+        request.setTimestampFrom(instantWithDate(startingDate));
+        request.setTimestampTo(instantWithDate(endingDate));
         return this.getActivationHistory(request).getItems();
     }
 
     @Override
-    public BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/block", request, BlockActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/block", request, com.wultra.security.powerauth.client.model.response.BlockActivationResponse.class);
     }
 
     @Override
-    public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws PowerAuthClientException {
         BlockActivationRequest request = new BlockActivationRequest();
         request.setActivationId(activationId);
         request.setReason(reason);
@@ -550,12 +597,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/unblock", request, UnblockActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/unblock", request, com.wultra.security.powerauth.client.model.response.UnblockActivationResponse.class);
     }
 
     @Override
-    public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws PowerAuthClientException {
         UnblockActivationRequest request = new UnblockActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -563,65 +610,65 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/list", request, GetApplicationListResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/list", request, com.wultra.security.powerauth.client.model.response.GetApplicationListResponse.class);
     }
 
     @Override
-    public List<GetApplicationListResponse.Applications> getApplicationList() throws PowerAuthClientException {
+    public List<Application> getApplicationList() throws PowerAuthClientException {
         return this.getApplicationList(new GetApplicationListRequest()).getApplications();
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/detail", request, GetApplicationDetailResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/detail", request, com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse.class);
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(applicationId);
         return this.getApplicationDetail(request);
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationName(applicationName);
         return this.getApplicationDetail(request);
     }
 
     @Override
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/detail/version", request, LookupApplicationByAppKeyResponse.class);
+    public com.wultra.security.powerauth.client.model.response.LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/detail/version", request, com.wultra.security.powerauth.client.model.response.LookupApplicationByAppKeyResponse.class);
     }
 
     @Override
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws PowerAuthClientException {
         LookupApplicationByAppKeyRequest request = new LookupApplicationByAppKeyRequest();
         request.setApplicationKey(applicationKey);
         return this.lookupApplicationByAppKey(request);
     }
 
     @Override
-    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/create", request, CreateApplicationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/create", request, com.wultra.security.powerauth.client.model.response.CreateApplicationResponse.class);
     }
 
     @Override
-    public CreateApplicationResponse createApplication(String name) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateApplicationResponse createApplication(String name) throws PowerAuthClientException {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(name);
         return this.createApplication(request);
     }
 
     @Override
-    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/version/create", request, CreateApplicationVersionResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/version/create", request, com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse.class);
     }
 
     @Override
-    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException {
         CreateApplicationVersionRequest request = new CreateApplicationVersionRequest();
         request.setApplicationId(applicationId);
         request.setApplicationVersionName(versionName);
@@ -629,70 +676,70 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/version/unsupport", request, UnsupportApplicationVersionResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/version/unsupport", request, com.wultra.security.powerauth.client.model.response.UnsupportApplicationVersionResponse.class);
     }
 
     @Override
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException {
         UnsupportApplicationVersionRequest request = new UnsupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
         return this.unsupportApplicationVersion(request);
     }
 
     @Override
-    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/version/support", request, SupportApplicationVersionResponse.class);
+    public com.wultra.security.powerauth.client.model.response.SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/version/support", request, com.wultra.security.powerauth.client.model.response.SupportApplicationVersionResponse.class);
     }
 
     @Override
-    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException {
         SupportApplicationVersionRequest request = new SupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
         return this.supportApplicationVersion(request);
     }
 
     @Override
-    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/integration/create", request, CreateIntegrationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/integration/create", request, com.wultra.security.powerauth.client.model.response.CreateIntegrationResponse.class);
     }
 
     @Override
-    public CreateIntegrationResponse createIntegration(String name) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateIntegrationResponse createIntegration(String name) throws PowerAuthClientException {
         CreateIntegrationRequest request = new CreateIntegrationRequest();
         request.setName(name);
         return this.createIntegration(request);
     }
 
     @Override
-    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException {
         return callV3RestApi("/integration/list", request, GetIntegrationListResponse.class);
     }
 
     @Override
-    public List<GetIntegrationListResponse.Items> getIntegrationList() throws PowerAuthClientException {
+    public List<Integration> getIntegrationList() throws PowerAuthClientException {
         return this.getIntegrationList(new GetIntegrationListRequest()).getItems();
     }
 
     @Override
-    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/integration/remove", request, RemoveIntegrationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/integration/remove", request, com.wultra.security.powerauth.client.model.response.RemoveIntegrationResponse.class);
     }
 
     @Override
-    public RemoveIntegrationResponse removeIntegration(String id) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveIntegrationResponse removeIntegration(String id) throws PowerAuthClientException {
         RemoveIntegrationRequest request = new RemoveIntegrationRequest();
         request.setId(id);
         return this.removeIntegration(request);
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/callback/create", request, CreateCallbackUrlResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/callback/create", request, com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse.class);
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
@@ -704,12 +751,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/callback/update", request, UpdateCallbackUrlResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/callback/update", request, com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse.class);
     }
 
     @Override
-    public UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
         UpdateCallbackUrlRequest request = new UpdateCallbackUrlRequest();
         request.setId(id);
         request.setApplicationId(applicationId);
@@ -722,37 +769,37 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/callback/list", request, GetCallbackUrlListResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/callback/list", request, com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse.class);
     }
 
     @Override
-    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) throws PowerAuthClientException {
+    public List<CallbackUrl> getCallbackUrlList(Long applicationId) throws PowerAuthClientException {
         GetCallbackUrlListRequest request = new GetCallbackUrlListRequest();
         request.setApplicationId(applicationId);
         return getCallbackUrlList(request).getCallbackUrlList();
     }
 
     @Override
-    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/callback/remove", request, RemoveCallbackUrlResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/callback/remove", request, com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse.class);
     }
 
     @Override
-    public RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse removeCallbackUrl(String callbackUrlId) throws PowerAuthClientException {
         RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlId);
         return removeCallbackUrl(request);
     }
 
     @Override
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/token/create", request, CreateTokenResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/token/create", request, com.wultra.security.powerauth.client.model.response.CreateTokenResponse.class);
     }
 
     @Override
-    public CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                           String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                                                               String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException {
         CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -765,12 +812,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/token/validate", request, ValidateTokenResponse.class);
+    public com.wultra.security.powerauth.client.model.response.ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/token/validate", request, com.wultra.security.powerauth.client.model.response.ValidateTokenResponse.class);
     }
 
     @Override
-    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException {
         ValidateTokenRequest request = new ValidateTokenRequest();
         request.setTokenId(tokenId);
         request.setNonce(nonce);
@@ -780,12 +827,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/token/remove", request, RemoveTokenResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/token/remove", request, com.wultra.security.powerauth.client.model.response.RemoveTokenResponse.class);
     }
 
     @Override
-    public RemoveTokenResponse removeToken(String tokenId, String activationId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveTokenResponse removeToken(String tokenId, String activationId) throws PowerAuthClientException {
         RemoveTokenRequest request = new RemoveTokenRequest();
         request.setTokenId(tokenId);
         request.setActivationId(activationId);
@@ -793,12 +840,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/ecies/decryptor", request, GetEciesDecryptorResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/ecies/decryptor", request, com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse.class);
     }
 
     @Override
-    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException {
         GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -807,13 +854,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/upgrade/start", request, StartUpgradeResponse.class);
+    public com.wultra.security.powerauth.client.model.response.StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/upgrade/start", request, com.wultra.security.powerauth.client.model.response.StartUpgradeResponse.class);
     }
 
     @Override
-    public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                             String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                                                                 String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         StartUpgradeRequest request = new StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -825,12 +872,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/upgrade/commit", request, CommitUpgradeResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/upgrade/commit", request, com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse.class);
     }
 
     @Override
-    public CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse commitUpgrade(String activationId, String applicationKey) throws PowerAuthClientException {
         CommitUpgradeRequest request = new CommitUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -838,12 +885,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/create", request, CreateRecoveryCodeResponse.class);
+    public com.wultra.security.powerauth.client.model.response.CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/recovery/create", request, com.wultra.security.powerauth.client.model.response.CreateRecoveryCodeResponse.class);
     }
 
     @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException {
         CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
@@ -852,13 +899,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/confirm", request, ConfirmRecoveryCodeResponse.class);
+    public com.wultra.security.powerauth.client.model.response.ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/recovery/confirm", request, com.wultra.security.powerauth.client.model.response.ConfirmRecoveryCodeResponse.class);
     }
 
     @Override
-    public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                           String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                                                                               String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -870,13 +917,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/lookup", request, LookupRecoveryCodesResponse.class);
+    public com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/recovery/lookup", request, com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse.class);
     }
 
     @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
-                                                           RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
+                                                                                                               com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus recoveryCodeStatus, com.wultra.security.powerauth.client.model.enumeration.RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException {
         LookupRecoveryCodesRequest request = new LookupRecoveryCodesRequest();
         request.setUserId(userId);
         request.setActivationId(activationId);
@@ -887,25 +934,25 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/revoke", request, RevokeRecoveryCodesResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/recovery/revoke", request, com.wultra.security.powerauth.client.model.response.RevokeRecoveryCodesResponse.class);
     }
 
     @Override
-    public RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RevokeRecoveryCodesResponse revokeRecoveryCodes(List<Long> recoveryCodeIds) throws PowerAuthClientException {
         RevokeRecoveryCodesRequest request = new RevokeRecoveryCodesRequest();
         request.getRecoveryCodeIds().addAll(recoveryCodeIds);
         return revokeRecoveryCodes(request);
     }
 
     @Override
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/recovery/create", request, RecoveryCodeActivationResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/recovery/create", request, com.wultra.security.powerauth.client.model.response.RecoveryCodeActivationResponse.class);
     }
 
     @Override
-    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
+                                                                                                                                String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -921,24 +968,24 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/config/detail", request, GetRecoveryConfigResponse.class);
+    public com.wultra.security.powerauth.client.model.response.GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/recovery/config/detail", request, com.wultra.security.powerauth.client.model.response.GetRecoveryConfigResponse.class);
     }
 
     @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException {
         GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         return getRecoveryConfig(request);
     }
 
     @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/recovery/config/update", request, UpdateRecoveryConfigResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/recovery/config/update", request, com.wultra.security.powerauth.client.model.response.UpdateRecoveryConfigResponse.class);
     }
 
     @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
         UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);
@@ -949,24 +996,24 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/flags/list", request, ListActivationFlagsResponse.class);
+    public com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/flags/list", request, com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse.class);
     }
 
     @Override
-    public ListActivationFlagsResponse listActivationFlags(String activationId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse listActivationFlags(String activationId) throws PowerAuthClientException {
         ListActivationFlagsRequest request = new ListActivationFlagsRequest();
         request.setActivationId(activationId);
         return listActivationFlags(request);
     }
 
     @Override
-    public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/flags/create", request, AddActivationFlagsResponse.class);
+    public com.wultra.security.powerauth.client.model.response.AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/flags/create", request, com.wultra.security.powerauth.client.model.response.AddActivationFlagsResponse.class);
     }
 
     @Override
-    public AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.AddActivationFlagsResponse addActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         AddActivationFlagsRequest request = new AddActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
@@ -974,12 +1021,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/flags/update", request, UpdateActivationFlagsResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/flags/update", request, com.wultra.security.powerauth.client.model.response.UpdateActivationFlagsResponse.class);
     }
 
     @Override
-    public UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UpdateActivationFlagsResponse updateActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         UpdateActivationFlagsRequest request = new UpdateActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
@@ -987,12 +1034,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/activation/flags/remove", request, RemoveActivationFlagsResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/activation/flags/remove", request, com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse.class);
     }
 
     @Override
-    public RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse removeActivationFlags(String activationId, List<String> activationFlags) throws PowerAuthClientException {
         RemoveActivationFlagsRequest request = new RemoveActivationFlagsRequest();
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
@@ -1000,24 +1047,24 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/roles/list", request, ListApplicationRolesResponse.class);
+    public com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/list", request, com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse.class);
     }
 
     @Override
-    public ListApplicationRolesResponse listApplicationRoles(Long applicationId) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse listApplicationRoles(Long applicationId) throws PowerAuthClientException {
         ListApplicationRolesRequest request = new ListApplicationRolesRequest();
         request.setApplicationId(applicationId);
         return listApplicationRoles(request);
     }
 
     @Override
-    public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/roles/create", request, AddApplicationRolesResponse.class);
+    public com.wultra.security.powerauth.client.model.response.AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/create", request, com.wultra.security.powerauth.client.model.response.AddApplicationRolesResponse.class);
     }
 
     @Override
-    public AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
         AddApplicationRolesRequest request = new AddApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
@@ -1025,12 +1072,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/roles/update", request, UpdateApplicationRolesResponse.class);
+    public com.wultra.security.powerauth.client.model.response.UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/update", request, com.wultra.security.powerauth.client.model.response.UpdateApplicationRolesResponse.class);
     }
 
     @Override
-    public UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
         UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
@@ -1038,12 +1085,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws PowerAuthClientException {
-        return callV3RestApi("/application/roles/remove", request, RemoveApplicationRolesResponse.class);
+    public com.wultra.security.powerauth.client.model.response.RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/application/roles/remove", request, com.wultra.security.powerauth.client.model.response.RemoveApplicationRolesResponse.class);
     }
 
     @Override
-    public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+    public com.wultra.security.powerauth.client.model.response.RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
         RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
@@ -1088,164 +1135,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException {
         return callV3RestApi("/operation/reject", request, OperationUserActionResponse.class);
-    }
-
-    @Override
-    public PowerAuthClientV2 v2() {
-        return new PowerAuthServiceClientV2();
-    }
-
-    /**
-     * Client with PowerAuth version 2.0 methods. This client will be deprecated in future release.
-     */
-    public class PowerAuthServiceClientV2 implements PowerAuthClientV2 {
-
-        private static final String PA_REST_V2_PREFIX = "/v2";
-
-        /**
-         * Call the PowerAuth v2 API.
-         *
-         * @param path Path of the endpoint.
-         * @param request Request object.
-         * @param responseType Response type.
-         * @return Response.
-         */
-        private <T> T callV2RestApi(String path, Object request, Class<T> responseType) throws PowerAuthClientException {
-            ObjectRequest<?> objectRequest = new ObjectRequest<>(request);
-            try {
-                ObjectResponse<T> objectResponse = restClient.postObject(PA_REST_V2_PREFIX + path, objectRequest, responseType);
-                return objectResponse.getResponseObject();
-            } catch (RestClientException ex) {
-                if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                    // Error handling for PowerAuth errors
-                    handleBadRequestError(ex);
-                }
-                // Error handling for generic HTTP errors
-                throw new PowerAuthClientException(ex.getMessage(), ex);
-            }
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException {
-            return callV2RestApi("/activation/prepare", request, com.wultra.security.powerauth.client.v2.PrepareActivationResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.PrepareActivationRequest request = new com.wultra.security.powerauth.client.v2.PrepareActivationRequest();
-            request.setActivationIdShort(activationIdShort);
-            request.setActivationName(activationName);
-            request.setActivationNonce(activationNonce);
-            request.setEphemeralPublicKey(ephemeralPublicKey);
-            request.setEncryptedDevicePublicKey(cDevicePublicKey);
-            request.setExtras(extras);
-            request.setApplicationKey(applicationKey);
-            request.setApplicationSignature(applicationSignature);
-            return this.prepareActivation(request);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException {
-            return callV2RestApi("/activation/create", request, com.wultra.security.powerauth.client.v2.CreateActivationResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
-            return this.createActivation(
-                    applicationKey,
-                    userId,
-                    null,
-                    null,
-                    identity,
-                    "00000-00000",
-                    activationName,
-                    activationNonce,
-                    ephemeralPublicKey,
-                    cDevicePublicKey,
-                    extras,
-                    applicationSignature
-            );
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.CreateActivationRequest request = new com.wultra.security.powerauth.client.v2.CreateActivationRequest();
-            request.setApplicationKey(applicationKey);
-            request.setUserId(userId);
-            if (maxFailureCount != null) {
-                request.setMaxFailureCount(maxFailureCount);
-            }
-            if (timestampActivationExpire != null) {
-                request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
-            }
-            request.setIdentity(identity);
-            request.setActivationOtp(activationOtp);
-            request.setActivationName(activationName);
-            request.setActivationNonce(activationNonce);
-            request.setEphemeralPublicKey(ephemeralPublicKey);
-            request.setEncryptedDevicePublicKey(cDevicePublicKey);
-            request.setExtras(extras);
-            request.setApplicationSignature(applicationSignature);
-            return this.createActivation(request);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException {
-            return callV2RestApi("/vault/unlock", request, com.wultra.security.powerauth.client.v2.VaultUnlockResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.VaultUnlockRequest request = new com.wultra.security.powerauth.client.v2.VaultUnlockRequest();
-            request.setActivationId(activationId);
-            request.setApplicationKey(applicationKey);
-            request.setData(data);
-            request.setSignature(signature);
-            request.setSignatureType(signatureType);
-            request.setReason(reason);
-            return this.unlockVault(request);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
-            return callV2RestApi("/activation/encryption/key/create", request, com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest();
-            request.setActivationId(activationId);
-            request.setSessionIndex(sessionIndex);
-            return this.generatePersonalizedE2EEncryptionKey(request);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
-            return callV2RestApi("/application/encryption/key/create", request, com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest();
-            request.setApplicationKey(applicationKey);
-            request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
-            request.setSessionIndex(sessionIndex);
-            return this.generateNonPersonalizedE2EEncryptionKey(request);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException {
-            return callV2RestApi("/token/create", request, com.wultra.security.powerauth.client.v2.CreateTokenResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.CreateTokenRequest request = new com.wultra.security.powerauth.client.v2.CreateTokenRequest();
-            request.setActivationId(activationId);
-            request.setEphemeralPublicKey(ephemeralPublicKey);
-            request.setSignatureType(signatureType);
-            return createToken(request);
-        }
     }
 
 }

@@ -18,27 +18,15 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationListForUserRequest {
 
     private String userId;
     private Long applicationId;
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Long getApplicationId() {
-        return applicationId;
-    }
-
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
-    }
 }

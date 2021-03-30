@@ -21,7 +21,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -32,5 +32,5 @@ import java.util.List;
 public interface ActivationHistoryRepository extends CrudRepository<ActivationHistoryEntity, Long> {
 
     @Query("SELECT h FROM ActivationHistoryEntity h WHERE h.activation.activationId = :activationId AND h.timestampCreated BETWEEN :startingDate AND :endingDate ORDER BY h.timestampCreated DESC, h.id DESC")
-    List<ActivationHistoryEntity> findActivationHistory(String activationId, Date startingDate, Date endingDate);
+    List<ActivationHistoryEntity> findActivationHistory(String activationId, Instant startingDate, Instant endingDate);
 }

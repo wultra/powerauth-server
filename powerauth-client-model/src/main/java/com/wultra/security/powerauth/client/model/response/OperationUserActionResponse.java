@@ -19,30 +19,17 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
+import lombok.Data;
 
 /**
  * Response object for operation approval.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationUserActionResponse {
 
     private UserActionResult result;
     private OperationDetailResponse operation;
 
-    public UserActionResult getResult() {
-        return result;
-    }
-
-    public void setResult(UserActionResult result) {
-        this.result = result;
-    }
-
-    public OperationDetailResponse getOperation() {
-        return operation;
-    }
-
-    public void setOperation(OperationDetailResponse operation) {
-        this.operation = operation;
-    }
 }

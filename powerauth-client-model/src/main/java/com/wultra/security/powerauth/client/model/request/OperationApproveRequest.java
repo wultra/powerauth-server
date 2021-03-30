@@ -18,11 +18,14 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 /**
  * Request object for operation approval.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationApproveRequest {
 
     private String operationId;
@@ -31,43 +34,4 @@ public class OperationApproveRequest {
     private String data;
     private String signatureType;
 
-    public String getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Long getApplicationId() {
-        return applicationId;
-    }
-
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public String getSignatureType() {
-        return signatureType;
-    }
-
-    public void setSignatureType(String signatureType) {
-        this.signatureType = signatureType;
-    }
 }

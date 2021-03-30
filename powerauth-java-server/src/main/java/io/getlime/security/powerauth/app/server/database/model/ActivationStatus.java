@@ -17,7 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.model;
 
-import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
+import com.wultra.security.powerauth.client.model.request.*;
+import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 
 /**
  * Enum representing possible activation states. Following values are supported:
@@ -34,35 +35,35 @@ public enum ActivationStatus {
 
     /**
      * CREATED - status right after the activation record was created by calling
-     * {@link PowerAuthService#initActivation(com.wultra.security.powerauth.client.v3.InitActivationRequest)}.
+     * {@link PowerAuthService#initActivation(InitActivationRequest)}.
      */
     CREATED((byte) 1),
 
     /**
      * PENDING_COMMIT - status right after PowerAuth Server receives PowerAuth Client public
-     * key, via {@link PowerAuthService#prepareActivation(com.wultra.security.powerauth.client.v3.PrepareActivationRequest)}
+     * key, via {@link PowerAuthService#prepareActivation(PrepareActivationRequest)}
      * method. This status means that activation is awaiting commit.
      */
     PENDING_COMMIT((byte) 2),
 
     /**
      * ACTIVE - status after the activation record was committed by calling
-     * {@link PowerAuthService#commitActivation(com.wultra.security.powerauth.client.v3.CommitActivationRequest)},
+     * {@link PowerAuthService#commitActivation(CommitActivationRequest)},
      * or after activation was unblocked from the BLOCKED state by calling
-     * {@link PowerAuthService#unblockActivation(com.wultra.security.powerauth.client.v3.UnblockActivationRequest)}.
+     * {@link PowerAuthService#unblockActivation(UnblockActivationRequest)}.
      */
     ACTIVE((byte) 3),
 
     /**
      * BLOCKED - status after the activation record was blocked by calling
-     * {@link PowerAuthService#blockActivation(com.wultra.security.powerauth.client.v3.BlockActivationRequest)} or
+     * {@link PowerAuthService#blockActivation(BlockActivationRequest)} or
      * after too many authentication failed attempt occurred.
      */
     BLOCKED((byte) 4),
 
     /**
      * REMOVED - status after the activation record was removed by calling
-     * {@link PowerAuthService#removeActivation(com.wultra.security.powerauth.client.v3.RemoveActivationRequest)}.
+     * {@link PowerAuthService#removeActivation(RemoveActivationRequest)}.
      */
     REMOVED((byte) 5);
 

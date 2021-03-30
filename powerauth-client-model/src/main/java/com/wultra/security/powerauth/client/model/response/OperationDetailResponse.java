@@ -19,16 +19,16 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
+import lombok.Data;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Response object for creating the operation.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationDetailResponse {
 
     private String id;
@@ -38,132 +38,13 @@ public class OperationDetailResponse {
     private String externalId;
     private String operationType;
     private String data;
-    private Map<String, String> parameters;
     private OperationStatus status;
-    private List<String> signatureType;
     private long failureCount;
     private Long maxFailureCount;
     private Date timestampCreated;
     private Date timestampExpires;
     private Date timestampFinalized;
+    private Map<String, String> parameters = new HashMap<>();
+    private List<String> signatureType = new ArrayList<>();
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    public Long getApplicationId() {
-        return applicationId;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    public String getOperationType() {
-        return operationType;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
-
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
-    public void setStatus(OperationStatus status) {
-        this.status = status;
-    }
-
-    public OperationStatus getStatus() {
-        return status;
-    }
-
-    public void setSignatureType(List<String> signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    public List<String> getSignatureType() {
-        return signatureType;
-    }
-
-    public void setFailureCount(long failureCount) {
-        this.failureCount = failureCount;
-    }
-
-    public long getFailureCount() {
-        return failureCount;
-    }
-
-    public void setMaxFailureCount(Long maxFailureCount) {
-        this.maxFailureCount = maxFailureCount;
-    }
-
-    public Long getMaxFailureCount() {
-        return maxFailureCount;
-    }
-
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
-
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    public void setTimestampExpires(Date timestampExpires) {
-        this.timestampExpires = timestampExpires;
-    }
-
-    public Date getTimestampExpires() {
-        return timestampExpires;
-    }
-
-    public void setTimestampFinalized(Date timestampFinalized) {
-        this.timestampFinalized = timestampFinalized;
-    }
-
-    public Date getTimestampFinalized() {
-        return timestampFinalized;
-    }
 }

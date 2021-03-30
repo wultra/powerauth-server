@@ -18,20 +18,16 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 /**
  * Request for operation detail.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationDetailRequest {
 
     private String operationId;
 
-    public String getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
 }

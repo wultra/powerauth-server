@@ -2,10 +2,11 @@ package io.getlime.security.powerauth.app.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
-import com.wultra.security.powerauth.client.v3.*;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
-import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
@@ -25,6 +26,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -49,15 +51,15 @@ public class VerifySignatureConcurrencyTest {
 
         // Generate test application
         String testId = UUID.randomUUID().toString();
-        CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
+        com.wultra.security.powerauth.client.model.request.CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
         createApplicationRequest.setApplicationName(testId);
         CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
 
         // Generate test application version
-        CreateApplicationVersionRequest createApplicationVersionRequest = new CreateApplicationVersionRequest();
+        com.wultra.security.powerauth.client.model.request.CreateApplicationVersionRequest createApplicationVersionRequest = new com.wultra.security.powerauth.client.model.request.CreateApplicationVersionRequest();
         createApplicationVersionRequest.setApplicationId(createApplicationResponse.getApplicationId());
         createApplicationVersionRequest.setApplicationVersionName("test");
-        CreateApplicationVersionResponse createApplicationVersionResponse = powerAuthService.createApplicationVersion(createApplicationVersionRequest);
+        com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse createApplicationVersionResponse = powerAuthService.createApplicationVersion(createApplicationVersionRequest);
 
         // Generate public key for non-existent client device
         KeyGenerator keyGenerator = new KeyGenerator();
@@ -76,9 +78,9 @@ public class VerifySignatureConcurrencyTest {
         requestL2.setActivationName("test_activation");
         requestL2.setDevicePublicKey(BaseEncoding.base64().encode(publicKeyBytes));
 
-        GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
+        com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest detailRequest = new com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
-        GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
+        com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
 
         ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(detailResponse.getMasterPublicKey()));
 
@@ -88,32 +90,32 @@ public class VerifySignatureConcurrencyTest {
         EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest(baos.toByteArray(), true);
 
         // Create activation
-        CreateActivationRequest createActivationRequest = new CreateActivationRequest();
+        com.wultra.security.powerauth.client.model.request.CreateActivationRequest createActivationRequest = new com.wultra.security.powerauth.client.model.request.CreateActivationRequest();
         createActivationRequest.setUserId("test");
-        createActivationRequest.setTimestampActivationExpire(XMLGregorianCalendarConverter.convertFrom(expiration.getTime()));
+        createActivationRequest.setTimestampActivationExpire(Instant.ofEpochMilli(expiration.getTimeInMillis()));
         createActivationRequest.setMaxFailureCount(5L);
         createActivationRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
         createActivationRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
         createActivationRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
         createActivationRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
         createActivationRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
-        CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
+        com.wultra.security.powerauth.client.model.response.CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
 
         // Commit activation
-        CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
+        com.wultra.security.powerauth.client.model.request.CommitActivationRequest commitActivationRequest = new com.wultra.security.powerauth.client.model.request.CommitActivationRequest();
         commitActivationRequest.setActivationId(createActivationResponse.getActivationId());
-        CommitActivationResponse commitActivationResponse = powerAuthService.commitActivation(commitActivationRequest);
+        com.wultra.security.powerauth.client.model.response.CommitActivationResponse commitActivationResponse = powerAuthService.commitActivation(commitActivationRequest);
 
         // Finally here comes the test - create two threads and verify signatures in parallel
         Runnable verifySignatureRunnable = () -> {
             try {
-                VerifySignatureRequest verifySignatureRequest = new VerifySignatureRequest();
+                com.wultra.security.powerauth.client.model.request.VerifySignatureRequest verifySignatureRequest = new com.wultra.security.powerauth.client.model.request.VerifySignatureRequest();
                 verifySignatureRequest.setActivationId(createActivationResponse.getActivationId());
                 verifySignatureRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
                 verifySignatureRequest.setSignatureType(SignatureType.KNOWLEDGE);
                 verifySignatureRequest.setData("data");
                 verifySignatureRequest.setSignature("bad signature");
-                VerifySignatureResponse response = powerAuthService.verifySignature(verifySignatureRequest);
+                com.wultra.security.powerauth.client.model.response.VerifySignatureResponse response = powerAuthService.verifySignature(verifySignatureRequest);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
+import io.getlime.security.powerauth.app.server.converter.CallbackAttributeVOConverter;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -50,7 +50,7 @@ public class CallbackUrlEntity implements Serializable {
     private String callbackUrl;
 
     @Column(name = "attributes")
-    @Convert(converter = CallbackAttributeConverter.class)
+    @Convert(converter = CallbackAttributeVOConverter.class)
     private List<String> attributes;
 
     /**

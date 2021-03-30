@@ -18,20 +18,16 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 /**
  * Request class for operation cancellation.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationCancelRequest {
 
     private String operationId;
 
-    public String getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
 }

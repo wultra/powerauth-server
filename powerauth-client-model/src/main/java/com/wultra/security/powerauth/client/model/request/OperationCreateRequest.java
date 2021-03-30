@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 import java.util.Map;
 
 /**
@@ -25,6 +27,7 @@ import java.util.Map;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationCreateRequest {
 
     private String userId;
@@ -33,43 +36,4 @@ public class OperationCreateRequest {
     private String externalId;
     private Map<String, String> parameters;
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public Long getApplicationId() {
-        return applicationId;
-    }
-
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
 }

@@ -25,6 +25,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.LockModeType;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -166,5 +167,5 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return List of activations which match the query criteria.
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND (:applicationIds IS NULL OR a.application.id IN :applicationIds) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
-    List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
+    List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<Long> applicationIds, Instant timestampLastUsedBefore, Instant timestampLastUsedAfter, Collection<ActivationStatus> states);
 }
