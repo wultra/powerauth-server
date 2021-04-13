@@ -199,7 +199,7 @@ CREATE TABLE `pa_recovery_config` (
   `postcard_private_key_base64` varchar(255),
   `postcard_public_key_base64` varchar(255),
   `remote_public_key_base64` varchar(255),
-  `postcard_private_key_encryption` int(11) NOT NULL DEFAULT 0,
+  `postcard_priv_key_encryption` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_RECOVERY_CONFIG_APP` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
