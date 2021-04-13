@@ -20,6 +20,24 @@ For more details about installation of the library see [Installing Bouncy Castle
 
 We renamed the `POSTCARD_PRIVATE_KEY_ENCRYPTION` column to `POSTCARD_PRIV_KEY_ENCRYPTION` in 1.0.1 bugfix version to account for the 30-character limit in the Oracle databases. If you are upgrading directly from 1.0.0 version and still use the old column name, make sure to apply the following additional change:
 
+### MySQL
+
  ```sql
-ALTER TABLE pa_recovery_config CHANGE postcard_private_key_encryption postcard_priv_key_encryption INT DEFAULT 0 NOT NULL;
+ALTER TABLE pa_recovery_config
+    CHANGE postcard_private_key_encryption postcard_priv_key_encryption
+    INT DEFAULT 0 NOT NULL;
+```
+
+### PostgreSQL
+
+```sql
+ALTER TABLE pa_recovery_config
+    RENAME COLUMN postcard_private_key_encryption TO postcard_priv_key_encryption;
+```
+
+### Oracle
+
+```sql
+ALTER TABLE pa_recovery_config
+    RENAME COLUMN postcard_private_key_encryption TO postcard_priv_key_encryption;
 ```
