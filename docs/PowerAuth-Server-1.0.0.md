@@ -81,3 +81,21 @@ The version 2 context path package has changed the same way, so you will need to
 In your client projects, use the new `com.wultra.security.powerauth.client` packages for the client model classes.
 
 For more information about the new REST client, see [the REST client documentation](./Configuring-REST-Client-for-Spring.md)
+
+## Migration of PowerAuth Clients to REST Interface
+
+PowerAuth clients in PowerAuth stack use the REST interface in version `1.0.0`. Previous versions of PowerAuth components used the SOAP interface. This change needs to be reflected in configuration property `powerauth.service.url` in all components which use the PowerAuth client.
+
+Property value before migration:
+`powerauth.service.url=http://[server]:[port]/powerauth-java-server/soap`
+
+Property value after migration:
+`powerauth.service.url=http://[server]:[port]/powerauth-java-server/rest`
+
+Following components use the PowerAuth client:
+- PowerAuth Admin
+- PowerAuth Web Flow
+- PowerAuth Push Server
+- PowerAuth Enrollment Serer
+
+Make sure to update the `powerauth.service.url` property in each of these components.
