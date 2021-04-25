@@ -197,7 +197,7 @@ CREATE TABLE "pa_recovery_config" (
     "postcard_private_key_base64"     VARCHAR(255),
     "postcard_public_key_base64"      VARCHAR(255),
     "remote_public_key_base64"        VARCHAR(255),
-    "postcard_private_key_encryption" INTEGER DEFAULT 0 NOT NULL
+    "postcard_priv_key_encryption"    INTEGER DEFAULT 0 NOT NULL
 );
 
 --
