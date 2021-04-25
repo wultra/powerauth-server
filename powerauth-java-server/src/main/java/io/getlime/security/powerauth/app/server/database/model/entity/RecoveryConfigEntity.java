@@ -57,7 +57,7 @@ public class RecoveryConfigEntity implements Serializable {
     @Column(name = "remote_public_key_base64")
     private String remotePostcardPublicKeyBase64;
 
-    @Column(name = "postcard_private_key_encryption", nullable = false)
+    @Column(name = "postcard_priv_key_encryption", nullable = false)
     @Enumerated
     private EncryptionMode privateKeyEncryption;
 
