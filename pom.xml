@@ -109,7 +109,7 @@
         <saaj-impl.version>1.5.2</saaj-impl.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi.version>1.5.0</springdoc-openapi.version>
+        <springdoc-openapi.version>1.5.8</springdoc-openapi.version>
 
         <!-- Test Dependencies -->
         <junit-jupiter-engine.version>5.7.0</junit-jupiter-engine.version>
