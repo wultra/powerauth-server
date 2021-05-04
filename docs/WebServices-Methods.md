@@ -1,16 +1,9 @@
 # Web Services - Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server REST / SOAP services.
+This is a reference documentation of the methods published by the PowerAuth Server REST services.
 
 The REST service methods can be browsed using Swagger on deployed PowerAuth instance:
 - http://localhost:8080/powerauth-java-server/swagger-ui.html
-
-SOAP service methods are defined in the WSDL files:
-
-- [serviceV3.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV3.wsdl)
-- [serviceV2.wsdl](../powerauth-java-client-spring/src/main/resources/soap/wsdl/serviceV2.wsdl)
-
-The versioning of SOAP methods is described in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 The following `v3` methods are published using the service:
 
@@ -1644,7 +1637,7 @@ ECIES response contains following data (as JSON):
     - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex`
-value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
+value in the error detail. This value contains information about which PUK should the user re-write next.
 
 ### Method `getRecoveryConfig`
 
@@ -2083,7 +2076,7 @@ REST endpoint: `POST /rest/v2/activation/encryption/key/create`
 
 ## Used enums
 
-This chapter lists all enums used by PowerAuth Server SOAP service.
+This chapter lists all enums used by PowerAuth Server service.
 
 - `ActivationStatus` - Represents the status of activation, one of the following values:
     - CREATED
@@ -2115,12 +2108,3 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
     - VALID
     - USED
     - INVALID
-
-## Used complex types
-
-This chapter lists complex types used by PowerAuth Server SOAP service.
-
-- `KeyValueMap` - Represents a map for storing key-value entries:
-    - entry - list of entries (0..n)
-        - key - String-based key
-        - value - String-based value

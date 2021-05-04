@@ -50,16 +50,14 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getSystemStatus(GetSystemStatusRequest)} method and
+     * Call {@link PowerAuthService#getSystemStatus()} method and
      * return the response.
      *
-     * @param request Get system status request.
      * @return System status response.
-     * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/status", method = RequestMethod.POST)
-    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse> getSystemStatus(@RequestBody ObjectRequest<GetSystemStatusRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getSystemStatus(request.getRequestObject()));
+    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetSystemStatusResponse> getSystemStatus() {
+        return new ObjectResponse<>("OK", powerAuthService.getSystemStatus());
     }
 
     /**
@@ -68,10 +66,9 @@ public class PowerAuthController {
      *
      * @param request Request for list of error codes indicating a language to be returned in.
      * @return Response with the list of error codes..
-     * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/error/list", method = RequestMethod.POST)
-    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse> getErrorCodeList(@RequestBody ObjectRequest<GetErrorCodeListRequest> request) throws Exception {
+    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetErrorCodeListResponse> getErrorCodeList(@RequestBody ObjectRequest<GetErrorCodeListRequest> request) {
         return new ObjectResponse<>("OK", powerAuthService.getErrorCodeList(request.getRequestObject()));
     }
 
@@ -334,16 +331,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getApplicationList(GetApplicationListRequest)} method and
+     * Call {@link PowerAuthService#getApplicationList()} method and
      * return the response.
      *
-     * @param request Application list request.
      * @return Application list response.
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/application/list", method = RequestMethod.POST)
-    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetApplicationListResponse> getApplicationList(@RequestBody ObjectRequest<GetApplicationListRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getApplicationList(request.getRequestObject()));
+    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetApplicationListResponse> getApplicationList() throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getApplicationList());
     }
 
     /**
@@ -438,15 +434,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getIntegrationList(GetIntegrationListRequest)} method and
+     * Call {@link PowerAuthService#getIntegrationList()} method and
      * return the response.
      *
      * @return Get integration list response.
      * @throws Exception In case the service throws exception.
      */
     @RequestMapping(value = "/integration/list", method = RequestMethod.POST)
-    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse> getIntegrationList(@RequestBody ObjectRequest<GetIntegrationListRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getIntegrationList(request.getRequestObject()));
+    public ObjectResponse<com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse> getIntegrationList() throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getIntegrationList());
     }
 
     /**
