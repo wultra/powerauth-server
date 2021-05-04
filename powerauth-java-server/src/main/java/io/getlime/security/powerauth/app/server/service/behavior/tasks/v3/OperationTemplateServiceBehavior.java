@@ -27,6 +27,9 @@ import com.wultra.security.powerauth.client.model.response.OperationTemplateList
 import io.getlime.security.powerauth.app.server.converter.v3.OperationTemplateConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -42,11 +45,17 @@ public class OperationTemplateServiceBehavior {
 
     private final OperationTemplateRepository templateRepository;
     private final OperationTemplateConverter operationTemplateConverter;
+    private LocalizationProvider localizationProvider;
 
     @Autowired
     public OperationTemplateServiceBehavior(OperationTemplateRepository templateRepository, OperationTemplateConverter operationTemplateConverter) {
         this.templateRepository = templateRepository;
         this.operationTemplateConverter = operationTemplateConverter;
+    }
+
+    @Autowired
+    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
+        this.localizationProvider = localizationProvider;
     }
 
     /**
@@ -69,10 +78,13 @@ public class OperationTemplateServiceBehavior {
      *
      * @return List of operation templates.
      */
-    public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) {
+    public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws GenericServiceException {
         final Long id = request.getId();
         final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
-        return template.map(operationTemplateConverter::convertFromDB).orElse(null);
+        if (!template.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+        }
+        return operationTemplateConverter.convertFromDB(template.get());
     }
 
     /**
@@ -80,7 +92,12 @@ public class OperationTemplateServiceBehavior {
      * @param request New operation template attributes.
      * @return New operation template.
      */
-    public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) {
+    public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws GenericServiceException {
+        final String templateName = request.getTemplateName();
+        final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
+        if (templateByName.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_ALREADY_EXISTS);
+        }
         OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
         operationTemplateEntity = templateRepository.save(operationTemplateEntity);
         return operationTemplateConverter.convertFromDB(operationTemplateEntity);
@@ -91,16 +108,29 @@ public class OperationTemplateServiceBehavior {
      * @param request Request to update existing operation template.
      * @return Updated operation template.
      */
-    public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) {
+    public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws GenericServiceException {
         final Long id = request.getId();
+
+        // Check if the template exists
         final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
-        if (template.isPresent()) {
-            final OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
-            final OperationTemplateEntity savedEntity = templateRepository.save(operationTemplateEntity);
-            return operationTemplateConverter.convertFromDB(savedEntity);
-        } else {
-            return null;
+        if (!template.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
+
+        // Check if the user is editing template name and if it may collide
+        final String templateName = request.getTemplateName();
+        final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
+        if (templateByName.isPresent()) {
+            final OperationTemplateEntity operationTemplateEntity = templateByName.get();
+            if (!operationTemplateEntity.getId().equals(id)) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_ALREADY_EXISTS);
+            }
+        }
+
+        // Convert and store the new template
+        final OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
+        final OperationTemplateEntity savedEntity = templateRepository.save(operationTemplateEntity);
+        return operationTemplateConverter.convertFromDB(savedEntity);
     }
 
     /**

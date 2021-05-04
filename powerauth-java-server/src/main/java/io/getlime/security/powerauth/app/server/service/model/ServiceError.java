@@ -227,6 +227,11 @@ public class ServiceError {
      */
     public static final String OPERATION_REJECT_FAILURE = "ERR0038";
 
+    /**
+     * Operation template already exists.
+     */
+    public static final String OPERATION_TEMPLATE_ALREADY_EXISTS = "ERR0039";
+
 
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(40);
@@ -269,6 +274,7 @@ public class ServiceError {
         list.add(OPERATION_INVALID_STATE);
         list.add(OPERATION_APPROVE_FAILURE);
         list.add(OPERATION_REJECT_FAILURE);
+        list.add(OPERATION_TEMPLATE_ALREADY_EXISTS);
         return list;
     }
 

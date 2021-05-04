@@ -28,12 +28,11 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationListResponse;
-import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.getlime.core.rest.model.base.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -1088,6 +1087,31 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException {
         return callV3RestApi("/operation/reject", request, OperationUserActionResponse.class);
+    }
+
+    @Override
+    public OperationTemplateListResponse operationTemplateList() throws PowerAuthClientException {
+        return callV3RestApi("/operation/template/list", new Object(), OperationTemplateListResponse.class);
+    }
+
+    @Override
+    public OperationTemplateDetailResponse operationTemplateDetail(OperationTemplateDetailRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/template/detail", request, OperationTemplateDetailResponse.class);
+    }
+
+    @Override
+    public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/template/create", request, OperationTemplateDetailResponse.class);
+    }
+
+    @Override
+    public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/template/update", request, OperationTemplateDetailResponse.class);
+    }
+
+    @Override
+    public Response removeOperationTemplate(OperationTemplateDeleteRequest request) throws PowerAuthClientException {
+        return callV3RestApi("/operation/template/remove", request, Response.class);
     }
 
     @Override

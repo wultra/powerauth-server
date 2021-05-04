@@ -1866,6 +1866,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final OperationTemplateDetailResponse response = behavior.getOperationTemplateBehavior().getTemplateDetail(request);
             logger.info("OperationTemplateDetailRequest succeeded");
             return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
         } catch (RuntimeException | Error ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
@@ -1883,6 +1886,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final OperationTemplateDetailResponse response = behavior.getOperationTemplateBehavior().createOperationTemplate(request);
             logger.info("OperationTemplateCreateRequest succeeded");
             return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
         } catch (RuntimeException | Error ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
@@ -1900,6 +1906,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final OperationTemplateDetailResponse response = behavior.getOperationTemplateBehavior().updateOperationTemplate(request);
             logger.info("OperationTemplateUpdateRequest succeeded");
             return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
         } catch (RuntimeException | Error ex) {
              logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
