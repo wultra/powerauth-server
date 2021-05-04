@@ -33,10 +33,13 @@ import io.getlime.security.powerauth.app.server.database.model.entity.OperationE
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
+import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +49,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Behavior class implementing the operation related processes.
@@ -57,6 +61,8 @@ public class OperationBehavior {
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
+
+    private final ServiceBehaviorCatalogue bahavior;
 
     private LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -71,9 +77,11 @@ public class OperationBehavior {
     public OperationBehavior(
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
+            ServiceBehaviorCatalogue bahavior,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
         this.templateRepository = templateRepository;
+        this.bahavior = bahavior;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
@@ -154,6 +162,7 @@ public class OperationBehavior {
         operationEntity.setTimestampFinalized(null); // empty initially
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
+        bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
         return convertFromEntity(savedEntity);
 
     }
@@ -187,6 +196,7 @@ public class OperationBehavior {
                     operationEntity.setTimestampFinalized(currentTimestamp);
 
                     final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                     OperationUserActionResponse response = new OperationUserActionResponse();
@@ -203,6 +213,7 @@ public class OperationBehavior {
                         operationEntity.setFailureCount(failureCount);
 
                         final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                        bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                         final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                         OperationUserActionResponse response = new OperationUserActionResponse();
@@ -215,6 +226,7 @@ public class OperationBehavior {
                         operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
                         final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                        bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                         final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                         OperationUserActionResponse response = new OperationUserActionResponse();
@@ -253,6 +265,7 @@ public class OperationBehavior {
                     operationEntity.setTimestampFinalized(currentTimestamp);
 
                     final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                     OperationUserActionResponse response = new OperationUserActionResponse();
@@ -294,6 +307,8 @@ public class OperationBehavior {
                     operationEntity.setFailureCount(failureCount);
 
                     final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    final Long applicationId = savedEntity.getApplicationId();
+                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                     OperationUserActionResponse response = new OperationUserActionResponse();
@@ -306,6 +321,8 @@ public class OperationBehavior {
                     operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
                     final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    final Long applicationId = savedEntity.getApplicationId();
+                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                     OperationUserActionResponse response = new OperationUserActionResponse();
@@ -333,6 +350,8 @@ public class OperationBehavior {
             if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
                 operationEntity.setStatus(OperationStatusDo.CANCELED);
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                final Long applicationId = savedEntity.getApplicationId();
+                bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
                 return convertFromEntity(savedEntity);
             } else {
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
@@ -361,13 +380,13 @@ public class OperationBehavior {
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
 
-        final Iterable<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationId);
+        final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationId);
 
         final OperationListResponse result = new OperationListResponse();
-        for (OperationEntity op: operationsForUser) {
+        operationsForUser.forEach(op -> {
             final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
             result.add(convertFromEntity(operationEntity));
-        }
+        });
         return result;
     }
 
@@ -390,8 +409,25 @@ public class OperationBehavior {
         return result;
     }
 
-    public void findOperationsByExternalId() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    /**
+     * Find operations identified by an external ID value.
+     * @param request Request with the external ID.
+     * @return List of operations that match.
+     */
+    public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) {
+        final Date currentTimestamp = new Date();
+
+        final String externalId = request.getExternalId();
+        final Long applicationId = request.getApplicationId();
+
+        final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationId);
+
+        final OperationListResponse result = new OperationListResponse();
+        operationsByExternalId.forEach(op -> {
+            final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
+            result.add(convertFromEntity(operationEntity));
+        });
+        return result;
     }
 
     private OperationDetailResponse convertFromEntity(OperationEntity source) {
@@ -448,7 +484,10 @@ public class OperationBehavior {
                 && source.getTimestampExpires().before(currentTimestamp)) {
             logger.info("Operation {} expired.", source.getId());
             source.setStatus(OperationStatusDo.EXPIRED);
-            return operationRepository.save(source);
+            final OperationEntity savedEntity = operationRepository.save(source);
+            final Long applicationId = savedEntity.getApplicationId();
+            bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            return savedEntity;
         }
         return source;
     }
@@ -457,13 +496,17 @@ public class OperationBehavior {
         return Arrays.asList(allowedSignatureTypes).contains(usedFactors);
     }
 
-    @Scheduled(fixedRate = 5*1000) // 5 seconds
+    // Scheduled tasks
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup}")
+    @SchedulerLock(name = "expireOperationsTask")
     public void expireOperations() {
+        LockAssert.assertLocked();
         final Date currentTimestamp = new Date();
         logger.debug("Running scheduled task for expiring operations");
-        final Iterable<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp);
-        for (OperationEntity op : pendingOperations) {
+        final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp);
+        pendingOperations.forEach(op -> {
             expireOperation(op, currentTimestamp);
-        }
+        });
     }
 }

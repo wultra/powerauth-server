@@ -241,6 +241,17 @@ CREATE TABLE pa_operation_template (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
+-- DDL for Table SHEDLOCK
+--
+CREATE TABLE shedlock (
+    name VARCHAR(64) NOT NULL,
+    lock_until TIMESTAMP(3) NOT NULL,
+    locked_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    locked_by VARCHAR(255) NOT NULL,
+    PRIMARY KEY (name)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
 -- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
 --
 
@@ -263,6 +274,10 @@ CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
 CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
 
 CREATE INDEX `pa_operation_user` ON `pa_operation`(`user_id`);
+
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created DESC);
+
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 
 CREATE INDEX `pa_operation_template_name_idx` ON pa_operation_template (template_name);
 

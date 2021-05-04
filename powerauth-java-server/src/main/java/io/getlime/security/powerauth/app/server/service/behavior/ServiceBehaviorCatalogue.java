@@ -64,6 +64,8 @@ public class ServiceBehaviorCatalogue {
 
     private OperationBehavior operationBehavior;
 
+    private OperationTemplateBehavior operationTemplateBehavior;
+
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
     @Autowired
@@ -152,6 +154,16 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
+    public void setOperationBehavior(OperationBehavior operationBehavior) {
+        this.operationBehavior = operationBehavior;
+    }
+
+    @Autowired
+    public void setOperationTemplateBehavior(OperationTemplateBehavior operationTemplateBehavior) {
+        this.operationTemplateBehavior = operationTemplateBehavior;
+    }
+
+    @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
@@ -222,6 +234,10 @@ public class ServiceBehaviorCatalogue {
 
     public OperationBehavior getOperationBehavior() {
         return operationBehavior;
+    }
+
+    public OperationTemplateBehavior getOperationTemplateBehavior() {
+        return operationTemplateBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

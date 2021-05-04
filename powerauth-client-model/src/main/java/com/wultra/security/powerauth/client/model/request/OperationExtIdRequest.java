@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,23 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import org.springframework.data.repository.CrudRepository;
-
-import java.util.List;
+package com.wultra.security.powerauth.client.model.request;
 
 /**
- * Database repository for the callback URL entities.
+ * Request for operations identified by an external ID.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity, String> {
+public class OperationExtIdRequest {
 
-    List<CallbackUrlEntity> findByApplicationIdOrderByName(Long applicationId);
+    private String externalId;
+    private Long applicationId;
 
-    List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(Long applicationId, CallbackUrlType type);
+    public String getExternalId() {
+        return externalId;
+    }
 
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    public Long getApplicationId() {
+        return applicationId;
+    }
+
+    public void setApplicationId(Long applicationId) {
+        this.applicationId = applicationId;
+    }
 }

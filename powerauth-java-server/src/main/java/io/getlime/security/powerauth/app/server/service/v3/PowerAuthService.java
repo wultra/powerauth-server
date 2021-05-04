@@ -18,9 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.v3;
 
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationListResponse;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.v3.*;
 
 /**
@@ -597,6 +595,14 @@ public interface PowerAuthService {
     OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws Exception;
 
     /**
+     * Get operation list based on external operation ID.
+     * @param request Operation by external ID request.
+     * @return Operation list response.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationListResponse findAllOperationsByExternalId(OperationExtIdRequest request) throws Exception;
+
+    /**
      * Cancel operation by ID.
      * @param request Operation cancel request.
      * @return Operation cancel response.
@@ -630,5 +636,43 @@ public interface PowerAuthService {
      * @throws Exception In case of a business logic error.
      */
     OperationUserActionResponse rejectOperation(OperationRejectRequest request) throws Exception;
+
+    /**
+     * Get all operation templates.
+     * @return Operation templates.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationTemplateListResponse getAllTemplates() throws Exception;
+
+    /**
+     * Get operation template detail.
+     * @param request Request with ID to fetch operation template detail for.
+     * @return Operation template detail.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws Exception;
+
+    /**
+     * Create a new operation template.
+     * @param request Parameters of a new operation template.
+     * @return Operation template detail.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws Exception;
+
+    /**
+     * Update an existing operation.
+     * @param request Parameters of an updated template with provided ID.
+     * @return Operation template detail.
+     * @throws Exception In case of a business logic error.
+     */
+    OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws Exception;
+
+    /**
+     * Remove operation template.
+     * @param request Operation template with provided ID.
+     * @throws Exception In case of a business logic error.
+     */
+    void removeOperationTemplate(OperationTemplateDeleteRequest request) throws Exception;
 
 }

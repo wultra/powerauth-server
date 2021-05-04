@@ -41,3 +41,196 @@ ALTER TABLE pa_recovery_config
 ALTER TABLE pa_recovery_config
     RENAME COLUMN postcard_private_key_encryption TO postcard_priv_key_encryption;
 ```
+
+## New Operation Structures
+
+We added a concept of "operation" to PowerAuth Server. Operation is a high-level entity representing the signed request that can be used as a helper utility in case of operation approvals. To accommodate this feature, you need to create a new sequences, tables and indexes:
+
+### MySQL
+
+```sql
+CREATE TABLE pa_operation (
+    id varchar(37) NOT NULL,
+    user_id varchar(255) NOT NULL,
+    application_id bigint(20) NOT NULL,
+    template_id bigint(20) NULL,
+    external_id varchar(255) NULL,
+    operation_type varchar(255) NOT NULL,
+    data text NOT NULL,
+    parameters text NULL,
+    status int(11) NOT NULL,
+    signature_type varchar(255) NOT NULL,
+    failure_count bigint(20) default 0 NOT NULL,
+    max_failure_count bigint(20) NOT NULL,
+    timestamp_created datetime NOT NULL,
+    timestamp_expires datetime NOT NULL,
+    timestamp_finalized datetime NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE TABLE pa_operation_template (
+    id bigint(20) NOT NULL,
+    template_name varchar(255) NOT NULL,
+    operation_type varchar(255) NOT NULL,
+    data_template varchar(255) NOT NULL,
+    signature_type varchar(255) NOT NULL,
+    max_failure_count bigint(20) NOT NULL,
+    expiration bigint(20) NOT NULL,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+CREATE INDEX pa_operation_user ON pa_operation(user_id);
+
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created DESC);
+
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
+
+CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
+```
+
+### PostgreSQL
+
+```sql
+CREATE SEQUENCE "pa_operation_template_seq" MINVALUE 1 MAXVALUE 9223372036854775807 INCREMENT BY 1 START WITH 1 CACHE 20;
+
+CREATE TABLE "pa_operation" (
+    "id"                    VARCHAR(37) NOT NULL PRIMARY KEY,
+    "user_id"               VARCHAR(255) NOT NULL,
+    "application_id"        BIGINT NOT NULL,
+    "template_id"           BIGINT,
+    "external_id"           VARCHAR(255),
+    "operation_type"        VARCHAR(255) NOT NULL,
+    "data"                  TEXT NOT NULL,
+    "parameters"            TEXT,
+    "status"                INTEGER NOT NULL,
+    "signature_type"        VARCHAR(255) NOT NULL,
+    "failure_count"         BIGINT DEFAULT 0 NOT NULL,
+    "max_failure_count"     BIGINT NOT NULL,
+    "timestamp_created"     TIMESTAMP NOT NULL,
+    "timestamp_expires"     TIMESTAMP NOT NULL,
+    "timestamp_finalized"   TIMESTAMP
+);
+
+CREATE TABLE "pa_operation_template" (
+    "id"                    BIGINT NOT NULL PRIMARY KEY,
+    "template_name"         VARCHAR(255) NOT NULL,
+    "operation_type"        VARCHAR(255) NOT NULL,
+    "data_template"         VARCHAR(255) NOT NULL,
+    "signature_type"        VARCHAR(255) NOT NULL,
+    "max_failure_count"     BIGINT NOT NULL,
+    "expiration"            BIGINT NOT NULL
+);
+
+CREATE INDEX PA_OPERATION_USER ON PA_OPERATION(USER_ID);
+
+CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED DESC);
+
+CREATE INDEX PA_OPERATION_TS_EXPIRES_IDX ON PA_OPERATION(TIMESTAMP_EXPIRES);
+
+CREATE INDEX PA_OPERATION_TEMPLATE_NAME_IDX ON PA_OPERATION_TEMPLATE(TEMPLATE_NAME);
+```
+
+### Oracle
+
+```sql
+CREATE SEQUENCE "PA_OPERATION_TEMPLATE_SEQ" MINVALUE 1 MAXVALUE 9999999999999999999999999999 INCREMENT BY 1 START WITH 1 CACHE 20 NOORDER NOCYCLE;
+
+CREATE TABLE "PA_OPERATION" (
+    "ID"                    VARCHAR2(37 CHAR) NOT NULL PRIMARY KEY,
+    "USER_ID"               VARCHAR2(255 CHAR) NOT NULL,
+    "APPLICATION_ID"        NUMBER(19,0) NOT NULL,
+    "TEMPLATE_ID"           NUMBER(19,0),
+    "EXTERNAL_ID"           VARCHAR2(255 CHAR),
+    "OPERATION_TYPE"        VARCHAR2(255 CHAR) NOT NULL,
+    "DATA"                  TEXT NOT NULL,
+    "PARAMETERS"            TEXT,
+    "STATUS"                NUMBER(10,0) NOT NULL,
+    "SIGNATURE_TYPE"        VARCHAR(255 CHAR) NOT NULL,
+    "FAILURE_COUNT"         NUMBER(19,0) DEFAULT 0 NOT NULL,
+    "MAX_FAILURE_COUNT"     NUMBER(19,0) NOT NULL,
+    "TIMESTAMP_CREATED"     TIMESTAMP(6) NOT NULL,
+    "TIMESTAMP_EXPIRES"     TIMESTAMP(6) NOT NULL,
+    "TIMESTAMP_FINALIZED"   TIMESTAMP(6)
+);
+
+CREATE TABLE "PA_OPERATION_TEMPLATE" (
+    "ID"                    NUMBER(19,0) NOT NULL PRIMARY KEY,
+    "TEMPLATE_NAME"         VARCHAR2(255 CHAR) NOT NULL,
+    "OPERATION_TYPE"        VARCHAR2(255 CHAR) NOT NULL,
+    "DATA_TEMPLATE"         VARCHAR2(255 CHAR) NOT NULL,
+    "SIGNATURE_TYPE"        VARCHAR2(255 CHAR) NOT NULL,
+    "MAX_FAILURE_COUNT"     NUMBER(19,0) NOT NULL,
+    "EXPIRATION"            NUMBER(19,0) NOT NULL
+);
+
+CREATE INDEX PA_OPERATION_USER ON PA_OPERATION(USER_ID);
+
+CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED DESC);
+
+CREATE INDEX PA_OPERATION_TS_EXPIRES_IDX ON PA_OPERATION(TIMESTAMP_EXPIRES);
+
+CREATE INDEX PA_OPERATION_TEMPLATE_NAME_IDX ON PA_OPERATION_TEMPLATE(TEMPLATE_NAME);
+```
+
+## Multiple Callback Types
+
+Besides the callbacks that trigger on activation status change, we also support callbacks that are related to the operation status change. Therefore, we added a column that specifies the callback type. The default value that preserves the current behavior is `ACTIVATION_STATUS_CHANGE` (a callback related to an activation status change).
+
+### MySQL
+
+```sql
+ALTER TABLE pa_application_callback
+	ADD type VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL;
+```
+
+### PostgreSQL
+
+```sql
+ALTER TABLE pa_application_callback
+	ADD type VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL;
+```
+
+### Oracle
+
+```sql
+ALTER TABLE pa_application_callback
+	ADD type VARCHAR2(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL;
+```
+
+## Add Synchronization Table for SchedLock
+
+We also introduced new scheduled tasks that are synchronized via ShedLock. In PowerAuth Server, SchedLock uses JDBC connection to persist the lock. Therefore, you need to create a new synchronization table to accomodate the locking data.
+
+### MySQL
+
+```sql
+CREATE TABLE shedlock (
+    name VARCHAR(64) NOT NULL,
+    lock_until TIMESTAMP(3) NOT NULL,
+    locked_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    locked_by VARCHAR(255) NOT NULL,
+    PRIMARY KEY (name)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+### PostgreSQL
+
+```sql
+CREATE TABLE shedlock (
+    name       VARCHAR(64)  NOT NULL PRIMARY KEY,
+    lock_until TIMESTAMP(3) NOT NULL,
+    locked_at  TIMESTAMP(3) NOT NULL,
+    locked_by  VARCHAR(255) NOT NULL
+);
+```
+
+### Oracle
+
+```sql
+CREATE TABLE "shedlock" (
+    name VARCHAR(64) NOT NULL PRIMARY KEY,
+    lock_until TIMESTAMP NOT NULL,
+    locked_at TIMESTAMP NOT NULL,
+    locked_by VARCHAR(255) NOT NULL
+);
+```

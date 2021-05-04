@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,23 +15,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import org.springframework.data.repository.CrudRepository;
-
-import java.util.List;
+package com.wultra.security.powerauth.client.model.request;
 
 /**
- * Database repository for the callback URL entities.
+ * Delete operation template with given ID.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity, String> {
+public class OperationTemplateDeleteRequest {
 
-    List<CallbackUrlEntity> findByApplicationIdOrderByName(Long applicationId);
+    private Long id;
 
-    List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(Long applicationId, CallbackUrlType type);
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

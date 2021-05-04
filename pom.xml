@@ -109,6 +109,9 @@
         <!-- Documentation Dependencies -->
         <springdoc-openapi.version>1.5.8</springdoc-openapi.version>
 
+        <!-- Scheduled Job Dependencies -->
+        <schedlock.version>4.23.0</schedlock.version>
+
         <!-- Test Dependencies -->
         <junit-jupiter-engine.version>5.7.0</junit-jupiter-engine.version>
         <h2.version>1.4.197</h2.version> <!-- Tests fail in version 1.4.200, upgrade reverted -->
