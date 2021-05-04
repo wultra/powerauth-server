@@ -41,13 +41,13 @@ public class OperationEntity implements Serializable {
     private static final long serialVersionUID = -5284589668386509303L;
 
     @Id
-    @Column(name = "id", updatable = false, length = 37)
+    @Column(name = "id", updatable = false, length = 37, nullable = false)
     private String id;
 
-    @Column(name = "user_id")
+    @Column(name = "user_id", nullable=false)
     private String userId;
 
-    @Column(name = "application_id")
+    @Column(name = "application_id", nullable=false)
     private Long applicationId;
 
     @ManyToOne
@@ -57,33 +57,33 @@ public class OperationEntity implements Serializable {
     @Column(name = "external_id")
     private String externalId;
 
-    @Column(name = "operation_type")
+    @Column(name = "operation_type", nullable=false)
     private String operationType;
 
-    @Column(name = "data")
+    @Column(name = "data", nullable=false)
     private String data;
 
     @Column(name = "parameters")
     private String parameters;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable=false)
     @Convert(converter = OperationStatusDoConverter.class)
     private OperationStatusDo status;
 
-    @Column(name = "signature_type")
+    @Column(name = "signature_type", nullable=false)
     @Convert(converter = SignatureTypeConverter.class)
     private PowerAuthSignatureTypes[] signatureType;
 
-    @Column(name = "failure_count")
+    @Column(name = "failure_count", nullable=false)
     private Long failureCount;
 
-    @Column(name = "max_failure_count")
+    @Column(name = "max_failure_count", nullable=false)
     private Long maxFailureCount;
 
-    @Column(name = "timestamp_created")
+    @Column(name = "timestamp_created", nullable=false)
     private Date timestampCreated;
 
-    @Column(name = "timestamp_expires")
+    @Column(name = "timestamp_expires", nullable=false)
     private Date timestampExpires;
 
     @Column(name = "timestamp_finalized")
@@ -329,48 +329,27 @@ public class OperationEntity implements Serializable {
         this.timestampFinalized = timestampFinalized;
     }
 
-    @Override
-    public boolean equals(Object o) {
+    @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OperationEntity)) return false;
         OperationEntity that = (OperationEntity) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(userId, that.userId)
-                && Objects.equals(template, that.template)
-                && Objects.equals(externalId, that.externalId)
-                && Objects.equals(operationType, that.operationType)
-                && Objects.equals(data, that.data)
-                && Objects.equals(parameters, that.parameters)
-                && status == that.status
-                && Arrays.equals(signatureType, that.signatureType)
-                && Objects.equals(failureCount, that.failureCount)
-                && Objects.equals(maxFailureCount, that.maxFailureCount)
-                && Objects.equals(timestampCreated, that.timestampCreated)
-                && Objects.equals(timestampExpires, that.timestampExpires)
-                && Objects.equals(timestampFinalized, that.timestampFinalized);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                id,
-                userId,
-                template,
-                externalId,
-                operationType,
-                data,
-                parameters,
-                status,
-                signatureType,
-                failureCount,
-                maxFailureCount,
-                timestampCreated,
-                timestampExpires,
-                timestampFinalized
+        return id.equals(that.id)
+                && userId.equals(that.userId)
+                && applicationId.equals(that.applicationId)
+                && operationType.equals(that.operationType)
+                && data.equals(that.data)
+                && Objects.equals(parameters, that.parameters
         );
     }
 
-    @Override public String toString() {
+    @Override public int hashCode() {
+        return Objects.hash(
+                id, userId, applicationId, operationType, data, parameters
+        );
+    }
+
+    @Override
+    public String toString() {
         return "OperationEntity{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +

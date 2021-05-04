@@ -40,26 +40,26 @@ public class OperationTemplateEntity implements Serializable {
     @Id
     @SequenceGenerator(name = "pa_operation_template", sequenceName = "pa_operation_template_seq")
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_operation_template")
-    @Column(name = "id")
+    @Column(name = "id", nullable=false)
     private Long id;
 
-    @Column(name = "template_name")
+    @Column(name = "template_name", nullable=false)
     private String templateName;
 
-    @Column(name = "operation_type")
+    @Column(name = "operation_type", nullable=false)
     private String operationType;
 
-    @Column(name = "data_template")
+    @Column(name = "data_template", nullable=false)
     private String dataTemplate;
 
-    @Column(name = "signature_type")
+    @Column(name = "signature_type", nullable=false)
     @Convert(converter = SignatureTypeConverter.class)
     private PowerAuthSignatureTypes[] signatureType;
 
-    @Column(name = "max_failure_count")
+    @Column(name = "max_failure_count", nullable=false)
     private Long maxFailureCount;
 
-    @Column(name = "expiration")
+    @Column(name = "expiration", nullable=false)
     private Long expiration;
 
     /**
@@ -201,23 +201,22 @@ public class OperationTemplateEntity implements Serializable {
         this.expiration = expiration;
     }
 
-    @Override
-    public boolean equals(Object o) {
+    @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OperationTemplateEntity)) return false;
         OperationTemplateEntity that = (OperationTemplateEntity) o;
-        return Objects.equals(id, that.id)
-                && Objects.equals(templateName, that.templateName)
-                && Objects.equals(operationType, that.operationType)
+        return templateName.equals(that.templateName)
+                && operationType.equals(that.operationType)
                 && Objects.equals(dataTemplate, that.dataTemplate)
                 && Arrays.equals(signatureType, that.signatureType)
                 && Objects.equals(maxFailureCount, that.maxFailureCount)
                 && Objects.equals(expiration, that.expiration);
     }
 
-    @Override
-    public int hashCode() {
-        int result = Objects.hash(id, templateName, operationType, dataTemplate, maxFailureCount, expiration);
+    @Override public int hashCode() {
+        int result = Objects.hash(
+                templateName, operationType, dataTemplate, maxFailureCount, expiration
+        );
         result = 31 * result + Arrays.hashCode(signatureType);
         return result;
     }

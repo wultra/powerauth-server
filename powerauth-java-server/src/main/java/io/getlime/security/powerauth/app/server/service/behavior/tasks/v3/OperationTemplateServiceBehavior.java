@@ -38,13 +38,13 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
-public class OperationTemplateBehavior {
+public class OperationTemplateServiceBehavior {
 
     private final OperationTemplateRepository templateRepository;
     private final OperationTemplateConverter operationTemplateConverter;
 
     @Autowired
-    public OperationTemplateBehavior(OperationTemplateRepository templateRepository, OperationTemplateConverter operationTemplateConverter) {
+    public OperationTemplateServiceBehavior(OperationTemplateRepository templateRepository, OperationTemplateConverter operationTemplateConverter) {
         this.templateRepository = templateRepository;
         this.operationTemplateConverter = operationTemplateConverter;
     }

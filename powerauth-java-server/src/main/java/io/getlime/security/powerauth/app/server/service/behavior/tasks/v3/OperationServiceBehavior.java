@@ -57,7 +57,7 @@ import java.util.stream.Stream;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
-public class OperationBehavior {
+public class OperationServiceBehavior {
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
@@ -68,13 +68,13 @@ public class OperationBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(OperationBehavior.class);
+    private static final Logger logger = LoggerFactory.getLogger(OperationServiceBehavior.class);
 
     // Helper classes
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
-    public OperationBehavior(
+    public OperationServiceBehavior(
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
             ServiceBehaviorCatalogue bahavior,
@@ -177,70 +177,70 @@ public class OperationBehavior {
         final String signatureType = request.getSignatureType();
 
         // TODO: We might need a lock here!!!
+        // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-        if (operationOptional.isPresent()) {
-            final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-
-                final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType);
-
-                if (factorEnum != null // the used factor is known
-                    && operationEntity.getUserId().equals(userId) // correct user approved the operation
-                    && operationEntity.getApplicationId().equals(applicationId) // operation is approved by the expected application
-                    && operationEntity.getData().equals(data) // operation data matched the expected value
-                    && factorsAcceptable(operationEntity.getSignatureType(), factorEnum) // auth factors are acceptable
-                    && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
-
-                    // Approve the operation
-                    operationEntity.setStatus(OperationStatusDo.APPROVED);
-                    operationEntity.setTimestampFinalized(currentTimestamp);
-
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                    final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult(UserActionResult.APPROVED);
-                    response.setOperation(operationDetailResponse);
-                    return response;
-                } else {
-
-                    // Update failure count, check the failure count and FAIL operation if needed
-                    final Long failureCount = operationEntity.getFailureCount() + 1;
-                    final Long maxFailureCount = operationEntity.getMaxFailureCount();
-
-                    if (failureCount < maxFailureCount) {
-                        operationEntity.setFailureCount(failureCount);
-
-                        final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                        bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                        final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                        OperationUserActionResponse response = new OperationUserActionResponse();
-                        response.setResult(UserActionResult.APPROVAL_FAILED);
-                        response.setOperation(operationDetailResponse);
-                        return response;
-                    } else {
-                        operationEntity.setStatus(OperationStatusDo.FAILED);
-                        operationEntity.setTimestampFinalized(currentTimestamp);
-                        operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
-
-                        final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                        bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                        final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                        OperationUserActionResponse response = new OperationUserActionResponse();
-                        response.setResult(UserActionResult.OPERATION_FAILED);
-                        response.setOperation(operationDetailResponse);
-                        return response;
-                    }
-                }
-
-            } else {
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
-            }
-        } else {
+        if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+        }
+
+        // Check if the operation is not expired
+        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+        }
+
+        // Check the operation properties match the request
+        final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType);
+        if (factorEnum != null // the used factor is known
+            && operationEntity.getUserId().equals(userId) // correct user approved the operation
+            && operationEntity.getApplicationId().equals(applicationId) // operation is approved by the expected application
+            && operationEntity.getData().equals(data) // operation data matched the expected value
+            && factorsAcceptable(operationEntity.getSignatureType(), factorEnum) // auth factors are acceptable
+            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
+
+            // Approve the operation
+            operationEntity.setStatus(OperationStatusDo.APPROVED);
+            operationEntity.setTimestampFinalized(currentTimestamp);
+
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+            OperationUserActionResponse response = new OperationUserActionResponse();
+            response.setResult(UserActionResult.APPROVED);
+            response.setOperation(operationDetailResponse);
+            return response;
+        } else {
+
+            // Update failure count, check the failure count and FAIL operation if needed
+            final Long failureCount = operationEntity.getFailureCount() + 1;
+            final Long maxFailureCount = operationEntity.getMaxFailureCount();
+
+            if (failureCount < maxFailureCount) {
+                operationEntity.setFailureCount(failureCount);
+
+                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+                final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+                OperationUserActionResponse response = new OperationUserActionResponse();
+                response.setResult(UserActionResult.APPROVAL_FAILED);
+                response.setOperation(operationDetailResponse);
+                return response;
+            } else {
+                operationEntity.setStatus(OperationStatusDo.FAILED);
+                operationEntity.setTimestampFinalized(currentTimestamp);
+                operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
+
+                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+                final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+                OperationUserActionResponse response = new OperationUserActionResponse();
+                response.setResult(UserActionResult.OPERATION_FAILED);
+                response.setOperation(operationDetailResponse);
+                return response;
+            }
         }
     }
 
@@ -252,39 +252,39 @@ public class OperationBehavior {
         final Long applicationId = request.getApplicationId();
 
         // TODO: We might need a lock here!!!
+        // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-        if (operationOptional.isPresent()) {
-            final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-
-                if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
-                        && operationEntity.getApplicationId().equals(applicationId)) { // operation is rejected by the expected application
-
-                    // Approve the operation
-                    operationEntity.setStatus(OperationStatusDo.REJECTED);
-                    operationEntity.setTimestampFinalized(currentTimestamp);
-
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                    final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult(UserActionResult.REJECTED);
-                    response.setOperation(operationDetailResponse);
-                    return response;
-                } else {
-                    final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
-                    OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult(UserActionResult.REJECT_FAILED);
-                    response.setOperation(operationDetailResponse);
-                    return response;
-                }
-
-            } else {
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
-            }
-        } else {
+        if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+        }
+
+        // Check if the operation is not expired
+        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+        }
+
+        if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
+                && operationEntity.getApplicationId().equals(applicationId)) { // operation is rejected by the expected application
+
+            // Approve the operation
+            operationEntity.setStatus(OperationStatusDo.REJECTED);
+            operationEntity.setTimestampFinalized(currentTimestamp);
+
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+            OperationUserActionResponse response = new OperationUserActionResponse();
+            response.setResult(UserActionResult.REJECTED);
+            response.setOperation(operationDetailResponse);
+            return response;
+        } else {
+            final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
+            OperationUserActionResponse response = new OperationUserActionResponse();
+            response.setResult(UserActionResult.REJECT_FAILED);
+            response.setOperation(operationDetailResponse);
+            return response;
         }
     }
 
@@ -294,84 +294,89 @@ public class OperationBehavior {
         final String operationId = request.getOperationId();
 
         // TODO: We might need a lock here!!!
+        // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-        if (operationOptional.isPresent()) {
-            final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-
-                // Update failure count, check the failure count and FAIL operation if needed
-                final Long failureCount = operationEntity.getFailureCount() + 1;
-                final Long maxFailureCount = operationEntity.getMaxFailureCount();
-
-                if (failureCount < maxFailureCount) {
-                    operationEntity.setFailureCount(failureCount);
-
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                    final Long applicationId = savedEntity.getApplicationId();
-                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                    final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult(UserActionResult.APPROVAL_FAILED);
-                    response.setOperation(operationDetailResponse);
-                    return response;
-                } else {
-                    operationEntity.setStatus(OperationStatusDo.FAILED);
-                    operationEntity.setTimestampFinalized(currentTimestamp);
-                    operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
-
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                    final Long applicationId = savedEntity.getApplicationId();
-                    bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                    final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    OperationUserActionResponse response = new OperationUserActionResponse();
-                    response.setResult(UserActionResult.OPERATION_FAILED);
-                    response.setOperation(operationDetailResponse);
-                    return response;
-                }
-
-            } else {
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
-            }
-
-        } else {
+        if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
+
+        // Check if the operation is not expired
+        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
+        }
+
+        // Update failure count, check the failure count and FAIL operation if needed
+        final Long failureCount = operationEntity.getFailureCount() + 1;
+        final Long maxFailureCount = operationEntity.getMaxFailureCount();
+
+        if (failureCount < maxFailureCount) {
+            operationEntity.setFailureCount(failureCount);
+
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            final Long applicationId = savedEntity.getApplicationId();
+            bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+            OperationUserActionResponse response = new OperationUserActionResponse();
+            response.setResult(UserActionResult.APPROVAL_FAILED);
+            response.setOperation(operationDetailResponse);
+            return response;
+        } else {
+            operationEntity.setStatus(OperationStatusDo.FAILED);
+            operationEntity.setTimestampFinalized(currentTimestamp);
+            operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
+
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            final Long applicationId = savedEntity.getApplicationId();
+            bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+            OperationUserActionResponse response = new OperationUserActionResponse();
+            response.setResult(UserActionResult.OPERATION_FAILED);
+            response.setOperation(operationDetailResponse);
+            return response;
+        }
+
     }
 
     public OperationDetailResponse cancelOperation(OperationCancelRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
+
+        // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-        if (operationOptional.isPresent()) {
-            final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-                operationEntity.setStatus(OperationStatusDo.CANCELED);
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                final Long applicationId = savedEntity.getApplicationId();
-                bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
-                return convertFromEntity(savedEntity);
-            } else {
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
-            }
-        } else {
+        if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
+
+        // Check if the operation is not expired
+        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
+        }
+
+        operationEntity.setStatus(OperationStatusDo.CANCELED);
+        final OperationEntity savedEntity = operationRepository.save(operationEntity);
+        final Long applicationId = savedEntity.getApplicationId();
+        bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+        return convertFromEntity(savedEntity);
     }
 
     public OperationDetailResponse getOperation(OperationDetailRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
+
+        // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-        if (operationOptional.isPresent()) {
-            final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-            return convertFromEntity(operationEntity);
-        } else {
+        if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
+
+        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        return convertFromEntity(operationEntity);
     }
 
     public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) {
@@ -440,7 +445,7 @@ public class OperationBehavior {
         destination.setOperationType(source.getOperationType());
         destination.setData(source.getData());
         try {
-            final TypeReference<HashMap<String,String>> typeRef = new TypeReference<HashMap<String,String>>() {};
+            final TypeReference<Map<String,String>> typeRef = new TypeReference<Map<String,String>>() {};
             final Map<String, String> map = objectMapper.readValue(source.getParameters(), typeRef);
             destination.setParameters(map);
         } catch (JsonProcessingException e) {
@@ -493,6 +498,9 @@ public class OperationBehavior {
     }
 
     private boolean factorsAcceptable(PowerAuthSignatureTypes[] allowedSignatureTypes, PowerAuthSignatureTypes usedFactors) {
+        if (allowedSignatureTypes == null) {
+            return false; // likely a misconfiguration
+        }
         return Arrays.asList(allowedSignatureTypes).contains(usedFactors);
     }
 
