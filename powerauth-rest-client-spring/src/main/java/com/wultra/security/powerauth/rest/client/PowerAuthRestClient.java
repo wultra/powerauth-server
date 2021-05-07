@@ -691,10 +691,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
+    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String type, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
+        request.setType(type);
         request.setCallbackUrl(callbackUrl);
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
