@@ -1662,6 +1662,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationDetailResponse createOperation(OperationCreateRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1682,6 +1683,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1719,6 +1721,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1736,6 +1739,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationListResponse findAllOperationsByExternalId(OperationExtIdRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1773,6 +1777,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationUserActionResponse approveOperation(OperationApproveRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1822,6 +1827,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1842,6 +1848,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationTemplateListResponse getAllTemplates() throws Exception {
         // TODO: Validators
         try {
@@ -1859,6 +1866,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1879,6 +1887,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1899,6 +1908,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws Exception {
         // TODO: Validators
         try {
@@ -1919,6 +1929,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public void removeOperationTemplate(OperationTemplateDeleteRequest request) throws Exception {
         // TODO: Validators
         try {
