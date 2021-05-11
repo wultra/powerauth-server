@@ -54,6 +54,7 @@ In case you need to configure the client, use:
 ```
 
 The following REST client options are available:
+
 - `maxMemorySize` - configures maximum memory size per request, default 1 MB
 - `connectTimeout` - configures connection timeout, default 5000 ms
 - `proxyEnabled` - enables proxy, disabled by default

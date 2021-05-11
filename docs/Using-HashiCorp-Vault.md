@@ -64,9 +64,13 @@ spring.cloud.vault.authentication=TOKEN
 spring.cloud.vault.token=00000000-0000-0000-0000-000000000000
 ```
 
-_Note: The `bootstrap.properties` file is different from `application.properties`. It has a precedence while loading the Spring Boot application and is mandatory for Spring Cloud Vault (so that the Vault integration is initialized before the regular configuration in `application.properties` is loaded). Placing these properties in `application.properties` file will not work._
+<!-- begin box warning -->
+The `bootstrap.properties` file is different from `application.properties`. It has a precedence while loading the Spring Boot application and is mandatory for Spring Cloud Vault (so that the Vault integration is initialized before the regular configuration in `application.properties` is loaded). Placing these properties in `application.properties` file will not work.
+<!-- end -->
 
-_Note: For production environment, make sure to use different authentication parameters than the one in the example above. Please refer to [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details._
+<!-- begin box warning -->
+Note: For production environment, make sure to use different authentication parameters than the one in the example above. Please refer to [Spring Cloud Vault documentation](https://cloud.spring.io/spring-cloud-vault) for more details.
+<!-- end -->
 
 In case you are using Apache Tomcat for deployment, you can set the regular properties via your `${CATALINA_HOME}/conf/Catalina/localhost/powerauth-java-server.xml` configuration file:
 
@@ -88,4 +92,6 @@ In case you are using Apache Tomcat for deployment, you can set the regular prop
 
 After restarting the PowerAuth Server, the configuration of encryption key will be automatically picked up from the Vault instance configured in the properties.
 
-_Note: In case you set the `powerauth.server.db.master.encryption.key` property in your Tomcat XML configuration directly (in a plain text), the configuration from the Vault still has a precedence and will be used over the hardcoded encryption key value._
+<!-- begin box info -->
+In case you set the `powerauth.server.db.master.encryption.key` property in your Tomcat XML configuration directly (in a plain text), the configuration from the Vault still has a precedence and will be used over the hardcoded encryption key value.
+<!-- end -->
