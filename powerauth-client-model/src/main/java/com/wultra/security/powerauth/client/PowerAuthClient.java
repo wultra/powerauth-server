@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.client;
 
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -788,7 +789,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String type, String callbackUrl, List<String> attributes) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given request object.
