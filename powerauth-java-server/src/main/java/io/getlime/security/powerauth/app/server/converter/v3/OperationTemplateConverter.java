@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.converter.v3;
 
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
@@ -45,8 +46,8 @@ public class OperationTemplateConverter {
         destination.setExpiration(source.getExpiration());
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
-        for (final String type : source.getSignatureType()) {
-            signatureTypes.add(PowerAuthSignatureTypes.getEnumFromString(type));
+        for (final SignatureType type : source.getSignatureType()) {
+            signatureTypes.add(PowerAuthSignatureTypes.getEnumFromString(type.toString()));
         }
         final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
         destination.setSignatureType(signatureTypesArray);
@@ -64,8 +65,8 @@ public class OperationTemplateConverter {
         destination.setExpiration(source.getExpiration());
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
-        for (final String type : source.getSignatureType()) {
-            signatureTypes.add(PowerAuthSignatureTypes.getEnumFromString(type));
+        for (final SignatureType type : source.getSignatureType()) {
+            signatureTypes.add(PowerAuthSignatureTypes.getEnumFromString(type.toString()));
         }
         final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
         destination.setSignatureType(signatureTypesArray);
@@ -81,9 +82,9 @@ public class OperationTemplateConverter {
         destination.setDataTemplate(source.getDataTemplate());
         destination.setExpiration(source.getExpiration());
         destination.setMaxFailureCount(source.getMaxFailureCount());
-        final List<String> signatureTypesResponse = new ArrayList<>();
+        final List<SignatureType> signatureTypesResponse = new ArrayList<>();
         for (final PowerAuthSignatureTypes type : source.getSignatureType()) {
-            signatureTypesResponse.add(type.toString());
+            signatureTypesResponse.add(SignatureType.enumFromString(type.toString()));
         }
         destination.setSignatureType(signatureTypesResponse);
         return destination;

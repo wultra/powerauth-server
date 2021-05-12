@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
 import java.util.Date;
 import java.util.List;
@@ -40,7 +41,7 @@ public class OperationDetailResponse {
     private String data;
     private Map<String, String> parameters;
     private OperationStatus status;
-    private List<String> signatureType;
+    private List<SignatureType> signatureType;
     private long failureCount;
     private Long maxFailureCount;
     private Date timestampCreated;
@@ -119,11 +120,11 @@ public class OperationDetailResponse {
         return status;
     }
 
-    public void setSignatureType(List<String> signatureType) {
+    public void setSignatureType(List<SignatureType> signatureType) {
         this.signatureType = signatureType;
     }
 
-    public List<String> getSignatureType() {
+    public List<SignatureType> getSignatureType() {
         return signatureType;
     }
 

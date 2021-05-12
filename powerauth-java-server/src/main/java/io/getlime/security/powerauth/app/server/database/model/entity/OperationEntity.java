@@ -47,8 +47,9 @@ public class OperationEntity implements Serializable {
     @Column(name = "user_id", nullable=false)
     private String userId;
 
-    @Column(name = "application_id", nullable=false)
-    private Long applicationId;
+    @ManyToOne
+    @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
+    private ApplicationEntity application;
 
     @ManyToOne
     @JoinColumn(name = "template_id", referencedColumnName = "id", nullable = false)
@@ -122,19 +123,19 @@ public class OperationEntity implements Serializable {
     }
 
     /**
-     * Get application ID.
-     * @return Application ID.
+     * Get application.
+     * @return Application.
      */
-    public Long getApplicationId() {
-        return applicationId;
+    public ApplicationEntity getApplication() {
+        return application;
     }
 
     /**
      * Set application ID.
      * @param applicationId Application ID.
      */
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApplication(ApplicationEntity applicationId) {
+        this.application = applicationId;
     }
 
     /**
@@ -329,22 +330,23 @@ public class OperationEntity implements Serializable {
         this.timestampFinalized = timestampFinalized;
     }
 
-    @Override public boolean equals(Object o) {
+    @Override
+    public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OperationEntity)) return false;
         OperationEntity that = (OperationEntity) o;
-        return id.equals(that.id)
+        return id.equals(that.id) // ID is generated on application level
                 && userId.equals(that.userId)
-                && applicationId.equals(that.applicationId)
+                && application.equals(that.application)
                 && operationType.equals(that.operationType)
                 && data.equals(that.data)
-                && Objects.equals(parameters, that.parameters
-        );
+                && Objects.equals(parameters, that.parameters);
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
         return Objects.hash(
-                id, userId, applicationId, operationType, data, parameters
+                id, userId, application, operationType, data, parameters
         );
     }
 

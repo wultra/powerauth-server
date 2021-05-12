@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+
 /**
  * Request object for operation approval.
  *
@@ -29,7 +31,7 @@ public class OperationApproveRequest {
     private String userId;
     private Long applicationId;
     private String data;
-    private String signatureType;
+    private SignatureType signatureType;
 
     public String getOperationId() {
         return operationId;
@@ -63,11 +65,11 @@ public class OperationApproveRequest {
         this.data = data;
     }
 
-    public String getSignatureType() {
+    public SignatureType getSignatureType() {
         return signatureType;
     }
 
-    public void setSignatureType(String signatureType) {
+    public void setSignatureType(SignatureType signatureType) {
         this.signatureType = signatureType;
     }
 }

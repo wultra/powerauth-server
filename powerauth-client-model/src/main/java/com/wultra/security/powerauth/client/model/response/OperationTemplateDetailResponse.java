@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+
 import java.util.List;
 
 /**
@@ -31,7 +33,7 @@ public class OperationTemplateDetailResponse {
     private String templateName;
     private String operationType;
     private String dataTemplate;
-    private List<String> signatureType;
+    private List<SignatureType> signatureType;
     private Long maxFailureCount;
     private Long expiration;
 
@@ -67,11 +69,11 @@ public class OperationTemplateDetailResponse {
         this.dataTemplate = dataTemplate;
     }
 
-    public List<String> getSignatureType() {
+    public List<SignatureType> getSignatureType() {
         return signatureType;
     }
 
-    public void setSignatureType(List<String> signatureType) {
+    public void setSignatureType(List<SignatureType> signatureType) {
         this.signatureType = signatureType;
     }
 

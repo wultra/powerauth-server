@@ -223,7 +223,9 @@ CREATE TABLE pa_operation (
     timestamp_created datetime NOT NULL,
     timestamp_expires datetime NOT NULL,
     timestamp_finalized datetime NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `FK_OPERATION_TEMPLATE` FOREIGN KEY (`template_id`) REFERENCES `pa_operation_template` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --

@@ -306,7 +306,7 @@ public class CallbackUrlBehavior {
             callbackData.put("userId", operation.getUserId());
         }
         if (callbackUrlEntity.getAttributes().contains("applicationId")) {
-            callbackData.put("applicationId", operation.getApplicationId());
+            callbackData.put("applicationId", operation.getApplication().getId());
         }
         if (callbackUrlEntity.getAttributes().contains("operationType")) {
             callbackData.put("operationType", operation.getOperationType());

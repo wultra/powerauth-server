@@ -22,6 +22,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
@@ -29,8 +30,10 @@ import com.wultra.security.powerauth.client.model.response.OperationDetailRespon
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
@@ -62,6 +65,7 @@ public class OperationServiceBehavior {
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
+    private final ApplicationRepository applicationRepository;
 
     private final ServiceBehaviorCatalogue bahavior;
 
@@ -78,10 +82,11 @@ public class OperationServiceBehavior {
     public OperationServiceBehavior(
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
-            ServiceBehaviorCatalogue bahavior,
+            ApplicationRepository applicationRepository, ServiceBehaviorCatalogue bahavior,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
         this.templateRepository = templateRepository;
+        this.applicationRepository = applicationRepository;
         this.bahavior = bahavior;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
@@ -104,12 +109,17 @@ public class OperationServiceBehavior {
 
         // Fetch the operation template
         final Optional<OperationTemplateEntity> template = templateRepository.findTemplateByName(templateName);
-        final OperationTemplateEntity templateEntity;
-        if (template.isPresent()) {
-            templateEntity = template.get();
-        } else {
+        if (!template.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
+        final OperationTemplateEntity templateEntity = template.get();
+
+        // Check if application exists
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (!application.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+        final ApplicationEntity applicationEntity = application.get();
 
         // Generate unique token ID.
         String operationId = null;
@@ -148,7 +158,7 @@ public class OperationServiceBehavior {
         final OperationEntity operationEntity = new OperationEntity();
         operationEntity.setId(operationId);
         operationEntity.setUserId(userId);
-        operationEntity.setApplicationId(applicationId);
+        operationEntity.setApplication(applicationEntity);
         operationEntity.setTemplate(templateEntity);
         operationEntity.setExternalId(externalId);
         operationEntity.setOperationType(templateEntity.getOperationType());
@@ -175,13 +185,18 @@ public class OperationServiceBehavior {
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
         final String data = request.getData();
-        final String signatureType = request.getSignatureType();
+        final SignatureType signatureType = request.getSignatureType();
 
-        // TODO: We might need a lock here!!!
         // Check if the operation exists
-        final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
+        final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
+        }
+
+        // Fetch application
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (!application.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         // Check if the operation is not expired
@@ -191,10 +206,10 @@ public class OperationServiceBehavior {
         }
 
         // Check the operation properties match the request
-        final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType);
+        final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
         if (factorEnum != null // the used factor is known
             && operationEntity.getUserId().equals(userId) // correct user approved the operation
-            && operationEntity.getApplicationId().equals(applicationId) // operation is approved by the expected application
+            && operationEntity.getApplication().getId().equals(applicationId) // operation is approved by the expected application
             && operationEntity.getData().equals(data) // operation data matched the expected value
             && factorsAcceptable(operationEntity.getSignatureType(), factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
@@ -252,11 +267,16 @@ public class OperationServiceBehavior {
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
 
-        // TODO: We might need a lock here!!!
         // Check if the operation exists
-        final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
+        final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
+        }
+
+        // Fetch application
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (!application.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         // Check if the operation is not expired
@@ -266,7 +286,7 @@ public class OperationServiceBehavior {
         }
 
         if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
-                && operationEntity.getApplicationId().equals(applicationId)) { // operation is rejected by the expected application
+                && operationEntity.getApplication().getId().equals(applicationId)) { // operation is rejected by the expected application
 
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.REJECTED);
@@ -294,9 +314,8 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
 
-        // TODO: We might need a lock here!!!
         // Check if the operation exists
-        final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
+        final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
@@ -315,7 +334,7 @@ public class OperationServiceBehavior {
             operationEntity.setFailureCount(failureCount);
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            final Long applicationId = savedEntity.getApplicationId();
+            final Long applicationId = savedEntity.getApplication().getId();
             bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -329,7 +348,7 @@ public class OperationServiceBehavior {
             operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            final Long applicationId = savedEntity.getApplicationId();
+            final Long applicationId = savedEntity.getApplication().getId();
             bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -347,7 +366,7 @@ public class OperationServiceBehavior {
         final String operationId = request.getOperationId();
 
         // Check if the operation exists
-        final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
+        final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
@@ -360,7 +379,7 @@ public class OperationServiceBehavior {
 
         operationEntity.setStatus(OperationStatusDo.CANCELED);
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
-        final Long applicationId = savedEntity.getApplicationId();
+        final Long applicationId = savedEntity.getApplication().getId();
         bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
         return convertFromEntity(savedEntity);
     }
@@ -380,11 +399,17 @@ public class OperationServiceBehavior {
         return convertFromEntity(operationEntity);
     }
 
-    public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) {
+    public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
+
+        // Fetch application
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (!application.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
 
         final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationId);
 
@@ -396,11 +421,17 @@ public class OperationServiceBehavior {
         return result;
     }
 
-    public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) {
+    public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
+
+        // Fetch application
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (!application.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
 
         final Iterable<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationId);
 
@@ -420,11 +451,17 @@ public class OperationServiceBehavior {
      * @param request Request with the external ID.
      * @return List of operations that match.
      */
-    public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) {
+    public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
         final String externalId = request.getExternalId();
         final Long applicationId = request.getApplicationId();
+
+        // Fetch application
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        if (!application.isPresent()) {
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
 
         final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationId);
 
@@ -440,7 +477,7 @@ public class OperationServiceBehavior {
         OperationDetailResponse destination = new OperationDetailResponse();
         destination.setId(source.getId());
         destination.setUserId(source.getUserId());
-        destination.setApplicationId(source.getApplicationId());
+        destination.setApplicationId(source.getApplication().getId());
         destination.setTemplateName(source.getTemplate().getTemplateName());
         destination.setExternalId(source.getExternalId());
         destination.setOperationType(source.getOperationType());
@@ -452,8 +489,8 @@ public class OperationServiceBehavior {
         } catch (JsonProcessingException e) {
             destination.setParameters(new HashMap<>());
         }
-        final List<String> signatureTypeList = Arrays.stream(source.getSignatureType())
-                .map(PowerAuthSignatureTypes::toString)
+        final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
+                .map(p -> SignatureType.enumFromString(p.toString()))
                 .collect(Collectors.toList());
         destination.setSignatureType(signatureTypeList);
         destination.setFailureCount(source.getFailureCount());
@@ -491,7 +528,7 @@ public class OperationServiceBehavior {
             logger.info("Operation {} expired.", source.getId());
             source.setStatus(OperationStatusDo.EXPIRED);
             final OperationEntity savedEntity = operationRepository.save(source);
-            final Long applicationId = savedEntity.getApplicationId();
+            final Long applicationId = savedEntity.getApplication().getId();
             bahavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
             return savedEntity;
         }

@@ -297,6 +297,13 @@ ALTER TABLE "pa_recovery_puk" ADD CONSTRAINT "recovery_puk_code_fk" FOREIGN KEY 
 --
 ALTER TABLE "pa_recovery_config" ADD CONSTRAINT "recovery_config_app_fk" FOREIGN KEY ("application_id") REFERENCES "pa_application" ("id");
 
+--
+--  Ref Constraints for Table PA_OPERATION
+--
+ALTER TABLE "pa_operation" ADD CONSTRAINT "operation_application_fk" FOREIGN KEY ("application_id") REFERENCES "pa_application" ("id");
+ALTER TABLE "pa_operation" ADD CONSTRAINT "operation_template_fk" FOREIGN KEY ("template_id") REFERENCES "pa_operation_template" ("id");
+
+
 ---
 --- Indexes for better performance. PostgreSQL does not create indexes on foreign key automatically.
 ---
