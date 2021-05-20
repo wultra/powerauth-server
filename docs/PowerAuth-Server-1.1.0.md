@@ -41,3 +41,12 @@ ALTER TABLE pa_recovery_config
 ALTER TABLE pa_recovery_config
     RENAME COLUMN postcard_private_key_encryption TO postcard_priv_key_encryption;
 ```
+
+
+## Spring Vault Configuration Change
+
+The Spring Vault is no longer configured using `bootstrap.properties`. The configuration properties needs to be moved into the `application.properties` file.
+
+In case you set the Spring Vault configuration externally, e.g. using the `powerauth-java-server.xml` configuration file for Tomcat, no change is required.
+
+For more information see: https://github.com/spring-cloud/spring-cloud-vault/tree/v3.0.0-M5#client-side-usage
