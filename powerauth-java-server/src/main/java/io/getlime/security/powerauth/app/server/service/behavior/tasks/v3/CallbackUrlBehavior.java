@@ -33,8 +33,9 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -350,13 +351,10 @@ public class CallbackUrlBehavior {
     // Private methods
 
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
-        Consumer<ClientResponse> onSuccess = response -> {
-            if (response.statusCode().isError()) {
-                logger.warn("Callback failed, URL: {}, status code: {}", callbackUrlEntity.getCallbackUrl(), response.statusCode().toString());
-            }
-        };
+        Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
         Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-        restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, onSuccess, onError);
+        ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<String>(){};
+        restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
     }
 
 }
