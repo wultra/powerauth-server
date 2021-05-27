@@ -166,7 +166,7 @@ public class OnlineSignatureServiceBehavior {
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
                 // Double-check that there are at least some remaining attempts
-                if (activation.getFailedAttempts() < activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
+                if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
                     signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, signatureRequest, currentTimestamp);
                     return invalidStateResponse(activationId, activation.getActivationStatus());
                 }
