@@ -643,12 +643,6 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
             }
 
-            if (maxFailureCount != null && maxFailureCount <= 0) {
-                logger.warn("Activation cannot be created with the specified properties: maxFailureCount");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_CREATE_FAILED);
-            }
-
             // Application version is not being checked in initActivation, it is checked later in prepareActivation or createActivation.
 
             // Get the repository
@@ -657,8 +651,12 @@ public class ActivationServiceBehavior {
 
             // Get number of max attempts from request or from constants, if not provided
             Long maxAttempt = maxFailureCount;
-            if (maxAttempt == null) {
+            if (maxAttempt == null) { // use the default value
                 maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
+            } else if (maxFailureCount <= 0) { // only allow custom values > 0
+                logger.warn("Activation cannot be created with the specified properties: maxFailureCount");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_CREATE_FAILED);
             }
 
             // Get activation expiration date from request or from constants, if not provided
