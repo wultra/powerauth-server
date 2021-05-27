@@ -215,19 +215,20 @@ public class CallbackUrlBehavior {
 
     /**
      * Tries to asynchronously notify all activation status callbacks that are registered for given application.
-     * @param applicationId Application for the callbacks to be used.
      * @param activation Activation to be notified about.
      */
-    public void notifyCallbackListenersOnActivationChange(Long applicationId, ActivationRecordEntity activation) {
+    public void notifyCallbackListenersOnActivationChange(ActivationRecordEntity activation) {
         try {
             if (restClient == null) {
                 // Initialize Rest Client when it is used for the first time
                 initializeRestClient();
             }
-            final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(applicationId, CallbackUrlType.ACTIVATION_STATUS_CHANGE);
-            for (CallbackUrlEntity callbackUrlEntity: callbackUrlEntities) {
-                Map<String, Object> callbackData = prepareCallbackDataActivation(callbackUrlEntity, activation);
-                notifyCallbackUrl(callbackUrlEntity, callbackData);
+            if (activation != null && activation.getApplication() != null) {
+                final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(activation.getApplication().getId(), CallbackUrlType.ACTIVATION_STATUS_CHANGE);
+                for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
+                    Map<String, Object> callbackData = prepareCallbackDataActivation(callbackUrlEntity, activation);
+                    notifyCallbackUrl(callbackUrlEntity, callbackData);
+                }
             }
         } catch (RestClientException ex) {
             // Log the error in case Rest client initialization failed
@@ -274,19 +275,20 @@ public class CallbackUrlBehavior {
 
     /**
      * Tries to asynchronously notify all operation callbacks that are registered for given application.
-     * @param applicationId Application for the callbacks to be used.
      * @param operation Operation to be notified about.
      */
-    public void notifyCallbackListenersOnOperationChange(Long applicationId, OperationEntity operation) {
+    public void notifyCallbackListenersOnOperationChange(OperationEntity operation) {
         try {
             if (restClient == null) {
                 // Initialize Rest Client when it is used for the first time
                 initializeRestClient();
             }
-            final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(applicationId, CallbackUrlType.OPERATION_STATUS_CHANGE);
-            for (CallbackUrlEntity callbackUrlEntity: callbackUrlEntities) {
-                Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
-                notifyCallbackUrl(callbackUrlEntity, callbackData);
+            if (operation != null && operation.getApplication() != null) {
+                final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(operation.getApplication().getId(), CallbackUrlType.OPERATION_STATUS_CHANGE);
+                for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
+                    Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
+                    notifyCallbackUrl(callbackUrlEntity, callbackData);
+                }
             }
         } catch (RestClientException ex) {
             // Log the error in case Rest client initialization failed

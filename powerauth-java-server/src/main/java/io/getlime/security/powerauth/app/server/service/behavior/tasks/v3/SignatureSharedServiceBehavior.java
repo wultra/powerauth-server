@@ -405,7 +405,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         }
     }
 
@@ -501,7 +501,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         }
     }
 
@@ -560,7 +560,7 @@ public class SignatureSharedServiceBehavior {
                 activation.getVersion(), "activation_invalid_state_ctr_mismatch", currentTimestamp);
 
         // Notify callback listeners
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation.getApplication().getId(), activation);
+        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
     }
 
     /**
