@@ -555,9 +555,6 @@ public class SignatureSharedServiceBehavior {
         entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
         additionalInfo.getEntry().add(entry);
 
-        // Save the activation
-        activationRepository.save(activation);
-
         // Create the audit log record
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false,
                 activation.getVersion(), "activation_invalid_state_ctr_mismatch", currentTimestamp);
