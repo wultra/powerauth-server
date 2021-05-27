@@ -95,7 +95,7 @@
         <!-- PowerAuth Dependencies -->
         <powerauth-java-crypto.version>1.0.0</powerauth-java-crypto.version>
         <powerauth-rest-base.version>1.2.0</powerauth-rest-base.version>
-        <bcprov-jdk15on.version>1.67</bcprov-jdk15on.version>
+        <bcprov-jdk15on.version>1.68</bcprov-jdk15on.version>
 
         <!-- Java 11 Dependencies -->
         <jaxb-api.version>2.3.1</jaxb-api.version>
