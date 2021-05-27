@@ -230,7 +230,7 @@ public class ActivationServiceBehavior {
     public GetActivationListForUserResponse getActivationList(Long applicationId, String userId) throws DatatypeConfigurationException {
 
         // Generate timestamp in advance
-        Date timestamp = new Date();
+        final Date timestamp = new Date();
 
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -376,7 +376,7 @@ public class ActivationServiceBehavior {
     public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, KeyConvertor keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
         try {
             // Generate timestamp in advance
-            Date timestamp = new Date();
+            final Date timestamp = new Date();
 
             // Get the repository
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -629,7 +629,7 @@ public class ActivationServiceBehavior {
                                                  KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
-            Date timestamp = new Date();
+            final Date timestamp = new Date();
 
             if (userId == null || userId.isEmpty() || userId.length() > 255) {
                 logger.warn("User ID not specified or invalid");
@@ -651,8 +651,12 @@ public class ActivationServiceBehavior {
 
             // Get number of max attempts from request or from constants, if not provided
             Long maxAttempt = maxFailureCount;
-            if (maxAttempt == null) {
+            if (maxAttempt == null) { // use the default value
                 maxAttempt = powerAuthServiceConfiguration.getSignatureMaxFailedAttempts();
+            } else if (maxFailureCount <= 0) { // only allow custom values > 0
+                logger.warn("Activation cannot be created with the specified properties: maxFailureCount");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_CREATE_FAILED);
             }
 
             // Get activation expiration date from request or from constants, if not provided
@@ -806,7 +810,7 @@ public class ActivationServiceBehavior {
     public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
-            Date timestamp = new Date();
+            final Date timestamp = new Date();
 
             // Get required repositories
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
@@ -999,7 +1003,7 @@ public class ActivationServiceBehavior {
             KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
-            Date timestamp = new Date();
+            final Date timestamp = new Date();
 
             // Get required repositories
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -1182,7 +1186,7 @@ public class ActivationServiceBehavior {
         }
 
         // Get current timestamp
-        Date timestamp = new Date();
+        final Date timestamp = new Date();
 
         // Check already deactivated activation
         deactivatePendingActivation(timestamp, activation, true);
