@@ -173,7 +173,7 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampFinalized(null); // empty initially
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
-        behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+        behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
         return convertFromEntity(savedEntity);
 
     }
@@ -219,7 +219,7 @@ public class OperationServiceBehavior {
             operationEntity.setTimestampFinalized(currentTimestamp);
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
             OperationUserActionResponse response = new OperationUserActionResponse();
@@ -236,7 +236,7 @@ public class OperationServiceBehavior {
                 operationEntity.setFailureCount(failureCount);
 
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+                behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                 OperationUserActionResponse response = new OperationUserActionResponse();
@@ -249,7 +249,7 @@ public class OperationServiceBehavior {
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
-                behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+                behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                 OperationUserActionResponse response = new OperationUserActionResponse();
@@ -293,7 +293,7 @@ public class OperationServiceBehavior {
             operationEntity.setTimestampFinalized(currentTimestamp);
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
             OperationUserActionResponse response = new OperationUserActionResponse();
@@ -334,8 +334,7 @@ public class OperationServiceBehavior {
             operationEntity.setFailureCount(failureCount);
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            final Long applicationId = savedEntity.getApplication().getId();
-            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
             OperationUserActionResponse response = new OperationUserActionResponse();
@@ -348,8 +347,7 @@ public class OperationServiceBehavior {
             operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            final Long applicationId = savedEntity.getApplication().getId();
-            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
             OperationUserActionResponse response = new OperationUserActionResponse();
@@ -379,8 +377,7 @@ public class OperationServiceBehavior {
 
         operationEntity.setStatus(OperationStatusDo.CANCELED);
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
-        final Long applicationId = savedEntity.getApplication().getId();
-        behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+        behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
         return convertFromEntity(savedEntity);
     }
 
@@ -528,8 +525,7 @@ public class OperationServiceBehavior {
             logger.info("Operation {} expired.", source.getId());
             source.setStatus(OperationStatusDo.EXPIRED);
             final OperationEntity savedEntity = operationRepository.save(source);
-            final Long applicationId = savedEntity.getApplication().getId();
-            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(applicationId, savedEntity);
+            behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             return savedEntity;
         }
         return source;
