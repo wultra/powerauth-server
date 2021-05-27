@@ -174,7 +174,7 @@ CREATE INDEX PA_OPERATION_TEMPLATE_NAME_IDX ON PA_OPERATION_TEMPLATE(TEMPLATE_NA
 
 ## Multiple Callback Types
 
-Besides the callbacks that trigger on activation status change, we also support callbacks that are related to the operation status change. Therefore, we added a column that specifies the callback type. The default value that preserves the current behavior is `ACTIVATION_STATUS_CHANGE` (a callback related to an activation status change).
+Beside the callbacks that trigger on activation status change, we also support callbacks that are related to the operation status change. Therefore, we added a column that specifies the callback type. The default value that preserves the current behavior is `ACTIVATION_STATUS_CHANGE` (a callback related to an activation status change).
 
 ### MySQL
 
@@ -199,7 +199,7 @@ ALTER TABLE pa_application_callback
 
 ## Add Synchronization Table for SchedLock
 
-We also introduced new scheduled tasks that are synchronized via ShedLock. In PowerAuth Server, SchedLock uses JDBC connection to persist the lock. Therefore, you need to create a new synchronization table to accomodate the locking data.
+We also introduced new scheduled tasks that are synchronized via ShedLock. In PowerAuth Server, SchedLock uses JDBC connection to persist the lock. Therefore, you need to create a new synchronization table to accommodate the locking data.
 
 ### MySQL
 
@@ -234,3 +234,11 @@ CREATE TABLE "shedlock" (
     locked_by VARCHAR(255) NOT NULL
 );
 ```
+
+## Spring Vault Configuration Change
+
+The Spring Vault is no longer configured using `bootstrap.properties`. The configuration properties needs to be moved into the `application.properties` file.
+
+In case you set the Spring Vault configuration externally, e.g. using the `powerauth-java-server.xml` configuration file for Tomcat, no change is required.
+
+For more information see: https://github.com/spring-cloud/spring-cloud-vault/tree/v3.0.0-M5#client-side-usage
