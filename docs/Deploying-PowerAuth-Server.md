@@ -237,6 +237,5 @@ Follow the extra instructions in chapter [Deploying PowerAuth Server on JBoss / 
 
 ### Issues With Bouncy Castle Provider
 
-PowerAuth Server uses Bouncy Castle as a Java cryptography provider. 
-Please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
+PowerAuth Server uses Bouncy Castle as a Java cryptography provider. If you encounter any issues that may point to an incorrectly installed cryptography provider, please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
 
