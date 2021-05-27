@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,23 +15,30 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import org.springframework.data.repository.CrudRepository;
+package io.getlime.security.powerauth.app.server.database.model;
 
-import java.util.List;
+import org.springframework.stereotype.Component;
+
+import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 
 /**
- * Database repository for the callback URL entities.
+ * Converter for callback URL types.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity, String> {
+@Converter
+@Component
+public class CallbackUrlTypeConverter implements AttributeConverter<CallbackUrlType, String> {
 
-    List<CallbackUrlEntity> findByApplicationIdOrderByName(Long applicationId);
+    @Override
+    public String convertToDatabaseColumn(CallbackUrlType callbackUrlType) {
+        return callbackUrlType.toString();
+    }
 
-    List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(Long applicationId, CallbackUrlType type);
-
+    @Override
+    public CallbackUrlType convertToEntityAttribute(String s) {
+        return CallbackUrlType.valueOf(s);
+    }
 }

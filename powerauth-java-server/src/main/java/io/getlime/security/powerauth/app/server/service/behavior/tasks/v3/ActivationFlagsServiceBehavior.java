@@ -75,6 +75,7 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+        response.setActivationId(activationId);
         response.getActivationFlags().addAll(activation.getFlags());
         return response;
     }

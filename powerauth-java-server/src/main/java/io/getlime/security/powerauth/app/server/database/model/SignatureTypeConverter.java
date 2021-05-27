@@ -37,6 +37,9 @@ public class SignatureTypeConverter implements AttributeConverter<PowerAuthSigna
 
     @Override
     public String convertToDatabaseColumn(PowerAuthSignatureTypes[] powerAuthSignatureTypes) {
+        if (powerAuthSignatureTypes == null) {
+            return null;
+        }
         return Arrays.stream(powerAuthSignatureTypes)
                 .map(PowerAuthSignatureTypes::toString)
                 .collect(Collectors.joining(","));
@@ -44,6 +47,9 @@ public class SignatureTypeConverter implements AttributeConverter<PowerAuthSigna
 
     @Override
     public PowerAuthSignatureTypes[] convertToEntityAttribute(String signatures) {
+        if (signatures == null) {
+            return null;
+        }
         final String[] factorStrings = signatures.split(",");
         List<PowerAuthSignatureTypes> result = new ArrayList<>();
         for (String factorString : factorStrings) {

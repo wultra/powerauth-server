@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,23 +15,27 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import org.springframework.data.repository.CrudRepository;
-
-import java.util.List;
+package io.getlime.security.powerauth.app.server.database.model;
 
 /**
- * Database repository for the callback URL entities.
+ * Enumeration representing the type of the callback URL.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity, String> {
+public enum CallbackUrlType {
 
-    List<CallbackUrlEntity> findByApplicationIdOrderByName(Long applicationId);
+    ACTIVATION_STATUS_CHANGE("ACTIVATION_STATUS_CHANGE"),
+    OPERATION_STATUS_CHANGE("OPERATION_STATUS_CHANGE");
 
-    List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(Long applicationId, CallbackUrlType type);
+    private final String value;
 
+    CallbackUrlType(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

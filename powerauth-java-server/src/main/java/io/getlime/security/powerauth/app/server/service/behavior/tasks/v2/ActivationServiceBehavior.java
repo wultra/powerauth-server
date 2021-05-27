@@ -121,7 +121,7 @@ public class ActivationServiceBehavior {
         if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             activation.setActivationStatus(ActivationStatus.REMOVED);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         }
     }
 
@@ -135,7 +135,7 @@ public class ActivationServiceBehavior {
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(ActivationStatus.REMOVED);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-        callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
+        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
@@ -311,7 +311,7 @@ public class ActivationServiceBehavior {
             activation.setVersion(2);
             // Counter data is null, numeric counter is used in this version
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Compute the response
             PrepareActivationResponse response = new PrepareActivationResponse();
@@ -476,7 +476,7 @@ public class ActivationServiceBehavior {
             // Hash based counter is not used in this version
             activation.setCtrDataBase64(null);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Generate response data
             byte[] activationNonceServer = powerAuthServerActivation.generateActivationNonce();

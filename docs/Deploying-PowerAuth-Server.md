@@ -5,9 +5,10 @@ This chapter explains how to deploy PowerAuth Server.
 ## Supported Databases
 
 Following databases are supported:
+
 - Oracle Database 11g or 12c, or
-- MySQL 5.5 or newer, or
 - PostgreSQL 9.5.4 or newer
+- MySQL 5.5 or newer, or
 
 Note that MSSQL database is not supported.
 
@@ -111,11 +112,13 @@ INSERT INTO `powerauth`.`pa_integration` (`id`, `name`, `client_token`, `client_
 
 Values of `ID`, `CLIENT_TOKEN` and `CLIENT_SECRET` must be in UUID Level 4 format (for example `60586743-89d0-4689-b0fb-f4c597294b67`), `NAME` can be any name of the integration (for example, a name of the associated application).
 
-_Note: For SOAP interface, PowerAuth Server uses WS-Security, `UsernameToken` validation (plain text password). The RESTful interface is secured using Basic HTTP Authentication (pre-emptive)._
+<!-- begin box info --> 
+The RESTful interface is secured using Basic HTTP Authentication (pre-emptive).
+<!-- end -->
 
 ## Deploying PowerAuth Server WAR File
 
-You can deploy PowerAuth Server WAR into any Java EE container.
+You can deploy PowerAuth Server WAR into any Java container.
 
 The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (WSDL is then available on `http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl`).
 
@@ -150,7 +153,9 @@ Alternatively, you can create a single property in the server configuration that
 </Context>
 ```
 
-_Note: Keep both `classpath:/application.properties` and `classpath:/bootstrap.properties` paths in the `spring.config.location` parameter. Otherwise, Spring Cloud Vault will not initialize properly and application will not start._
+<!-- begin box warning -->
+Keep both `classpath:/application.properties` and `classpath:/bootstrap.properties` paths in the `spring.config.location` parameter. Otherwise, Spring Cloud Vault will not initialize properly and application will not start.
+<!-- end -->
 
 To match the previous example, the contents of `/path/to/come/custom.properties` is the following:
 
@@ -160,16 +165,6 @@ spring.datasource.username=powerauth
 spring.datasource.password=
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
 ```
-
-## Deploying PowerAuth Server Outside the Container
-
-You can also execute PowerAuth Server WAR file directly using the following command:
-
-```bash
-java -jar powerauth-java-server.war
-```
-
-_Note: You can overwrite the port using `-Dserver.port=8090` parameter to avoid port conflicts._
 
 ## Generating Your First Application
 
@@ -215,10 +210,6 @@ $ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "
 }
 ```
 
-## Deploying PowerAuth Server On JBoss / Wildfly
-
-Follow the extra instructions in chapter [Deploying PowerAuth Server on JBoss / Wildfly](./Deploying-Wildfly.md).
-
 ## Troubleshooting
 
 ### Issues With Database Connectivity
@@ -240,8 +231,11 @@ spring.jpa.hibernate.ddl-auto=none
 spring.datasource.jndi-name=java:/jdbc/powerauth
 ```
 
+### Deploying On JBoss / Wildfly
+
+Follow the extra instructions in chapter [Deploying PowerAuth Server on JBoss / Wildfly](./Deploying-Wildfly.md).
+
 ### Issues With Bouncy Castle Provider
 
-PowerAuth Server uses Bouncy Castle as a Java cryptography provider. 
-Please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
+PowerAuth Server uses Bouncy Castle as a Java cryptography provider. If you encounter any issues that may point to an incorrectly installed cryptography provider, please follow our tutorial [how to configure Bouncy Castle](./Installing-Bouncy-Castle.md).
 

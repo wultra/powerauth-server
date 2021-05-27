@@ -1064,6 +1064,7 @@
             <xs:sequence>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
@@ -1079,6 +1080,7 @@
                 <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
@@ -1112,6 +1114,7 @@
                 <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
@@ -1143,6 +1146,7 @@
                             <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                         </xs:sequence>

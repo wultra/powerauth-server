@@ -19,14 +19,16 @@ Java 11 no longer provides a library extension mechanism and thus Bouncy Castle 
 
 #### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-167.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
+Copy [`bcprov-jdk15on-168.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
 
-_Warning: Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
-Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case._
+<!-- begin box warning -->
+Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
+Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder. The `key spec not recognized` error message will appear in Tomcat log in this case.
+<!-- end -->
 
 #### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-167.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-168.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -51,7 +53,9 @@ The module should be defined using a new module XML file in JBoss folder `module
 
 Finally, copy the Bouncy Castle library `bcprov-jdk15on-167.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
 
-_Warning: do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth._  
+<!-- begin box warning -->
+Do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth.
+<!-- end -->
 
 #### Testing the Installation
 
@@ -117,7 +121,9 @@ The module should be defined using a new module XML file in JBoss folder `module
 
 Finally, copy the Bouncy Castle library `bcprov-jdk15on-167.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
 
-_Warning: do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth._  
+<!-- begin box warning -->
+Do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth.
+<!-- end -->
 
 Note that when Bouncy Castle module for JBoss / Wildfly is used, Bouncy Castle should not be present in the `lib/ext` folder of the Java runtime, otherwise the following error can occur: `key spec not recognized` due to clash of Bouncy Castle libraries.
 

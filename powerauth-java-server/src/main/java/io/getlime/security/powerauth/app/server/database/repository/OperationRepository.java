@@ -28,6 +28,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.LockModeType;
 import java.util.Date;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Database repository for the operations.
@@ -44,20 +45,20 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperation(String operationId);
 
-    @Query("SELECT o FROM OperationEntity o WHERE o.userId = :userId AND o.applicationId = :applicationId ORDER BY o.timestampCreated DESC")
-    Iterable<OperationEntity> findAllOperationsForUser(String userId, Long applicationId);
+    @Query("SELECT o FROM OperationEntity o WHERE o.userId = :userId AND o.application.id = :applicationId ORDER BY o.timestampCreated DESC")
+    Stream<OperationEntity> findAllOperationsForUser(String userId, Long applicationId);
 
     @Query("SELECT o FROM OperationEntity o " +
-            "WHERE o.userId = :userId AND o.applicationId = :applicationId AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
+            "WHERE o.userId = :userId AND o.application.id = :applicationId AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated DESC")
     Iterable<OperationEntity> findPendingOperationsForUser(String userId, Long applicationId);
 
-    @Query("SELECT o FROM OperationEntity o WHERE o.externalId = :externalId AND o.applicationId = :applicationId ORDER BY o.timestampCreated DESC")
-    Iterable<OperationEntity> findOperationsByExternalId(String externalId, Long applicationId);
+    @Query("SELECT o FROM OperationEntity o WHERE o.externalId = :externalId AND o.application.id = :applicationId ORDER BY o.timestampCreated DESC")
+    Stream<OperationEntity> findOperationsByExternalId(String externalId, Long applicationId);
 
     @Query("SELECT o FROM OperationEntity o " +
             "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated")
-    Iterable<OperationEntity> findExpiredPendingOperations(Date timestamp);
+    Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);
 
 }

@@ -199,7 +199,7 @@ CREATE TABLE `pa_recovery_config` (
   `postcard_private_key_base64` varchar(255),
   `postcard_public_key_base64` varchar(255),
   `remote_public_key_base64` varchar(255),
-  `postcard_private_key_encryption` int(11) NOT NULL DEFAULT 0,
+  `postcard_priv_key_encryption` int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_RECOVERY_CONFIG_APP` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -223,7 +223,9 @@ CREATE TABLE pa_operation (
     timestamp_created datetime NOT NULL,
     timestamp_expires datetime NOT NULL,
     timestamp_finalized datetime NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `FK_OPERATION_TEMPLATE` FOREIGN KEY (`template_id`) REFERENCES `pa_operation_template` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
@@ -238,6 +240,17 @@ CREATE TABLE pa_operation_template (
     max_failure_count bigint(20) NOT NULL,
     expiration bigint(20) NOT NULL,
     PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
+-- DDL for Table SHEDLOCK
+--
+CREATE TABLE shedlock (
+    name VARCHAR(64) NOT NULL,
+    lock_until TIMESTAMP(3) NOT NULL,
+    locked_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    locked_by VARCHAR(255) NOT NULL,
+    PRIMARY KEY (name)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
@@ -263,6 +276,10 @@ CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
 CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
 
 CREATE INDEX `pa_operation_user` ON `pa_operation`(`user_id`);
+
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created DESC);
+
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 
 CREATE INDEX `pa_operation_template_name_idx` ON pa_operation_template (template_name);
 

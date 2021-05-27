@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -18,35 +18,22 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-
 /**
- * Request object for operation approval.
+ * Request for operations identified by an external ID.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class OperationApproveRequest {
+public class OperationExtIdRequest {
 
-    private String operationId;
-    private String userId;
+    private String externalId;
     private Long applicationId;
-    private String data;
-    private SignatureType signatureType;
 
-    public String getOperationId() {
-        return operationId;
+    public String getExternalId() {
+        return externalId;
     }
 
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     public Long getApplicationId() {
@@ -55,21 +42,5 @@ public class OperationApproveRequest {
 
     public void setApplicationId(Long applicationId) {
         this.applicationId = applicationId;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public SignatureType getSignatureType() {
-        return signatureType;
-    }
-
-    public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
     }
 }
