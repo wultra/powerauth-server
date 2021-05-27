@@ -23,17 +23,17 @@ Following Java version is required:
 
 When using Java 8, you need to have:
 
-- Correctly installed Bouncy Castle provider, and
-- JCE Unlimited Strength Jurisdiction Policy Files 8
+- [Correctly installed Bouncy Castle provider](./Installing-Bouncy-Castle.md), and
+- [JCE Unlimited Strength Jurisdiction Policy Files 8](https://www.oracle.com/java/technologies/javase-jce8-downloads.html)
 
 It is suggested to deploy PowerAuth in its own Java Servlet Container. PowerAuth Server is currently tested with following container technologies:
 
 - Apache Tomcat 8.5 or newer, or
 - JBoss Wildfly 9 or newer
 
-PowerAuth supports any JPA2 compatible database and it is tested with:
+PowerAuth supports any JPA2 compatible database, and it is tested with:
 
-- Oracle Database 11g or 12c, or
+- Oracle Database 11g, 12c, or 19c, or
 - PostgreSQL 9.5.4 or newer, or
 - MySQL 5.5 or newer
 
@@ -53,7 +53,7 @@ You need following software versions:
 
 - Docker 17.3.1 or newer, and
 - Docker Compose 1.11.2 or newer, and
-- Unix-based operating system, preferrably Mac OS, or any stable Linux distribution
+- Unix-based operating system, preferably macOS, or any stable Linux distribution
 
 Deployment is described in a separate documentation:
 
