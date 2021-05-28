@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.v3;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.validator.*;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
@@ -1664,7 +1665,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationDetailResponse createOperation(OperationCreateRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationCreateRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplicationId());
             OperationDetailResponse response = behavior.getOperationBehavior().createOperation(request);
@@ -1685,7 +1689,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationDetailRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationDetailRequest received, operation ID: {}", request.getOperationId());
             OperationDetailResponse response = behavior.getOperationBehavior().getOperation(request);
@@ -1705,7 +1712,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationListForUserRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplicationId());
             OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(request);
@@ -1723,7 +1733,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationListForUserRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplicationId());
             OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(request);
@@ -1741,7 +1754,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationListResponse findAllOperationsByExternalId(OperationExtIdRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationExtIdRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplicationId());
             OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(request);
@@ -1758,7 +1774,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     public OperationDetailResponse cancelOperation(OperationCancelRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationCancelRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationCancelRequest received, operation ID: {}", request.getOperationId());
             OperationDetailResponse response = behavior.getOperationBehavior().cancelOperation(request);
@@ -1779,7 +1798,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationUserActionResponse approveOperation(OperationApproveRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationApproveRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationApproveRequest received, operation ID: {}, user ID: {}, application ID: {}, signatureType: {}",
                     request.getOperationId(),
@@ -1804,7 +1826,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     public OperationUserActionResponse rejectOperation(OperationRejectRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationRejectRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationRejectRequest received, operation ID: {}, user ID: {}, application ID: {}",
                     request.getOperationId(),
@@ -1829,7 +1854,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationFailApprovalRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationFailApprovalRequest received, operation ID: {}", request.getOperationId());
             OperationUserActionResponse response = behavior.getOperationBehavior().failApprovalOperation(request);
@@ -1850,7 +1878,6 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationTemplateListResponse getAllTemplates() throws Exception {
-        // TODO: Validators
         try {
             logger.info("OperationTemplateListResponse call received");
             final OperationTemplateListResponse response = behavior.getOperationTemplateBehavior().getAllTemplates();
@@ -1868,7 +1895,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationTemplateDetailRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, error, error);
+        }
         try {
             logger.info("OperationTemplateDetailRequest call received, template ID: {}", request.getId());
             final OperationTemplateDetailResponse response = behavior.getOperationTemplateBehavior().getTemplateDetail(request);
@@ -1889,7 +1919,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationTemplateCreateRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_TEMPLATE_ERROR, error, error);
+        }
         try {
             logger.info("OperationTemplateCreateRequest call received, parameters: {}", request);
             final OperationTemplateDetailResponse response = behavior.getOperationTemplateBehavior().createOperationTemplate(request);
@@ -1910,7 +1943,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationTemplateUpdateRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_TEMPLATE_ERROR, error, error);
+        }
         try {
             logger.info("OperationTemplateUpdateRequest call received, parameters: {}", request);
             final OperationTemplateDetailResponse response = behavior.getOperationTemplateBehavior().updateOperationTemplate(request);
@@ -1931,7 +1967,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public void removeOperationTemplate(OperationTemplateDeleteRequest request) throws Exception {
-        // TODO: Validators
+        final String error = OperationTemplateDeleteRequestValidator.validate(request);
+        if (error != null) {
+            throw new GenericServiceException(ServiceError.OPERATION_TEMPLATE_ERROR, error, error);
+        }
         try {
             logger.info("OperationTemplateDeleteRequest call received, template ID: {}", request.getId());
             behavior.getOperationTemplateBehavior().removeOperationTemplate(request);

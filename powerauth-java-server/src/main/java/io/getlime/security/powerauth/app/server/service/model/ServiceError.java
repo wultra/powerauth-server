@@ -237,6 +237,16 @@ public class ServiceError {
      */
     public static final String ACTIVATION_CREATE_FAILED = "ERR0040";
 
+    /**
+     * Operation related error occurred.
+     */
+    public static final String OPERATION_ERROR = "ERR0041";
+
+    /**
+     * Operation template related error occurred.
+     */
+    public static final String OPERATION_TEMPLATE_ERROR = "ERR0042";
+
 
     public static List<String> allCodes() {
         List<String> list = new ArrayList<>(40);
@@ -281,6 +291,8 @@ public class ServiceError {
         list.add(OPERATION_REJECT_FAILURE);
         list.add(OPERATION_TEMPLATE_ALREADY_EXISTS);
         list.add(ACTIVATION_CREATE_FAILED);
+        list.add(OPERATION_ERROR);
+        list.add(OPERATION_TEMPLATE_ERROR);
         return list;
     }
 
