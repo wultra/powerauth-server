@@ -92,7 +92,7 @@
         <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
 
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>3.0.2</spring-cloud-vault.version>
+        <spring-cloud-vault.version>3.0.3</spring-cloud-vault.version>
 
         <!-- PowerAuth Dependencies -->
         <powerauth-java-crypto.version>1.1.0</powerauth-java-crypto.version>
