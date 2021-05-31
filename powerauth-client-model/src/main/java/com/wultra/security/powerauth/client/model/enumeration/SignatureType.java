@@ -18,8 +18,6 @@
 
 package com.wultra.security.powerauth.client.model.enumeration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Response enum for PowerAuth Signature Types.
  *
@@ -30,38 +28,32 @@ public enum SignatureType {
     /**
      * 1FA signature using possession factor key, value = "possession"
      */
-    POSSESSION("possession"),
+    POSSESSION,
 
     /**
      * 1FA signature using knowledge factor key, value = "knowledge"
      */
-    KNOWLEDGE("knowledge"),
+    KNOWLEDGE,
 
     /**
      * 1FA signature using biometry factor key, value = "biometry"
      */
-    BIOMETRY("biometry"),
+    BIOMETRY,
 
     /**
      * 2FA signature using possession and knowledge factor key, value = "possession_knowledge"
      */
-    POSSESSION_KNOWLEDGE("possession_knowledge"),
+    POSSESSION_KNOWLEDGE,
 
     /**
      * 2FA signature using possession and biometry factor key, value = "possession_biometry"
      */
-    POSSESSION_BIOMETRY("possession_biometry"),
+    POSSESSION_BIOMETRY,
 
     /**
      * 3FA signature using possession, knowledge and biometry factor key, value = "possession_knowledge_biometry"
      */
-    POSSESSION_KNOWLEDGE_BIOMETRY("possession_knowledge_biometry");
-
-    private final String value;
-
-    SignatureType(final String value) {
-        this.value = value;
-    }
+    POSSESSION_KNOWLEDGE_BIOMETRY;
 
     /**
      * Get enum value from provided string. In case the provided value does not match any value, null value is returned.
@@ -78,20 +70,6 @@ public enum SignatureType {
         } catch (IllegalArgumentException ex) {
             return null;
         }
-    }
-
-    /**
-     * Check if the enum value has the same name as a given string.
-     * @param otherName Name to be checked.
-     * @return True in case of enum value is equal to provided name.
-     */
-    public boolean equalsName(String otherName) {
-        return value.equalsIgnoreCase(otherName);
-    }
-
-    @Override
-    public String toString() {
-        return this.value.toLowerCase();
     }
 
 }
