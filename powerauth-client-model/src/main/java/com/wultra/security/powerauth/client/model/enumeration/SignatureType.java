@@ -65,10 +65,17 @@ public enum SignatureType {
             return null;
         }
         try {
-            // Make sure to match the enum name which is upper case, not 'value' that is lower case.
-            return SignatureType.valueOf(value.toUpperCase());
+            // Try performing the fetch from fast enum map as is, which should work in most cases since
+            // services are called via technical interfaces.
+            return SignatureType.valueOf(value);
         } catch (IllegalArgumentException ex) {
-            return null;
+            try {
+                // Attempt to match the enum name as an upper case, as a fallback
+                return SignatureType.valueOf(value.toUpperCase());
+            } catch (IllegalArgumentException ex2) {
+                // Unable to fetch the enum name
+                return null;
+            }
         }
     }
 
