@@ -128,9 +128,14 @@ public class OperationTemplateServiceBehavior {
      *
      * @param request Request with operation ID to be deleted.
      */
-    public void removeOperationTemplate(OperationTemplateDeleteRequest request) {
+    public void removeOperationTemplate(OperationTemplateDeleteRequest request) throws GenericServiceException {
         final Long id = request.getId();
-        templateRepository.deleteById(id);
+        final Optional<OperationTemplateEntity> templateEntity = templateRepository.findById(id);
+        if (templateEntity.isPresent()) {
+            templateRepository.deleteById(id);
+        } else {
+            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+        }
     }
 
 

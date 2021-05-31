@@ -22,7 +22,10 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -36,6 +39,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ControllerAdvice
 public class RESTControllerAdvice {
 
+    private static final Logger logger = LoggerFactory.getLogger(RESTControllerAdvice.class);
+
     /**
      * Handle all service exceptions using the same error format. Response has a status code 400 Bad Request.
      *
@@ -45,7 +50,9 @@ public class RESTControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = GenericServiceException.class)
     public @ResponseBody ObjectResponse<PowerAuthError> returnGenericError(GenericServiceException ex) {
-        PowerAuthError error = new PowerAuthError();
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthError error = new PowerAuthError();
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
@@ -60,11 +67,30 @@ public class RESTControllerAdvice {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(value = ActivationRecoveryException.class)
     public @ResponseBody ObjectResponse<PowerAuthError> returnActivationRecoveryError(ActivationRecoveryException ex) {
-        PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
         error.setCode(ex.getCode());
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
         error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
+        return new ObjectResponse<>("ERROR", error);
+    }
+
+    /**
+     * Resolver for HTTP request message errors.
+     * @param ex Exception for HTTP message not readable.
+     * @return Error for HTTP request.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex) {
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
+        error.setCode("ERROR_HTTP_REQUEST");
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
         return new ObjectResponse<>("ERROR", error);
     }
 

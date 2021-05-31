@@ -1978,6 +1978,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             logger.info("OperationTemplateDeleteRequest call received, template ID: {}", request.getId());
             behavior.getOperationTemplateBehavior().removeOperationTemplate(request);
             logger.info("OperationTemplateDeleteRequest succeeded");
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
         } catch (RuntimeException | Error ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
