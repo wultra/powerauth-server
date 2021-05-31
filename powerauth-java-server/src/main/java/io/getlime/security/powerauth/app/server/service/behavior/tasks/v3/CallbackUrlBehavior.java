@@ -332,9 +332,6 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("signatureType")) {
             callbackData.put("signatureType", operation.getSignatureType());
         }
-        if (callbackUrlEntity.getAttributes().contains("templateName")) {
-            callbackData.put("templateName", operation.getTemplate().getTemplateName());
-        }
         if (callbackUrlEntity.getAttributes().contains("externalId")) {
             callbackData.put("externalId", operation.getExternalId());
         }
