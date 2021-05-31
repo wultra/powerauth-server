@@ -58,14 +58,12 @@ public class OperationTemplateConverter {
         return destination;
     }
 
-    public OperationTemplateEntity convertToDB(OperationTemplateUpdateRequest source) {
-        final OperationTemplateEntity destination = new OperationTemplateEntity();
-        destination.setId(source.getId());
-        destination.setTemplateName(source.getTemplateName());
-        destination.setOperationType(source.getOperationType());
-        destination.setDataTemplate(source.getDataTemplate());
-        destination.setMaxFailureCount(source.getMaxFailureCount());
-        destination.setExpiration(source.getExpiration());
+    public OperationTemplateEntity convertToDB(OperationTemplateEntity original, OperationTemplateUpdateRequest source) {
+        original.setId(source.getId());
+        original.setOperationType(source.getOperationType());
+        original.setDataTemplate(source.getDataTemplate());
+        original.setMaxFailureCount(source.getMaxFailureCount());
+        original.setExpiration(source.getExpiration());
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
@@ -75,9 +73,9 @@ public class OperationTemplateConverter {
             }
         }
         final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
-        destination.setSignatureType(signatureTypesArray);
+        original.setSignatureType(signatureTypesArray);
 
-        return destination;
+        return original;
     }
 
     public OperationTemplateDetailResponse convertFromDB(OperationTemplateEntity source) {

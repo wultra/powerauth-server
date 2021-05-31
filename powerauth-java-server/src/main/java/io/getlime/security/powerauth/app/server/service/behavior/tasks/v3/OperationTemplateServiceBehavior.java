@@ -118,8 +118,8 @@ public class OperationTemplateServiceBehavior {
         }
 
         // Convert and store the new template
-        final OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
-        final OperationTemplateEntity savedEntity = templateRepository.save(operationTemplateEntity);
+        final OperationTemplateEntity modifiedEntity = operationTemplateConverter.convertToDB(template.get(), request);
+        final OperationTemplateEntity savedEntity = templateRepository.save(modifiedEntity);
         return operationTemplateConverter.convertFromDB(savedEntity);
     }
 
