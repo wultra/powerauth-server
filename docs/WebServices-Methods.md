@@ -84,10 +84,26 @@ The following `v3` methods are published using the service:
     - [updateActivationFlags](#method-updateactivationflags)
     - [removeActivationFlags](#method-removeactivationflags)
 - Application Roles
-    - [listApplicationRoles](#method-listactivationflags)
+    - [listApplicationRoles](#method-listapplicationoles)
     - [addApplicationRoles](#method-addapplicationroles)
     - [updateApplicationRoles](#method-updateapplicationroles)
-    - [removeActivationFlags](#method-removeactivationflags)
+    - [removeApplicationRoles](#method-removeapplicationroles)
+- Operations
+    - [createOperation](#method-createoperation)
+    - [operationDetail](#method-operationdetail)
+    - [findPendingOperationsForUser](#method-findpendingoperationsforuser)
+    - [findAllOperationsForUser](#method-findalloperationsforuser)
+    - [findAllOperationsByExternalId](#method-findalloperationsbyexternalid)
+    - [cancelOperation](#method-canceloperation)
+    - [approveOperation](#method-approveoperation)
+    - [failApprovalOperation](#method-failapprovaloperation)
+    - [rejectOperation](#method-rejectoperation)
+- Operation Templates
+    - [createOperationTemplate](#method-createoperationtemplate)
+    - [getAllTemplates](#method-getalltemplates)
+    - [getTemplateDetail](#method-gettemplatedetail)
+    - [updateOperationTemplate](#method-updateoperationtemplate)
+    - [removeOperationTemplate](#method-removeoperationtemplate) 
 
 The following `v2` methods are published using the service:
 - Activation Management
@@ -1698,7 +1714,9 @@ REST endpoint: `POST /rest/v3/recovery/config/update`
 
 | Type | Name | Description |
 |------|------|-------------|
-| `Boolean` | `updated` | Whether recovery configuration was updated |   
+| `Boolean` | `updated` | Whether recovery configuration was updated |
+
+## Activation Flags
 
 ### Method `listActivationFlags`
 
@@ -1795,6 +1813,8 @@ REST endpoint: `POST /rest/v3/activation/flags/remove`
 | `String` | `activationId` | The UUID4 identifier of the activation |
 | `String[]` | `activationFlags` | Activation flags for the activation after the removal |
 
+## Application Roles
+
 ### Method `listApplicationRoles`
 
 List roles for an application.
@@ -1890,6 +1910,508 @@ REST endpoint: `POST /rest/v3/application/roles/remove`
 | `String` | `applicationId` | An identifier of an application |
 | `String[]` | `applicationRoles` | Application roles assigned to the application after the removal |
 
+## Operations
+
+### Create Operation
+
+Create a new operation based on the operation template.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/create`
+
+`OperationCreateRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | An identifier of an application |
+| `String` | `templateName` | Name of the template used for creating the operation |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+
+#### Response
+
+`OperationDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Operation Detail
+
+Get the operation detail.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/detail`
+
+`OperationDetailRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `operationId` | The identifier of the operation |
+
+#### Response
+
+`OperationDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Find Pending Operations for User
+
+Get the list of pending operations for a user.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/list/pending`
+
+`OperationListForUserRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+
+
+#### Response
+
+`OperationListResponse`
+
+A collection of records with the following structure:
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Find All Operations for User
+
+Get the list of all operations for a user.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/list`
+
+`OperationListForUserRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+
+
+#### Response
+
+`OperationListResponse`
+
+A collection of records with the following structure:
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Find All Operations By External ID
+
+Get the list of operations by external ID.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/list/external`
+
+`OperationExtIdRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `externalId` | The external identifier of the operation |
+| `Long` | `applicationId` | The identifier of the application |
+
+
+#### Response
+
+`OperationListResponse`
+
+A collection of records with the following structure:
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Cancel Operation
+
+Cancel an operation.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/cancel`
+
+`OperationCancelRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `operationId` | The identifier of the operation |
+
+#### Response
+
+`OperationDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Approve Operation
+
+Approve an operation.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/approve`
+
+`OperationApproveRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `operationId` | The identifier of the operation |
+| `String` | `userId` | The identifier of the user who attempts to approve the operation |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `data` | Operation data that the user attempts to approve |
+| `SignatureType` | `signatureType` | Signature type used when approving the operation |
+
+#### Response
+
+`OperationUserActionResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `UserActionResult` | `result` | The result of the user action |
+| `String` | `userId` | The identifier of the user |
+
+
+`OperationDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Fail Approve Operation
+
+Fail approval of an operation to increment the failed attempt counter by one.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/approve/fail`
+
+`OperationFailApprovalRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `operationId` | The identifier of the operation |
+
+#### Response
+
+`OperationUserActionResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `UserActionResult` | `result` | The result of the user action |
+| `String` | `userId` | The identifier of the user |
+
+
+`OperationDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+### Reject Operation
+
+Reject an operation.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/reject`
+
+`OperationRejectRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `operationId` | The identifier of the operation |
+| `String` | `userId` | The identifier of the user who attempts to approve the operation |
+| `Long` | `applicationId` | The identifier of the application |
+
+#### Response
+
+`OperationUserActionResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `UserActionResult` | `result` | The result of the user action |
+| `String` | `userId` | The identifier of the user |
+
+
+`OperationDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `id` | The operation ID |
+| `String` | `userId` | The identifier of the user |
+| `Long` | `applicationId` | The identifier of the application |
+| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String` | `operationType` | Type of the operation created based on the template |
+| `String` | `data` | Operation data |
+| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| `OperationStatus` | `status` | Status of the operation |
+| `List<SignatureType>` | `signatureType` | Allowed types of signature |
+| `Long` | `failureCount` | The current number of the failed approval attempts |
+| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date` | `timestampCreated` | Timestamp of when the operation was created |
+| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+
+## Operation Templates
+
+### Create Operation Template
+
+Create an operation template.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/template/create`
+
+`OperationTemplateCreateRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `String` | `templateName` | The name of the operation template |
+| `String` | `operationType` | The type of the operation that is created based on the template |
+| `String` | `dataTemplate` | Template for the operation data |
+| `List<SignatureType>` | `signatureType` | Allowed signature types |
+| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
+| `Long` | `expiration` | Operation expiration period in seconds |
+
+#### Response
+
+`OperationTemplateDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+| `String` | `templateName` | The name of the operation template |
+| `String` | `operationType` | The type of the operation that is created based on the template |
+| `String` | `dataTemplate` | Template for the operation data |
+| `List<SignatureType>` | `signatureType` | Allowed signature types |
+| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
+| `Long` | `expiration` | Operation expiration period in seconds |
+  
+### Get All Templates
+
+Get all operation templates.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/template/list`
+
+_Empty request body_
+
+#### Response
+
+`OperationTemplateListResponse`
+
+Collection of items with the following structure:
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+| `String` | `templateName` | The name of the operation template |
+| `String` | `operationType` | The type of the operation that is created based on the template |
+| `String` | `dataTemplate` | Template for the operation data |
+| `List<SignatureType>` | `signatureType` | Allowed signature types |
+| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
+| `Long` | `expiration` | Operation expiration period in seconds |
+
+### Get Template Detail
+
+Get an operation template detail.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/template/detail`
+
+`OperationTemplateDetailRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+
+#### Response
+
+`OperationTemplateDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+| `String` | `templateName` | The name of the operation template |
+| `String` | `operationType` | The type of the operation that is created based on the template |
+| `String` | `dataTemplate` | Template for the operation data |
+| `List<SignatureType>` | `signatureType` | Allowed signature types |
+| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
+| `Long` | `expiration` | Operation expiration period in seconds |
+
+### Update Operation Template
+
+Update an operation template.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/template/update`
+
+`OperationTemplateUpdateRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+| `String` | `operationType` | The type of the operation that is created based on the template |
+| `String` | `dataTemplate` | Template for the operation data |
+| `List<SignatureType>` | `signatureType` | Allowed signature types |
+| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
+| `Long` | `expiration` | Operation expiration period in seconds |
+
+#### Response
+
+`OperationTemplateDetailResponse`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+| `String` | `templateName` | The name of the operation template |
+| `String` | `operationType` | The type of the operation that is created based on the template |
+| `String` | `dataTemplate` | Template for the operation data |
+| `List<SignatureType>` | `signatureType` | Allowed signature types |
+| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
+| `Long` | `expiration` | Operation expiration period in seconds |
+
+### Remove Operation Template
+
+Remove an operation template.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/operation/template/remove`
+
+`OperationTemplateDeleteRequest`
+
+| Type | Name | Description |
+|------|------|-------------|
+| `Long` | `id` | Operation template ID |
+
+#### Response
+
+_empty response_
 
 ## Activation management (v2)
 
@@ -2116,6 +2638,21 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
     - VALID
     - USED
     - INVALID
+  
+- `OperationStatus` - Represents the possible operation status
+    - PENDING
+    - CANCELED
+    - EXPIRED
+    - APPROVED
+    - REJECTED
+    - FAILED
+
+- `UserActionResult` - Represents the result of the user action when approving operation.
+    - APPROVED
+    - APPROVAL_FAILED
+    - REJECTED
+    - REJECT_FAILED
+    - OPERATION_FAILED
 
 ## Used complex types
 

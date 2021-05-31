@@ -41,7 +41,7 @@ public class OperationEntity implements Serializable {
     private static final long serialVersionUID = -5284589668386509303L;
 
     @Id
-    @Column(name = "id", updatable = false, length = 37, nullable = false)
+    @Column(name = "id", updatable = false, length = 37)
     private String id;
 
     @Column(name = "user_id", nullable=false)
@@ -50,10 +50,6 @@ public class OperationEntity implements Serializable {
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
     private ApplicationEntity application;
-
-    @ManyToOne
-    @JoinColumn(name = "template_id", referencedColumnName = "id", nullable = false)
-    private OperationTemplateEntity template;
 
     @Column(name = "external_id")
     private String externalId;
@@ -136,22 +132,6 @@ public class OperationEntity implements Serializable {
      */
     public void setApplication(ApplicationEntity applicationId) {
         this.application = applicationId;
-    }
-
-    /**
-     * Get template.
-     * @return Template.
-     */
-    public OperationTemplateEntity getTemplate() {
-        return template;
-    }
-
-    /**
-     * Set template.
-     * @param template Template.
-     */
-    public void setTemplate(OperationTemplateEntity template) {
-        this.template = template;
     }
 
     /**
@@ -355,7 +335,6 @@ public class OperationEntity implements Serializable {
         return "OperationEntity{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +
-                ", template=" + template.toString() +
                 ", externalId='" + externalId + '\'' +
                 ", operationType='" + operationType + '\'' +
                 ", data='" + data + '\'' +

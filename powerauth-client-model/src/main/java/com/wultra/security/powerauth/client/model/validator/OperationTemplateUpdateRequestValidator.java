@@ -20,6 +20,9 @@ package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Validator for OperationTemplateUpdateRequest class.
  *
@@ -34,7 +37,58 @@ public class OperationTemplateUpdateRequestValidator {
         if (source.getId() == null) {
             return "Operation template ID must not be null when updating template";
         }
+        if (source.getOperationType() == null) {
+            return "Template operation type must not be null when updating operation template";
+        }
+        if (source.getOperationType().isEmpty()) {
+            return "Template operation type must not be empty when updating operation template";
+        }
+        if (source.getSignatureType() == null) {
+            return "Template signature types must not be null when updating operation template";
+        }
+        if (source.getSignatureType().isEmpty()) {
+            return "Template signature types must contain at least one value";
+        }
+        if (hasDuplicate(source.getSignatureType())) {
+            return "Template signature types must be unique.";
+        }
+        if (source.getDataTemplate() == null) {
+            return "Template data must not be null when updating operation template";
+        }
+        if (source.getDataTemplate().isEmpty()) {
+            return "Template data must not be empty when updating operation template";
+        }
+        if (source.getExpiration() == null) {
+            return "Template expiration value must not be null when updating operation template";
+        }
+        if (source.getExpiration() <= 0) {
+            return "Template expiration value must not be greater than zero";
+        }
+        if (source.getMaxFailureCount() == null) {
+            return "Template maximum allowed failure count must not be null";
+        }
+        if (source.getMaxFailureCount() <= 0) {
+            return "Template maximum allowed failure count must be greater than zero";
+        }
         return null;
+    }
+
+    /**
+     * Check duplicates in iterable.
+     * @param all Iterable to check.
+     * @param <T> Generic type.
+     * @return True if iterable contains a duplicate value, false otherwise.
+     */
+    private static <T> boolean hasDuplicate(Iterable<T> all) {
+        if (all != null) {
+            final Set<T> set = new HashSet<>();
+            for (T each : all) {
+                if (!set.add(each)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

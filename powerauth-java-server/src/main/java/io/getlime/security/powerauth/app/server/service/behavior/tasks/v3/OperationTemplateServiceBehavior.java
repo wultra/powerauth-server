@@ -117,16 +117,6 @@ public class OperationTemplateServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
 
-        // Check if the user is editing template name and if it may collide
-        final String templateName = request.getTemplateName();
-        final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
-        if (templateByName.isPresent()) {
-            final OperationTemplateEntity operationTemplateEntity = templateByName.get();
-            if (!operationTemplateEntity.getId().equals(id)) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_ALREADY_EXISTS);
-            }
-        }
-
         // Convert and store the new template
         final OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
         final OperationTemplateEntity savedEntity = templateRepository.save(operationTemplateEntity);

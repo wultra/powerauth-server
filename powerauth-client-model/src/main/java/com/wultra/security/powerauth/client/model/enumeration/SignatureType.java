@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.enumeration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Response enum for PowerAuth Signature Types.
  *
@@ -71,7 +73,8 @@ public enum SignatureType {
             return null;
         }
         try {
-            return SignatureType.valueOf(value);
+            // Make sure to match the enum name which is upper case, not 'value' that is lower case.
+            return SignatureType.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException ex) {
             return null;
         }

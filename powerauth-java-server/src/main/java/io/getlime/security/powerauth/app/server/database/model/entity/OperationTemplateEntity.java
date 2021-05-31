@@ -40,7 +40,7 @@ public class OperationTemplateEntity implements Serializable {
     @Id
     @SequenceGenerator(name = "pa_operation_template", sequenceName = "pa_operation_template_seq")
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_operation_template")
-    @Column(name = "id", nullable=false)
+    @Column(name = "id")
     private Long id;
 
     @Column(name = "template_name", nullable=false)
@@ -66,27 +66,6 @@ public class OperationTemplateEntity implements Serializable {
      * Default constructor.
      */
     public OperationTemplateEntity() {
-    }
-
-    /**
-     * All param constructor
-     *
-     * @param id Operation template ID.
-     * @param templateName Name of the template.
-     * @param operationType Type of the operation.
-     * @param dataTemplate Template of the data used for signing. The value may contain `${xyz}` placeholders.
-     * @param signatureType Value representing which factors are allowed. One of: `1FA`, `2FA`, `2FA_NO_BIOMETRY`.
-     * @param maxFailureCount Maximum allowed number of failures for authentication.
-     * @param expiration Expiration in seconds (since "now").
-     */
-    public OperationTemplateEntity(Long id, String templateName, String operationType, String dataTemplate, PowerAuthSignatureTypes[] signatureType, Long maxFailureCount, Long expiration) {
-        this.id = id;
-        this.templateName = templateName;
-        this.operationType = operationType;
-        this.dataTemplate = dataTemplate;
-        this.signatureType = signatureType;
-        this.maxFailureCount = maxFailureCount;
-        this.expiration = expiration;
     }
 
     /**

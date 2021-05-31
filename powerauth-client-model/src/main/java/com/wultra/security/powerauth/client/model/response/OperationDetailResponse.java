@@ -35,7 +35,6 @@ public class OperationDetailResponse {
     private String id;
     private String userId;
     private Long applicationId;
-    private String templateName;
     private String externalId;
     private String operationType;
     private String data;
@@ -70,14 +69,6 @@ public class OperationDetailResponse {
 
     public Long getApplicationId() {
         return applicationId;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
     }
 
     public void setExternalId(String externalId) {

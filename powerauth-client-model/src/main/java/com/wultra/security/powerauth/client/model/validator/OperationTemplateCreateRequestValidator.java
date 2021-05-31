@@ -20,6 +20,9 @@ package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Validator for OperationTemplateCreateRequest class.
  *
@@ -49,6 +52,9 @@ public class OperationTemplateCreateRequestValidator {
         if (source.getSignatureType().isEmpty()) {
             return "Template signature types must contain at least one value";
         }
+        if (hasDuplicate(source.getSignatureType())) {
+            return "Template signature types must be unique.";
+        }
         if (source.getDataTemplate() == null) {
             return "Template data must not be null when creating operation template";
         }
@@ -68,6 +74,24 @@ public class OperationTemplateCreateRequestValidator {
             return "Template maximum allowed failure count must be greater than zero";
         }
         return null;
+    }
+
+    /**
+     * Check duplicates in iterable.
+     * @param all Iterable to check.
+     * @param <T> Generic type.
+     * @return True if iterable contains a duplicate value, false otherwise.
+     */
+    private static <T> boolean hasDuplicate(Iterable<T> all) {
+        if (all != null) {
+            final Set<T> set = new HashSet<>();
+            for (T each : all) {
+                if (!set.add(each)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 }

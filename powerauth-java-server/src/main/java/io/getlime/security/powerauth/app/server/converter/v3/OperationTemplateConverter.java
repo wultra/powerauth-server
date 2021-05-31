@@ -47,7 +47,10 @@ public class OperationTemplateConverter {
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
-            signatureTypes.add(PowerAuthSignatureTypes.getEnumFromString(type.toString()));
+            final PowerAuthSignatureTypes powerAuthSignatureTypes = PowerAuthSignatureTypes.getEnumFromString(type.toString());
+            if (!signatureTypes.contains(powerAuthSignatureTypes)) {
+                signatureTypes.add(powerAuthSignatureTypes);
+            }
         }
         final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
         destination.setSignatureType(signatureTypesArray);
@@ -66,7 +69,10 @@ public class OperationTemplateConverter {
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
-            signatureTypes.add(PowerAuthSignatureTypes.getEnumFromString(type.toString()));
+            final PowerAuthSignatureTypes powerAuthSignatureTypes = PowerAuthSignatureTypes.getEnumFromString(type.toString());
+            if (!signatureTypes.contains(powerAuthSignatureTypes)) {
+                signatureTypes.add(powerAuthSignatureTypes);
+            }
         }
         final PowerAuthSignatureTypes[] signatureTypesArray = signatureTypes.toArray(new PowerAuthSignatureTypes[0]);
         destination.setSignatureType(signatureTypesArray);
@@ -84,7 +90,10 @@ public class OperationTemplateConverter {
         destination.setMaxFailureCount(source.getMaxFailureCount());
         final List<SignatureType> signatureTypesResponse = new ArrayList<>();
         for (final PowerAuthSignatureTypes type : source.getSignatureType()) {
-            signatureTypesResponse.add(SignatureType.enumFromString(type.toString()));
+            final SignatureType signatureType = SignatureType.enumFromString(type.toString());
+            if (!signatureTypesResponse.contains(signatureType)) {
+                signatureTypesResponse.add(signatureType);
+            }
         }
         destination.setSignatureType(signatureTypesResponse);
         return destination;

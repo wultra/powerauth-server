@@ -211,7 +211,6 @@ CREATE TABLE pa_operation (
     id varchar(37) NOT NULL,
     user_id varchar(255) NOT NULL,
     application_id bigint(20) NOT NULL,
-    template_id bigint(20) NULL,
     external_id varchar(255) NULL,
     operation_type varchar(255) NOT NULL,
     data text NOT NULL,
@@ -226,13 +225,13 @@ CREATE TABLE pa_operation (
     PRIMARY KEY (id),
     CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
     CONSTRAINT `FK_OPERATION_TEMPLATE` FOREIGN KEY (`template_id`) REFERENCES `pa_operation_template` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
 -- Create table for operation templates
 --
 CREATE TABLE pa_operation_template (
-    id bigint(20) NOT NULL,
+    id bigint(20) NOT NULL AUTO_INCREMENT,
     template_name varchar(255) NOT NULL,
     operation_type varchar(255) NOT NULL,
     data_template varchar(255) NOT NULL,

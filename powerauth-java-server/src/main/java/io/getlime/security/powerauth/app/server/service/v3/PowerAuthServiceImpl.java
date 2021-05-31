@@ -1711,6 +1711,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws Exception {
         final String error = OperationListForUserRequestValidator.validate(request);
         if (error != null) {
@@ -1773,6 +1774,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationDetailResponse cancelOperation(OperationCancelRequest request) throws Exception {
         final String error = OperationCancelRequestValidator.validate(request);
         if (error != null) {
@@ -1825,6 +1827,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     }
 
     @Override
+    @Transactional
     public OperationUserActionResponse rejectOperation(OperationRejectRequest request) throws Exception {
         final String error = OperationRejectRequestValidator.validate(request);
         if (error != null) {

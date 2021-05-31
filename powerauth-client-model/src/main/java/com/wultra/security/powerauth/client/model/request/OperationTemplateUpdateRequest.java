@@ -30,7 +30,6 @@ import java.util.List;
 public class OperationTemplateUpdateRequest {
 
     private Long id;
-    private String templateName;
     private String operationType;
     private String dataTemplate;
     private List<SignatureType> signatureType;
@@ -43,14 +42,6 @@ public class OperationTemplateUpdateRequest {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
     }
 
     public String getOperationType() {
@@ -97,7 +88,6 @@ public class OperationTemplateUpdateRequest {
     public String toString() {
         return "OperationTemplateUpdateRequest{" +
                 "id=" + id +
-                ", templateName='" + templateName + '\'' +
                 ", operationType='" + operationType + '\'' +
                 ", dataTemplate='" + dataTemplate + '\'' +
                 ", signatureType=" + signatureType +

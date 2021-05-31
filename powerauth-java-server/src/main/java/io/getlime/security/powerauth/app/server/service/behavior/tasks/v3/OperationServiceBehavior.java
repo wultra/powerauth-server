@@ -159,7 +159,6 @@ public class OperationServiceBehavior {
         operationEntity.setId(operationId);
         operationEntity.setUserId(userId);
         operationEntity.setApplication(applicationEntity);
-        operationEntity.setTemplate(templateEntity);
         operationEntity.setExternalId(externalId);
         operationEntity.setOperationType(templateEntity.getOperationType());
         operationEntity.setData(operationData);
@@ -475,7 +474,6 @@ public class OperationServiceBehavior {
         destination.setId(source.getId());
         destination.setUserId(source.getUserId());
         destination.setApplicationId(source.getApplication().getId());
-        destination.setTemplateName(source.getTemplate().getTemplateName());
         destination.setExternalId(source.getExternalId());
         destination.setOperationType(source.getOperationType());
         destination.setData(source.getData());
@@ -487,6 +485,7 @@ public class OperationServiceBehavior {
             destination.setParameters(new HashMap<>());
         }
         final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
+                .distinct()
                 .map(p -> SignatureType.enumFromString(p.toString()))
                 .collect(Collectors.toList());
         destination.setSignatureType(signatureTypeList);
