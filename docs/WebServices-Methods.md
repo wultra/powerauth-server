@@ -1912,7 +1912,7 @@ REST endpoint: `POST /rest/v3/application/roles/remove`
 
 ## Operations
 
-### Create Operation
+### Method 'createOperation'
 
 Create a new operation based on the operation template.
 
@@ -1951,7 +1951,7 @@ REST endpoint: `POST /rest/v3/operation/create`
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Operation Detail
+### Method 'operationDetail'
 
 Get the operation detail.
 
@@ -1986,7 +1986,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Find Pending Operations for User
+### Method 'findPendingOperationsForUser'
 
 Get the list of pending operations for a user.
 
@@ -2025,7 +2025,7 @@ A collection of records with the following structure:
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Find All Operations for User
+### Method 'findAllOperationsForUser'
 
 Get the list of all operations for a user.
 
@@ -2064,7 +2064,7 @@ A collection of records with the following structure:
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Find All Operations By External ID
+### Method 'findAllOperationsByExternalID'
 
 Get the list of operations by external ID.
 
@@ -2103,7 +2103,7 @@ A collection of records with the following structure:
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Cancel Operation
+### Method 'cancelOperation'
 
 Cancel an operation.
 
@@ -2138,7 +2138,7 @@ REST endpoint: `POST /rest/v3/operation/cancel`
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Approve Operation
+### Method 'approveOperation'
 
 Approve an operation.
 
@@ -2185,7 +2185,7 @@ REST endpoint: `POST /rest/v3/operation/approve`
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Fail Approve Operation
+### Method 'failApproveOperation'
 
 Fail approval of an operation to increment the failed attempt counter by one.
 
@@ -2228,7 +2228,7 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Reject Operation
+### Method 'rejectOperation'
 
 Reject an operation.
 
@@ -2275,7 +2275,7 @@ REST endpoint: `POST /rest/v3/operation/reject`
 
 ## Operation Templates
 
-### Create Operation Template
+### Method 'createOperationTemplate'
 
 Create an operation template.
 
@@ -2308,7 +2308,7 @@ REST endpoint: `POST /rest/v3/operation/template/create`
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
   
-### Get All Templates
+### Method 'getAllTemplates'
 
 Get all operation templates.
 
@@ -2334,7 +2334,7 @@ Collection of items with the following structure:
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
 
-### Get Template Detail
+### Method 'getTemplateDetail'
 
 Get an operation template detail.
 
@@ -2362,7 +2362,7 @@ REST endpoint: `POST /rest/v3/operation/template/detail`
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
 
-### Update Operation Template
+### Method 'updateOperationTemplate'
 
 Update an operation template.
 
@@ -2395,7 +2395,7 @@ REST endpoint: `POST /rest/v3/operation/template/update`
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
 
-### Remove Operation Template
+### Method 'removeOperationTemplate'
 
 Remove an operation template.
 
