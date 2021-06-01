@@ -19,7 +19,7 @@ PowerAuth server contains the following configuration in `jboss-deployment-struc
 
         <resources>
             <!-- use WAR provided Bouncy Castle -->
-            <resource-root path="WEB-INF/lib/bcprov-jdk15on-1.68.jar" use-physical-code-source="true"/>
+            <resource-root path="WEB-INF/lib/bcprov-jdk15on-${BC_VERSION}.jar" use-physical-code-source="true"/>
         </resources>
 
         <dependencies>
@@ -28,7 +28,6 @@ PowerAuth server contains the following configuration in `jboss-deployment-struc
         <local-last value="true" />
     </deployment>
 </jboss-deployment-structure>
-
 ```
 
 The deployment descriptor requires configuration of the `com.wultra.powerauth.server.conf` module.

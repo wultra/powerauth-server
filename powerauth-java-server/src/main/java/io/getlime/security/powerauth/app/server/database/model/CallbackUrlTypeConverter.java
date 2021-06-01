@@ -34,11 +34,17 @@ public class CallbackUrlTypeConverter implements AttributeConverter<CallbackUrlT
 
     @Override
     public String convertToDatabaseColumn(CallbackUrlType callbackUrlType) {
+        if (callbackUrlType == null) {
+            return null;
+        }
         return callbackUrlType.toString();
     }
 
     @Override
     public CallbackUrlType convertToEntityAttribute(String s) {
+        if (s == null) {
+            return null;
+        }
         return CallbackUrlType.valueOf(s);
     }
 }

@@ -223,8 +223,7 @@ CREATE TABLE pa_operation (
     timestamp_expires datetime NOT NULL,
     timestamp_finalized datetime NULL,
     PRIMARY KEY (id),
-    CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-    CONSTRAINT `FK_OPERATION_TEMPLATE` FOREIGN KEY (`template_id`) REFERENCES `pa_operation_template` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+    CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
@@ -276,11 +275,11 @@ CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
 
 CREATE INDEX `pa_operation_user` ON `pa_operation`(`user_id`);
 
-CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created DESC);
+CREATE INDEX `pa_operation_ts_created_idx` ON `pa_operation`(`timestamp_created`);
 
-CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
+CREATE INDEX `pa_operation_ts_expires_idx` ON `pa_operation`(`timestamp_expires`);
 
-CREATE INDEX `pa_operation_template_name_idx` ON pa_operation_template (template_name);
+CREATE INDEX `pa_operation_template_name_idx` ON `pa_operation_template` (`template_name`);
 
 CREATE UNIQUE INDEX `pa_recovery_code_puk` ON `pa_recovery_puk`(`recovery_code_id`, `puk_index`);
 

@@ -38,6 +38,9 @@ import java.util.List;
 public class OperationTemplateConverter {
 
     public OperationTemplateEntity convertToDB(OperationTemplateCreateRequest source) {
+        if (source == null) {
+            return null;
+        }
         final OperationTemplateEntity destination = new OperationTemplateEntity();
         destination.setTemplateName(source.getTemplateName());
         destination.setOperationType(source.getOperationType());
@@ -59,6 +62,9 @@ public class OperationTemplateConverter {
     }
 
     public OperationTemplateEntity convertToDB(OperationTemplateEntity original, OperationTemplateUpdateRequest source) {
+        if (original == null || source == null) {
+            return original;
+        }
         original.setId(source.getId());
         original.setOperationType(source.getOperationType());
         original.setDataTemplate(source.getDataTemplate());

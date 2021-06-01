@@ -249,7 +249,7 @@ public class ServiceError {
 
 
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(40);
+        List<String> list = new ArrayList<>(42);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);

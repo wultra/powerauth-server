@@ -7,8 +7,8 @@ This chapter explains how to deploy PowerAuth Server.
 Following databases are supported:
 
 - Oracle Database 11g or 12c, or
-- PostgreSQL 9.5.4 or newer
-- MySQL 5.5 or newer, or
+- PostgreSQL 9.5.4 or newer, or
+- MySQL 5.5 or newer
 
 Note that MSSQL database is not supported.
 

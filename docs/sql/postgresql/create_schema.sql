@@ -208,7 +208,6 @@ CREATE TABLE "pa_operation" (
     "id"                    VARCHAR(37) NOT NULL PRIMARY KEY,
     "user_id"               VARCHAR(255) NOT NULL,
     "application_id"        BIGINT NOT NULL,
-    "template_id"           BIGINT,
     "external_id"           VARCHAR(255),
     "operation_type"        VARCHAR(255) NOT NULL,
     "data"                  TEXT NOT NULL,
@@ -301,7 +300,6 @@ ALTER TABLE "pa_recovery_config" ADD CONSTRAINT "recovery_config_app_fk" FOREIGN
 --  Ref Constraints for Table PA_OPERATION
 --
 ALTER TABLE "pa_operation" ADD CONSTRAINT "operation_application_fk" FOREIGN KEY ("application_id") REFERENCES "pa_application" ("id");
-ALTER TABLE "pa_operation" ADD CONSTRAINT "operation_template_fk" FOREIGN KEY ("template_id") REFERENCES "pa_operation_template" ("id");
 
 
 ---
@@ -354,7 +352,7 @@ CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);
 
 CREATE INDEX PA_OPERATION_USER ON PA_OPERATION(USER_ID);
 
-CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED DESC);
+CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED);
 
 CREATE INDEX PA_OPERATION_TS_EXPIRES_IDX ON PA_OPERATION(TIMESTAMP_EXPIRES);
 

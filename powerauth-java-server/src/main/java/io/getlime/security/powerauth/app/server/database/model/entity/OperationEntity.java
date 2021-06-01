@@ -44,7 +44,7 @@ public class OperationEntity implements Serializable {
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
-    @Column(name = "user_id", nullable=false)
+    @Column(name = "user_id", nullable = false)
     private String userId;
 
     @ManyToOne
@@ -54,33 +54,33 @@ public class OperationEntity implements Serializable {
     @Column(name = "external_id")
     private String externalId;
 
-    @Column(name = "operation_type", nullable=false)
+    @Column(name = "operation_type", nullable = false)
     private String operationType;
 
-    @Column(name = "data", nullable=false)
+    @Column(name = "data", nullable = false)
     private String data;
 
     @Column(name = "parameters")
     private String parameters;
 
-    @Column(name = "status", nullable=false)
+    @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
     private OperationStatusDo status;
 
-    @Column(name = "signature_type", nullable=false)
+    @Column(name = "signature_type", nullable = false)
     @Convert(converter = SignatureTypeConverter.class)
     private PowerAuthSignatureTypes[] signatureType;
 
-    @Column(name = "failure_count", nullable=false)
+    @Column(name = "failure_count", nullable = false)
     private Long failureCount;
 
-    @Column(name = "max_failure_count", nullable=false)
+    @Column(name = "max_failure_count", nullable = false)
     private Long maxFailureCount;
 
-    @Column(name = "timestamp_created", nullable=false)
+    @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
-    @Column(name = "timestamp_expires", nullable=false)
+    @Column(name = "timestamp_expires", nullable = false)
     private Date timestampExpires;
 
     @Column(name = "timestamp_finalized")

@@ -45,7 +45,6 @@ CREATE TABLE pa_operation (
     id varchar(37) NOT NULL,
     user_id varchar(255) NOT NULL,
     application_id bigint(20) NOT NULL,
-    template_id bigint(20) NULL,
     external_id varchar(255) NULL,
     operation_type varchar(255) NOT NULL,
     data text NOT NULL,
@@ -57,7 +56,8 @@ CREATE TABLE pa_operation (
     timestamp_created datetime NOT NULL,
     timestamp_expires datetime NOT NULL,
     timestamp_finalized datetime NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE pa_operation_template (
@@ -73,7 +73,7 @@ CREATE TABLE pa_operation_template (
 
 CREATE INDEX pa_operation_user ON pa_operation(user_id);
 
-CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created DESC);
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created);
 
 CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 
@@ -89,7 +89,6 @@ CREATE TABLE "pa_operation" (
     "id"                    VARCHAR(37) NOT NULL PRIMARY KEY,
     "user_id"               VARCHAR(255) NOT NULL,
     "application_id"        BIGINT NOT NULL,
-    "template_id"           BIGINT,
     "external_id"           VARCHAR(255),
     "operation_type"        VARCHAR(255) NOT NULL,
     "data"                  TEXT NOT NULL,
@@ -113,9 +112,11 @@ CREATE TABLE "pa_operation_template" (
     "expiration"            BIGINT NOT NULL
 );
 
+ALTER TABLE "pa_operation" ADD CONSTRAINT "operation_application_fk" FOREIGN KEY ("application_id") REFERENCES "pa_application" ("id");
+
 CREATE INDEX PA_OPERATION_USER ON PA_OPERATION(USER_ID);
 
-CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED DESC);
+CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED);
 
 CREATE INDEX PA_OPERATION_TS_EXPIRES_IDX ON PA_OPERATION(TIMESTAMP_EXPIRES);
 
@@ -131,11 +132,10 @@ CREATE TABLE "PA_OPERATION" (
     "ID"                    VARCHAR2(37 CHAR) NOT NULL PRIMARY KEY,
     "USER_ID"               VARCHAR2(255 CHAR) NOT NULL,
     "APPLICATION_ID"        NUMBER(19,0) NOT NULL,
-    "TEMPLATE_ID"           NUMBER(19,0),
     "EXTERNAL_ID"           VARCHAR2(255 CHAR),
     "OPERATION_TYPE"        VARCHAR2(255 CHAR) NOT NULL,
-    "DATA"                  TEXT NOT NULL,
-    "PARAMETERS"            TEXT,
+    "DATA"                  CLOB NOT NULL,
+    "PARAMETERS"            CLOB,
     "STATUS"                NUMBER(10,0) NOT NULL,
     "SIGNATURE_TYPE"        VARCHAR(255 CHAR) NOT NULL,
     "FAILURE_COUNT"         NUMBER(19,0) DEFAULT 0 NOT NULL,
@@ -155,9 +155,11 @@ CREATE TABLE "PA_OPERATION_TEMPLATE" (
     "EXPIRATION"            NUMBER(19,0) NOT NULL
 );
 
+ALTER TABLE "PA_OPERATION" ADD CONSTRAINT "OPERATION_APPLICATION_FK" FOREIGN KEY ("APPLICATION_ID") REFERENCES "PA_APPLICATION" ("ID") ENABLE;
+
 CREATE INDEX PA_OPERATION_USER ON PA_OPERATION(USER_ID);
 
-CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED DESC);
+CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED);
 
 CREATE INDEX PA_OPERATION_TS_EXPIRES_IDX ON PA_OPERATION(TIMESTAMP_EXPIRES);
 
@@ -166,7 +168,7 @@ CREATE INDEX PA_OPERATION_TEMPLATE_NAME_IDX ON PA_OPERATION_TEMPLATE(TEMPLATE_NA
 
 ## Multiple Callback Types
 
-Beside the callbacks that trigger on activation status change, we also support callbacks that are related to the operation status change. Therefore, we added a column that specifies the callback type. The default value that preserves the current behavior is `ACTIVATION_STATUS_CHANGE` (a callback related to an activation status change).
+Beside the callbacks that trigger on activation status change, we also support callbacks that are related to the operation status change. Therefore, we added a column that specifies the callback type. The default value that preserves the current behavior is `ACTIVATION_STATUS_CHANGE` (a callback related to an activation status change), the new callback type for operation status change is `OPERATION_STATUS_CHANGE`.
 
 ### MySQL
 
@@ -189,6 +191,8 @@ ALTER TABLE pa_application_callback
 	ADD type VARCHAR2(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL;
 ```
 
+The `CreateCallbackUrlRequest` also now contains a new mandatory attribute `type` that can be either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`.
+
 ## Add Synchronization Table for SchedLock
 
 We also introduced new scheduled tasks that are synchronized via ShedLock. In PowerAuth Server, SchedLock uses JDBC connection to persist the lock. Therefore, you need to create a new synchronization table to accommodate the locking data.
@@ -197,10 +201,10 @@ We also introduced new scheduled tasks that are synchronized via ShedLock. In Po
 
 ```sql
 CREATE TABLE shedlock (
-    name VARCHAR(64) NOT NULL,
-    lock_until TIMESTAMP(3) NOT NULL,
-    locked_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    locked_by VARCHAR(255) NOT NULL,
+    name        VARCHAR(64) NOT NULL,
+    lock_until  TIMESTAMP(3) NOT NULL,
+    locked_at   TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    locked_by   VARCHAR(255) NOT NULL,
     PRIMARY KEY (name)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
@@ -209,10 +213,10 @@ CREATE TABLE shedlock (
 
 ```sql
 CREATE TABLE shedlock (
-    name       VARCHAR(64)  NOT NULL PRIMARY KEY,
-    lock_until TIMESTAMP(3) NOT NULL,
-    locked_at  TIMESTAMP(3) NOT NULL,
-    locked_by  VARCHAR(255) NOT NULL
+    name        VARCHAR(64)  NOT NULL PRIMARY KEY,
+    lock_until  TIMESTAMP(3) NOT NULL,
+    locked_at   TIMESTAMP(3) NOT NULL,
+    locked_by   VARCHAR(255) NOT NULL
 );
 ```
 
@@ -220,10 +224,10 @@ CREATE TABLE shedlock (
 
 ```sql
 CREATE TABLE "shedlock" (
-    name VARCHAR(64) NOT NULL PRIMARY KEY,
-    lock_until TIMESTAMP NOT NULL,
-    locked_at TIMESTAMP NOT NULL,
-    locked_by VARCHAR(255) NOT NULL
+    name        VARCHAR(64) NOT NULL PRIMARY KEY,
+    lock_until  TIMESTAMP NOT NULL,
+    locked_at   TIMESTAMP NOT NULL,
+    locked_by   VARCHAR(255) NOT NULL
 );
 ```
 

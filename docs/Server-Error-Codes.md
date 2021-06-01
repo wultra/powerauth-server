@@ -43,6 +43,9 @@ PowerAuth Server may return following errors:
 | ERR0036    | Operation state is invalid for the requested change. |
 | ERR0037    | Operation cannot be approved. |
 | ERR0038    | Operation cannot be rejected. |
-
+| ERR0039    | Operation template already exists. |
+| ERR0040    | Activation cannot be created with the specified properties. |
+| ERR0041    | Operation related error occurred. |
+| ERR0042    | Operation template related error occurred. |
 
 For each of these issues, more details about the specific nature and cause can be found in the server log.
