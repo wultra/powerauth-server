@@ -88,4 +88,6 @@ In case you are using Apache Tomcat for deployment, you can set the properties v
 
 After restarting the PowerAuth Server, the configuration of encryption key will be automatically picked up from the Vault instance configured in the properties.
 
-_Note: In case you set the `powerauth.server.db.master.encryption.key` property in your Tomcat XML configuration directly (in a plain text), the configuration from the Vault still has a precedence and will be used over the hardcoded encryption key value._
+<!-- begin box info -->
+In case you set the `powerauth.server.db.master.encryption.key` property in your Tomcat XML configuration directly (in a plain text), the configuration from the Vault still has a precedence and will be used over the hardcoded encryption key value.
+<!-- end -->

@@ -62,6 +62,10 @@ public class ServiceBehaviorCatalogue {
 
     private RecoveryServiceBehavior recoveryServiceBehavior;
 
+    private OperationServiceBehavior operationServiceBehavior;
+
+    private OperationTemplateServiceBehavior operationTemplateServiceBehavior;
+
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
     @Autowired
@@ -145,6 +149,21 @@ public class ServiceBehaviorCatalogue {
     }
 
     @Autowired
+    public void setRecoveryServiceBehavior(OperationServiceBehavior operationServiceBehavior) {
+        this.operationServiceBehavior = operationServiceBehavior;
+    }
+
+    @Autowired
+    public void setOperationBehavior(OperationServiceBehavior operationServiceBehavior) {
+        this.operationServiceBehavior = operationServiceBehavior;
+    }
+
+    @Autowired
+    public void setOperationTemplateBehavior(OperationTemplateServiceBehavior operationTemplateServiceBehavior) {
+        this.operationTemplateServiceBehavior = operationTemplateServiceBehavior;
+    }
+
+    @Autowired
     public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
@@ -211,6 +230,14 @@ public class ServiceBehaviorCatalogue {
 
     public RecoveryServiceBehavior getRecoveryServiceBehavior() {
         return recoveryServiceBehavior;
+    }
+
+    public OperationServiceBehavior getOperationBehavior() {
+        return operationServiceBehavior;
+    }
+
+    public OperationTemplateServiceBehavior getOperationTemplateBehavior() {
+        return operationTemplateServiceBehavior;
     }
 
     public ServiceBehaviorCatalogueV2 v2() {

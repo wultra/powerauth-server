@@ -37,7 +37,7 @@
     </parent>
 
     <inceptionYear>2017</inceptionYear>
-    <url>http://powerauth.com/</url>
+    <url>https://powerauth.com/</url>
 
     <organization>
         <name>Wultra s.r.o.</name>
@@ -75,8 +75,6 @@
     <modules>
         <module>powerauth-client-model</module>
         <module>powerauth-rest-client-spring</module>
-        <module>powerauth-java-client-spring</module>
-        <module>powerauth-java-client-axis</module>
         <module>powerauth-java-server</module>
     </modules>
 
@@ -111,12 +109,16 @@
         <!-- Documentation Dependencies -->
         <springdoc-openapi.version>1.5.8</springdoc-openapi.version>
 
+        <!-- Scheduled Job Dependencies -->
+        <schedlock.version>4.23.0</schedlock.version>
+
         <!-- Test Dependencies -->
         <junit-jupiter-engine.version>5.7.2</junit-jupiter-engine.version>
         <h2.version>1.4.197</h2.version> <!-- Tests fail in version 1.4.200, upgrade reverted -->
 
         <!-- Other Dependencies -->
         <axis2.version>1.7.9</axis2.version>
+        <commons-text.version>1.9</commons-text.version>
 
     </properties>
 

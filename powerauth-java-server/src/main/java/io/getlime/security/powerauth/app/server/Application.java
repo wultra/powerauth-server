@@ -17,9 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server;
 
+import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.security.Security;
 
@@ -29,6 +31,8 @@ import java.security.Security;
  * @author Petr Dvorak, petr@wultra.com
  */
 @SpringBootApplication
+@EnableScheduling
+@EnableSchedulerLock(defaultLockAtMostFor = "10m")
 public class Application {
 
     static {

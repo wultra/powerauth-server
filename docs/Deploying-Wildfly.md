@@ -8,10 +8,19 @@ PowerAuth server contains the following configuration in `jboss-deployment-struc
 <?xml version="1.0"?>
 <jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
     <deployment>
+        <exclusions>
+            <module name="org.apache.xerces" />
+            <module name="org.apache.xalan" />
+        </exclusions>
         <exclude-subsystems>
             <!-- disable the logging subsystem because the application manages its own logging independently -->
             <subsystem name="logging" />
         </exclude-subsystems>
+
+        <resources>
+            <!-- use WAR provided Bouncy Castle -->
+            <resource-root path="WEB-INF/lib/bcprov-jdk15on-${BC_VERSION}.jar" use-physical-code-source="true"/>
+        </resources>
 
         <dependencies>
             <module name="com.wultra.powerauth.server.conf" />
@@ -93,11 +102,4 @@ spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
 powerauth.service.applicationEnvironment=TEST
 ```
 
-PowerAuth Server Spring application uses the `ext` Spring profile which activates overriding of default properties by `application-ext.properties`. 
-
-### Bouncy Castle Installation
-
-The Bouncy Castle module for JBoss / Wildfly needs to be enabled as a global module for PowerAuth.
-
-Follow the instructions in the [Installing Bouncy Castle](./Installing-Bouncy-Castle.md) chapter. 
-Note that the instructions differ based on Java version and application server type.
+PowerAuth Server Spring application uses the `ext` Spring profile which activates overriding of default properties by `application-ext.properties`.

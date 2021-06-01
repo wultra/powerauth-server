@@ -18,6 +18,8 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
+import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
+import io.getlime.security.powerauth.app.server.database.model.CallbackUrlTypeConverter;
 
 import javax.persistence.Column;
 import javax.persistence.Convert;
@@ -42,6 +44,10 @@ public class CallbackUrlEntity implements Serializable {
 
     @Column(name = "application_id", updatable = false, nullable = false)
     private Long applicationId;
+
+    @Column(name = "type", nullable = false)
+    @Convert(converter = CallbackUrlTypeConverter.class)
+    private CallbackUrlType type;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -99,6 +105,22 @@ public class CallbackUrlEntity implements Serializable {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Get type of a callback URL.
+     * @return Callback URL type.
+     */
+    public CallbackUrlType getType() {
+        return type;
+    }
+
+    /**
+     * Set type of the callback URL.
+     * @param type Callback URL type.
+     */
+    public void setType(CallbackUrlType type) {
+        this.type = type;
     }
 
     /**
