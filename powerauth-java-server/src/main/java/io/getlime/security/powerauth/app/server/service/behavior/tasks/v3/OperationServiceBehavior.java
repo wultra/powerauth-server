@@ -51,6 +51,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -110,6 +111,7 @@ public class OperationServiceBehavior {
         // Fetch the operation template
         final Optional<OperationTemplateEntity> template = templateRepository.findTemplateByName(templateName);
         if (!template.isPresent()) {
+            logger.error("Operation template was not found: {}. Check your configuration in pa_operation_template table.", templateName);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
         final OperationTemplateEntity templateEntity = template.get();
@@ -117,6 +119,7 @@ public class OperationServiceBehavior {
         // Check if application exists
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
+            logger.error("Application was not found for ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         final ApplicationEntity applicationEntity = application.get();
@@ -132,7 +135,7 @@ public class OperationServiceBehavior {
             } // ... else this token ID has a collision, reset it and try to find another one
         }
         if (operationId == null) {
-            logger.error("Unable to generate token");
+            logger.error("Unable to generate token due to too many UUID.randomUUID() collisions. Check your random generator setup.");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
         }
@@ -150,8 +153,8 @@ public class OperationServiceBehavior {
         try {
             parametersString = objectMapper.writeValueAsString(parameters);
         } catch (JsonProcessingException ex) { // Should not happen
-            parametersString = "{}";
             logger.error("Unable to serialize JSON parameter payload for operation {}.", operationId, ex);
+            parametersString = "{}";
         }
 
         // Create a new operation
@@ -189,28 +192,31 @@ public class OperationServiceBehavior {
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
+            logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
         }
 
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
+            logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         // Check if the operation is not expired
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+        final OperationStatusDo operationStatus = operationEntity.getStatus();
+        if (!OperationStatusDo.PENDING.equals(operationStatus)) {
+            logger.debug("Operation is not PENDING - operation ID: {}, status: {}", operationId, operationStatus);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
         }
 
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
-        if (factorEnum != null // the used factor is known
-            && operationEntity.getUserId().equals(userId) // correct user approved the operation
+        if (operationEntity.getUserId().equals(userId) // correct user approved the operation
             && operationEntity.getApplication().getId().equals(applicationId) // operation is approved by the expected application
-            && operationEntity.getData().equals(data) // operation data matched the expected value
-            && factorsAcceptable(operationEntity.getSignatureType(), factorEnum) // auth factors are acceptable
+            && isDataEqual(operationEntity, data) // operation data matched the expected value
+            && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
 
             // Approve the operation
@@ -238,6 +244,8 @@ public class OperationServiceBehavior {
                 behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
+                logger.info("Operation approval failed for operation ID: {}", savedEntity.getId());
+
                 OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.APPROVAL_FAILED);
                 response.setOperation(operationDetailResponse);
@@ -250,6 +258,8 @@ public class OperationServiceBehavior {
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+                logger.info("Operation failed for operation ID: {}", savedEntity.getId());
 
                 OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.OPERATION_FAILED);
@@ -269,18 +279,22 @@ public class OperationServiceBehavior {
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
+            logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
         }
 
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
+            logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         // Check if the operation is not expired
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+        final OperationStatusDo operationStatus = operationEntity.getStatus();
+        if (!OperationStatusDo.PENDING.equals(operationStatus)) {
+            logger.debug("Operation is not PENDING - operation ID: {}, status: {}", operationId, operationStatus);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
         }
 
@@ -300,6 +314,7 @@ public class OperationServiceBehavior {
             response.setOperation(operationDetailResponse);
             return response;
         } else {
+            logger.info("Operation reject failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
             OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.REJECT_FAILED);
@@ -316,12 +331,15 @@ public class OperationServiceBehavior {
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
+            logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
 
         // Check if the operation is not expired
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+        final OperationStatusDo operationStatus = operationEntity.getStatus();
+        if (!OperationStatusDo.PENDING.equals(operationStatus)) {
+            logger.debug("Operation is not PENDING - operation ID: {}, status: {}", operationId, operationStatus);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
         }
 
@@ -365,12 +383,15 @@ public class OperationServiceBehavior {
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
         if (!operationOptional.isPresent()) {
+            logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
 
         // Check if the operation is not expired
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-        if (!OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+        final OperationStatusDo operationStatus = operationEntity.getStatus();
+        if (!OperationStatusDo.PENDING.equals(operationStatus)) {
+            logger.debug("Operation is not PENDING - operation ID: {}, status: {}", operationId, operationStatus);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_INVALID_STATE);
         }
 
@@ -388,6 +409,7 @@ public class OperationServiceBehavior {
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
         if (!operationOptional.isPresent()) {
+            logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
 
@@ -404,6 +426,7 @@ public class OperationServiceBehavior {
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
+            logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -426,6 +449,7 @@ public class OperationServiceBehavior {
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
+            logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -456,6 +480,7 @@ public class OperationServiceBehavior {
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
+            logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -530,11 +555,38 @@ public class OperationServiceBehavior {
         return source;
     }
 
-    private boolean factorsAcceptable(PowerAuthSignatureTypes[] allowedSignatureTypes, PowerAuthSignatureTypes usedFactors) {
-        if (allowedSignatureTypes == null) {
+    private boolean factorsAcceptable(@NotNull OperationEntity operation, PowerAuthSignatureTypes usedFactor) {
+        final String operationId = operation.getId();
+        final PowerAuthSignatureTypes[] allowedFactors = operation.getSignatureType();
+        if (usedFactor == null) { // the used factor is unknown
+            logger.warn("Null authentication factors used for operation ID: {} - allowed: {}", operationId, Arrays.toString(allowedFactors));
+            return false;
+        }
+        if (allowedFactors == null) {
+            logger.error("Null allowed signature types for operation ID: {}. Check your configuration in pa_operation_template table.", operationId);
             return false; // likely a misconfiguration
         }
-        return Arrays.asList(allowedSignatureTypes).contains(usedFactors);
+        if (Arrays.asList(allowedFactors).contains(usedFactor)) {
+            return true;
+        } else {
+            logger.warn("Invalid authentication factors used for operation ID: {} - allowed: {}, used: {}", operationId, Arrays.toString(allowedFactors), usedFactor);
+            return false;
+        }
+    }
+
+    private boolean isDataEqual(@NotNull OperationEntity operation, String providedData) {
+        final String operationId = operation.getId();
+        final String operationData = operation.getData();
+        if (operationData == null) {
+            logger.error("Null operation data for operation ID: {}. Check your configuration in pa_operation_template table.", operationId);
+            return false; // likely a misconfiguration
+        }
+        if (operationData.equals(providedData)) {
+            return true;
+        } else {
+            logger.warn("Invalid data for operation ID: {} - expected: {}, used: {}", operationId, operationData, providedData);
+            return false;
+        }
     }
 
     // Scheduled tasks
