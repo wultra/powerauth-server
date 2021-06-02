@@ -244,7 +244,7 @@ public class OperationServiceBehavior {
                 behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
-                logger.info("Operation approval failed for operation ID: {}", savedEntity.getId());
+                logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                 OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.APPROVAL_FAILED);
@@ -259,7 +259,7 @@ public class OperationServiceBehavior {
                 behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
-                logger.info("Operation failed for operation ID: {}", savedEntity.getId());
+                logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                 OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.OPERATION_FAILED);
