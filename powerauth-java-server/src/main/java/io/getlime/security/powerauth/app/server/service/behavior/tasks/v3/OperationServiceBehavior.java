@@ -18,9 +18,6 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -75,9 +72,6 @@ public class OperationServiceBehavior {
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(OperationServiceBehavior.class);
-
-    // Helper classes
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public OperationServiceBehavior(
@@ -148,15 +142,6 @@ public class OperationServiceBehavior {
         final StringSubstitutor sub = new StringSubstitutor(parameters);
         final String operationData = sub.replace(templateEntity.getDataTemplate());
 
-        // Serialize parameters in the string
-        String parametersString;
-        try {
-            parametersString = objectMapper.writeValueAsString(parameters);
-        } catch (JsonProcessingException ex) { // Should not happen
-            logger.error("Unable to serialize JSON parameter payload for operation {}.", operationId, ex);
-            parametersString = "{}";
-        }
-
         // Create a new operation
         final OperationEntity operationEntity = new OperationEntity();
         operationEntity.setId(operationId);
@@ -165,7 +150,7 @@ public class OperationServiceBehavior {
         operationEntity.setExternalId(externalId);
         operationEntity.setOperationType(templateEntity.getOperationType());
         operationEntity.setData(operationData);
-        operationEntity.setParameters(parametersString);
+        operationEntity.setParameters(parameters);
         operationEntity.setStatus(OperationStatusDo.PENDING);
         operationEntity.setSignatureType(templateEntity.getSignatureType());
         operationEntity.setFailureCount(0L);
@@ -502,13 +487,7 @@ public class OperationServiceBehavior {
         destination.setExternalId(source.getExternalId());
         destination.setOperationType(source.getOperationType());
         destination.setData(source.getData());
-        try {
-            final TypeReference<Map<String,String>> typeRef = new TypeReference<Map<String,String>>() {};
-            final Map<String, String> map = objectMapper.readValue(source.getParameters(), typeRef);
-            destination.setParameters(map);
-        } catch (JsonProcessingException e) {
-            destination.setParameters(new HashMap<>());
-        }
+        destination.setParameters(source.getParameters());
         final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
                 .distinct()
                 .map(p -> SignatureType.enumFromString(p.toString()))
