@@ -430,13 +430,13 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
-        final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationId);
-
         final OperationListResponse result = new OperationListResponse();
-        operationsForUser.forEach(op -> {
-            final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
-            result.add(convertFromEntity(operationEntity));
-        });
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationId)) {
+            operationsForUser.forEach(op -> {
+                final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
+                result.add(convertFromEntity(operationEntity));
+            });
+        }
         return result;
     }
 
@@ -453,15 +453,15 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
-        final Iterable<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationId);
-
         final OperationListResponse result = new OperationListResponse();
-        for (OperationEntity op: operationsForUser) {
-            final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
-            // Skip operation that just expired
-            if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-                result.add(convertFromEntity(operationEntity));
-            }
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationId)) {
+            operationsForUser.forEach(op -> {
+                final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
+                // Skip operation that just expired
+                if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+                    result.add(convertFromEntity(operationEntity));
+                }
+            });
         }
         return result;
     }
@@ -484,13 +484,13 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
-        final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationId);
-
         final OperationListResponse result = new OperationListResponse();
-        operationsByExternalId.forEach(op -> {
-            final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
-            result.add(convertFromEntity(operationEntity));
-        });
+        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationId)) {
+            operationsByExternalId.forEach(op -> {
+                final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
+                result.add(convertFromEntity(operationEntity));
+            });
+        }
         return result;
     }
 
@@ -598,7 +598,8 @@ public class OperationServiceBehavior {
         LockAssert.assertLocked();
         final Date currentTimestamp = new Date();
         logger.debug("Running scheduled task for expiring operations");
-        final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp);
-        pendingOperations.forEach(op -> expireOperation(op, currentTimestamp));
+        try (final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp)) {
+            pendingOperations.forEach(op -> expireOperation(op, currentTimestamp));
+        }
     }
 }
