@@ -51,7 +51,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     @Query("SELECT o FROM OperationEntity o " +
             "WHERE o.userId = :userId AND o.application.id = :applicationId AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated DESC")
-    Iterable<OperationEntity> findPendingOperationsForUser(String userId, Long applicationId);
+    Stream<OperationEntity> findPendingOperationsForUser(String userId, Long applicationId);
 
     @Query("SELECT o FROM OperationEntity o WHERE o.externalId = :externalId AND o.application.id = :applicationId ORDER BY o.timestampCreated DESC")
     Stream<OperationEntity> findOperationsByExternalId(String externalId, Long applicationId);
