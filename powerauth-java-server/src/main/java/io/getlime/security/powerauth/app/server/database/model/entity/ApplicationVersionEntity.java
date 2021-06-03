@@ -27,7 +27,8 @@ import java.util.Objects;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Entity(name = "pa_application_version")
+@Entity
+@Table(name = "pa_application_version")
 public class ApplicationVersionEntity implements Serializable {
 
     private static final long serialVersionUID = -5107229264389219556L;

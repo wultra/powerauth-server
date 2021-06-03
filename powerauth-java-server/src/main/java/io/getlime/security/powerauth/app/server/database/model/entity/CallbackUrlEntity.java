@@ -21,10 +21,7 @@ import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeCo
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlTypeConverter;
 
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 
@@ -33,7 +30,8 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Entity(name = "pa_application_callback")
+@Entity
+@Table(name = "pa_application_callback")
 public class CallbackUrlEntity implements Serializable {
 
     private static final long serialVersionUID = 3372029113954119581L;
