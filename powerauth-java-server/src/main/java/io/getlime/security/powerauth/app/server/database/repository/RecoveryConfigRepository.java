@@ -19,14 +19,14 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.RecoveryConfigEntity;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 /**
  * Database repository for recovery config entities.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component
+@Repository
 public interface RecoveryConfigRepository extends CrudRepository<RecoveryConfigEntity, Long> {
 
     /**

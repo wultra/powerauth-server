@@ -70,9 +70,9 @@ public class AuditingServiceBehavior {
 
         List<SignatureEntity> signatureAuditEntityList;
         if (applicationId == null) {
-            signatureAuditEntityList = signatureAuditRepository.findSignatureAutitRecordsForUser(userId, startingDate, endingDate);
+            signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForUser(userId, startingDate, endingDate);
         } else {
-            signatureAuditEntityList = signatureAuditRepository.findSignatureAutitRecordsForApplicationAndUser(applicationId, userId, startingDate, endingDate);
+            signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForApplicationAndUser(applicationId, userId, startingDate, endingDate);
         }
 
         SignatureAuditResponse response = new SignatureAuditResponse();
