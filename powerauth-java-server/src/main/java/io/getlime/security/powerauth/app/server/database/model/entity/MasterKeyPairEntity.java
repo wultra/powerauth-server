@@ -27,7 +27,8 @@ import java.util.Objects;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Entity(name = "pa_master_keypair")
+@Entity
+@Table(name = "pa_master_keypair")
 public class MasterKeyPairEntity implements Serializable {
 
     private static final long serialVersionUID = 1507932260603647825L;
