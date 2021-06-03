@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Repository
 public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity, String> {
 
     List<CallbackUrlEntity> findByApplicationIdOrderByName(Long applicationId);

@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -27,6 +28,7 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Repository
 public interface ApplicationRepository extends CrudRepository<ApplicationEntity, Long> {
 
     /**

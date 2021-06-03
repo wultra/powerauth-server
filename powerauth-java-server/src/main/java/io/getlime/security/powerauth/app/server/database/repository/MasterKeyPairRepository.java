@@ -19,12 +19,14 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
 /**
  * Database repository for accessing Master Key Pair data.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Repository
 public interface MasterKeyPairRepository extends CrudRepository<MasterKeyPairEntity, Long> {
 
     /**
