@@ -18,16 +18,12 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.OperationStatusDo;
-import io.getlime.security.powerauth.app.server.database.model.OperationStatusDoConverter;
-import io.getlime.security.powerauth.app.server.database.model.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Entity representing an operation for approval.
@@ -60,8 +56,10 @@ public class OperationEntity implements Serializable {
     @Column(name = "data", nullable = false)
     private String data;
 
+    @SuppressWarnings("JpaAttributeTypeInspection")
     @Column(name = "parameters")
-    private String parameters;
+    @Convert(converter = OperationParameterConverter.class)
+    private Map<String, String> parameters = new HashMap<>();
 
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
@@ -186,7 +184,7 @@ public class OperationEntity implements Serializable {
      * Get operation parameters.
      * @return Operation parameters.
      */
-    public String getParameters() {
+    public Map<String, String> getParameters() {
         return parameters;
     }
 
@@ -194,7 +192,7 @@ public class OperationEntity implements Serializable {
      * Set operation parameters.
      * @param parameters Operation parameters.
      */
-    public void setParameters(String parameters) {
+    public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
     }
 
@@ -338,7 +336,7 @@ public class OperationEntity implements Serializable {
                 ", externalId='" + externalId + '\'' +
                 ", operationType='" + operationType + '\'' +
                 ", data='" + data + '\'' +
-                ", parameters='" + parameters + '\'' +
+                ", parameters='" + Collections.singletonList(parameters) + '\'' +
                 ", status=" + status +
                 ", signatureType='" + Arrays.toString(signatureType) + '\'' +
                 ", failureCount=" + failureCount +
