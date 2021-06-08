@@ -144,7 +144,7 @@ You can specify the individual properties directly in the server configuration. 
 
 #### 2. Configuring by Pointing to Configuration File
 
-Alternatively, you can create a single property in the server configuration that only points to your custom configuration file `/path/to/some/custom.properties`. This method is especially useful in situations where the server configuration must be as simple as possible (for example, creating a configuration module in JBoss Wildfly). In such case, do not forget to also include the default `application.properties` files that are on the classpath by default (it is bundled inside the WAR). Here is the Tomcat example again: 
+Alternatively, you can create a single property in the server configuration that only points to your custom configuration file `/path/to/some/custom.properties`. This method is especially useful in situations where the server configuration must be as simple as possible (for example, creating a configuration module in JBoss Wildfly). In such case, do not forget to also include the default `application.properties` file that is on the classpath by default (it is bundled inside the WAR). Here is the Tomcat example again: 
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
