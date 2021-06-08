@@ -17,12 +17,16 @@
  */
 package com.wultra.security.powerauth.client;
 
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest;
 import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v3.*;
+import io.getlime.core.rest.model.base.response.Response;
 
 import java.util.Date;
 import java.util.List;
@@ -779,12 +783,13 @@ public interface PowerAuthClient {
      *
      * @param applicationId Application ID.
      * @param name          Callback URL display name.
+     * @param type          Callback type.
      * @param callbackUrl   Callback URL value.
      * @param attributes    Attributes to send in the callback data.
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given request object.
@@ -1264,6 +1269,110 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException;
+
+    /**
+     * Create new operation.
+     * @param request Create operation request.
+     * @return Create operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse createOperation(OperationCreateRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get operation detail.
+     * @param request Operation detail request.
+     * @return Operation detail response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse operationDetail(OperationDetailRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get list with all operations for provided user.
+     * @param request Get operation list request.
+     * @return Get operation list response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationListResponse operationList(OperationListForUserRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get pending operation list.
+     * @param request Get pending operation list request.
+     * @return Get pending operation list response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationListResponse operationPendingList(OperationListForUserRequest request) throws PowerAuthClientException;
+
+    /**
+     * Cancel operation.
+     * @param request Cancel operation request.
+     * @return Cancel operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationDetailResponse operationCancel(OperationCancelRequest request) throws PowerAuthClientException;
+
+    /**
+     * Approve operation.
+     * @param request Approve operation request.
+     * @return Approve operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException;
+
+    /**
+     * Simulate approval failure. Useful when you need to enforce decrement of a counter,
+     * or eventual operation failure.
+     * @param request Failed approval operation request.
+     * @return Failed approval operatin request.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws PowerAuthClientException;
+
+    /**
+     * Reject operation.
+     * @param request Reject operation request.
+     * @return Reject operation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get operation template list.
+     * @return Operation template list.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationTemplateListResponse operationTemplateList() throws PowerAuthClientException;
+
+    /**
+     * Get operation template detail.
+     * @param request Operation template detail request.
+     * @return Operation template detail.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationTemplateDetailResponse operationTemplateDetail(OperationTemplateDetailRequest request) throws PowerAuthClientException;
+
+    /**
+     * Create a new operation template.
+     * @param request New operation template details.
+     * @return Operation template detail.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws PowerAuthClientException;
+
+    /**
+     * Update an operation template.
+     * @param request Updated operation template details.
+     * @return Operation template detail.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws PowerAuthClientException;
+
+    /**
+     * Remove operation template.
+     * @param request Remove operation template request.
+     * @return Plain response object.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeOperationTemplate(OperationTemplateDeleteRequest request) throws PowerAuthClientException;
 
     /**
      * Get the PowerAuth version 2 client (legacy).

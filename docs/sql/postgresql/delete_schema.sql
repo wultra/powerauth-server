@@ -13,6 +13,11 @@ DROP TABLE IF EXISTS "pa_application_callback" CASCADE;
 DROP TABLE IF EXISTS "pa_recovery_config" CASCADE;
 DROP TABLE IF EXISTS "pa_recovery_puk" CASCADE;
 DROP TABLE IF EXISTS "pa_recovery_code" CASCADE;
+DROP TABLE IF EXISTS "pa_operation" CASCADE;
+DROP TABLE IF EXISTS "pa_operation_template" CASCADE;
+
+-- Optionally drop the shedlock table
+-- DROP TABLE IF EXISTS "shedlock" CASCADE;
 
 --
 --  Drop all sequences.
@@ -25,3 +30,4 @@ DROP SEQUENCE IF EXISTS "pa_activation_history_seq";
 DROP SEQUENCE IF EXISTS "pa_recovery_code_seq";
 DROP SEQUENCE IF EXISTS "pa_recovery_puk_seq";
 DROP SEQUENCE IF EXISTS "pa_recovery_config_seq";
+DROP SEQUENCE IF EXISTS "pa_operation_template_seq";

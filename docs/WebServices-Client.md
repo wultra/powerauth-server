@@ -5,8 +5,3 @@ PowerAuth assumes that the end-user client application (for example, mobile bank
 In order to integrate your web application with REST services provided by PowerAuth Server, follow this tutorial:
 
 - [Configuring REST Client for Spring](./Configuring-REST-Client-for-Spring.md)
-
-In order to integrate your web application with SOAP services provided by PowerAuth Server, follow this tutorial:
-
-- [Configuring SOAP Client (Spring WS)](./Configuring-SOAP-Client-for-Spring.md)
-- [Configuring SOAP Client (Axis2)](./Configuring-SOAP-Client-for-Axis2.md)

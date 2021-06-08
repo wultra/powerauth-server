@@ -22,8 +22,10 @@ import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -31,8 +33,9 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -114,6 +117,7 @@ public class CallbackUrlBehavior {
         entity.setId(UUID.randomUUID().toString());
         entity.setApplicationId(request.getApplicationId());
         entity.setName(request.getName());
+        entity.setType(CallbackUrlType.valueOf(request.getType()));
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
         callbackUrlRepository.save(entity);
@@ -164,6 +168,7 @@ public class CallbackUrlBehavior {
         response.setId(entity.getId());
         response.setApplicationId(entity.getApplicationId());
         response.setName(entity.getName());
+        response.setType(entity.getType().toString());
         response.setCallbackUrl(entity.getCallbackUrl());
         response.getAttributes().addAll(entity.getAttributes());
         return response;
@@ -182,6 +187,7 @@ public class CallbackUrlBehavior {
             item.setId(callbackUrl.getId());
             item.setApplicationId(callbackUrl.getApplicationId());
             item.setName(callbackUrl.getName());
+            item.setType(callbackUrl.getType().toString());
             item.setCallbackUrl(callbackUrl.getCallbackUrl());
             item.getAttributes().addAll(callbackUrl.getAttributes());
             response.getCallbackUrlList().add(item);
@@ -208,26 +214,21 @@ public class CallbackUrlBehavior {
     }
 
     /**
-     * Tries to asynchronously notify all callbacks that are registered for given application.
-     * @param applicationId Application for the callbacks to be used.
+     * Tries to asynchronously notify all activation status callbacks that are registered for given application.
      * @param activation Activation to be notified about.
      */
-    public void notifyCallbackListeners(Long applicationId, ActivationRecordEntity activation) {
+    public void notifyCallbackListenersOnActivationChange(ActivationRecordEntity activation) {
         try {
             if (restClient == null) {
                 // Initialize Rest Client when it is used for the first time
                 initializeRestClient();
             }
-            final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(applicationId);
-            for (CallbackUrlEntity callbackUrlEntity: callbackUrlEntities) {
-                Map<String, Object> callbackData = prepareCallbackData(callbackUrlEntity, activation);
-                Consumer<ClientResponse> onSuccess = response -> {
-                    if (response.statusCode().isError()) {
-                        logger.warn("Callback failed, URL: {}, status code: {}", callbackUrlEntity.getCallbackUrl(), response.statusCode().toString());
-                    }
-                };
-                Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-                restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, onSuccess, onError);
+            if (activation != null && activation.getApplication() != null) {
+                final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(activation.getApplication().getId(), CallbackUrlType.ACTIVATION_STATUS_CHANGE);
+                for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
+                    Map<String, Object> callbackData = prepareCallbackDataActivation(callbackUrlEntity, activation);
+                    notifyCallbackUrl(callbackUrlEntity, callbackData);
+                }
             }
         } catch (RestClientException ex) {
             // Log the error in case Rest client initialization failed
@@ -241,7 +242,7 @@ public class CallbackUrlBehavior {
      * @param activation Activation entity.
      * @return Callback data to send.
      */
-    private Map<String, Object> prepareCallbackData(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
+    private Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
         Map<String, Object> callbackData = new HashMap<>();
         callbackData.put("activationId", activation.getActivationId());
         if (callbackUrlEntity.getAttributes().contains("userId")) {
@@ -269,6 +270,90 @@ public class CallbackUrlBehavior {
             callbackData.put("applicationId", activation.getApplication().getId());
         }
         return callbackData;
+    }
+
+
+    /**
+     * Tries to asynchronously notify all operation callbacks that are registered for given application.
+     * @param operation Operation to be notified about.
+     */
+    public void notifyCallbackListenersOnOperationChange(OperationEntity operation) {
+        try {
+            if (restClient == null) {
+                // Initialize Rest Client when it is used for the first time
+                initializeRestClient();
+            }
+            if (operation != null && operation.getApplication() != null) {
+                final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(operation.getApplication().getId(), CallbackUrlType.OPERATION_STATUS_CHANGE);
+                for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
+                    Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
+                    notifyCallbackUrl(callbackUrlEntity, callbackData);
+                }
+            }
+        } catch (RestClientException ex) {
+            // Log the error in case Rest client initialization failed
+            logger.error(ex.getMessage(), ex);
+        }
+    }
+
+    /**
+     * Prepare callback data for given callback URL entity and Operation entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @param operation Operation entity.
+     * @return Callback data to send.
+     */
+    private Map<String, Object> prepareCallbackDataOperation(CallbackUrlEntity callbackUrlEntity, OperationEntity operation) {
+        Map<String, Object> callbackData = new HashMap<>();
+        callbackData.put("operationId", operation.getId());
+        if (callbackUrlEntity.getAttributes().contains("userId")) {
+            callbackData.put("userId", operation.getUserId());
+        }
+        if (callbackUrlEntity.getAttributes().contains("applicationId")) {
+            callbackData.put("applicationId", operation.getApplication().getId());
+        }
+        if (callbackUrlEntity.getAttributes().contains("operationType")) {
+            callbackData.put("operationType", operation.getOperationType());
+        }
+        if (callbackUrlEntity.getAttributes().contains("parameters")) {
+            callbackData.put("parameters", operation.getParameters());
+        }
+        if (callbackUrlEntity.getAttributes().contains("status")) {
+            callbackData.put("status", operation.getStatus());
+        }
+        if (callbackUrlEntity.getAttributes().contains("data")) {
+            callbackData.put("data", operation.getData());
+        }
+        if (callbackUrlEntity.getAttributes().contains("failureCount")) {
+            callbackData.put("failureCount", operation.getFailureCount());
+        }
+        if (callbackUrlEntity.getAttributes().contains("maxFailureCount")) {
+            callbackData.put("maxFailureCount", operation.getMaxFailureCount());
+        }
+        if (callbackUrlEntity.getAttributes().contains("signatureType")) {
+            callbackData.put("signatureType", operation.getSignatureType());
+        }
+        if (callbackUrlEntity.getAttributes().contains("externalId")) {
+            callbackData.put("externalId", operation.getExternalId());
+        }
+        if (callbackUrlEntity.getAttributes().contains("timestampCreated")) {
+            callbackData.put("timestampCreated", operation.getTimestampCreated());
+        }
+        if (callbackUrlEntity.getAttributes().contains("timestampExpires")) {
+            callbackData.put("timestampExpires", operation.getTimestampExpires());
+        }
+        if (callbackUrlEntity.getAttributes().contains("timestampFinalized")) {
+            callbackData.put("timestampFinalized", operation.getTimestampFinalized());
+        }
+        return callbackData;
+    }
+
+    // Private methods
+
+    private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
+        Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
+        Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
+        ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<String>(){};
+        restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
     }
 
 }

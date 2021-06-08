@@ -28,7 +28,8 @@ import java.util.Objects;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Entity(name = "pa_recovery_config")
+@Entity
+@Table(name = "pa_recovery_config")
 public class RecoveryConfigEntity implements Serializable {
 
     private static final long serialVersionUID = -6333795855186594869L;
@@ -57,7 +58,7 @@ public class RecoveryConfigEntity implements Serializable {
     @Column(name = "remote_public_key_base64")
     private String remotePostcardPublicKeyBase64;
 
-    @Column(name = "postcard_private_key_encryption", nullable = false)
+    @Column(name = "postcard_priv_key_encryption", nullable = false)
     @Enumerated
     private EncryptionMode privateKeyEncryption;
 
@@ -79,7 +80,7 @@ public class RecoveryConfigEntity implements Serializable {
      * @param allowMultipleRecoveryCodes Whether multiple recovery codes per user are allowed.
      * @param recoveryPostcardPrivateKeyBase64 Base64 encoded local recovery postcard private key.
      * @param recoveryPostcardPublicKeyBase64 Base64 encoded local recovery postcard public key.
-     * @param remotePostcardPublicKeyBase64 Base64 enncoded remote recovery postcard public key.
+     * @param remotePostcardPublicKeyBase64 Base64 encoded remote recovery postcard public key.
      */
     public RecoveryConfigEntity(Long id, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64, EncryptionMode recoveryPrivateKeyEncryptionBase64) {
         this.id = id;
@@ -120,7 +121,7 @@ public class RecoveryConfigEntity implements Serializable {
 
     /**
      * Set whether activation recovery is enabled.
-     * @param activationRecoveryEnabled Whether activation recoveyr is enabled.
+     * @param activationRecoveryEnabled Whether activation recovery is enabled.
      */
     public void setActivationRecoveryEnabled(Boolean activationRecoveryEnabled) {
         this.activationRecoveryEnabled = activationRecoveryEnabled;

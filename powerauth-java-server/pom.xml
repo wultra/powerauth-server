@@ -24,13 +24,13 @@
     <name>powerauth-java-server</name>
     <description>PowerAuth Server</description>
     <artifactId>powerauth-java-server</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>war</packaging>
 
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.0.0</version>
+        <version>1.1.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -106,7 +106,7 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
@@ -137,10 +137,26 @@
             <artifactId>wsdl4j</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-text</artifactId>
+            <version>${commons-text.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk15on</artifactId>
             <version>${bcprov-jdk15on.version}</version>
-            <scope>provided</scope>
+        </dependency>
+
+        <!-- Job Scheduling -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+            <version>${schedlock.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-provider-jdbc-template</artifactId>
+            <version>${schedlock.version}</version>
         </dependency>
 
         <!-- Test Dependencies -->

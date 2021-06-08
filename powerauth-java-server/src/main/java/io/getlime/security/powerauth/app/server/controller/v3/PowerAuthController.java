@@ -17,9 +17,12 @@
  */
 package io.getlime.security.powerauth.app.server.controller.v3;
 
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -766,5 +769,172 @@ public class PowerAuthController {
         return new ObjectResponse<>("OK", powerAuthService.removeApplicationRoles(request.getRequestObject()));
     }
 
+    /**
+     * Call {@link PowerAuthService#createOperation(OperationCreateRequest)} method and
+     * return the response.
+     * @param request Create a new operation request.
+     * @return Create operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/create", method = RequestMethod.POST)
+    public ObjectResponse<OperationDetailResponse> createOperation(@RequestBody ObjectRequest<OperationCreateRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.createOperation(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#operationDetail(OperationDetailRequest)} method and
+     * return the response.
+     * @param request Get operation request.
+     * @return Get operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/detail", method = RequestMethod.POST)
+    public ObjectResponse<OperationDetailResponse> operationDetail(@RequestBody ObjectRequest<OperationDetailRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.operationDetail(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#findAllOperationsForUser(OperationListForUserRequest)} method and
+     * return the response.
+     * @param request Get operation list request.
+     * @return Get operation list response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/list", method = RequestMethod.POST)
+    public ObjectResponse<OperationListResponse> operationList(@RequestBody ObjectRequest<OperationListForUserRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.findAllOperationsForUser(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#findPendingOperationsForUser(OperationListForUserRequest)} method and
+     * return the response.
+     * @param request Get pending operation list request.
+     * @return Get pending operation list response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/list/pending", method = RequestMethod.POST)
+    public ObjectResponse<OperationListResponse> pendingOperationList(@RequestBody ObjectRequest<OperationListForUserRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.findPendingOperationsForUser(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#findAllOperationsByExternalId(OperationExtIdRequest)} method and
+     * return the response.
+     * @param request Get operations based on external ID request.
+     * @return Get operation list response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/list/external", method = RequestMethod.POST)
+    public ObjectResponse<OperationListResponse> findAllOperationsByExternalId(@RequestBody ObjectRequest<OperationExtIdRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.findAllOperationsByExternalId(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#cancelOperation(OperationCancelRequest)} method and
+     * return the response.
+     * @param request Cancel operation request.
+     * @return Cancel operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/cancel", method = RequestMethod.POST)
+    public ObjectResponse<OperationDetailResponse> cancelOperation(@RequestBody ObjectRequest<OperationCancelRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.cancelOperation(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#approveOperation(OperationApproveRequest)} method and
+     * return the response.
+     * @param request Approve operation request.
+     * @return Approve operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/approve", method = RequestMethod.POST)
+    public ObjectResponse<OperationUserActionResponse> approveOperation(@RequestBody ObjectRequest<OperationApproveRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.approveOperation(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#failApprovalOperation(OperationFailApprovalRequest)}  method and
+     * return the response.
+     * @param request Fail approval operation request.
+     * @return Fail approval operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/approve/fail", method = RequestMethod.POST)
+    public ObjectResponse<OperationUserActionResponse> failApprovalOperation(@RequestBody ObjectRequest<OperationFailApprovalRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.failApprovalOperation(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#rejectOperation(OperationRejectRequest)} method and
+     * return the response.
+     * @param request Reject operation request.
+     * @return Reject operation response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/reject", method = RequestMethod.POST)
+    public ObjectResponse<OperationUserActionResponse> rejectOperation(@RequestBody ObjectRequest<OperationRejectRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.rejectOperation(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#getAllTemplates()} method and
+     * return the response.
+     * @return Get operation templates response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/template/list", method = RequestMethod.POST)
+    public ObjectResponse<OperationTemplateListResponse> getOperationTemplateList() throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getAllTemplates());
+    }
+
+    /**
+     * Call {@link PowerAuthService#getTemplateDetail(OperationTemplateDetailRequest)} method and
+     * return the response.
+     * @param request Get operation template detail request.
+     * @return Get operation template detail response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/template/detail", method = RequestMethod.POST)
+    public ObjectResponse<OperationTemplateDetailResponse> getOperationTemplateDetail(@RequestBody ObjectRequest<OperationTemplateDetailRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getTemplateDetail(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#createOperationTemplate(OperationTemplateCreateRequest)} method and
+     * return the response.
+     * @param request Create operation template request.
+     * @return Created operation template detail response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/template/create", method = RequestMethod.POST)
+    public ObjectResponse<OperationTemplateDetailResponse> createOperationTemplate(@RequestBody ObjectRequest<OperationTemplateCreateRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.createOperationTemplate(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#updateOperationTemplate(OperationTemplateUpdateRequest)} method and
+     * return the response.
+     * @param request Update operation template request.
+     * @return Updated operation template detail response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/template/update", method = RequestMethod.POST)
+    public ObjectResponse<OperationTemplateDetailResponse> updateOperationTemplate(@RequestBody ObjectRequest<OperationTemplateUpdateRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.updateOperationTemplate(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeOperationTemplate(OperationTemplateDeleteRequest)} method and
+     * return the response.
+     * @param request Remove operation template request.
+     * @return Simple response.
+     * @throws Exception In case the service throws exception.
+     */
+    @RequestMapping(value = "/operation/template/remove", method = RequestMethod.POST)
+    public Response removeOperationTemplate(@RequestBody ObjectRequest<OperationTemplateDeleteRequest> request) throws Exception {
+        powerAuthService.removeOperationTemplate(request.getRequestObject());
+        return new Response();
+    }
 
 }

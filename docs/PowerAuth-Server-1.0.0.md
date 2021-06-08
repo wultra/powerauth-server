@@ -22,7 +22,11 @@ Following DB changes occurred between version 0.24.0 and 1.0.0:
 - Table `pa_activation` - added column `flags`.
 - Table `pa_application` - added column `roles`.
 - Table `pa_application_callback` - added column `attributes`.
-- Table `pa_recovery_config` - added column `postcard_private_key_encryption`.
+- Table `pa_recovery_config` - added column `postcard_priv_key_encryption`.
+
+<!-- begin box warning -->
+Warning: If you are upgrading to 1.0.0 version, please use `POSTCARD_PRIVATE_KEY_ENCRYPTION` in the last command. The column name was changed to `POSTCARD_PRIV_KEY_ENCRYPTION` in 1.0.1 bugfix version to account for the 30-character limit in the Oracle databases. If you are upgrading from 1.0.0 version and already used the old column name, make sure to apply the additional change.
+<!-- end -->
 
 Migration script for Oracle:
 
@@ -30,7 +34,7 @@ Migration script for Oracle:
 ALTER TABLE "PA_ACTIVATION" ADD "FLAGS" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_APPLICATION" ADD "ROLES" VARCHAR2(255 CHAR);
 ALTER TABLE "PA_APPLICATION_CALLBACK" ADD "ATTRIBUTES" VARCHAR2(1024 CHAR);
-ALTER TABLE "PA_RECOVERY_CONFIG" ADD "POSTCARD_PRIVATE_KEY_ENCRYPTION" NUMBER(10,0) DEFAULT 0 NOT NULL;
+ALTER TABLE "PA_RECOVERY_CONFIG" ADD "POSTCARD_PRIV_KEY_ENCRYPTION" NUMBER(10,0) DEFAULT 0 NOT NULL;
 ```
 
 Migration script for MySQL:
@@ -39,7 +43,7 @@ Migration script for MySQL:
 ALTER TABLE `pa_activation` ADD `flags` varchar(255);
 ALTER TABLE `pa_application` ADD `roles` varchar(255);
 ALTER TABLE `pa_application_callback` ADD `attributes` text NOT NULL;
-ALTER TABLE `pa_recovery_config` ADD `postcard_private_key_encryption` int(11) NOT NULL DEFAULT 0;
+ALTER TABLE `pa_recovery_config` ADD `postcard_priv_key_encryption` int(11) NOT NULL DEFAULT 0;
 ```
 
 Migration script for PostgreSQL:
@@ -48,7 +52,7 @@ Migration script for PostgreSQL:
 ALTER TABLE "pa_activation" ADD "flags" VARCHAR(255);
 ALTER TABLE "pa_application" ADD "roles" VARCHAR(255);
 ALTER TABLE "pa_application_callback" ADD "attributes" VARCHAR(1024);
-ALTER TABLE "pa_recovery_config" ADD "postcard_private_key_encryption" INTEGER DEFAULT 0 NOT NULL;
+ALTER TABLE "pa_recovery_config" ADD "postcard_priv_key_encryption" INTEGER DEFAULT 0 NOT NULL;
 ```
 
 ## New REST Client and SOAP Client Updates
@@ -77,3 +81,21 @@ The version 2 context path package has changed the same way, so you will need to
 In your client projects, use the new `com.wultra.security.powerauth.client` packages for the client model classes.
 
 For more information about the new REST client, see [the REST client documentation](./Configuring-REST-Client-for-Spring.md)
+
+## Migration of PowerAuth Clients to REST Interface
+
+PowerAuth clients in PowerAuth stack use the REST interface in version `1.0.0`. Previous versions of PowerAuth components used the SOAP interface. This change needs to be reflected in configuration property `powerauth.service.url` in all components which use the PowerAuth client.
+
+Property value before migration:
+`powerauth.service.url=http://[server]:[port]/powerauth-java-server/soap`
+
+Property value after migration:
+`powerauth.service.url=http://[server]:[port]/powerauth-java-server/rest`
+
+Following components use the PowerAuth client:
+- PowerAuth Admin
+- PowerAuth Web Flow
+- PowerAuth Push Server
+- PowerAuth Enrollment Serer
+
+Make sure to update the `powerauth.service.url` property in each of these components.

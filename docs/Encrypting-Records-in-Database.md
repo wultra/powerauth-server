@@ -22,6 +22,10 @@ In order to enable the additional database record encryption, you need to set th
 powerauth.server.db.master.encryption.key=[16 random bytes Base64 encoded, for example 'MTIzNDU2Nzg5MDEyMzQ1Ng==']
 ```
 
+<!-- begin box warning -->
+In case you lose the original master DB encryption key, there is no way to recover original data and your users will need to re-activate their mobile applications.
+<!-- end -->
+
 The value of the key must be 16 random bytes, Base64 encoded.
 
 ### Using HashiCorp Vault
@@ -94,5 +98,3 @@ public SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicati
 Every database record carries an information about how it was created - with encryption or without encryption. In case you do not use encryption in the beginning, you can turn it on anytime later. However, the records that were created before you enabled the encryption will remain un-encrypted. You need to convert them manually in the database in case you need them encrypted.
 
 More problematic situation is changing the master encryption key. The server currently has no easy way to re-encrypt the records with the new key and hence the conversion must be performed using a custom database migration.
-
-**In case you lose the original master DB encryption key, there is no way to recover original data and your users will need to re-activate their mobile applications.**

@@ -1,5 +1,7 @@
 # Database Structure
 
+<!-- TEMPLATE database -->
+
 You can download DDL scripts for supported databases:
 
 - [Oracle - Create Database Schema](./sql/oracle/create_schema.sql)
@@ -7,6 +9,7 @@ You can download DDL scripts for supported databases:
 - [PostgreSQL - Create Database Schema](./sql/postgresql/create_schema.sql)
 
 The drop scripts are available for supported databases:
+
 - [Oracle - Drop Tables and Sequences](./sql/oracle/delete_schema.sql)
 - [MySQL - Drop Tables](./sql/mysql/delete_schema.sql)
 - [PostgreSQL - Drop Tables and Sequences](./sql/postgresql/delete_schema.sql)
@@ -15,30 +18,69 @@ See the overall database schema in this [MySQL Workbench file](./sql/mysql/mysql
 
 ![Database structure](./images/arch_db_structure.png)
 
+## ShedLock
+
+The PowerAuth Server uses ShedLock to synchronize scheduled operations. You need to create appropriate DB table, i.e.:
+
+```sql
+CREATE TABLE "shedlock" (
+    name VARCHAR(64) NOT NULL PRIMARY KEY,
+    lock_until TIMESTAMP NOT NULL,
+    locked_at TIMESTAMP NOT NULL,
+    locked_by VARCHAR(255) NOT NULL
+);
+```
+
+See the [SchedLock documentation](https://github.com/lukas-krecan/ShedLock#jdbctemplate) for the details.
+
 ## Table Documentation
 
 This chapter explains individual tables and their columns. The column types are used from MySQL dialect, other databases use types that are equivalent (mapping is usually straight forward).
 
+<!-- begin database table pa_application -->
 ### Applications Table
 
-Table name: `pa_application`
+Stores applications used in the PowerAuth Server.
 
-Purpose: Stores applications used in the PowerAuth Server.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_application"
+(
+    "id"                          INTEGER NOT NULL PRIMARY KEY,
+    "name"                        VARCHAR(255) NOT NULL,
+    "roles"                       VARCHAR(255)
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
 | id | BIGINT(20) | autoincrement | Unique application ID. |
 | name | VARCHAR(255) | - | Application name, for example "Mobile Banking". |
+<!-- end -->
 
+<!-- begin database table pa_application_version -->
 ### Application Versions Table
 
-Table name: `pa_application_version`
+Stores application versions for the applications stored in `pa_application` table.
 
-Purpose: Stores application versions for the applications stored in `pa_application` table.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_application_version"
+(
+    "id"                 INTEGER NOT NULL PRIMARY KEY,
+    "application_id"     INTEGER NOT NULL,
+    "application_key"    VARCHAR(255),
+    "application_secret" VARCHAR(255),
+    "name"               VARCHAR(255),
+    "supported"          BOOLEAN
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -48,14 +90,49 @@ Columns:
 | application_key | VARCHAR(255) | index | Application key related to this version. Should be indexed to allow a fast lookup, since this is an identifier client applications use. |
 | application_secret | VARCHAR(255) | - | Application secret related to this version. |
 | supported | INT(11) | - | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported) |
+<!-- end -->
 
+<!-- begin database table pa_activation -->
 ### Activations Table
 
-Table name: `pa_activation`
+Stores activations. Activation is a unit associating signature / transport and encryption keys to a specific user and application.
 
-Purpose: Stores activations. Activation is a unit associating signature / transport and encryption keys to a specific user and application.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_activation"
+(
+    "activation_id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
+    "application_id"                INTEGER NOT NULL,
+    "user_id"                       VARCHAR(255) NOT NULL,
+    "activation_name"               VARCHAR(255),
+    "activation_code"               VARCHAR(255),
+    "activation_status"             INTEGER NOT NULL,
+    "activation_otp"                VARCHAR(255),
+    "activation_otp_validation"     INTEGER DEFAULT 0 NOT NULL,
+    "blocked_reason"                VARCHAR(255),
+    "counter"                       INTEGER NOT NULL,
+    "ctr_data"                      VARCHAR(255),
+    "device_public_key_base64"      VARCHAR(255),
+    "extras"                        VARCHAR(255),
+    "platform"                      VARCHAR(255),
+    "device_info"                   VARCHAR(255),
+    "flags"                         VARCHAR(255),
+    "failed_attempts"               INTEGER NOT NULL,
+    "max_failed_attempts"           INTEGER DEFAULT 5 NOT NULL,
+    "server_private_key_base64"     VARCHAR(255) NOT NULL,
+    "server_private_key_encryption" INTEGER DEFAULT 0 NOT NULL,
+    "server_public_key_base64"      VARCHAR(255) NOT NULL,
+    "timestamp_activation_expire"   TIMESTAMP (6) NOT NULL,
+    "timestamp_created"             TIMESTAMP (6) NOT NULL,
+    "timestamp_last_used"           TIMESTAMP (6) NOT NULL,
+    "timestamp_last_change"         TIMESTAMP (6),
+    "master_keypair_id"             INTEGER,
+    "version"                       INTEGER DEFAULT 2
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -85,14 +162,28 @@ Columns:
 | version | BIGINT(2) | - | Cryptography protocol version. |
 | platform | VARCHAR(255) | - | User device platform. |
 | device_info | VARCHAR(255) | - | User device information. |
+<!-- end -->
 
+<!-- begin database table pa_master_keypair -->
 ### Master Key Pair Table
 
-Table name: `pa_master_keypair`
+Stores master key pairs associated with applications and used during the activation process.
 
-Purpose: Stores master key pairs associated with applications and used during the activation process.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_master_keypair"
+(
+    "id"                            INTEGER NOT NULL PRIMARY KEY,
+    "application_id"                INTEGER NOT NULL,
+    "master_key_private_base64"     VARCHAR(255) NOT NULL,
+    "master_key_public_base64"      VARCHAR(255) NOT NULL,
+    "name"                          VARCHAR(255),
+    "timestamp_created"             TIMESTAMP (6) NOT NULL
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -102,14 +193,36 @@ Columns:
 | master_key_private_base64 | TEXT | - | Private key encoded as Base64 |
 | master_key_public_base64 | TEXT | - | Public key encoded as Base64 |
 | timestamp_created | DATETIME | - | Timestamp of creation. |
+<!-- end -->
 
+<!-- begin database table pa_signature_audit -->
 ### Signature Audit Records Table
 
-Table name: `pa_signature_audit`
+Stores the records with values used for attempts for the signature validation.
 
-Purpose: Stores records with values used for attempts for the signature validation.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_signature_audit"
+(
+    "id"                  BIGINT NOT NULL PRIMARY KEY,
+    "activation_id"       VARCHAR(37) NOT NULL,
+    "activation_counter"  INTEGER NOT NULL,
+    "activation_ctr_data" VARCHAR(255),
+    "activation_status"   INTEGER,
+    "additional_info"     VARCHAR(255),
+    "data_base64"         TEXT,
+    "note"                VARCHAR(255),
+    "signature_type"      VARCHAR(255) NOT NULL,
+    "signature"           VARCHAR(255) NOT NULL,
+    "timestamp_created"   TIMESTAMP (6) NOT NULL,
+    "valid"               BOOLEAN,
+    "version"             INTEGER DEFAULT 2,
+    "signature_version"   VARCHAR(255)
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -126,14 +239,26 @@ Columns:
 | note | TEXT | - | Additional information about the validation result. |
 | timestamp_created | DATETIME | index | A timestamp of the validation attempt. |
 | version | BIGINT(2) | - | PowerAuth protocol version. |
+<!-- end -->
 
+<!-- begin database table pa_integration -->
 ### Integration Credentials Table
 
-Table name: `pa_integration`
+Stores credentials for applications that integrate with PowerAuth Server.
 
-Purpose: Stores credentials for applications that integrate with PowerAuth Server.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_integration"
+(
+    "id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
+    "name"               VARCHAR(255),
+    "client_token"       VARCHAR(37) NOT NULL,
+    "client_secret"      VARCHAR(37) NOT NULL
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -141,14 +266,27 @@ Columns:
 | name | VARCHAR(255) | - | Integration name, anything that visually identifies the associated application. |
 | client_token | VARCHAR(37) | index | Integration username, UUID Level 4 format. |
 | client_secret | VARCHAR(37) | - | Integration password, UUID Level 4 format. |
+<!-- end -->
 
+<!-- begin database table pa_application_callback -->
 ### Application Callback URL Table
 
-Table name: `pa_application_callback`
+Stores callback URLs - per-application endpoints that are notified whenever an activation or operation status changes.
 
-Purpose: Stores callback URLs - per-application endpoints that are notified whenever an activation status changes.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_application_callback"
+(
+    "id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
+    "application_id"     INTEGER NOT NULL,
+    "name"               VARCHAR(255),
+    "callback_url"       VARCHAR(1024),
+    "attributes"         VARCHAR(1024)
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -156,14 +294,27 @@ Columns:
 | application_id | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
 | name | VARCHAR(255) | - | Callback name, anything that visually identifies the callback purpose. |
 | callback_url | TEXT | - | Callback URL value, any URL that can receive activation update callback. |
+<!-- end -->
 
+<!-- begin database table pa_token -->
 ### Token Store Table
 
-Table name: `pa_token`
+Stores tokens used for token-based authentication.
 
-Purpose: Stores tokens used for token-based authentication.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_token"
+(
+    "token_id"           VARCHAR(37) NOT NULL PRIMARY KEY,
+    "token_secret"       VARCHAR(255) NOT NULL,
+    "activation_id"      VARCHAR(255) NOT NULL,
+    "signature_type"     VARCHAR(255) NOT NULL,
+    "timestamp_created"  TIMESTAMP (6) NOT NULL
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -172,31 +323,63 @@ Columns:
 | activation_id | VARCHAR(37) | foreign key: pa\_activation.activation_id | Reference to associated activation. |
 | signature_type | VARCHAR(255) | - | Type of the signature that was used to issue this token. |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |
+<!-- end -->
 
+<!-- begin database table pa_activation_history -->
 ### Activation History Table
 
-Table name: `pa_activation_history`
+Stores a log of activation changes.
 
-Purpose: Stores a log of activation changes.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_activation_history"
+(
+    "id"                 BIGINT NOT NULL PRIMARY KEY,
+    "activation_id"      VARCHAR(37) NOT NULL,
+    "activation_status"  INTEGER,
+    "event_reason"       VARCHAR(255),
+    "external_user_id"   VARCHAR(255),
+    "timestamp_created"  TIMESTAMP (6) NOT NULL
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
 | id | INT(37) | primary key | Unique record ID. |
 | activation_id | VARCHAR(37) | foreign key: pa\_activation.activation_id | Reference to associated activation. |
 | activation_status | INT(11) | index | Activation status, can be one of following values:<br><br>1 - CREATED<br>2 - PENDING_COMMIT<br>3 - ACTIVE<br>4 - BLOCKED<br>5 - REMOVED |
-| blocked_reason | VARCHAR(255) | - | Reason why activation was blocked (used when activation_status = 4, BLOCKED). |
+| event_reason | VARCHAR(255) | - | Reason why activation was changed. |
 | external_user_id | VARCHAR(255) | - | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |
+<!-- end -->
 
+<!-- begin database table pa_recovery_code -->
 ### Recovery Code Table
 
-Table name: `pa_recovery_code`
+Stores information about recovery codes.
 
-Purpose: Stores information about recovery codes.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_recovery_code" (
+    "id"                    BIGINT NOT NULL PRIMARY KEY,
+    "recovery_code"         VARCHAR(23) NOT NULL,
+    "application_id"        INTEGER NOT NULL,
+    "user_id"               VARCHAR(255) NOT NULL,
+    "activation_id"         VARCHAR(37),
+    "status"                INTEGER NOT NULL,
+    "failed_attempts"       INTEGER DEFAULT 0 NOT NULL,
+    "max_failed_attempts"   INTEGER DEFAULT 10 NOT NULL,
+    "timestamp_created"     TIMESTAMP (6) NOT NULL,
+    "timestamp_last_used"   TIMESTAMP (6),
+    "timestamp_last_change" TIMESTAMP (6)
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -211,14 +394,28 @@ Columns:
 | timestamp_created | DATETIME | - | Timestamp of record creation. |
 | timestamp_last_used | DATETIME | - | Timestamp of record last usage. |
 | timestamp_last_change | DATETIME | - | Timestamp of record last change. |
+<!-- end -->
 
+<!-- begin database table pa_recovery_puk -->
 ### Recovery PUK Table
 
-Table name: `pa_recovery_puk`
+Stores information about recovery PUKs.
 
-Purpose: Stores information about recovery PUKs.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_recovery_puk" (
+    "id"                    BIGINT NOT NULL PRIMARY KEY,
+    "recovery_code_id"      BIGINT NOT NULL,
+    "puk"                   VARCHAR(255),
+    "puk_encryption"        INTEGER DEFAULT 0 NOT NULL,
+    "puk_index"             BIGINT NOT NULL,
+    "status"                INTEGER NOT NULL,
+    "timestamp_last_change" TIMESTAMP (6)
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -229,14 +426,30 @@ Columns:
 | puk_index | INT(11) | index | Index of the PUK (value starts by 1). |
 | status | INT(11) | - | Recovery PUK status, can be one of following values: <br><br>1 - VALID<br>2 - USED<br>3 - INVALID |
 | timestamp_last_change | DATETIME | - | Timestamp of record last change. |
+<!-- end -->
 
+<!-- begin database table pa_recovery_config -->
 ### Recovery Configuration Table
 
-Table name: `pa_recovery_config`
+Stores configuration of activation recovery and recovery postcards.
 
-Purpose: Stores configuration of activation recovery and recovery postcards.
+#### Schema
 
-Columns:
+```sql
+CREATE TABLE "pa_recovery_config" (
+    "id"                              INTEGER NOT NULL PRIMARY KEY,
+    "application_id"                  INTEGER NOT NULL,
+    "activation_recovery_enabled"     BOOLEAN NOT NULL DEFAULT FALSE,
+    "recovery_postcard_enabled"       BOOLEAN NOT NULL DEFAULT FALSE,
+    "allow_multiple_recovery_codes"   BOOLEAN NOT NULL DEFAULT FALSE,
+    "postcard_private_key_base64"     VARCHAR(255),
+    "postcard_public_key_base64"      VARCHAR(255),
+    "remote_public_key_base64"        VARCHAR(255),
+    "postcard_priv_key_encryption"    INTEGER DEFAULT 0 NOT NULL
+);
+```
+
+#### Columns
 
 | Name | Type | Info | Note |
 |------|------|---------|------|
@@ -248,3 +461,84 @@ Columns:
 | postcard_private_key_base64 | VARCHAR(255) | - | Base64 encoded EC server private key for recovery postcard. |
 | postcard_public_key_base64 | VARCHAR(255) | - | Base64 encoded EC server public key for recovery postcard. |
 | remote_public_key_base64 | VARCHAR(255) | - | Base64 encoded EC printing center public key for recovery postcard. |
+<!-- end -->
+
+<!-- begin database table pa_operation -->
+### Operations
+
+Table stores operations, i.e., the login attempts or payment approvals, that are created in external systems.
+
+#### Schema
+
+```sql
+CREATE TABLE "pa_operation" (
+    "id"                    VARCHAR(37) NOT NULL PRIMARY KEY,
+    "user_id"               VARCHAR(255) NOT NULL,
+    "application_id"        BIGINT NOT NULL,
+    "template_id"           BIGINT,
+    "external_id"           VARCHAR(255),
+    "operation_type"        VARCHAR(255) NOT NULL,
+    "data"                  TEXT NOT NULL,
+    "parameters"            TEXT,
+    "status"                INTEGER NOT NULL,
+    "signature_type"        VARCHAR(255) NOT NULL,
+    "failure_count"         BIGINT DEFAULT 0 NOT NULL,
+    "max_failure_count"     BIGINT NOT NULL,
+    "timestamp_created"     TIMESTAMP NOT NULL,
+    "timestamp_expires"     TIMESTAMP NOT NULL,
+    "timestamp_finalized"   TIMESTAMP
+);
+```
+
+#### Columns
+
+| Name | Type | Info | Note |
+|------|------|---------|------|
+| id | varchar(37) | primary key | Unique operation ID. |
+| user_id | varchar(255)  | - | Related user ID. |
+| application_id | bigint | - | Related application ID. |
+| template_id | bigint | - | Template ID used for creating the operation. |
+| external_id | varchar(255) | - | Identifier in external system. |
+| operation_type | varchar(255) | - | Name of the type of operation. |
+| data | text | - | Data of the operation that enter the final signature. |
+| parameters | text | - | JSON-encoded parameters that were used while creating the operation. |
+| status | integer | - | Status of the operation. |
+| signature_type | varchar(255) | - | Comma-separated list of allowed signature types. |
+| failure_count | bigint | - | Number of already failed attempts to approve the operation. |
+| max_failure_count | bigint | - | Maximum allowed number of failed attempts when approving the operation. |
+| timestamp_created | timestamp | - | Timestamp of when the operation was created. |
+| timestamp_expires | timestamp | - | Timestamp of when the operation will expire. |
+| timestamp_finalized | timestamp | - | Timestamp of when the operation reached the terminal state (approved, rejected, expired, etc.). |
+<!-- end -->
+
+<!-- begin database table pa_operation_template -->
+### Operation Templates
+
+Table stores operation templates that are used while creating the operations.
+
+#### Schema
+
+```sql
+CREATE TABLE "pa_operation_template" (
+    "id"                    BIGINT NOT NULL PRIMARY KEY,
+    "template_name"         VARCHAR(255) NOT NULL,
+    "operation_type"        VARCHAR(255) NOT NULL,
+    "data_template"         VARCHAR(255) NOT NULL,
+    "signature_type"        VARCHAR(255) NOT NULL,
+    "max_failure_count"     BIGINT NOT NULL,
+    "expiration"            BIGINT NOT NULL
+);
+```
+
+#### Columns
+
+| Name | Type | Info | Note |
+|------|------|---------|------|
+| id | varchar(37) | primary key | Unique template ID. |
+| template_name | varchar(255)  | - | Template name. |
+| operation_type | varchar(255)  | - | Name of the type of operation. |
+| data_template | varchar(255)  | - | Template string for the data that will enter signature later. |
+| signature_type | varchar(255)  | - | Comma-separated list of allowed signature types. |
+| max_failure_count | bigint | - | Maximum allowed number of failed attempts when approving the operation. |
+| expiration | bigint | - | Operation expiration in seconds (300 = 5 minutes). |
+<!-- end -->

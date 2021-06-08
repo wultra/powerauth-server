@@ -22,7 +22,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Repository
 public interface ActivationRepository extends CrudRepository<ActivationRecordEntity, String> {
 
     /**

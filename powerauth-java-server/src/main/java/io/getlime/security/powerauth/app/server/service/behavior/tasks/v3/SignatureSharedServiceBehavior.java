@@ -221,6 +221,16 @@ public class SignatureSharedServiceBehavior {
     }
 
     /**
+     * Handle online signature verification for an inactive activation with a mismatch between status and counter.
+     * @param activation Activation used for signature verification.
+     * @param signatureRequest Online signature verification request.
+     * @param currentTimestamp Signature verification timestamp.
+     */
+    public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, Date currentTimestamp) {
+        handleInactiveActivationWithMismatchSignatureImpl(activation, signatureRequest.getSignatureData(), signatureRequest.getSignatureType(), currentTimestamp);
+    }
+
+    /**
      * Handle offline signature verification for an inactive activation.
      * @param activation Activation used for signature verification.
      * @param signatureRequest Offline signature verification request.
@@ -232,7 +242,18 @@ public class SignatureSharedServiceBehavior {
     }
 
     /**
-     * Implemenation of signature verification for both online and offline signatures.
+     * Handle offline signature verification for an inactive activation with a mismatch between status and counter.
+     * @param activation Activation used for signature verification.
+     * @param signatureRequest Offline signature verification request.
+     * @param currentTimestamp Signature verification timestamp.
+     */
+    public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
+        SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
+        handleInactiveActivationWithMismatchSignatureImpl(activation, signatureRequest.getSignatureData(), signatureType, currentTimestamp);
+    }
+
+    /**
+     * Implementation of signature verification for both online and offline signatures.
      * @param activation Activation used for signature verification.
      * @param signatureData Data related to the signature.
      * @param signatureTypes Signature types to try to use for signature verification. List with one signature type is used for online signatures. List with multiple signature types is used for offline signatures.
@@ -384,7 +405,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         }
     }
 
@@ -480,7 +501,7 @@ public class SignatureSharedServiceBehavior {
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            callbackUrlBehavior.notifyCallbackListeners(activation.getApplication().getId(), activation);
+            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         }
     }
 
@@ -504,6 +525,42 @@ public class SignatureSharedServiceBehavior {
         // Create the audit log record
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false,
                 activation.getVersion(), "activation_invalid_state", currentTimestamp);
+    }
+
+    /**
+     * Implementation of handle inactive activation with mismatch in counter and activation status during signature verification.
+     * @param activation Activation used for signature verification.
+     * @param signatureData Data related to the signature.
+     * @param signatureType Used signature type.
+     * @param currentTimestamp Signature verification timestamp.
+     */
+    private void handleInactiveActivationWithMismatchSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
+        // Get ActivationRepository
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        // Update the last used date
+        activation.setTimestampLastUsed(currentTimestamp);
+
+        // Enforce the blocked status on activation
+        activation.setActivationStatus(ActivationStatus.BLOCKED);
+        activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+
+        // Save the activation and log change
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+
+        // Prepare data for the signature audit log
+        KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
+        KeyValueMap.Entry entry = new KeyValueMap.Entry();
+        entry.setKey(AdditionalInformation.BLOCKED_REASON);
+        entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        additionalInfo.getEntry().add(entry);
+
+        // Create the audit log record
+        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false,
+                activation.getVersion(), "activation_invalid_state_ctr_mismatch", currentTimestamp);
+
+        // Notify callback listeners
+        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
     }
 
     /**

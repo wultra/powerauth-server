@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Date;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.List;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Repository
 public interface ActivationHistoryRepository extends CrudRepository<ActivationHistoryEntity, Long> {
 
     @Query("SELECT h FROM ActivationHistoryEntity h WHERE h.activation.activationId = :activationId AND h.timestampCreated BETWEEN :startingDate AND :endingDate ORDER BY h.timestampCreated DESC, h.id DESC")

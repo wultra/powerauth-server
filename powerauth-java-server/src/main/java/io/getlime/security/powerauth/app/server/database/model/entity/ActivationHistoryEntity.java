@@ -34,6 +34,8 @@ import java.util.Objects;
 @Table(name = "pa_activation_history")
 public class ActivationHistoryEntity implements Serializable {
 
+    private static final long serialVersionUID = -8232192926562045920L;
+
     @Id
     @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq")
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_activation_history")

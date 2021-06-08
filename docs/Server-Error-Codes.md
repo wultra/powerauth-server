@@ -37,5 +37,15 @@ PowerAuth Server may return following errors:
 | ERR0030    | Token timestamp is too old. | In case token validation fails due to token being no longer valid. |
 | ERR0031    | Activation OTP doesn't match value stored in database, or the OTP value is provided for the wrong validation step. |
 | ERR0032    | Activation OTP operation is performed for the wrong validation mode. |
+| ERR0033    | Operation template was not found. |
+| ERR0034    | Operation was not found. |
+| ERR0035    | Too many failed attempts to generate operation ID. |
+| ERR0036    | Operation state is invalid for the requested change. |
+| ERR0037    | Operation cannot be approved. |
+| ERR0038    | Operation cannot be rejected. |
+| ERR0039    | Operation template already exists. |
+| ERR0040    | Activation cannot be created with the specified properties. |
+| ERR0041    | Operation related error occurred. |
+| ERR0042    | Operation template related error occurred. |
 
 For each of these issues, more details about the specific nature and cause can be found in the server log.
