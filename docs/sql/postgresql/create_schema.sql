@@ -124,6 +124,7 @@ CREATE TABLE "pa_application_callback"
     "application_id"     INTEGER NOT NULL,
     "name"               VARCHAR(255),
     "callback_url"       VARCHAR(1024),
+    "type"               VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL,
     "attributes"         VARCHAR(1024)
 );
 
