@@ -188,7 +188,7 @@ ALTER TABLE pa_application_callback
 
 ```sql
 ALTER TABLE pa_application_callback
-	ADD type VARCHAR2(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL;
+	ADD type VARCHAR2(64 CHAR) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL;
 ```
 
 The `CreateCallbackUrlRequest` also now contains a new mandatory attribute `type` that can be either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`.
