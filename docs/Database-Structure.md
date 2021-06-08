@@ -281,8 +281,9 @@ CREATE TABLE "pa_application_callback"
     "id"                 VARCHAR(37) NOT NULL PRIMARY KEY,
     "application_id"     INTEGER NOT NULL,
     "name"               VARCHAR(255),
-    "callback_url"       VARCHAR(1024),
-    "attributes"         VARCHAR(1024)
+    "callback_url"       TEXT NOT NULL,
+    "type"               VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL,
+    "attributes"         TEXT NOT NULL
 );
 ```
 
@@ -294,6 +295,8 @@ CREATE TABLE "pa_application_callback"
 | application_id | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
 | name | VARCHAR(255) | - | Callback name, anything that visually identifies the callback purpose. |
 | callback_url | TEXT | - | Callback URL value, any URL that can receive activation update callback. |
+| type | VARCHAR(64) | - | Callback type: `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
+| attributes | TEXT | - | Callback attributes as a key-value map, serialized into JSON. |
 <!-- end -->
 
 <!-- begin database table pa_token -->

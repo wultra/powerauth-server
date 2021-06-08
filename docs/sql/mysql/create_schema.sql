@@ -116,6 +116,7 @@ CREATE TABLE `pa_application_callback` (
   `application_id` bigint(20) NOT NULL,
   `name` varchar(255) DEFAULT NULL,
   `callback_url` text NOT NULL,
+  `type` VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL,
   `attributes` text NOT NULL,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_APPLICATION_CALLBACK` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
