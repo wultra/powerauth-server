@@ -23,7 +23,7 @@ See the overall database schema in this [MySQL Workbench file](./sql/mysql/mysql
 The PowerAuth Server uses ShedLock to synchronize scheduled operations. You need to create appropriate DB table, i.e.:
 
 ```sql
-CREATE TABLE "shedlock" (
+CREATE TABLE shedlock (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     lock_until TIMESTAMP NOT NULL,
     locked_at TIMESTAMP NOT NULL,
