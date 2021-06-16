@@ -243,7 +243,7 @@ CREATE TABLE shedlock (
 ### Oracle
 
 ```sql
-CREATE TABLE "shedlock" (
+CREATE TABLE shedlock (
     name        VARCHAR(64) NOT NULL PRIMARY KEY,
     lock_until  TIMESTAMP NOT NULL,
     locked_at   TIMESTAMP NOT NULL,

@@ -238,7 +238,7 @@ CREATE TABLE "pa_operation_template" (
 --
 -- DDL for Table SHEDLOCK
 --
-CREATE TABLE "shedlock" (
+CREATE TABLE shedlock (
     name VARCHAR(64) NOT NULL PRIMARY KEY,
     lock_until TIMESTAMP NOT NULL,
     locked_at TIMESTAMP NOT NULL,
