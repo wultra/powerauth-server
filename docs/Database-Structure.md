@@ -14,7 +14,7 @@ The drop scripts are available for supported databases:
 - [MySQL - Drop Tables](./sql/mysql/delete_schema.sql)
 - [PostgreSQL - Drop Tables and Sequences](./sql/postgresql/delete_schema.sql)
 
-See the overall database schema in this [MySQL Workbench file](./sql/mysql/mysql-workbench-model.mwb):
+See the overall database schema:
 
 ![Database structure](./images/arch_db_structure.png)
 
