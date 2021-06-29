@@ -225,6 +225,8 @@ public class CallbackUrlBehavior {
                     if (response.statusCode().isError()) {
                         logger.warn("Callback failed, URL: {}, status code: {}", callbackUrlEntity.getCallbackUrl(), response.statusCode().toString());
                     }
+                    // Release resources
+                    response.releaseBody();
                 };
                 Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
                 restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, onSuccess, onError);
