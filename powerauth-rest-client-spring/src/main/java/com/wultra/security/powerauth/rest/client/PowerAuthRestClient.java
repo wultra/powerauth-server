@@ -692,7 +692,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
+    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, String authentication) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
@@ -701,6 +701,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
         }
+        request.setAuthentication(authentication);
         return this.createCallbackUrl(request);
     }
 
@@ -710,7 +711,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes) throws PowerAuthClientException {
+    public UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes, String authentication) throws PowerAuthClientException {
         UpdateCallbackUrlRequest request = new UpdateCallbackUrlRequest();
         request.setId(id);
         request.setApplicationId(applicationId);
@@ -719,6 +720,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         if (attributes != null) {
             request.getAttributes().addAll(attributes);
         }
+        request.setAuthentication(authentication);
         return this.updateCallbackUrl(request);
     }
 

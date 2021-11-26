@@ -42,7 +42,15 @@ public class ApplicationRoleConverter implements AttributeConverter<List<String>
 
     private static final String EMPTY_ROLES = "[]";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    /**
+     * Converter constructor.
+     * @param objectMapper Object mapper.
+     */
+    public ApplicationRoleConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public String convertToDatabaseColumn(List<String> roles) {

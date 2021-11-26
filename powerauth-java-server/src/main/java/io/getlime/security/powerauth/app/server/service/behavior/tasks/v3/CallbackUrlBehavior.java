@@ -20,8 +20,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
+import com.wultra.security.powerauth.client.model.auth.HttpAuthentication;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
@@ -54,19 +56,24 @@ import java.util.function.Consumer;
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
-
+    private final CallbackAuthenticationConverter authenticationConverter;
     private LocalizationProvider localizationProvider;
-
-    private RestClient restClient;
-
     private PowerAuthServiceConfiguration configuration;
+
+    private final Map<CallbackUrlEntity, RestClient> restClientCache = new HashMap<>();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
 
+    /**
+     * Behavior constructor.
+     * @param callbackUrlRepository Callback URL repository.
+     * @param authenticationConverter Callback authentication converter.
+     */
     @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
+    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, CallbackAuthenticationConverter authenticationConverter) {
         this.callbackUrlRepository = callbackUrlRepository;
+        this.authenticationConverter = authenticationConverter;
     }
 
     @Autowired
@@ -77,23 +84,6 @@ public class CallbackUrlBehavior {
     @Autowired
     public void setConfiguration(PowerAuthServiceConfiguration configuration) {
         this.configuration = configuration;
-    }
-
-    /**
-     * Initialize Rest client instance and configure it based on client configuration.
-     */
-    private void initializeRestClient() throws RestClientException {
-        DefaultRestClient.Builder builder = DefaultRestClient.builder();
-        if (configuration.getHttpConnectionTimeout() != null) {
-            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
-        }
-        if (configuration.getHttpProxyEnabled()) {
-            DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
-            if (configuration.getHttpProxyUsername() != null) {
-                proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
-            }
-        }
-        restClient = builder.build();
     }
 
     /**
@@ -120,12 +110,17 @@ public class CallbackUrlBehavior {
         entity.setType(CallbackUrlType.valueOf(request.getType()));
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
+        entity.setAuthentication(request.getAuthentication());
         callbackUrlRepository.save(entity);
         CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
         response.setId(entity.getId());
         response.setApplicationId(entity.getApplicationId());
         response.setName(entity.getName());
         response.setCallbackUrl(entity.getCallbackUrl());
+        if (entity.getAttributes() != null) {
+            response.getAttributes().addAll(entity.getAttributes());
+        }
+        response.setAuthentication(entity.getAuthentication());
         return response;
     }
 
@@ -163,6 +158,7 @@ public class CallbackUrlBehavior {
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
+        entity.setAuthentication(request.getAuthentication());
         callbackUrlRepository.save(entity);
         UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
         response.setId(entity.getId());
@@ -170,7 +166,10 @@ public class CallbackUrlBehavior {
         response.setName(entity.getName());
         response.setType(entity.getType().toString());
         response.setCallbackUrl(entity.getCallbackUrl());
-        response.getAttributes().addAll(entity.getAttributes());
+        if (entity.getAttributes() != null) {
+            response.getAttributes().addAll(entity.getAttributes());
+        }
+        response.setAuthentication(entity.getAuthentication());
         return response;
     }
 
@@ -189,7 +188,10 @@ public class CallbackUrlBehavior {
             item.setName(callbackUrl.getName());
             item.setType(callbackUrl.getType().toString());
             item.setCallbackUrl(callbackUrl.getCallbackUrl());
-            item.getAttributes().addAll(callbackUrl.getAttributes());
+            if (callbackUrl.getAttributes() != null) {
+                item.getAttributes().addAll(callbackUrl.getAttributes());
+            }
+            item.setAuthentication(callbackUrl.getAuthentication());
             response.getCallbackUrlList().add(item);
         }
         return response;
@@ -219,10 +221,6 @@ public class CallbackUrlBehavior {
      */
     public void notifyCallbackListenersOnActivationChange(ActivationRecordEntity activation) {
         try {
-            if (restClient == null) {
-                // Initialize Rest Client when it is used for the first time
-                initializeRestClient();
-            }
             if (activation != null && activation.getApplication() != null) {
                 final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(activation.getApplication().getId(), CallbackUrlType.ACTIVATION_STATUS_CHANGE);
                 for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
@@ -279,10 +277,6 @@ public class CallbackUrlBehavior {
      */
     public void notifyCallbackListenersOnOperationChange(OperationEntity operation) {
         try {
-            if (restClient == null) {
-                // Initialize Rest Client when it is used for the first time
-                initializeRestClient();
-            }
             if (operation != null && operation.getApplication() != null) {
                 final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(operation.getApplication().getId(), CallbackUrlType.OPERATION_STATUS_CHANGE);
                 for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
@@ -349,11 +343,74 @@ public class CallbackUrlBehavior {
 
     // Private methods
 
+    /**
+     * Notify callback URL.
+     * @param callbackUrlEntity Callback URL entity.
+     * @param callbackData Callback data.
+     * @throws RestClientException Thrown when HTTP request fails.
+     */
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
         Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
         Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
         ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<String>(){};
+        RestClient restClient = getRestClient(callbackUrlEntity);
         restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
+    }
+
+    /**
+     * Get a rest client for a callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @return Rest client.
+     * @throws RestClientException Thrown when rest client initialization fails.
+     */
+    private synchronized RestClient getRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+        RestClient restClient = restClientCache.get(callbackUrlEntity);
+        if (restClient == null) {
+            restClient = initializeRestClient(callbackUrlEntity);
+            restClientCache.put(callbackUrlEntity, restClient);
+        }
+        return restClient;
+    }
+
+    /**
+     * Initialize Rest client instance and configure it based on client configuration.
+     * @param callbackUrlEntity Callback URL entity.
+     */
+    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+        DefaultRestClient.Builder builder = DefaultRestClient.builder();
+        if (configuration.getHttpConnectionTimeout() != null) {
+            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
+        }
+        if (configuration.getHttpProxyEnabled()) {
+            DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
+            if (configuration.getHttpProxyUsername() != null) {
+                proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
+            }
+        }
+        HttpAuthentication authentication = authenticationConverter.convertToEntityAttribute(callbackUrlEntity.getAuthentication());
+        HttpAuthentication.CertificateAuth certificateAuth = authentication.getCertificate();
+        if (certificateAuth.isEnabled()) {
+            DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
+            if (certificateAuth.isUseCustomKeyStore()) {
+                certificateAuthBuilder.enableCustomKeyStore()
+                        .keyStoreLocation(certificateAuth.getKeyStoreLocation())
+                        .keyStorePassword(certificateAuth.getKeyStorePassword())
+                        .keyAlias(certificateAuth.getKeyAlias())
+                        .keyPassword(certificateAuth.getKeyPassword());
+            }
+            if (certificateAuth.isUseCustomTrustStore()) {
+                certificateAuthBuilder.enableCustomTruststore()
+                        .trustStoreLocation(certificateAuth.getTrustStoreLocation())
+                        .trustStorePassword(certificateAuth.getTrustStorePassword());
+            }
+        }
+        HttpAuthentication.HttpBasicAuth httpBasicAuth = authentication.getHttpBasic();
+        if (httpBasicAuth.isEnabled()) {
+            builder.httpBasicAuth()
+                    .username(httpBasicAuth.getUsername())
+                    .password(httpBasicAuth.getPassword());
+        }
+        return builder.build();
     }
 
 }

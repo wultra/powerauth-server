@@ -37,9 +37,19 @@ import java.util.List;
 @Configuration
 public class WebApplicationConfig implements WebMvcConfigurer {
 
+    private final RESTResponseExceptionResolver restResponseExceptionResolver;
+
+    /**
+     * Configuration constructor.
+     * @param restResponseExceptionResolver REST response exception resolver.
+     */
+    public WebApplicationConfig(RESTResponseExceptionResolver restResponseExceptionResolver) {
+        this.restResponseExceptionResolver = restResponseExceptionResolver;
+    }
+
     @Override
     public void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> exceptionResolvers) {
-        exceptionResolvers.add(new RESTResponseExceptionResolver());
+        exceptionResolvers.add(restResponseExceptionResolver);
         exceptionResolvers.add(new ExceptionHandlerExceptionResolver());
         exceptionResolvers.add(new ResponseStatusExceptionResolver());
     }

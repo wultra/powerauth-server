@@ -107,16 +107,17 @@ public class ActivationServiceBehavior {
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.objectMapper = objectMapper;
     }
 
     @Autowired

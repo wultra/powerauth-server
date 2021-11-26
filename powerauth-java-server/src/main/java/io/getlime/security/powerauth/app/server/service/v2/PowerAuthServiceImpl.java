@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.v2;
 
 import com.wultra.security.powerauth.client.v2.*;
+import io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
@@ -28,7 +29,6 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,24 +52,27 @@ import java.util.Date;
 @Component("powerAuthServiceImplV2")
 public class PowerAuthServiceImpl implements PowerAuthService {
 
-    private ServiceBehaviorCatalogue behavior;
-
-    private LocalizationProvider localizationProvider;
-
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthServiceImpl.class);
 
-    @Autowired
-    public void setBehavior(ServiceBehaviorCatalogue behavior) {
-        this.behavior = behavior;
-    }
-
-    @Autowired
-    public void setLocalizationProvider(LocalizationProvider localizationProvider) {
-        this.localizationProvider = localizationProvider;
-    }
+    private final ServiceBehaviorCatalogue behavior;
+    private final LocalizationProvider localizationProvider;
+    private final KeyValueMapConverter keyValueMapConverter;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
+
+    /**
+     * Service constructor.
+     * @param behavior Service behavior catalogue.
+     * @param localizationProvider Localization provider.
+     * @param keyValueMapConverter Key value map converter.
+     */
+    public PowerAuthServiceImpl(ServiceBehaviorCatalogue behavior, LocalizationProvider localizationProvider, KeyValueMapConverter keyValueMapConverter) {
+        this.behavior = behavior;
+        this.localizationProvider = localizationProvider;
+        this.keyValueMapConverter = keyValueMapConverter;
+    }
+
 
     @Override
     @Transactional
@@ -313,7 +316,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     private boolean verifySignatureImplNonTransaction(String activationId, String applicationKey, String dataString, String signature, SignatureType signatureType, KeyValueMap additionalInfo) throws GenericServiceException {
         com.wultra.security.powerauth.client.v3.SignatureType signatureTypeV3 = new io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter().convertFrom(signatureType);
-        com.wultra.security.powerauth.client.v3.KeyValueMap additionalInfoV3 = new io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter().fromKeyValueMap(additionalInfo);
+        com.wultra.security.powerauth.client.v3.KeyValueMap additionalInfoV3 = keyValueMapConverter.fromKeyValueMap(additionalInfo);
         return behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureTypeV3, signature, "2.1", additionalInfoV3, dataString, applicationKey, null, keyConvertor).isSignatureValid();
     }
 

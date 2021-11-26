@@ -1067,6 +1067,7 @@
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1083,6 +1084,7 @@
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1101,6 +1103,7 @@
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1117,6 +1120,7 @@
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1149,6 +1153,7 @@
                             <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+                            <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>

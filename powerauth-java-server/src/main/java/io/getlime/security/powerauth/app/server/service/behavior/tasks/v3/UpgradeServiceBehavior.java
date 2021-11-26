@@ -74,16 +74,17 @@ public class UpgradeServiceBehavior {
     private final EciesFactory eciesFactory = new EciesFactory();
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
 
     @Autowired
-    public UpgradeServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    public UpgradeServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -188,7 +189,7 @@ public class UpgradeServiceBehavior {
             final UpgradeResponsePayload payload = new UpgradeResponsePayload(ctrDataBase64);
 
             // Encrypt response payload and return it
-            final byte[] payloadBytes = mapper.writeValueAsBytes(payload);
+            final byte[] payloadBytes = objectMapper.writeValueAsBytes(payload);
 
             final EciesCryptogram cryptogramResponse = decryptor.encryptResponse(payloadBytes);
             final StartUpgradeResponse response = new StartUpgradeResponse();

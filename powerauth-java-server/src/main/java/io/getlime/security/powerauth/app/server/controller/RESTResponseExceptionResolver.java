@@ -49,10 +49,14 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
 
     private static final Logger logger = LoggerFactory.getLogger(RESTResponseExceptionResolver.class);
 
+    private final ObjectMapper objectMapper;
+
     /**
      * Default constructor.
+     * @param objectMapper Object mapper.
      */
-    public RESTResponseExceptionResolver() {
+    public RESTResponseExceptionResolver(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
         super.setOrder(Ordered.LOWEST_PRECEDENCE - 1);
     }
 
@@ -90,8 +94,7 @@ public class RESTResponseExceptionResolver extends DefaultHandlerExceptionResolv
             ObjectResponse<PowerAuthError> errorResponse = new ObjectResponse<>("ERROR", error);
 
             // Write the response in JSON and send it
-            ObjectMapper mapper = new ObjectMapper();
-            String responseString = mapper.writeValueAsString(errorResponse);
+            String responseString = objectMapper.writeValueAsString(errorResponse);
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             response.setCharacterEncoding(StandardCharsets.UTF_8.name());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
