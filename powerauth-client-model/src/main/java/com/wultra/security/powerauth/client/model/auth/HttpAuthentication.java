@@ -27,8 +27,8 @@ import lombok.Data;
 @Data
 public class HttpAuthentication {
 
-    private CertificateAuth certificate;
-    private HttpBasicAuth httpBasic;
+    private CertificateAuth certificate = new CertificateAuth();
+    private HttpBasicAuth httpBasic = new HttpBasicAuth();
 
     @Data
     public static class CertificateAuth {
