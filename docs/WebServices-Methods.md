@@ -1300,7 +1300,7 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "keyPassword": "[key password]",
     "useCustomTrustStore": false,
     "trustStoreLocation": "[trustore resource location]", 
-    "trustStorePassword": "[truststore password"
+    "trustStorePassword": "[truststore password]"
   },
   "httpBasic": {
     "enabled": false,
@@ -1364,7 +1364,7 @@ The `authentication` parameter contains a JSON-based configuration for client TL
     "keyPassword": "[key password]",
     "useCustomTrustStore": false,
     "trustStoreLocation": "[trustore resource location]", 
-    "trustStorePassword": "[truststore password"
+    "trustStorePassword": "[truststore password]"
   },
   "httpBasic": {
     "enabled": false,
