@@ -17,7 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import com.wultra.security.powerauth.client.v3.HttpAuthentication;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlTypeConverter;
 
@@ -59,7 +61,8 @@ public class CallbackUrlEntity implements Serializable {
     private List<String> attributes;
 
     @Column(name = "authentication")
-    private String authentication;
+    @Convert(converter = CallbackAuthenticationConverter.class)
+    private HttpAuthentication authentication;
 
     /**
      * Get the ID of an integration.
@@ -161,7 +164,7 @@ public class CallbackUrlEntity implements Serializable {
      * Get callback request authentication.
      * @return Callback request authentication.
      */
-    public String getAuthentication() {
+    public HttpAuthentication getAuthentication() {
         return authentication;
     }
 
@@ -169,7 +172,7 @@ public class CallbackUrlEntity implements Serializable {
      * Set callback request authentication.
      * @param authentication Callback request authentication.
      */
-    public void setAuthentication(String authentication) {
+    public void setAuthentication(HttpAuthentication authentication) {
         this.authentication = authentication;
     }
 

@@ -1067,7 +1067,7 @@
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="authentication" type="tns:HttpAuthentication" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1084,7 +1084,7 @@
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="authentication" type="tns:HttpAuthentication" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1103,7 +1103,7 @@
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="authentication" type="tns:HttpAuthentication" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1120,7 +1120,7 @@
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="authentication" type="tns:HttpAuthentication" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1153,7 +1153,7 @@
                             <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                            <xs:element name="authentication" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                            <xs:element name="authentication" type="tns:HttpAuthentication" minOccurs="0" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>
                 </xs:element>
@@ -1840,6 +1840,35 @@
                     <xs:sequence>
                         <xs:element name="key" type="xs:string"/>
                         <xs:element name="value" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="HttpAuthentication">
+        <xs:sequence>
+            <xs:element name="certificate" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="enabled" type="xs:boolean"/>
+                        <xs:element name="useCustomKeyStore" type="xs:boolean"/>
+                        <xs:element name="keyStoreLocation" type="xs:string"/>
+                        <xs:element name="keyStorePassword" type="xs:string"/>
+                        <xs:element name="keyAlias" type="xs:string"/>
+                        <xs:element name="keyPassword" type="xs:string"/>
+                        <xs:element name="useCustomTrustStore" type="xs:boolean"/>
+                        <xs:element name="trustStoreLocation" type="xs:string"/>
+                        <xs:element name="trustStorePassword" type="xs:string"/>
+                    </xs:sequence>
+                </xs:complexType>
+            </xs:element>
+            <xs:element name="httpBasic" minOccurs="0">
+                <xs:complexType>
+                    <xs:sequence>
+                        <xs:element name="enabled" type="xs:boolean"/>
+                        <xs:element name="username" type="xs:string"/>
+                        <xs:element name="password" type="xs:string"/>
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>

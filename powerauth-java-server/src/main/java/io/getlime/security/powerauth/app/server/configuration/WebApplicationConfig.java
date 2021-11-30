@@ -19,6 +19,7 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import io.getlime.security.powerauth.app.server.controller.RESTResponseExceptionResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -43,6 +44,7 @@ public class WebApplicationConfig implements WebMvcConfigurer {
      * Configuration constructor.
      * @param restResponseExceptionResolver REST response exception resolver.
      */
+    @Autowired
     public WebApplicationConfig(RESTResponseExceptionResolver restResponseExceptionResolver) {
         this.restResponseExceptionResolver = restResponseExceptionResolver;
     }

@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.client.model.auth.HttpAuthentication;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
@@ -387,9 +386,9 @@ public class CallbackUrlBehavior {
                 proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
             }
         }
-        HttpAuthentication authentication = authenticationConverter.convertToEntityAttribute(callbackUrlEntity.getAuthentication());
-        HttpAuthentication.CertificateAuth certificateAuth = authentication.getCertificate();
-        if (certificateAuth.isEnabled()) {
+        HttpAuthentication authentication = callbackUrlEntity.getAuthentication();
+        HttpAuthentication.Certificate certificateAuth = authentication.getCertificate();
+        if (certificateAuth != null && certificateAuth.isEnabled()) {
             DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
             if (certificateAuth.isUseCustomKeyStore()) {
                 certificateAuthBuilder.enableCustomKeyStore()
@@ -404,8 +403,8 @@ public class CallbackUrlBehavior {
                         .trustStorePassword(certificateAuth.getTrustStorePassword());
             }
         }
-        HttpAuthentication.HttpBasicAuth httpBasicAuth = authentication.getHttpBasic();
-        if (httpBasicAuth.isEnabled()) {
+        HttpAuthentication.HttpBasic httpBasicAuth = authentication.getHttpBasic();
+        if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
             builder.httpBasicAuth()
                     .username(httpBasicAuth.getUsername())
                     .password(httpBasicAuth.getPassword());
