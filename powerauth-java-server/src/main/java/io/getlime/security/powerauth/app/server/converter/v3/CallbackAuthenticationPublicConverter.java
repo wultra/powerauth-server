@@ -42,19 +42,21 @@ public class CallbackAuthenticationPublicConverter {
             HttpAuthenticationPublic.HttpBasic httpBasicPublic = new HttpAuthenticationPublic.HttpBasic();
             httpBasicPublic.setEnabled(httpBasicPrivate.isEnabled());
             httpBasicPublic.setUsername(httpBasicPrivate.getUsername());
-            httpBasicPublic.setPasswordSet(httpBasicPrivate.getPassword() != null);
+            httpBasicPublic.setPasswordSet(httpBasicPrivate.getPassword() != null && !httpBasicPrivate.getPassword().isEmpty());
             authPublic.setHttpBasic(httpBasicPublic);
         }
         HttpAuthenticationPrivate.Certificate certificatePrivate = authPrivate.getCertificate();
         if (certificatePrivate != null) {
             HttpAuthenticationPublic.Certificate certificatePublic = new HttpAuthenticationPublic.Certificate();
             certificatePublic.setEnabled(certificatePrivate.isEnabled());
+            certificatePublic.setUseCustomKeyStore(certificatePrivate.isUseCustomKeyStore());
             certificatePublic.setKeyStoreLocation(certificatePrivate.getKeyStoreLocation());
-            certificatePublic.setKeyPasswordSet(certificatePrivate.getKeyStorePassword() != null);
+            certificatePublic.setKeyStorePasswordSet(certificatePrivate.getKeyStorePassword() != null && !certificatePrivate.getKeyStorePassword().isEmpty());
             certificatePublic.setKeyAlias(certificatePrivate.getKeyAlias());
-            certificatePublic.setKeyPasswordSet(certificatePrivate.getKeyPassword() != null);
+            certificatePublic.setKeyPasswordSet(certificatePrivate.getKeyPassword() != null && !certificatePrivate.getKeyPassword().isEmpty());
+            certificatePublic.setUseCustomTrustStore(certificatePrivate.isUseCustomTrustStore());
             certificatePublic.setTrustStoreLocation(certificatePrivate.getTrustStoreLocation());
-            certificatePublic.setTrustStorePasswordSet(certificatePrivate.getTrustStorePassword() != null);
+            certificatePublic.setTrustStorePasswordSet(certificatePrivate.getTrustStorePassword() != null && !certificatePrivate.getTrustStorePassword().isEmpty());
             authPublic.setCertificate(certificatePublic);
         }
         return authPublic;
