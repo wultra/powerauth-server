@@ -790,7 +790,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthentication authentication) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given request object.
@@ -813,7 +813,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthentication authentication) throws PowerAuthClientException;
+    UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
 
     /**
      * Get the response with list of callback URL objects.

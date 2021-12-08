@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server.converter.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.HttpAuthentication;
+import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ import java.io.IOException;
  */
 @Converter
 @Component
-public class CallbackAuthenticationConverter implements AttributeConverter<HttpAuthentication, String> {
+public class CallbackAuthenticationConverter implements AttributeConverter<HttpAuthenticationPrivate, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(CallbackAuthenticationConverter.class);
 
@@ -50,10 +50,10 @@ public class CallbackAuthenticationConverter implements AttributeConverter<HttpA
     }
 
     @Override
-    public String convertToDatabaseColumn(HttpAuthentication authentication) {
+    public String convertToDatabaseColumn(HttpAuthenticationPrivate authentication) {
         try {
             if (authentication == null) {
-                authentication = new HttpAuthentication();
+                authentication = new HttpAuthenticationPrivate();
             }
             return objectMapper.writeValueAsString(authentication);
         } catch (JsonProcessingException ex) {
@@ -64,15 +64,15 @@ public class CallbackAuthenticationConverter implements AttributeConverter<HttpA
     }
 
     @Override
-    public HttpAuthentication convertToEntityAttribute(String authentication) {
+    public HttpAuthenticationPrivate convertToEntityAttribute(String authentication) {
         if (authentication == null) {
-            return new HttpAuthentication();
+            return new HttpAuthenticationPrivate();
         }
         try {
-            return objectMapper.readValue(authentication, HttpAuthentication.class);
+            return objectMapper.readValue(authentication, HttpAuthenticationPrivate.class);
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload", ex);
-            return new HttpAuthentication();
+            return new HttpAuthenticationPrivate();
         }
 
     }

@@ -22,7 +22,7 @@ import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
@@ -55,11 +55,11 @@ import java.util.function.Consumer;
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
-    private final CallbackAuthenticationConverter authenticationConverter;
     private LocalizationProvider localizationProvider;
     private PowerAuthServiceConfiguration configuration;
 
     private final Map<CallbackUrlEntity, RestClient> restClientCache = new HashMap<>();
+    private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
@@ -67,12 +67,10 @@ public class CallbackUrlBehavior {
     /**
      * Behavior constructor.
      * @param callbackUrlRepository Callback URL repository.
-     * @param authenticationConverter Callback authentication converter.
      */
     @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, CallbackAuthenticationConverter authenticationConverter) {
+    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
         this.callbackUrlRepository = callbackUrlRepository;
-        this.authenticationConverter = authenticationConverter;
     }
 
     @Autowired
@@ -119,7 +117,7 @@ public class CallbackUrlBehavior {
         if (entity.getAttributes() != null) {
             response.getAttributes().addAll(entity.getAttributes());
         }
-        response.setAuthentication(entity.getAuthentication());
+        response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
         return response;
     }
 
@@ -168,7 +166,7 @@ public class CallbackUrlBehavior {
         if (entity.getAttributes() != null) {
             response.getAttributes().addAll(entity.getAttributes());
         }
-        response.setAuthentication(entity.getAuthentication());
+        response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
         return response;
     }
 
@@ -190,7 +188,7 @@ public class CallbackUrlBehavior {
             if (callbackUrl.getAttributes() != null) {
                 item.getAttributes().addAll(callbackUrl.getAttributes());
             }
-            item.setAuthentication(callbackUrl.getAuthentication());
+            item.setAuthentication(authenticationPublicConverter.toPublic(callbackUrl.getAuthentication()));
             response.getCallbackUrlList().add(item);
         }
         return response;
@@ -386,8 +384,8 @@ public class CallbackUrlBehavior {
                 proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
             }
         }
-        HttpAuthentication authentication = callbackUrlEntity.getAuthentication();
-        HttpAuthentication.Certificate certificateAuth = authentication.getCertificate();
+        HttpAuthenticationPrivate authentication = callbackUrlEntity.getAuthentication();
+        HttpAuthenticationPrivate.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
             DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
             if (certificateAuth.isUseCustomKeyStore()) {
@@ -403,7 +401,7 @@ public class CallbackUrlBehavior {
                         .trustStorePassword(certificateAuth.getTrustStorePassword());
             }
         }
-        HttpAuthentication.HttpBasic httpBasicAuth = authentication.getHttpBasic();
+        HttpAuthenticationPrivate.HttpBasic httpBasicAuth = authentication.getHttpBasic();
         if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
             builder.httpBasicAuth()
                     .username(httpBasicAuth.getUsername())
