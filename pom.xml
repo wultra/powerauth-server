@@ -107,7 +107,7 @@
         <saaj-impl.version>1.5.3</saaj-impl.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi.version>1.5.12</springdoc-openapi.version>
+        <springdoc-openapi.version>1.6.0</springdoc-openapi.version>
 
         <!-- Scheduled Job Dependencies -->
         <schedlock.version>4.30.0</schedlock.version>
