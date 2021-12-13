@@ -21,7 +21,6 @@ package io.getlime.security.powerauth.app.server.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.app.server.integration.IntegrationUserDetailsService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -49,18 +48,20 @@ import javax.servlet.http.HttpServletResponse;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    private IntegrationUserDetailsService userDetailsService;
+    private final IntegrationUserDetailsService userDetailsService;
+    private final PowerAuthServiceConfiguration configuration;
+    private final ObjectMapper objectMapper;
 
-    private PowerAuthServiceConfiguration configuration;
-
-    @Autowired
-    public void setConfiguration(PowerAuthServiceConfiguration configuration) {
-        this.configuration = configuration;
-    }
-
-    @Autowired
-    public void setUserDetailsService(IntegrationUserDetailsService userDetailsService) {
+    /**
+     * Configuration constructor.
+     * @param userDetailsService User details service.
+     * @param configuration PowerAuth service configuration.
+     * @param objectMapper Object mapper.
+     */
+    public WebSecurityConfig(IntegrationUserDetailsService userDetailsService, PowerAuthServiceConfiguration configuration, ObjectMapper objectMapper) {
         this.userDetailsService = userDetailsService;
+        this.configuration = configuration;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -90,7 +91,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             httpServletResponse.setContentType("application/json");
             httpServletResponse.setCharacterEncoding("UTF-8");
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            httpServletResponse.getOutputStream().println(new ObjectMapper().writeValueAsString(errorResponse));
+            httpServletResponse.getOutputStream().println(objectMapper.writeValueAsString(errorResponse));
             httpServletResponse.getOutputStream().flush();
         };
     }
