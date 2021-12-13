@@ -90,7 +90,7 @@
         <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
 
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>3.0.3</spring-cloud-vault.version>
+        <spring-cloud-vault.version>3.1.0</spring-cloud-vault.version>
 
         <!-- PowerAuth Dependencies -->
         <powerauth-java-crypto.version>1.2.0</powerauth-java-crypto.version>
@@ -110,7 +110,7 @@
         <springdoc-openapi.version>1.5.12</springdoc-openapi.version>
 
         <!-- Scheduled Job Dependencies -->
-        <schedlock.version>4.29.0</schedlock.version>
+        <schedlock.version>4.30.0</schedlock.version>
 
         <!-- Test Dependencies -->
         <junit-jupiter-engine.version>5.7.1</junit-jupiter-engine.version>
