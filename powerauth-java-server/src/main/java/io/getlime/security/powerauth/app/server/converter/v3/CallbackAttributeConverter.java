@@ -43,7 +43,15 @@ public class CallbackAttributeConverter implements AttributeConverter<List<Strin
 
     private static final String EMPTY_ATTRIBUTES = "[]";
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    /**
+     * Converter constructor.
+     * @param objectMapper Object mapper.
+     */
+    public CallbackAttributeConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public String convertToDatabaseColumn(List<String> attributes) {

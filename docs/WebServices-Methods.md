@@ -84,7 +84,7 @@ The following `v3` methods are published using the service:
     - [updateActivationFlags](#method-updateactivationflags)
     - [removeActivationFlags](#method-removeactivationflags)
 - Application Roles
-    - [listApplicationRoles](#method-listapplicationoles)
+    - [listApplicationRoles](#method-listapplicationroles)
     - [addApplicationRoles](#method-addapplicationroles)
     - [updateApplicationRoles](#method-updateapplicationroles)
     - [removeApplicationRoles](#method-removeapplicationroles)
@@ -96,7 +96,7 @@ The following `v3` methods are published using the service:
     - [findAllOperationsByExternalId](#method-findalloperationsbyexternalid)
     - [cancelOperation](#method-canceloperation)
     - [approveOperation](#method-approveoperation)
-    - [failApprovalOperation](#method-failapprovaloperation)
+    - [failApprovalOperation](#method-failapproveoperation)
     - [rejectOperation](#method-rejectoperation)
 - Operation Templates
     - [createOperationTemplate](#method-createoperationtemplate)
@@ -1275,6 +1275,7 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `String` | `authentication` | Callback HTTP request authentication configuration. |
 
 The `attributes` list can contain following values:
 - `activationId`
@@ -1287,6 +1288,28 @@ The `attributes` list can contain following values:
 - `blockedReason`
 - `applicationId`
 
+The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
+```json
+{
+  "certificate": {
+    "enabled": false,
+    "useCustomKeyStore": false,
+    "keyStoreLocation": "[keystore resource location]",
+    "keyStorePassword": "[keystore password]",
+    "keyAlias": "[key alias]",
+    "keyPassword": "[key password]",
+    "useCustomTrustStore": false,
+    "trustStoreLocation": "[truststore resource location]", 
+    "trustStorePassword": "[truststore password]"
+  },
+  "httpBasic": {
+    "enabled": false,
+    "username": "[HTTP basic authentication username]",
+    "password": "[HTTP basic authentication password]"
+  }
+}
+```
+
 #### Response
 
 `CreateCallbackUrlResponse`
@@ -1298,6 +1321,7 @@ The `attributes` list can contain following values:
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `String` | `authentication` | Callback HTTP request authentication configuration. |
 
 ### Method 'updateCallbackUrl'
 
@@ -1315,6 +1339,7 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `String` | `authentication` | Callback HTTP request authentication configuration. |
 
 The `attributes` list can contain following values:
 - `activationId`
@@ -1327,6 +1352,29 @@ The `attributes` list can contain following values:
 - `blockedReason`
 - `applicationId`
 
+The `authentication` parameter contains a JSON-based configuration for client TLS certificate and HTTP basic authentication:
+```json
+{
+  "certificate": {
+    "enabled": false,
+    "useCustomKeyStore": false,
+    "keyStoreLocation": "[keystore resource location]",
+    "keyStorePassword": "[keystore password]",
+    "keyAlias": "[key alias]",
+    "keyPassword": "[key password]",
+    "useCustomTrustStore": false,
+    "trustStoreLocation": "[truststore resource location]", 
+    "trustStorePassword": "[truststore password]"
+  },
+  "httpBasic": {
+    "enabled": false,
+    "username": "[HTTP basic authentication username]",
+    "password": "[HTTP basic authentication password]"
+  }
+}
+```
+
+
 #### Response
 
 `UpdateCallbackUrlResponse`
@@ -1338,6 +1386,7 @@ The `attributes` list can contain following values:
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `String` | `authentication` | Callback HTTP request authentication configuration. |
 
 ### Method 'getCallbackUrlList'
 
@@ -1370,6 +1419,7 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 | `String` | `name` | Callback URL name, for visual identification. |
 | `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
+| `String` | `authentication` | Callback HTTP request authentication configuration. |
 
 ### Method 'removeCallbackUrl'
 

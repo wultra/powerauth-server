@@ -84,18 +84,19 @@ public class VaultUnlockServiceBehavior {
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.behavior = behavior;
+        this.objectMapper = objectMapper;
     }
 
     /**

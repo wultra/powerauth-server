@@ -15,32 +15,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.model;
+package io.getlime.security.powerauth.app.server.converter.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
 
 /**
- * Converter for activation flags.
+ * Converter for callback request authentication.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Converter
 @Component
-public class ActivationFlagConverter implements AttributeConverter<List<String>, String> {
+public class CallbackAuthenticationConverter implements AttributeConverter<HttpAuthenticationPrivate, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ActivationFlagConverter.class);
-
-    private static final String EMPTY_FLAGS = "[]";
+    private static final Logger logger = LoggerFactory.getLogger(CallbackAuthenticationConverter.class);
 
     private final ObjectMapper objectMapper;
 
@@ -48,33 +45,34 @@ public class ActivationFlagConverter implements AttributeConverter<List<String>,
      * Converter constructor.
      * @param objectMapper Object mapper.
      */
-    public ActivationFlagConverter(ObjectMapper objectMapper) {
+    public CallbackAuthenticationConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
-    public String convertToDatabaseColumn(List<String> flags) {
-        if (flags == null) {
-            return EMPTY_FLAGS;
-        }
+    public String convertToDatabaseColumn(HttpAuthenticationPrivate authentication) {
         try {
-            return objectMapper.writeValueAsString(flags);
+            if (authentication == null) {
+                authentication = new HttpAuthenticationPrivate();
+            }
+            return objectMapper.writeValueAsString(authentication);
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
-            return EMPTY_FLAGS;
+            logger.error("Unable to serialize JSON payload", ex);
+            return null;
         }
+
     }
 
     @Override
-    public List<String> convertToEntityAttribute(String flags) {
-        if (flags == null) {
-            return new ArrayList<>();
+    public HttpAuthenticationPrivate convertToEntityAttribute(String authentication) {
+        if (authentication == null) {
+            return new HttpAuthenticationPrivate();
         }
         try {
-            return objectMapper.readValue(flags, new TypeReference<List<String>>(){});
-        } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
-            return new ArrayList<>();
+            return objectMapper.readValue(authentication, HttpAuthenticationPrivate.class);
+        } catch (IOException ex) {
+            logger.error("Unable to parse JSON payload", ex);
+            return new HttpAuthenticationPrivate();
         }
 
     }

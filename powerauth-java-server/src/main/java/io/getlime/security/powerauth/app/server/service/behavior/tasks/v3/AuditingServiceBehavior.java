@@ -49,11 +49,12 @@ public class AuditingServiceBehavior {
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
-    private final KeyValueMapConverter keyValueMapConverter = new KeyValueMapConverter();
+    private final KeyValueMapConverter keyValueMapConverter;
 
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter) {
         this.signatureAuditRepository = signatureAuditRepository;
+        this.keyValueMapConverter = keyValueMapConverter;
     }
 
     /**

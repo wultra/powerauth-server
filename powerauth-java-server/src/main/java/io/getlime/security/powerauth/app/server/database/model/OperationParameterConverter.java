@@ -44,7 +44,15 @@ public class OperationParameterConverter implements AttributeConverter<Map<Strin
 
     private static final String EMPTY_PARAMS = "{}";
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
+
+    /**
+     * Converter constructor.
+     * @param objectMapper Object mapper.
+     */
+    public OperationParameterConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     @Override
     public String convertToDatabaseColumn(Map<String, String> parameters) {
