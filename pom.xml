@@ -110,7 +110,7 @@
         <springdoc-openapi.version>1.5.8</springdoc-openapi.version>
 
         <!-- Scheduled Job Dependencies -->
-        <schedlock.version>4.23.0</schedlock.version>
+        <schedlock.version>4.30.0</schedlock.version>
 
         <!-- Test Dependencies -->
         <junit-jupiter-engine.version>5.7.2</junit-jupiter-engine.version>
