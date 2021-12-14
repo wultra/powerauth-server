@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.4.13</version>
+        <version>2.6.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -113,7 +113,7 @@
         <schedlock.version>4.30.0</schedlock.version>
 
         <!-- Test Dependencies -->
-        <junit-jupiter-engine.version>5.7.1</junit-jupiter-engine.version>
+        <junit-jupiter-engine.version>5.7.2</junit-jupiter-engine.version>
         <h2.version>1.4.197</h2.version> <!-- Tests fail in version 1.4.200, upgrade reverted -->
 
         <!-- Other Dependencies -->

@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.EncryptionServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -69,102 +70,102 @@ public class ServiceBehaviorCatalogue {
     private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
     @Autowired
-    public void setActivationServiceBehavior(ActivationServiceBehavior activationServiceBehavior) {
+    public void setActivationServiceBehavior(@Lazy ActivationServiceBehavior activationServiceBehavior) {
         this.activationServiceBehavior = activationServiceBehavior;
     }
 
     @Autowired
-    public void setActivationFlagsServiceBehavior(ActivationFlagsServiceBehavior activationFlagsServiceBehavior) {
+    public void setActivationFlagsServiceBehavior(@Lazy ActivationFlagsServiceBehavior activationFlagsServiceBehavior) {
         this.activationFlagsServiceBehavior = activationFlagsServiceBehavior;
     }
 
     @Autowired
-    public void setActivationHistoryServiceBehavior(ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+    public void setActivationHistoryServiceBehavior(@Lazy ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
 
     @Autowired
-    public void setApplicationServiceBehavior(ApplicationServiceBehavior applicationServiceBehavior) {
+    public void setApplicationServiceBehavior(@Lazy ApplicationServiceBehavior applicationServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
     }
 
     @Autowired
-    public void setApplicationRolesServiceBehavior(ApplicationRolesServiceBehavior applicationRolesServiceBehavior) {
+    public void setApplicationRolesServiceBehavior(@Lazy ApplicationRolesServiceBehavior applicationRolesServiceBehavior) {
         this.applicationRolesServiceBehavior = applicationRolesServiceBehavior;
     }
 
     @Autowired
-    public void setAuditingServiceBehavior(AuditingServiceBehavior auditingServiceBehavior) {
+    public void setAuditingServiceBehavior(@Lazy AuditingServiceBehavior auditingServiceBehavior) {
         this.auditingServiceBehavior = auditingServiceBehavior;
     }
 
     @Autowired
-    public void setOnlineSignatureServiceBehavior(OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+    public void setOnlineSignatureServiceBehavior(@Lazy OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
         this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
     }
 
     @Autowired
-    public void setOfflineSignatureServiceBehavior(OfflineSignatureServiceBehavior offlineSignatureServiceBehavior) {
+    public void setOfflineSignatureServiceBehavior(@Lazy OfflineSignatureServiceBehavior offlineSignatureServiceBehavior) {
         this.offlineSignatureServiceBehavior = offlineSignatureServiceBehavior;
     }
 
     @Autowired
-    public void setVaultUnlockServiceBehavior(VaultUnlockServiceBehavior vaultUnlockServiceBehavior) {
+    public void setVaultUnlockServiceBehavior(@Lazy VaultUnlockServiceBehavior vaultUnlockServiceBehavior) {
         this.vaultUnlockServiceBehavior = vaultUnlockServiceBehavior;
     }
 
     @Autowired
-    public void setIntegrationBehavior(IntegrationBehavior integrationBehavior) {
+    public void setIntegrationBehavior(@Lazy IntegrationBehavior integrationBehavior) {
         this.integrationBehavior = integrationBehavior;
     }
 
     @Autowired
-    public void setCallbackUrlBehavior(CallbackUrlBehavior callbackUrlBehavior) {
+    public void setCallbackUrlBehavior(@Lazy CallbackUrlBehavior callbackUrlBehavior) {
         this.callbackUrlBehavior = callbackUrlBehavior;
     }
 
     @Autowired
-    public void setAsymmetricSignatureServiceBehavior(AsymmetricSignatureServiceBehavior asymmetricSignatureServiceBehavior) {
+    public void setAsymmetricSignatureServiceBehavior(@Lazy AsymmetricSignatureServiceBehavior asymmetricSignatureServiceBehavior) {
         this.asymmetricSignatureServiceBehavior = asymmetricSignatureServiceBehavior;
     }
 
     @Autowired
-    public void setTokenBehavior(TokenBehavior tokenBehavior) {
+    public void setTokenBehavior(@Lazy TokenBehavior tokenBehavior) {
         this.tokenBehavior = tokenBehavior;
     }
 
     @Autowired
-    public void setEciesEncryptionBehavior(EciesEncryptionBehavior eciesEncryptionBehavior) {
+    public void setEciesEncryptionBehavior(@Lazy EciesEncryptionBehavior eciesEncryptionBehavior) {
         this.eciesEncryptionBehavior = eciesEncryptionBehavior;
     }
 
     @Autowired
-    public void setUpgradeServiceBehavior(UpgradeServiceBehavior upgradeServiceBehavior) {
+    public void setUpgradeServiceBehavior(@Lazy UpgradeServiceBehavior upgradeServiceBehavior) {
         this.upgradeServiceBehavior = upgradeServiceBehavior;
     }
 
     @Autowired
-    public void setRecoveryServiceBehavior(RecoveryServiceBehavior recoveryServiceBehavior) {
+    public void setRecoveryServiceBehavior(@Lazy RecoveryServiceBehavior recoveryServiceBehavior) {
         this.recoveryServiceBehavior = recoveryServiceBehavior;
     }
 
     @Autowired
-    public void setRecoveryServiceBehavior(OperationServiceBehavior operationServiceBehavior) {
+    public void setRecoveryServiceBehavior(@Lazy OperationServiceBehavior operationServiceBehavior) {
         this.operationServiceBehavior = operationServiceBehavior;
     }
 
     @Autowired
-    public void setOperationBehavior(OperationServiceBehavior operationServiceBehavior) {
+    public void setOperationBehavior(@Lazy OperationServiceBehavior operationServiceBehavior) {
         this.operationServiceBehavior = operationServiceBehavior;
     }
 
     @Autowired
-    public void setOperationTemplateBehavior(OperationTemplateServiceBehavior operationTemplateServiceBehavior) {
+    public void setOperationTemplateBehavior(@Lazy OperationTemplateServiceBehavior operationTemplateServiceBehavior) {
         this.operationTemplateServiceBehavior = operationTemplateServiceBehavior;
     }
 
     @Autowired
-    public void setServiceBehaviorCatalogueV2(ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
+    public void setServiceBehaviorCatalogueV2(@Lazy ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
         this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
     }
 
