@@ -41,10 +41,13 @@ import org.springframework.stereotype.Component;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Class that manages the service logic related to callback URL management.
@@ -304,6 +307,29 @@ public class CallbackUrlBehavior {
             // Log the error in case Rest client initialization failed
             logger.error(ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Tries to asynchronously notify all operation callbacks that are registered
+     * for given application.
+     * 
+     * @param operations Operations to be notified about.
+     */
+    public void notifyCallbackListenersOnOperationChange(List<OperationEntity> operations) {
+        final List<OperationEntity> operationsWithAppId = operations.stream().filter(op -> op.getApplication() != null).collect(Collectors.toList());
+        final Set<Long> appIds = operationsWithAppId.stream().map(o -> o.getApplication().getId()).collect(Collectors.toSet());
+        final List<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdInAndTypeOrderByName(appIds, CallbackUrlType.OPERATION_STATUS_CHANGE);
+        operationsWithAppId.stream().forEach(o -> {
+            callbackUrlEntities.stream().filter(cb -> cb.getApplicationId().equals(o.getApplication().getId())).forEach(cb -> {
+                Map<String, Object> callbackData = prepareCallbackDataOperation(cb, o);
+                try {
+                    notifyCallbackUrl(cb, callbackData);
+                } catch (RestClientException e) {
+                    // Log the error in case Rest client callback failed
+                    logger.error(e.getMessage(), e);
+                }
+            });
+        });
     }
 
     /**

@@ -20,13 +20,16 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
+
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -61,4 +64,15 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
             "ORDER BY o.timestampCreated")
     Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);
 
+    @Query("SELECT o.id FROM OperationEntity o " +
+            "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING ")
+    List<String> findExpiredPendingOperationIds(Date timestamp);
+
+    @Modifying( clearAutomatically = true)
+    @Query("UPDATE OperationEntity o SET status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.EXPIRED " +
+            "WHERE o.id IN (:ids)")
+    int setExpiredToPendingOperations(Iterable<String> ids);
+
+    @Query("SELECT o FROM OperationEntity o WHERE o.id IN (:ids) ORDER BY o.timestampCreated")
+    List<OperationEntity> findOperationsById(Iterable<String> ids);
 }

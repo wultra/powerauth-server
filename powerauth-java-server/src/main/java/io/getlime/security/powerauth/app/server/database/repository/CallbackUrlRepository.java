@@ -36,4 +36,6 @@ public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity,
 
     List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(Long applicationId, CallbackUrlType type);
 
+    List<CallbackUrlEntity> findByApplicationIdInAndTypeOrderByName(Iterable<Long> applicationId, CallbackUrlType type);
+
 }
