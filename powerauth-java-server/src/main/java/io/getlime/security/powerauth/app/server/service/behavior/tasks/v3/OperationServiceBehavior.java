@@ -49,9 +49,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.validation.constraints.NotNull;
+
+import static io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.EXPIRED;
+
 import java.util.*;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Behavior class implementing the operation related processes.
@@ -573,12 +578,23 @@ public class OperationServiceBehavior {
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup}")
     @SchedulerLock(name = "expireOperationsTask")
     @Transactional
-    public void expireOperations() {
-        LockAssert.assertLocked();
-        final Date currentTimestamp = new Date();
-        logger.debug("Running scheduled task for expiring operations");
-        try (final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp)) {
-            pendingOperations.forEach(op -> expireOperation(op, currentTimestamp));
-        }
-    }
+	public void expireOperations() {
+    	LockAssert.assertLocked();
+		logger.debug("Running scheduled task for expiring operations");
+
+		final Date currentTimestamp = new Date();
+		List<String> expiringOperationIds = operationRepository.findExpiredPendingOperationIds(currentTimestamp);
+		if (expiringOperationIds.isEmpty())
+			return;
+		int updatedRows = operationRepository.setExpiredToPendingOperations(expiringOperationIds);
+		if (expiringOperationIds.size() > updatedRows)
+			logger.warn("There was less updated rows ({}) than was expected ({}), ids on input: {}", expiringOperationIds.size(), updatedRows, expiringOperationIds);
+
+		List<OperationEntity> pendingOperations = operationRepository.findOperationsById(expiringOperationIds);
+		pendingOperations.stream().forEach(op-> {
+			if (EXPIRED.equals(op.getStatus()))
+				logger.info("Operation {} expired.", op.getId());
+		});
+		behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(pendingOperations);
+	}
 }
