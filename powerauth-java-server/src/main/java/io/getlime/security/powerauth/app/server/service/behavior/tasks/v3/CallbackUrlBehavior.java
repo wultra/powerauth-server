@@ -158,20 +158,22 @@ public class CallbackUrlBehavior {
         // Retain existing passwords in case new password is not set
         HttpAuthenticationPrivate authRequest = request.getAuthentication();
         HttpAuthenticationPrivate authExisting = entity.getAuthentication();
-        if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
-            if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
-                authRequest.getCertificate().setKeyStorePassword(authExisting.getCertificate().getKeyStorePassword());
+        if (authRequest != null) {
+            if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
+                if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
+                    authRequest.getCertificate().setKeyStorePassword(authExisting.getCertificate().getKeyStorePassword());
+                }
+                if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
+                    authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
+                }
+                if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
+                    authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
+                }
             }
-            if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
-                authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
-            }
-            if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
-                authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
-            }
-        }
-        if (authRequest.getHttpBasic() != null && authExisting.getHttpBasic() != null) {
-            if (authExisting.getHttpBasic().getPassword() != null && authRequest.getHttpBasic().getPassword() == null) {
-                authRequest.getHttpBasic().setPassword(authExisting.getHttpBasic().getPassword());
+            if (authRequest.getHttpBasic() != null && authExisting.getHttpBasic() != null) {
+                if (authExisting.getHttpBasic().getPassword() != null && authRequest.getHttpBasic().getPassword() == null) {
+                    authRequest.getHttpBasic().setPassword(authExisting.getHttpBasic().getPassword());
+                }
             }
         }
         entity.setAuthentication(authRequest);
