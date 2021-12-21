@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.List;
@@ -31,10 +32,20 @@ import java.util.List;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Component
 public class KeyValueMapConverter {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
     private static final Logger logger = LoggerFactory.getLogger(KeyValueMapConverter.class);
+
+    private final ObjectMapper objectMapper;
+
+    /**
+     * Converter constructor.
+     * @param objectMapper Object mapper.
+     */
+    public KeyValueMapConverter(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * Convert {@link KeyValueMap} to {@link String}.
@@ -46,7 +57,7 @@ public class KeyValueMapConverter {
             return null;
         }
         try {
-            return mapper.writeValueAsString(keyValueMap);
+            return objectMapper.writeValueAsString(keyValueMap);
         } catch (JsonProcessingException ex) {
             logger.error("Unable to serialize JSON payload.", ex);
             return null;
@@ -63,7 +74,7 @@ public class KeyValueMapConverter {
             return new KeyValueMap();
         }
         try {
-            return mapper.readValue(s, KeyValueMap.class);
+            return objectMapper.readValue(s, KeyValueMap.class);
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload.", ex);
             return new KeyValueMap();

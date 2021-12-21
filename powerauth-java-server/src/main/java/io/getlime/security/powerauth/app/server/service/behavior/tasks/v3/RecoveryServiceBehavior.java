@@ -92,7 +92,7 @@ public class RecoveryServiceBehavior {
     private final EciesFactory eciesFactory = new EciesFactory();
 
     // Helper classes
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
     private final RecoveryCodeStatusConverter recoveryCodeStatusConverter = new RecoveryCodeStatusConverter();
     private final RecoveryPukStatusConverter recoveryPukStatusConverter = new RecoveryPukStatusConverter();
@@ -103,12 +103,13 @@ public class RecoveryServiceBehavior {
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior,
-                                   RecoveryPrivateKeyConverter recoveryPrivateKeyConverter, RecoveryPukConverter recoveryPukConverter) {
+                                   RecoveryPrivateKeyConverter recoveryPrivateKeyConverter, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
+        this.objectMapper = objectMapper;
         this.recoveryPukConverter = recoveryPukConverter;
     }
 
@@ -377,8 +378,7 @@ public class RecoveryServiceBehavior {
             final ConfirmRecoveryResponsePayload responsePayload = new ConfirmRecoveryResponsePayload(alreadyConfirmed);
 
             // Convert response payload
-            final ObjectMapper mapper = new ObjectMapper();
-            final byte[] responseBytes = mapper.writeValueAsBytes(responsePayload);
+            final byte[] responseBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response using previously created ECIES decryptor
             final EciesCryptogram eciesResponse = decryptor.encryptResponse(responseBytes);

@@ -118,6 +118,7 @@ CREATE TABLE `pa_application_callback` (
   `callback_url` text NOT NULL,
   `type` VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL,
   `attributes` text NOT NULL,
+  `authentication` text,
   PRIMARY KEY (`id`),
   CONSTRAINT `FK_APPLICATION_CALLBACK` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

@@ -24,7 +24,6 @@ import com.wultra.security.powerauth.client.v2.CreateTokenRequest;
 import com.wultra.security.powerauth.client.v2.CreateTokenResponse;
 import com.wultra.security.powerauth.client.v2.SignatureType;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -40,7 +39,6 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCrypt
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
-import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,19 +70,18 @@ public class TokenBehavior {
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
-    private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
 
-    // Helper classes
-    private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private final ObjectMapper objectMapper;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -182,8 +179,7 @@ public class TokenBehavior {
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);
 
-            final ObjectMapper mapper = new ObjectMapper();
-            final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
+            final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
             EciesCryptogram response = decryptor.encryptResponse(tokenBytes);
 

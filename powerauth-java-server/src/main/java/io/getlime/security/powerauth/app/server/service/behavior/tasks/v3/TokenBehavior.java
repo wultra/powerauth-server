@@ -83,15 +83,18 @@ public class TokenBehavior {
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
 
+    private final ObjectMapper objectMapper;
+
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.objectMapper = objectMapper;
     }
 
     /**
@@ -206,8 +209,7 @@ public class TokenBehavior {
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);
 
-            final ObjectMapper mapper = new ObjectMapper();
-            final byte[] tokenBytes = mapper.writeValueAsBytes(tokenInfo);
+            final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response using previously created ECIES decryptor
             final EciesCryptogram response = decryptor.encryptResponse(tokenBytes);

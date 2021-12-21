@@ -17,13 +17,16 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlTypeConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class representing a callback URL associated with given application.
@@ -56,6 +59,10 @@ public class CallbackUrlEntity implements Serializable {
     @Column(name = "attributes")
     @Convert(converter = CallbackAttributeConverter.class)
     private List<String> attributes;
+
+    @Column(name = "authentication")
+    @Convert(converter = CallbackAuthenticationConverter.class)
+    private HttpAuthenticationPrivate authentication;
 
     /**
      * Get the ID of an integration.
@@ -151,5 +158,34 @@ public class CallbackUrlEntity implements Serializable {
      */
     public void setAttributes(List<String> attributes) {
         this.attributes = attributes;
+    }
+
+    /**
+     * Get callback request authentication.
+     * @return Callback request authentication.
+     */
+    public HttpAuthenticationPrivate getAuthentication() {
+        return authentication;
+    }
+
+    /**
+     * Set callback request authentication.
+     * @param authentication Callback request authentication.
+     */
+    public void setAuthentication(HttpAuthenticationPrivate authentication) {
+        this.authentication = authentication;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CallbackUrlEntity)) return false;
+        CallbackUrlEntity that = (CallbackUrlEntity) o;
+        return applicationId.equals(that.applicationId) && type == that.type && callbackUrl.equals(that.callbackUrl);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(applicationId, type, callbackUrl);
     }
 }

@@ -28,7 +28,6 @@ In order to connect to the correct PowerAuth Server, you need to add following c
 
 ```java
 @Configuration
-@ComponentScan(basePackages = {"com.wultra.security.powerauth"})
 public class PowerAuthClientConfiguration {
 
     @Value("${powerauth.rest.url}")
@@ -36,22 +35,37 @@ public class PowerAuthClientConfiguration {
 
     @Bean
     public PowerAuthClient powerAuthRestClient() {
-        return new PowerAuthRestClient(powerAuthRestUrl);
+        try {
+            return new PowerAuthRestClient(powerAuthRestUrl);
+        } catch (PowerAuthClientException ex) {
+            logger.warn(ex.getMessage(), ex);
+        }
     }
 
 }
 ```
 
-In case you need to configure the client, use:
+The `PowerAuthClientException` is thrown only in case the provided base URL is invalid. The error can occur when the URL is constructed dynamically, for correctly specified static URLs you can skip the error handling. 
+
+In case you need to configure the client, use e.g.:
 ```java
     @Bean
     public PowerAuthRestClient powerAuthRestClient() {
         PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+        config.setPowerAuthClientToken(clientToken);
+        config.setPowerAuthClientSecret(clientSecret);
+        config.setAcceptInvalidSslCertificate(acceptInvalidSslCertificate);
         config.setConnectTimeout(3000);
         ...
-        return new PowerAuthRestClient(powerAuthRestUrl, config);
+        try {
+            return new PowerAuthRestClient(powerAuthRestUrl, config);
+        } catch (PowerAuthClientException ex) {
+            logger.warn(ex.getMessage(), ex);
+        }
     }
 ```
+
+The `PowerAuthClientException` is thrown in case the provided URL is invalid or REST client configuration is invalid.
 
 The following REST client options are available:
 
