@@ -9,17 +9,17 @@ The `pa_application_callback` table was updated to include request authenticatio
 ### Oracle
 
 ```sql
-ALTER TABLE "PA_APPLICATION_CALLBACK" ADD "AUTHENTICATION" CLOB;
+ALTER TABLE PA_APPLICATION_CALLBACK ADD AUTHENTICATION CLOB;
 ```
 
 ### PostgreSQL
 
 ```sql
-ALTER TABLE "pa_application_callback" ADD "authentication" TEXT;
+ALTER TABLE pa_application_callback ADD authentication TEXT;
 ```
 
 ### MySQL
 
 ```sql
-ALTER TABLE `pa_application_callback` ADD `authentication` TEXT;
+ALTER TABLE pa_application_callback ADD authentication TEXT;
 ```
