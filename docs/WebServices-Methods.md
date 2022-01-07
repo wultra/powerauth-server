@@ -83,10 +83,10 @@ The following `v3` methods are published using the service:
     - [updateActivationFlags](#method-updateactivationflags)
     - [removeActivationFlags](#method-removeactivationflags)
 - Application Roles
-    - [listApplicationRoles](#method-listactivationflags)
+    - [listApplicationRoles](#method-listapplicationroles)
     - [addApplicationRoles](#method-addapplicationroles)
     - [updateApplicationRoles](#method-updateapplicationroles)
-    - [removeActivationFlags](#method-removeactivationflags)
+    - [removeApplicationRoles](#method-removeapplicationroles)
 
 The following `v2` methods are published using the service:
 - Activation Management
