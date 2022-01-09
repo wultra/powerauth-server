@@ -33,4 +33,17 @@ public class AdditionalInformation {
     public static final String ACTIVATION_OTP_FAILED_ATTEMPT = "OTP_FAILED_ATTEMPT";
     public static final String ACTIVATION_OTP_MAX_FAILED_ATTEMPTS = "OTP_MAX_FAILED_ATTEMPTS";
     public static final String ACTIVATION_OTP_VALUE_UPDATE = "OTP_VALUE_UPDATE";
+
+    /**
+     * For activation history audit.
+     * <ul>
+     * <li>during activation commit ({@code null} version -&gt; specific version)</li>
+     * <li>during upgrade commit (version changes to a newer one)</li>
+     * </ul>
+     */
+    public static final String ACTIVATION_VERSION_CHANGED = "ACTIVATION_VERSION_CHANGED";
+
+    private AdditionalInformation() {
+        throw new IllegalStateException("Should not be instantiated");
+    }
 }
