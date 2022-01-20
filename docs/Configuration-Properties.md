@@ -12,7 +12,6 @@ The PowerAuth Server uses the following public configuration properties:
 | `spring.datasource.driver-class-name` | `org.postgresql.Driver` | Datasource JDBC class name | 
 | `spring.jpa.database-platform` | `org.hibernate.dialect.PostgreSQLDialect` | Database dialect | 
 | `spring.jpa.hibernate.ddl-auto` | `none` | Configuration of automatic database schema creation | 
-| `spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults` | `false` | Whether JDBC metadata is used to determine default values | 
 | `spring.jpa.properties.hibernate.connection.characterEncoding` | `utf8` | Character encoding |
 | `spring.jpa.properties.hibernate.connection.useUnicode` | `true` | Character encoding - Unicode support |
 
