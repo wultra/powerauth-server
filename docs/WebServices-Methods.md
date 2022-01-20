@@ -2237,7 +2237,7 @@ REST endpoint: `POST /rest/v3/operation/approve`
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
-### Method 'failApprovalOperation'
+### Method 'failApproveOperation'
 
 Fail approval of an operation to increment the failed attempt counter by one.
 
