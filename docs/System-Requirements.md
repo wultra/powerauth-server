@@ -13,27 +13,24 @@ There are two ways to deploy PowerAuth Server:
 - Java container
 - Docker
 
+Running PowerAuth server from console using the `java -jar` command is not supported.
+
 ## Deployment in Java Container
 
 PowerAuth Server primary installation method is running the WAR package in the Java VM environment. This chapter provides detailed system requirements.
 
 Following Java version is required:
 
-- JRE 8 or newer
-
-When using Java 8, you need to have:
-
-- [Correctly installed Bouncy Castle provider](./Installing-Bouncy-Castle.md), and
-- [JCE Unlimited Strength Jurisdiction Policy Files 8](https://www.oracle.com/java/technologies/javase-jce8-downloads.html)
+- JRE 8 or newer (Java LTS release recommended)
 
 It is suggested to deploy PowerAuth in its own Java Servlet Container. PowerAuth Server is currently tested with following container technologies:
 
-- Apache Tomcat 8.5 or newer, or
+- Apache Tomcat 9.x, or
 - JBoss Wildfly 9 or newer
 
 PowerAuth supports any JPA2 compatible database, and it is tested with:
 
-- Oracle Database 11g, 12c, or 19c, or
+- Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
 - MySQL 5.5 or newer
 

@@ -283,20 +283,22 @@ CREATE TABLE "pa_application_callback"
     "name"               VARCHAR(255),
     "callback_url"       TEXT NOT NULL,
     "type"               VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL,
-    "attributes"         TEXT NOT NULL
+    "attributes"         TEXT NOT NULL,
+    "authentication"     TEXT
 );
 ```
 
 #### Columns
 
-| Name | Type | Info | Note |
-|------|------|---------|------|
-| id | VARCHAR(37) | primary key | Unique callback URL identifier, UUID Level 4 format. |
-| application_id | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
-| name | VARCHAR(255) | - | Callback name, anything that visually identifies the callback purpose. |
-| callback_url | TEXT | - | Callback URL value, any URL that can receive activation update callback. |
-| type | VARCHAR(64) | - | Callback type: `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
-| attributes | TEXT | - | Callback attributes as a key-value map, serialized into JSON. |
+| Name           | Type | Info | Note                                                                      |
+|----------------|------|---------|---------------------------------------------------------------------------|
+| id             | VARCHAR(37) | primary key | Unique callback URL identifier, UUID Level 4 format.                      |
+| application_id | BIGINT(20) | foreign key: pa\_application.id | Associated application ID.                                                |
+| name           | VARCHAR(255) | - | Callback name, anything that visually identifies the callback purpose.    |
+| callback_url   | TEXT | - | Callback URL value, any URL that can receive activation update callback.  |
+| type           | VARCHAR(64) | - | Callback type: `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`.   |
+| attributes     | TEXT | - | Callback attributes as a key-value map, serialized into JSON.             |
+| authentication | TEXT | - | Callback HTTP request authentication configuration, serialized into JSON. |
 <!-- end -->
 
 <!-- begin database table pa_token -->

@@ -97,6 +97,7 @@ spring.datasource.url=jdbc:oracle:thin:@//[host]:[port]/[servicename]
 spring.datasource.username=powerauth
 spring.datasource.password=powerauth
 spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 
 # Application Service Configuration
 powerauth.service.applicationEnvironment=TEST
