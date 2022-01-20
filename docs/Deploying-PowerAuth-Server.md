@@ -6,7 +6,7 @@ This chapter explains how to deploy PowerAuth Server.
 
 Following databases are supported:
 
-- Oracle Database 11g or 12c, or
+- Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
 - MySQL 5.5 or newer
 
@@ -38,15 +38,18 @@ You can read more about PowerAuth Server database schema in following guide:
 
 ### Default Database Connectivity Parameters
 
-The default database connectivity parameters in `powerauth-java-server.war` are following (MySQL defaults):
+The default database connectivity parameters in `powerauth-java-server.war` are following (PostgreSQL defaults):
 
 ```sh
-spring.datasource.url=jdbc:mysql://localhost:3306/powerauth
+spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 spring.jpa.hibernate.ddl-auto=none
+spring.jpa.properties.hibernate.connection.characterEncoding=utf8
+spring.jpa.properties.hibernate.connection.useUnicode=true
 ```
 
 These parameters are of course only for the testing purposes, they are not suitable for production environment. They should be overridden for your production environment using a standard [Spring database connectivity related properties](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-connect-to-production-database).
