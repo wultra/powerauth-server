@@ -6,7 +6,7 @@ The REST service methods can be browsed using Swagger on deployed PowerAuth inst
 
 - http://localhost:8080/powerauth-java-server/swagger-ui.html
 
-SOAP service methods are defined in the WSDL files:
+SOAP service methods are defined in the WSDL files (deprecated):
 
 - [serviceV3.wsdl](http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl)
 - [serviceV2.wsdl](http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl)
@@ -1477,6 +1477,8 @@ REST endpoint: `POST /rest/v3/ecies/decryptor`
 
 Upgrade activation to the most recent version supported by the server.
 
+Upgrade is performed between major activation versions, e.g. upgrade from version `2` to version `3`. 
+
 #### Request
 
 REST endpoint: `POST /rest/v3/upgrade/start`
@@ -1711,7 +1713,7 @@ ECIES response contains following data (as JSON):
     - `puk` - Recovery PUK with unique PUK used as secret for the recovery code.
 
 In case the PUK is invalid and there are still valid PUKs left to try, the error response contains the `currentRecoveryPukIndex`
-value in the SOAP fault detail. This value contains information about which PUK should the user re-write next.
+value in the fault detail. This value contains information about which PUK should the user re-write next.
 
 ### Method `getRecoveryConfig`
 
@@ -2656,7 +2658,7 @@ REST endpoint: `POST /rest/v2/activation/encryption/key/create`
 
 ## Used enums
 
-This chapter lists all enums used by PowerAuth Server SOAP service.
+This chapter lists all enums used by PowerAuth Server services.
 
 - `ActivationStatus` - Represents the status of activation, one of the following values:
     - CREATED
@@ -2706,7 +2708,7 @@ This chapter lists all enums used by PowerAuth Server SOAP service.
 
 ## Used complex types
 
-This chapter lists complex types used by PowerAuth Server SOAP service.
+This chapter lists complex types used by PowerAuth Server services.
 
 - `KeyValueMap` - Represents a map for storing key-value entries:
     - entry - list of entries (0..n)

@@ -45,6 +45,7 @@ spring.datasource.url=jdbc:mysql://localhost:3306/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
 spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 ```
 
@@ -58,6 +59,7 @@ spring.datasource.url=jdbc:oracle:thin:@//[HOST]:[PORT]/[SERVICENAME]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
 spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
@@ -70,6 +72,7 @@ spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DATABASE]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
 spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
@@ -93,11 +96,11 @@ powerauth.service.applicationDisplayName=PowerAuth Server
 powerauth.service.applicationEnvironment=
 ```
 
-These properties are returned when calling the `/rest/v3/status` / `getSystemStatus` method of the REST / SOAP interface.
+These properties are returned when calling the `/rest/v3/status` method of the RESTful interface.
 
 ## Enabling PowerAuth Server Security
 
-_(optional)_ By default, PowerAuth Server can be accessed by any application that can see the WSDL and SOAP services (or access the RESTful interface). To change this behavior, you can set up a restricted access flag in the server configuration:
+_(optional)_ By default, PowerAuth Server can be accessed by any application that can call the RESTful services. To change this behavior, you can set up a restricted access flag in the server configuration:
 
 ```sh
 powerauth.service.restrictAccess=true # 'false' is default value
@@ -120,7 +123,7 @@ The RESTful interface is secured using Basic HTTP Authentication (pre-emptive).
 
 You can deploy PowerAuth Server WAR into any Java container.
 
-The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (WSDL is then available on `http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl`).
+The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (Swagger is then available on `http://localhost:8080/powerauth-java-server/swagger-ui.html`).
 
 To deploy PowerAuth Server to Apache Tomcat, simply copy the WAR file in your `webapps` folder or deploy it using the "Tomcat Web Application Manager" application (usually deployed on default Tomcat address `http://localhost:8080/manager`).
 
@@ -139,6 +142,7 @@ You can specify the individual properties directly in the server configuration. 
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value=""/>
     <Parameter name="spring.datasource.driver-class-name" value="com.mysql.jdbc.Driver"/>
+    <Parameter name="spring.jpa.database-platform" value="org.hibernate.dialect.PostgreSQLDialect"/>
 </Context>
 ```
 
@@ -156,10 +160,11 @@ Alternatively, you can create a single property in the server configuration that
 To match the previous example, the contents of `/path/to/come/custom.properties` is the following:
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/powerauth
+spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
 
 ## Generating Your First Application
@@ -223,6 +228,7 @@ spring.datasource.url=
 spring.datasource.username=
 spring.datasource.password=
 spring.datasource.driver-class-name=
+spring.jpa.database-platform=
 spring.jpa.hibernate.ddl-auto=none
 spring.datasource.jndi-name=java:/jdbc/powerauth
 ```
