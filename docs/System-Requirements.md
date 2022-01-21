@@ -15,13 +15,18 @@ There are two ways to deploy PowerAuth Server:
 
 Running PowerAuth server from console using the `java -jar` command is not supported.
 
+## Supported Java Runtime Versions
+
+The following Java runtime versions are supported:
+- Java 8 (LTS release)
+- Java 11 (LTS release)
+- Java 17 (LTS release)
+
+Powerauth Server may run on other Java versions, however we do not perform extensive testing with non-LTS releases.
+
 ## Deployment in Java Container
 
 PowerAuth Server primary installation method is running the WAR package in the Java VM environment. This chapter provides detailed system requirements.
-
-Following Java version is required:
-
-- JRE 8 or newer (Java LTS release recommended)
 
 It is suggested to deploy PowerAuth in its own Java Servlet Container. PowerAuth Server is currently tested with following container technologies:
 
