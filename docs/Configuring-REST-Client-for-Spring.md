@@ -39,6 +39,7 @@ public class PowerAuthClientConfiguration {
             return new PowerAuthRestClient(powerAuthRestUrl);
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
+            return null;
         }
     }
 
@@ -61,6 +62,7 @@ In case you need to configure the client, use e.g.:
             return new PowerAuthRestClient(powerAuthRestUrl, config);
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
+            return null;
         }
     }
 ```
