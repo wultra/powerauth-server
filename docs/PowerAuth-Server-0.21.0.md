@@ -177,7 +177,7 @@ The PowerAuth protocol upgrade caused following changes in PowerAuth server impl
 - Original PowerAuth End-to-end encryption has been deprecated in favor of ECIES-based encryption. See [End-to-end Encryption Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/End-To-End-Encryption.md)
 - PowerAuth SDK release `1.0.0` will trigger upgrade of activations to version `3` using new upgrade endpoints. Previous versions of the SDK use the version `2` of activations. See [Activation Upgrade Documentation](https://github.com/wultra/powerauth-crypto/blob/develop/docs/Activation-Upgrade.md)
 
-The original `v2` interfaces are still available both in the SOAP API, REST API and both client implementations, however migration to new interfaces is recommended. 
+The original `v2` interfaces are still available both in the RESTful API and both client implementations, however migration to new interfaces is recommended. 
 The `v2` interfaces will be deprecated in a future release. 
 
 The interface changes are described in details in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).

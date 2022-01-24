@@ -6,7 +6,7 @@ This chapter explains how to deploy PowerAuth Server.
 
 Following databases are supported:
 
-- Oracle Database 11g or 12c, or
+- Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
 - MySQL 5.5 or newer
 
@@ -38,14 +38,18 @@ You can read more about PowerAuth Server database schema in following guide:
 
 ### Default Database Connectivity Parameters
 
-The default database connectivity parameters in `powerauth-java-server.war` are following (MySQL defaults):
+The default database connectivity parameters in `powerauth-java-server.war` are following (PostgreSQL defaults):
 
 ```sh
-spring.datasource.url=jdbc:mysql://localhost:3306/powerauth
+spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 spring.jpa.hibernate.ddl-auto=none
+spring.jpa.properties.hibernate.connection.characterEncoding=utf8
+spring.jpa.properties.hibernate.connection.useUnicode=true
 ```
 
 These parameters are of course only for the testing purposes, they are not suitable for production environment. They should be overridden for your production environment using a standard [Spring database connectivity related properties](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-sql.html#boot-features-connect-to-production-database).
@@ -58,6 +62,7 @@ spring.datasource.url=jdbc:oracle:thin:@//[HOST]:[PORT]/[SERVICENAME]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
 spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
@@ -70,6 +75,7 @@ spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DATABASE]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
 spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
@@ -93,11 +99,11 @@ powerauth.service.applicationDisplayName=PowerAuth Server
 powerauth.service.applicationEnvironment=
 ```
 
-These properties are returned when calling the `/rest/v3/status` / `getSystemStatus` method of the REST / SOAP interface.
+These properties are returned when calling the `/rest/v3/status` method of the RESTful interface.
 
 ## Enabling PowerAuth Server Security
 
-_(optional)_ By default, PowerAuth Server can be accessed by any application that can see the WSDL and SOAP services (or access the RESTful interface). To change this behavior, you can set up a restricted access flag in the server configuration:
+_(optional)_ By default, PowerAuth Server can be accessed by any application that can call the RESTful services. To change this behavior, you can set up a restricted access flag in the server configuration:
 
 ```sh
 powerauth.service.restrictAccess=true # 'false' is default value
@@ -120,7 +126,7 @@ The RESTful interface is secured using Basic HTTP Authentication (pre-emptive).
 
 You can deploy PowerAuth Server WAR into any Java container.
 
-The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (WSDL is then available on `http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl`).
+The default configuration works best with Apache Tomcat server running on default port 8080. In this case, the deployed server is accessible on `http://localhost:8080/powerauth-java-server/` (Swagger is then available on `http://localhost:8080/powerauth-java-server/swagger-ui.html`).
 
 To deploy PowerAuth Server to Apache Tomcat, simply copy the WAR file in your `webapps` folder or deploy it using the "Tomcat Web Application Manager" application (usually deployed on default Tomcat address `http://localhost:8080/manager`).
 
@@ -139,6 +145,7 @@ You can specify the individual properties directly in the server configuration. 
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value=""/>
     <Parameter name="spring.datasource.driver-class-name" value="com.mysql.jdbc.Driver"/>
+    <Parameter name="spring.jpa.database-platform" value="org.hibernate.dialect.PostgreSQLDialect"/>
 </Context>
 ```
 
@@ -156,10 +163,11 @@ Alternatively, you can create a single property in the server configuration that
 To match the previous example, the contents of `/path/to/come/custom.properties` is the following:
 
 ```properties
-spring.datasource.url=jdbc:mysql://localhost:3306/powerauth
+spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
-spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
 
 ## Generating Your First Application
@@ -223,6 +231,7 @@ spring.datasource.url=
 spring.datasource.username=
 spring.datasource.password=
 spring.datasource.driver-class-name=
+spring.jpa.database-platform=
 spring.jpa.hibernate.ddl-auto=none
 spring.datasource.jndi-name=java:/jdbc/powerauth
 ```
