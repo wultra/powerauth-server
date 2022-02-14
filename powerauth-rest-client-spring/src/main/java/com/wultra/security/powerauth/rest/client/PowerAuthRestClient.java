@@ -111,7 +111,15 @@ public class PowerAuthRestClient implements PowerAuthClient {
             ObjectResponse<T> objectResponse = restClient.postObject(PA_REST_V3_PREFIX + path, objectRequest, responseType);
             return objectResponse.getResponseObject();
         } catch (RestClientException ex) {
-            if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
+            if (ex.getStatusCode() == null) {
+                // Logging for network errors when port is closed
+                logger.warn("PowerAuth service is not accessible, error: {}", ex.getMessage());
+                logger.debug(ex.getMessage(), ex);
+            } else if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+                // Logging for 404 errors
+                logger.warn("PowerAuth service is not available, error: {}", ex.getMessage());
+                logger.debug(ex.getMessage(), ex);
+            } else if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
                 // Error handling for PowerAuth errors
                 handleBadRequestError(ex);
             }
