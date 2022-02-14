@@ -80,9 +80,9 @@ public class ActivationHistoryServiceBehavior {
      * @param historyEventReason Optional reason, why this activation save event happened.
      */
     public void saveActivationAndLogChange(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
-        Date changeTimestamp = new Date();
+        final Date changeTimestamp = new Date();
         activation.setTimestampLastChange(changeTimestamp);
-        ActivationHistoryEntity activationHistoryEntity = new ActivationHistoryEntity();
+        final ActivationHistoryEntity activationHistoryEntity = new ActivationHistoryEntity();
         activationHistoryEntity.setActivation(activation);
         activationHistoryEntity.setActivationStatus(activation.getActivationStatus());
         if (activation.getActivationStatus() == ActivationStatus.BLOCKED) {
