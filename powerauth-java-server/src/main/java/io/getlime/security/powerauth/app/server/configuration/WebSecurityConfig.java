@@ -87,7 +87,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Bean
     public AuthenticationEntryPoint authenticationEntryPoint() {
         return (httpServletRequest, httpServletResponse, e) -> {
-            ErrorResponse errorResponse = new ErrorResponse("ERR_AUTHENTICATION", "Authentication failed");
+            final ErrorResponse errorResponse = new ErrorResponse("ERR_AUTHENTICATION", "Authentication failed");
             httpServletResponse.setContentType("application/json");
             httpServletResponse.setCharacterEncoding("UTF-8");
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

@@ -29,6 +29,7 @@ public class OperationCreateRequest {
 
     private String userId;
     private Long applicationId;
+    private String activationFlag;
     private String templateName;
     private String externalId;
     private Map<String, String> parameters;
@@ -47,6 +48,14 @@ public class OperationCreateRequest {
 
     public void setApplicationId(Long applicationId) {
         this.applicationId = applicationId;
+    }
+
+    public String getActivationFlag() {
+        return activationFlag;
+    }
+
+    public void setActivationFlag(String activationFlag) {
+        this.activationFlag = activationFlag;
     }
 
     public String getTemplateName() {

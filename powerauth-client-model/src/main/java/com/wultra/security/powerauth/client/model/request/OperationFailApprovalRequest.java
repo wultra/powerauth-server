@@ -18,12 +18,15 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.Map;
+
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
 public class OperationFailApprovalRequest {
 
     private String operationId;
+    private Map<String, String> additionalData;
 
     public String getOperationId() {
         return operationId;
@@ -33,4 +36,11 @@ public class OperationFailApprovalRequest {
         this.operationId = operationId;
     }
 
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
+    }
+
+    public void setAdditionalData(Map<String, String> additionalData) {
+        this.additionalData = additionalData;
+    }
 }

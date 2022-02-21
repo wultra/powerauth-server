@@ -95,6 +95,7 @@ public class OperationServiceBehavior {
 
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
+        final String activationFlag = request.getActivationFlag();
         final String templateName = request.getTemplateName();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
@@ -148,9 +149,12 @@ public class OperationServiceBehavior {
         operationEntity.setUserId(userId);
         operationEntity.setApplication(applicationEntity);
         operationEntity.setExternalId(externalId);
+        operationEntity.setActivationFlag(activationFlag);
         operationEntity.setOperationType(templateEntity.getOperationType());
+        operationEntity.setTemplateName(templateEntity.getTemplateName());
         operationEntity.setData(operationData);
         operationEntity.setParameters(parameters);
+        operationEntity.setAdditionalData(null); // empty initially
         operationEntity.setStatus(OperationStatusDo.PENDING);
         operationEntity.setSignatureType(templateEntity.getSignatureType());
         operationEntity.setFailureCount(0L);
@@ -173,6 +177,7 @@ public class OperationServiceBehavior {
         final Long applicationId = request.getApplicationId();
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
+        final Map<String, String> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -207,12 +212,13 @@ public class OperationServiceBehavior {
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.APPROVED);
             operationEntity.setTimestampFinalized(currentTimestamp);
+            operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
-            OperationUserActionResponse response = new OperationUserActionResponse();
+            final OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.APPROVED);
             response.setOperation(operationDetailResponse);
             return response;
@@ -224,6 +230,7 @@ public class OperationServiceBehavior {
 
             if (failureCount < maxFailureCount) {
                 operationEntity.setFailureCount(failureCount);
+                operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
@@ -231,7 +238,7 @@ public class OperationServiceBehavior {
 
                 logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
-                OperationUserActionResponse response = new OperationUserActionResponse();
+                final OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.APPROVAL_FAILED);
                 response.setOperation(operationDetailResponse);
                 return response;
@@ -239,6 +246,7 @@ public class OperationServiceBehavior {
                 operationEntity.setStatus(OperationStatusDo.FAILED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
+                operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                 final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
@@ -246,7 +254,7 @@ public class OperationServiceBehavior {
 
                 logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
-                OperationUserActionResponse response = new OperationUserActionResponse();
+                final OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.OPERATION_FAILED);
                 response.setOperation(operationDetailResponse);
                 return response;
@@ -260,6 +268,7 @@ public class OperationServiceBehavior {
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
         final Long applicationId = request.getApplicationId();
+        final Map<String, String> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -286,22 +295,23 @@ public class OperationServiceBehavior {
         if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
                 && operationEntity.getApplication().getId().equals(applicationId)) { // operation is rejected by the expected application
 
-            // Approve the operation
+            // Reject the operation
             operationEntity.setStatus(OperationStatusDo.REJECTED);
             operationEntity.setTimestampFinalized(currentTimestamp);
+            operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
-            OperationUserActionResponse response = new OperationUserActionResponse();
+            final OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.REJECTED);
             response.setOperation(operationDetailResponse);
             return response;
         } else {
             logger.info("Operation reject failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
-            OperationUserActionResponse response = new OperationUserActionResponse();
+            final OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.REJECT_FAILED);
             response.setOperation(operationDetailResponse);
             return response;
@@ -312,6 +322,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
+        final Map<String, String> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -334,6 +345,7 @@ public class OperationServiceBehavior {
 
         if (failureCount < maxFailureCount) {
             operationEntity.setFailureCount(failureCount);
+            operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
@@ -347,6 +359,7 @@ public class OperationServiceBehavior {
             operationEntity.setStatus(OperationStatusDo.FAILED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
+            operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
@@ -364,6 +377,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
+        final Map<String, String> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -381,6 +395,8 @@ public class OperationServiceBehavior {
         }
 
         operationEntity.setStatus(OperationStatusDo.CANCELED);
+        operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
+
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
         return convertFromEntity(savedEntity);
@@ -480,14 +496,17 @@ public class OperationServiceBehavior {
     }
 
     private OperationDetailResponse convertFromEntity(OperationEntity source) {
-        OperationDetailResponse destination = new OperationDetailResponse();
+        final OperationDetailResponse destination = new OperationDetailResponse();
         destination.setId(source.getId());
         destination.setUserId(source.getUserId());
         destination.setApplicationId(source.getApplication().getId());
         destination.setExternalId(source.getExternalId());
+        destination.setActivationFlag(source.getActivationFlag());
         destination.setOperationType(source.getOperationType());
+        destination.setTemplateName(source.getTemplateName());
         destination.setData(source.getData());
         destination.setParameters(source.getParameters());
+        destination.setAdditionalData(source.getAdditionalData() != null ? source.getAdditionalData() : Collections.emptyMap());
         final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
                 .distinct()
                 .map(p -> SignatureType.enumFromString(p.toString()))
@@ -566,6 +585,18 @@ public class OperationServiceBehavior {
             logger.warn("Invalid data for operation ID: {} - expected: {}, used: {}", operationId, operationData, providedData);
             return false;
         }
+    }
+
+    // Merge two maps into new one, replacing values in the first map when collision occurs
+    private Map<String, String> mapMerge(Map<String, String> m1, Map<String, String> m2) {
+        final Map<String, String> m3 = new HashMap<>();
+        if (m1 != null) {
+            m3.putAll(m1);
+        }
+        if (m2 != null) {
+            m3.putAll(m2);
+        }
+        return m3;
     }
 
     // Scheduled tasks
