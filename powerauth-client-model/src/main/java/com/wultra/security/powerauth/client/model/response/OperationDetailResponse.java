@@ -36,9 +36,12 @@ public class OperationDetailResponse {
     private String userId;
     private Long applicationId;
     private String externalId;
+    private String activationFlag;
     private String operationType;
+    private String templateName;
     private String data;
     private Map<String, String> parameters;
+    private Map<String, String> additionalData;
     private OperationStatus status;
     private List<SignatureType> signatureType;
     private long failureCount;
@@ -79,12 +82,28 @@ public class OperationDetailResponse {
         return externalId;
     }
 
+    public String getActivationFlag() {
+        return activationFlag;
+    }
+
+    public void setActivationFlag(String activationFlag) {
+        this.activationFlag = activationFlag;
+    }
+
     public void setOperationType(String operationType) {
         this.operationType = operationType;
     }
 
     public String getOperationType() {
         return operationType;
+    }
+
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 
     public void setData(String data) {
@@ -101,6 +120,14 @@ public class OperationDetailResponse {
 
     public Map<String, String> getParameters() {
         return parameters;
+    }
+
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
+    }
+
+    public void setAdditionalData(Map<String, String> additionalData) {
+        this.additionalData = additionalData;
     }
 
     public void setStatus(OperationStatus status) {
