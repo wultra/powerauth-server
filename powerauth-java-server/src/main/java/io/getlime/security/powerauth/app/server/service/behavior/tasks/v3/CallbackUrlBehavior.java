@@ -25,6 +25,7 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
@@ -107,7 +108,7 @@ public class CallbackUrlBehavior {
         entity.setType(CallbackUrlType.valueOf(request.getType()));
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
-        entity.setAuthentication(request.getAuthentication());
+        entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(request.getAuthentication()));
         callbackUrlRepository.save(entity);
         final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
         response.setId(entity.getId());
@@ -157,7 +158,7 @@ public class CallbackUrlBehavior {
         entity.setAttributes(request.getAttributes());
         // Retain existing passwords in case new password is not set
         final HttpAuthenticationPrivate authRequest = request.getAuthentication();
-        final HttpAuthenticationPrivate authExisting = entity.getAuthentication();
+        final CallbackUrlAuthenticationEntity authExisting = entity.getAuthentication();
         if (authRequest != null) {
             if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
                 if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
@@ -176,7 +177,7 @@ public class CallbackUrlBehavior {
                 }
             }
         }
-        entity.setAuthentication(authRequest);
+        entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(authRequest));
         callbackUrlRepository.save(entity);
         final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
         response.setId(entity.getId());
@@ -407,8 +408,8 @@ public class CallbackUrlBehavior {
                 proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
             }
         }
-        final HttpAuthenticationPrivate authentication = callbackUrlEntity.getAuthentication();
-        final HttpAuthenticationPrivate.Certificate certificateAuth = authentication.getCertificate();
+        final CallbackUrlAuthenticationEntity authentication = callbackUrlEntity.getAuthentication();
+        final CallbackUrlAuthenticationEntity.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
             final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
             if (certificateAuth.isUseCustomKeyStore()) {
@@ -424,7 +425,7 @@ public class CallbackUrlBehavior {
                         .trustStorePassword(certificateAuth.getTrustStorePassword());
             }
         }
-        final HttpAuthenticationPrivate.HttpBasic httpBasicAuth = authentication.getHttpBasic();
+        final CallbackUrlAuthenticationEntity.HttpBasic httpBasicAuth = authentication.getHttpBasic();
         if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
             builder.httpBasicAuth()
                     .username(httpBasicAuth.getUsername())
