@@ -38,9 +38,9 @@ import java.util.Map;
  */
 @Converter
 @Component
-public class OperationParameterConverter implements AttributeConverter<Map<String, String>, String> {
+public class MapToJsonConverter implements AttributeConverter<Map<String, String>, String> {
 
-    private static final Logger logger = LoggerFactory.getLogger(OperationParameterConverter.class);
+    private static final Logger logger = LoggerFactory.getLogger(MapToJsonConverter.class);
 
     private static final String EMPTY_PARAMS = "{}";
 
@@ -50,7 +50,7 @@ public class OperationParameterConverter implements AttributeConverter<Map<Strin
      * Converter constructor.
      * @param objectMapper Object mapper.
      */
-    public OperationParameterConverter(ObjectMapper objectMapper) {
+    public MapToJsonConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 

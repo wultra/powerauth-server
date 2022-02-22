@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.client.model.validator;
 
-import com.wultra.security.powerauth.client.model.request.OperationCancelRequest;
 import com.wultra.security.powerauth.client.model.request.OperationRejectRequest;
 
 /**
