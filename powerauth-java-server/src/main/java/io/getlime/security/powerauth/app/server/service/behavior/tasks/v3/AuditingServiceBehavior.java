@@ -18,6 +18,9 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.core.audit.base.AuditFactory;
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.v3.SignatureAuditResponse;
 import com.wultra.security.powerauth.client.v3.SignatureType;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
@@ -51,10 +54,35 @@ public class AuditingServiceBehavior {
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final KeyValueMapConverter keyValueMapConverter;
 
+    // Generic auditing capability
+    private final AuditFactory auditFactory;
+
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter, AuditFactory auditFactory) {
         this.signatureAuditRepository = signatureAuditRepository;
         this.keyValueMapConverter = keyValueMapConverter;
+        this.auditFactory = auditFactory;
+    }
+
+    /**
+     * Log information with specified level, message, audit details, and message args.
+     * @param level Level
+     * @param message Message
+     * @param auditDetail Audit detail
+     * @param args Arguments
+     */
+    public void log(AuditLevel level, String message, AuditDetail auditDetail,  Object... args) {
+        auditFactory.getAudit().log(message, level, auditDetail, args);
+    }
+
+    /**
+     * Log information with specified level, message, audit details, and message args.
+     * @param level Level
+     * @param message Message
+     * @param args Arguments
+     */
+    public void log(AuditLevel level, String message, Object... args) {
+        auditFactory.getAudit().log(message, level, args);
     }
 
     /**
@@ -76,11 +104,11 @@ public class AuditingServiceBehavior {
             signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForApplicationAndUser(applicationId, userId, startingDate, endingDate);
         }
 
-        SignatureAuditResponse response = new SignatureAuditResponse();
+        final SignatureAuditResponse response = new SignatureAuditResponse();
         if (signatureAuditEntityList != null) {
             for (SignatureEntity signatureEntity : signatureAuditEntityList) {
 
-                SignatureAuditResponse.Items item = new SignatureAuditResponse.Items();
+                final SignatureAuditResponse.Items item = new SignatureAuditResponse.Items();
 
                 item.setId(signatureEntity.getId());
                 item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
@@ -119,7 +147,7 @@ public class AuditingServiceBehavior {
      */
     public void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Boolean valid, Integer version, String note, Date currentTimestamp) {
         // Audit the signature
-        SignatureEntity signatureAuditRecord = new SignatureEntity();
+        final SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());

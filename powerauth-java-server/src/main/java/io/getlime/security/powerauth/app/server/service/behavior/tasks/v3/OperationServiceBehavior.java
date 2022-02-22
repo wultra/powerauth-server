@@ -66,6 +66,7 @@ public class OperationServiceBehavior {
     private final ApplicationRepository applicationRepository;
 
     private final ServiceBehaviorCatalogue behavior;
+    private final AuditingServiceBehavior audit;
 
     private LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -78,11 +79,13 @@ public class OperationServiceBehavior {
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
             ApplicationRepository applicationRepository, ServiceBehaviorCatalogue behavior,
+            AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
         this.templateRepository = templateRepository;
         this.applicationRepository = applicationRepository;
         this.behavior = behavior;
+        this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
