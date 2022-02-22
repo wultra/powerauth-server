@@ -70,7 +70,7 @@ public class RESTControllerAdvice {
         logger.error("Error occurred while processing the request: {}", ex.getMessage());
         logger.debug("Exception details:", ex);
         final PowerAuthErrorRecovery error = new PowerAuthErrorRecovery();
-        error.setCode(ex.getCode());
+        error.setCode("ERR_RECOVERY");
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
         error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
