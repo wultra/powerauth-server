@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.converter.v3;
 
 import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
 import com.wultra.security.powerauth.client.v3.HttpAuthenticationPublic;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
 
 /**
  * Converter of private to public HTTP authentication.
@@ -32,12 +33,12 @@ public class CallbackAuthenticationPublicConverter {
      * @param authPrivate Private HTTP authentication.
      * @return Public HTTP authentication.
      */
-    public HttpAuthenticationPublic toPublic(HttpAuthenticationPrivate authPrivate) {
+    public HttpAuthenticationPublic toPublic(CallbackUrlAuthenticationEntity authPrivate) {
         HttpAuthenticationPublic authPublic = new HttpAuthenticationPublic();
         if (authPrivate == null) {
             return authPublic;
         }
-        HttpAuthenticationPrivate.HttpBasic httpBasicPrivate = authPrivate.getHttpBasic();
+        CallbackUrlAuthenticationEntity.HttpBasic httpBasicPrivate = authPrivate.getHttpBasic();
         if (httpBasicPrivate != null) {
             HttpAuthenticationPublic.HttpBasic httpBasicPublic = new HttpAuthenticationPublic.HttpBasic();
             httpBasicPublic.setEnabled(httpBasicPrivate.isEnabled());
@@ -45,7 +46,7 @@ public class CallbackAuthenticationPublicConverter {
             httpBasicPublic.setPasswordSet(httpBasicPrivate.getPassword() != null && !httpBasicPrivate.getPassword().isEmpty());
             authPublic.setHttpBasic(httpBasicPublic);
         }
-        HttpAuthenticationPrivate.Certificate certificatePrivate = authPrivate.getCertificate();
+        CallbackUrlAuthenticationEntity.Certificate certificatePrivate = authPrivate.getCertificate();
         if (certificatePrivate != null) {
             HttpAuthenticationPublic.Certificate certificatePublic = new HttpAuthenticationPublic.Certificate();
             certificatePublic.setEnabled(certificatePrivate.isEnabled());
@@ -60,6 +61,36 @@ public class CallbackAuthenticationPublicConverter {
             authPublic.setCertificate(certificatePublic);
         }
         return authPublic;
+    }
+
+    public CallbackUrlAuthenticationEntity fromNetworkObject(HttpAuthenticationPrivate source) {
+        if (source == null) {
+            return null;
+        }
+        final CallbackUrlAuthenticationEntity destination = new CallbackUrlAuthenticationEntity();
+        if (source.getCertificate() != null) {
+            final HttpAuthenticationPrivate.Certificate sc = source.getCertificate();
+            final CallbackUrlAuthenticationEntity.Certificate certificate = new CallbackUrlAuthenticationEntity.Certificate();
+            certificate.setEnabled(sc.isEnabled());
+            certificate.setUseCustomKeyStore(sc.isUseCustomKeyStore());
+            certificate.setKeyStoreLocation(sc.getKeyStoreLocation());
+            certificate.setKeyStorePassword(sc.getKeyStorePassword());
+            certificate.setKeyAlias(sc.getKeyAlias());
+            certificate.setKeyPassword(sc.getKeyPassword());
+            certificate.setUseCustomTrustStore(sc.isUseCustomTrustStore());
+            certificate.setTrustStoreLocation(sc.getTrustStoreLocation());
+            certificate.setTrustStorePassword(sc.getTrustStorePassword());
+            destination.setCertificate(certificate);
+        }
+        if (source.getHttpBasic() != null) {
+            final HttpAuthenticationPrivate.HttpBasic shb = source.getHttpBasic();
+            final CallbackUrlAuthenticationEntity.HttpBasic httpBasic = new CallbackUrlAuthenticationEntity.HttpBasic();
+            httpBasic.setEnabled(shb.isEnabled());
+            httpBasic.setUsername(shb.getUsername());
+            httpBasic.setPassword(shb.getPassword());
+            destination.setHttpBasic(httpBasic);
+        }
+        return destination;
     }
 
 }
