@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.AuditFactory;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
@@ -55,13 +56,13 @@ public class AuditingServiceBehavior {
     private final KeyValueMapConverter keyValueMapConverter;
 
     // Generic auditing capability
-    private final AuditFactory auditFactory;
+    private final Audit audit;
 
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter, AuditFactory auditFactory) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter, Audit audit) {
         this.signatureAuditRepository = signatureAuditRepository;
         this.keyValueMapConverter = keyValueMapConverter;
-        this.auditFactory = auditFactory;
+        this.audit = audit;
     }
 
     /**
@@ -72,7 +73,8 @@ public class AuditingServiceBehavior {
      * @param args Arguments
      */
     public void log(AuditLevel level, String message, AuditDetail auditDetail,  Object... args) {
-        auditFactory.getAudit().log(message, level, auditDetail, args);
+        audit.log(message, level, auditDetail, args);
+        audit.flush();
     }
 
     /**
@@ -82,7 +84,8 @@ public class AuditingServiceBehavior {
      * @param args Arguments
      */
     public void log(AuditLevel level, String message, Object... args) {
-        auditFactory.getAudit().log(message, level, args);
+        audit.log(message, level, args);
+        audit.flush();
     }
 
     /**

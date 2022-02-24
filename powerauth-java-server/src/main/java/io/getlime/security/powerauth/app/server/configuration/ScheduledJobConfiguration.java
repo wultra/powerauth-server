@@ -32,7 +32,6 @@ import javax.sql.DataSource;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
-@ComponentScan(basePackages = {"com.wultra.core.audit.base"})
 public class ScheduledJobConfiguration {
 
     @Bean

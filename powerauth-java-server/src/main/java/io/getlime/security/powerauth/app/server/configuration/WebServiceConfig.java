@@ -18,6 +18,8 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
+import com.wultra.core.audit.base.Audit;
+import com.wultra.core.audit.base.AuditFactory;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.exceptions.SoapFaultExceptionResolver;
@@ -26,6 +28,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -53,11 +56,14 @@ import java.util.Properties;
  */
 @EnableWs
 @Configuration
+@ComponentScan(basePackages = {"com.wultra.core.audit.base"})
 public class WebServiceConfig extends WsConfigurerAdapter {
 
     private final UserDetailsService userDetailsService;
 
     private PowerAuthServiceConfiguration configuration;
+
+    private final AuditFactory auditFactory;
 
     /**
      * Setter for configuration injection.
@@ -71,10 +77,21 @@ public class WebServiceConfig extends WsConfigurerAdapter {
     /**
      * Constructor that accepts an instance of UserDetailsService for autowiring.
      * @param userDetailsService UserDetailsService instance.
+     * @param auditFactory Audit factory.
      */
     @Autowired
-    public WebServiceConfig(@Qualifier("integrationUserDetailsService") UserDetailsService userDetailsService) {
+    public WebServiceConfig(@Qualifier("integrationUserDetailsService") UserDetailsService userDetailsService, AuditFactory auditFactory) {
         this.userDetailsService = userDetailsService;
+        this.auditFactory = auditFactory;
+    }
+
+    /**
+     * Bean instance of audit class produced using a factory.
+     * @return Audit instance.
+     */
+    @Bean
+    public Audit audit() {
+        return auditFactory.getAudit();
     }
 
     /**
