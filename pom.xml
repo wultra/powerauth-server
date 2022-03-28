@@ -26,7 +26,7 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.5-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -117,7 +117,7 @@
         <h2.version>1.4.197</h2.version> <!-- Tests fail in version 1.4.200, upgrade reverted -->
 
         <!-- Other Dependencies -->
-        <jackson.version>2.13.0</jackson.version>
+        <jackson.version>2.13.1</jackson.version>
         <commons-text.version>1.9</commons-text.version>
 
     </properties>

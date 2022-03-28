@@ -42,7 +42,7 @@ public class LocalizationProvider {
      */
     @Bean
     public ResourceBundleMessageSource messageSource() {
-        ResourceBundleMessageSource source = new ResourceBundleMessageSource();
+        final ResourceBundleMessageSource source = new ResourceBundleMessageSource();
         source.setBasename("i18n/errors");
         source.setUseCodeAsDefaultMessage(true);
         return source;
@@ -83,8 +83,8 @@ public class LocalizationProvider {
      * @return Generic service exception.
      */
     public GenericServiceException buildExceptionForCode(String code, Locale locale) {
-        String message = getLocalizedErrorMessage(code);
-        String localizedMessage = getLocalizedErrorMessage(code, locale);
+        final String message = getLocalizedErrorMessage(code);
+        final String localizedMessage = getLocalizedErrorMessage(code, locale);
         return new GenericServiceException(code, message, localizedMessage);
     }
 
@@ -104,8 +104,8 @@ public class LocalizationProvider {
      * @return Rollbacking service exception.
      */
     public RollbackingServiceException buildRollbackingExceptionForCode(String code, Locale locale) {
-        String message = getLocalizedErrorMessage(code);
-        String localizedMessage = getLocalizedErrorMessage(code, locale);
+        final String message = getLocalizedErrorMessage(code);
+        final String localizedMessage = getLocalizedErrorMessage(code, locale);
         return new RollbackingServiceException(code, message, localizedMessage);
     }
 
@@ -127,8 +127,8 @@ public class LocalizationProvider {
      * @return Activation recovery exception.
      */
     public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, Locale locale, int currentRecoveryPukIndex) {
-        String message = getLocalizedErrorMessage(code);
-        String localizedMessage = getLocalizedErrorMessage(code, locale);
+        final String message = getLocalizedErrorMessage(code);
+        final String localizedMessage = getLocalizedErrorMessage(code, locale);
         return new ActivationRecoveryException(code, message, localizedMessage, currentRecoveryPukIndex);
     }
 

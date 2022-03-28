@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Request class for operation cancellation.
  *
@@ -26,6 +29,7 @@ package com.wultra.security.powerauth.client.model.request;
 public class OperationCancelRequest {
 
     private String operationId;
+    private final Map<String, String> additionalData = new LinkedHashMap<>();
 
     public String getOperationId() {
         return operationId;
@@ -34,4 +38,9 @@ public class OperationCancelRequest {
     public void setOperationId(String operationId) {
         this.operationId = operationId;
     }
+
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
+    }
+
 }

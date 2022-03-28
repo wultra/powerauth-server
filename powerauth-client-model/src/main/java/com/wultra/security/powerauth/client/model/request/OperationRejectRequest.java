@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Request to reject operation.
  *
@@ -28,6 +31,7 @@ public class OperationRejectRequest {
     private String operationId;
     private String userId;
     private Long applicationId;
+    private final Map<String, String> additionalData = new LinkedHashMap<>();
 
     public String getOperationId() {
         return operationId;
@@ -52,4 +56,9 @@ public class OperationRejectRequest {
     public void setApplicationId(Long applicationId) {
         this.applicationId = applicationId;
     }
+
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
+    }
+
 }

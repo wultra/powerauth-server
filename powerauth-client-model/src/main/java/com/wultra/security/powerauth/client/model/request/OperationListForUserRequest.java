@@ -25,6 +25,7 @@ public class OperationListForUserRequest {
 
     private String userId;
     private Long applicationId;
+    private String activationFlag;
 
     public String getUserId() {
         return userId;
@@ -40,5 +41,13 @@ public class OperationListForUserRequest {
 
     public void setApplicationId(Long applicationId) {
         this.applicationId = applicationId;
+    }
+
+    public String getActivationFlag() {
+        return activationFlag;
+    }
+
+    public void setActivationFlag(String activationFlag) {
+        this.activationFlag = activationFlag;
     }
 }
