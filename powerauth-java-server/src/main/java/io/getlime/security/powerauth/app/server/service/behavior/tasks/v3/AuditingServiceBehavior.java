@@ -74,7 +74,6 @@ public class AuditingServiceBehavior {
      */
     public void log(AuditLevel level, String message, AuditDetail auditDetail,  Object... args) {
         audit.log(message, level, auditDetail, args);
-        audit.flush();
     }
 
     /**
@@ -85,7 +84,6 @@ public class AuditingServiceBehavior {
      */
     public void log(AuditLevel level, String message, Object... args) {
         audit.log(message, level, args);
-        audit.flush();
     }
 
     /**
