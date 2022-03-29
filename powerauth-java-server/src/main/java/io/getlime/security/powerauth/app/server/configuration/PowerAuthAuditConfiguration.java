@@ -24,6 +24,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configuration of auditing for PowerAuth.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @Configuration
 @ComponentScan(basePackages = {"com.wultra.core.audit.base"})
 public class PowerAuthAuditConfiguration {
