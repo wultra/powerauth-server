@@ -945,7 +945,7 @@ public class ActivationServiceBehavior {
             String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
 
             // Persist activation report and notify listeners
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.ACTIVATION_VERSION_CHANGED);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Generate encrypted response

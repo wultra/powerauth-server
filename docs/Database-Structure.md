@@ -345,7 +345,8 @@ CREATE TABLE "pa_activation_history"
     "activation_status"  INTEGER,
     "event_reason"       VARCHAR(255),
     "external_user_id"   VARCHAR(255),
-    "timestamp_created"  TIMESTAMP (6) NOT NULL
+    "timestamp_created"  TIMESTAMP (6) NOT NULL,
+    "activation_version" INTEGER
 );
 ```
 
@@ -359,6 +360,7 @@ CREATE TABLE "pa_activation_history"
 | event_reason | VARCHAR(255) | - | Reason why activation was changed. |
 | external_user_id | VARCHAR(255) | - | External user ID of user who caused change of the activation (e.g. banker user ID). In case the value is null the change was caused by the user associated with the activation. |
 | timestamp_created | DATETIME | - | Timestamp of the record creation. |
+| activation_version | INT(2) | - | Activation version |
 <!-- end -->
 
 <!-- begin database table pa_recovery_code -->

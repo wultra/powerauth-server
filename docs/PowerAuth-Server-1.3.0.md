@@ -180,3 +180,26 @@ CREATE INDEX audit_param_timestamp ON audit_param (timestamp_created);
 CREATE INDEX audit_param_key ON audit_param (param_key);
 CREATE FULLTEXT INDEX audit_param_value ON audit_param (param_value);
 ```
+
+
+## Create New Column in Activation History Table
+
+The `pa_activation_history` table was updated to include activation version.
+
+### Oracle
+
+```sql
+ALTER TABLE PA_ACTIVATION_HISTORY ADD activation_version NUMBER(2,0);
+```
+
+### PostgreSQL
+
+```sql
+ALTER TABLE pa_activation_history ADD activation_version INTEGER;
+```
+
+### MySQL
+
+```sql
+ALTER TABLE pa_activation_history ADD activation_version int(2);
+```

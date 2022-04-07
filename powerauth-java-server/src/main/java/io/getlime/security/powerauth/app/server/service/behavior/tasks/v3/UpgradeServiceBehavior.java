@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.client.v3.StartUpgradeResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -75,16 +76,24 @@ public class UpgradeServiceBehavior {
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
+    private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
 
     @Autowired
-    public UpgradeServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ObjectMapper objectMapper) {
+    public UpgradeServiceBehavior(
+            final RepositoryCatalogue repositoryCatalogue,
+            final LocalizationProvider localizationProvider,
+            final ServerPrivateKeyConverter serverPrivateKeyConverter,
+            final ObjectMapper objectMapper,
+            final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
+
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.objectMapper = objectMapper;
+        this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
 
     /**
@@ -276,11 +285,11 @@ public class UpgradeServiceBehavior {
         // Upgrade activation to version 3
         activation.setVersion(3);
 
-        // Save update activation
-        repositoryCatalogue.getActivationRepository().save(activation);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.ACTIVATION_VERSION_CHANGED);
 
         final CommitUpgradeResponse response = new CommitUpgradeResponse();
         response.setCommitted(true);
         return response;
     }
+
 }
