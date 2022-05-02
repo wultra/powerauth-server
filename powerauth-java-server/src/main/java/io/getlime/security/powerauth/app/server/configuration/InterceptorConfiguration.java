@@ -40,7 +40,7 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     @Value("${powerauth.service.correlation-header.name:X-Correlation-ID}")
     private String correlationHeaderName;
 
-    @Value("${powerauth.service.correlation-header.value.validation-regexp:[a-zA-Z0-9]}")
+    @Value("${powerauth.service.correlation-header.value.validation-regexp:[a-zA-Z0-9\\-]{8,128}}")
     private String correlationHeaderValueValidation;
 
     @Override
