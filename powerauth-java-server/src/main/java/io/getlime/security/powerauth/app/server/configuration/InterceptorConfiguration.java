@@ -37,7 +37,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 )
 public class InterceptorConfiguration implements WebMvcConfigurer {
 
-    @Value("${powerauth.service.correlation-header.name:Correlation-ID}")
+    @Value("${powerauth.service.correlation-header.name:X-Correlation-ID}")
     private String correlationHeaderName;
 
     @Value("${powerauth.service.correlation-header.value.validation-regexp:[a-zA-Z0-9]}")
