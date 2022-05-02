@@ -37,14 +37,14 @@ import io.getlime.core.rest.model.base.response.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 
 /**
  * Class implementing a PowerAuth REST client.
@@ -59,7 +59,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     private static final String PA_REST_V3_PREFIX = "/v3";
 
     private final RestClient restClient;
+    private final PowerAuthRestClientConfiguration config;
     private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    private MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<>();
+    private MultiValueMap<String, String> httpHeaders = new LinkedMultiValueMap<>();
 
     /**
      * PowerAuth REST client constructor.
@@ -76,6 +80,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
      * @param baseUrl Base URL of REST endpoints.
      */
     public PowerAuthRestClient(String baseUrl, PowerAuthRestClientConfiguration config) throws PowerAuthClientException {
+        this.config = config;
         DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
                 .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
@@ -90,6 +95,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         if (config.getPowerAuthClientToken() != null) {
             builder.httpBasicAuth().username(config.getPowerAuthClientToken()).password(config.getPowerAuthClientSecret()).build();
         }
+        if (config.getDefaultHttpHeaders() != null) {
+            builder.defaultHttpHeaders(config.getDefaultHttpHeaders());
+        }
+        if (config.getFilter() != null) {
+            builder.filter(config.getFilter());
+        }
         try {
             restClient = builder.build();
         } catch (RestClientException ex) {
@@ -98,17 +109,47 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     /**
+     * Set HTTP query parameters.
+     * @param queryParams HTTP query parameters.
+     */
+    public void setQueryParams(MultiValueMap<String, String> queryParams) {
+        this.queryParams = queryParams;
+    }
+
+    /**
+     * Set HTTP headers.
+     * @param httpHeaders HTTP headers.
+     */
+    public void setHttpHeaders(MultiValueMap<String, String> httpHeaders) {
+        this.httpHeaders = httpHeaders;
+    }
+
+    private <T> T callV3RestApi(String path, Object request, Class<T> responseType) throws PowerAuthClientException {
+        T response = callV3RestApi(path, request, queryParams, httpHeaders, responseType);
+        // Reset query parameters and HTTP headers after REST API call, if required
+        if (config.isResetQueryParams()) {
+            queryParams = new LinkedMultiValueMap<>();
+        }
+        if (config.isResetHttpHeaders()) {
+            httpHeaders = new LinkedMultiValueMap<>();
+        }
+        return response;
+    }
+
+    /**
      * Call the PowerAuth v3 API.
      *
      * @param path Path of the endpoint.
      * @param request Request object.
+     * @param queryParams HTTP query parameters.
+     * @param headers HTTP headers.
      * @param responseType Response type.
      * @return Response.
      */
-    private <T> T callV3RestApi(String path, Object request, Class<T> responseType) throws PowerAuthClientException {
+    private <T> T callV3RestApi(String path, Object request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> headers, Class<T> responseType) throws PowerAuthClientException {
         ObjectRequest<?> objectRequest = new ObjectRequest<>(request);
         try {
-            ObjectResponse<T> objectResponse = restClient.postObject(PA_REST_V3_PREFIX + path, objectRequest, responseType);
+            ObjectResponse<T> objectResponse = restClient.postObject(PA_REST_V3_PREFIX + path, objectRequest, queryParams, headers, responseType);
             return objectResponse.getResponseObject();
         } catch (RestClientException ex) {
             if (ex.getStatusCode() == null) {

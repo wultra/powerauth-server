@@ -17,6 +17,9 @@
  */
 package com.wultra.security.powerauth.rest.client;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+
 /**
  * Configuration of PowerAuth REST client.
  *
@@ -37,6 +40,10 @@ public class PowerAuthRestClientConfiguration {
     private String powerAuthClientToken;
     private String powerAuthClientSecret;
     private boolean acceptInvalidSslCertificate;
+    private HttpHeaders defaultHttpHeaders;
+    private ExchangeFilterFunction filter;
+    private boolean resetQueryParams;
+    private boolean resetHttpHeaders;
 
     /**
      * Get maximum memory size for HTTP requests in bytes.
@@ -196,5 +203,69 @@ public class PowerAuthRestClientConfiguration {
      */
     public void setAcceptInvalidSslCertificate(boolean acceptInvalidSslCertificate) {
         this.acceptInvalidSslCertificate = acceptInvalidSslCertificate;
+    }
+
+    /**
+     * Get default HTTP headers.
+     * @return Default HTTP headers.
+     */
+    public HttpHeaders getDefaultHttpHeaders() {
+        return defaultHttpHeaders;
+    }
+
+    /**
+     * Set default HTTP headers.
+     * @param defaultHttpHeaders Default HTTP headers.
+     */
+    public void setDefaultHttpHeaders(HttpHeaders defaultHttpHeaders) {
+        this.defaultHttpHeaders = defaultHttpHeaders;
+    }
+
+    /**
+     * Get exchange filter function.
+     * @return Exchange filter function.
+     */
+    public ExchangeFilterFunction getFilter() {
+        return filter;
+    }
+
+    /**
+     * Set exchange filter function.
+     * @param filter Exchange filter function.
+     */
+    public void setFilter(ExchangeFilterFunction filter) {
+        this.filter = filter;
+    }
+
+    /**
+     * Get whether query parameters should be reset after each REST API call.
+     * @return Whether query parameters should be reset after each REST API call.
+     */
+    public boolean isResetQueryParams() {
+        return resetQueryParams;
+    }
+
+    /**
+     * Set whether query parameters should be reset after each REST API call.
+     * @param resetQueryParams Whether query parameters should be reset after each REST API call.
+     */
+    public void setResetQueryParams(boolean resetQueryParams) {
+        this.resetQueryParams = resetQueryParams;
+    }
+
+    /**
+     * Get whether HTTP headers should be reset after each REST API call.
+     * @return Whether query parameters should be reset after each REST API call.
+     */
+    public boolean isResetHttpHeaders() {
+        return resetHttpHeaders;
+    }
+
+    /**
+     * Set whether query parameters should be reset after each REST API call.
+     * @param resetHttpHeaders Whether query parameters should be reset after each REST API call.
+     */
+    public void setResetHttpHeaders(boolean resetHttpHeaders) {
+        this.resetHttpHeaders = resetHttpHeaders;
     }
 }
