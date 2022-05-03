@@ -42,8 +42,6 @@ public class PowerAuthRestClientConfiguration {
     private boolean acceptInvalidSslCertificate;
     private HttpHeaders defaultHttpHeaders;
     private ExchangeFilterFunction filter;
-    private boolean resetQueryParams;
-    private boolean resetHttpHeaders;
 
     /**
      * Get maximum memory size for HTTP requests in bytes.
