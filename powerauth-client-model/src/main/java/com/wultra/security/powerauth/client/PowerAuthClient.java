@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyReque
 import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.response.Response;
+import org.springframework.util.MultiValueMap;
 
 import java.util.Date;
 import java.util.List;
@@ -45,7 +46,7 @@ public interface PowerAuthClient {
      * @return {@link GetSystemStatusResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException;
+    GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
@@ -62,7 +63,7 @@ public interface PowerAuthClient {
      * @return {@link GetSystemStatusResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException;
+    GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the getSystemStatus method of the PowerAuth 3.0 Server interface.
@@ -80,7 +81,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException;
+    InitActivationResponse initActivation(InitActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -138,7 +139,7 @@ public interface PowerAuthClient {
      * @return {@link PrepareActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException;
+    PrepareActivationResponse prepareActivation(PrepareActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
@@ -162,7 +163,7 @@ public interface PowerAuthClient {
      * @return Create activation response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException;
+    CreateActivationResponse createActivation(CreateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the createActivation method of the PowerAuth 3.0 Server interface.
@@ -201,7 +202,7 @@ public interface PowerAuthClient {
      * @return {@link UpdateActivationOtpResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException;
+    UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the commitActivation method of the PowerAuth 3.0 Server interface.
@@ -210,7 +211,7 @@ public interface PowerAuthClient {
      * @return {@link CommitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException;
+    CommitActivationResponse commitActivation(CommitActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the commitActivation method of the PowerAuth 3.0 Server interface.
@@ -240,7 +241,7 @@ public interface PowerAuthClient {
      * @return {@link GetActivationStatusResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException;
+    GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the getActivationStatus method of the PowerAuth 3.0 Server interface. This method should be used only
@@ -273,7 +274,7 @@ public interface PowerAuthClient {
      * @return {@link RemoveActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException;
+    RemoveActivationResponse removeActivation(RemoveActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the removeActivation method of the PowerAuth 3.0 Server interface.
@@ -303,7 +304,7 @@ public interface PowerAuthClient {
      * @return {@link GetActivationListForUserResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException;
+    GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
@@ -321,7 +322,7 @@ public interface PowerAuthClient {
      * @return {@link LookupActivationsResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException;
+    LookupActivationsResponse lookupActivations(LookupActivationsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the lookupActivations method of the PowerAuth 3.0 Server interface.
@@ -344,7 +345,7 @@ public interface PowerAuthClient {
      * @return {@link UpdateStatusForActivationsResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException;
+    UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
@@ -363,7 +364,7 @@ public interface PowerAuthClient {
      * @return {@link VerifySignatureResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException;
+    VerifySignatureResponse verifySignature(VerifySignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server interface.
@@ -387,7 +388,7 @@ public interface PowerAuthClient {
      * @return {@link CreatePersonalizedOfflineSignaturePayloadResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException;
+    CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
@@ -406,7 +407,7 @@ public interface PowerAuthClient {
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException;
+    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the createNonPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.
@@ -425,7 +426,7 @@ public interface PowerAuthClient {
      * @return {@link VerifyOfflineSignatureResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException;
+    VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
@@ -446,7 +447,7 @@ public interface PowerAuthClient {
      * @return {@link VaultUnlockResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException;
+    VaultUnlockResponse unlockVault(VaultUnlockRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the vaultUnlock method of the PowerAuth 3.0 Server interface.
@@ -475,7 +476,7 @@ public interface PowerAuthClient {
      * @return {@link VerifyECDSASignatureResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException;
+    VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
@@ -495,7 +496,7 @@ public interface PowerAuthClient {
      * @return {@link SignatureAuditResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException;
+    SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the verifySignature method of the PowerAuth 3.0 Server interface and get
@@ -529,7 +530,7 @@ public interface PowerAuthClient {
      * @return {@link ActivationHistoryResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException;
+    ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
@@ -549,7 +550,7 @@ public interface PowerAuthClient {
      * @return {@link BlockActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException;
+    BlockActivationResponse blockActivation(BlockActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the blockActivation method of the PowerAuth 3.0 Server interface.
@@ -569,7 +570,7 @@ public interface PowerAuthClient {
      * @return {@link UnblockActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException;
+    UnblockActivationResponse unblockActivation(UnblockActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the unblockActivation method of the PowerAuth 3.0 Server interface.
@@ -588,7 +589,7 @@ public interface PowerAuthClient {
      * @return {@link GetApplicationListResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException;
+    GetApplicationListResponse getApplicationList(GetApplicationListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get the list of all applications that are registered in PowerAuth Server.
@@ -605,7 +606,7 @@ public interface PowerAuthClient {
      * @return {@link GetApplicationDetailResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException;
+    GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get the detail of an application with given ID, including the version list.
@@ -632,7 +633,7 @@ public interface PowerAuthClient {
      * @return {@link LookupApplicationByAppKeyResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException;
+    LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Lookup an application by application key.
@@ -650,7 +651,7 @@ public interface PowerAuthClient {
      * @return {@link CreateApplicationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException;
+    CreateApplicationResponse createApplication(CreateApplicationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create a new application with given name.
@@ -668,7 +669,7 @@ public interface PowerAuthClient {
      * @return {@link CreateApplicationVersionResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException;
+    CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create a version with a given name for an application with given ID.
@@ -687,7 +688,7 @@ public interface PowerAuthClient {
      * @return {@link UnsupportApplicationVersionResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException;
+    UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Cancel the support for a given application version.
@@ -705,7 +706,7 @@ public interface PowerAuthClient {
      * @return {@link SupportApplicationVersionResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException;
+    SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Renew the support for a given application version.
@@ -723,7 +724,7 @@ public interface PowerAuthClient {
      * @return New integration information.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException;
+    CreateIntegrationResponse createIntegration(CreateIntegrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create a new integration with given name.
@@ -741,7 +742,7 @@ public interface PowerAuthClient {
      * @return List of integrations.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException;
+    GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get the list of integrations.
@@ -758,7 +759,7 @@ public interface PowerAuthClient {
      * @return Removal status.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException;
+    RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Remove integration with given ID.
@@ -776,7 +777,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create a new callback URL with given parameters.
@@ -799,7 +800,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws PowerAuthClientException;
+    UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given parameters.
@@ -822,7 +823,7 @@ public interface PowerAuthClient {
      * @return Response with the list of all callback URLs for given application.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException;
+    GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get the list of callback URL objects.
@@ -840,7 +841,7 @@ public interface PowerAuthClient {
      * @return Information about removal status.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException;
+    RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Remove callback URL.
@@ -858,7 +859,7 @@ public interface PowerAuthClient {
      * @return Response with created token.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException;
+    CreateTokenResponse createToken(CreateTokenRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create a new token for basic token-based authentication.
@@ -883,7 +884,7 @@ public interface PowerAuthClient {
      * @return Response with the credentials validation status.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException;
+    ValidateTokenResponse validateToken(ValidateTokenRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Validate credentials used for basic token-based authentication.
@@ -904,7 +905,7 @@ public interface PowerAuthClient {
      * @return Response token removal result.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException;
+    RemoveTokenResponse removeToken(RemoveTokenRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Remove token with given token ID.
@@ -923,7 +924,7 @@ public interface PowerAuthClient {
      * @return ECIES decryptor parameters.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException;
+    GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get ECIES decryptor parameters.
@@ -943,7 +944,7 @@ public interface PowerAuthClient {
      * @return Start upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException;
+    StartUpgradeResponse startUpgrade(StartUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.
@@ -967,7 +968,7 @@ public interface PowerAuthClient {
      * @return Commit upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException;
+    CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Commit upgrade of activations to version 3.
@@ -986,7 +987,7 @@ public interface PowerAuthClient {
      * @return Create recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException;
+    CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create recovery code for user.
@@ -1006,7 +1007,7 @@ public interface PowerAuthClient {
      * @return Confirm recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException;
+    ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Confirm recovery code.
@@ -1030,7 +1031,7 @@ public interface PowerAuthClient {
      * @return Lookup recovery codes response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException;
+    LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Lookup recovery codes.
@@ -1053,7 +1054,7 @@ public interface PowerAuthClient {
      * @return Revoke recovery codes response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException;
+    RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Revoke recovery codes.
@@ -1071,7 +1072,7 @@ public interface PowerAuthClient {
      * @return Create activation using recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException;
+    RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create activation using recovery code.
@@ -1097,7 +1098,7 @@ public interface PowerAuthClient {
      * @return Get recovery configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException;
+    GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get recovery configuration.
@@ -1115,7 +1116,7 @@ public interface PowerAuthClient {
      * @return Update recovery configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException;
+    UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Update recovery configuration.
@@ -1137,7 +1138,7 @@ public interface PowerAuthClient {
      * @return List activation flags response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException;
+    ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * List activation flags.
@@ -1155,7 +1156,7 @@ public interface PowerAuthClient {
      * @return Add activation flags response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws PowerAuthClientException;
+    AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Add activation flags.
@@ -1174,7 +1175,7 @@ public interface PowerAuthClient {
      * @return Update activation flags response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException;
+    UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Update activation flags.
@@ -1193,7 +1194,7 @@ public interface PowerAuthClient {
      * @return Remove activation flags response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException;
+    RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Remove activation flags.
@@ -1211,7 +1212,7 @@ public interface PowerAuthClient {
      * @return List application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws PowerAuthClientException;
+    ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * List application roles.
@@ -1227,7 +1228,7 @@ public interface PowerAuthClient {
      * @return Add application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws PowerAuthClientException;
+    AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Add application roles.
@@ -1244,7 +1245,7 @@ public interface PowerAuthClient {
      * @return Update application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws PowerAuthClientException;
+    UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Update application roles.
@@ -1261,7 +1262,7 @@ public interface PowerAuthClient {
      * @return Remove application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws PowerAuthClientException;
+    RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Remove application roles.
@@ -1278,7 +1279,7 @@ public interface PowerAuthClient {
      * @return Create operation response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationDetailResponse createOperation(OperationCreateRequest request) throws PowerAuthClientException;
+    OperationDetailResponse createOperation(OperationCreateRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get operation detail.
@@ -1286,7 +1287,7 @@ public interface PowerAuthClient {
      * @return Operation detail response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationDetailResponse operationDetail(OperationDetailRequest request) throws PowerAuthClientException;
+    OperationDetailResponse operationDetail(OperationDetailRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get list with all operations for provided user.
@@ -1294,7 +1295,7 @@ public interface PowerAuthClient {
      * @return Get operation list response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationListResponse operationList(OperationListForUserRequest request) throws PowerAuthClientException;
+    OperationListResponse operationList(OperationListForUserRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get pending operation list.
@@ -1302,7 +1303,7 @@ public interface PowerAuthClient {
      * @return Get pending operation list response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationListResponse operationPendingList(OperationListForUserRequest request) throws PowerAuthClientException;
+    OperationListResponse operationPendingList(OperationListForUserRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Cancel operation.
@@ -1310,7 +1311,7 @@ public interface PowerAuthClient {
      * @return Cancel operation response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationDetailResponse operationCancel(OperationCancelRequest request) throws PowerAuthClientException;
+    OperationDetailResponse operationCancel(OperationCancelRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Approve operation.
@@ -1318,7 +1319,7 @@ public interface PowerAuthClient {
      * @return Approve operation response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException;
+    OperationUserActionResponse operationApprove(OperationApproveRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Simulate approval failure. Useful when you need to enforce decrement of a counter,
@@ -1327,7 +1328,7 @@ public interface PowerAuthClient {
      * @return Failed approval operatin request.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws PowerAuthClientException;
+    OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Reject operation.
@@ -1335,7 +1336,7 @@ public interface PowerAuthClient {
      * @return Reject operation response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException;
+    OperationUserActionResponse operationReject(OperationRejectRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get operation template list.
@@ -1350,7 +1351,7 @@ public interface PowerAuthClient {
      * @return Operation template detail.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationTemplateDetailResponse operationTemplateDetail(OperationTemplateDetailRequest request) throws PowerAuthClientException;
+    OperationTemplateDetailResponse operationTemplateDetail(OperationTemplateDetailRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Create a new operation template.
@@ -1358,7 +1359,7 @@ public interface PowerAuthClient {
      * @return Operation template detail.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws PowerAuthClientException;
+    OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Update an operation template.
@@ -1366,7 +1367,7 @@ public interface PowerAuthClient {
      * @return Operation template detail.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws PowerAuthClientException;
+    OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Remove operation template.
@@ -1374,7 +1375,7 @@ public interface PowerAuthClient {
      * @return Plain response object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    Response removeOperationTemplate(OperationTemplateDeleteRequest request) throws PowerAuthClientException;
+    Response removeOperationTemplate(OperationTemplateDeleteRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get the PowerAuth version 2 client (legacy).
@@ -1390,7 +1391,7 @@ public interface PowerAuthClient {
          * @return {@link com.wultra.security.powerauth.client.v2.PrepareActivationResponse}
          * @throws PowerAuthClientException In case REST API call fails.
          */
-        com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException;
+        com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
         /**
          * Call the prepareActivation method of the PowerAuth 2.0 Server interface.
@@ -1412,7 +1413,7 @@ public interface PowerAuthClient {
          * @return Create activation response.
          * @throws PowerAuthClientException In case REST API call fails.
          */
-        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException;
+        com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
         /**
          * Call the createActivation method of the PowerAuth 2.0 Server interface.
@@ -1455,7 +1456,7 @@ public interface PowerAuthClient {
          * @return {@link com.wultra.security.powerauth.client.v2.VaultUnlockResponse}
          * @throws PowerAuthClientException In case REST API call fails.
          */
-        com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException;
+        com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
         /**
          * Call the vaultUnlock method of the PowerAuth 2.0 Server interface.
@@ -1476,7 +1477,7 @@ public interface PowerAuthClient {
          * @return {@link GetPersonalizedEncryptionKeyResponse}
          * @throws PowerAuthClientException In case REST API call fails.
          */
-        GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException;
+        GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
         /**
          * Call the generatePersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server interface and get
@@ -1493,7 +1494,7 @@ public interface PowerAuthClient {
          * @return {@link GetNonPersonalizedEncryptionKeyResponse}
          * @throws PowerAuthClientException In case REST API call fails.
          */
-        GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException;
+        GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
         /**
          * Call the generateNonPersonalizedE2EEncryptionKey method of the PowerAuth 2.0 Server interface and get
@@ -1510,7 +1511,7 @@ public interface PowerAuthClient {
          * @return Response with created token.
          * @throws PowerAuthClientException In case REST API call fails.
          */
-        com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException;
+        com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
         /**
          * Create a new token for basic token-based authentication.

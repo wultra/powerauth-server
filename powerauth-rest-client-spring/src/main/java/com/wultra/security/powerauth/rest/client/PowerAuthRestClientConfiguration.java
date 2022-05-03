@@ -17,6 +17,9 @@
  */
 package com.wultra.security.powerauth.rest.client;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
+
 /**
  * Configuration of PowerAuth REST client.
  *
@@ -37,6 +40,8 @@ public class PowerAuthRestClientConfiguration {
     private String powerAuthClientToken;
     private String powerAuthClientSecret;
     private boolean acceptInvalidSslCertificate;
+    private HttpHeaders defaultHttpHeaders;
+    private ExchangeFilterFunction filter;
 
     /**
      * Get maximum memory size for HTTP requests in bytes.
@@ -197,4 +202,37 @@ public class PowerAuthRestClientConfiguration {
     public void setAcceptInvalidSslCertificate(boolean acceptInvalidSslCertificate) {
         this.acceptInvalidSslCertificate = acceptInvalidSslCertificate;
     }
+
+    /**
+     * Get default HTTP headers.
+     * @return Default HTTP headers.
+     */
+    public HttpHeaders getDefaultHttpHeaders() {
+        return defaultHttpHeaders;
+    }
+
+    /**
+     * Set default HTTP headers.
+     * @param defaultHttpHeaders Default HTTP headers.
+     */
+    public void setDefaultHttpHeaders(HttpHeaders defaultHttpHeaders) {
+        this.defaultHttpHeaders = defaultHttpHeaders;
+    }
+
+    /**
+     * Get exchange filter function.
+     * @return Exchange filter function.
+     */
+    public ExchangeFilterFunction getFilter() {
+        return filter;
+    }
+
+    /**
+     * Set exchange filter function.
+     * @param filter Exchange filter function.
+     */
+    public void setFilter(ExchangeFilterFunction filter) {
+        this.filter = filter;
+    }
+
 }
