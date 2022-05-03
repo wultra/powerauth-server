@@ -237,35 +237,4 @@ public class PowerAuthRestClientConfiguration {
         this.filter = filter;
     }
 
-    /**
-     * Get whether query parameters should be reset after each REST API call.
-     * @return Whether query parameters should be reset after each REST API call.
-     */
-    public boolean isResetQueryParams() {
-        return resetQueryParams;
-    }
-
-    /**
-     * Set whether query parameters should be reset after each REST API call.
-     * @param resetQueryParams Whether query parameters should be reset after each REST API call.
-     */
-    public void setResetQueryParams(boolean resetQueryParams) {
-        this.resetQueryParams = resetQueryParams;
-    }
-
-    /**
-     * Get whether HTTP headers should be reset after each REST API call.
-     * @return Whether query parameters should be reset after each REST API call.
-     */
-    public boolean isResetHttpHeaders() {
-        return resetHttpHeaders;
-    }
-
-    /**
-     * Set whether query parameters should be reset after each REST API call.
-     * @param resetHttpHeaders Whether query parameters should be reset after each REST API call.
-     */
-    public void setResetHttpHeaders(boolean resetHttpHeaders) {
-        this.resetHttpHeaders = resetHttpHeaders;
-    }
 }
