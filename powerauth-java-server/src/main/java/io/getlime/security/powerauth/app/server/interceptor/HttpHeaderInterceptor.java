@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2022 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -54,7 +54,7 @@ public class HttpHeaderInterceptor implements HandlerInterceptor {
     }
 
     private String getCorrelationId(HttpServletRequest request) {
-        String headerValue = request.getHeader(correlationHeaderName);
+        final String headerValue = request.getHeader(correlationHeaderName);
         if (headerValue == null) {
             logger.debug("Correlation header {} is null", correlationHeaderName);
             return null;

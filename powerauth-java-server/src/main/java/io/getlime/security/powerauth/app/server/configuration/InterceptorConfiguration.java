@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2022 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -40,12 +40,12 @@ public class InterceptorConfiguration implements WebMvcConfigurer {
     @Value("${powerauth.service.correlation-header.name:X-Correlation-ID}")
     private String correlationHeaderName;
 
-    @Value("${powerauth.service.correlation-header.value.validation-regexp:[a-zA-Z0-9\\-]{8,128}}")
+    @Value("${powerauth.service.correlation-header.value.validation-regexp:[a-zA-Z0-9\\-]{8,1024}}")
     private String correlationHeaderValueValidation;
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        HandlerInterceptor httpHeaderInterceptor = new HttpHeaderInterceptor(correlationHeaderName, correlationHeaderValueValidation);
+        final HandlerInterceptor httpHeaderInterceptor = new HttpHeaderInterceptor(correlationHeaderName, correlationHeaderValueValidation);
         registry.addInterceptor(httpHeaderInterceptor);
     }
 }
