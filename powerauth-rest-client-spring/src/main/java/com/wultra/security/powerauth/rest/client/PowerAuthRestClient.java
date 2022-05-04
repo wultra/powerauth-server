@@ -30,6 +30,10 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest;
+import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
+import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest;
+import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -185,6 +189,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException {
+        return getSystemStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/status", request, queryParams, httpHeaders, GetSystemStatusResponse.class);
     }
@@ -193,6 +202,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException {
         GetSystemStatusRequest request = new GetSystemStatusRequest();
         return getSystemStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetErrorCodeListResponse getErrorList(GetErrorCodeListRequest request) throws PowerAuthClientException {
+        return getErrorList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -208,23 +222,28 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public InitActivationResponse initActivation(InitActivationRequest request) throws PowerAuthClientException {
+        return initActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public InitActivationResponse initActivation(InitActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/activation/init", request, queryParams, httpHeaders, InitActivationResponse.class);
     }
 
     @Override
     public InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException {
-        return this.initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
+        return initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
     }
 
     @Override
     public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
-        return this.initActivation(userId, applicationId, null, null, otpValidation, otp);
+        return initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
     @Override
     public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
-        return this.initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
+        return initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
     }
 
     @Override
@@ -241,7 +260,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         if (timestampActivationExpire != null) {
             request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
         }
-        return this.initActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return initActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws PowerAuthClientException {
+        return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -259,6 +283,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setMac(mac);
         request.setNonce(nonce);
         return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws PowerAuthClientException {
+        return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -296,8 +325,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public CommitActivationResponse commitActivation(CommitActivationRequest request) throws PowerAuthClientException {
+        return commitActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/activation/otp/update", request, queryParams, httpHeaders, UpdateActivationOtpResponse.class);
+    }
+
+    @Override
+    public UpdateActivationOtpResponse updateActivationOtp(UpdateActivationOtpRequest request) throws PowerAuthClientException {
+        return updateActivationOtp(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -310,7 +349,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         CommitActivationRequest request = new CommitActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
-        return this.commitActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return commitActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -319,7 +358,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
         request.setActivationOtp(activationOtp);
-        return this.commitActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return commitActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetActivationStatusResponse getActivationStatus(GetActivationStatusRequest request) throws PowerAuthClientException {
+        return getActivationStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -339,7 +383,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         GetActivationStatusRequest request = new GetActivationStatusRequest();
         request.setActivationId(activationId);
         request.setChallenge(challenge);
-        return this.getActivationStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return getActivationStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public RemoveActivationResponse removeActivation(RemoveActivationRequest request) throws PowerAuthClientException {
+        return removeActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -349,7 +398,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public RemoveActivationResponse removeActivation(String activationId, String externalUserId) throws PowerAuthClientException {
-        return this.removeActivation(activationId, externalUserId, false);
+        return removeActivation(activationId, externalUserId, false);
     }
 
     @Override
@@ -358,7 +407,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
         request.setRevokeRecoveryCodes(revokeRecoveryCodes);
-        return this.removeActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return removeActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws PowerAuthClientException {
+        return getActivationListForUser(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -370,7 +424,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) throws PowerAuthClientException {
         GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId(userId);
-        return this.getActivationListForUser(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getActivations();
+        return getActivationListForUser(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getActivations();
+    }
+
+    @Override
+    public LookupActivationsResponse lookupActivations(LookupActivationsRequest request) throws PowerAuthClientException {
+        return lookupActivations(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -397,7 +456,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         if (activationFlags != null) {
             request.getActivationFlags().addAll(activationFlags);
         }
-        return this.lookupActivations(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getActivations();
+        return lookupActivations(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getActivations();
+    }
+
+    @Override
+    public UpdateStatusForActivationsResponse updateStatusForActivations(UpdateStatusForActivationsRequest request) throws PowerAuthClientException {
+        return updateStatusForActivations(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -412,7 +476,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         if (activationStatus != null) {
             request.setActivationStatus(activationStatus);
         }
-        return this.updateStatusForActivations(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return updateStatusForActivations(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public VerifySignatureResponse verifySignature(VerifySignatureRequest request) throws PowerAuthClientException {
+        return verifySignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -430,7 +499,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setSignatureType(signatureType);
         request.setSignatureVersion(signatureVersion);
         request.setForcedSignatureVersion(forcedSignatureVersion);
-        return this.verifySignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return verifySignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return createPersonalizedOfflineSignaturePayload(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -447,6 +521,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws PowerAuthClientException {
+        return createNonPersonalizedOfflineSignaturePayload(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/signature/offline/non-personalized/create", request, queryParams, httpHeaders, CreateNonPersonalizedOfflineSignaturePayloadResponse.class);
     }
@@ -457,6 +536,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setApplicationId(applicationId);
         request.setData(data);
         return createNonPersonalizedOfflineSignaturePayload(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(VerifyOfflineSignatureRequest request) throws PowerAuthClientException {
+        return verifyOfflineSignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -472,6 +556,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setSignature(signature);
         request.setAllowBiometry(allowBiometry);
         return verifyOfflineSignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws PowerAuthClientException {
+        return unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -498,6 +587,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws PowerAuthClientException {
+        return verifyECDSASignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/signature/ecdsa/verify", request, queryParams, httpHeaders, VerifyECDSASignatureResponse.class);
     }
@@ -508,7 +602,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setData(data);
         request.setSignature(signature);
-        return this.verifyECDSASignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return verifyECDSASignature(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws PowerAuthClientException {
+        return getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -522,7 +621,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setUserId(userId);
         request.setTimestampFrom(calendarWithDate(startingDate));
         request.setTimestampTo(calendarWithDate(endingDate));
-        return this.getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+        return getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
     }
 
     @Override
@@ -532,7 +631,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setApplicationId(applicationId);
         request.setTimestampFrom(calendarWithDate(startingDate));
         request.setTimestampTo(calendarWithDate(endingDate));
-        return this.getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+        return getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+    }
+
+    @Override
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws PowerAuthClientException {
+        return getActivationHistory(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -546,7 +650,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setTimestampFrom(calendarWithDate(startingDate));
         request.setTimestampTo(calendarWithDate(endingDate));
-        return this.getActivationHistory(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+        return getActivationHistory(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+    }
+
+    @Override
+    public BlockActivationResponse blockActivation(BlockActivationRequest request) throws PowerAuthClientException {
+        return blockActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -560,7 +669,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setReason(reason);
         request.setExternalUserId(externalUserId);
-        return this.blockActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return blockActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public UnblockActivationResponse unblockActivation(UnblockActivationRequest request) throws PowerAuthClientException {
+        return unblockActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -573,7 +687,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         UnblockActivationRequest request = new UnblockActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
-        return this.unblockActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return unblockActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException {
+        return getApplicationList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -583,7 +702,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public List<GetApplicationListResponse.Applications> getApplicationList() throws PowerAuthClientException {
-        return this.getApplicationList(new GetApplicationListRequest(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getApplications();
+        return getApplicationList(new GetApplicationListRequest(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getApplications();
+    }
+
+    @Override
+    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws PowerAuthClientException {
+        return getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -595,14 +719,19 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(applicationId);
-        return this.getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
     public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationName(applicationName);
-        return this.getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws PowerAuthClientException {
+        return lookupApplicationByAppKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -614,7 +743,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String applicationKey) throws PowerAuthClientException {
         LookupApplicationByAppKeyRequest request = new LookupApplicationByAppKeyRequest();
         request.setApplicationKey(applicationKey);
-        return this.lookupApplicationByAppKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return lookupApplicationByAppKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws PowerAuthClientException {
+        return createApplication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -626,7 +760,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public CreateApplicationResponse createApplication(String name) throws PowerAuthClientException {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationName(name);
-        return this.createApplication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return createApplication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws PowerAuthClientException {
+        return createApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -639,7 +778,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
         CreateApplicationVersionRequest request = new CreateApplicationVersionRequest();
         request.setApplicationId(applicationId);
         request.setApplicationVersionName(versionName);
-        return this.createApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return createApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return unsupportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -651,7 +795,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException {
         UnsupportApplicationVersionRequest request = new UnsupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
-        return this.unsupportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return unsupportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws PowerAuthClientException {
+        return supportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -663,7 +812,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException {
         SupportApplicationVersionRequest request = new SupportApplicationVersionRequest();
         request.setApplicationVersionId(versionId);
-        return this.supportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return supportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateIntegrationResponse createIntegration(CreateIntegrationRequest request) throws PowerAuthClientException {
+        return createIntegration(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -675,7 +829,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public CreateIntegrationResponse createIntegration(String name) throws PowerAuthClientException {
         CreateIntegrationRequest request = new CreateIntegrationRequest();
         request.setName(name);
-        return this.createIntegration(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return createIntegration(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException {
+        return getIntegrationList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -685,7 +844,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public List<GetIntegrationListResponse.Items> getIntegrationList() throws PowerAuthClientException {
-        return this.getIntegrationList(new GetIntegrationListRequest(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+        return getIntegrationList(new GetIntegrationListRequest(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+    }
+
+    @Override
+    public RemoveIntegrationResponse removeIntegration(RemoveIntegrationRequest request) throws PowerAuthClientException {
+        return removeIntegration(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -697,7 +861,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
     public RemoveIntegrationResponse removeIntegration(String id) throws PowerAuthClientException {
         RemoveIntegrationRequest request = new RemoveIntegrationRequest();
         request.setId(id);
-        return this.removeIntegration(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return removeIntegration(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws PowerAuthClientException {
+        return createCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -716,7 +885,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.getAttributes().addAll(attributes);
         }
         request.setAuthentication(authentication);
-        return this.createCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return createCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws PowerAuthClientException {
+        return updateCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -735,7 +909,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.getAttributes().addAll(attributes);
         }
         request.setAuthentication(authentication);
-        return this.updateCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return updateCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException {
+        return getCallbackUrlList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -751,6 +930,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws PowerAuthClientException {
+        return removeCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/application/callback/remove", request, queryParams, httpHeaders, RemoveCallbackUrlResponse.class);
     }
@@ -760,6 +944,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         RemoveCallbackUrlRequest request = new RemoveCallbackUrlRequest();
         request.setId(callbackUrlId);
         return removeCallbackUrl(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws PowerAuthClientException {
+        return createToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -782,6 +971,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws PowerAuthClientException {
+        return validateToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public ValidateTokenResponse validateToken(ValidateTokenRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/token/validate", request, queryParams, httpHeaders, ValidateTokenResponse.class);
     }
@@ -794,6 +988,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setTimestamp(timestamp);
         request.setTokenDigest(tokenDigest);
         return validateToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws PowerAuthClientException {
+        return removeToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -810,6 +1009,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws PowerAuthClientException {
+        return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/ecies/decryptor", request, queryParams, httpHeaders, GetEciesDecryptorResponse.class);
     }
@@ -821,6 +1025,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
+        return startUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -842,6 +1051,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws PowerAuthClientException {
+        return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/upgrade/commit", request, queryParams, httpHeaders, CommitUpgradeResponse.class);
     }
@@ -852,6 +1066,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         return commitUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws PowerAuthClientException {
+        return createRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -866,6 +1085,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setUserId(userId);
         request.setPukCount(pukCount);
         return createRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws PowerAuthClientException {
+        return confirmRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -887,6 +1111,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws PowerAuthClientException {
+        return lookupRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/recovery/lookup", request, queryParams, httpHeaders, LookupRecoveryCodesResponse.class);
     }
@@ -904,6 +1133,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request) throws PowerAuthClientException {
+        return revokeRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public RevokeRecoveryCodesResponse revokeRecoveryCodes(RevokeRecoveryCodesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/recovery/revoke", request, queryParams, httpHeaders, RevokeRecoveryCodesResponse.class);
     }
@@ -913,6 +1147,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         RevokeRecoveryCodesRequest request = new RevokeRecoveryCodesRequest();
         request.getRecoveryCodeIds().addAll(recoveryCodeIds);
         return revokeRecoveryCodes(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws PowerAuthClientException {
+        return createActivationUsingRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -938,6 +1177,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws PowerAuthClientException {
+        return getRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/recovery/config/detail", request, queryParams, httpHeaders, GetRecoveryConfigResponse.class);
     }
@@ -947,6 +1191,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         return getRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws PowerAuthClientException {
+        return updateRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -966,6 +1215,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request) throws PowerAuthClientException {
+        return listActivationFlags(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public ListActivationFlagsResponse listActivationFlags(ListActivationFlagsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/activation/flags/list", request, queryParams, httpHeaders, ListActivationFlagsResponse.class);
     }
@@ -975,6 +1229,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         ListActivationFlagsRequest request = new ListActivationFlagsRequest();
         request.setActivationId(activationId);
         return listActivationFlags(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public AddActivationFlagsResponse addActivationFlags(AddActivationFlagsRequest request) throws PowerAuthClientException {
+        return addActivationFlags(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -991,6 +1250,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request) throws PowerAuthClientException {
+        return updateActivationFlags(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public UpdateActivationFlagsResponse updateActivationFlags(UpdateActivationFlagsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/activation/flags/update", request, queryParams, httpHeaders, UpdateActivationFlagsResponse.class);
     }
@@ -1001,6 +1265,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setActivationId(activationId);
         request.getActivationFlags().addAll(activationFlags);
         return updateActivationFlags(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public RemoveActivationFlagsResponse removeActivationFlags(RemoveActivationFlagsRequest request) throws PowerAuthClientException {
+        return removeActivationFlags(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1017,6 +1286,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws PowerAuthClientException {
+        return listApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/application/roles/list", request, queryParams, httpHeaders, ListApplicationRolesResponse.class);
     }
@@ -1026,6 +1300,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         ListApplicationRolesRequest request = new ListApplicationRolesRequest();
         request.setApplicationId(applicationId);
         return listApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws PowerAuthClientException {
+        return addApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1042,6 +1321,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws PowerAuthClientException {
+        return updateApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/application/roles/update", request, queryParams, httpHeaders, UpdateApplicationRolesResponse.class);
     }
@@ -1052,6 +1336,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
         return updateApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws PowerAuthClientException {
+        return removeApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1068,8 +1357,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationDetailResponse createOperation(OperationCreateRequest request) throws PowerAuthClientException {
+        return createOperation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public OperationDetailResponse createOperation(OperationCreateRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/create", request, queryParams, httpHeaders, OperationDetailResponse.class);
+    }
+
+    @Override
+    public OperationDetailResponse operationDetail(OperationDetailRequest request) throws PowerAuthClientException {
+        return operationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1078,8 +1377,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationListResponse operationList(OperationListForUserRequest request) throws PowerAuthClientException {
+        return operationList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public OperationListResponse operationList(OperationListForUserRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/list", request, queryParams, httpHeaders, OperationListResponse.class);
+    }
+
+    @Override
+    public OperationListResponse operationPendingList(OperationListForUserRequest request) throws PowerAuthClientException {
+        return operationPendingList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1088,8 +1397,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationDetailResponse operationCancel(OperationCancelRequest request) throws PowerAuthClientException {
+        return operationCancel(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public OperationDetailResponse operationCancel(OperationCancelRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/cancel", request, queryParams, httpHeaders, OperationDetailResponse.class);
+    }
+
+    @Override
+    public OperationUserActionResponse operationApprove(OperationApproveRequest request) throws PowerAuthClientException {
+        return operationApprove(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1098,8 +1417,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request) throws PowerAuthClientException {
+        return failApprovalOperation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public OperationUserActionResponse failApprovalOperation(OperationFailApprovalRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/approve/fail", request, queryParams, httpHeaders, OperationUserActionResponse.class);
+    }
+
+    @Override
+    public OperationUserActionResponse operationReject(OperationRejectRequest request) throws PowerAuthClientException {
+        return operationReject(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1113,8 +1442,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationTemplateDetailResponse operationTemplateDetail(OperationTemplateDetailRequest request) throws PowerAuthClientException {
+        return operationTemplateDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public OperationTemplateDetailResponse operationTemplateDetail(OperationTemplateDetailRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/template/detail", request, queryParams, httpHeaders, OperationTemplateDetailResponse.class);
+    }
+
+    @Override
+    public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws PowerAuthClientException {
+        return createOperationTemplate(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1123,8 +1462,18 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
+    public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws PowerAuthClientException {
+        return updateOperationTemplate(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
     public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/template/update", request, queryParams, httpHeaders, OperationTemplateDetailResponse.class);
+    }
+
+    @Override
+    public Response removeOperationTemplate(OperationTemplateDeleteRequest request) throws PowerAuthClientException {
+        return removeOperationTemplate(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
@@ -1170,6 +1519,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
         }
 
         @Override
+        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException {
+            return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        }
+
+        @Override
         public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
             return callV2RestApi("/activation/prepare", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.PrepareActivationResponse.class);
         }
@@ -1185,7 +1539,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.setExtras(extras);
             request.setApplicationKey(applicationKey);
             request.setApplicationSignature(applicationSignature);
-            return this.prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+            return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        }
+
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException {
+            return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
         }
 
         @Override
@@ -1195,7 +1554,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
         @Override
         public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
-            return this.createActivation(
+            return createActivation(
                     applicationKey,
                     userId,
                     null,
@@ -1230,7 +1589,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.setEncryptedDevicePublicKey(cDevicePublicKey);
             request.setExtras(extras);
             request.setApplicationSignature(applicationSignature);
-            return this.createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+            return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        }
+
+        @Override
+        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException {
+            return unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
         }
 
         @Override
@@ -1247,7 +1611,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.setSignature(signature);
             request.setSignatureType(signatureType);
             request.setReason(reason);
-            return this.unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+            return unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        }
+
+        @Override
+        public GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
+            return generatePersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
         }
 
         @Override
@@ -1260,7 +1629,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest();
             request.setActivationId(activationId);
             request.setSessionIndex(sessionIndex);
-            return this.generatePersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+            return generatePersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        }
+
+        @Override
+        public GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
+            return generateNonPersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
         }
 
         @Override
@@ -1274,7 +1648,12 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.setApplicationKey(applicationKey);
             request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
             request.setSessionIndex(sessionIndex);
-            return this.generateNonPersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+            return generateNonPersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        }
+
+        @Override
+        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException {
+            return createToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
         }
 
         @Override
