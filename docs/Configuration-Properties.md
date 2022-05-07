@@ -36,6 +36,7 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.server.db.master.encryption.key` | `_empty_` | Master DB encryption key for decryption of server private key in database |
 
 ## HTTP Configuration
+
 | Property | Default | Note |
 |---|---|---|
 | `powerauth.service.http.proxy.enabled` | `false` | Whether proxy is enabled for outgoing HTTP requests |
@@ -45,12 +46,14 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.service.http.proxy.password` | `_empty_` | Proxy password for outgoing HTTP requests |
 
 ## Spring Vault Configuration
+
 | Property | Default | Note |
 |---|---|---|
 | `spring.cloud.vault.enabled` | `false` | Whether Spring Vault integration is enabled |
 | `spring.cloud.vault.kv.enabled` | `true` | Whether the Spring Vault integration uses the versioned key-value backend |
 
 ## Correlation HTTP Header Configuration
+
 | Property | Default | Note |
 |---|---|---|
 | `powerauth.service.correlation-header.enabled` | `false` | Whether correlation header is enabled |
