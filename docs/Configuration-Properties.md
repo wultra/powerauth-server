@@ -49,3 +49,11 @@ The PowerAuth Server uses the following public configuration properties:
 |---|---|---|
 | `spring.cloud.vault.enabled` | `false` | Whether Spring Vault integration is enabled |
 | `spring.cloud.vault.kv.enabled` | `true` | Whether the Spring Vault integration uses the versioned key-value backend |
+
+## Correlation HTTP Header Configuration
+| Property | Default | Note |
+|---|---|---|
+| `powerauth.service.correlation-header.enabled` | `false` | Whether correlation header is enabled |
+| `powerauth.service.correlation-header.name` | `X-Correlation-ID` | Correlation header name |
+| `powerauth.service.correlation-header.value.validation-regexp` | `[a-zA-Z0-9\\-]{8,1024}` | Regular expression for correlation header value validation |
+| `logging.pattern.console` | [See application.properties](https://github.com/wultra/powerauth-server/blob/develop/powerauth-java-server/src/main/resources/application.properties#L121) | Logging pattern for console which includes the correlation header value |
