@@ -285,7 +285,7 @@ public class UpgradeServiceBehavior {
         // Upgrade activation to version 3
         activation.setVersion(3);
 
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.ACTIVATION_VERSION_CHANGED);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.Reason.ACTIVATION_VERSION_CHANGED);
 
         final CommitUpgradeResponse response = new CommitUpgradeResponse();
         response.setCommitted(true);
