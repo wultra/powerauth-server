@@ -945,7 +945,7 @@ public class ActivationServiceBehavior {
             String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
 
             // Persist activation report and notify listeners
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.ACTIVATION_VERSION_CHANGED);
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
             // Generate encrypted response
@@ -1293,7 +1293,7 @@ public class ActivationServiceBehavior {
         activation.setActivationOtpValidation(io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_COMMIT);
 
         // Save activation record
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.ACTIVATION_OTP_VALUE_UPDATE);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.Reason.ACTIVATION_OTP_VALUE_UPDATE);
         callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
         UpdateActivationOtpResponse response = new UpdateActivationOtpResponse();
@@ -1382,7 +1382,7 @@ public class ActivationServiceBehavior {
         }
 
         // Save activation state with the reason.
-        final String activationSaveReason = removeActivation ? AdditionalInformation.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.ACTIVATION_OTP_FAILED_ATTEMPT;
+        final String activationSaveReason = removeActivation ? AdditionalInformation.Reason.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.Reason.ACTIVATION_OTP_FAILED_ATTEMPT;
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, activationSaveReason);
 
         // Also notify the listeners in case that the state of the activation was changed.
@@ -1464,7 +1464,7 @@ public class ActivationServiceBehavior {
         if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             if (reason == null) {
-                activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_NOT_SPECIFIED);
+                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED);
             } else {
                 activation.setBlockedReason(reason);
             }

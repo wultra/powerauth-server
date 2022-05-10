@@ -187,9 +187,9 @@ public class VaultUnlockServiceBehavior {
             // If value unlock reason is missing, use default NOT_SPECIFIED value.
             KeyValueMap additionalInfo = new KeyValueMap();
             KeyValueMap.Entry entry = new KeyValueMap.Entry();
-            entry.setKey(AdditionalInformation.VAULT_UNLOCKED_REASON);
+            entry.setKey(AdditionalInformation.Key.VAULT_UNLOCKED_REASON);
             if (reason == null) {
-                entry.setValue(AdditionalInformation.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
+                entry.setValue(AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
             } else {
                 entry.setValue(reason);
             }

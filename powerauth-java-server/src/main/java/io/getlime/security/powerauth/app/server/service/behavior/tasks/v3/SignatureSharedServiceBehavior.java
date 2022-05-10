@@ -381,12 +381,12 @@ public class SignatureSharedServiceBehavior {
             final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
-                activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 final KeyValueMap.Entry entry = new KeyValueMap.Entry();
-                entry.setKey(AdditionalInformation.BLOCKED_REASON);
-                entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
+                entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
                 signatureData.getAdditionalInfo().getEntry().add(entry);
                 // notify callback listeners
                 notifyCallbackListeners = true;
@@ -472,7 +472,7 @@ public class SignatureSharedServiceBehavior {
         // verification failed.
         if (biometryAllowedInOfflineMode) {
             final KeyValueMap.Entry entryBiometry = new KeyValueMap.Entry();
-            entryBiometry.setKey(AdditionalInformation.BIOMETRY_ALLOWED);
+            entryBiometry.setKey(AdditionalInformation.Key.BIOMETRY_ALLOWED);
             entryBiometry.setValue("TRUE");
             signatureData.getAdditionalInfo().getEntry().add(entryBiometry);
         }
@@ -480,13 +480,13 @@ public class SignatureSharedServiceBehavior {
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
-            activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             final KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
             final KeyValueMap.Entry entry = new KeyValueMap.Entry();
-            entry.setKey(AdditionalInformation.BLOCKED_REASON);
-            entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
+            entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             additionalInfo.getEntry().add(entry);
             // notify callback listeners
             notifyCallbackListeners = true;
@@ -540,7 +540,7 @@ public class SignatureSharedServiceBehavior {
 
         // Enforce the blocked status on activation
         activation.setActivationStatus(ActivationStatus.BLOCKED);
-        activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
 
         // Save the activation and log change
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -548,8 +548,8 @@ public class SignatureSharedServiceBehavior {
         // Prepare data for the signature audit log
         final KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
         final KeyValueMap.Entry entry = new KeyValueMap.Entry();
-        entry.setKey(AdditionalInformation.BLOCKED_REASON);
-        entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
+        entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
         additionalInfo.getEntry().add(entry);
 
         // Create the audit log record
