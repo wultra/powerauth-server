@@ -1670,7 +1670,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplicationId());
+            logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplications());
             final OperationDetailResponse response = behavior.getOperationBehavior().createOperation(request);
             logger.info("CreateOperationRequest succeeded");
             return response;
@@ -1718,7 +1718,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplicationId());
+            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
             final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(request);
             logger.info("OperationListForUserRequest succeeded");
             return response;
@@ -1739,7 +1739,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplicationId());
+            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
             final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(request);
             logger.info("OperationListForUserRequest succeeded");
             return response;
@@ -1760,7 +1760,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplicationId());
+            logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplications());
             final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(request);
             logger.info("findAllOperationsByExternalId succeeded");
             return response;

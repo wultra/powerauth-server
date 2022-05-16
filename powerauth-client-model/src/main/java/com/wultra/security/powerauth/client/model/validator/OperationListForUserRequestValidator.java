@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationListForUserRequest;
+import org.springframework.util.StringUtils;
 
 /**
  * Validator for OperationListForUserRequest class.
@@ -31,8 +32,8 @@ public class OperationListForUserRequestValidator {
         if (source == null) {
             return "Operation create request must not be null";
         }
-        if (source.getApplicationId() == null) {
-            return "Application ID must not be null when requesting operation list";
+        if (source.getApplications() == null || source.getApplications().isEmpty()) {
+            return "Application ID must not be null or empty when requesting operation list";
         }
         if (source.getUserId() == null) {
             return "User ID must not be null when requesting operation list";

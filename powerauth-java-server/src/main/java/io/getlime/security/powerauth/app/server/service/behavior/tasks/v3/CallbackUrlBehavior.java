@@ -24,10 +24,7 @@ import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -41,10 +38,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 
 /**
@@ -297,11 +291,15 @@ public class CallbackUrlBehavior {
      */
     public void notifyCallbackListenersOnOperationChange(OperationEntity operation) {
         try {
-            if (operation != null && operation.getApplication() != null) {
-                final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(operation.getApplication().getId(), CallbackUrlType.OPERATION_STATUS_CHANGE);
-                for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
-                    final Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
-                    notifyCallbackUrl(callbackUrlEntity, callbackData);
+            if (operation != null && operation.getApplications() != null && !operation.getApplications().isEmpty()) {
+                for (ApplicationEntity application : operation.getApplications()) {
+                    final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(
+                            application.getId(), CallbackUrlType.OPERATION_STATUS_CHANGE
+                    );
+                    for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
+                        final Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
+                        notifyCallbackUrl(callbackUrlEntity, callbackData);
+                    }
                 }
             }
         } catch (RestClientException ex) {
@@ -323,8 +321,8 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("userId")) {
             callbackData.put("userId", operation.getUserId());
         }
-        if (callbackUrlEntity.getAttributes().contains("applicationId")) {
-            callbackData.put("applicationId", operation.getApplication().getId());
+        if (callbackUrlEntity.getAttributes().contains("applications")) {
+            callbackData.put("applications", operation.getApplications());
         }
         if (callbackUrlEntity.getAttributes().contains("operationType")) {
             callbackData.put("operationType", operation.getOperationType());

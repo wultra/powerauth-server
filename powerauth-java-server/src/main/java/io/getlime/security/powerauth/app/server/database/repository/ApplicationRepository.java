@@ -21,6 +21,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -39,4 +40,10 @@ public interface ApplicationRepository extends CrudRepository<ApplicationEntity,
      */
     Optional<ApplicationEntity> findByName(String applicationName);
 
+    /**
+     * Find distinct applications are match the ID values.
+     * @param applicationNames List of application names.
+     * @return Count of distinct applications with provided IDs.
+     */
+    List<ApplicationEntity> findAllByNameIn(List<String> applicationNames);
 }

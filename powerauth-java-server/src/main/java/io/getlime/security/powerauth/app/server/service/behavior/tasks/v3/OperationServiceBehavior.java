@@ -94,7 +94,7 @@ public class OperationServiceBehavior {
     public OperationDetailResponse createOperation(OperationCreateRequest request) throws GenericServiceException {
 
         final String userId = request.getUserId();
-        final Long applicationId = request.getApplicationId();
+        final List<String> applications = request.getApplications();
         final String activationFlag = request.getActivationFlag();
         final String templateName = request.getTemplateName();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
@@ -111,13 +111,12 @@ public class OperationServiceBehavior {
         }
         final OperationTemplateEntity templateEntity = template.get();
 
-        // Check if application exists
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (!application.isPresent()) {
-            logger.error("Application was not found for ID: {}", applicationId);
+        // Check if applications exist
+        final List<ApplicationEntity> applicationEntities = applicationRepository.findAllByNameIn(applications);
+        if (applicationEntities.size() != applications.size()) {
+            logger.error("Application was not found for ID: {}", applications);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-        final ApplicationEntity applicationEntity = application.get();
 
         // Generate unique token ID.
         String operationId = null;
@@ -147,7 +146,7 @@ public class OperationServiceBehavior {
         final OperationEntity operationEntity = new OperationEntity();
         operationEntity.setId(operationId);
         operationEntity.setUserId(userId);
-        operationEntity.setApplication(applicationEntity);
+        operationEntity.setApplication(applicationEntities);
         operationEntity.setExternalId(externalId);
         operationEntity.setActivationFlag(activationFlag);
         operationEntity.setOperationType(templateEntity.getOperationType());
@@ -174,7 +173,7 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
-        final Long applicationId = request.getApplicationId();
+        final String applicationId = request.getApplicationId();
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
         final Map<String, String> additionalData = request.getAdditionalData();
@@ -187,7 +186,7 @@ public class OperationServiceBehavior {
         }
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        final Optional<ApplicationEntity> application = applicationRepository.findByName(applicationId);
         if (!application.isPresent()) {
             logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -204,7 +203,7 @@ public class OperationServiceBehavior {
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
         if (operationEntity.getUserId().equals(userId) // correct user approved the operation
-            && operationEntity.getApplication().getId().equals(applicationId) // operation is approved by the expected application
+            && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
@@ -267,7 +266,7 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
-        final Long applicationId = request.getApplicationId();
+        final String applicationId = request.getApplicationId();
         final Map<String, String> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
@@ -278,7 +277,7 @@ public class OperationServiceBehavior {
         }
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+        final Optional<ApplicationEntity> application = applicationRepository.findByName(applicationId);
         if (!application.isPresent()) {
             logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -293,7 +292,7 @@ public class OperationServiceBehavior {
         }
 
         if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
-                && operationEntity.getApplication().getId().equals(applicationId)) { // operation is rejected by the expected application
+                && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
             // Reject the operation
             operationEntity.setStatus(OperationStatusDo.REJECTED);
@@ -422,17 +421,17 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String userId = request.getUserId();
-        final Long applicationId = request.getApplicationId();
+        final List<String> applicationIds = request.getApplications();
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (!application.isPresent()) {
-            logger.error("Application was not found for ID: {}.", applicationId);
+        final List<ApplicationEntity> applications = applicationRepository.findAllByNameIn(applicationIds);
+        if (applications.size() != applicationIds.size()) {
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getName));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationId)) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds)) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -445,17 +444,17 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String userId = request.getUserId();
-        final Long applicationId = request.getApplicationId();
+        final List<String> applicationIds = request.getApplications();
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (!application.isPresent()) {
-            logger.error("Application was not found for ID: {}.", applicationId);
+        final List<ApplicationEntity> applications = applicationRepository.findAllByNameIn(applicationIds);
+        if (applications.size() != applicationIds.size()) {
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getName));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationId)) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds)) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
@@ -476,17 +475,17 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String externalId = request.getExternalId();
-        final Long applicationId = request.getApplicationId();
+        final List<String> applicationIds = request.getApplications();
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (!application.isPresent()) {
-            logger.error("Application was not found for ID: {}.", applicationId);
+        final List<ApplicationEntity> applications = applicationRepository.findAllByNameIn(applicationIds);
+        if (applications.size() != applicationIds.size()) {
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getName));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationId)) {
+        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationIds)) {
             operationsByExternalId.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -499,7 +498,7 @@ public class OperationServiceBehavior {
         final OperationDetailResponse destination = new OperationDetailResponse();
         destination.setId(source.getId());
         destination.setUserId(source.getUserId());
-        destination.setApplicationId(source.getApplication().getId());
+        destination.setApplications(source.getApplications().stream().map(ApplicationEntity::getName).collect(Collectors.toList()));
         destination.setExternalId(source.getExternalId());
         destination.setActivationFlag(source.getActivationFlag());
         destination.setOperationType(source.getOperationType());

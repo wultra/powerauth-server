@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
+import org.springframework.util.StringUtils;
 
 /**
  * Validator for OperationApproveRequest class.
@@ -31,8 +32,8 @@ public class OperationApproveRequestValidator {
         if (source == null) {
             return "Operation approve request must not be null";
         }
-        if (source.getApplicationId() == null) {
-            return "Application ID must not be null when creating operation";
+        if (source.getApplicationId() == null || !StringUtils.hasText(source.getApplicationId())) {
+            return "Application ID must not be null or empty when creating operation";
         }
         if (source.getOperationId() == null) {
             return "Operation ID must not be null when approving operation";
