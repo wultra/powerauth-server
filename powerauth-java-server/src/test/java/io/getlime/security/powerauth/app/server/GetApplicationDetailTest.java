@@ -24,12 +24,13 @@ import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -57,14 +58,13 @@ public class GetApplicationDetailTest {
         request.setApplicationId(application.getId());
 
         GetApplicationDetailResponse response = powerAuthService.getApplicationDetail(request);
-        assertEquals(application.getId(), Long.valueOf(response.getApplicationId()));
-        assertEquals(application.getName(), response.getApplicationName());
+        assertEquals(application.getId(), response.getApplicationId());
     }
 
     @Test
     public void testGetApplicationDetailByNotExistingId() {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationId(Long.MAX_VALUE);
+        request.setApplicationId("NOT_EXISTING_NAME");
         assertThrows(GenericServiceException.class, ()-> powerAuthService.getApplicationDetail(request));
     }
 
@@ -72,26 +72,16 @@ public class GetApplicationDetailTest {
     public void testGetApplicationDetailByExistingName() throws Exception {
         ApplicationEntity application = createApplication();
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationName(application.getName());
+        request.setApplicationId(application.getId());
 
         GetApplicationDetailResponse response = powerAuthService.getApplicationDetail(request);
-        assertEquals(application.getId(), Long.valueOf(response.getApplicationId()));
-        assertEquals(application.getName(), response.getApplicationName());
+        assertEquals(application.getId(), response.getApplicationId());
     }
 
     @Test
     public void testGetApplicationDetailByNotExistingName() {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationName("NOT_EXISTING_NAME");
-        assertThrows(GenericServiceException.class, ()-> powerAuthService.getApplicationDetail(request));
-    }
-
-    @Test
-    public void testGetApplicationDetailInvalidRequest() throws Exception {
-        ApplicationEntity application = createApplication();
-        GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationId(application.getId());
-        request.setApplicationName(application.getName());
+        request.setApplicationId("NOT_EXISTING_NAME");
         assertThrows(GenericServiceException.class, ()-> powerAuthService.getApplicationDetail(request));
     }
 
@@ -101,9 +91,10 @@ public class GetApplicationDetailTest {
 
     private ApplicationEntity createApplication(String applicationName) throws Exception {
         CreateApplicationRequest request = new CreateApplicationRequest();
-        request.setApplicationName(applicationName);
+        request.setApplicationId(applicationName);
         CreateApplicationResponse response = powerAuthService.createApplication(request);
-        return new ApplicationEntity(response.getApplicationId(), response.getApplicationName(), Lists.emptyList(), Lists.emptyList());
+        // The RID is not checked in any tests
+        return new ApplicationEntity(0L, response.getApplicationId(), Collections.emptyList(), Collections.emptyList());
     }
 
 }

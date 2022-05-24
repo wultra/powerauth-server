@@ -18,10 +18,12 @@
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Database repository for access to application versions.
@@ -37,7 +39,10 @@ public interface ApplicationVersionRepository extends CrudRepository<Application
      * @param applicationId Application ID
      * @return List of versions
      */
-    List<ApplicationVersionEntity> findByApplicationId(Long applicationId);
+    List<ApplicationVersionEntity> findByApplicationId(String applicationId);
+
+    @Query("SELECT v FROM ApplicationVersionEntity v WHERE v.application.id = :appId AND v.id = :appVersionId")
+    Optional<ApplicationVersionEntity> firstByApplicationIdAndName(String appId, String appVersionId);
 
     /**
      * Find version by application key.

@@ -51,7 +51,7 @@ public class CreateApplicationTest {
     public void testCreateApplicationWithDuplicateName() {
         String testId = UUID.randomUUID().toString();
         CreateApplicationRequest request = new CreateApplicationRequest();
-        request.setApplicationName(testId);
+        request.setApplicationId(testId);
         assertDoesNotThrow(()-> powerAuthService.createApplication(request));
         assertThrows(DataIntegrityViolationException.class, ()-> powerAuthService.createApplication(request));
     }

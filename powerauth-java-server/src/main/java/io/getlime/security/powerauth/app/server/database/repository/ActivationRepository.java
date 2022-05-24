@@ -83,7 +83,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param userId        User ID
      * @return List of activations for given user and application
      */
-    List<ActivationRecordEntity> findByApplicationIdAndUserId(Long applicationId, String userId);
+    List<ActivationRecordEntity> findByApplicationIdAndUserId(String applicationId, String userId);
 
     /**
      * Find the first activation associated with given application by the activation code.
@@ -101,7 +101,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation matching the search criteria or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode = :activationCode AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    ActivationRecordEntity findCreatedActivationWithoutLock(Long applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+    ActivationRecordEntity findCreatedActivationWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Get count of activations identified by an activation short ID associated with given application.
@@ -117,7 +117,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Count of activations matching the search criteria
      */
     @Query("SELECT COUNT(a) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort%")
-    Long getActivationCountByActivationIdShort(Long applicationId, String activationIdShort);
+    Long getActivationCountByActivationIdShort(String applicationId, String activationIdShort);
 
     /**
      * Get count of activations identified by an activation code associated with given application.
@@ -130,7 +130,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param activationCode Activation code
      * @return Count of activations matching the search criteria
      */
-    default Long getActivationCountByActivationCode(Long applicationId, String activationCode) {
+    default Long getActivationCountByActivationCode(String applicationId, String activationCode) {
         if (activationCode == null || activationCode.length() != 23) {
             throw new IllegalArgumentException("Invalid activation code: " + activationCode);
         }
@@ -154,7 +154,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return Activation matching the search criteria or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort% AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    ActivationRecordEntity findCreatedActivationByShortIdWithoutLock(Long applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
+    ActivationRecordEntity findCreatedActivationByShortIdWithoutLock(String applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Find all activations which match the query criteria.
@@ -166,5 +166,5 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @return List of activations which match the query criteria.
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND (:applicationIds IS NULL OR a.application.id IN :applicationIds) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
-    List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
+    List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
 }

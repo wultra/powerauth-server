@@ -37,14 +37,14 @@ public class ApplicationVersionEntity implements Serializable {
     @SequenceGenerator(name = "pa_application_version", sequenceName = "pa_application_version_seq")
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_version")
     @Column(name = "id")
-    private Long id;
+    private Long rid;
 
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
 
     @Column(name = "name")
-    private String name;
+    private String id;
 
     @Column(name = "application_key")
     private String applicationKey;
@@ -114,17 +114,17 @@ public class ApplicationVersionEntity implements Serializable {
      *
      * @return version ID
      */
-    public Long getId() {
-        return id;
+    public Long getRid() {
+        return rid;
     }
 
     /**
      * Set version ID
      *
-     * @param id Version ID
+     * @param rid Version ID
      */
-    public void setId(Long id) {
-        this.id = id;
+    public void setRid(Long rid) {
+        this.rid = rid;
     }
 
     /**
@@ -132,17 +132,17 @@ public class ApplicationVersionEntity implements Serializable {
      *
      * @return Version name
      */
-    public String getName() {
-        return name;
+    public String getId() {
+        return id;
     }
 
     /**
      * Set version name
      *
-     * @param name Version name
+     * @param id Version name
      */
-    public void setName(String name) {
-        this.name = name;
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
@@ -169,7 +169,7 @@ public class ApplicationVersionEntity implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         ApplicationVersionEntity that = (ApplicationVersionEntity) o;
         return Objects.equals(application, that.application) &&
-                Objects.equals(name, that.name) &&
+                Objects.equals(id, that.id) &&
                 Objects.equals(applicationKey, that.applicationKey) &&
                 Objects.equals(applicationSecret, that.applicationSecret) &&
                 Objects.equals(supported, that.supported);
@@ -177,6 +177,6 @@ public class ApplicationVersionEntity implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(application, name, applicationKey, applicationSecret, supported);
+        return Objects.hash(application, id, applicationKey, applicationSecret, supported);
     }
 }

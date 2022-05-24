@@ -102,8 +102,7 @@
                 <xs:element name="applications" minOccurs="0" maxOccurs="unbounded">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                         </xs:sequence>
                     </xs:complexType>
@@ -121,8 +120,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="applicationName" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -134,15 +132,13 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="masterPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="versions" minOccurs="0" maxOccurs="unbounded">
                     <xs:complexType>
                         <xs:sequence>
-                            <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationVersionName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
@@ -174,7 +170,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -187,7 +183,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -198,8 +194,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -213,8 +208,8 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationVersionName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -225,8 +220,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationVersionName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
@@ -242,7 +236,8 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -253,7 +248,8 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
@@ -267,7 +263,8 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -278,7 +275,8 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationVersionId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
@@ -294,7 +292,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampActivationExpire" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="maxFailureCount" type="xs:long" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationOtpValidation" type="tns:ActivationOtpValidation" minOccurs="0" maxOccurs="1"/>
@@ -313,7 +311,7 @@
                 <xs:element name="activationCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationSignature" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -344,7 +342,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
@@ -381,7 +379,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
@@ -473,7 +471,7 @@
                 <xs:element name="platform" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="deviceInfo" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampCreated" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
@@ -523,7 +521,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -551,8 +549,7 @@
                             <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>
@@ -570,7 +567,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="userIds" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
-                <xs:element name="applicationIds" type="xs:long" minOccurs="0" maxOccurs="unbounded"/>
+                <xs:element name="applicationIds" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="timestampLastUsedBefore" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="timestampLastUsedAfter" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="0" maxOccurs="1"/>
@@ -600,8 +597,7 @@
                             <xs:element name="timestampLastUsed" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="timestampLastChange" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationName" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="version" type="xs:long" minOccurs="1" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>
@@ -665,7 +661,7 @@
                 <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
@@ -712,7 +708,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
@@ -758,7 +754,7 @@
                 <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
@@ -891,7 +887,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="timestampFrom" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampTo" type="xs:dateTime" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
@@ -909,7 +905,7 @@
                         <xs:sequence>
                             <xs:element name="id" type="xs:long" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="activationCounter" type="xs:long" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="activationCtrData" type="xs:string" minOccurs="0" maxOccurs="1"/>
@@ -1062,7 +1058,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -1079,7 +1075,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -1099,7 +1095,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="attributes" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
@@ -1115,7 +1111,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -1133,7 +1129,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1148,7 +1144,7 @@
                     <xs:complexType>
                         <xs:sequence>
                             <xs:element name="id" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="name" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="type" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="callbackUrl" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -1240,7 +1236,7 @@
                 <xs:element name="tokenValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="activationFlags" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
                 <xs:element name="signatureType" type="tns:SignatureType" minOccurs="0" maxOccurs="1"/>
@@ -1360,7 +1356,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="pukCount" type="xs:long" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
@@ -1430,7 +1426,7 @@
             <xs:sequence>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="recoveryCodeStatus" type="tns:RecoveryCodeStatus" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="recoveryPukStatus" type="tns:RecoveryPukStatus" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
@@ -1449,7 +1445,7 @@
                             <xs:element name="recoveryCodeId" type="xs:long" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="recoveryCodeMasked" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                            <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                             <xs:element name="status" type="tns:RecoveryCodeStatus" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="puks" minOccurs="0" maxOccurs="unbounded">
@@ -1516,7 +1512,7 @@
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
@@ -1530,7 +1526,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1541,7 +1537,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="allowMultipleRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
@@ -1557,7 +1553,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="activationRecoveryEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="recoveryPostcardEnabled" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="allowMultipleRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
@@ -1678,7 +1674,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1689,7 +1685,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -1701,7 +1697,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -1713,7 +1709,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -1725,7 +1721,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -1737,7 +1733,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -1749,7 +1745,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="1" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>
@@ -1761,7 +1757,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationRoles" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
         </xs:complexType>

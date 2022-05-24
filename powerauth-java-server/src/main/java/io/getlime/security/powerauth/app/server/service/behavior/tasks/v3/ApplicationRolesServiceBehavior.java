@@ -63,8 +63,8 @@ public class ApplicationRolesServiceBehavior {
      * @return List application roles response.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public ListApplicationRolesResponse listApplicationRoles(long applicationId) throws GenericServiceException {
-        if (applicationId <= 0) {
+    public ListApplicationRolesResponse listApplicationRoles(String applicationId) throws GenericServiceException {
+        if (applicationId == null) {
             logger.warn("Invalid application ID in listApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -88,8 +88,8 @@ public class ApplicationRolesServiceBehavior {
      * @return Add application roles response.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public AddApplicationRolesResponse addApplicationRoles(long applicationId, List<String> applicationRoles) throws GenericServiceException {
-        if (applicationId <= 0) {
+    public AddApplicationRolesResponse addApplicationRoles(String applicationId, List<String> applicationRoles) throws GenericServiceException {
+        if (applicationId == null) {
             logger.warn("Invalid application ID in addApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -123,8 +123,8 @@ public class ApplicationRolesServiceBehavior {
      * @return Update application roles response.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public UpdateApplicationRolesResponse updateApplicationRoles(long applicationId, List<String> applicationRoles) throws GenericServiceException {
-        if (applicationId <= 0) {
+    public UpdateApplicationRolesResponse updateApplicationRoles(String applicationId, List<String> applicationRoles) throws GenericServiceException {
+        if (applicationId == null) {
             logger.warn("Invalid application ID in updateApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -154,8 +154,8 @@ public class ApplicationRolesServiceBehavior {
      * @return Delete application roles response.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public RemoveApplicationRolesResponse removeApplicationRoles(long applicationId, List<String> applicationRoles) throws GenericServiceException {
-        if (applicationId <= 0) {
+    public RemoveApplicationRolesResponse removeApplicationRoles(String applicationId, List<String> applicationRoles) throws GenericServiceException {
+        if (applicationId == null) {
             logger.warn("Invalid application ID in removeApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);

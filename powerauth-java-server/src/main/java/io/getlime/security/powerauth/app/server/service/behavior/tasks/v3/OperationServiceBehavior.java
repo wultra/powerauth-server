@@ -112,7 +112,7 @@ public class OperationServiceBehavior {
         final OperationTemplateEntity templateEntity = template.get();
 
         // Check if applications exist
-        final List<ApplicationEntity> applicationEntities = applicationRepository.findAllByNameIn(applications);
+        final List<ApplicationEntity> applicationEntities = applicationRepository.findAllByIdIn(applications);
         if (applicationEntities.size() != applications.size()) {
             logger.error("Application was not found for ID: {}", applications);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -186,7 +186,7 @@ public class OperationServiceBehavior {
         }
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findByName(applicationId);
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
             logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -277,7 +277,7 @@ public class OperationServiceBehavior {
         }
 
         // Fetch application
-        final Optional<ApplicationEntity> application = applicationRepository.findByName(applicationId);
+        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
         if (!application.isPresent()) {
             logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -424,9 +424,9 @@ public class OperationServiceBehavior {
         final List<String> applicationIds = request.getApplications();
 
         // Fetch application
-        final List<ApplicationEntity> applications = applicationRepository.findAllByNameIn(applicationIds);
+        final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
         if (applications.size() != applicationIds.size()) {
-            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getName));
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -447,9 +447,9 @@ public class OperationServiceBehavior {
         final List<String> applicationIds = request.getApplications();
 
         // Fetch application
-        final List<ApplicationEntity> applications = applicationRepository.findAllByNameIn(applicationIds);
+        final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
         if (applications.size() != applicationIds.size()) {
-            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getName));
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -478,9 +478,9 @@ public class OperationServiceBehavior {
         final List<String> applicationIds = request.getApplications();
 
         // Fetch application
-        final List<ApplicationEntity> applications = applicationRepository.findAllByNameIn(applicationIds);
+        final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
         if (applications.size() != applicationIds.size()) {
-            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getName));
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -498,7 +498,7 @@ public class OperationServiceBehavior {
         final OperationDetailResponse destination = new OperationDetailResponse();
         destination.setId(source.getId());
         destination.setUserId(source.getUserId());
-        destination.setApplications(source.getApplications().stream().map(ApplicationEntity::getName).collect(Collectors.toList()));
+        destination.setApplications(source.getApplications().stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
         destination.setExternalId(source.getExternalId());
         destination.setActivationFlag(source.getActivationFlag());
         destination.setOperationType(source.getOperationType());

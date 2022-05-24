@@ -25,6 +25,7 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -50,6 +51,7 @@ import java.util.function.Consumer;
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
+    private final ApplicationRepository applicationRepository;
     private LocalizationProvider localizationProvider;
     private PowerAuthServiceConfiguration configuration;
 
@@ -62,10 +64,12 @@ public class CallbackUrlBehavior {
     /**
      * Behavior constructor.
      * @param callbackUrlRepository Callback URL repository.
+     * @param applicationRepository Application reposotory.
      */
     @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
+    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository) {
         this.callbackUrlRepository = callbackUrlRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     @Autowired
@@ -95,9 +99,18 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
+        final String applicationId = request.getApplicationId();
+        final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+
+        if (!applicationEntityOptional.isPresent()) {
+            logger.warn("Invalid callback URL application: " + request.getApplicationId());
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+
         final CallbackUrlEntity entity = new CallbackUrlEntity();
         entity.setId(UUID.randomUUID().toString());
-        entity.setApplicationId(request.getApplicationId());
+        entity.setApplication(applicationEntityOptional.get());
         entity.setName(request.getName());
         entity.setType(CallbackUrlType.valueOf(request.getType()));
         entity.setCallbackUrl(request.getCallbackUrl());
@@ -106,7 +119,7 @@ public class CallbackUrlBehavior {
         callbackUrlRepository.save(entity);
         final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
         response.setId(entity.getId());
-        response.setApplicationId(entity.getApplicationId());
+        response.setApplicationId(entity.getApplication().getId());
         response.setName(entity.getName());
         response.setCallbackUrl(entity.getCallbackUrl());
         if (entity.getAttributes() != null) {
@@ -173,9 +186,10 @@ public class CallbackUrlBehavior {
         }
         entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(authRequest));
         callbackUrlRepository.save(entity);
+
         final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
         response.setId(entity.getId());
-        response.setApplicationId(entity.getApplicationId());
+        response.setApplicationId(entity.getApplication().getId());
         response.setName(entity.getName());
         response.setType(entity.getType().toString());
         response.setCallbackUrl(entity.getCallbackUrl());
@@ -197,7 +211,7 @@ public class CallbackUrlBehavior {
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
             final GetCallbackUrlListResponse.CallbackUrlList item = new GetCallbackUrlListResponse.CallbackUrlList();
             item.setId(callbackUrl.getId());
-            item.setApplicationId(callbackUrl.getApplicationId());
+            item.setApplicationId(callbackUrl.getApplication().getId());
             item.setName(callbackUrl.getName());
             item.setType(callbackUrl.getType().toString());
             item.setCallbackUrl(callbackUrl.getCallbackUrl());

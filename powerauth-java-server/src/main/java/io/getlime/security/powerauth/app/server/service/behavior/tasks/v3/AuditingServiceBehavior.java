@@ -67,7 +67,7 @@ public class AuditingServiceBehavior {
      * @return Response with log items.
      * @throws DatatypeConfigurationException In case date cannot be converted.
      */
-    public SignatureAuditResponse getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws DatatypeConfigurationException {
+    public SignatureAuditResponse getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws DatatypeConfigurationException {
 
         List<SignatureEntity> signatureAuditEntityList;
         if (applicationId == null) {

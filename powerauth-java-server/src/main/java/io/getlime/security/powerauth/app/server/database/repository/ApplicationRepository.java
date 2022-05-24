@@ -33,17 +33,17 @@ import java.util.Optional;
 public interface ApplicationRepository extends CrudRepository<ApplicationEntity, Long> {
 
     /**
-     * Find application by name.
+     * Find application by ID.
      *
-     * @param applicationName Application name
+     * @param applicationId Application ID.
      * @return Optional application entity with given name, returns application matching the name
      */
-    Optional<ApplicationEntity> findByName(String applicationName);
+    Optional<ApplicationEntity> findById(String applicationId);
 
     /**
      * Find distinct applications are match the ID values.
-     * @param applicationNames List of application names.
+     * @param applicationIds List of application names.
      * @return Count of distinct applications with provided IDs.
      */
-    List<ApplicationEntity> findAllByNameIn(List<String> applicationNames);
+    List<ApplicationEntity> findAllByIdIn(List<String> applicationIds);
 }

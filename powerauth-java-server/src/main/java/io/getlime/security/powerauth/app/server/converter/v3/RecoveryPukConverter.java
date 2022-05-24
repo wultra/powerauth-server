@@ -71,14 +71,14 @@ public class RecoveryPukConverter {
      * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
      * the transaction is not rolled back.
      * @param pukHash Recovery PUK hash composite database value including PUK hash and encryption mode.
-     * @param applicationId Application ID used for derivation of secret key.
+     * @param applicationRid Application RID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
      * @param recoveryCode Recovery code used for derivation of secret key.
      * @param pukIndex Recovery PUK index used for derivation of secret key.
      * @return Decrypted recovery PUK hash.
      * @throws GenericServiceException In case recovery PUK hash decryption fails.
      */
-    public String fromDBValue(RecoveryPuk pukHash, long applicationId, String userId, String recoveryCode, long pukIndex) throws GenericServiceException {
+    public String fromDBValue(RecoveryPuk pukHash, long applicationRid, String userId, String recoveryCode, long pukIndex) throws GenericServiceException {
         final String pukHashFromDB = pukHash.getPukHash();
         final EncryptionMode encryptionMode = pukHash.getEncryptionMode();
         if (encryptionMode == null) {
@@ -107,13 +107,13 @@ public class RecoveryPukConverter {
                     SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
-                    SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationId, userId, recoveryCode, pukIndex);
+                    SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid, userId, recoveryCode, pukIndex);
 
                     // Base64-decode PUK hash
                     byte[] pukHashBytes = BaseEncoding.base64().decode(pukHashFromDB);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
-                    if (pukHashBytes == null || pukHashBytes.length < 16) {
+                    if (pukHashBytes.length < 16) {
                         logger.error("Invalid encrypted PUK hash format - the byte array is too short");
                         // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
@@ -158,14 +158,14 @@ public class RecoveryPukConverter {
      * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
      * the transaction is not rolled back.
      * @param pukHash PUK hash to encrypt if master DB encryption key is present.
-     * @param applicationId Application ID used for derivation of secret key.
+     * @param applicationRid Application RID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
      * @param recoveryCode Recovery code used for derivation of secret key.
      * @param pukIndex Recovery PUK index used for derivation of secret key.
      * @return Server private key as composite database value.
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
-    public RecoveryPuk toDBValue(String pukHash, long applicationId, String userId, String recoveryCode, long pukIndex) throws GenericServiceException {
+    public RecoveryPuk toDBValue(String pukHash, long applicationRid, String userId, String recoveryCode, long pukIndex) throws GenericServiceException {
         String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
         // In case master DB encryption key does not exist, do not encrypt the PUK hash
@@ -178,7 +178,7 @@ public class RecoveryPukConverter {
             SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
-            SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationId, userId, recoveryCode, pukIndex);
+            SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid, userId, recoveryCode, pukIndex);
 
             // Generate random IV
             byte[] iv = keyGenerator.generateRandomBytes(16);
@@ -223,16 +223,16 @@ public class RecoveryPukConverter {
      * See: https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md
      *
      * @param masterDbEncryptionKey Master DB encryption key.
-     * @param applicationId Application ID used for derivation of secret key.
+     * @param applicationRid Application RID used for derivation of secret key.
      * @param userId User ID used for derivation of secret key.
      * @param recoveryCode Recovery code used for derivation of secret key.
      * @param pukIndex Recovery PUK index used for derivation of secret key.
      * @return Derived secret key.
      * @throws GenericCryptoException In case key derivation fails.
      */
-    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId, String userId, String recoveryCode, long pukIndex) throws GenericCryptoException, CryptoProviderException {
+    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationRid, String userId, String recoveryCode, long pukIndex) throws GenericCryptoException, CryptoProviderException {
         // Use concatenated application ID, user ID, recovery code and PUK index bytes as index for KDF_INTERNAL
-        byte[] index = (applicationId + "&" + userId + "&" + recoveryCode + "&" + pukIndex).getBytes(StandardCharsets.UTF_8);
+        byte[] index = (applicationRid + "&" + userId + "&" + recoveryCode + "&" + pukIndex).getBytes(StandardCharsets.UTF_8);
 
         // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
         return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);

@@ -131,9 +131,10 @@ public class EciesEncryptionBehavior {
 
             // Get master private key
             final ApplicationEntity application = applicationVersion.getApplication();
-            final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            final String applicationId = application.getId();
+            final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", application.getId());
+                logger.error("Missing key pair for application ID: {}", applicationId);
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
@@ -215,7 +216,7 @@ public class EciesEncryptionBehavior {
             }
 
             // Check that application key from request belongs to same application as activation ID from request
-            if (!applicationVersion.getApplication().getId().equals(activation.getApplication().getId())) {
+            if (!applicationVersion.getApplication().getRid().equals(activation.getApplication().getRid())) {
                 logger.warn("Application version is does not match, application key: {}", request.getApplicationKey());
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);

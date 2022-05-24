@@ -63,51 +63,39 @@ public class ApplicationServiceBehavior {
     }
 
     /**
-     * Get application details by ID.
-     *
-     * @param applicationId Application ID
-     * @return Response with application details
-     * @throws GenericServiceException Thrown when application does not exist.
-     */
-    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws GenericServiceException {
-        ApplicationEntity application = findApplicationById(applicationId);
-        return createApplicationDetailResponse(application);
-    }
-
-    /**
      * Get application details by name.
      *
      * @param applicationName Application name
      * @return Response with application details
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public GetApplicationDetailResponse getApplicationDetailByName(String applicationName) throws GenericServiceException {
-        ApplicationEntity application = findApplicationByName(applicationName);
+    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws GenericServiceException {
+        ApplicationEntity application = findApplicationById(applicationName);
         return createApplicationDetailResponse(application);
     }
 
     private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
-        MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+        final String applicationId = application.getId();
+        MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
-            logger.error("Missing key pair for application ID: {}", application.getId());
+            logger.error("Missing key pair for application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
         GetApplicationDetailResponse response = new GetApplicationDetailResponse();
-        response.setApplicationId(application.getId());
-        response.setApplicationName(application.getName());
+        response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
         response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
 
-        List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(application.getId());
+        List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
 
             GetApplicationDetailResponse.Versions ver = new GetApplicationDetailResponse.Versions();
             ver.setApplicationVersionId(version.getId());
             ver.setApplicationKey(version.getApplicationKey());
             ver.setApplicationSecret(version.getApplicationSecret());
-            ver.setApplicationVersionName(version.getName());
+            ver.setApplicationVersionId(version.getId());
             ver.setSupported(version.getSupported());
 
             response.getVersions().add(ver);
@@ -149,8 +137,7 @@ public class ApplicationServiceBehavior {
 
         for (ApplicationEntity application : result) {
             GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
-            app.setId(application.getId());
-            app.setApplicationName(application.getName());
+            app.setApplicationId(application.getId());
             app.getApplicationRoles().addAll(application.getRoles());
             response.getApplications().add(app);
         }
@@ -169,7 +156,7 @@ public class ApplicationServiceBehavior {
     public CreateApplicationResponse createApplication(String name, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             ApplicationEntity application = new ApplicationEntity();
-            application.setName(name);
+            application.setId(name);
             application = repositoryCatalogue.getApplicationRepository().save(application);
 
             KeyGenerator keyGen = new KeyGenerator();
@@ -193,7 +180,7 @@ public class ApplicationServiceBehavior {
             // Create the default application version
             ApplicationVersionEntity version = new ApplicationVersionEntity();
             version.setApplication(application);
-            version.setName("default");
+            version.setId("default");
             version.setSupported(true);
             version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
             version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
@@ -201,7 +188,6 @@ public class ApplicationServiceBehavior {
 
             CreateApplicationResponse response = new CreateApplicationResponse();
             response.setApplicationId(application.getId());
-            response.setApplicationName(application.getName());
 
             return response;
         } catch (CryptoProviderException ex) {
@@ -219,7 +205,7 @@ public class ApplicationServiceBehavior {
      * @return Response with new version information
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws GenericServiceException {
+    public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String versionName) throws GenericServiceException {
 
         ApplicationEntity application = findApplicationById(applicationId);
 
@@ -237,7 +223,7 @@ public class ApplicationServiceBehavior {
 
         ApplicationVersionEntity version = new ApplicationVersionEntity();
         version.setApplication(application);
-        version.setName(versionName);
+        version.setId(versionName);
         version.setSupported(true);
         version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
         version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
@@ -245,7 +231,7 @@ public class ApplicationServiceBehavior {
 
         CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();
         response.setApplicationVersionId(version.getId());
-        response.setApplicationVersionName(version.getName());
+        response.setApplicationVersionId(version.getId());
         response.setApplicationKey(version.getApplicationKey());
         response.setApplicationSecret(version.getApplicationSecret());
         response.setSupported(version.getSupported());
@@ -256,13 +242,14 @@ public class ApplicationServiceBehavior {
     /**
      * Mark a version with given ID as unsupported
      *
+     * @param appId Application ID.
      * @param versionId Version ID
      * @return Response confirming the operation
      * @throws GenericServiceException Thrown when application version does not exist.
      */
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws GenericServiceException {
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(String appId, String versionId) throws GenericServiceException {
 
-        ApplicationVersionEntity version = findApplicationVersionById(versionId);
+        ApplicationVersionEntity version = findApplicationVersion(appId, versionId);
 
         version.setSupported(false);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
@@ -277,13 +264,14 @@ public class ApplicationServiceBehavior {
     /**
      * Mark a version with given ID as supported
      *
+     * @param appId Application ID.
      * @param versionId Version ID
      * @return Response confirming the operation
      * @throws GenericServiceException Thrown when application version does not exist.
      */
-    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws GenericServiceException {
+    public SupportApplicationVersionResponse supportApplicationVersion(String appId, String versionId) throws GenericServiceException {
 
-        ApplicationVersionEntity version = findApplicationVersionById(versionId);
+        ApplicationVersionEntity version = findApplicationVersion(appId, versionId);
 
         version.setSupported(true);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
@@ -301,26 +289,10 @@ public class ApplicationServiceBehavior {
      * @return Application entity.
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    private ApplicationEntity findApplicationById(Long applicationId) throws GenericServiceException {
+    private ApplicationEntity findApplicationById(String applicationId) throws GenericServiceException {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
         if (!applicationOptional.isPresent()) {
-            logger.info("Application not found, application ID: {}", applicationId);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-        return applicationOptional.get();
-    }
-
-    /**
-     * Find application entity by name.
-     * @param applicationName Application name.
-     * @return Application entity.
-     * @throws GenericServiceException Thrown when application does not exist.
-     */
-    private ApplicationEntity findApplicationByName(String applicationName) throws GenericServiceException {
-        final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findByName(applicationName);
-        if (!applicationOptional.isPresent()) {
-            logger.info("Application not found, application name: '{}'", applicationName);
+            logger.info("Application not found, application name: '{}'", applicationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
@@ -329,12 +301,13 @@ public class ApplicationServiceBehavior {
 
     /**
      * Find application version entity by ID.
+     * @param appId Application ID.
      * @param versionId Application version ID.
      * @return Application version entity.
      * @throws GenericServiceException Thrown when application version does not exist.
      */
-    private ApplicationVersionEntity findApplicationVersionById(Long versionId) throws GenericServiceException {
-        final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().findById(versionId);
+    private ApplicationVersionEntity findApplicationVersion(String appId, String versionId) throws GenericServiceException {
+        final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().firstByApplicationIdAndName(appId, versionId);
         if (!applicationVersionOptional.isPresent()) {
             logger.info("Application version not found, application version ID: {}", versionId);
             // Rollback is not required, database is not used for writing
