@@ -344,6 +344,9 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("parameters")) {
             callbackData.put("parameters", operation.getParameters());
         }
+        if (callbackUrlEntity.getAttributes().contains("additionalData")) {
+            callbackData.put("additionalData", operation.getAdditionalData());
+        }
         if (callbackUrlEntity.getAttributes().contains("status")) {
             callbackData.put("status", operation.getStatus());
         }
