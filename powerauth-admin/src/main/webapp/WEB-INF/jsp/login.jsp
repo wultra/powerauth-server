@@ -16,9 +16,9 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/bootstrap.min.css">
     <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/base.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/lime-theme.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/lime-login.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/styles/xcode.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/wultra-theme.min.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/wultra-login.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/styles/xcode.min.css">
 
 </head>
 <body>

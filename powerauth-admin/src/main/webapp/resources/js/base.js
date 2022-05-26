@@ -1,6 +1,6 @@
 jQuery(document).ready(function($) {
 
-    hljs.initHighlightingOnLoad();
+    hljs.highlightAll();
 
     $(".action-remove").click(function (e) {
         if (!confirm("Are you sure you want to permanently remove this item?")) {
@@ -41,7 +41,7 @@ jQuery(document).ready(function($) {
 
     // Clipboard
 
-    var clipboard = new Clipboard('.btn-clipboard');
+    var clipboard = new ClipboardJS('.btn-clipboard');
 
     clipboard.on('success', function(e) {
         setTooltip(e.trigger, 'Copied!');
@@ -52,5 +52,7 @@ jQuery(document).ready(function($) {
         setTooltip(e.trigger, 'Failed!');
         hideTooltip(e.trigger);
     });
+
+    refreshActivationCallbackJson();
     
 });

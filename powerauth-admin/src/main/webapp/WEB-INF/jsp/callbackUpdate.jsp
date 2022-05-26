@@ -198,16 +198,21 @@
                 <p>
                     We will <span class="code">POST</span> a following JSON callback to the URL you
                     specify whenever an activation status changes.
+                </p>
 
                 <pre class="code"><code class="json" id="callback_json"></code></pre>
 
                 <p>
                     Callbacks can be authenticated by HTTP Basic authentication and/or certificate authentication.
                     Use the Java resource location format for specifying keystore and trustore locations, e.g.:
-                    <pre class="code">file:/path_to_keystore</pre>
+                </p>
+                <pre class="code">file:/path_to_keystore</pre>
+                <p>
                     Passwords which are set on the server are not displayed in this form, however and indication
                     is provided for passwords which are set. Existing passwords are not changed when this form is
                     submitted unless the password value is changed.
+                </p>
+
 
             </div>
 
