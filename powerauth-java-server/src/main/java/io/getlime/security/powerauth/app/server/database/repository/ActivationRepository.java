@@ -165,6 +165,6 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      * @param states List of activation states to consider.
      * @return List of activations which match the query criteria.
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND (:applicationIds IS NULL OR a.application.id IN :applicationIds) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND ((:applicationIds) IS EMPTY OR a.application.id IN :applicationIds) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
     List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
 }
