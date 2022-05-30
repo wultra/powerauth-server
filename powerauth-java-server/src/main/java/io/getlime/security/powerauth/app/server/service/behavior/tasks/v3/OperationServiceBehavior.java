@@ -426,7 +426,7 @@ public class OperationServiceBehavior {
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
         if (applications.size() != applicationIds.size()) {
-            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId));
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -449,7 +449,7 @@ public class OperationServiceBehavior {
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
         if (applications.size() != applicationIds.size()) {
-            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId));
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
@@ -480,7 +480,7 @@ public class OperationServiceBehavior {
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
         if (applications.size() != applicationIds.size()) {
-            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId));
+            logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
