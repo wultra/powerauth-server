@@ -23,6 +23,7 @@ import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -70,28 +71,28 @@ public class ApplicationServiceBehavior {
      * @throws GenericServiceException Thrown when application does not exist.
      */
     public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws GenericServiceException {
-        ApplicationEntity application = findApplicationById(applicationName);
+        final ApplicationEntity application = findApplicationById(applicationName);
         return createApplicationDetailResponse(application);
     }
 
     private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
         final String applicationId = application.getId();
-        MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+        final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPairEntity == null) {
             // This can happen only when an application was not created properly using PA Server service
             logger.error("Missing key pair for application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
         }
-        GetApplicationDetailResponse response = new GetApplicationDetailResponse();
+        final GetApplicationDetailResponse response = new GetApplicationDetailResponse();
         response.setApplicationId(applicationId);
         response.getApplicationRoles().addAll(application.getRoles());
         response.setMasterPublicKey(masterKeyPairEntity.getMasterKeyPublicBase64());
 
-        List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(applicationId);
+        final List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
 
-            GetApplicationDetailResponse.Versions ver = new GetApplicationDetailResponse.Versions();
+            final GetApplicationDetailResponse.Versions ver = new GetApplicationDetailResponse.Versions();
             ver.setApplicationVersionId(version.getId());
             ver.setApplicationKey(version.getApplicationKey());
             ver.setApplicationSecret(version.getApplicationSecret());
@@ -112,14 +113,14 @@ public class ApplicationServiceBehavior {
      * @throws GenericServiceException Thrown when application does not exist.
      */
     public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String appKey) throws GenericServiceException {
-        ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
+        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
         if (applicationVersion == null) {
             logger.warn("Application version is incorrect, application key: {}", appKey);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-        ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
-        LookupApplicationByAppKeyResponse response = new LookupApplicationByAppKeyResponse();
+        final ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
+        final LookupApplicationByAppKeyResponse response = new LookupApplicationByAppKeyResponse();
         response.setApplicationId(application.getId());
         return response;
     }
@@ -131,12 +132,12 @@ public class ApplicationServiceBehavior {
      */
     public GetApplicationListResponse getApplicationList() {
 
-        Iterable<ApplicationEntity> result = repositoryCatalogue.getApplicationRepository().findAll();
+        final Iterable<ApplicationEntity> result = repositoryCatalogue.getApplicationRepository().findAll();
 
-        GetApplicationListResponse response = new GetApplicationListResponse();
+        final GetApplicationListResponse response = new GetApplicationListResponse();
 
         for (ApplicationEntity application : result) {
-            GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
+            final GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
             app.setApplicationId(application.getId());
             app.getApplicationRoles().addAll(application.getRoles());
             response.getApplications().add(app);
@@ -155,21 +156,27 @@ public class ApplicationServiceBehavior {
      */
     public CreateApplicationResponse createApplication(String name, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
+            // Check application duplicity
+            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+            if (applicationRepository.findById(name).isPresent()) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
             ApplicationEntity application = new ApplicationEntity();
             application.setId(name);
-            application = repositoryCatalogue.getApplicationRepository().save(application);
+            application = applicationRepository.save(application);
 
-            KeyGenerator keyGen = new KeyGenerator();
-            KeyPair kp = keyGen.generateKeyPair();
-            PrivateKey privateKey = kp.getPrivate();
-            PublicKey publicKey = kp.getPublic();
+            final KeyGenerator keyGen = new KeyGenerator();
+            final KeyPair kp = keyGen.generateKeyPair();
+            final PrivateKey privateKey = kp.getPrivate();
+            final PublicKey publicKey = kp.getPublic();
 
             // Use cryptography methods before writing to database to avoid rollbacks
-            byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
-            byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
+            final byte[] applicationKeyBytes = keyGen.generateRandomBytes(16);
+            final byte[] applicationSecretBytes = keyGen.generateRandomBytes(16);
 
             // Generate the default master key pair
-            MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
+            final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
             keyPair.setApplication(application);
             keyPair.setMasterKeyPrivateBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
             keyPair.setMasterKeyPublicBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
@@ -178,7 +185,7 @@ public class ApplicationServiceBehavior {
             repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
 
             // Create the default application version
-            ApplicationVersionEntity version = new ApplicationVersionEntity();
+            final ApplicationVersionEntity version = new ApplicationVersionEntity();
             version.setApplication(application);
             version.setId("default");
             version.setSupported(true);
@@ -186,7 +193,7 @@ public class ApplicationServiceBehavior {
             version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
             repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-            CreateApplicationResponse response = new CreateApplicationResponse();
+            final CreateApplicationResponse response = new CreateApplicationResponse();
             response.setApplicationId(application.getId());
 
             return response;
@@ -207,11 +214,11 @@ public class ApplicationServiceBehavior {
      */
     public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String versionName) throws GenericServiceException {
 
-        ApplicationEntity application = findApplicationById(applicationId);
+        final ApplicationEntity application = findApplicationById(applicationId);
 
-        KeyGenerator keyGen = new KeyGenerator();
-        byte[] applicationKeyBytes;
-        byte[] applicationSecretBytes;
+        final KeyGenerator keyGen = new KeyGenerator();
+        final byte[] applicationKeyBytes;
+        final byte[] applicationSecretBytes;
         try {
             applicationKeyBytes = keyGen.generateRandomBytes(16);
             applicationSecretBytes = keyGen.generateRandomBytes(16);
@@ -229,7 +236,7 @@ public class ApplicationServiceBehavior {
         version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-        CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();
+        final CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();
         response.setApplicationVersionId(version.getId());
         response.setApplicationVersionId(version.getId());
         response.setApplicationKey(version.getApplicationKey());
@@ -254,7 +261,7 @@ public class ApplicationServiceBehavior {
         version.setSupported(false);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-        UnsupportApplicationVersionResponse response = new UnsupportApplicationVersionResponse();
+        final UnsupportApplicationVersionResponse response = new UnsupportApplicationVersionResponse();
         response.setApplicationVersionId(version.getId());
         response.setSupported(version.getSupported());
 
@@ -276,7 +283,7 @@ public class ApplicationServiceBehavior {
         version.setSupported(true);
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-        SupportApplicationVersionResponse response = new SupportApplicationVersionResponse();
+        final SupportApplicationVersionResponse response = new SupportApplicationVersionResponse();
         response.setApplicationVersionId(version.getId());
         response.setSupported(version.getSupported());
 
