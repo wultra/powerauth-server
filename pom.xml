@@ -115,7 +115,7 @@
 
         <!-- Test Dependencies -->
         <junit-jupiter-engine.version>5.8.2</junit-jupiter-engine.version>
-        <h2.version>2.1.210</h2.version>
+        <h2.version>1.4.200</h2.version>
 
         <!-- Other Dependencies -->
         <jackson.version>2.13.2.2</jackson.version>

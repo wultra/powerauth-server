@@ -41,6 +41,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Class that manages the service logic related to callback URL management.
@@ -64,7 +65,7 @@ public class CallbackUrlBehavior {
     /**
      * Behavior constructor.
      * @param callbackUrlRepository Callback URL repository.
-     * @param applicationRepository Application reposotory.
+     * @param applicationRepository Application repository.
      */
     @Autowired
     public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository) {
@@ -336,7 +337,10 @@ public class CallbackUrlBehavior {
             callbackData.put("userId", operation.getUserId());
         }
         if (callbackUrlEntity.getAttributes().contains("applications")) {
-            callbackData.put("applications", operation.getApplications());
+            final List<String> appIds = operation.getApplications()
+                    .stream().map(ApplicationEntity::getId)
+                    .collect(Collectors.toList());
+            callbackData.put("applications", appIds);
         }
         if (callbackUrlEntity.getAttributes().contains("operationType")) {
             callbackData.put("operationType", operation.getOperationType());
