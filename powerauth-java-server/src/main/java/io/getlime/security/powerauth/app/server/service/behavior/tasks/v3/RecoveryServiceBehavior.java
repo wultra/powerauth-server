@@ -102,8 +102,8 @@ public class RecoveryServiceBehavior {
     @Autowired
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
-                                   ServerPrivateKeyConverter serverPrivateKeyConverter, ActivationServiceBehavior activationServiceBehavior,
-                                   RecoveryPrivateKeyConverter recoveryPrivateKeyConverter, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
+                                   ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
+                                   ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
@@ -121,7 +121,7 @@ public class RecoveryServiceBehavior {
      */
     public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
-            final Long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final String userId = request.getUserId();
             final long pukCount = request.getPukCount();
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
@@ -134,9 +134,10 @@ public class RecoveryServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
+            final ApplicationEntity applicationEntity = applicationOptional.get();
 
             // Check whether activation recovery and recovery postcard is enabled
-            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationEntity.getId());
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
                 // Rollback is not required, error occurs before writing to database
@@ -158,7 +159,7 @@ public class RecoveryServiceBehavior {
             // Check whether user has any recovery code related to postcard (no activationId) in state CREATED or ACTIVE,
             // in this case the recovery code needs to be revoked first.
             if ((recoveryConfigEntity.getActivationRecoveryEnabled() == null) || !recoveryConfigEntity.getAllowMultipleRecoveryCodes()) {
-                List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationId, userId);
+                List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationEntity.getId(), userId);
                 for (RecoveryCodeEntity recoveryCodeEntity : existingRecoveryCodes) {
                     if (recoveryCodeEntity.getActivationId() == null
                             && (recoveryCodeEntity.getStatus() == RecoveryCodeStatus.CREATED || recoveryCodeEntity.getStatus() == RecoveryCodeStatus.ACTIVE)) {
@@ -172,7 +173,7 @@ public class RecoveryServiceBehavior {
             EncryptionMode encryptionMode = recoveryConfigEntity.getPrivateKeyEncryption();
             String recoveryPrivateKeyBase64 = recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64();
             final RecoveryPrivateKey recoveryPrivateKeyEncrypted = new RecoveryPrivateKey(encryptionMode, recoveryPrivateKeyBase64);
-            String decryptedPrivateKey = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, applicationId);
+            String decryptedPrivateKey = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, applicationEntity.getRid());
             final byte[] privateKeyBytes = BaseEncoding.base64().decode(decryptedPrivateKey);
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(privateKeyBytes);
             final byte[] publicKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
@@ -187,7 +188,7 @@ public class RecoveryServiceBehavior {
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateRecoveryCodeIterations(); i++) {
                 RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode(secretKey, (int) pukCount, true);
                 // Check that recovery code is unique
-                boolean recoveryCodeExists = recoveryCodeRepository.getRecoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
+                boolean recoveryCodeExists = recoveryCodeRepository.recoveryCodeCount(applicationEntity.getId(), recoveryInfo.getRecoveryCode()) > 0;
                 if (!recoveryCodeExists) {
                     recoveryCode = recoveryInfo.getRecoveryCode();
                     puks = recoveryInfo.getPuks();
@@ -209,7 +210,7 @@ public class RecoveryServiceBehavior {
             // Create and persist recovery code entity with PUKs
             final RecoveryCodeEntity recoveryCodeEntity = new RecoveryCodeEntity();
             recoveryCodeEntity.setUserId(userId);
-            recoveryCodeEntity.setApplicationId(applicationId);
+            recoveryCodeEntity.setApplication(applicationEntity);
             // Recovery is related to user, not activation
             recoveryCodeEntity.setActivationId(null);
             recoveryCodeEntity.setFailedAttempts(0L);
@@ -223,7 +224,7 @@ public class RecoveryServiceBehavior {
                 RecoveryPukEntity recoveryPukEntity = new RecoveryPukEntity();
                 recoveryPukEntity.setPukIndex((long) i);
                 String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
-                RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, applicationId, userId, recoveryCode, recoveryPukEntity.getPukIndex());
+                RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, applicationEntity.getRid(), userId, recoveryCode, recoveryPukEntity.getPukIndex());
                 recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
                 recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
                 recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
@@ -427,13 +428,25 @@ public class RecoveryServiceBehavior {
      * @throws GenericServiceException In case of any error.
      */
     public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws GenericServiceException {
-        final Long applicationId = request.getApplicationId();
+        final String applicationId = request.getApplicationId();
         final String activationId = request.getActivationId();
         final String userId = request.getUserId();
         final RecoveryCodeStatus recoveryCodeStatus = recoveryCodeStatusConverter.convertTo(request.getRecoveryCodeStatus());
         final RecoveryPukStatus recoveryPukStatus = recoveryPukStatusConverter.convertTo(request.getRecoveryPukStatus());
 
         final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+
+        // If an application was specified, validate it exists
+        if (applicationId != null) {
+            final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+            if (!applicationEntityOptional.isPresent()) {
+                // Only application ID is specified, such request is not allowed
+                logger.warn("Invalid application specified for lookup of recovery codes: {}", applicationId);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+        }
 
         final List<RecoveryCodeEntity> recoveryCodesEntities;
         if (applicationId != null && activationId != null) {
@@ -496,7 +509,8 @@ public class RecoveryServiceBehavior {
             LookupRecoveryCodesResponse.RecoveryCodes recoveryCode = new LookupRecoveryCodesResponse.RecoveryCodes();
             recoveryCode.setRecoveryCodeId(recoveryCodeEntity.getId());
             recoveryCode.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
-            recoveryCode.setApplicationId(recoveryCodeEntity.getApplicationId());
+            // TODO: FIX the warning
+            recoveryCode.setApplicationId(applicationRepository.findById(recoveryCode.getApplicationId()).get().getId());
             recoveryCode.setUserId(recoveryCodeEntity.getUserId());
             recoveryCode.setActivationId(recoveryCodeEntity.getActivationId());
             recoveryCode.setStatus(recoveryCodeStatusConverter.convertFrom(recoveryCodeEntity.getStatus()));
@@ -566,7 +580,7 @@ public class RecoveryServiceBehavior {
      * @throws GenericServiceException In case of any error.
      */
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
-        long applicationId = request.getApplicationId();
+        String applicationId = request.getApplicationId();
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
         final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
@@ -575,11 +589,12 @@ public class RecoveryServiceBehavior {
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+        final ApplicationEntity applicationEntity = applicationOptional.get();
+        RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationEntity.getId());
         if (recoveryConfigEntity == null) {
             // Configuration does not exist yet, create it
             recoveryConfigEntity = new RecoveryConfigEntity();
-            recoveryConfigEntity.setApplication(applicationOptional.get());
+            recoveryConfigEntity.setApplication(applicationEntity);
             recoveryConfigEntity.setActivationRecoveryEnabled(false);
             recoveryConfigEntity.setRecoveryPostcardEnabled(false);
             recoveryConfigEntity.setAllowMultipleRecoveryCodes(false);
@@ -605,7 +620,7 @@ public class RecoveryServiceBehavior {
      */
     public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
-            long applicationId = request.getApplicationId();
+            String applicationId = request.getApplicationId();
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
@@ -614,11 +629,12 @@ public class RecoveryServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+            final ApplicationEntity applicationEntity = applicationOptional.get();
+            RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationEntity.getId());
             if (recoveryConfigEntity == null) {
                 // Configuration does not exist yet, create it
                 recoveryConfigEntity = new RecoveryConfigEntity();
-                recoveryConfigEntity.setApplication(applicationOptional.get());
+                recoveryConfigEntity.setApplication(applicationEntity);
                 recoveryConfigEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
             }
             if (request.isRecoveryPostcardEnabled() && recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64() == null) {
@@ -631,7 +647,7 @@ public class RecoveryServiceBehavior {
                 byte[] publicKeyBytes = keyConversion.convertPublicKeyToBytes(publicKey);
                 String publicKeyBase64 = BaseEncoding.base64().encode(publicKeyBytes);
 
-                RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationId);
+                RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationEntity.getRid());
                 recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(recoveryPrivateKey.getRecoveryPrivateKeyBase64());
                 recoveryConfigEntity.setPrivateKeyEncryption(recoveryPrivateKey.getEncryptionMode());
                 recoveryConfigEntity.setRecoveryPostcardPublicKeyBase64(publicKeyBase64);

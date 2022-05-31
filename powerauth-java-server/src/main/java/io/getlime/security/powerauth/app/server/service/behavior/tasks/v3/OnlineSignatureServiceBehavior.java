@@ -139,7 +139,7 @@ public class OnlineSignatureServiceBehavior {
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
-            final Long applicationId = activation.getApplication().getId();
+            final Long applicationId = activation.getApplication().getRid();
 
             // Convert signature version to expected signature format.
             final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
@@ -147,7 +147,7 @@ public class OnlineSignatureServiceBehavior {
             // Check the activation - application relationship and version support
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
 
-            if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getId(), applicationId)) {
+            if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getRid(), applicationId)) {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Get the data and append application KEY in this case, just for auditing reasons
                 final byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
@@ -225,7 +225,7 @@ public class OnlineSignatureServiceBehavior {
      */
     private VerifySignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
         // Extract application ID and application roles
-        final Long applicationId = activation.getApplication().getId();
+        final String applicationId = activation.getApplication().getId();
         final List<String> applicationRoles = activation.getApplication().getRoles();
         final List<String> activationFlags = activation.getFlags();
 
@@ -254,7 +254,7 @@ public class OnlineSignatureServiceBehavior {
         // Calculate remaining attempts
         final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         // Extract application ID and application roles
-        final Long applicationId = activation.getApplication().getId();
+        final String applicationId = activation.getApplication().getId();
         final List<String> applicationRoles = activation.getApplication().getRoles();
         final List<String> activationFlags = activation.getFlags();
 

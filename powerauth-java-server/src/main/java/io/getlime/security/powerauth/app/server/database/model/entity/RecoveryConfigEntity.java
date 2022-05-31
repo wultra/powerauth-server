@@ -301,7 +301,7 @@ public class RecoveryConfigEntity implements Serializable {
                 + ", recoveryPostcardPublicKeyBase64=" + recoveryPostcardPublicKeyBase64
                 + ", remotePostcardPublicKeyBase64=" + remotePostcardPublicKeyBase64
                 + ", privateKeyEncryption=" + privateKeyEncryption
-                + ", application=" + application.getId()
+                + ", application=" + application.getRid()
                 + '}';
     }
 

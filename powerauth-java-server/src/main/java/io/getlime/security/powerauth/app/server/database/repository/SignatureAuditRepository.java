@@ -54,6 +54,6 @@ public interface SignatureAuditRepository extends CrudRepository<SignatureEntity
      * @return List of {@link SignatureEntity} instances.
      */
     @Query("SELECT s FROM SignatureEntity s WHERE s.activation.application.id = :applicationId AND s.activation.userId = :userId AND s.timestampCreated BETWEEN :startingDate AND :endingDate ORDER BY s.timestampCreated DESC, s.id DESC")
-    List<SignatureEntity> findSignatureAuditRecordsForApplicationAndUser(Long applicationId, String userId, Date startingDate, Date endingDate);
+    List<SignatureEntity> findSignatureAuditRecordsForApplicationAndUser(String applicationId, String userId, Date startingDate, Date endingDate);
 
 }

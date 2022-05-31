@@ -55,10 +55,10 @@ CREATE TABLE "pa_application"
 
 #### Columns
 
-| Name | Type | Info | Note |
-|------|------|---------|------|
-| id | BIGINT(20) | autoincrement | Unique application ID. |
-| name | VARCHAR(255) | - | Application name, for example "Mobile Banking". |
+| Name | Type | Info | Note                                                  |
+|------|------|---------|-------------------------------------------------------|
+| id | BIGINT(20) | autoincrement | Unique application record ID.                         |
+| name | VARCHAR(255) | - | Application identifier, for example "mobile-banking". |
 <!-- end -->
 
 <!-- begin database table pa_application_version -->
@@ -82,14 +82,14 @@ CREATE TABLE "pa_application_version"
 
 #### Columns
 
-| Name | Type | Info | Note |
-|------|------|---------|------|
-| id | BIGINT(20)  | primary key, autoincrement | Unique application version identifier. |
-| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
-| name | VARCHAR(255) | - | Version name. |
+| Name | Type | Info | Note                                                                                                                                    |
+|------|------|---------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| id | BIGINT(20)  | primary key, autoincrement | Unique application version identifier.                                                                                                  |
+| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID.                                                                                                                 |
+| name | VARCHAR(255) | - | Version identifier.                                                                                                                     |
 | application_key | VARCHAR(255) | index | Application key related to this version. Should be indexed to allow a fast lookup, since this is an identifier client applications use. |
-| application_secret | VARCHAR(255) | - | Application secret related to this version. |
-| supported | INT(11) | - | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported) |
+| application_secret | VARCHAR(255) | - | Application secret related to this version.                                                                                             |
+| supported | INT(11) | - | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported)                                               |
 <!-- end -->
 
 <!-- begin database table pa_activation -->

@@ -31,9 +31,10 @@ public interface RecoveryConfigRepository extends CrudRepository<RecoveryConfigE
 
     /**
      * Find recovery configuration for given application ID.
+     *
      * @param applicationId Application ID.
      * @return Recovery configuration.
      */
-    RecoveryConfigEntity findByApplicationId(Long applicationId);
+    RecoveryConfigEntity findByApplicationId(String applicationId);
 
 }

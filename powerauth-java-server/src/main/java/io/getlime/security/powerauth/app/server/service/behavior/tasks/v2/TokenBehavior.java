@@ -138,7 +138,7 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            final Long applicationId = activation.getApplication().getId();
+            final String applicationId = activation.getApplication().getId();
             final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
                 logger.error("Missing key pair for application ID: {}", applicationId);

@@ -27,6 +27,7 @@ import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -45,18 +46,18 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperation(String operationId);
 
-    @Query("SELECT o FROM OperationEntity o WHERE o.userId = :userId AND o.application.id = :applicationId ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findAllOperationsForUser(String userId, Long applicationId);
+    @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a WHERE o.userId = :userId AND a.id in :applicationIds ORDER BY o.timestampCreated DESC")
+    Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds);
 
-    @Query("SELECT o FROM OperationEntity o " +
-            "WHERE o.userId = :userId AND o.application.id = :applicationId AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
+    @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a " +
+            "WHERE o.userId = :userId AND a.id IN :applicationIds AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findPendingOperationsForUser(String userId, Long applicationId);
+    Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds);
 
-    @Query("SELECT o FROM OperationEntity o WHERE o.externalId = :externalId AND o.application.id = :applicationId ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findOperationsByExternalId(String externalId, Long applicationId);
+    @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a WHERE o.externalId = :externalId AND a.id IN :applicationIds ORDER BY o.timestampCreated DESC")
+    Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds);
 
-    @Query("SELECT o FROM OperationEntity o " +
+    @Query("SELECT DISTINCT o FROM OperationEntity o " +
             "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated")
     Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);

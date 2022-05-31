@@ -145,7 +145,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         // The applicationId can be null, in this case all applications are used
         try {
             final String userId = request.getUserId();
-            final Long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
             final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId);
             logger.info("GetActivationListForUserRequest succeeded");
@@ -169,7 +169,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             final List<String> userIds = request.getUserIds();
-            final List<Long> applicationIds = request.getApplicationIds();
+            final List<String> applicationIds = request.getApplicationIds();
             Date timestampLastUsedBefore;
             if (request.getTimestampLastUsedBefore() != null) {
                 timestampLastUsedBefore = XMLGregorianCalendarConverter.convertTo(request.getTimestampLastUsedBefore());
@@ -266,7 +266,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
         try {
             final String userId = request.getUserId();
-            final Long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final Long maxFailedCount = request.getMaxFailureCount();
             final Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
             final ActivationOtpValidation activationOtpValidation = request.getActivationOtpValidation();
@@ -449,7 +449,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            final long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final String data = request.getData();
             logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received, application ID: {}", applicationId);
             final CreateNonPersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createNonPersonalizedOfflineSignaturePayload(applicationId, data, keyConvertor);
@@ -744,7 +744,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
 
             final String userId = request.getUserId();
-            final Long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final Date startingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampFrom());
             final Date endingDate = XMLGregorianCalendarConverter.convertTo(request.getTimestampTo());
 
@@ -809,12 +809,9 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
         try {
             GetApplicationDetailResponse response;
-            if (request.getApplicationId() != null && request.getApplicationName() == null) {
+            if (request.getApplicationId() != null) {
                 logger.info("GetApplicationDetailRequest received, application ID: {}", request.getApplicationId());
                 response = behavior.getApplicationServiceBehavior().getApplicationDetail(request.getApplicationId());
-            } else if (request.getApplicationName() != null && request.getApplicationId() == null) {
-                logger.info("GetApplicationDetailRequest received, application name: '{}'", request.getApplicationName());
-                response = behavior.getApplicationServiceBehavior().getApplicationDetailByName(request.getApplicationName());
             } else {
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -861,14 +858,14 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
-        if (request.getApplicationName() == null) {
-            logger.warn("Invalid request parameter applicationName in method createApplication");
+        if (request.getApplicationId() == null) {
+            logger.warn("Invalid request parameter applicationId in method createApplication");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            logger.info("CreateApplicationRequest received, application name: {}", request.getApplicationName());
-            final CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationName(), keyConvertor);
+            logger.info("CreateApplicationRequest received, application ID: {}", request.getApplicationId());
+            final CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationId(), keyConvertor);
             logger.info("CreateApplicationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -886,14 +883,19 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws GenericServiceException {
-        if (request.getApplicationVersionName() == null) {
-            logger.warn("Invalid request parameter applicationVersionName in method createApplicationVersion");
+        if (request.getApplicationId() == null) {
+            logger.warn("Invalid request parameter applicationId in method createApplicationVersion");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getApplicationVersionId() == null) {
+            logger.warn("Invalid request parameter applicationVersionId in method createApplicationVersion");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            logger.info("CreateApplicationVersionRequest received, application ID: {}, application version name: {}", request.getApplicationId(), request.getApplicationVersionName());
-            final CreateApplicationVersionResponse response = behavior.getApplicationServiceBehavior().createApplicationVersion(request.getApplicationId(), request.getApplicationVersionName());
+            logger.info("CreateApplicationVersionRequest received, application ID: {}, application version ID: {}", request.getApplicationId(), request.getApplicationVersionId());
+            final CreateApplicationVersionResponse response = behavior.getApplicationServiceBehavior().createApplicationVersion(request.getApplicationId(), request.getApplicationVersionId());
             logger.info("CreateApplicationVersionRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -912,8 +914,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws GenericServiceException {
         try {
-            logger.info("UnsupportApplicationVersionRequest received, application version ID: {}", request.getApplicationVersionId());
-            final UnsupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().unsupportApplicationVersion(request.getApplicationVersionId());
+            final String applicationId = request.getApplicationId();
+            final String applicationVersionId = request.getApplicationVersionId();
+            logger.info("UnsupportApplicationVersionRequest received, application ID: {}, application version ID: {}", applicationId, applicationVersionId);
+            final UnsupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().unsupportApplicationVersion(applicationId, applicationVersionId);
             logger.info("UnsupportApplicationVersionRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -932,8 +936,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws GenericServiceException {
         try {
-            logger.info("SupportApplicationVersionRequest received, application version ID: {}", request.getApplicationVersionId());
-            final SupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().supportApplicationVersion(request.getApplicationVersionId());
+            final String applicationId = request.getApplicationId();
+            final String applicationVersionId = request.getApplicationVersionId();
+            logger.info("SupportApplicationVersionRequest received, application ID: {}, application version ID: {}", applicationId, applicationVersionId);
+            final SupportApplicationVersionResponse response = behavior.getApplicationServiceBehavior().supportApplicationVersion(applicationId, applicationVersionId);
             logger.info("SupportApplicationVersionRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1031,7 +1037,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
 
     @Override
     public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws Exception {
-        if (request.getId() == null || request.getApplicationId() <= 0 || request.getName() == null || request.getAttributes() == null) {
+        if (request.getId() == null || request.getApplicationId() == null || request.getName() == null || request.getAttributes() == null) {
             logger.warn("Invalid request in method updateCallbackUrl");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1244,7 +1250,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public CreateRecoveryCodeResponse createRecoveryCode(CreateRecoveryCodeRequest request) throws GenericServiceException {
-        if (request.getApplicationId() <= 0L || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
+        if (request.getApplicationId() == null || request.getUserId() == null || request.getPukCount() < 1 || request.getPukCount() > RecoveryServiceBehavior.PUK_COUNT_MAX) {
             logger.warn("Invalid request parameters in method createRecoveryCode");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1371,7 +1377,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
-        if (request.getApplicationId() <= 0L) {
+        if (request.getApplicationId() == null) {
             logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1396,7 +1402,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public UpdateRecoveryConfigResponse updateRecoveryConfig(UpdateRecoveryConfigRequest request) throws GenericServiceException {
-        if (request.getApplicationId() <= 0L) {
+        if (request.getApplicationId() == null) {
             logger.warn("Invalid request parameter applicationId in method updateRecoveryConfig");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1543,14 +1549,14 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public ListApplicationRolesResponse listApplicationRoles(ListApplicationRolesRequest request) throws Exception {
-        if (request.getApplicationId() <= 0L) {
+        if (request.getApplicationId() == null) {
             logger.warn("Invalid request parameter applicationId in method listApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
             logger.info("ListApplicationRolesRequest received, application ID: {}", request.getApplicationId());
-            final long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final ListApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().listApplicationRoles(applicationId);
             logger.info("ListApplicationRolesRequest succeeded");
             return response;
@@ -1569,7 +1575,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public AddApplicationRolesResponse addApplicationRoles(AddApplicationRolesRequest request) throws Exception {
-        if (request.getApplicationId() <= 0L) {
+        if (request.getApplicationId() == null) {
             logger.warn("Invalid request parameter applicationId in method addApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1581,7 +1587,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("AddApplicationRolesRequest received, application ID: {}", request.getApplicationId());
-            final long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final List<String> applicationRoles = request.getApplicationRoles();
             final AddApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().addApplicationRoles(applicationId, applicationRoles);
             logger.info("AddApplicationRolesRequest succeeded");
@@ -1601,7 +1607,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public UpdateApplicationRolesResponse updateApplicationRoles(UpdateApplicationRolesRequest request) throws Exception {
-        if (request.getApplicationId() <= 0L) {
+        if (request.getApplicationId() == null) {
             logger.warn("Invalid request parameter applicationId in method updateApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1613,7 +1619,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("UpdateApplicationRolesRequest received, application ID: {}", request.getApplicationId());
-            final long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final List<String> applicationRoles = request.getApplicationRoles();
             final UpdateApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().updateApplicationRoles(applicationId, applicationRoles);
             logger.info("UpdateApplicationRolesRequest succeeded");
@@ -1633,7 +1639,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Override
     @Transactional
     public RemoveApplicationRolesResponse removeApplicationRoles(RemoveApplicationRolesRequest request) throws Exception {
-        if (request.getApplicationId() <= 0L) {
+        if (request.getApplicationId() == null) {
             logger.warn("Invalid request parameter applicationId in method removeApplicationRoles");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1645,7 +1651,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         }
         try {
             logger.info("RemoveApplicationRolesRequest received, application ID: {}", request.getApplicationId());
-            final long applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
             final List<String> applicationRoles = request.getApplicationRoles();
             final RemoveApplicationRolesResponse response = behavior.getApplicationRolesServiceBehavior().removeApplicationRoles(applicationId, applicationRoles);
             logger.info("RemoveApplicationRolesRequest succeeded");
@@ -1670,7 +1676,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplicationId());
+            logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplications());
             final OperationDetailResponse response = behavior.getOperationBehavior().createOperation(request);
             logger.info("CreateOperationRequest succeeded");
             return response;
@@ -1718,7 +1724,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplicationId());
+            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
             final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(request);
             logger.info("OperationListForUserRequest succeeded");
             return response;
@@ -1739,7 +1745,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplicationId());
+            logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
             final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(request);
             logger.info("OperationListForUserRequest succeeded");
             return response;
@@ -1760,7 +1766,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplicationId());
+            logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplications());
             final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(request);
             logger.info("findAllOperationsByExternalId succeeded");
             return response;

@@ -232,22 +232,22 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException {
+    public InitActivationResponse initActivation(String userId, String applicationId) throws PowerAuthClientException {
         return initActivation(userId, applicationId, null, null, ActivationOtpValidation.NONE, null);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
+    public InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         return initActivation(userId, applicationId, null, null, otpValidation, otp);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
+    public InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException {
         return initActivation(userId, applicationId, maxFailureCount, timestampActivationExpire, ActivationOtpValidation.NONE, null);
     }
 
     @Override
-    public InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
+    public InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
                                                  ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException {
         InitActivationRequest request = new InitActivationRequest();
         request.setUserId(userId);
@@ -438,7 +438,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
+    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
         LookupActivationsRequest request = new LookupActivationsRequest();
         request.getUserIds().addAll(userIds);
         if (applicationIds != null) {
@@ -531,7 +531,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException {
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(String applicationId, String data) throws PowerAuthClientException {
         CreateNonPersonalizedOfflineSignaturePayloadRequest request = new CreateNonPersonalizedOfflineSignaturePayloadRequest();
         request.setApplicationId(applicationId);
         request.setData(data);
@@ -625,7 +625,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -716,16 +716,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException {
+    public GetApplicationDetailResponse getApplicationDetail(String applicationId) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(applicationId);
-        return getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
-        GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationName(applicationName);
         return getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -759,7 +752,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public CreateApplicationResponse createApplication(String name) throws PowerAuthClientException {
         CreateApplicationRequest request = new CreateApplicationRequest();
-        request.setApplicationName(name);
+        request.setApplicationId(name);
         return createApplication(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -774,10 +767,10 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException {
+    public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String versionName) throws PowerAuthClientException {
         CreateApplicationVersionRequest request = new CreateApplicationVersionRequest();
         request.setApplicationId(applicationId);
-        request.setApplicationVersionName(versionName);
+        request.setApplicationVersionId(versionName);
         return createApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -792,8 +785,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException {
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(String appId, String versionId) throws PowerAuthClientException {
         UnsupportApplicationVersionRequest request = new UnsupportApplicationVersionRequest();
+        request.setApplicationId(appId);
         request.setApplicationVersionId(versionId);
         return unsupportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
@@ -809,8 +803,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException {
+    public SupportApplicationVersionResponse supportApplicationVersion(String appId, String versionId) throws PowerAuthClientException {
         SupportApplicationVersionRequest request = new SupportApplicationVersionRequest();
+        request.setApplicationId(appId);
         request.setApplicationVersionId(versionId);
         return supportApplicationVersion(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
@@ -875,7 +870,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
+    public CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
         CreateCallbackUrlRequest request = new CreateCallbackUrlRequest();
         request.setApplicationId(applicationId);
         request.setName(name);
@@ -899,7 +894,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
+    public UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException {
         UpdateCallbackUrlRequest request = new UpdateCallbackUrlRequest();
         request.setId(id);
         request.setApplicationId(applicationId);
@@ -923,7 +918,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) throws PowerAuthClientException {
+    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(String applicationId) throws PowerAuthClientException {
         GetCallbackUrlListRequest request = new GetCallbackUrlListRequest();
         request.setApplicationId(applicationId);
         return getCallbackUrlList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getCallbackUrlList();
@@ -1079,7 +1074,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException {
+    public CreateRecoveryCodeResponse createRecoveryCode(String applicationId, String userId, Long pukCount) throws PowerAuthClientException {
         CreateRecoveryCodeRequest request = new CreateRecoveryCodeRequest();
         request.setApplicationId(applicationId);
         request.setUserId(userId);
@@ -1121,7 +1116,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
+    public LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, String applicationId,
                                                            RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException {
         LookupRecoveryCodesRequest request = new LookupRecoveryCodesRequest();
         request.setUserId(userId);
@@ -1187,7 +1182,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException {
+    public GetRecoveryConfigResponse getRecoveryConfig(String applicationId) throws PowerAuthClientException {
         GetRecoveryConfigRequest request = new GetRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         return getRecoveryConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
@@ -1204,7 +1199,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
         UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);
@@ -1296,7 +1291,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public ListApplicationRolesResponse listApplicationRoles(Long applicationId) throws PowerAuthClientException {
+    public ListApplicationRolesResponse listApplicationRoles(String applicationId) throws PowerAuthClientException {
         ListApplicationRolesRequest request = new ListApplicationRolesRequest();
         request.setApplicationId(applicationId);
         return listApplicationRoles(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
@@ -1313,7 +1308,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+    public AddApplicationRolesResponse addApplicationRoles(String applicationId, List<String> applicationRoles) throws PowerAuthClientException {
         AddApplicationRolesRequest request = new AddApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
@@ -1331,7 +1326,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+    public UpdateApplicationRolesResponse updateApplicationRoles(String applicationId, List<String> applicationRoles) throws PowerAuthClientException {
         UpdateApplicationRolesRequest request = new UpdateApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);
@@ -1349,7 +1344,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException {
+    public RemoveApplicationRolesResponse removeApplicationRoles(String applicationId, List<String> applicationRoles) throws PowerAuthClientException {
         RemoveApplicationRolesRequest request = new RemoveApplicationRolesRequest();
         request.setApplicationId(applicationId);
         request.getApplicationRoles().addAll(applicationRoles);

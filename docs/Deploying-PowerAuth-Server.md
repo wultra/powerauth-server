@@ -175,41 +175,38 @@ spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 In order to initialize the database with an application, call PowerAuth Server RESTful service endpoint:
 
 ```bash
-$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationName": "DEMO APPLICATION NAME" } }' http://localhost:8080/powerauth-java-server/rest/v3/application/create | json_pp
+$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationId": "DEMO-APPLICATION-NAME" } }' http://localhost:8080/powerauth-java-server/rest/v3/application/create | json_pp
 {
    "status" : "OK",
    "responseObject" : {
-      "applicationId" : 1,
-      "applicationName" : "DEMO APPLICATION NAME"
+      "applicationId" : "DEMO-APPLICATION-NAME"
    }
 }
 ```
 
 This command will create:
 
-- A new application instance named "DEMO APPLICATION NAME" with an `id = 1`.
+- A new application instance called "DEMO-APPLICATION-NAME".
 - A default application version named "default" with associated `application_key` and `application_secret` values
 - A new master key pair associated with the application.
 
 To get the application details, you can copy the `applicationId` value from the previous response and call:
 
 ```bash
-$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationId": 1 } }' http://localhost:8080/powerauth-java-server/rest/v3/application/detail | json_pp
+$ curl -s -H "Content-Type: application/json" -X POST -d '{ "requestObject": { "applicationId": "DEMO-APPLICATION-NAME" } }' http://localhost:8080/powerauth-java-server/rest/v3/application/detail | json_pp
 {
    "status" : "OK",
    "responseObject" : {
+      "applicationId" : "DEMO-APPLICATION-NAME",
       "masterPublicKey" : "BKOUTVjJKVB/AnRwq3tbqVkol6omI9DS6E/Yu3swh0l6MewONsjL01LA2/dxpgN5+6Ihy9cW1BpuYtdoFrxxlTA=",
-      "applicationId" : 1,
       "versions" : [
          {
-            "applicationVersionId" : 1,
-            "applicationVersionName" : "default",
+            "applicationVersionId" : "default",
             "applicationKey" : "zinbZhRMTXP4UTY+QrjZsg==",
             "applicationSecret" : "tzE7Ps0Ia8G/pFM75rh6yA==",
             "supported" : true
          }
-      ],
-      "applicationName" : "DEMO APPLICATION NAME"
+      ]
    }
 }
 ```

@@ -35,6 +35,6 @@ public interface MasterKeyPairRepository extends CrudRepository<MasterKeyPairEnt
      * @param id Application ID
      * @return The newest Master Key Pair for given application.
      */
-    MasterKeyPairEntity findFirstByApplicationIdOrderByTimestampCreatedDesc(Long id);
+    MasterKeyPairEntity findFirstByApplicationIdOrderByTimestampCreatedDesc(String id);
 
 }

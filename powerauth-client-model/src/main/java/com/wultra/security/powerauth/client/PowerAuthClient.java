@@ -124,7 +124,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    InitActivationResponse initActivation(String userId, Long applicationId) throws PowerAuthClientException;
+    InitActivationResponse initActivation(String userId, String applicationId) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -136,7 +136,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    InitActivationResponse initActivation(String userId, Long applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
+    InitActivationResponse initActivation(String userId, String applicationId, ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -148,7 +148,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException;
+    InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire) throws PowerAuthClientException;
 
     /**
      * Call the initActivation method of the PowerAuth 3.0 Server interface.
@@ -162,7 +162,7 @@ public interface PowerAuthClient {
      * @return {@link InitActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    InitActivationResponse initActivation(String userId, Long applicationId, Long maxFailureCount, Date timestampActivationExpire,
+    InitActivationResponse initActivation(String userId, String applicationId, Long maxFailureCount, Date timestampActivationExpire,
                                           ActivationOtpValidation otpValidation, String otp) throws PowerAuthClientException;
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
@@ -457,7 +457,7 @@ public interface PowerAuthClient {
      * @return List of activation instances satisfying given query parameters.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException;
+    List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException;
 
     /**
      * Call the updateStatusForActivations method of the PowerAuth 3.0 Server interface.
@@ -582,7 +582,7 @@ public interface PowerAuthClient {
      * @return {@link CreateNonPersonalizedOfflineSignaturePayloadResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data) throws PowerAuthClientException;
+    CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(String applicationId, String data) throws PowerAuthClientException;
 
     /**
      * Verify offline signature by calling verifyOfflineSignature method of the PowerAuth 3.0 Server interface.
@@ -730,7 +730,7 @@ public interface PowerAuthClient {
      * @return List of signature audit items. See: {@link com.wultra.security.powerauth.client.v3.SignatureAuditResponse.Items}.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Long applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException;
+    List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException;
 
     /**
      * Call the getActivationHistory method of the PowerAuth 3.0 Server interface.
@@ -879,16 +879,7 @@ public interface PowerAuthClient {
      * @return Application with given ID, including the version list.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetApplicationDetailResponse getApplicationDetail(Long applicationId) throws PowerAuthClientException;
-
-    /**
-     * Get the detail of an application with given name, including the version list.
-     *
-     * @param applicationName name of an application to fetch.
-     * @return Application with given name, including the version list.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException;
+    GetApplicationDetailResponse getApplicationDetail(String applicationId) throws PowerAuthClientException;
 
     /**
      * Lookup an application by application key.
@@ -976,7 +967,7 @@ public interface PowerAuthClient {
      * @return A new version with a given name and application key / secret.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateApplicationVersionResponse createApplicationVersion(Long applicationId, String versionName) throws PowerAuthClientException;
+    CreateApplicationVersionResponse createApplicationVersion(String applicationId, String versionName) throws PowerAuthClientException;
 
     /**
      * Cancel the support for a given application version.
@@ -1001,11 +992,12 @@ public interface PowerAuthClient {
     /**
      * Cancel the support for a given application version.
      *
+     * @param appId Application ID.
      * @param versionId Version to be unsupported.
      * @return Information about success / failure.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UnsupportApplicationVersionResponse unsupportApplicationVersion(Long versionId) throws PowerAuthClientException;
+    UnsupportApplicationVersionResponse unsupportApplicationVersion(String appId, String versionId) throws PowerAuthClientException;
 
     /**
      * Renew the support for a given application version.
@@ -1030,11 +1022,12 @@ public interface PowerAuthClient {
     /**
      * Renew the support for a given application version.
      *
+     * @param appId Application ID.
      * @param versionId Version to be supported again.
      * @return Information about success / failure.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    SupportApplicationVersionResponse supportApplicationVersion(Long versionId) throws PowerAuthClientException;
+    SupportApplicationVersionResponse supportApplicationVersion(String appId, String versionId) throws PowerAuthClientException;
 
     /**
      * Create a new integration with given name.
@@ -1154,7 +1147,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateCallbackUrlResponse createCallbackUrl(Long applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
+    CreateCallbackUrlResponse createCallbackUrl(String applicationId, String name, CallbackUrlType type, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
 
     /**
      * Update a callback URL with given request object.
@@ -1188,7 +1181,7 @@ public interface PowerAuthClient {
      * @return Information about new callback URL object.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateCallbackUrlResponse updateCallbackUrl(String id, long applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
+    UpdateCallbackUrlResponse updateCallbackUrl(String id, String applicationId, String name, String callbackUrl, List<String> attributes, HttpAuthenticationPrivate authentication) throws PowerAuthClientException;
 
     /**
      * Get the response with list of callback URL objects.
@@ -1217,7 +1210,7 @@ public interface PowerAuthClient {
      * @return List of all callback URLs for given application.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(Long applicationId) throws PowerAuthClientException;
+    List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(String applicationId) throws PowerAuthClientException;
 
     /**
      * Remove callback URL.
@@ -1471,7 +1464,7 @@ public interface PowerAuthClient {
      * @return Create recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    CreateRecoveryCodeResponse createRecoveryCode(Long applicationId, String userId, Long pukCount) throws PowerAuthClientException;
+    CreateRecoveryCodeResponse createRecoveryCode(String applicationId, String userId, Long pukCount) throws PowerAuthClientException;
 
     /**
      * Confirm recovery code.
@@ -1537,7 +1530,7 @@ public interface PowerAuthClient {
      * @return Lookup recovery codes response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, Long applicationId,
+    LookupRecoveryCodesResponse lookupRecoveryCodes(String userId, String activationId, String applicationId,
                                                     RecoveryCodeStatus recoveryCodeStatus, RecoveryPukStatus recoveryPukStatus) throws PowerAuthClientException;
 
     /**
@@ -1631,7 +1624,7 @@ public interface PowerAuthClient {
      * @return Get recovery configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetRecoveryConfigResponse getRecoveryConfig(Long applicationId) throws PowerAuthClientException;
+    GetRecoveryConfigResponse getRecoveryConfig(String applicationId) throws PowerAuthClientException;
 
     /**
      * Update recovery configuration.
@@ -1664,7 +1657,7 @@ public interface PowerAuthClient {
      * @return Update recovery configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(Long applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException;
+    UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException;
 
     /**
      * List activation flags.
@@ -1809,7 +1802,7 @@ public interface PowerAuthClient {
      * @return List application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ListApplicationRolesResponse listApplicationRoles(Long applicationId) throws PowerAuthClientException;
+    ListApplicationRolesResponse listApplicationRoles(String applicationId) throws PowerAuthClientException;
 
     /**
      * Add application roles.
@@ -1836,7 +1829,7 @@ public interface PowerAuthClient {
      * @return Add application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    AddApplicationRolesResponse addApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException;
+    AddApplicationRolesResponse addApplicationRoles(String applicationId, List<String> applicationRoles) throws PowerAuthClientException;
 
     /**
      * Update application roles.
@@ -1863,7 +1856,7 @@ public interface PowerAuthClient {
      * @return Update application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateApplicationRolesResponse updateApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException;
+    UpdateApplicationRolesResponse updateApplicationRoles(String applicationId, List<String> applicationRoles) throws PowerAuthClientException;
 
     /**
      * Remove application roles.
@@ -1890,7 +1883,7 @@ public interface PowerAuthClient {
      * @return Remove application roles response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveApplicationRolesResponse removeApplicationRoles(Long applicationId, List<String> applicationRoles) throws PowerAuthClientException;
+    RemoveApplicationRolesResponse removeApplicationRoles(String applicationId, List<String> applicationRoles) throws PowerAuthClientException;
 
     /**
      * Create new operation.

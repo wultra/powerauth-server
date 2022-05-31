@@ -30,7 +30,7 @@ public class OperationRejectRequest {
 
     private String operationId;
     private String userId;
-    private Long applicationId;
+    private String applicationId;
     private final Map<String, String> additionalData = new LinkedHashMap<>();
 
     public String getOperationId() {
@@ -49,11 +49,11 @@ public class OperationRejectRequest {
         this.userId = userId;
     }
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 
