@@ -89,9 +89,9 @@ public class GetApplicationDetailTest {
         return createApplication("GetApplicationDetailTest-" + System.currentTimeMillis());
     }
 
-    private ApplicationEntity createApplication(String applicationName) throws Exception {
+    private ApplicationEntity createApplication(String applicationId) throws Exception {
         CreateApplicationRequest request = new CreateApplicationRequest();
-        request.setApplicationId(applicationName);
+        request.setApplicationId(applicationId);
         CreateApplicationResponse response = powerAuthService.createApplication(request);
         // The RID is not checked in any tests
         return new ApplicationEntity(0L, response.getApplicationId(), Collections.emptyList(), Collections.emptyList());

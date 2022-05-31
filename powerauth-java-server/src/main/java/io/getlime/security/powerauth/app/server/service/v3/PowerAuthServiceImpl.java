@@ -859,12 +859,12 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
         if (request.getApplicationId() == null) {
-            logger.warn("Invalid request parameter applicationName in method createApplication");
+            logger.warn("Invalid request parameter applicationId in method createApplication");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            logger.info("CreateApplicationRequest received, application name: {}", request.getApplicationId());
+            logger.info("CreateApplicationRequest received, application ID: {}", request.getApplicationId());
             final CreateApplicationResponse response = behavior.getApplicationServiceBehavior().createApplication(request.getApplicationId(), keyConvertor);
             logger.info("CreateApplicationRequest succeeded");
             return response;
@@ -884,12 +884,17 @@ public class PowerAuthServiceImpl implements PowerAuthService {
     @Transactional
     public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws GenericServiceException {
         if (request.getApplicationId() == null) {
-            logger.warn("Invalid request parameter applicationVersionName in method createApplicationVersion");
+            logger.warn("Invalid request parameter applicationId in method createApplicationVersion");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (request.getApplicationVersionId() == null) {
+            logger.warn("Invalid request parameter applicationVersionId in method createApplicationVersion");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            logger.info("CreateApplicationVersionRequest received, application ID: {}, application version name: {}", request.getApplicationId(), request.getApplicationVersionId());
+            logger.info("CreateApplicationVersionRequest received, application ID: {}, application version ID: {}", request.getApplicationId(), request.getApplicationVersionId());
             final CreateApplicationVersionResponse response = behavior.getApplicationServiceBehavior().createApplicationVersion(request.getApplicationId(), request.getApplicationVersionId());
             logger.info("CreateApplicationVersionRequest succeeded");
             return response;

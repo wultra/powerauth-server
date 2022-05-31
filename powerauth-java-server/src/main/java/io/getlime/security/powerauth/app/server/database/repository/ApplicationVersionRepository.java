@@ -42,7 +42,7 @@ public interface ApplicationVersionRepository extends CrudRepository<Application
     List<ApplicationVersionEntity> findByApplicationId(String applicationId);
 
     @Query("SELECT v FROM ApplicationVersionEntity v WHERE v.application.id = :appId AND v.id = :appVersionId")
-    Optional<ApplicationVersionEntity> firstByApplicationIdAndName(String appId, String appVersionId);
+    Optional<ApplicationVersionEntity> findFirstByApplicationIdAndName(String appId, String appVersionId);
 
     /**
      * Find version by application key.

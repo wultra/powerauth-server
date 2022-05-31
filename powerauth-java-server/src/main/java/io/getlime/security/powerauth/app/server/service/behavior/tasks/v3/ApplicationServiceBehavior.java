@@ -64,14 +64,14 @@ public class ApplicationServiceBehavior {
     }
 
     /**
-     * Get application details by name.
+     * Get application details by ID.
      *
-     * @param applicationName Application name
+     * @param applicationId Application ID
      * @return Response with application details
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws GenericServiceException {
-        final ApplicationEntity application = findApplicationById(applicationName);
+    public GetApplicationDetailResponse getApplicationDetail(String applicationId) throws GenericServiceException {
+        final ApplicationEntity application = findApplicationById(applicationId);
         return createApplicationDetailResponse(application);
     }
 
@@ -149,21 +149,21 @@ public class ApplicationServiceBehavior {
     /**
      * Create a new application with given name.
      *
-     * @param name                   Application name
+     * @param id Application ID
      * @param keyConversionUtilities Utility class for the key conversion
      * @return Response with new application information
      * @throws GenericServiceException In case cryptography provider is initialized incorrectly.
      */
-    public CreateApplicationResponse createApplication(String name, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    public CreateApplicationResponse createApplication(String id, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Check application duplicity
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-            if (applicationRepository.findById(name).isPresent()) {
+            if (applicationRepository.findById(id).isPresent()) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
             ApplicationEntity application = new ApplicationEntity();
-            application.setId(name);
+            application.setId(id);
             application = applicationRepository.save(application);
 
             final KeyGenerator keyGen = new KeyGenerator();
@@ -181,7 +181,7 @@ public class ApplicationServiceBehavior {
             keyPair.setMasterKeyPrivateBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
             keyPair.setMasterKeyPublicBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
             keyPair.setTimestampCreated(new Date());
-            keyPair.setName(name + " Default Keypair");
+            keyPair.setName(id + " Default Keypair");
             repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
 
             // Create the default application version
@@ -208,11 +208,11 @@ public class ApplicationServiceBehavior {
      * Create a new application version
      *
      * @param applicationId Application ID
-     * @param versionName   Application version name
+     * @param applicationVersionId   Application version ID
      * @return Response with new version information
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String versionName) throws GenericServiceException {
+    public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String applicationVersionId) throws GenericServiceException {
 
         final ApplicationEntity application = findApplicationById(applicationId);
 
@@ -230,7 +230,7 @@ public class ApplicationServiceBehavior {
 
         ApplicationVersionEntity version = new ApplicationVersionEntity();
         version.setApplication(application);
-        version.setId(versionName);
+        version.setId(applicationVersionId);
         version.setSupported(true);
         version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
         version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
@@ -299,7 +299,7 @@ public class ApplicationServiceBehavior {
     private ApplicationEntity findApplicationById(String applicationId) throws GenericServiceException {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
         if (!applicationOptional.isPresent()) {
-            logger.info("Application not found, application name: '{}'", applicationId);
+            logger.info("Application not found, application ID: '{}'", applicationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
@@ -314,7 +314,7 @@ public class ApplicationServiceBehavior {
      * @throws GenericServiceException Thrown when application version does not exist.
      */
     private ApplicationVersionEntity findApplicationVersion(String appId, String versionId) throws GenericServiceException {
-        final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().firstByApplicationIdAndName(appId, versionId);
+        final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().findFirstByApplicationIdAndName(appId, versionId);
         if (!applicationVersionOptional.isPresent()) {
             logger.info("Application version not found, application version ID: {}", versionId);
             // Rollback is not required, database is not used for writing

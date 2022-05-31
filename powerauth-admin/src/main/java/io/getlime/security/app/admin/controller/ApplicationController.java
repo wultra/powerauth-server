@@ -250,7 +250,7 @@ public class ApplicationController {
     public String applicationCreateAction(@RequestParam String id, RedirectAttributes redirectAttributes) {
         try {
             if (id == null || id.trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Application name must not be empty.");
+                redirectAttributes.addFlashAttribute("error", "Application ID must not be empty.");
                 return "redirect:/application/create";
             }
             CreateApplicationResponse application = client.createApplication(id);
@@ -264,19 +264,19 @@ public class ApplicationController {
     /**
      * Execute the application version create action by calling the SOAP service.
      *
-     * @param applicationId      Application ID.
-     * @param name               Version name.
+     * @param applicationId Application ID.
+     * @param applicationVersionId Application version ID.
      * @param redirectAttributes Redirect attributes.
      * @return Redirect to application detail (application versions are visible there).
      */
     @RequestMapping(value = "/application/detail/{applicationId}/version/create/do.submit", method = RequestMethod.POST)
-    public String applicationVersionCreateAction(@PathVariable String applicationId, @RequestParam String name, RedirectAttributes redirectAttributes) {
+    public String applicationVersionCreateAction(@PathVariable String applicationId, @RequestParam String applicationVersionId, RedirectAttributes redirectAttributes) {
         try {
-            if (name == null || name.trim().isEmpty()) {
-                redirectAttributes.addFlashAttribute("error", "Application version name must not be empty.");
+            if (applicationVersionId == null || applicationVersionId.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("error", "Application version ID must not be empty.");
                 return "redirect:/application/detail/" + applicationId + "/version/create";
             }
-            client.createApplicationVersion(applicationId, name);
+            client.createApplicationVersion(applicationId, applicationVersionId);
             return "redirect:/application/detail/" + applicationId;
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);

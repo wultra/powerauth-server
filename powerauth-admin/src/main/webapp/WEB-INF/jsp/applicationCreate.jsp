@@ -23,7 +23,7 @@
 
 
         <form class="form-inline" action="${pageContext.request.contextPath}/application/create/do.submit" method="POST">
-            Application name <input type="text" name="id" class="form-control">
+            Application ID <input type="text" name="id" class="form-control">
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             <input type="submit" value="Submit" class="btn btn-success"/>
             <c:if test="${not empty error}">

@@ -716,9 +716,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetApplicationDetailResponse getApplicationDetail(String applicationName) throws PowerAuthClientException {
+    public GetApplicationDetailResponse getApplicationDetail(String applicationId) throws PowerAuthClientException {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
-        request.setApplicationId(applicationName);
+        request.setApplicationId(applicationId);
         return getApplicationDetail(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 

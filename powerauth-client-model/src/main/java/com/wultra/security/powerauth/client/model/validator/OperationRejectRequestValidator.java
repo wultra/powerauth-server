@@ -32,7 +32,7 @@ public class OperationRejectRequestValidator {
         if (source == null) {
             return "Operation reject request must not be null";
         }
-        if (source.getApplicationId() == null || !StringUtils.hasText(source.getApplicationId())) {
+        if (!StringUtils.hasText(source.getApplicationId())) {
             return "Application ID must not be null or empty when rejecting operation";
         }
         if (source.getOperationId() == null) {

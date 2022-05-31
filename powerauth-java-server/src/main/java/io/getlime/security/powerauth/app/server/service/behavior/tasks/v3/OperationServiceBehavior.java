@@ -114,7 +114,7 @@ public class OperationServiceBehavior {
         // Check if applications exist
         final List<ApplicationEntity> applicationEntities = applicationRepository.findAllByIdIn(applications);
         if (applicationEntities.size() != applications.size()) {
-            logger.error("Application was not found for ID: {}", applications);
+            logger.error("Not matching expected applications: {} vs. {}", applications, applicationEntities.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 

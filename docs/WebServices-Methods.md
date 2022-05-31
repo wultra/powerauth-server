@@ -202,10 +202,9 @@ REST endpoint: `POST /rest/v3/application/list`
 
 `GetApplicationListRequest.Application`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `id` | An application ID |
-| `String` | `applicationName` | Application name |
+| Type | Name               | Description                       |
+|------|--------------------|-----------------------------------|
+| `String` | `applicationId`    | Application ID                    |
 | `String[]` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'getApplicationDetail'
@@ -218,32 +217,29 @@ REST endpoint: `POST /rest/v3/application/detail`
 
 `GetApplicationDetailRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application (required if applicationName not specified) |
-| `String` | `applicationName` | An application name (required if applicationId not specified) |
-| `String[]` | `applicationRoles` | Roles assigned to the application |
+| Type | Name               | Description                                                 |
+|------|--------------------|-------------------------------------------------------------|
+| `String` | `applicationId`    | An application ID |
+| `String[]` | `applicationRoles` | Roles assigned to the application                           |
 
 #### Response
 
 `GetApplicationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
-| `String` | `applicationName` | An application name |
-| `String[]` | `applicationRoles` | Roles assigned to the application |
-| `String` | `masterPublicKey` | Base64 encoded master public key |
-| `Version[]` | `versions` | Collection of application versions |
+| Type | Name               | Description                        |
+|------|--------------------|------------------------------------|
+| `String` | `applicationId`    | An application ID                  |
+| `String[]` | `applicationRoles` | Roles assigned to the application  |
+| `String` | `masterPublicKey`  | Base64 encoded master public key   |
+| `Version[]` | `versions`         | Collection of application versions |
 
 `GetApplicationDetailResponse.Version`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | An identifier of an application version |
-| `String` | `applicationVersionName` | An application version name, for example "1.0.3" |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `applicationSecret` | An application secret associated with this version |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationVersionId` | An identifier of an application version |
+| `String`  | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String`  | `applicationSecret` | An application secret associated with this version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
 ### Method 'lookupApplicationByAppKey'
@@ -264,9 +260,9 @@ REST endpoint: `POST /rest/v3/application/detail/version`
 
 `LookupApplicationByAppKeyResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
 
 ### Method 'createApplication'
 
@@ -278,18 +274,17 @@ REST endpoint: `POST /rest/v3/application/create`
 
 `CreateApplicationRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `applicationName` | An application name |
+| Type | Name            | Description       |
+|------|-----------------|-------------------|
+| `String` | `applicationId` | An application ID |
 
 #### Response
 
 `CreateApplicationResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
-| `String` | `applicationName` | An application name |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `applicationId` | An identifier of an application |
 | `String[]` | `applicationRoles` | Roles assigned to the application |
 
 ### Method 'createApplicationVersion'
@@ -302,21 +297,20 @@ REST endpoint: `POST /rest/v3/application/version/create`
 
 `CreateApplicationVersionRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
-| `String` | `applicationVersionName` | An application version name |
+| Type     | Name                   | Description                       |
+|----------|------------------------|-----------------------------------|
+| `String` | `applicationId`        | An identifier of an application   |
+| `String` | `applicationVersionId` | An application version identifier |
 
 #### Response
 
 `CreateApplicationVersionResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | An identifier of an application version |
-| `String` | `applicationVersionName` | An application version name |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `applicationSecret` | An application secret associated with this version |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationVersionId` | An identifier of an application version |
+| `String`  | `applicationKey` | A key (identifier) of an application, associated with given application version |
+| `String`  | `applicationSecret` | An application secret associated with this version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
 ### Method 'unsupportApplicationVersion'
@@ -329,17 +323,17 @@ REST endpoint: `POST /rest/v3/application/version/unsupport`
 
 `UnsupportApplicationVersionRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | An identifier of an application version |
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationVersionId` | An identifier of an application version |
 
 #### Response
 
 `UnsupportApplicationVersionResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | An identifier of an application version |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationVersionId` | An identifier of an application version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
 ### Method 'supportApplicationVersion'
@@ -352,17 +346,17 @@ REST endpoint: `POST /rest/v3/application/version/support`
 
 `SupportApplicationVersionRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | An identifier of an application version |
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationVersionId` | An identifier of an application version |
 
 #### Response
 
 `SupportApplicationVersionResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationVersionId` | An identifier of an application version |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationVersionId` | An identifier of an application version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
 ## Activation management
@@ -381,26 +375,26 @@ REST endpoint: `POST /rest/v3/activation/init`
 
 `InitActivationRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
-| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
-| `Long` | `maxFailureCount` | How many failures are allowed for this activation |
+| Type                      | Name | Description |
+|---------------------------|------|-------------|
+| `String`                  | `userId` | An identifier of a user |
+| `String`                  | `applicationId` | An identifier of an application |
+| `DateTime`                | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
+| `Long`                    | `maxFailureCount` | How many failures are allowed for this activation |
 | `ActivationOtpValidation` | `activationOtpValidation` | Optional activation OTP validation mode |
-| `String` | `activationOtp` | Optional activation OTP |
+| `String`                  | `activationOtp` | Optional activation OTP |
 
 #### Response
 
 `InitActivationResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name | Description |
+|----------|------|-------------|
 | `String` | `activationId` | A UUID4 identifier of an activation |
 | `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
 | `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
 | `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
+| `String` | `applicationId` | An identifier of an application |
 
 ### Method 'prepareActivation'
 
@@ -585,27 +579,27 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `ActivationStatus` | `activationStatus` | An activation status |
+| Type                      | Name | Description |
+|---------------------------|------|-------------|
+| `String`                  | `activationId` | An identifier of an activation |
+| `ActivationStatus`        | `activationStatus` | An activation status |
 | `ActivationOtpValidation` | `activationOtpValidation` | An activation OTP validation mode |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String` | `activationName` | An activation name |
-| `String` | `userId` | An identifier of a user |
-| `String` | `extras` | Any custom attributes |
-| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
-| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
-| `String[]` | `activationFlags` | Activation flags |
-| `Long` | `applicationId` | An identifier fo an application |
-| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
-| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
-| `String` | `encryptedStatusBlob` | An encrypted blob with status information |
-| `String` | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String` | `activationSignature` | A signature of the activation data using Master Server Private Key |
-| `String` | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
-| `Long` | `version` | Activation version |
+| `String`                  | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String`                  | `activationName` | An activation name |
+| `String`                  | `userId` | An identifier of a user |
+| `String`                  | `extras` | Any custom attributes |
+| `String`                  | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String`                  | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]`                | `activationFlags` | Activation flags |
+| `String`                  | `applicationId` | An identifier fo an application |
+| `DateTime`                | `timestampCreated` | A timestamp when the activation was created |
+| `DateTime`                | `timestampLastUsed` | A timestamp when the activation was last used |
+| `DateTime`                | `timestampLastChange` | A timestamp of last activation status change |
+| `String`                  | `encryptedStatusBlob` | An encrypted blob with status information |
+| `String`                  | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
+| `String`                  | `activationSignature` | A signature of the activation data using Master Server Private Key |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
+| `Long`                    | `version` | Activation version |
 
 ### Method 'removeActivation'
 
@@ -642,10 +636,10 @@ REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name | Description |
+|----------|------|-------------|
 | `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
+| `String` | `applicationId` | An identifier of an application |
 
 #### Response
 
@@ -658,23 +652,22 @@ REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserResponse.Activation`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
+| Type               | Name | Description |
+|--------------------|------|-------------|
+| `String`           | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String` | `activationName` | An activation name |
-| `String` | `extras` | Any custom attributes |
-| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
-| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
-| `String[]` | `activationFlags` | Activation flags |
-| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
-| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier fo an application |
-| `String` | `applicationName` | An application name |
-| `Long` | `version` | Activation version |
+| `String`           | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String`           | `activationName` | An activation name |
+| `String`           | `extras` | Any custom attributes |
+| `String`           | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String`           | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]`         | `activationFlags` | Activation flags |
+| `DateTime`         | `timestampCreated` | A timestamp when the activation was created |
+| `DateTime`         | `timestampLastUsed` | A timestamp when the activation was last used |
+| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change |
+| `String`           | `userId` | An identifier of a user |
+| `String`           | `applicationId` | An identifier fo an application |
+| `Long`             | `version` | Activation version |
 
 ### Method 'blockActivation'
 
@@ -736,13 +729,13 @@ REST endpoint: `POST /rest/v3/activation/lookup`
 
 `LookupActivationsRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
-| `String` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
-| `String` | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
-| `String` | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
-| `String` | `activationStatus` | Filter activations by their status, do not specify value for any status |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `userIds` | User IDs to use in query, at least one user ID needs to be specified |
+| `String[]` | `applicationIds` | Application IDs to use in the query, do not specify value for all applications |
+| `String`   | `timestampLastUsedBefore` | Filter activations by timestamp when the activation was last used (timestampLastUsed < timestampLastUsedBefore), if not specified, a current timestamp is used |
+| `String`   | `timestampLastUsedAfter` | Filter activations by timestamp when the activation was last used (timestampLastUsed >= timestampLastUsedAfter), if not specified, the epoch start is used |
+| `String`   | `activationStatus` | Filter activations by their status, do not specify value for any status |
 | `String[]` | `activationFlags` | Filter activations by activation flags |
 
 #### Response
@@ -753,23 +746,22 @@ REST endpoint: `POST /rest/v3/activation/lookup`
 
 `LookupActivationsResponse.Activation`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
+| Type               | Name | Description |
+|--------------------|------|-------------|
+| `String`           | `activationId` | An identifier of an activation |
 | `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String` | `activationName` | An activation name |
-| `String` | `extras` | Any custom attributes |
-| `String` | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
-| `String` | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
-| `String[]` | `activationFlags` | Activation flags |
-| `DateTime` | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime` | `timestampLastUsed` | A timestamp when the activation was last used |
-| `DateTime` | `timestampLastChange` | A timestamp of last activation status change |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier fo an application |
-| `String` | `applicationName` | An application name |
-| `Long` | `version` | Activation version |
+| `String`           | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String`           | `activationName` | An activation name |
+| `String`           | `extras` | Any custom attributes |
+| `String`           | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
+| `String`           | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
+| `String[]`         | `activationFlags` | Activation flags |
+| `DateTime`         | `timestampCreated` | A timestamp when the activation was created |
+| `DateTime`         | `timestampLastUsed` | A timestamp when the activation was last used |
+| `DateTime`         | `timestampLastChange` | A timestamp of last activation status change |
+| `String`           | `userId` | An identifier of a user |
+| `String`           | `applicationId` | An identifier fo an application |
+| `Long`             | `version` | Activation version |
 
 ### Method 'updateStatusForActivations'
 
@@ -821,16 +813,16 @@ REST endpoint: `POST /rest/v3/signature/verify`
 
 `VerifySignatureResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| Type               | Name | Description |
+|--------------------|------|-------------|
+| `Boolean`          | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
 | `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of the application |
-| `SignatureType` | `signatureType` | Type of the signature that was used for the computation of the signature. |
-| `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
+| `String`           | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String`           | `activationId` | An identifier of an activation |
+| `String`           | `userId` | An identifier of a user |
+| `String`           | `applicationId` | An identifier of the application |
+| `SignatureType`    | `signatureType` | Type of the signature that was used for the computation of the signature. |
+| `Integer`          | `remainingAttempts` | How many attempts are left for authentication using this activation |
 
 ### Method 'verifyECDSASignature'
 
@@ -925,16 +917,16 @@ REST endpoint: `POST /rest/v3/signature/offline/verify`
 
 `VerifyOfflineSignatureResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
+| Type               | Name | Description |
+|--------------------|------|-------------|
+| `Boolean`          | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
 | `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of the application |
-| `SignatureType` | `signatureType` | Type of the signature that was used for the computation of the signature. |
-| `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
+| `String`           | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
+| `String`           | `activationId` | An identifier of an activation |
+| `String`           | `userId` | An identifier of a user |
+| `String`           | `applicationId` | An identifier of the application |
+| `SignatureType`    | `signatureType` | Type of the signature that was used for the computation of the signature. |
+| `Integer`          | `remainingAttempts` | How many attempts are left for authentication using this activation |
 
 ## Token Based Authentication
 
@@ -1001,12 +993,12 @@ REST endpoint: `POST /rest/v3/token/validate`
 
 `ValidateTokenResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Boolean` | `tokenValid` | Information about the validation result - if true, token digest was valid. |
-| `String`  | `activationId` | An identifier of an activation |
-| `String`  | `userId` | An identifier of a user |
-| `Long`    | `applicationId` | An identifier of the application |
+| Type            | Name | Description |
+|-----------------|------|-------------|
+| `Boolean`       | `tokenValid` | Information about the validation result - if true, token digest was valid. |
+| `String`        | `activationId` | An identifier of an activation |
+| `String`        | `userId` | An identifier of a user |
+| `String`        | `applicationId` | An identifier of the application |
 | `SignatureType` | `signatureType` | Type of the signature that was used for the computation of the signature.  |
 
 ### Method 'removeToken'
@@ -1104,10 +1096,10 @@ REST endpoint: `POST /rest/v3/signature/list`
 
 `SignatureAuditRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `userId` | An identifier of a user |
+| `String`   | `applicationId` | An identifier of an application |
 | `DateTime` | `timestampFrom` | Timestamp from which to fetch the log |
 | `DateTime` | `timestampTo` | Timestamp to which to fetch the log |
 
@@ -1121,23 +1113,23 @@ REST endpoint: `POST /rest/v3/signature/list`
 
 `SignatureAuditResponse.Item`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `id` | Record ID |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
-| `String` | `activationId` | An identifier of an activation |
-| `Long` | `activationCounter` | A counter value at the moment of a signature verification |
-| `String` | `activationCtrData` | Base64 encoded hash based counter data |
+| Type               | Name | Description |
+|--------------------|------|-------------|
+| `Long`             | `id` | Record ID |
+| `String`           | `userId` | An identifier of a user |
+| `String`           | `applicationId` | An identifier of an application |
+| `String`           | `activationId` | An identifier of an activation |
+| `Long`             | `activationCounter` | A counter value at the moment of a signature verification |
+| `String`           | `activationCtrData` | Base64 encoded hash based counter data |
 | `ActivationStatus` | `activationStatus` | An activation status at the moment of a signature verification |
-| `KeyValueMap` | `additionalInfo` | Key-value map with additional information |
-| `String` | `dataBase64` | A base64 encoded data sent with the signature |
-| `String` | `signatureVersion` | Requested signature version |
-| `SignatureType` | `signatureType` | Requested signature type |
-| `String` | `signature` | Submitted value of a signature |
-| `String` | `note` | Extra info about the result of the signature verification |
-| `Boolean` | `valid` | Flag indicating if the provided signature was valid |
-| `DateTime` | `timestampCreated` | Timestamp when the record was created |
+| `KeyValueMap`      | `additionalInfo` | Key-value map with additional information |
+| `String`           | `dataBase64` | A base64 encoded data sent with the signature |
+| `String`           | `signatureVersion` | Requested signature version |
+| `SignatureType`    | `signatureType` | Requested signature type |
+| `String`           | `signature` | Submitted value of a signature |
+| `String`           | `note` | Extra info about the result of the signature verification |
+| `Boolean`          | `valid` | Flag indicating if the provided signature was valid |
+| `DateTime`         | `timestampCreated` | Timestamp when the record was created |
 
 ## Activation history
 
@@ -1269,13 +1261,13 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 
 `CreateCallbackUrlRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | Associated application ID. |
-| `String` | `name` | Callback URL name, for visual identification. |
-| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| Type           | Name | Description |
+|----------------|------|-------------|
+| `String`       | `applicationId` | Associated application ID. |
+| `String`       | `name` | Callback URL name, for visual identification. |
+| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String` | `authentication` | Callback HTTP request authentication configuration. |
+| `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
 The `attributes` list can contain following values:
 - `activationId`
@@ -1314,14 +1306,14 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 
 `CreateCallbackUrlResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | Callback URL identifier (UUID4). |
-| `Long` | `applicationId` | Associated application ID. |
-| `String` | `name` | Callback URL name, for visual identification. |
-| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| Type           | Name | Description |
+|----------------|------|-------------|
+| `String`       | `id` | Callback URL identifier (UUID4). |
+| `String`       | `applicationId` | Associated application ID. |
+| `String`       | `name` | Callback URL name, for visual identification. |
+| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String` | `authentication` | Callback HTTP request authentication configuration. |
+| `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
 ### Method 'updateCallbackUrl'
 
@@ -1333,13 +1325,13 @@ REST endpoint: `POST /rest/v3/application/callback/update`
 
 `UpdateCallbackUrlRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | Associated application ID. |
-| `String` | `name` | Callback URL name, for visual identification. |
-| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| Type           | Name | Description |
+|----------------|------|-------------|
+| `String`       | `applicationId` | Associated application ID. |
+| `String`       | `name` | Callback URL name, for visual identification. |
+| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String` | `authentication` | Callback HTTP request authentication configuration. |
+| `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
 The `attributes` list can contain following values:
 - `activationId`
@@ -1379,14 +1371,14 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 
 `UpdateCallbackUrlResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | Callback URL identifier (UUID4). |
-| `Long` | `applicationId` | Associated application ID. |
-| `String` | `name` | Callback URL name, for visual identification. |
-| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| Type           | Name | Description |
+|----------------|------|-------------|
+| `String`       | `id` | Callback URL identifier (UUID4). |
+| `String`       | `applicationId` | Associated application ID. |
+| `String`       | `name` | Callback URL name, for visual identification. |
+| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String` | `authentication` | Callback HTTP request authentication configuration. |
+| `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
 ### Method 'getCallbackUrlList'
 
@@ -1398,9 +1390,9 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 
 `GetCallbackUrlListRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | Application ID for which to fetch callback URLs. |
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | Application ID for which to fetch callback URLs. |
 
 #### Response
 
@@ -1412,14 +1404,14 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 
 `GetCallbackUrlListResponse.CallbackUrlList`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | Callback URL identifier (UUID4). |
-| `Long` | `applicationId` | Associated application ID. |
-| `String` | `name` | Callback URL name, for visual identification. |
-| `String` | `callbackUrl` | Callback URL that should be notified about activation status updates. |
+| Type           | Name | Description |
+|----------------|------|-------------|
+| `String`       | `id` | Callback URL identifier (UUID4). |
+| `String`       | `applicationId` | Associated application ID. |
+| `String`       | `name` | Callback URL name, for visual identification. |
+| `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
-| `String` | `authentication` | Callback HTTP request authentication configuration. |
+| `String`       | `authentication` | Callback HTTP request authentication configuration. |
 
 ### Method 'removeCallbackUrl'
 
@@ -1623,15 +1615,15 @@ REST endpoint: `POST /rest/v3/recovery/lookup`
 
 `LookupRecoveryCodesResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `recoveryCodeId` | Recovery code entity identifiers |
-| `String` | `recoveryCodeMasked` | Recovery code with partial masking to avoid leaking recovery code |
-| `String` | `userId` | An identifier of a user |
-| `Long` | `applicationId` | An identifier of an application |
-| `String` | `activationId` | A UUID4 identifier of an activation |
+| Type                 | Name | Description |
+|----------------------|------|-------------|
+| `Long`               | `recoveryCodeId` | Recovery code entity identifiers |
+| `String`             | `recoveryCodeMasked` | Recovery code with partial masking to avoid leaking recovery code |
+| `String`             | `userId` | An identifier of a user |
+| `String`             | `applicationId` | An identifier of an application |
+| `String`             | `activationId` | A UUID4 identifier of an activation |
 | `RecoveryCodeStatus` | `status` | Recovery code status |
-| `Puk[]` | `puks` | Recovery code PUKs |
+| `Puk[]`              | `puks` | Recovery code PUKs |
 
 `LookupRecoveryCodesResponse.Puk`
 
@@ -1725,22 +1717,22 @@ REST endpoint: `POST /rest/v3/recovery/config/detail`
 
 `GetRecoveryConfigRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
 
 #### Response
 
 `GetRecoveryConfigResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationId` | An identifier of an application |
 | `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
 | `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
 | `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
-| `String` | `postcardPublicKey` | Base64 encoded recovery postcard public key for PowerAuth server |
-| `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key for recovery postcard printing center |
+| `String`  | `postcardPublicKey` | Base64 encoded recovery postcard public key for PowerAuth server |
+| `String`  | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key for recovery postcard printing center |
 
 ### Method `updateRecoveryConfig`
 
@@ -1752,13 +1744,13 @@ REST endpoint: `POST /rest/v3/recovery/config/update`
 
 `UpdateRecoveryConfigRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationId` | An identifier of an application |
 | `Boolean` | `activationRecoveryEnabled` | Whether activation recovery is enabled |
 | `Boolean` | `recoveryPostcardEnabled` | Whether recovery postcard is enabled |
 | `Boolean` | `allowMultipleRecoveryCodes` | Whether multiple recovery codes per user are allowed |
-| `String` | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key |
+| `String`  | `remotePostcardPublicKey` | Base64 encoded recovery postcard public key |
 
 #### Response
 
@@ -1877,17 +1869,17 @@ REST endpoint: `POST /rest/v3/application/roles/list`
 
 `ListApplicationRolesRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
 
 #### Response
 
 `ListApplicationRolesResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | The identifier of the application |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `applicationId` | The identifier of the application |
 | `String[]` | `applicationRoles` | Application roles assigned to the application |
 
 ### Method `addApplicationRoles`
@@ -1900,18 +1892,18 @@ REST endpoint: `POST /rest/v3/application/roles/create`
 
 `AddApplicationRolesRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `applicationId` | An identifier of an application |
 | `String[]` | `applicationRoles` | Application roles to be added to the application |
 
 #### Response
 
 `AddApplicationRolesResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | The identifier of the application |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `applicationId` | The identifier of the application |
 | `String[]` | `applicationRoles` | Application roles assigned to the application after the addition |
 
 ### Method `updateApplicationRoles`
@@ -1924,18 +1916,18 @@ REST endpoint: `POST /rest/v3/application/roles/update`
 
 `UpdateApplicationRolesRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | An identifier of an application |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `applicationId` | An identifier of an application |
 | `String[]` | `applicationRoles` | Application roles to be assigned to the application |
 
 #### Response
 
 `UpdateApplicationRolesResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `applicationId` | The identifier of the application |
+| Type       | Name | Description |
+|------------|------|-------------|
+| `String`   | `applicationId` | The identifier of the application |
 | `String[]` | `applicationRoles` | Application roles assigned to the application after the update |
 
 ### Method `removeApplicationRoles`
@@ -1974,34 +1966,34 @@ REST endpoint: `POST /rest/v3/operation/create`
 
 `OperationCreateRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | An identifier of an application |
-| `String` | `templateName` | Name of the template used for creating the operation |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | An identifier of an application |
+| `String`              | `templateName` | Name of the template used for creating the operation |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
 
 #### Response
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'operationDetail'
 
@@ -2021,22 +2013,22 @@ REST endpoint: `POST /rest/v3/operation/detail`
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'findPendingOperationsForUser'
 
@@ -2048,10 +2040,10 @@ REST endpoint: `POST /rest/v3/operation/list/pending`
 
 `OperationListForUserRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name | Description |
+|----------|------|-------------|
 | `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
+| `String` | `applicationId` | The identifier of the application |
 
 
 #### Response
@@ -2060,22 +2052,22 @@ REST endpoint: `POST /rest/v3/operation/list/pending`
 
 A collection of records with the following structure:
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'findAllOperationsForUser'
 
@@ -2087,10 +2079,10 @@ REST endpoint: `POST /rest/v3/operation/list`
 
 `OperationListForUserRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name | Description |
+|----------|------|-------------|
 | `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
+| `String` | `applicationId` | The identifier of the application |
 
 
 #### Response
@@ -2099,22 +2091,22 @@ REST endpoint: `POST /rest/v3/operation/list`
 
 A collection of records with the following structure:
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'findAllOperationsByExternalID'
 
@@ -2126,10 +2118,10 @@ REST endpoint: `POST /rest/v3/operation/list/external`
 
 `OperationExtIdRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name | Description |
+|----------|------|-------------|
 | `String` | `externalId` | The external identifier of the operation |
-| `Long` | `applicationId` | The identifier of the application |
+| `String` | `applicationId` | The identifier of the application |
 
 
 #### Response
@@ -2138,22 +2130,22 @@ REST endpoint: `POST /rest/v3/operation/list/external`
 
 A collection of records with the following structure:
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'cancelOperation'
 
@@ -2173,22 +2165,22 @@ REST endpoint: `POST /rest/v3/operation/cancel`
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'approveOperation'
 
@@ -2200,12 +2192,12 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationApproveRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `operationId` | The identifier of the operation |
-| `String` | `userId` | The identifier of the user who attempts to approve the operation |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `data` | Operation data that the user attempts to approve |
+| Type            | Name | Description |
+|-----------------|------|-------------|
+| `String`        | `operationId` | The identifier of the operation |
+| `String`        | `userId` | The identifier of the user who attempts to approve the operation |
+| `String`        | `applicationId` | The identifier of the application |
+| `String`        | `data` | Operation data that the user attempts to approve |
 | `SignatureType` | `signatureType` | Signature type used when approving the operation |
 
 #### Response
@@ -2220,22 +2212,22 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'failApproveOperation'
 
@@ -2263,22 +2255,22 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
+| Type                  | Name | Description |
+|-----------------------|------|-------------|
+| `String`              | `id` | The operation ID |
+| `String`              | `userId` | The identifier of the user |
+| `String`              | `applicationId` | The identifier of the application |
+| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
+| `String`              | `operationType` | Type of the operation created based on the template |
+| `String`              | `data` | Operation data |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
+| `OperationStatus`     | `status` | Status of the operation |
 | `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
+| `Long`                | `failureCount` | The current number of the failed approval attempts |
+| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
+| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
 
 ### Method 'rejectOperation'
 
@@ -2290,11 +2282,11 @@ REST endpoint: `POST /rest/v3/operation/reject`
 
 `OperationRejectRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
+| Type     | Name | Description |
+|----------|------|-------------|
 | `String` | `operationId` | The identifier of the operation |
 | `String` | `userId` | The identifier of the user who attempts to approve the operation |
-| `Long` | `applicationId` | The identifier of the application |
+| `String` | `applicationId` | The identifier of the application |
 
 #### Response
 
@@ -2312,7 +2304,7 @@ REST endpoint: `POST /rest/v3/operation/reject`
 |------|------|-------------|
 | `String` | `id` | The operation ID |
 | `String` | `userId` | The identifier of the user |
-| `Long` | `applicationId` | The identifier of the application |
+| `String` | `applicationId` | The identifier of the application |
 | `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
 | `String` | `operationType` | Type of the operation created based on the template |
 | `String` | `data` | Operation data |
@@ -2513,7 +2505,7 @@ REST endpoint: `POST /rest/v2/activation/create`
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `userId` | User ID |
-| `Long` | `applicationId` | Application ID |
+| `String` | `applicationId` | Application ID |
 | `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
 | `Long` | `maxFailureCount` | How many failures are allowed for this activation |
 | `String` | `identity` | An identity identifier string for this activation |
@@ -2626,7 +2618,7 @@ REST endpoint: `POST /rest/v2/application/encryption/key/create`
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `Long` | `applicationId` | Application ID associated with provided version  |
+| `String` | `applicationId` | Application ID associated with provided version  |
 | `String` | `encryptionKeyIndex` | Session index used to generate session based key. |
 | `String` | `encryptionKey` | Derived key used as a base for ad-hoc key derivation. |
 | `String` | `ephemeralPublicKey` | Ephemeral public key used for deriving a shared secret. |

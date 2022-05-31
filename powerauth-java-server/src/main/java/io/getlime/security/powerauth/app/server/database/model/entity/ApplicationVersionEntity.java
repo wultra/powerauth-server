@@ -128,18 +128,18 @@ public class ApplicationVersionEntity implements Serializable {
     }
 
     /**
-     * Get version name
+     * Get version ID
      *
-     * @return Version name
+     * @return Version ID
      */
     public String getId() {
         return id;
     }
 
     /**
-     * Set version name
+     * Set version ID
      *
-     * @param id Version name
+     * @param id Version ID
      */
     public void setId(String id) {
         this.id = id;

@@ -217,7 +217,7 @@ public class EciesEncryptionBehavior {
 
             // Check that application key from request belongs to same application as activation ID from request
             if (!applicationVersion.getApplication().getRid().equals(activation.getApplication().getRid())) {
-                logger.warn("Application version is does not match, application key: {}", request.getApplicationKey());
+                logger.warn("Application version does not match, application key: {}", request.getApplicationKey());
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }

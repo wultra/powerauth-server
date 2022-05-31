@@ -351,6 +351,9 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("additionalData")) {
             callbackData.put("additionalData", operation.getAdditionalData());
         }
+        if (callbackUrlEntity.getCallbackUrl().contains("activationFlag")) {
+            callbackData.put("activationFlag", operation.getActivationFlag());
+        }
         if (callbackUrlEntity.getAttributes().contains("status")) {
             callbackData.put("status", operation.getStatus());
         }

@@ -67,8 +67,8 @@ public class ApplicationEntity implements Serializable {
     /**
      * Constructor for a new application.
      *
-     * @param rid       Application ID.
-     * @param id     Application name.
+     * @param rid       Application RID.
+     * @param id     Application ID.
      * @param roles    Application roles.
      * @param versions Collection of versions.
      */
@@ -81,12 +81,30 @@ public class ApplicationEntity implements Serializable {
     }
 
     /**
+     * Get application RID.
+     *
+     * @return Application RID.
+     */
+    public Long getRid() {
+        return rid;
+    }
+
+    /**
+     * Set application RID.
+     *
+     * @param id Application RID.
+     */
+    public void setRid(Long id) {
+        this.rid = id;
+    }
+
+    /**
      * Get application ID.
      *
      * @return Application ID.
      */
-    public Long getRid() {
-        return rid;
+    public String getId() {
+        return id;
     }
 
     /**
@@ -94,26 +112,8 @@ public class ApplicationEntity implements Serializable {
      *
      * @param id Application ID.
      */
-    public void setRid(Long id) {
-        this.rid = id;
-    }
-
-    /**
-     * Get application name.
-     *
-     * @return Application name.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set application name.
-     *
-     * @param name Application name.
-     */
-    public void setId(String name) {
-        this.id = name;
+    public void setId(String id) {
+        this.id = id;
     }
 
     /**
