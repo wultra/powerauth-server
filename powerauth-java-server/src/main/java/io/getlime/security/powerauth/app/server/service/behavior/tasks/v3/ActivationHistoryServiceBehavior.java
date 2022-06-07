@@ -120,6 +120,10 @@ public class ActivationHistoryServiceBehavior {
                 item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
                 item.setActivationStatus(activationStatusConverter.convert(activationHistoryEntity.getActivationStatus()));
                 item.setEventReason(activationHistoryEntity.getEventReason());
+                final Integer activationVersion = activationHistoryEntity.getActivationVersion();
+                if (activationVersion != null) {
+                    item.setVersion(Long.valueOf(activationVersion));
+                }
                 item.setExternalUserId(activationHistoryEntity.getExternalUserId());
                 item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activationHistoryEntity.getTimestampCreated()));
 
