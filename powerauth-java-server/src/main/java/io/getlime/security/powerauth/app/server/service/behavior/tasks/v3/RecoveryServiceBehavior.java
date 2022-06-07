@@ -509,8 +509,7 @@ public class RecoveryServiceBehavior {
             LookupRecoveryCodesResponse.RecoveryCodes recoveryCode = new LookupRecoveryCodesResponse.RecoveryCodes();
             recoveryCode.setRecoveryCodeId(recoveryCodeEntity.getId());
             recoveryCode.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
-            // TODO: FIX the warning
-            recoveryCode.setApplicationId(applicationRepository.findById(recoveryCode.getApplicationId()).get().getId());
+            recoveryCode.setApplicationId(recoveryCodeEntity.getApplication().getId());
             recoveryCode.setUserId(recoveryCodeEntity.getUserId());
             recoveryCode.setActivationId(recoveryCodeEntity.getActivationId());
             recoveryCode.setStatus(recoveryCodeStatusConverter.convertFrom(recoveryCodeEntity.getStatus()));
