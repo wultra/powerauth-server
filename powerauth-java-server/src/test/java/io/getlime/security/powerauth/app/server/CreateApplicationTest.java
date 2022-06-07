@@ -18,12 +18,12 @@
 package io.getlime.security.powerauth.app.server;
 
 import com.wultra.security.powerauth.client.v3.CreateApplicationRequest;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.UUID;
@@ -53,7 +53,7 @@ public class CreateApplicationTest {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId(testId);
         assertDoesNotThrow(()-> powerAuthService.createApplication(request));
-        assertThrows(DataIntegrityViolationException.class, ()-> powerAuthService.createApplication(request));
+        assertThrows(GenericServiceException.class, ()-> powerAuthService.createApplication(request));
     }
 
 }
