@@ -52,8 +52,8 @@ public class CreateApplicationTest {
         String testId = UUID.randomUUID().toString();
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId(testId);
-        assertDoesNotThrow(()-> powerAuthService.createApplication(request));
-        assertThrows(GenericServiceException.class, ()-> powerAuthService.createApplication(request));
+        assertDoesNotThrow(() -> powerAuthService.createApplication(request));
+        assertThrows(GenericServiceException.class, () -> powerAuthService.createApplication(request));
     }
 
 }
