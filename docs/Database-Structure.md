@@ -481,7 +481,6 @@ Table stores operations, i.e., the login attempts or payment approvals, that are
 CREATE TABLE "pa_operation" (
     "id"                    VARCHAR(37) NOT NULL PRIMARY KEY,
     "user_id"               VARCHAR(255) NOT NULL,
-    "application_id"        BIGINT NOT NULL,
     "template_id"           BIGINT,
     "external_id"           VARCHAR(255),
     "operation_type"        VARCHAR(255) NOT NULL,
@@ -503,7 +502,6 @@ CREATE TABLE "pa_operation" (
 |------|------|---------|------|
 | id | varchar(37) | primary key | Unique operation ID. |
 | user_id | varchar(255)  | - | Related user ID. |
-| application_id | bigint | - | Related application ID. |
 | template_id | bigint | - | Template ID used for creating the operation. |
 | external_id | varchar(255) | - | Identifier in external system. |
 | operation_type | varchar(255) | - | Name of the type of operation. |
@@ -548,4 +546,27 @@ CREATE TABLE "pa_operation_template" (
 | signature_type | varchar(255)  | - | Comma-separated list of allowed signature types. |
 | max_failure_count | bigint | - | Maximum allowed number of failed attempts when approving the operation. |
 | expiration | bigint | - | Operation expiration in seconds (300 = 5 minutes). |
+<!-- end -->
+
+<!-- begin database table pa_operation_application -->
+### Operations
+
+Table stores operations, i.e., the login attempts or payment approvals, that are created in external systems.
+
+#### Schema
+
+```sql
+CREATE TABLE pa_operation_application (
+    application_id BIGINT     NOT NULL,
+    operation_id   VARCHAR(37) NOT NULL,
+    CONSTRAINT pa_operation_application_pk PRIMARY KEY (application_id, operation_id)
+);
+```
+
+#### Columns
+
+| Name | Type | Info | Note |
+|------|------|---------|------|
+| application_id | bigint | part of primary key | Related application ID. |
+| operation_id | varchar(37)  | part of primary key | Related operation ID. |
 <!-- end -->
