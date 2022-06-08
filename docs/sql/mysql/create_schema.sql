@@ -213,7 +213,6 @@ CREATE TABLE `pa_recovery_config` (
 CREATE TABLE pa_operation (
     id varchar(37) NOT NULL,
     user_id varchar(255) NOT NULL,
-    application_id bigint(20) NOT NULL,
     external_id varchar(255) NULL,
     activation_flag varchar(255) NULL,
     operation_type varchar(255) NOT NULL,
@@ -244,6 +243,15 @@ CREATE TABLE pa_operation_template (
     max_failure_count bigint(20) NOT NULL,
     expiration bigint(20) NOT NULL,
     PRIMARY KEY (id)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
+-- DDL for Table PA_OPERATION_APPLICATION
+--
+CREATE TABLE pa_operation_application (
+    application_id bigint(20) NOT NULL,
+    operation_id   varchar(37) NOT NULL,
+    PRIMARY KEY (application_id, operation_id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
