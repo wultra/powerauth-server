@@ -243,7 +243,7 @@ CREATE TABLE pa_operation_template (
 -- DDL for Table PA_OPERATION_APPLICATION
 --
 CREATE TABLE pa_operation_application (
-    application_id INTEGER     NOT NULL,
+    application_id BIGINT     NOT NULL,
     operation_id   VARCHAR(37) NOT NULL,
     CONSTRAINT pa_operation_application_pk PRIMARY KEY (application_id, operation_id)
 );
