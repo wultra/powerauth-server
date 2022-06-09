@@ -26,10 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.MalformedURLException;
@@ -61,7 +58,7 @@ public class ApplicationController {
      *
      * @return Redirect view to list of applications.
      */
-    @RequestMapping(value = "/")
+    @RequestMapping("/")
     public String homePage() {
         try {
             List<GetApplicationListResponse.Applications> applicationList = client.getApplicationList();
@@ -82,7 +79,7 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "applications" view.
      */
-    @RequestMapping(value = "/application/list")
+    @RequestMapping("/application/list")
     public String applicationList(Map<String, Object> model) {
         try {
             final List<GetApplicationListResponse.Applications> applicationList = client.getApplicationList();
@@ -104,8 +101,8 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "applicationDetail" view.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}")
-    public String applicationDetail(@PathVariable(value = "applicationId") String id, Map<String, Object> model) {
+    @RequestMapping("/application/detail/{applicationId}")
+    public String applicationDetail(@PathVariable("applicationId") String id, Map<String, Object> model) {
         try {
             GetApplicationDetailResponse applicationDetails = client.getApplicationDetail(id);
             GetRecoveryConfigResponse recoveryConfig = client.getRecoveryConfig(id);
@@ -132,7 +129,7 @@ public class ApplicationController {
      *
      * @return "applicationCreate" view.
      */
-    @RequestMapping(value = "/application/create")
+    @RequestMapping("/application/create")
     public String applicationCreate() {
         return "applicationCreate";
     }
@@ -144,8 +141,8 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "applicationVersionCreate" view.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/version/create")
-    public String applicationVersionCreate(@PathVariable(value = "applicationId") String id, Map<String, Object> model) {
+    @RequestMapping("/application/detail/{applicationId}/version/create")
+    public String applicationVersionCreate(@PathVariable("applicationId") String id, Map<String, Object> model) {
         model.put("applicationId", id);
         return "applicationVersionCreate";
     }
@@ -157,8 +154,8 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "callbackCreate" view.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/callback/create")
-    public String applicationCreateCallback(@PathVariable(value = "applicationId") String id, Map<String, Object> model) {
+    @RequestMapping("/application/detail/{applicationId}/callback/create")
+    public String applicationCreateCallback(@PathVariable("applicationId") String id, Map<String, Object> model) {
         model.put("applicationId", id);
         return "callbackCreate";
     }
@@ -171,8 +168,8 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "callbackUpdate" view.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/callback/update")
-    public String applicationUpdateCallback(@PathVariable(value = "applicationId") String applicationId,
+    @RequestMapping("/application/detail/{applicationId}/callback/update")
+    public String applicationUpdateCallback(@PathVariable("applicationId") String applicationId,
                                             @RequestParam String callbackId,
                                             Map<String, Object> model) {
         if (callbackId == null) {
@@ -233,8 +230,8 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "roleCreate" view.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/role/create")
-    public String applicationCreateRole(@PathVariable(value = "applicationId") String id, Map<String, Object> model) {
+    @RequestMapping("/application/detail/{applicationId}/role/create")
+    public String applicationCreateRole(@PathVariable("applicationId") String id, Map<String, Object> model) {
         model.put("applicationId", id);
         return "roleCreate";
     }
@@ -246,7 +243,7 @@ public class ApplicationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect to the new application details.
      */
-    @RequestMapping(value = "/application/create/do.submit", method = RequestMethod.POST)
+    @PostMapping("/application/create/do.submit")
     public String applicationCreateAction(@RequestParam String id, RedirectAttributes redirectAttributes) {
         try {
             if (id == null || id.trim().isEmpty()) {
@@ -269,7 +266,7 @@ public class ApplicationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect to application detail (application versions are visible there).
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/version/create/do.submit", method = RequestMethod.POST)
+    @PostMapping("/application/detail/{applicationId}/version/create/do.submit")
     public String applicationVersionCreateAction(@PathVariable String applicationId, @RequestParam String applicationVersionId, RedirectAttributes redirectAttributes) {
         try {
             if (applicationVersionId == null || applicationVersionId.trim().isEmpty()) {
@@ -292,11 +289,11 @@ public class ApplicationController {
      * @param id      Application ID (path variable), for the redirect purposes
      * @return Redirect to application detail (application versions are visible there).
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/version/update/do.submit", method = RequestMethod.POST)
+    @PostMapping("/application/detail/{applicationId}/version/update/do.submit")
     public String applicationUpdateAction(
-            @PathVariable(value = "applicationId") String id,
+            @PathVariable("applicationId") String id,
             @RequestParam(value = "version", required = false) String version,
-            @RequestParam(value = "enabled") Boolean enabled) {
+            @RequestParam("enabled") Boolean enabled) {
         try {
             if (enabled) {
                 client.supportApplicationVersion(id, version);
@@ -318,10 +315,10 @@ public class ApplicationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect to application detail, callbacks tab.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/callback/create/do.submit")
+    @RequestMapping("/application/detail/{applicationId}/callback/create/do.submit")
     public String applicationCreateCallbackAction(
             @RequestParam Map<String, String> allParams,
-            @PathVariable(value = "applicationId") String applicationId, RedirectAttributes redirectAttributes) {
+            @PathVariable("applicationId") String applicationId, RedirectAttributes redirectAttributes) {
         try {
             String name = allParams.get("name");
             String callbackUrl = allParams.get("callbackUrl");
@@ -376,9 +373,9 @@ public class ApplicationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect to application detail, callbacks tab.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/callback/update/do.submit")
+    @RequestMapping("/application/detail/{applicationId}/callback/update/do.submit")
     public String applicationUpdateCallbackAction(
-            @PathVariable(value = "applicationId") String applicationId,
+            @PathVariable("applicationId") String applicationId,
             @RequestParam Map<String, String> allParams,
             RedirectAttributes redirectAttributes) {
         try {
@@ -463,10 +460,10 @@ public class ApplicationController {
      * @param callbackId Callback ID.
      * @return Redirect to application detail, callbacks tab.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/callback/remove/do.submit")
+    @RequestMapping("/application/detail/{applicationId}/callback/remove/do.submit")
     public String applicationRemoveCallbackAction(
-            @RequestParam(value = "callbackId") String callbackId,
-            @PathVariable(value = "applicationId") String id) {
+            @RequestParam("callbackId") String callbackId,
+            @PathVariable("applicationId") String id) {
         try {
             client.removeCallbackUrl(callbackId);
             return "redirect:/application/detail/" + id + "#callbacks";
@@ -484,10 +481,10 @@ public class ApplicationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect to application detail, roles tab.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/role/create/do.submit")
+    @RequestMapping("/application/detail/{applicationId}/role/create/do.submit")
     public String applicationCreateRoleAction(
-            @PathVariable(value = "applicationId") String id,
-            @RequestParam(value = "name") String name,
+            @PathVariable("applicationId") String id,
+            @RequestParam("name") String name,
             RedirectAttributes redirectAttributes) {
         try {
             String error = null;
@@ -514,10 +511,10 @@ public class ApplicationController {
      * @param name Role name.
      * @return Redirect to application detail, roles tab.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/role/remove/do.submit")
+    @RequestMapping("/application/detail/{applicationId}/role/remove/do.submit")
     public String applicationRemoveRoleAction(
-            @PathVariable(value = "applicationId") String id,
-            @RequestParam(value = "name") String name) {
+            @PathVariable("applicationId") String id,
+            @RequestParam("name") String name) {
         try {
             client.removeApplicationRoles(id, Collections.singletonList(name));
             return "redirect:/application/detail/" + id + "#roles";
@@ -536,9 +533,9 @@ public class ApplicationController {
      * @param remotePostcardPublicKey Base64 encoded printing center public key.
      * @return Redirect to application detail, recovery tab.
      */
-    @RequestMapping(value = "/application/detail/{applicationId}/recovery/update/do.submit")
+    @RequestMapping("/application/detail/{applicationId}/recovery/update/do.submit")
     public String applicationUpdateRecoveryConfigAction(
-            @PathVariable(value = "applicationId") String id,
+            @PathVariable("applicationId") String id,
             @RequestParam(value = "activationRecoveryEnabled", required = false) boolean activationRecoveryEnabled,
             @RequestParam(value = "recoveryPostcardEnabled", required = false) boolean recoveryPostcardEnabled,
             @RequestParam(value = "allowMultipleRecoveryCodes", required = false) boolean allowMultipleRecoveryCodes,

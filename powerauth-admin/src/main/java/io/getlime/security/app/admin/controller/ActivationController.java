@@ -26,10 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
@@ -66,7 +63,7 @@ public class ActivationController {
      * @param model Model with passed parameters.
      * @return "activations" view.
      */
-    @RequestMapping(value = "/activation/list")
+    @RequestMapping("/activation/list")
     public String activationList(@RequestParam(value = "userId", required = false) String userId, @RequestParam(value = "showAllActivations", required = false) Boolean showAllActivations,
                                  @RequestParam(value = "showAllRecoveryCodes", required = false) Boolean showAllRecoveryCodes, Map<String, Object> model) {
         try {
@@ -101,9 +98,9 @@ public class ActivationController {
      * @param model Model with passed parameters.
      * @return "activationDetail" view.
      */
-    @RequestMapping(value = "/activation/detail/{id}")
+    @RequestMapping("/activation/detail/{id}")
     public String activationDetail(
-            @PathVariable(value = "id") String id,
+            @PathVariable("id") String id,
             @RequestParam(value = "fromDate", required = false) String fromDate,
             @RequestParam(value = "toDate", required = false) String toDate,
             Map<String, Object> model) {
@@ -213,10 +210,10 @@ public class ActivationController {
      * @param redirectAttributes      Redirect attributes.
      * @return Redirect the user to activation detail.
      */
-    @RequestMapping(value = "/activation/create")
-    public String activationCreate(@RequestParam(value = "applicationId") String applicationId, @RequestParam(value = "userId") String userId,
-                                   @RequestParam(value = "activationOtpValidation") String activationOtpValidation,
-                                   @RequestParam(value = "activationOtp") String activationOtp,
+    @RequestMapping("/activation/create")
+    public String activationCreate(@RequestParam("applicationId") String applicationId, @RequestParam("userId") String userId,
+                                   @RequestParam("activationOtpValidation") String activationOtpValidation,
+                                   @RequestParam("activationOtp") String activationOtp,
                                    Map<String, Object> model, RedirectAttributes redirectAttributes) {
         try {
             InitActivationResponse response;
@@ -263,8 +260,8 @@ public class ActivationController {
      * @param principal    Principal entity.
      * @return Redirect the user to activation detail.
      */
-    @RequestMapping(value = "/activation/create/do.submit", method = RequestMethod.POST)
-    public String activationCreateCommitAction(@RequestParam(value = "activationId") String activationId, Map<String, Object> model, Principal principal) {
+    @PostMapping("/activation/create/do.submit")
+    public String activationCreateCommitAction(@RequestParam("activationId") String activationId, Map<String, Object> model, Principal principal) {
         try {
             String username = extractUsername(principal);
             CommitActivationResponse commitActivation = client.commitActivation(activationId, username);
@@ -284,8 +281,8 @@ public class ActivationController {
      * @param principal    Principal entity.
      * @return Redirect user to given URL or to activation detail, in case 'redirect' is null or empty.
      */
-    @RequestMapping(value = "/activation/block/do.submit", method = RequestMethod.POST)
-    public String blockActivation(@RequestParam(value = "activationId") String activationId, @RequestParam(value = "redirectUserId") String userId, Map<String, Object> model, Principal principal) {
+    @PostMapping("/activation/block/do.submit")
+    public String blockActivation(@RequestParam("activationId") String activationId, @RequestParam("redirectUserId") String userId, Map<String, Object> model, Principal principal) {
         try {
             String username = extractUsername(principal);
             BlockActivationResponse blockActivation = client.blockActivation(activationId, null, username);
@@ -308,8 +305,8 @@ public class ActivationController {
      * @param principal    Principal entity.
      * @return Redirect user to given URL or to activation detail, in case 'redirect' is null or empty.
      */
-    @RequestMapping(value = "/activation/unblock/do.submit", method = RequestMethod.POST)
-    public String unblockActivation(@RequestParam(value = "activationId") String activationId, @RequestParam(value = "redirectUserId") String userId, Map<String, Object> model, Principal principal) {
+    @PostMapping("/activation/unblock/do.submit")
+    public String unblockActivation(@RequestParam("activationId") String activationId, @RequestParam("redirectUserId") String userId, Map<String, Object> model, Principal principal) {
         try {
             String username = extractUsername(principal);
             UnblockActivationResponse unblockActivation = client.unblockActivation(activationId, username);
@@ -334,9 +331,9 @@ public class ActivationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect user to given URL or to activation detail, in case 'redirect' is null or empty.
      */
-    @RequestMapping(value = "/activation/commit/do.submit", method = RequestMethod.POST)
-    public String commitActivation(@RequestParam(value = "activationId") String activationId,
-                                   @RequestParam(value = "redirectUserId") String userId,
+    @PostMapping("/activation/commit/do.submit")
+    public String commitActivation(@RequestParam("activationId") String activationId,
+                                   @RequestParam("redirectUserId") String userId,
                                    @RequestParam(value = "activationOtp", required = false) String activationOtp,
                                    Map<String, Object> model, Principal principal,
                                    RedirectAttributes redirectAttributes) {
@@ -369,8 +366,8 @@ public class ActivationController {
      * @param principal    Principal entity.
      * @return Redirect user to given URL or to activation detail, in case 'redirect' is null or empty.
      */
-    @RequestMapping(value = "/activation/remove/do.submit", method = RequestMethod.POST)
-    public String removeActivation(@RequestParam(value = "activationId") String activationId, @RequestParam(value = "redirectUserId") String userId, Map<String, Object> model, Principal principal) {
+    @PostMapping("/activation/remove/do.submit")
+    public String removeActivation(@RequestParam("activationId") String activationId, @RequestParam("redirectUserId") String userId, Map<String, Object> model, Principal principal) {
         try {
             String username = extractUsername(principal);
             RemoveActivationResponse removeActivation = client.removeActivation(activationId, username);
@@ -391,8 +388,8 @@ public class ActivationController {
      * @param model Model with passed parameters.
      * @return The "activationFlagCreate" view.
      */
-    @RequestMapping(value = "/activation/detail/{activationId}/flag/create")
-    public String applicationCreateFlag(@PathVariable(value = "activationId") String activationId, Map<String, Object> model) {
+    @RequestMapping("/activation/detail/{activationId}/flag/create")
+    public String applicationCreateFlag(@PathVariable("activationId") String activationId, Map<String, Object> model) {
         model.put("activationId", activationId);
         return "activationFlagCreate";
     }
@@ -405,8 +402,8 @@ public class ActivationController {
      * @param redirectAttributes Redirect attributes.
      * @return Redirect the user to activation detail.
      */
-    @RequestMapping(value = "/activation/detail/{activationId}/flag/create/do.submit", method = RequestMethod.POST)
-    public String activationCreateFlagAction(@PathVariable(value = "activationId") String activationId, @RequestParam(value = "name") String name,
+    @PostMapping("/activation/detail/{activationId}/flag/create/do.submit")
+    public String activationCreateFlagAction(@PathVariable("activationId") String activationId, @RequestParam("name") String name,
                                              RedirectAttributes redirectAttributes) {
         String error = null;
         if (name == null || name.trim().isEmpty()) {
@@ -433,8 +430,8 @@ public class ActivationController {
      * @param name Activation flag name.
      * @return Redirect user to given URL or to activation detail.
      */
-    @RequestMapping(value = "/activation/detail/{activationId}/flag/remove/do.submit", method = RequestMethod.POST)
-    public String activationRemoveFlagAction(@PathVariable(value = "activationId") String activationId, @RequestParam(value = "name") String name) {
+    @PostMapping("/activation/detail/{activationId}/flag/remove/do.submit")
+    public String activationRemoveFlagAction(@PathVariable("activationId") String activationId, @RequestParam("name") String name) {
         try {
             client.removeActivationFlags(activationId, Collections.singletonList(name));
             return "redirect:/activation/detail/" + activationId;
@@ -452,8 +449,8 @@ public class ActivationController {
      * @param model Request model.
      * @return Redirect user to given URL or to activation detail - recovery tab, in case 'redirect' is null or empty.
      */
-    @RequestMapping(value = "/activation/recovery/revoke/do.submit", method = RequestMethod.POST)
-    public String revokeRecoveryCode(@RequestParam(value = "recoveryCodeId") Long recoveryCodeId, @RequestParam(value = "activationId", required = false) String activationId,
+    @PostMapping("/activation/recovery/revoke/do.submit")
+    public String revokeRecoveryCode(@RequestParam("recoveryCodeId") Long recoveryCodeId, @RequestParam(value = "activationId", required = false) String activationId,
                                      @RequestParam(value = "userId", required = false) String userId, Map<String, Object> model) {
         try {
             List<Long> recoveryCodeIds = new ArrayList<>();

@@ -23,8 +23,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.Date;
@@ -35,7 +35,7 @@ import java.util.Date;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Controller
-@RequestMapping(value = "/api/service")
+@RequestMapping("/api/service")
 public class ServiceController {
 
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
@@ -58,7 +58,7 @@ public class ServiceController {
      * Controller resource with system information.
      * @return System status info.
      */
-    @RequestMapping(value = "status", method = RequestMethod.GET)
+    @GetMapping("status")
     public @ResponseBody ServiceStatusResponse getServiceStatus() {
         logger.info("Received getServiceStatus request");
         ServiceStatusResponse response = new ServiceStatusResponse();

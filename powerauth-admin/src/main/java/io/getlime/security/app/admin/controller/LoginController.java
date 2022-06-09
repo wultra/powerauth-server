@@ -22,8 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -43,7 +42,7 @@ public class LoginController {
         this.configuration = configuration;
     }
 
-    @RequestMapping(value = "/login", method = RequestMethod.GET)
+    @GetMapping("/login")
     public String loginPage() {
         if (configuration.getSecurityMethod().isEmpty()) {
             return "redirect:/";
@@ -51,7 +50,7 @@ public class LoginController {
         return "login";
     }
 
-    @RequestMapping(value="/logout", method = RequestMethod.GET)
+    @GetMapping("/logout")
     public String logoutPage (HttpServletRequest request, HttpServletResponse response) {
         if (configuration.getSecurityMethod().isEmpty()) {
             return "redirect:/";
