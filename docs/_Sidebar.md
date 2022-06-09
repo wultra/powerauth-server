@@ -4,6 +4,11 @@
 - [Deploy PowerAuth Server](./Deploying-PowerAuth-Server.md)
 - [Migration Instructions](./Migration-Instructions.md)
 - [Configuration Properties](./Configuration-Properties.md)
+- [Deploying PowerAuth Admin](./Deploying-PowerAuth-Admin.md)
+- [Deploying PowerAuth Admin on JBoss/Wildfly](./Deploying-PowerAuth-Admin-Wildfly.md)
+- [Setting Up LDAP Authentication](./Setting-Up-LDAP-Authentication.md)
+- [Configuration of Activation Recovery](./Activation-Recovery.md)
+- [Configuration Properties PowerAuth Admin](./Configuration-Properties-PowerAuth-Admin.md)
 
 **Integration Tutorials**
 
@@ -14,6 +19,7 @@
 
 - [Authentication in Mobile Banking Apps (SCA)](https://developers.wultra.com/products/mobile-security-suite/develop/tutorials/Authentication-in-Mobile-Apps)
 - [Verifying PowerAuth Signatures On The Server](https://developers.wultra.com/products/mobile-security-suite/develop/tutorials/Manual-Signature-Verification)
+- [Authentication in Mobile Banking Apps (SCA)](https://developers.wultra.com/products/mobile-security-suite/develop/tutorials/Authentication-in-Mobile-Apps)
 
 **Reference Manual**
 
