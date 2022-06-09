@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
@@ -53,7 +53,7 @@ public class IntegrationController {
      * @param model Model with passed parameters.
      * @return "integrations" view.
      */
-    @RequestMapping(value = "/integration/list")
+    @RequestMapping("/integration/list")
     public String integrationList(Map<String, Object> model) {
         try {
             GetIntegrationListRequest request = new GetIntegrationListRequest();
@@ -73,7 +73,7 @@ public class IntegrationController {
      * @param model Model with passed parameters.
      * @return "integrationCreate" view.
      */
-    @RequestMapping(value = "/integration/create")
+    @RequestMapping("/integration/create")
     public String integrationCreate(Map<String, Object> model) {
         return "integrationCreate";
     }
@@ -84,7 +84,7 @@ public class IntegrationController {
      * @param name Integration name.
      * @return Redirect to the integration list.
      */
-    @RequestMapping(value = "/integration/create/do.submit", method = RequestMethod.POST)
+    @PostMapping("/integration/create/do.submit")
     public String integrationCreateAction(@RequestParam String name) {
         try {
             client.createIntegration(name);
@@ -102,8 +102,8 @@ public class IntegrationController {
      * @param model         Model with passed parameters.
      * @return Redirect user to given URL or to activation detail, in case 'redirect' is null or empty.
      */
-    @RequestMapping(value = "/integration/remove/do.submit", method = RequestMethod.POST)
-    public String removeActivation(@RequestParam(value = "integrationId") String integrationId, Map<String, Object> model) {
+    @PostMapping(value = "/integration/remove/do.submit")
+    public String removeActivation(@RequestParam("integrationId") String integrationId, Map<String, Object> model) {
         try {
             if (!configuration.isCurrentSecuritySettings(integrationId)) {
                 client.removeIntegration(integrationId);

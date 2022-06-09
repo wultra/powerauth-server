@@ -23,10 +23,7 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.v2.PowerAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Class implementing the RESTful controller for PowerAuth service.
@@ -34,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController("restControllerV2")
-@RequestMapping(value = "/rest/v2")
+@RequestMapping("/rest/v2")
 @Tag(name = "PowerAuth Controller V2")
 public class PowerAuthController {
 
@@ -53,7 +50,7 @@ public class PowerAuthController {
      * @return Prepare activation response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/activation/prepare", method = RequestMethod.POST)
+    @PostMapping("/activation/prepare")
     public ObjectResponse<PrepareActivationResponse> prepareActivation(@RequestBody ObjectRequest<PrepareActivationRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.prepareActivation(request.getRequestObject()));
     }
@@ -66,7 +63,7 @@ public class PowerAuthController {
      * @return Create activation response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/activation/create", method = RequestMethod.POST)
+    @PostMapping("/activation/create")
     public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.createActivation(request.getRequestObject()));
     }
@@ -79,7 +76,7 @@ public class PowerAuthController {
      * @return Vault unlock response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/vault/unlock", method = RequestMethod.POST)
+    @PostMapping("/vault/unlock")
     public ObjectResponse<VaultUnlockResponse> vaultUnlock(@RequestBody ObjectRequest<VaultUnlockRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.vaultUnlock(request.getRequestObject()));
     }
@@ -92,7 +89,7 @@ public class PowerAuthController {
      * @return E2E encryption key response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/activation/encryption/key/create", method = RequestMethod.POST)
+    @PostMapping("/activation/encryption/key/create")
     public ObjectResponse<GetPersonalizedEncryptionKeyResponse> generateE2EEncryptionKey(@RequestBody ObjectRequest<GetPersonalizedEncryptionKeyRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.generateE2EPersonalizedEncryptionKey(request.getRequestObject()));
     }
@@ -105,7 +102,7 @@ public class PowerAuthController {
      * @return E2E encryption key response.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/application/encryption/key/create", method = RequestMethod.POST)
+    @PostMapping("/application/encryption/key/create")
     public ObjectResponse<GetNonPersonalizedEncryptionKeyResponse> generateE2ENonPersonalizedEncryptionKey(@RequestBody ObjectRequest<GetNonPersonalizedEncryptionKeyRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.generateE2ENonPersonalizedEncryptionKey(request.getRequestObject()));
     }
@@ -118,7 +115,7 @@ public class PowerAuthController {
      * @return Response with the new token information.
      * @throws Exception In case the service throws exception.
      */
-    @RequestMapping(value = "/token/create", method = RequestMethod.POST)
+    @PostMapping("/token/create")
     public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.createToken(request.getRequestObject()));
     }
