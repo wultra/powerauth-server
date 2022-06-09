@@ -6,6 +6,37 @@ Migration from release `1.2.x` of PowerAuth server to release `1.3.x` is split i
  - [Migration from 1.2.x to 1.2.5](./PowerAuth-Server-1.2.5.md) - apply these steps for upgrade to version `1.2.5`
  - Migration from 1.2.5 to 1.3.x (this document) - apply steps below for upgrade from version `1.2.5` to version `1.3.x`
 
+## Uniqueness Check on Application Versions
+
+Until 1.3.x version, the `pa_application_version` could contain versions of the same name for a given application. This would be a rare setup, but it needs to be reviewed before the update to 1.3.x and above. First, run the following query:
+
+```sql
+SELECT name, application_id, count(*) FROM pa_application_version GROUP BY name, application_id ORDER BY count(*);
+```
+
+If you can see a version with more than one duplicates, manually rename such versions in the database so that the name is unique and run the above query again. To prevent any future version duplicities, we also recommend creating the following unique index:
+
+### PostgreSQL
+
+```sql
+CREATE UNIQUE INDEX pa_application_name_index
+    ON pa_application_version (application_id, name);
+```
+
+### Oracle
+
+```sql
+CREATE UNIQUE INDEX pa_application_name_index
+    ON pa_application_version (application_id, name);
+```
+
+### MySQL
+
+```sql
+CREATE UNIQUE INDEX pa_application_name_index
+    ON pa_application_version (application_id, name);
+```
+
 ## Extended Activation Expiration
 
 <!-- begin box warning -->
