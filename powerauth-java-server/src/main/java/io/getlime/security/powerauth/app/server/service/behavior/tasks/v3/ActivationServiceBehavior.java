@@ -1002,6 +1002,7 @@ public class ActivationServiceBehavior {
      *
      * @param userId                         User ID
      * @param activationExpireTimestamp      Timestamp after which activation can no longer be completed
+     * @param shouldGenerateRecoveryCodes    Flag indicating if recovery codes should be generated. If null is provided, system settings are used.
      * @param maxFailureCount                Maximum failed attempt count (default = 5)
      * @param applicationKey                 Application key
      * @param eciesCryptogram                ECIES cryptogram
@@ -1013,6 +1014,7 @@ public class ActivationServiceBehavior {
     public CreateActivationResponse createActivation(
             String userId,
             Date activationExpireTimestamp,
+            Boolean shouldGenerateRecoveryCodes,
             Long maxFailureCount,
             String applicationKey,
             EciesCryptogram eciesCryptogram,
@@ -1133,9 +1135,11 @@ public class ActivationServiceBehavior {
 
             // Create a new recovery code and PUK for new activation if activation recovery is enabled
             ActivationRecovery activationRecovery = null;
-            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
-            if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, false);
+            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
+                final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+                if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                    activationRecovery = createRecoveryCodeForActivation(activation, false);
+                }
             }
 
             // Generate activation layer 2 response
@@ -1560,6 +1564,7 @@ public class ActivationServiceBehavior {
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Extract request data
+            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final String recoveryCode = request.getRecoveryCode();
             final String puk = request.getPuk();
             final String applicationKey = request.getApplicationKey();
@@ -1796,7 +1801,10 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Create a new recovery code and PUK for new activation
-            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation, false);
+            ActivationRecovery activationRecovery = null;
+            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
+                activationRecovery = createRecoveryCodeForActivation(activation, false);
+            }
 
             // Generate activation layer 2 response
             ActivationLayer2Response layer2Response = new ActivationLayer2Response();

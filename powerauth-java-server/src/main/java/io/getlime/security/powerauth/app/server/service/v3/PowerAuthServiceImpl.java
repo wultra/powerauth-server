@@ -340,6 +340,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             // Get request parameters
             final String userId = request.getUserId();
             final Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
+            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final Long maxFailedCount = request.getMaxFailureCount();
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
@@ -352,6 +353,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
                     userId,
                     activationExpireTimestamp,
+                    shouldGenerateRecoveryCodes,
                     maxFailedCount,
                     applicationKey,
                     cryptogram,
