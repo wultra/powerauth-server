@@ -21,11 +21,11 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
-import io.micrometer.core.instrument.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -246,7 +246,7 @@ public class ApplicationController {
     @PostMapping("/application/create/do.submit")
     public String applicationCreateAction(@RequestParam String id, RedirectAttributes redirectAttributes) {
         try {
-            if (id == null || id.trim().isEmpty()) {
+            if (!StringUtils.hasText(id)) {
                 redirectAttributes.addFlashAttribute("error", "Application ID must not be empty.");
                 return "redirect:/application/create";
             }
@@ -269,7 +269,7 @@ public class ApplicationController {
     @PostMapping("/application/detail/{applicationId}/version/create/do.submit")
     public String applicationVersionCreateAction(@PathVariable String applicationId, @RequestParam String applicationVersionId, RedirectAttributes redirectAttributes) {
         try {
-            if (applicationVersionId == null || applicationVersionId.trim().isEmpty()) {
+            if (!StringUtils.hasText(applicationVersionId)) {
                 redirectAttributes.addFlashAttribute("error", "Application version ID must not be empty.");
                 return "redirect:/application/detail/" + applicationId + "/version/create";
             }
@@ -323,9 +323,9 @@ public class ApplicationController {
             String name = allParams.get("name");
             String callbackUrl = allParams.get("callbackUrl");
             String error = null;
-            if (name == null || name.trim().isEmpty()) {
+            if (!StringUtils.hasText(name)) {
                 error = "Callback name must not be empty.";
-            } else if (callbackUrl == null || callbackUrl.trim().isEmpty()) {
+            } else if (!StringUtils.hasText(callbackUrl)) {
                 error = "Callback URL must not be empty.";
             } else {
                 try {
@@ -383,9 +383,9 @@ public class ApplicationController {
             String callbackUrl = allParams.get("callbackUrl");
             String callbackId = allParams.get("callbackId");
             String error = null;
-            if (name == null || name.trim().isEmpty()) {
+            if (!StringUtils.hasText(name)) {
                 error = "Callback name must not be empty.";
-            } else if (callbackUrl == null || callbackUrl.trim().isEmpty()) {
+            } else if (!StringUtils.hasText(callbackUrl)) {
                 error = "Callback URL must not be empty.";
             } else {
                 try {
@@ -424,8 +424,8 @@ public class ApplicationController {
     private String getErrorForAuthentication(Map<String, String> allParams) {
         String error = null;
         if ("on".equals(allParams.get("auth_useCustomKeyStore"))) {
-            if (StringUtils.isBlank(allParams.get("auth_keyStoreLocation"))
-                        || StringUtils.isBlank(allParams.get("auth_keyAlias"))) {
+            if (!StringUtils.hasText(allParams.get("auth_keyStoreLocation"))
+                        || !StringUtils.hasText(allParams.get("auth_keyAlias"))) {
                 error = "Invalid keystore configuration";
             } else {
                 try {
@@ -436,7 +436,7 @@ public class ApplicationController {
             }
         }
         if ("on".equals(allParams.get("auth_useCustomTrustStore"))) {
-            if (StringUtils.isBlank(allParams.get("auth_trustStoreLocation"))) {
+            if (!StringUtils.hasText(allParams.get("auth_trustStoreLocation"))) {
                 error = "Invalid truststore configuration";
             } else {
                 try {
@@ -447,7 +447,7 @@ public class ApplicationController {
             }
         }
         if ("on".equals(allParams.get("auth_httpBasicEnabled")) &&
-                StringUtils.isBlank(allParams.get("auth_httpBasicUsername"))) {
+                !StringUtils.hasText(allParams.get("auth_httpBasicUsername"))) {
             error = "Invalid HTTP Basic authentication configuration";
         }
         return error;
@@ -488,7 +488,7 @@ public class ApplicationController {
             RedirectAttributes redirectAttributes) {
         try {
             String error = null;
-            if (name == null || name.trim().isEmpty()) {
+            if (!StringUtils.hasText(name)) {
                 error = "Role name must not be empty.";
             }
             if (error != null) {
