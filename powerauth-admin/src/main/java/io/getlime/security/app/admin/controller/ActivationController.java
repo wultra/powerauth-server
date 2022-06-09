@@ -63,7 +63,7 @@ public class ActivationController {
      * @param model Model with passed parameters.
      * @return "activations" view.
      */
-    @RequestMapping("/activation/list")
+    @GetMapping("/activation/list")
     public String activationList(@RequestParam(value = "userId", required = false) String userId, @RequestParam(value = "showAllActivations", required = false) Boolean showAllActivations,
                                  @RequestParam(value = "showAllRecoveryCodes", required = false) Boolean showAllRecoveryCodes, Map<String, Object> model) {
         try {
@@ -98,7 +98,7 @@ public class ActivationController {
      * @param model Model with passed parameters.
      * @return "activationDetail" view.
      */
-    @RequestMapping("/activation/detail/{id}")
+    @GetMapping("/activation/detail/{id}")
     public String activationDetail(
             @PathVariable("id") String id,
             @RequestParam(value = "fromDate", required = false) String fromDate,
@@ -210,7 +210,7 @@ public class ActivationController {
      * @param redirectAttributes      Redirect attributes.
      * @return Redirect the user to activation detail.
      */
-    @RequestMapping("/activation/create")
+    @PostMapping("/activation/create")
     public String activationCreate(@RequestParam("applicationId") String applicationId, @RequestParam("userId") String userId,
                                    @RequestParam("activationOtpValidation") String activationOtpValidation,
                                    @RequestParam("activationOtp") String activationOtp,
@@ -388,7 +388,7 @@ public class ActivationController {
      * @param model Model with passed parameters.
      * @return The "activationFlagCreate" view.
      */
-    @RequestMapping("/activation/detail/{activationId}/flag/create")
+    @GetMapping("/activation/detail/{activationId}/flag/create")
     public String applicationCreateFlag(@PathVariable("activationId") String activationId, Map<String, Object> model) {
         model.put("activationId", activationId);
         return "activationFlagCreate";

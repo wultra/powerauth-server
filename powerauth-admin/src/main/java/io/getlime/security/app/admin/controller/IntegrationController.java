@@ -25,8 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Map;
@@ -53,7 +53,7 @@ public class IntegrationController {
      * @param model Model with passed parameters.
      * @return "integrations" view.
      */
-    @RequestMapping("/integration/list")
+    @GetMapping("/integration/list")
     public String integrationList(Map<String, Object> model) {
         try {
             GetIntegrationListRequest request = new GetIntegrationListRequest();
@@ -73,7 +73,7 @@ public class IntegrationController {
      * @param model Model with passed parameters.
      * @return "integrationCreate" view.
      */
-    @RequestMapping("/integration/create")
+    @GetMapping("/integration/create")
     public String integrationCreate(Map<String, Object> model) {
         return "integrationCreate";
     }
