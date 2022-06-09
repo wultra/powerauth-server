@@ -210,7 +210,7 @@ public class ActivationController {
      * @param redirectAttributes      Redirect attributes.
      * @return Redirect the user to activation detail.
      */
-    @PostMapping("/activation/create")
+    @GetMapping("/activation/create")
     public String activationCreate(@RequestParam("applicationId") String applicationId, @RequestParam("userId") String userId,
                                    @RequestParam("activationOtpValidation") String activationOtpValidation,
                                    @RequestParam("activationOtp") String activationOtp,
