@@ -168,7 +168,7 @@ public class ApplicationController {
      * @param model Model with passed parameters.
      * @return "callbackUpdate" view.
      */
-    @GetMapping("/application/detail/{applicationId}/callback/update")
+    @PostMapping("/application/detail/{applicationId}/callback/update")
     public String applicationUpdateCallback(@PathVariable("applicationId") String applicationId,
                                             @RequestParam String callbackId,
                                             Map<String, Object> model) {
