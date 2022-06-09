@@ -25,7 +25,7 @@
         <form class="form-inline"
               action="${pageContext.request.contextPath}/application/detail/<c:out value="${applicationId}"/>/version/create/do.submit"
               method="POST">
-            Version ID <input type="text" name="name" class="form-control"/>
+            Version ID <input type="text" name="applicationVersionId" class="form-control"/>
             <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
             <input type="submit" value="Submit" class="btn btn-success"/>
             <c:if test="${not empty error}">
