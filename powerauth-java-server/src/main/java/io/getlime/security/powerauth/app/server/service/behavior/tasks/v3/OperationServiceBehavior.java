@@ -146,7 +146,7 @@ public class OperationServiceBehavior {
         final OperationEntity operationEntity = new OperationEntity();
         operationEntity.setId(operationId);
         operationEntity.setUserId(userId);
-        operationEntity.setApplication(applicationEntities);
+        operationEntity.setApplications(applicationEntities);
         operationEntity.setExternalId(externalId);
         operationEntity.setActivationFlag(activationFlag);
         operationEntity.setOperationType(templateEntity.getOperationType());
