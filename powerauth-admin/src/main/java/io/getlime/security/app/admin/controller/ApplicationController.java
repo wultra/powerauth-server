@@ -58,7 +58,7 @@ public class ApplicationController {
      *
      * @return Redirect view to list of applications.
      */
-    @RequestMapping("/")
+    @GetMapping("/")
     public String homePage() {
         try {
             List<GetApplicationListResponse.Applications> applicationList = client.getApplicationList();
