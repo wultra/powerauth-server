@@ -279,6 +279,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                     activationExpireTimestamp,
                     activationOtpValidation,
                     activationOtp,
+                    null,
                     keyConvertor);
             logger.info("InitActivationRequest succeeded");
             return response;
@@ -305,13 +306,14 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
+            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
             final byte[] mac = BaseEncoding.base64().decode(request.getMac());
             final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
             final byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, cryptogram, keyConvertor);
+            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, cryptogram, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -338,6 +340,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             // Get request parameters
             final String userId = request.getUserId();
             final Date activationExpireTimestamp = XMLGregorianCalendarConverter.convertTo(request.getTimestampActivationExpire());
+            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final Long maxFailedCount = request.getMaxFailureCount();
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
@@ -350,6 +353,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
                     userId,
                     activationExpireTimestamp,
+                    shouldGenerateRecoveryCodes,
                     maxFailedCount,
                     applicationKey,
                     cryptogram,

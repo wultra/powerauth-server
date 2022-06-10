@@ -402,6 +402,7 @@ public class ActivationServiceBehavior {
                     activationExpireTimestamp,
                     ActivationOtpValidation.NONE,
                     null,
+                    null,
                     keyConversionUtilities);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);

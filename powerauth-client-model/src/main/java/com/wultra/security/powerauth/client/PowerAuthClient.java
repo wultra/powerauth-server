@@ -187,16 +187,18 @@ public interface PowerAuthClient {
     /**
      * Call the prepareActivation method of the PowerAuth 3.0 Server interface.
      *
-     * @param activationCode     Activation code.
-     * @param applicationKey     Application key.
-     * @param ephemeralPublicKey Ephemeral key for ECIES.
-     * @param encryptedData      Encrypted data for ECIES.
-     * @param mac                Mac of key and data for ECIES.
-     * @param nonce              Nonce for ECIES.
+     * @param activationCode                Activation code.
+     * @param applicationKey                Application key.
+     * @param shouldGenerateRecoveryCodes   Flag indicating if recovery codes should be generated. If null value is provided,
+     *                                      server settings property is used to determine if recovery codes should be generated.
+     * @param ephemeralPublicKey            Ephemeral key for ECIES.
+     * @param encryptedData                 Encrypted data for ECIES.
+     * @param mac                           Mac of key and data for ECIES.
+     * @param nonce                         Nonce for ECIES.
      * @return {@link PrepareActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
+    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, Boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
 
     /**
      * Create a new activation directly, using the createActivation method of the PowerAuth Server

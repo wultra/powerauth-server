@@ -326,6 +326,7 @@
             <xs:sequence>
                 <xs:element name="activationCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="generateRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptedData" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="mac" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -360,6 +361,7 @@
             <xs:sequence>
                 <xs:element name="userId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="timestampActivationExpire" type="xs:dateTime" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="generateRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="maxFailureCount" type="xs:long" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
@@ -1492,6 +1494,7 @@
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
+                <xs:element name="generateRecoveryCodes" type="xs:boolean" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="recoveryCode" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="puk" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
