@@ -59,4 +59,4 @@ Running PowerAuth Admin application from console using the `java -jar` command i
 
 ## Deploying PowerAuth Admin On JBoss / Wildfly
 
-Follow the extra instructions in chapter [Deploying PowerAuth Admin on JBoss / Wildfly](./Deploying-PowerAuth-Admin-Wildfly.md).
+Follow the extra instructions in chapter [Deploying PowerAuth Admin on JBoss / Wildfly](./Admin-Deploying-Wildfly.md).
