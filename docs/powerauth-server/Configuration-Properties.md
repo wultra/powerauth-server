@@ -9,9 +9,9 @@ The PowerAuth Server uses the following public configuration properties:
 | `spring.datasource.url` | `jdbc:postgresql://localhost:5432/powerauth` | Database JDBC URL |
 | `spring.datasource.username` | `powerauth` | Database JDBC username |
 | `spring.datasource.password` | `_empty_` | Database JDBC password |
-| `spring.datasource.driver-class-name` | `org.postgresql.Driver` | Datasource JDBC class name | 
-| `spring.jpa.database-platform` | `org.hibernate.dialect.PostgreSQLDialect` | Database dialect | 
-| `spring.jpa.hibernate.ddl-auto` | `none` | Configuration of automatic database schema creation | 
+| `spring.datasource.driver-class-name` | `org.postgresql.Driver` | Datasource JDBC class name |
+| `spring.jpa.database-platform` | `org.hibernate.dialect.PostgreSQLDialect` | Database dialect |
+| `spring.jpa.hibernate.ddl-auto` | `none` | Configuration of automatic database schema creation |
 | `spring.jpa.properties.hibernate.connection.characterEncoding` | `utf8` | Character encoding |
 | `spring.jpa.properties.hibernate.connection.useUnicode` | `true` | Character encoding - Unicode support |
 
@@ -59,4 +59,4 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.service.correlation-header.enabled` | `false` | Whether correlation header is enabled |
 | `powerauth.service.correlation-header.name` | `X-Correlation-ID` | Correlation header name |
 | `powerauth.service.correlation-header.value.validation-regexp` | `[a-zA-Z0-9\\-]{8,1024}` | Regular expression for correlation header value validation |
-| `logging.pattern.console` | [See application.properties](https://github.com/wultra/powerauth-server/blob/develop/powerauth-java-server/src/main/resources/application.properties#L121) | Logging pattern for console which includes the correlation header value |
+| `logging.pattern.console` | [See value in application.properties](https://github.com/wultra/powerauth-server/blob/develop/powerauth-java-server/src/main/resources/application.properties#docucheck-keep-link) | Logging pattern for console which includes the correlation header value |
