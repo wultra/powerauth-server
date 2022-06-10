@@ -159,7 +159,7 @@ public class ApplicationServiceBehavior {
             // Check application duplicity
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             if (applicationRepository.findById(id).isPresent()) {
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+                throw localizationProvider.buildExceptionForCode(ServiceError.DUPLICATE_APPLICATION);
             }
 
             ApplicationEntity application = new ApplicationEntity();
@@ -215,6 +215,15 @@ public class ApplicationServiceBehavior {
     public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String applicationVersionId) throws GenericServiceException {
 
         final ApplicationEntity application = findApplicationById(applicationId);
+
+        // Check for duplicate application
+        for (ApplicationVersionEntity applicationVersionEntity : application.getVersions()) {
+            final String applicationVersionEntityId = applicationVersionEntity.getId();
+            if (applicationVersionEntityId != null && applicationVersionEntityId.equals(applicationVersionId)) {
+                logger.warn("Duplicate application version ID: {} for application ID: {}", applicationVersionId, applicationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.DUPLICATE_APPLICATION);
+            }
+        }
 
         final KeyGenerator keyGen = new KeyGenerator();
         final byte[] applicationKeyBytes;

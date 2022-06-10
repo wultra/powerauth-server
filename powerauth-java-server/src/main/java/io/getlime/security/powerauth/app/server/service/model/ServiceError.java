@@ -247,9 +247,14 @@ public class ServiceError {
      */
     public static final String OPERATION_TEMPLATE_ERROR = "ERR0042";
 
+    /**
+     * Application or application version is duplicate.
+     */
+    public static final String DUPLICATE_APPLICATION = "ERR0043";
+
 
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(42);
+        List<String> list = new ArrayList<>(43);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -293,6 +298,7 @@ public class ServiceError {
         list.add(ACTIVATION_CREATE_FAILED);
         list.add(OPERATION_ERROR);
         list.add(OPERATION_TEMPLATE_ERROR);
+        list.add(DUPLICATE_APPLICATION);
         return list;
     }
 
