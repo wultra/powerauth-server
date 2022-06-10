@@ -143,7 +143,7 @@ public class OperationEntity implements Serializable {
      * Set application ID.
      * @param applications Applications.
      */
-    public void setApplication(List<ApplicationEntity> applications) {
+    public void setApplications(List<ApplicationEntity> applications) {
         this.applications = applications;
     }
 
