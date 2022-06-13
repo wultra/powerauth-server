@@ -190,10 +190,12 @@ public class EncryptionServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
+            final String applicationId = applicationVersion.getApplication().getId();
+
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-            MasterKeyPairEntity keypair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersion.getApplication().getId());
+            MasterKeyPairEntity keypair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (keypair == null) {
-                logger.error("Missing key pair for application ID: {}", applicationVersion.getApplication().getId());
+                logger.error("Missing key pair for application ID: {}", applicationId);
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
@@ -229,7 +231,7 @@ public class EncryptionServiceBehavior {
 
             GetNonPersonalizedEncryptionKeyResponse response = new GetNonPersonalizedEncryptionKeyResponse();
             response.setApplicationKey(applicationKey);
-            response.setApplicationId(applicationVersion.getApplication().getId());
+            response.setApplicationId(applicationId);
             response.setEncryptionKey(derivedTransportKeyBase64);
             response.setEncryptionKeyIndex(indexBase64);
             response.setEphemeralPublicKey(ephemeralPublicKeyBase64);

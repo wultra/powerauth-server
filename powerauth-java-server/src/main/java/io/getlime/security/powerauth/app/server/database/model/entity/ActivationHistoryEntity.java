@@ -60,7 +60,13 @@ public class ActivationHistoryEntity implements Serializable {
     private Date timestampCreated;
 
     /**
-     * Default constructor.
+     * Current {@link ActivationRecordEntity#getVersion()} specified whenever an activation history event is audited.
+     */
+    @Column(name = "activation_version")
+    private Integer activationVersion;
+
+    /**
+     * No-arg constructor.
      */
     public ActivationHistoryEntity() {
     }
@@ -71,14 +77,21 @@ public class ActivationHistoryEntity implements Serializable {
      * @param id                Signature audit item record ID.
      * @param activation        Associated activation, or null of no related activation was found.
      * @param activationStatus  Activation status at the time of signature computation attempt.
-     * @param timestampCreated  Created timestapm.
+     * @param timestampCreated  Created timestamp.
+     * @param activationVersion Activation version.
      */
-    public ActivationHistoryEntity(Long id, ActivationRecordEntity activation, ActivationStatus activationStatus, Date timestampCreated) {
-        super();
+    public ActivationHistoryEntity(
+            final Long id,
+            final ActivationRecordEntity activation,
+            final ActivationStatus activationStatus,
+            final Date timestampCreated,
+            final Integer activationVersion) {
+
         this.id = id;
         this.activation = activation;
         this.activationStatus = activationStatus;
         this.timestampCreated = timestampCreated;
+        this.activationVersion = activationVersion;
     }
 
     /**
@@ -185,6 +198,22 @@ public class ActivationHistoryEntity implements Serializable {
         this.timestampCreated = timestampCreated;
     }
 
+    /**
+     * Get PowerAuth protocol major version for activation.
+     * @return PowerAuth protocol major version.
+     */
+    public Integer getActivationVersion() {
+        return activationVersion;
+    }
+
+    /**
+     * Set PowerAuth protocol major version for activation.
+     * @param version PowerAuth protocol major version.
+     */
+    public void setActivationVersion(Integer version) {
+        this.activationVersion = version;
+    }
+
     @Override
     public int hashCode() {
         int hash = 7;
@@ -193,6 +222,7 @@ public class ActivationHistoryEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.eventReason);
         hash = 23 * hash + Objects.hashCode(this.externalUserId);
         hash = 23 * hash + Objects.hashCode(this.timestampCreated);
+        hash = 23 * hash + Objects.hashCode(this.activationVersion);
         return hash;
     }
 
@@ -220,14 +250,18 @@ public class ActivationHistoryEntity implements Serializable {
         if (!Objects.equals(this.externalUserId, other.externalUserId)) {
             return false;
         }
-        return Objects.equals(this.timestampCreated, other.timestampCreated);
+        if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
+            return false;
+        }
+        return Objects.equals(this.activationVersion, other.activationVersion);
     }
 
     @Override
     public String toString() {
         return "ActivationHistoryEntity{" +
                 "id=" + id + ", activation=" + activation + ", activationStatus=" + activationStatus +
-                ", eventReason=" + eventReason + ", externalUserId=" + externalUserId + ", timestampCreated=" + timestampCreated + '}';
+                ", eventReason=" + eventReason + ", externalUserId=" + externalUserId + ", timestampCreated=" + timestampCreated +
+                ", version=" + activationVersion +'}';
     }
 
 }

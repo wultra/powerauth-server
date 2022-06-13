@@ -1,0 +1,118 @@
+.panel-heading h3.button {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: normal;
+    width: 75%;
+    padding-top: 8px;
+}
+
+.panel-heading h3.button-sm {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: normal;
+    width: 75%;
+    padding-top: 6px;
+}
+
+.black {
+    color: #000000 !important;
+}
+
+.gray {
+    color: #777777 !important;
+}
+
+.green {
+    color: #7FC000 !important;
+}
+
+.orange {
+    color: #7F7F00 !important;
+}
+
+.red {
+    color: #AC0B66 !important;
+}
+
+.code {
+    font-family: "Courier New", monospace;
+    font-size: 10pt;
+}
+
+.wrap {
+    overflow-wrap: break-word !important;
+    word-wrap: break-word !important;
+    -ms-word-break: break-all !important;
+    word-break: break-all !important;
+}
+
+.w100 {
+    width: 100% !important;
+}
+
+.padder20 {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.pull-right .btn {
+    margin-left: 10px !important;
+}
+
+.table-hover tr:hover {
+    cursor: pointer;
+}
+
+thead th {
+    border-bottom: none !important;
+}
+
+table.table .btn.btn-table {
+    padding: 2px 4px 1px 4px;
+    font-size: 10px;
+    margin-right: -3px;
+}
+
+.brand-logo {
+    height: 24px;
+    margin: -5px 20px -5px 0;
+}
+
+pre.code, pre.code code {
+    background: #f8f8ff;
+    font-family: monospace;
+    padding: 5px;
+}
+
+.nav-tabs {
+    border-bottom: none;
+}
+
+.nav-tabs a {
+    color: #7FC000;
+}
+
+.tooltip-inner {
+    text-align: left;
+    max-width: 800px;
+}
+
+.tooltip-inner td {
+    vertical-align: top;
+}
+
+.tooltip-inner td .word-break {
+    word-break: break-all;
+}
+
+.otp-hidden {
+    visibility: hidden;
+    width: 0;
+}
+
+.otp-displayed {
+    visibility: visible;
+    width: 96px;
+}

@@ -32,8 +32,8 @@ import java.util.List;
 @Repository
 public interface CallbackUrlRepository extends CrudRepository<CallbackUrlEntity, String> {
 
-    List<CallbackUrlEntity> findByApplicationIdOrderByName(Long applicationId);
+    List<CallbackUrlEntity> findByApplicationIdOrderByName(String applicationId);
 
-    List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(Long applicationId, CallbackUrlType type);
+    List<CallbackUrlEntity> findByApplicationIdAndTypeOrderByName(String applicationId, CallbackUrlType type);
 
 }

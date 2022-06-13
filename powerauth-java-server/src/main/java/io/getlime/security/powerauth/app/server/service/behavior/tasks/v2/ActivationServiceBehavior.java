@@ -154,7 +154,7 @@ public class ActivationServiceBehavior {
         // If there is no such activation or application does not match the activation application, fail validation
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
-                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
+                || !Objects.equals(activation.getApplication().getRid(), application.getRid())) {
             logger.info("Activation state is invalid, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
             if (rollbackInCaseOfError) {
                 // Rollback is used during createActivation, because activation has just been initialized and it is invalid
@@ -401,6 +401,7 @@ public class ActivationServiceBehavior {
                     maxFailedCount,
                     activationExpireTimestamp,
                     ActivationOtpValidation.NONE,
+                    null,
                     null,
                     keyConversionUtilities);
             String activationId = initResponse.getActivationId();

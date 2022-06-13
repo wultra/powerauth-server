@@ -43,9 +43,13 @@ public class OperationEntity implements Serializable {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @ManyToOne
-    @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
-    private ApplicationEntity application;
+    @ManyToMany
+    @JoinTable(
+            name = "pa_operation_application",
+            joinColumns = @JoinColumn(name = "operation_id", referencedColumnName = "id", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "application_id")
+    )
+    private List<ApplicationEntity> applications;
 
     @Column(name = "external_id")
     private String externalId;
@@ -131,16 +135,16 @@ public class OperationEntity implements Serializable {
      * Get application.
      * @return Application.
      */
-    public ApplicationEntity getApplication() {
-        return application;
+    public List<ApplicationEntity> getApplications() {
+        return applications;
     }
 
     /**
      * Set application ID.
-     * @param applicationId Application ID.
+     * @param applications Applications.
      */
-    public void setApplication(ApplicationEntity applicationId) {
-        this.application = applicationId;
+    public void setApplications(List<ApplicationEntity> applications) {
+        this.applications = applications;
     }
 
     /**
@@ -374,7 +378,7 @@ public class OperationEntity implements Serializable {
         OperationEntity that = (OperationEntity) o;
         return id.equals(that.id) // ID is generated on application level
                 && userId.equals(that.userId)
-                && application.equals(that.application)
+                && applications.equals(that.applications)
                 && activationFlag.equals(that.activationFlag)
                 && operationType.equals(that.operationType)
                 && templateName.equals(that.templateName)
@@ -386,7 +390,7 @@ public class OperationEntity implements Serializable {
     @Override
     public int hashCode() {
         return Objects.hash(
-                id, userId, application, activationFlag, operationType, templateName, data, parameters, additionalData
+                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData
         );
     }
 
@@ -395,7 +399,7 @@ public class OperationEntity implements Serializable {
         return "OperationEntity{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +
-                ", application=" + application +
+                ", applications=" + applications +
                 ", externalId='" + externalId + '\'' +
                 ", activationFlag='" + activationFlag + '\'' +
                 ", operationType='" + operationType + '\'' +

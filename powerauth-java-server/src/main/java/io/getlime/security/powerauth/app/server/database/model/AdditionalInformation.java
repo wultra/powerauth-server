@@ -24,13 +24,65 @@ package io.getlime.security.powerauth.app.server.database.model;
  */
 public class AdditionalInformation {
 
-    public static final String BLOCKED_REASON = "BLOCKED_REASON";
-    public static final String VAULT_UNLOCKED_REASON = "VAULT_UNLOCKED_REASON";
-    public static final String BLOCKED_REASON_MAX_FAILED_ATTEMPTS = "MAX_FAILED_ATTEMPTS";
-    public static final String BLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
-    public static final String VAULT_UNLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
-    public static final String BIOMETRY_ALLOWED = "BIOMETRY_ALLOWED";
-    public static final String ACTIVATION_OTP_FAILED_ATTEMPT = "OTP_FAILED_ATTEMPT";
-    public static final String ACTIVATION_OTP_MAX_FAILED_ATTEMPTS = "OTP_MAX_FAILED_ATTEMPTS";
-    public static final String ACTIVATION_OTP_VALUE_UPDATE = "OTP_VALUE_UPDATE";
+    public static class Key {
+        
+        /**
+         * Key describing reasons for blocked activation.
+         */
+        public static final String BLOCKED_REASON = "BLOCKED_REASON";
+
+        /**
+         * Key describing reasons for vault unlock.
+         */
+        public static final String VAULT_UNLOCKED_REASON = "VAULT_UNLOCKED_REASON";
+
+        /**
+         * Key indicating if biometry is allowed for offline verifications.
+         */
+        public static final String BIOMETRY_ALLOWED = "BIOMETRY_ALLOWED";
+
+    }
+
+    public static class Reason {
+
+        /**
+         * Logged when activation was blocked because of too many failed authentication attempts.
+         */
+        public static final String BLOCKED_REASON_MAX_FAILED_ATTEMPTS = "MAX_FAILED_ATTEMPTS";
+
+        /**
+         * Logged when activation was blocked for any unspecified reason.
+         */
+        public static final String BLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
+
+        /**
+         * Logged when vault unlock was requested with an unspecified reason.
+         */
+        public static final String VAULT_UNLOCKED_REASON_NOT_SPECIFIED = "NOT_SPECIFIED";
+
+        /**
+         * Logged when activation OTP validation fails, but there are still remaining attempts to validate the OTP.
+         */
+        public static final String ACTIVATION_OTP_FAILED_ATTEMPT = "OTP_FAILED_ATTEMPT";
+
+        /**
+         * Logged when activation OTP validation fails for the last time and activation is removed.
+         */
+        public static final String ACTIVATION_OTP_MAX_FAILED_ATTEMPTS = "OTP_MAX_FAILED_ATTEMPTS";
+
+        /**
+         * Logged when the OTP is updated.
+         */
+        public static final String ACTIVATION_OTP_VALUE_UPDATE = "OTP_VALUE_UPDATE";
+
+        /**
+         * Logged during upgrade commit (version changes to a newer one).
+         */
+        public static final String ACTIVATION_VERSION_CHANGED = "ACTIVATION_VERSION_CHANGED";
+
+    }
+
+    private AdditionalInformation() {
+        throw new IllegalStateException("Should not be instantiated");
+    }
 }

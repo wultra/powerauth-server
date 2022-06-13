@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.List;
+
 /**
  * Request for operations identified by an external ID.
  *
@@ -26,7 +28,7 @@ package com.wultra.security.powerauth.client.model.request;
 public class OperationExtIdRequest {
 
     private String externalId;
-    private Long applicationId;
+    private List<String> applications;
 
     public String getExternalId() {
         return externalId;
@@ -36,11 +38,11 @@ public class OperationExtIdRequest {
         this.externalId = externalId;
     }
 
-    public Long getApplicationId() {
-        return applicationId;
+    public List<String> getApplications() {
+        return applications;
     }
 
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApplications(List<String> applications) {
+        this.applications = applications;
     }
 }

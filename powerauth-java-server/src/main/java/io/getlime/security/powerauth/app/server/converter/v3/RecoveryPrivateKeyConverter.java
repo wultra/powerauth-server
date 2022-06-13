@@ -71,11 +71,11 @@ public class RecoveryPrivateKeyConverter {
      * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
      * the transaction is not rolled back.
      * @param recoveryPrivateKey Recovery private key composite database value recovery postcard private key and encryption mode.
-     * @param applicationId Application ID used for derivation of secret key.
+     * @param applicationRid Application RID used for derivation of secret key.
      * @return Decrypted Base64-encoded recovery postcard private key.
      * @throws GenericServiceException In case recovery postcard private key decryption fails.
      */
-    public String fromDBValue(RecoveryPrivateKey recoveryPrivateKey, long applicationId) throws GenericServiceException {
+    public String fromDBValue(RecoveryPrivateKey recoveryPrivateKey, long applicationRid) throws GenericServiceException {
         String recoveryPrivateKeyBase64 = recoveryPrivateKey.getRecoveryPrivateKeyBase64();
         EncryptionMode encryptionMode = recoveryPrivateKey.getEncryptionMode();
         if (encryptionMode == null) {
@@ -104,13 +104,13 @@ public class RecoveryPrivateKeyConverter {
                     SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key and application ID
-                    SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationId);
+                    SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid);
 
                     // Base64-decode recovery postcard private key
                     byte[] recoveryPrivateKeyBytes = BaseEncoding.base64().decode(recoveryPrivateKeyBase64);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
-                    if (recoveryPrivateKeyBytes == null || recoveryPrivateKeyBytes.length < 16) {
+                    if (recoveryPrivateKeyBytes.length < 16) {
                         logger.error("Invalid encrypted private key format - the byte array is too short");
                         // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
@@ -155,11 +155,11 @@ public class RecoveryPrivateKeyConverter {
      * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
      * the transaction is not rolled back.
      * @param recoveryPrivateKey Recovery postcard private key.
-     * @param applicationId Application ID used for derivation of secret key.
+     * @param applicationRid Application RID used for derivation of secret key.
      * @return Recovery postcard private key as composite database value.
      * @throws GenericServiceException Thrown when recovery postcard private key encryption fails.
      */
-    public RecoveryPrivateKey toDBValue(byte[] recoveryPrivateKey, long applicationId) throws GenericServiceException {
+    public RecoveryPrivateKey toDBValue(byte[] recoveryPrivateKey, long applicationRid) throws GenericServiceException {
         String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
         // In case master DB encryption key does not exist, do not encrypt the server private key
@@ -172,7 +172,7 @@ public class RecoveryPrivateKeyConverter {
             SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key and application ID
-            SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationId);
+            SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid);
 
             // Generate random IV
             byte[] iv = keyGenerator.generateRandomBytes(16);
@@ -217,13 +217,13 @@ public class RecoveryPrivateKeyConverter {
      * See: https://github.com/wultra/powerauth-server/blob/develop/docs/Encrypting-Records-in-Database.md
      *
      * @param masterDbEncryptionKey Master DB encryption key.
-     * @param applicationId Application ID used for derivation of secret key.
+     * @param applicationRid Application RID used for derivation of secret key.
      * @return Derived secret key.
      * @throws GenericCryptoException In case key derivation fails.
      */
-    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationId) throws GenericCryptoException, CryptoProviderException {
+    private SecretKey deriveSecretKey(SecretKey masterDbEncryptionKey, long applicationRid) throws GenericCryptoException, CryptoProviderException {
         // Use application ID bytes as index for KDF_INTERNAL
-        byte[] index = String.valueOf(applicationId).getBytes(StandardCharsets.UTF_8);
+        byte[] index = String.valueOf(applicationRid).getBytes(StandardCharsets.UTF_8);
 
         // Derive secretKey from master DB encryption key using KDF_INTERNAL with constructed index
         return keyGenerator.deriveSecretKeyHmac(masterDbEncryptionKey, index);

@@ -47,8 +47,9 @@ public class RecoveryCodeEntity implements Serializable {
     @Column(name = "recovery_code", nullable = false, updatable = false)
     private String recoveryCode;
 
-    @Column(name = "application_id", nullable = false, updatable = false)
-    private Long applicationId;
+    @ManyToOne
+    @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
+    private ApplicationEntity application;
 
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
@@ -76,7 +77,7 @@ public class RecoveryCodeEntity implements Serializable {
     private Date timestampLastChange;
 
     @OneToMany(mappedBy = "recoveryCode", cascade = CascadeType.ALL)
-    @OrderBy("puk_index")
+    @OrderBy("pukIndex")
     private final List<RecoveryPukEntity> recoveryPuks = new ArrayList<>();
 
     /**
@@ -90,7 +91,7 @@ public class RecoveryCodeEntity implements Serializable {
      *
      * @param id Recovery code ID.
      * @param recoveryCode Recovery code.
-     * @param applicationId Application ID.
+     * @param application Application.
      * @param userId User ID.
      * @param activationId Activation ID.
      * @param status Recovery code status.
@@ -102,7 +103,7 @@ public class RecoveryCodeEntity implements Serializable {
      */
     public RecoveryCodeEntity(Long id,
                               String recoveryCode,
-                              Long applicationId,
+                              ApplicationEntity application,
                               String userId,
                               String activationId,
                               RecoveryCodeStatus status,
@@ -113,7 +114,7 @@ public class RecoveryCodeEntity implements Serializable {
                               Date timestampLastChange) {
         this.id = id;
         this.recoveryCode = recoveryCode;
-        this.applicationId = applicationId;
+        this.application = application;
         this.userId = userId;
         this.activationId = activationId;
         this.status = status;
@@ -168,19 +169,19 @@ public class RecoveryCodeEntity implements Serializable {
     }
 
     /**
-     * Get application ID.
-     * @return Application ID.
+     * Get application.
+     * @return Application.
      */
-    public Long getApplicationId() {
-        return applicationId;
+    public ApplicationEntity getApplication() {
+        return application;
     }
 
     /**
-     * Set application ID.
-     * @param applicationId Application ID.
+     * Set application.
+     * @param application Application.
      */
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApplication(ApplicationEntity application) {
+        this.application = application;
     }
 
     /**
@@ -323,7 +324,7 @@ public class RecoveryCodeEntity implements Serializable {
     public int hashCode() {
         int hash = 5;
         hash = 71 * hash + Objects.hashCode(this.recoveryCode);
-        hash = 71 * hash + Objects.hashCode(this.applicationId);
+        hash = 71 * hash + Objects.hashCode(this.application);
         hash = 71 * hash + Objects.hashCode(this.userId);
         hash = 71 * hash + Objects.hashCode(this.activationId);
         hash = 71 * hash + Objects.hashCode(this.status);
@@ -350,7 +351,7 @@ public class RecoveryCodeEntity implements Serializable {
         if (!Objects.equals(this.recoveryCode, other.recoveryCode)) {
             return false;
         }
-        if (!Objects.equals(this.applicationId, other.applicationId)) {
+        if (!Objects.equals(this.application, other.application)) {
             return false;
         }
         if (!Objects.equals(this.userId, other.userId)) {
@@ -381,7 +382,7 @@ public class RecoveryCodeEntity implements Serializable {
     public String toString() {
         return "RecoveryCodeEntity{"
                 + "id=" + id
-                + ", applicationId=" + applicationId
+                + ", application=" + application.toString()
                 + ", userId=" + userId
                 + ", activationId=" + activationId
                 + ", status=" + status

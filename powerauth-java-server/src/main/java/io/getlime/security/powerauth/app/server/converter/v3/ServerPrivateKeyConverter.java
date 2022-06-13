@@ -111,7 +111,7 @@ public class ServerPrivateKeyConverter {
                     byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
-                    if (serverPrivateKeyBytes == null || serverPrivateKeyBytes.length < 16) {
+                    if (serverPrivateKeyBytes.length < 16) {
                         logger.error("Invalid encrypted private key format - the byte array is too short");
                         // Rollback is not required, error occurs before writing to database
                         throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);

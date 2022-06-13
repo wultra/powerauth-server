@@ -34,7 +34,7 @@ public class OperationDetailResponse {
 
     private String id;
     private String userId;
-    private Long applicationId;
+    private List<String> applications;
     private String externalId;
     private String activationFlag;
     private String operationType;
@@ -66,12 +66,12 @@ public class OperationDetailResponse {
         return userId;
     }
 
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public List<String> getApplications() {
+        return applications;
     }
 
-    public Long getApplicationId() {
-        return applicationId;
+    public void setApplications(List<String> applications) {
+        this.applications = applications;
     }
 
     public void setExternalId(String externalId) {
