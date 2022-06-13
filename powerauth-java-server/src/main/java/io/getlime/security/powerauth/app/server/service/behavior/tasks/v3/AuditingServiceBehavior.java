@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
 import com.wultra.core.audit.base.Audit;
-import com.wultra.core.audit.base.AuditFactory;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.v3.SignatureAuditResponse;

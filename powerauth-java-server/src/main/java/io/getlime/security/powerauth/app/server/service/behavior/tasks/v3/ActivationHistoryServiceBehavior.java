@@ -101,17 +101,8 @@ public class ActivationHistoryServiceBehavior {
         // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
         activationRepository.save(activation);
 
-        // Assure audit trail
-        final AuditDetail auditDetail = AuditDetail.builder()
-                .type("activation")
-                .param("activationId", activation.getActivationId())
-                .param("status", activation.getActivationStatus())
-                .param("externalUserId", externalUserId)
-                .param("activationVersion", activation.getVersion())
-                .param("reason", (activation.getActivationStatus() == ActivationStatus.BLOCKED) ? activation.getBlockedReason() : historyEventReason)
-                .build();
-        audit.log(AuditLevel.INFO, "Changing state for activation ID: {} to {} through external user: {}",
-                auditDetail, activation.getActivationId(), activation.getActivationStatus(), externalUserId);
+        logAuditItem(activation, externalUserId, historyEventReason);
+
     }
 
     /**
@@ -148,6 +139,56 @@ public class ActivationHistoryServiceBehavior {
         }
 
         return response;
+    }
+
+    // Private methods
+
+    private void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
+        // Prepare shared parameters
+        final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
+                .type("activation")
+                .param("activationId", activation.getActivationId())
+                .param("userId", activation.getUserId())
+                .param("applicationId", activation.getApplication().getId())
+                .param("status", activation.getActivationStatus())
+                .param("maxFailedAttempts", activation.getMaxFailedAttempts());
+
+        // Handle other than CREATED states with rich info
+        if (activation.getActivationStatus() != ActivationStatus.CREATED) {
+            auditDetailBuilder
+                    .param("activationName", activation.getActivationName())
+                    .param("platform", activation.getPlatform())
+                    .param("failedAttempts", activation.getFailedAttempts())
+                    .param("deviceInfo", activation.getDeviceInfo())
+                    .param("reason", (activation.getActivationStatus() == ActivationStatus.BLOCKED) ? activation.getBlockedReason() : historyEventReason)
+                    .param("activationVersion", activation.getVersion());
+        }
+
+        // Check presence of external user
+        if (externalUserId != null) {
+            auditDetailBuilder
+                    .param("externalUserId", externalUserId);
+        }
+
+        // Build audit log message
+        final AuditDetail auditDetail = auditDetailBuilder.build();
+        switch (activation.getActivationStatus()) {
+            case CREATED: {
+                audit.log(AuditLevel.INFO, "Created activation with ID: {}", auditDetail, activation.getActivationId());
+                return;
+            }
+            case PENDING_COMMIT:
+            case BLOCKED:
+            case ACTIVE: {
+                audit.log(AuditLevel.INFO, "Activation ID: {} is now {}", auditDetail, activation.getActivationId(), activation.getActivationStatus());
+                return;
+            }
+            case REMOVED:
+            default: {
+                audit.log(AuditLevel.INFO, "Removing activation with ID: {}", auditDetail, activation.getActivationId());
+            }
+        }
+
     }
 
 }
