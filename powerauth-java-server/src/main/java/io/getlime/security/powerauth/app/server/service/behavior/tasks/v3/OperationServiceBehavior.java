@@ -503,7 +503,7 @@ public class OperationServiceBehavior {
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
 
-        logger.info("Operation canceled via  explicit server call for operation ID: {}.", operationId);
+        logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
 
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type("operation")
