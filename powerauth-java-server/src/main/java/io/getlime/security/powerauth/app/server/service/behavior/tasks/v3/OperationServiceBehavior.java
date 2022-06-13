@@ -176,10 +176,12 @@ public class OperationServiceBehavior {
                 .param("activationFlag", activationFlag)
                 .param("operationType", templateEntity.getOperationType())
                 .param("template", templateEntity.getTemplateName())
-                .param("maxFailureCount", operationEntity.getMaxFailureCount())
                 .param("data", operationData)
+                .param("parameters", parameters)
                 .param("status", OperationStatusDo.PENDING.name())
-                .param("signatureType", templateEntity.getSignatureType())
+                .param("allowedSignatureType", templateEntity.getSignatureType())
+                .param("maxFailureCount", operationEntity.getMaxFailureCount())
+                .param("timestampExpires", timestampExpiration)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
@@ -245,6 +247,7 @@ public class OperationServiceBehavior {
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
                     .param("additionalData", operationEntity.getAdditionalData())
+                    .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
 
@@ -273,11 +276,11 @@ public class OperationServiceBehavior {
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
-                        .param("failureCount", operationEntity.getFailureCount())
                         .param("status", operationEntity.getStatus().name())
                         .param("additionalData", operationEntity.getAdditionalData())
+                        .param("failureCount", operationEntity.getFailureCount())
                         .build();
-                audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}", auditDetail, operationId);
+                audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
 
                 final OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.APPROVAL_FAILED);
@@ -300,9 +303,10 @@ public class OperationServiceBehavior {
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
-                        .param("failureCount", operationEntity.getFailureCount())
                         .param("status", operationEntity.getStatus().name())
                         .param("additionalData", operationEntity.getAdditionalData())
+                        .param("failureCount", operationEntity.getFailureCount())
+                        .param("maxFailureCount", operationEntity.getMaxFailureCount())
                         .build();
                 audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
@@ -363,9 +367,9 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("userId", userId)
                     .param("appId", applicationId)
-                    .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
                     .param("additionalData", operationEntity.getAdditionalData())
+                    .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 

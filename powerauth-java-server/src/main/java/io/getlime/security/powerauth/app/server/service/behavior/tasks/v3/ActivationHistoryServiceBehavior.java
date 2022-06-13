@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.v3.ActivationHistoryResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
@@ -43,14 +45,16 @@ public class ActivationHistoryServiceBehavior {
     private final ActivationHistoryRepository activationHistoryRepository;
 
     private final ActivationRepository activationRepository;
+    private final AuditingServiceBehavior audit;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository) {
+    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, AuditingServiceBehavior audit) {
         this.activationHistoryRepository = activationHistoryRepository;
         this.activationRepository = activationRepository;
+        this.audit = audit;
     }
 
     /**
@@ -96,6 +100,18 @@ public class ActivationHistoryServiceBehavior {
         activation.getActivationHistory().add(activationHistoryEntity);
         // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
         activationRepository.save(activation);
+
+        // Assure audit trail
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type("activation")
+                .param("activationId", activation.getActivationId())
+                .param("status", activation.getActivationStatus())
+                .param("externalUserId", externalUserId)
+                .param("activationVersion", activation.getVersion())
+                .param("reason", (activation.getActivationStatus() == ActivationStatus.BLOCKED) ? activation.getBlockedReason() : historyEventReason)
+                .build();
+        audit.log(AuditLevel.INFO, "Changing state for activation ID: {} to {} through external user: {}",
+                auditDetail, activation.getActivationId(), activation.getActivationStatus(), externalUserId);
     }
 
     /**
