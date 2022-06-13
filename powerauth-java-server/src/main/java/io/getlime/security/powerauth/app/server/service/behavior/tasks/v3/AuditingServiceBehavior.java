@@ -185,7 +185,7 @@ public class AuditingServiceBehavior {
                 .param("note", note)
                 .param("timestamp", currentTimestamp)
                 .build();
-        audit.log("Signature validation completed: {} for activation: {}, user ID: {}", AuditLevel.INFO, auditDetail,
+        audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
                 (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
                 activation.getActivationId(),
                 activation.getUserId()
