@@ -451,6 +451,14 @@
                                                     </jsp:include>
                                                 </span>
                                             </p>
+                                            <c:if test="${not empty item.version}">
+                                                <p>
+                                                    Version<br>
+                                                    <span class="black">
+                                                        <c:out value="${item.version}"/>
+                                                    </span>
+                                                </p>
+                                            </c:if>
                                         </td>
                                         <c:choose>
                                             <c:when test="${not empty item.eventReason}">

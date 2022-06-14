@@ -32,46 +32,46 @@ public class OperationTemplateCreateRequestValidator {
 
     public static String validate(OperationTemplateCreateRequest source) {
         if (source == null) {
-            return "Operation template create request must not be null";
+            return "Operation template create request must not be null.";
         }
         if (source.getTemplateName() == null) {
-            return "Template name must not be null when creating operation template";
+            return "Template name must not be null when creating operation template.";
         }
         if (source.getTemplateName().isEmpty()) {
-            return "Template name must not be empty when creating operation template";
+            return "Template name must not be empty when creating operation template.";
         }
         if (source.getOperationType() == null) {
-            return "Template operation type must not be null when creating operation template";
+            return "Template operation type must not be null when creating operation template.";
         }
         if (source.getOperationType().isEmpty()) {
-            return "Template operation type must not be empty when creating operation template";
+            return "Template operation type must not be empty when creating operation template.";
         }
         if (source.getSignatureType() == null) {
-            return "Template signature types must not be null when creating operation template";
+            return "Template signature types must not be null when creating operation template.";
         }
         if (source.getSignatureType().isEmpty()) {
-            return "Template signature types must contain at least one value";
+            return "Template signature types must contain at least one value.";
         }
         if (hasDuplicate(source.getSignatureType())) {
             return "Template signature types must be unique.";
         }
         if (source.getDataTemplate() == null) {
-            return "Template data must not be null when creating operation template";
+            return "Template data must not be null when creating operation template.";
         }
         if (source.getDataTemplate().isEmpty()) {
-            return "Template data must not be empty when creating operation template";
+            return "Template data must not be empty when creating operation template.";
         }
         if (source.getExpiration() == null) {
-            return "Template expiration value must not be null when creating operation template";
+            return "Template expiration value must not be null when creating operation template.";
         }
         if (source.getExpiration() <= 0) {
-            return "Template expiration value must not be greater than zero";
+            return "Template expiration value must not be greater than zero.";
         }
         if (source.getMaxFailureCount() == null) {
-            return "Template maximum allowed failure count must not be null";
+            return "Template maximum allowed failure count must not be null.";
         }
         if (source.getMaxFailureCount() <= 0) {
-            return "Template maximum allowed failure count must be greater than zero";
+            return "Template maximum allowed failure count must be greater than zero.";
         }
         return null;
     }
