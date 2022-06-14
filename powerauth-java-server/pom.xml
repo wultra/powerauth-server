@@ -24,13 +24,13 @@
     <name>powerauth-java-server</name>
     <description>PowerAuth Server</description>
     <artifactId>powerauth-java-server</artifactId>
-    <version>1.2.0</version>
+    <version>1.3.0</version>
     <packaging>war</packaging>
 
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.2.0</version>
+        <version>1.3.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
@@ -112,7 +112,7 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
-            <version>1.2.0</version>
+            <version>1.3.0</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
@@ -128,6 +128,11 @@
             <groupId>io.getlime.core</groupId>
             <artifactId>rest-client-base</artifactId>
             <version>${powerauth-rest-base.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.getlime.core</groupId>
+            <artifactId>audit-base</artifactId>
+            <version>${powerauth-audit-base.version}</version>
         </dependency>
 
         <!-- Documentation -->
@@ -243,5 +248,17 @@
 
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>standalone</id>
+            <dependencies>
+                <dependency>
+                    <groupId>org.postgresql</groupId>
+                    <artifactId>postgresql</artifactId>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 
 </project>

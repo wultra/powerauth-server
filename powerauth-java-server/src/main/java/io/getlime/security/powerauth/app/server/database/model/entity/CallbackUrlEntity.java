@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
+import io.getlime.security.powerauth.app.server.Application;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
@@ -43,8 +43,9 @@ public class CallbackUrlEntity implements Serializable {
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
-    @Column(name = "application_id", updatable = false, nullable = false)
-    private Long applicationId;
+    @ManyToOne
+    @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
+    private ApplicationEntity application;
 
     @Column(name = "type", nullable = false)
     @Convert(converter = CallbackUrlTypeConverter.class)
@@ -62,7 +63,7 @@ public class CallbackUrlEntity implements Serializable {
 
     @Column(name = "authentication")
     @Convert(converter = CallbackAuthenticationConverter.class)
-    private HttpAuthenticationPrivate authentication;
+    private CallbackUrlAuthenticationEntity authentication;
 
     /**
      * Get the ID of an integration.
@@ -81,19 +82,19 @@ public class CallbackUrlEntity implements Serializable {
     }
 
     /**
-     * Get the application ID.
-     * @return Application ID.
+     * Get the application.
+     * @return Application.
      */
-    public Long getApplicationId() {
-        return applicationId;
+    public ApplicationEntity getApplication() {
+        return application;
     }
 
     /**
-     * Set application ID.
-     * @param applicationId Application ID.
+     * Set application.
+     * @param application Application.
      */
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApplication(ApplicationEntity application) {
+        this.application = application;
     }
 
     /**
@@ -164,7 +165,7 @@ public class CallbackUrlEntity implements Serializable {
      * Get callback request authentication.
      * @return Callback request authentication.
      */
-    public HttpAuthenticationPrivate getAuthentication() {
+    public CallbackUrlAuthenticationEntity getAuthentication() {
         return authentication;
     }
 
@@ -172,7 +173,7 @@ public class CallbackUrlEntity implements Serializable {
      * Set callback request authentication.
      * @param authentication Callback request authentication.
      */
-    public void setAuthentication(HttpAuthenticationPrivate authentication) {
+    public void setAuthentication(CallbackUrlAuthenticationEntity authentication) {
         this.authentication = authentication;
     }
 
@@ -181,11 +182,11 @@ public class CallbackUrlEntity implements Serializable {
         if (this == o) return true;
         if (!(o instanceof CallbackUrlEntity)) return false;
         CallbackUrlEntity that = (CallbackUrlEntity) o;
-        return applicationId.equals(that.applicationId) && type == that.type && callbackUrl.equals(that.callbackUrl);
+        return application.equals(that.application) && name.equals(that.getName()) && type == that.type && callbackUrl.equals(that.callbackUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(applicationId, type, callbackUrl);
+        return Objects.hash(application, name, type, callbackUrl);
     }
 }

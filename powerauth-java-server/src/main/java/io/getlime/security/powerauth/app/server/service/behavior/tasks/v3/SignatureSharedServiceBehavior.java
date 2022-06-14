@@ -123,7 +123,7 @@ public class SignatureSharedServiceBehavior {
      * @throws GenericCryptoException In case of any other cryptography error.
      */
     public SignatureResponse verifySignature(ActivationRecordEntity activation, OnlineSignatureRequest signatureRequest, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
-        List<SignatureType> signatureTypes = Collections.singletonList(signatureRequest.getSignatureType());
+        final List<SignatureType> signatureTypes = Collections.singletonList(signatureRequest.getSignatureType());
         return verifySignatureImpl(activation, signatureRequest.getSignatureData(), signatureTypes, keyConversionUtilities);
     }
 
@@ -160,7 +160,7 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     public void handleInvalidApplicationVersion(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
-        SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
+        final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
         handleInvalidApplicationVersionImpl(activation, signatureRequest.getSignatureData(), signatureType, currentTimestamp);
     }
 
@@ -205,8 +205,8 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     public void handleInvalidSignature(ActivationRecordEntity activation, SignatureResponse verificationResponse, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
-        SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
-        boolean biometryAllowedInOfflineMode = signatureRequest.getSignatureTypes().size() > 1 && signatureRequest.getSignatureTypes().contains(SignatureType.POSSESSION_BIOMETRY);
+        final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
+        final boolean biometryAllowedInOfflineMode = signatureRequest.getSignatureTypes().size() > 1 && signatureRequest.getSignatureTypes().contains(SignatureType.POSSESSION_BIOMETRY);
         handleInvalidSignatureImpl(activation, verificationResponse, signatureRequest.getSignatureData(), signatureType, currentTimestamp, biometryAllowedInOfflineMode);
     }
 
@@ -237,7 +237,7 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     public void handleInactiveActivationSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
-        SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
+        final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
         handleInactiveActivationSignatureImpl(activation, signatureRequest.getSignatureData(), signatureType, currentTimestamp);
     }
 
@@ -248,7 +248,7 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     public void handleInactiveActivationWithMismatchSignature(ActivationRecordEntity activation, OfflineSignatureRequest signatureRequest, Date currentTimestamp) {
-        SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
+        final SignatureType signatureType = signatureRequest.getSignatureTypes().iterator().next();
         handleInactiveActivationWithMismatchSignatureImpl(activation, signatureRequest.getSignatureData(), signatureType, currentTimestamp);
     }
 
@@ -269,22 +269,22 @@ public class SignatureSharedServiceBehavior {
         // Get the server private and device public keys
 
         // Decrypt server private key (depending on encryption mode)
-        String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-        EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+        final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+        final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
         final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-        String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
+        final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
 
         // Decode the keys to byte[]
-        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
-        byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
-        PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
-        PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
+        final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+        final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+        final PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
+        final PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
 
         // Compute the master secret key
-        SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
+        final SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
 
         // Resolve signature version based on activation version and request
-        Integer signatureVersion = resolveSignatureVersion(activation, signatureData.getForcedSignatureVersion());
+        final Integer signatureVersion = resolveSignatureVersion(activation, signatureData.getForcedSignatureVersion());
 
         // Verify the signature with given lookahead
         boolean signatureValid = false;
@@ -298,7 +298,7 @@ public class SignatureSharedServiceBehavior {
         byte[] ctrHash = null;
         // Next hash based counter value used in case signature is valid
         byte[] ctrDataNext = null;
-        HashBasedCounter hashBasedCounter = new HashBasedCounter();
+        final HashBasedCounter hashBasedCounter = new HashBasedCounter();
         // Get counter data from activation for version 3
         if (signatureVersion == 3) {
             ctrHash = BaseEncoding.base64().decode(activation.getCtrDataBase64());
@@ -324,7 +324,7 @@ public class SignatureSharedServiceBehavior {
             for (SignatureType signatureType : signatureTypes) {
                 // Get the signature keys according to the signature type
                 final PowerAuthSignatureTypes powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureType);
-                List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
+                final List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
                 signatureValid = powerAuthServerSignature.verifySignatureForData(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getSignatureFormat());
                 if (signatureValid) {
@@ -378,15 +378,15 @@ public class SignatureSharedServiceBehavior {
         // Update failed attempts and block the activation, if necessary
         if (notPossessionFactorSignature(signatureType)) {
             activation.setFailedAttempts(activation.getFailedAttempts() + 1);
-            long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
+            final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
             if (remainingAttempts <= 0) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
-                activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-                KeyValueMap.Entry entry = new KeyValueMap.Entry();
-                entry.setKey(AdditionalInformation.BLOCKED_REASON);
-                entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+                final KeyValueMap.Entry entry = new KeyValueMap.Entry();
+                entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
+                entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
                 signatureData.getAdditionalInfo().getEntry().add(entry);
                 // notify callback listeners
                 notifyCallbackListeners = true;
@@ -471,8 +471,8 @@ public class SignatureSharedServiceBehavior {
         // and it is unclear which signature type was used to generate the signature because the signature
         // verification failed.
         if (biometryAllowedInOfflineMode) {
-            KeyValueMap.Entry entryBiometry = new KeyValueMap.Entry();
-            entryBiometry.setKey(AdditionalInformation.BIOMETRY_ALLOWED);
+            final KeyValueMap.Entry entryBiometry = new KeyValueMap.Entry();
+            entryBiometry.setKey(AdditionalInformation.Key.BIOMETRY_ALLOWED);
             entryBiometry.setValue("TRUE");
             signatureData.getAdditionalInfo().getEntry().add(entryBiometry);
         }
@@ -480,13 +480,13 @@ public class SignatureSharedServiceBehavior {
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         if (remainingAttempts <= 0) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
-            activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
-            KeyValueMap.Entry entry = new KeyValueMap.Entry();
-            entry.setKey(AdditionalInformation.BLOCKED_REASON);
-            entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+            final KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
+            final KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
+            entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             additionalInfo.getEntry().add(entry);
             // notify callback listeners
             notifyCallbackListeners = true;
@@ -535,24 +535,21 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleInactiveActivationWithMismatchSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Enforce the blocked status on activation
         activation.setActivationStatus(ActivationStatus.BLOCKED);
-        activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
 
         // Save the activation and log change
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
 
         // Prepare data for the signature audit log
-        KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
-        KeyValueMap.Entry entry = new KeyValueMap.Entry();
-        entry.setKey(AdditionalInformation.BLOCKED_REASON);
-        entry.setValue(AdditionalInformation.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
+        final KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
+        final KeyValueMap.Entry entry = new KeyValueMap.Entry();
+        entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
+        entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
         additionalInfo.getEntry().add(entry);
 
         // Create the audit log record

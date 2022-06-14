@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.v3.AddActivationFlagsResponse;
 import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.client.v3.RemoveActivationFlagsResponse;
@@ -49,11 +51,13 @@ public class ActivationFlagsServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
+    private final AuditingServiceBehavior audit;
 
     @Autowired
-    public ActivationFlagsServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider) {
+    public ActivationFlagsServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, AuditingServiceBehavior audit) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
+        this.audit = audit;
     }
 
     /**
@@ -68,13 +72,13 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final ListActivationFlagsResponse response = new ListActivationFlagsResponse();
         ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+        final ListActivationFlagsResponse response = new ListActivationFlagsResponse();
         response.setActivationId(activationId);
         response.getActivationFlags().addAll(activation.getFlags());
         return response;
@@ -93,23 +97,32 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final AddActivationFlagsResponse response = new AddActivationFlagsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        response.setActivationId(activationId);
-        ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
-        List<String> currentFlags = activation.getFlags();
-        List<String> newFlags = activationFlags.stream().filter(flag -> !currentFlags.contains(flag)).collect(Collectors.toList());
-        List<String> allFlags = new ArrayList<>(currentFlags);
-        allFlags.addAll(newFlags);
-        Collections.sort(allFlags);
-        activation.getFlags().clear();
-        activation.getFlags().addAll(allFlags);
-        activationRepository.save(activation);
+        final List<String> currentFlags = activation.getFlags();
+        final List<String> newFlags = activationFlags.stream().filter(flag -> !currentFlags.contains(flag)).collect(Collectors.toList());
+        if (!newFlags.isEmpty()) { // only in case there are new flags
+            final AuditDetail auditDetail = AuditDetail.builder()
+                    .type("activation")
+                    .param("activationId", activationId)
+                    .param("flags", newFlags)
+                    .param("addedFlags", activationFlags)
+                    .build();
+            audit.log(AuditLevel.INFO, "Adding activation flags: {} to activation {}", auditDetail, newFlags, activationId);
+            final List<String> allFlags = new ArrayList<>(currentFlags);
+            allFlags.addAll(newFlags);
+            Collections.sort(allFlags);
+            activation.getFlags().clear();
+            activation.getFlags().addAll(allFlags);
+            activationRepository.save(activation);
+        }
+        final AddActivationFlagsResponse response = new AddActivationFlagsResponse();
+        response.setActivationId(activationId);
         response.getActivationFlags().addAll(activation.getFlags());
         return response;
     }
@@ -127,19 +140,26 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final UpdateActivationFlagsResponse response = new UpdateActivationFlagsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        response.setActivationId(activationId);
-        ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type("activation")
+                .param("activationId", activationId)
+                .param("flags", activationFlags)
+                .build();
+        audit.log(AuditLevel.INFO, "Setting new activation flags: {} to activation {}", auditDetail, activationFlags, activationId);
         Collections.sort(activationFlags);
         activation.getFlags().clear();
         activation.getFlags().addAll(activationFlags);
         activationRepository.save(activation);
+
+        final UpdateActivationFlagsResponse response = new UpdateActivationFlagsResponse();
+        response.setActivationId(activationId);
         response.getActivationFlags().addAll(activationFlags);
         return response;
     }
@@ -157,17 +177,24 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final RemoveActivationFlagsResponse response = new RemoveActivationFlagsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        response.setActivationId(activationId);
-        ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type("activation")
+                .param("activationId", activationId)
+                .param("removedFlags", activationFlags)
+                .build();
+        audit.log(AuditLevel.INFO, "Removing activation flags: {} from activation {}", auditDetail, activationFlags, activationId);
         activation.getFlags().removeAll(activationFlags);
         activationRepository.save(activation);
+
+        final RemoveActivationFlagsResponse response = new RemoveActivationFlagsResponse();
+        response.setActivationId(activationId);
         response.getActivationFlags().addAll(activation.getFlags());
         return response;
     }

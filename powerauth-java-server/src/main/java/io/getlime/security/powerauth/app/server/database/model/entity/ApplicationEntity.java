@@ -40,10 +40,10 @@ public class ApplicationEntity implements Serializable {
     @SequenceGenerator(name = "pa_application", sequenceName = "pa_application_seq")
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application")
     @Column(name = "id")
-    private Long id;
+    private Long rid;
 
     @Column(name = "name", unique = true)
-    private String name;
+    private String id;
 
     @Column(name = "roles")
     @Convert(converter = ApplicationRoleConverter.class)
@@ -51,6 +51,12 @@ public class ApplicationEntity implements Serializable {
 
     @OneToMany(mappedBy = "application")
     private final List<ApplicationVersionEntity> versions = new ArrayList<>();
+
+    @OneToMany(mappedBy = "callbackUrl")
+    private final List<CallbackUrlEntity> callbacks = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application")
+    private final List<RecoveryCodeEntity> recoveryCodes = new ArrayList<>();
 
     /**
      * Default constructor.
@@ -61,17 +67,35 @@ public class ApplicationEntity implements Serializable {
     /**
      * Constructor for a new application.
      *
-     * @param id       Application ID.
-     * @param name     Application name.
+     * @param rid       Application RID.
+     * @param id     Application ID.
      * @param roles    Application roles.
      * @param versions Collection of versions.
      */
-    public ApplicationEntity(Long id, String name, List<String> roles, List<ApplicationVersionEntity> versions) {
+    public ApplicationEntity(Long rid, String id, List<String> roles, List<ApplicationVersionEntity> versions) {
         super();
+        this.rid = rid;
         this.id = id;
-        this.name = name;
         this.roles.addAll(roles);
         this.versions.addAll(versions);
+    }
+
+    /**
+     * Get application RID.
+     *
+     * @return Application RID.
+     */
+    public Long getRid() {
+        return rid;
+    }
+
+    /**
+     * Set application RID.
+     *
+     * @param id Application RID.
+     */
+    public void setRid(Long id) {
+        this.rid = id;
     }
 
     /**
@@ -79,7 +103,7 @@ public class ApplicationEntity implements Serializable {
      *
      * @return Application ID.
      */
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -88,26 +112,8 @@ public class ApplicationEntity implements Serializable {
      *
      * @param id Application ID.
      */
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
-    }
-
-    /**
-     * Get application name.
-     *
-     * @return Application name.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Set application name.
-     *
-     * @param name Application name.
-     */
-    public void setName(String name) {
-        this.name = name;
     }
 
     /**
@@ -126,18 +132,38 @@ public class ApplicationEntity implements Serializable {
         return versions;
     }
 
+    /**
+     * Get the list of callbacks for given application.
+     * @return List of callbacks.
+     */
+    public List<CallbackUrlEntity> getCallbacks() {
+        return callbacks;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ApplicationEntity that = (ApplicationEntity) o;
-        return Objects.equals(name, that.name) &&
+        return Objects.equals(id, that.id) &&
                 Objects.equals(roles, that.roles) &&
                 Objects.equals(versions, that.versions);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, roles, versions);
+        return Objects.hash(id, roles, versions);
+    }
+
+    @Override
+    public String toString() {
+        return "ApplicationEntity{" +
+                "rid=" + rid +
+                ", id='" + id + '\'' +
+                ", roles=" + roles +
+                ", versions=" + versions +
+                ", callbacks=" + callbacks +
+                ", recoveryCodes=" + recoveryCodes +
+                '}';
     }
 }

@@ -18,13 +18,16 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.List;
+
 /**
  * @author Petr Dvorak, petr@wultra.com
  */
 public class OperationListForUserRequest {
 
     private String userId;
-    private Long applicationId;
+    private List<String> applications;
+    private String activationFlag;
 
     public String getUserId() {
         return userId;
@@ -34,11 +37,19 @@ public class OperationListForUserRequest {
         this.userId = userId;
     }
 
-    public Long getApplicationId() {
-        return applicationId;
+    public List<String> getApplications() {
+        return applications;
     }
 
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApplicationId(List<String> applications) {
+        this.applications = applications;
+    }
+
+    public String getActivationFlag() {
+        return activationFlag;
+    }
+
+    public void setActivationFlag(String activationFlag) {
+        this.activationFlag = activationFlag;
     }
 }

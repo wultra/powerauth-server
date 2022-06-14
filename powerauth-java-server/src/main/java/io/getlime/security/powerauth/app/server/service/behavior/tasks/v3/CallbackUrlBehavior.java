@@ -24,9 +24,8 @@ import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -40,11 +39,9 @@ import org.springframework.stereotype.Component;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  * Class that manages the service logic related to callback URL management.
@@ -55,6 +52,7 @@ import java.util.function.Consumer;
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
+    private final ApplicationRepository applicationRepository;
     private LocalizationProvider localizationProvider;
     private PowerAuthServiceConfiguration configuration;
 
@@ -67,10 +65,12 @@ public class CallbackUrlBehavior {
     /**
      * Behavior constructor.
      * @param callbackUrlRepository Callback URL repository.
+     * @param applicationRepository Application repository.
      */
     @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository) {
+    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository) {
         this.callbackUrlRepository = callbackUrlRepository;
+        this.applicationRepository = applicationRepository;
     }
 
     @Autowired
@@ -100,18 +100,27 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
-        CallbackUrlEntity entity = new CallbackUrlEntity();
+        final String applicationId = request.getApplicationId();
+        final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+
+        if (!applicationEntityOptional.isPresent()) {
+            logger.warn("Invalid callback URL application: " + request.getApplicationId());
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
+
+        final CallbackUrlEntity entity = new CallbackUrlEntity();
         entity.setId(UUID.randomUUID().toString());
-        entity.setApplicationId(request.getApplicationId());
+        entity.setApplication(applicationEntityOptional.get());
         entity.setName(request.getName());
         entity.setType(CallbackUrlType.valueOf(request.getType()));
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
-        entity.setAuthentication(request.getAuthentication());
+        entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(request.getAuthentication()));
         callbackUrlRepository.save(entity);
-        CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
+        final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
         response.setId(entity.getId());
-        response.setApplicationId(entity.getApplicationId());
+        response.setApplicationId(entity.getApplication().getId());
         response.setName(entity.getName());
         response.setCallbackUrl(entity.getCallbackUrl());
         if (entity.getAttributes() != null) {
@@ -135,7 +144,7 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
+        final Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
         if (!entityOptional.isPresent()) {
             logger.warn("Invalid callback ID: "+request.getId());
             // Rollback is not required, error occurs before writing to database
@@ -151,13 +160,13 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
-        CallbackUrlEntity entity = entityOptional.get();
+        final CallbackUrlEntity entity = entityOptional.get();
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
         // Retain existing passwords in case new password is not set
-        HttpAuthenticationPrivate authRequest = request.getAuthentication();
-        HttpAuthenticationPrivate authExisting = entity.getAuthentication();
+        final HttpAuthenticationPrivate authRequest = request.getAuthentication();
+        final CallbackUrlAuthenticationEntity authExisting = entity.getAuthentication();
         if (authRequest != null) {
             if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
                 if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
@@ -176,11 +185,12 @@ public class CallbackUrlBehavior {
                 }
             }
         }
-        entity.setAuthentication(authRequest);
+        entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(authRequest));
         callbackUrlRepository.save(entity);
-        UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
+
+        final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
         response.setId(entity.getId());
-        response.setApplicationId(entity.getApplicationId());
+        response.setApplicationId(entity.getApplication().getId());
         response.setName(entity.getName());
         response.setType(entity.getType().toString());
         response.setCallbackUrl(entity.getCallbackUrl());
@@ -198,11 +208,11 @@ public class CallbackUrlBehavior {
      */
     public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) {
         final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(request.getApplicationId());
-        GetCallbackUrlListResponse response = new GetCallbackUrlListResponse();
+        final GetCallbackUrlListResponse response = new GetCallbackUrlListResponse();
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
-            GetCallbackUrlListResponse.CallbackUrlList item = new GetCallbackUrlListResponse.CallbackUrlList();
+            final GetCallbackUrlListResponse.CallbackUrlList item = new GetCallbackUrlListResponse.CallbackUrlList();
             item.setId(callbackUrl.getId());
-            item.setApplicationId(callbackUrl.getApplicationId());
+            item.setApplicationId(callbackUrl.getApplication().getId());
             item.setName(callbackUrl.getName());
             item.setType(callbackUrl.getType().toString());
             item.setCallbackUrl(callbackUrl.getCallbackUrl());
@@ -221,7 +231,7 @@ public class CallbackUrlBehavior {
      * @return Information about removal status.
      */
     public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) {
-        RemoveCallbackUrlResponse response = new RemoveCallbackUrlResponse();
+        final RemoveCallbackUrlResponse response = new RemoveCallbackUrlResponse();
         response.setId(request.getId());
         final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
         if (callbackUrlEntityOptional.isPresent()) {
@@ -242,7 +252,7 @@ public class CallbackUrlBehavior {
             if (activation != null && activation.getApplication() != null) {
                 final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(activation.getApplication().getId(), CallbackUrlType.ACTIVATION_STATUS_CHANGE);
                 for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
-                    Map<String, Object> callbackData = prepareCallbackDataActivation(callbackUrlEntity, activation);
+                    final Map<String, Object> callbackData = prepareCallbackDataActivation(callbackUrlEntity, activation);
                     notifyCallbackUrl(callbackUrlEntity, callbackData);
                 }
             }
@@ -259,7 +269,8 @@ public class CallbackUrlBehavior {
      * @return Callback data to send.
      */
     private Map<String, Object> prepareCallbackDataActivation(CallbackUrlEntity callbackUrlEntity, ActivationRecordEntity activation) {
-        Map<String, Object> callbackData = new HashMap<>();
+        final Map<String, Object> callbackData = new HashMap<>();
+        callbackData.put("type", "ACTIVATION");
         callbackData.put("activationId", activation.getActivationId());
         if (callbackUrlEntity.getAttributes().contains("userId")) {
             callbackData.put("userId", activation.getUserId());
@@ -295,11 +306,15 @@ public class CallbackUrlBehavior {
      */
     public void notifyCallbackListenersOnOperationChange(OperationEntity operation) {
         try {
-            if (operation != null && operation.getApplication() != null) {
-                final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(operation.getApplication().getId(), CallbackUrlType.OPERATION_STATUS_CHANGE);
-                for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
-                    Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
-                    notifyCallbackUrl(callbackUrlEntity, callbackData);
+            if (operation != null && operation.getApplications() != null && !operation.getApplications().isEmpty()) {
+                for (ApplicationEntity application : operation.getApplications()) {
+                    final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(
+                            application.getId(), CallbackUrlType.OPERATION_STATUS_CHANGE
+                    );
+                    for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
+                        final Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
+                        notifyCallbackUrl(callbackUrlEntity, callbackData);
+                    }
                 }
             }
         } catch (RestClientException ex) {
@@ -315,19 +330,29 @@ public class CallbackUrlBehavior {
      * @return Callback data to send.
      */
     private Map<String, Object> prepareCallbackDataOperation(CallbackUrlEntity callbackUrlEntity, OperationEntity operation) {
-        Map<String, Object> callbackData = new HashMap<>();
+        final Map<String, Object> callbackData = new HashMap<>();
+        callbackData.put("type", "OPERATION");
         callbackData.put("operationId", operation.getId());
         if (callbackUrlEntity.getAttributes().contains("userId")) {
             callbackData.put("userId", operation.getUserId());
         }
-        if (callbackUrlEntity.getAttributes().contains("applicationId")) {
-            callbackData.put("applicationId", operation.getApplication().getId());
+        if (callbackUrlEntity.getAttributes().contains("applications")) {
+            final List<String> appIds = operation.getApplications()
+                    .stream().map(ApplicationEntity::getId)
+                    .collect(Collectors.toList());
+            callbackData.put("applications", appIds);
         }
         if (callbackUrlEntity.getAttributes().contains("operationType")) {
             callbackData.put("operationType", operation.getOperationType());
         }
         if (callbackUrlEntity.getAttributes().contains("parameters")) {
             callbackData.put("parameters", operation.getParameters());
+        }
+        if (callbackUrlEntity.getAttributes().contains("additionalData")) {
+            callbackData.put("additionalData", operation.getAdditionalData());
+        }
+        if (callbackUrlEntity.getCallbackUrl().contains("activationFlag")) {
+            callbackData.put("activationFlag", operation.getActivationFlag());
         }
         if (callbackUrlEntity.getAttributes().contains("status")) {
             callbackData.put("status", operation.getStatus());
@@ -368,10 +393,10 @@ public class CallbackUrlBehavior {
      * @throws RestClientException Thrown when HTTP request fails.
      */
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
-        Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
-        Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-        ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<String>(){};
-        RestClient restClient = getRestClient(callbackUrlEntity);
+        final Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
+        final Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
+        final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<String>(){};
+        final RestClient restClient = getRestClient(callbackUrlEntity);
         restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
     }
 
@@ -395,20 +420,20 @@ public class CallbackUrlBehavior {
      * @param callbackUrlEntity Callback URL entity.
      */
     private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        DefaultRestClient.Builder builder = DefaultRestClient.builder();
+        final DefaultRestClient.Builder builder = DefaultRestClient.builder();
         if (configuration.getHttpConnectionTimeout() != null) {
             builder.connectionTimeout(configuration.getHttpConnectionTimeout());
         }
         if (configuration.getHttpProxyEnabled()) {
-            DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
+            final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
             if (configuration.getHttpProxyUsername() != null) {
                 proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
             }
         }
-        HttpAuthenticationPrivate authentication = callbackUrlEntity.getAuthentication();
-        HttpAuthenticationPrivate.Certificate certificateAuth = authentication.getCertificate();
+        final CallbackUrlAuthenticationEntity authentication = callbackUrlEntity.getAuthentication();
+        final CallbackUrlAuthenticationEntity.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
-            DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
+            final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
             if (certificateAuth.isUseCustomKeyStore()) {
                 certificateAuthBuilder.enableCustomKeyStore()
                         .keyStoreLocation(certificateAuth.getKeyStoreLocation())
@@ -422,7 +447,7 @@ public class CallbackUrlBehavior {
                         .trustStorePassword(certificateAuth.getTrustStorePassword());
             }
         }
-        HttpAuthenticationPrivate.HttpBasic httpBasicAuth = authentication.getHttpBasic();
+        final CallbackUrlAuthenticationEntity.HttpBasic httpBasicAuth = authentication.getHttpBasic();
         if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
             builder.httpBasicAuth()
                     .username(httpBasicAuth.getUsername())

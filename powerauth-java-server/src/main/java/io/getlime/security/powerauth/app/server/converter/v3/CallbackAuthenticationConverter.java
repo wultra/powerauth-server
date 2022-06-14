@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server.converter.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -35,7 +35,7 @@ import java.io.IOException;
  */
 @Converter
 @Component
-public class CallbackAuthenticationConverter implements AttributeConverter<HttpAuthenticationPrivate, String> {
+public class CallbackAuthenticationConverter implements AttributeConverter<CallbackUrlAuthenticationEntity, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(CallbackAuthenticationConverter.class);
 
@@ -50,10 +50,10 @@ public class CallbackAuthenticationConverter implements AttributeConverter<HttpA
     }
 
     @Override
-    public String convertToDatabaseColumn(HttpAuthenticationPrivate authentication) {
+    public String convertToDatabaseColumn(CallbackUrlAuthenticationEntity authentication) {
         try {
             if (authentication == null) {
-                authentication = new HttpAuthenticationPrivate();
+                authentication = new CallbackUrlAuthenticationEntity();
             }
             return objectMapper.writeValueAsString(authentication);
         } catch (JsonProcessingException ex) {
@@ -64,15 +64,15 @@ public class CallbackAuthenticationConverter implements AttributeConverter<HttpA
     }
 
     @Override
-    public HttpAuthenticationPrivate convertToEntityAttribute(String authentication) {
+    public CallbackUrlAuthenticationEntity convertToEntityAttribute(String authentication) {
         if (authentication == null) {
-            return new HttpAuthenticationPrivate();
+            return new CallbackUrlAuthenticationEntity();
         }
         try {
-            return objectMapper.readValue(authentication, HttpAuthenticationPrivate.class);
+            return objectMapper.readValue(authentication, CallbackUrlAuthenticationEntity.class);
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload", ex);
-            return new HttpAuthenticationPrivate();
+            return new CallbackUrlAuthenticationEntity();
         }
 
     }

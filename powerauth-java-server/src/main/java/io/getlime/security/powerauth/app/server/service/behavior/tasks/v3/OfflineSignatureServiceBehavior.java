@@ -26,8 +26,10 @@ import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -53,6 +55,7 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Behavior class implementing the signature validation related processes. The class separates the
@@ -194,9 +197,15 @@ public class OfflineSignatureServiceBehavior {
      * @return Response with data for QR code and cryptographic nonce.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(long applicationId, String data, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(String applicationId, String data, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         // Fetch associated master key pair data from the repository
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+        final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+        if (!applicationEntityOptional.isPresent()) {
+            logger.warn("No application found with ID: {}", applicationId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+        }
         final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
         if (masterKeyPair == null) {
             logger.error("No master key pair found for application ID: {}", applicationId);
@@ -338,7 +347,7 @@ public class OfflineSignatureServiceBehavior {
      */
     private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
         // Extract application ID and application roles
-        final Long applicationId = activation.getApplication().getId();
+        final String applicationId = activation.getApplication().getId();
         final List<String> applicationRoles = activation.getApplication().getRoles();
         final List<String> activationFlags = activation.getFlags();
 
@@ -367,7 +376,7 @@ public class OfflineSignatureServiceBehavior {
         // Calculate remaining attempts
         final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         // Extract application ID and application roles
-        final Long applicationId = activation.getApplication().getId();
+        final String applicationId = activation.getApplication().getId();
         final List<String> applicationRoles = activation.getApplication().getRoles();
         final List<String> activationFlags = activation.getFlags();
 

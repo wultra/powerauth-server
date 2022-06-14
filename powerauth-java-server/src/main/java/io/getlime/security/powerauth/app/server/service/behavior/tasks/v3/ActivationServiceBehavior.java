@@ -62,6 +62,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
+import javax.validation.constraints.NotNull;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
@@ -196,7 +197,7 @@ public class ActivationServiceBehavior {
         // If there is no such activation or application does not match the activation application, fail validation
         if (activation == null
                 || !ActivationStatus.CREATED.equals(activation.getActivationStatus())
-                || !Objects.equals(activation.getApplication().getId(), application.getId())) {
+                || !Objects.equals(activation.getApplication().getRid(), application.getRid())) {
             logger.info("Activation state is invalid, activation ID: {}", activation != null ? activation.getActivationId() : "unknown");
             if (rollbackInCaseOfError) {
                 // Rollback is used during createActivation and createActivationUsingRecoveryCode, because activation has just been initialized and it is invalid
@@ -228,7 +229,7 @@ public class ActivationServiceBehavior {
      * @return Response with list of matching activations
      * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public GetActivationListForUserResponse getActivationList(Long applicationId, String userId) throws DatatypeConfigurationException {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId) throws DatatypeConfigurationException {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -265,7 +266,6 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
-                activationServiceItem.setApplicationName(activation.getApplication().getName());
                 // Unknown version is converted to 0 in SOAP
                 activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 response.getActivations().add(activationServiceItem);
@@ -285,7 +285,7 @@ public class ActivationServiceBehavior {
      * @return Response with list of matching activations.
      * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public LookupActivationsResponse lookupActivations(List<String> userIds, List<Long> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws DatatypeConfigurationException {
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws DatatypeConfigurationException {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         if (applicationIds != null && applicationIds.isEmpty()) {
@@ -330,7 +330,6 @@ public class ActivationServiceBehavior {
             activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
             activationServiceItem.setUserId(activation.getUserId());
             activationServiceItem.setApplicationId(activation.getApplication().getId());
-            activationServiceItem.setApplicationName(activation.getApplication().getName());
             // Unknown version is converted to 0 in SOAP
             activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
             response.getActivations().add(activationServiceItem);
@@ -394,6 +393,8 @@ public class ActivationServiceBehavior {
                 // Deactivate old pending activations first
                 deactivatePendingActivation(timestamp, activation, false);
 
+                final String applicationId = activation.getApplication().getId();
+
                 // Handle CREATED activation
                 if (activation.getActivationStatus() == io.getlime.security.powerauth.app.server.database.model.ActivationStatus.CREATED) {
 
@@ -404,9 +405,9 @@ public class ActivationServiceBehavior {
                     String randomStatusBlobNonce = challenge == null ? null : BaseEncoding.base64().encode(keyGenerator.generateRandomBytes(16));
 
                     // Activation signature
-                    MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(activation.getApplication().getId());
+                    MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
                     if (masterKeyPairEntity == null) {
-                        logger.error("Missing key pair for application ID: {}", activation.getApplication().getId());
+                        logger.error("Missing key pair for application ID: {}", applicationId);
                         // Rollback is not required, database is not used for writing
                         throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
                     }
@@ -426,7 +427,7 @@ public class ActivationServiceBehavior {
                     response.setBlockedReason(activation.getBlockedReason());
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
-                    response.setApplicationId(activation.getApplication().getId());
+                    response.setApplicationId(applicationId);
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                     response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -543,7 +544,7 @@ public class ActivationServiceBehavior {
                     response.setActivationName(activation.getActivationName());
                     response.setUserId(activation.getUserId());
                     response.setExtras(activation.getExtras());
-                    response.setApplicationId(activation.getApplication().getId());
+                    response.setApplicationId(applicationId);
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                     response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
@@ -579,7 +580,7 @@ public class ActivationServiceBehavior {
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
-                response.setApplicationId(0L);
+                response.setApplicationId(null);
                 response.setExtras(null);
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
@@ -619,14 +620,15 @@ public class ActivationServiceBehavior {
      * @param userId                    User ID
      * @param maxFailureCount            Maximum failed attempt count (5)
      * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
-     * @param keyConversionUtilities    Utility class for key conversion
      * @param activationOtpValidation   Activation OTP validation mode
      * @param activationOtp             Activation OTP
+     * @param flags                     Activation flags array.
+     * @param keyConversionUtilities    Utility class for key conversion
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Long applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
-                                                 ActivationOtpValidation activationOtpValidation, String activationOtp,
+    public InitActivationResponse initActivation(String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
+                                                 ActivationOtpValidation activationOtpValidation, String activationOtp, List<String> flags,
                                                  KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
@@ -638,13 +640,21 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_USER_ID);
             }
 
-            if (applicationId == 0L) {
+            if (applicationId == null) {
                 logger.warn("Application ID not specified");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_APPLICATION_ID);
             }
 
-            // Application version is not being checked in initActivation, it is checked later in prepareActivation or createActivation.
+            // Find application by application key
+            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+            Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+            if (!applicationEntityOptional.isPresent()) {
+                logger.warn("Application does not exist: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+            final ApplicationEntity applicationEntity = applicationEntityOptional.get();
 
             // Get the repository
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -680,7 +690,7 @@ public class ActivationServiceBehavior {
             final String activationOtpHash = activationOtp == null ? null : PasswordHash.hash(activationOtp.getBytes(StandardCharsets.UTF_8));
 
             // Fetch the latest master private key
-            MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+            MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationEntity.getId());
             if (masterKeyPair == null) {
                 GenericServiceException ex = localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
                 // Rollback is not required, error occurs before writing to database
@@ -758,9 +768,11 @@ public class ActivationServiceBehavior {
             activation.setTimestampCreated(timestamp);
             activation.setTimestampLastUsed(timestamp);
             activation.setTimestampLastChange(null);
-            // Activation version is not known yet
-            activation.setVersion(null);
+            activation.setVersion(null); // Activation version is not known yet
             activation.setUserId(userId);
+            if (flags != null) {
+                activation.getFlags().addAll(flags);
+            }
 
             // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
             ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
@@ -804,11 +816,12 @@ public class ActivationServiceBehavior {
      *
      * @param activationCode Activation code.
      * @param applicationKey Application key.
+     * @param shouldGenerateRecoveryCodes Flag indicating if recovery codes shoud be generated. If null is provided, the system settings are used.
      * @param eciesCryptogram Ecies cryptogram.
      * @return ECIES encrypted activation information.
      * @throws GenericServiceException If invalid values are provided.
      */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, Boolean shouldGenerateRecoveryCodes, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             final Date timestamp = new Date();
@@ -832,11 +845,12 @@ public class ActivationServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
+            final String applicationId = application.getId();
 
             // Get master server private key
-            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", application.getId());
+                logger.error("Missing key pair for application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
@@ -866,7 +880,7 @@ public class ActivationServiceBehavior {
             // Fetch the current activation by activation code
             Set<ActivationStatus> states = ImmutableSet.of(ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
-            ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(application.getId(), activationCode, states, timestamp);
+            ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, timestamp);
 
             // Make sure to deactivate the activation if it is expired
             if (activation == null) {
@@ -924,9 +938,11 @@ public class ActivationServiceBehavior {
             // Create a new recovery code and PUK for new activation if activation recovery is enabled.
             // Perform these operations before writing to database to avoid rollbacks.
             ActivationRecovery activationRecovery = null;
-            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
-            if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, isActive);
+            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
+                final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+                if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                    activationRecovery = createRecoveryCodeForActivation(activation, isActive);
+                }
             }
 
             // Generate activation layer 2 response
@@ -952,7 +968,7 @@ public class ActivationServiceBehavior {
             PrepareActivationResponse encryptedResponse = new PrepareActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
-            encryptedResponse.setApplicationId(application.getId());
+            encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
@@ -986,6 +1002,7 @@ public class ActivationServiceBehavior {
      *
      * @param userId                         User ID
      * @param activationExpireTimestamp      Timestamp after which activation can no longer be completed
+     * @param shouldGenerateRecoveryCodes    Flag indicating if recovery codes should be generated. If null is provided, system settings are used.
      * @param maxFailureCount                Maximum failed attempt count (default = 5)
      * @param applicationKey                 Application key
      * @param eciesCryptogram                ECIES cryptogram
@@ -997,6 +1014,7 @@ public class ActivationServiceBehavior {
     public CreateActivationResponse createActivation(
             String userId,
             Date activationExpireTimestamp,
+            Boolean shouldGenerateRecoveryCodes,
             Long maxFailureCount,
             String applicationKey,
             EciesCryptogram eciesCryptogram,
@@ -1028,11 +1046,13 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
+            final String applicationId = application.getId();
+
             // Prepare activation OTP mode
             final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
 
             // Create an activation record and obtain the activation database record
-            InitActivationResponse initResponse = this.initActivation(application.getId(), userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, keyConversion);
+            InitActivationResponse initResponse = this.initActivation(applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
@@ -1048,9 +1068,9 @@ public class ActivationServiceBehavior {
             validateCreatedActivation(activation, application, true);
 
             // Get master server private key
-            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", application.getId());
+                logger.error("Missing key pair for application ID: {}", applicationId);
                 // Master key pair is missing, rollback this transaction
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
@@ -1115,9 +1135,11 @@ public class ActivationServiceBehavior {
 
             // Create a new recovery code and PUK for new activation if activation recovery is enabled
             ActivationRecovery activationRecovery = null;
-            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
-            if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
-                activationRecovery = createRecoveryCodeForActivation(activation, false);
+            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
+                final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
+                if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                    activationRecovery = createRecoveryCodeForActivation(activation, false);
+                }
             }
 
             // Generate activation layer 2 response
@@ -1139,7 +1161,7 @@ public class ActivationServiceBehavior {
             CreateActivationResponse encryptedResponse = new CreateActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
-            encryptedResponse.setApplicationId(application.getId());
+            encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
@@ -1293,7 +1315,7 @@ public class ActivationServiceBehavior {
         activation.setActivationOtpValidation(io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation.ON_COMMIT);
 
         // Save activation record
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.ACTIVATION_OTP_VALUE_UPDATE);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, AdditionalInformation.Reason.ACTIVATION_OTP_VALUE_UPDATE);
         callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
         UpdateActivationOtpResponse response = new UpdateActivationOtpResponse();
@@ -1382,7 +1404,7 @@ public class ActivationServiceBehavior {
         }
 
         // Save activation state with the reason.
-        final String activationSaveReason = removeActivation ? AdditionalInformation.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.ACTIVATION_OTP_FAILED_ATTEMPT;
+        final String activationSaveReason = removeActivation ? AdditionalInformation.Reason.ACTIVATION_OTP_MAX_FAILED_ATTEMPTS : AdditionalInformation.Reason.ACTIVATION_OTP_FAILED_ATTEMPT;
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId, activationSaveReason);
 
         // Also notify the listeners in case that the state of the activation was changed.
@@ -1406,40 +1428,52 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws GenericServiceException {
-        ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
         if (activation != null) { // does the record even exist?
-            activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            if (revokeRecoveryCodes) {
-                final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-                final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
-                final Date now = new Date();
-                for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
-                    // revoke only codes that are not yet revoked, to avoid messing up with timestamp
-                    if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
-                        recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
-                        recoveryCode.setTimestampLastChange(now);
-                        // Change status of PUKs with status VALID to INVALID
-                        for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
-                            if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
-                                puk.setStatus(RecoveryPukStatus.INVALID);
-                                puk.setTimestampLastChange(now);
-                            }
-                        }
-                        recoveryCodeRepository.save(recoveryCode);
-                    }
-                }
-            }
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-            RemoveActivationResponse response = new RemoveActivationResponse();
-            response.setActivationId(activationId);
-            response.setRemoved(true);
-            return response;
+            return removeActivation(activation, externalUserId, revokeRecoveryCodes);
         } else {
             logger.info("Activation does not exist, activation ID: {}", activationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+    }
+
+    /**
+     * Remove provided activation.
+     *
+     * @param activation Activation entity.
+     * @param externalUserId User ID of user who removed the activation. Use null value if activation owner caused the change.
+     * @param revokeRecoveryCodes Flag that indicates if a recover codes associated with this activation should be also revoked.
+     * @return Response with confirmation of removal.
+     */
+    public RemoveActivationResponse removeActivation(@NotNull ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
+        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
+        if (revokeRecoveryCodes) {
+            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+            final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activation.getActivationId());
+            final Date now = new Date();
+            for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
+                // revoke only codes that are not yet revoked, to avoid messing up with timestamp
+                if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                    recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                    recoveryCode.setTimestampLastChange(now);
+                    // Change status of PUKs with status VALID to INVALID
+                    for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                        if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                            puk.setStatus(RecoveryPukStatus.INVALID);
+                            puk.setTimestampLastChange(now);
+                        }
+                    }
+                    recoveryCodeRepository.save(recoveryCode);
+                }
+            }
+        }
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
+        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+        RemoveActivationResponse response = new RemoveActivationResponse();
+        response.setActivationId(activation.getActivationId());
+        response.setRemoved(true);
+        return response;
     }
 
     /**
@@ -1464,7 +1498,7 @@ public class ActivationServiceBehavior {
         if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             if (reason == null) {
-                activation.setBlockedReason(AdditionalInformation.BLOCKED_REASON_NOT_SPECIFIED);
+                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED);
             } else {
                 activation.setBlockedReason(reason);
             }
@@ -1530,6 +1564,7 @@ public class ActivationServiceBehavior {
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Extract request data
+            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final String recoveryCode = request.getRecoveryCode();
             final String puk = request.getPuk();
             final String applicationKey = request.getApplicationKey();
@@ -1567,8 +1602,10 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
+            final String applicationId = application.getId();
+
             // Check whether activation recovery is enabled
-            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(application.getId());
+            final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
             if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
                 // Rollback is not required, error occurs before writing to database
@@ -1576,9 +1613,9 @@ public class ActivationServiceBehavior {
             }
 
             // Get master server private key
-            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(application.getId());
+            MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
             if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", application.getId());
+                logger.error("Missing key pair for application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
@@ -1606,7 +1643,7 @@ public class ActivationServiceBehavior {
             }
 
             // Get recovery code entity
-            RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(application.getId(), recoveryCode);
+            RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(applicationId, recoveryCode);
             if (recoveryCodeEntity == null) {
                 logger.warn("Recovery code does not exist: {}", recoveryCode);
                 // Rollback is not required, error occurs before writing to database
@@ -1632,7 +1669,7 @@ public class ActivationServiceBehavior {
                         String pukValueFromDB = recoveryPukEntity.getPuk();
                         EncryptionMode encryptionMode = recoveryPukEntity.getPukEncryption();
                         RecoveryPuk recoveryPuk = new RecoveryPuk(encryptionMode, pukValueFromDB);
-                        String pukHash = recoveryPukConverter.fromDBValue(recoveryPuk, application.getId(), recoveryCodeEntity.getUserId(), recoveryCode, recoveryPukEntity.getPukIndex());
+                        String pukHash = recoveryPukConverter.fromDBValue(recoveryPuk, application.getRid(), recoveryCodeEntity.getUserId(), recoveryCode, recoveryPukEntity.getPukIndex());
                         try {
                             if (PasswordHash.verify(pukBytes, pukHash)) {
                                 pukValid = true;
@@ -1681,8 +1718,22 @@ public class ActivationServiceBehavior {
             pukUsedDuringActivation.setTimestampLastChange(new Date());
 
             // If recovery code is bound to an existing activation, remove this activation
-            if (recoveryCodeEntity.getActivationId() != null) {
-                removeActivation(recoveryCodeEntity.getActivationId(), null, true);
+            // and make sure to inherit activation flags of the original activation
+            final List<String> activationFlags = new ArrayList<>();
+            final String recoveryCodeEntityActivationId = recoveryCodeEntity.getActivationId();
+            if (recoveryCodeEntityActivationId != null) {
+                final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(recoveryCodeEntityActivationId);
+                if (activation != null) { // does the record even exist?
+                    final List<String> originalActivationFlags = activation.getFlags();
+                    if (originalActivationFlags != null) {
+                        activationFlags.addAll(originalActivationFlags);
+                    }
+                    removeActivation(activation, null, true);
+                } else {
+                    logger.info("Activation does not exist, activation ID: {}", recoveryCodeEntityActivationId);
+                    // Rollback is not required, database is not used for writing
+                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                }
             }
 
             // Persist recovery code changes
@@ -1694,12 +1745,13 @@ public class ActivationServiceBehavior {
             // Initialize version 3 activation entity.
             // Parameter maxFailureCount can be customized, activationExpireTime is null because activation is committed immediately.
             InitActivationResponse initResponse = initActivation(
-                    application.getId(),
+                    applicationId,
                     recoveryCodeEntity.getUserId(),
                     maxFailureCount,
                     null,
                     activationOtpValidation,
                     activationOtp,
+                    activationFlags.isEmpty() ? null : activationFlags,
                     keyConversion);
             String activationId = initResponse.getActivationId();
             ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
@@ -1749,7 +1801,10 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Create a new recovery code and PUK for new activation
-            ActivationRecovery activationRecovery = createRecoveryCodeForActivation(activation, false);
+            ActivationRecovery activationRecovery = null;
+            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
+                activationRecovery = createRecoveryCodeForActivation(activation, false);
+            }
 
             // Generate activation layer 2 response
             ActivationLayer2Response layer2Response = new ActivationLayer2Response();
@@ -1767,7 +1822,7 @@ public class ActivationServiceBehavior {
             final RecoveryCodeActivationResponse encryptedResponse = new RecoveryCodeActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
             encryptedResponse.setUserId(activation.getUserId());
-            encryptedResponse.setApplicationId(application.getId());
+            encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedDataResponse);
             encryptedResponse.setMac(macResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
@@ -1816,9 +1871,10 @@ public class ActivationServiceBehavior {
             // Prepare repositories
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
 
-            final long applicationId = activationEntity.getApplication().getId();
+            final ApplicationEntity application = activationEntity.getApplication();
             final String activationId = activationEntity.getActivationId();
             final String userId = activationEntity.getUserId();
+            final String applicationId = application.getId();
 
             // Verify activation state
             if (!ActivationStatus.PENDING_COMMIT.equals(activationEntity.getActivationStatus()) && !ActivationStatus.ACTIVE.equals(activationEntity.getActivationStatus())) {
@@ -1844,7 +1900,7 @@ public class ActivationServiceBehavior {
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateRecoveryCodeIterations(); i++) {
                 RecoveryInfo recoveryInfo = identifierGenerator.generateRecoveryCode();
                 // Check that recovery code is unique
-                boolean recoveryCodeExists = recoveryCodeRepository.getRecoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
+                boolean recoveryCodeExists = recoveryCodeRepository.recoveryCodeCount(applicationId, recoveryInfo.getRecoveryCode()) > 0;
                 if (!recoveryCodeExists) {
                     recoveryCode = recoveryInfo.getRecoveryCode();
                     puks = recoveryInfo.getPuks();
@@ -1862,7 +1918,7 @@ public class ActivationServiceBehavior {
             // Create and persist recovery code entity with PUK
             final RecoveryCodeEntity recoveryCodeEntity = new RecoveryCodeEntity();
             recoveryCodeEntity.setUserId(userId);
-            recoveryCodeEntity.setApplicationId(applicationId);
+            recoveryCodeEntity.setApplication(application);
             recoveryCodeEntity.setActivationId(activationId);
             recoveryCodeEntity.setFailedAttempts(0L);
             recoveryCodeEntity.setMaxFailedAttempts(powerAuthServiceConfiguration.getRecoveryMaxFailedAttempts());
@@ -1876,7 +1932,7 @@ public class ActivationServiceBehavior {
             final RecoveryPukEntity recoveryPukEntity = new RecoveryPukEntity();
             recoveryPukEntity.setPukIndex(1L);
             String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
-            RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, applicationId, userId, recoveryCode, recoveryPukEntity.getPukIndex());
+            RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, application.getRid(), userId, recoveryCode, recoveryPukEntity.getPukIndex());
             recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
             recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
             recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);

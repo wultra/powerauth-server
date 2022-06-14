@@ -159,7 +159,7 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
-                <xs:element name="applicationId" type="xs:long" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="applicationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptionKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="encryptionKeyIndex" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="ephemeralPublicKey" type="xs:string" minOccurs="1" maxOccurs="1"/>

@@ -43,23 +43,38 @@ public class OperationEntity implements Serializable {
     @Column(name = "user_id", nullable = false)
     private String userId;
 
-    @ManyToOne
-    @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
-    private ApplicationEntity application;
+    @ManyToMany
+    @JoinTable(
+            name = "pa_operation_application",
+            joinColumns = @JoinColumn(name = "operation_id", referencedColumnName = "id", nullable = false),
+            inverseJoinColumns = @JoinColumn(name = "application_id")
+    )
+    private List<ApplicationEntity> applications;
 
     @Column(name = "external_id")
     private String externalId;
 
+    @Column(name = "activation_flag")
+    private String activationFlag;
+
     @Column(name = "operation_type", nullable = false)
     private String operationType;
+
+    @Column(name = "template_name", nullable = false)
+    private String templateName;
 
     @Column(name = "data", nullable = false)
     private String data;
 
     @SuppressWarnings("JpaAttributeTypeInspection")
     @Column(name = "parameters")
-    @Convert(converter = OperationParameterConverter.class)
+    @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> parameters = new HashMap<>();
+
+    @SuppressWarnings("JpaAttributeTypeInspection")
+    @Column(name = "additional_data")
+    @Convert(converter = MapToJsonConverter.class)
+    private Map<String, String> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
@@ -120,16 +135,16 @@ public class OperationEntity implements Serializable {
      * Get application.
      * @return Application.
      */
-    public ApplicationEntity getApplication() {
-        return application;
+    public List<ApplicationEntity> getApplications() {
+        return applications;
     }
 
     /**
      * Set application ID.
-     * @param applicationId Application ID.
+     * @param applications Applications.
      */
-    public void setApplication(ApplicationEntity applicationId) {
-        this.application = applicationId;
+    public void setApplications(List<ApplicationEntity> applications) {
+        this.applications = applications;
     }
 
     /**
@@ -149,6 +164,22 @@ public class OperationEntity implements Serializable {
     }
 
     /**
+     * Get activation flag required to be present.
+     * @return Activation flag.
+     */
+    public String getActivationFlag() {
+        return activationFlag;
+    }
+
+    /**
+     * Set activation flag required to be present.
+     * @param activationFlag Activation flag.
+     */
+    public void setActivationFlag(String activationFlag) {
+        this.activationFlag = activationFlag;
+    }
+
+    /**
      * Get operation type.
      * @return Operation type.
      */
@@ -162,6 +193,22 @@ public class OperationEntity implements Serializable {
      */
     public void setOperationType(String operationType) {
         this.operationType = operationType;
+    }
+
+    /**
+     * Get template name used when creating this operation.
+     * @return Template name.
+     */
+    public String getTemplateName() {
+        return templateName;
+    }
+
+    /**
+     * Set template name used when creating this operation.
+     * @param templateName Template name.
+     */
+    public void setTemplateName(String templateName) {
+        this.templateName = templateName;
     }
 
     /**
@@ -194,6 +241,22 @@ public class OperationEntity implements Serializable {
      */
     public void setParameters(Map<String, String> parameters) {
         this.parameters = parameters;
+    }
+
+    /**
+     * Get operation additional data set on operation approval or reject.
+     * @return Additional data.
+     */
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
+    }
+
+    /**
+     * Set operation additional data set on operation approval or reject.
+     * @param additionalData Additional data.
+     */
+    public void setAdditionalData(Map<String, String> additionalData) {
+        this.additionalData = additionalData;
     }
 
     /**
@@ -315,16 +378,19 @@ public class OperationEntity implements Serializable {
         OperationEntity that = (OperationEntity) o;
         return id.equals(that.id) // ID is generated on application level
                 && userId.equals(that.userId)
-                && application.equals(that.application)
+                && applications.equals(that.applications)
+                && activationFlag.equals(that.activationFlag)
                 && operationType.equals(that.operationType)
+                && templateName.equals(that.templateName)
                 && data.equals(that.data)
-                && Objects.equals(parameters, that.parameters);
+                && Objects.equals(parameters, that.parameters)
+                && Objects.equals(additionalData, that.additionalData);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                id, userId, application, operationType, data, parameters
+                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData
         );
     }
 
@@ -333,12 +399,16 @@ public class OperationEntity implements Serializable {
         return "OperationEntity{" +
                 "id='" + id + '\'' +
                 ", userId='" + userId + '\'' +
+                ", applications=" + applications +
                 ", externalId='" + externalId + '\'' +
+                ", activationFlag='" + activationFlag + '\'' +
                 ", operationType='" + operationType + '\'' +
+                ", templateName='" + templateName + '\'' +
                 ", data='" + data + '\'' +
-                ", parameters='" + Collections.singletonList(parameters) + '\'' +
+                ", parameters=" + parameters +
+                ", additionalData=" + additionalData +
                 ", status=" + status +
-                ", signatureType='" + Arrays.toString(signatureType) + '\'' +
+                ", signatureType=" + Arrays.toString(signatureType) +
                 ", failureCount=" + failureCount +
                 ", maxFailureCount=" + maxFailureCount +
                 ", timestampCreated=" + timestampCreated +

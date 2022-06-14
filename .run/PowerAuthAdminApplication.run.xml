@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PowerAuthAdminApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" />
+    <option name="DEBUG_MODE" value="true" />
+    <module name="powerauth-admin" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="io.getlime.security.app.admin.PowerAuthAdminApplication" />
+    <option name="VM_PARAMETERS" value="-Dserver.servlet.context-path=/powerauth-admin -Dserver.port=8082" />
+    <option name="WORKING_DIRECTORY" value="file://$MODULE_WORKING_DIR$" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

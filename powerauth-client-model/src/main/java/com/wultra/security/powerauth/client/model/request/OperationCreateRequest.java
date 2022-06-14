@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -28,10 +30,11 @@ import java.util.Map;
 public class OperationCreateRequest {
 
     private String userId;
-    private Long applicationId;
+    private List<String> applications;
+    private String activationFlag;
     private String templateName;
     private String externalId;
-    private Map<String, String> parameters;
+    private final Map<String, String> parameters = new LinkedHashMap<>();
 
     public String getUserId() {
         return userId;
@@ -41,12 +44,20 @@ public class OperationCreateRequest {
         this.userId = userId;
     }
 
-    public Long getApplicationId() {
-        return applicationId;
+    public List<String> getApplications() {
+        return applications;
     }
 
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApplications(List<String> applications) {
+        this.applications = applications;
+    }
+
+    public String getActivationFlag() {
+        return activationFlag;
+    }
+
+    public void setActivationFlag(String activationFlag) {
+        this.activationFlag = activationFlag;
     }
 
     public String getTemplateName() {
@@ -69,7 +80,4 @@ public class OperationCreateRequest {
         return parameters;
     }
 
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
 }

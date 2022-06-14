@@ -50,13 +50,13 @@ public class VerifySignatureConcurrencyTest {
         // Generate test application
         String testId = UUID.randomUUID().toString();
         CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
-        createApplicationRequest.setApplicationName(testId);
+        createApplicationRequest.setApplicationId(testId);
         CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
 
         // Generate test application version
         CreateApplicationVersionRequest createApplicationVersionRequest = new CreateApplicationVersionRequest();
         createApplicationVersionRequest.setApplicationId(createApplicationResponse.getApplicationId());
-        createApplicationVersionRequest.setApplicationVersionName("test");
+        createApplicationVersionRequest.setApplicationVersionId("test");
         CreateApplicationVersionResponse createApplicationVersionResponse = powerAuthService.createApplicationVersion(createApplicationVersionRequest);
 
         // Generate public key for non-existent client device

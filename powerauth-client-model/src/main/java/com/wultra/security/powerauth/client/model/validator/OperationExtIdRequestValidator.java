@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationExtIdRequest;
-import com.wultra.security.powerauth.client.model.request.OperationListForUserRequest;
+import org.springframework.util.StringUtils;
 
 /**
  * Validator for OperationExtIdRequest class.
@@ -32,8 +32,8 @@ public class OperationExtIdRequestValidator {
         if (source == null) {
             return "Operation lookup by external ID request must not be null";
         }
-        if (source.getApplicationId() == null) {
-            return "Application ID must not be null when requesting operation lookup by external ID";
+        if (source.getApplications() == null || source.getApplications().isEmpty()) {
+            return "Application ID must not be null or empty when requesting operation lookup by external ID";
         }
         if (source.getExternalId() == null) {
             return "External ID must not be null when requesting operation lookup by external ID";

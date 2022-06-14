@@ -20,6 +20,9 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 /**
  * Request object for operation approval.
  *
@@ -29,9 +32,10 @@ public class OperationApproveRequest {
 
     private String operationId;
     private String userId;
-    private Long applicationId;
+    private String applicationId;
     private String data;
     private SignatureType signatureType;
+    private final Map<String, String> additionalData = new LinkedHashMap<>();
 
     public String getOperationId() {
         return operationId;
@@ -49,11 +53,11 @@ public class OperationApproveRequest {
         this.userId = userId;
     }
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 
@@ -72,4 +76,9 @@ public class OperationApproveRequest {
     public void setSignatureType(SignatureType signatureType) {
         this.signatureType = signatureType;
     }
+
+    public Map<String, String> getAdditionalData() {
+        return additionalData;
+    }
+
 }

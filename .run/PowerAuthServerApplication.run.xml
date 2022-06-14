@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="PowerAuthServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="powerauth-java-server" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="io.getlime.security.powerauth.app.server.Application" />
+    <option name="VM_PARAMETERS" value="-Dserver.servlet.context-path=/powerauth-java-server" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

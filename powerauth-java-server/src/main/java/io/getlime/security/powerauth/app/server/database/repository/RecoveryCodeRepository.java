@@ -38,8 +38,8 @@ public interface RecoveryCodeRepository extends CrudRepository<RecoveryCodeEntit
      * @param recoveryCode Recovery code.
      * @return Count of recovery codes with given application ID and recovery code.
      */
-    @Query("SELECT COUNT(r) FROM RecoveryCodeEntity r WHERE r.applicationId = :applicationId AND r.recoveryCode = :recoveryCode")
-    Long getRecoveryCodeCount(Long applicationId, String recoveryCode);
+    @Query("SELECT COUNT(r) FROM RecoveryCodeEntity r WHERE r.application.id = :applicationId AND r.recoveryCode = :recoveryCode")
+    Long recoveryCodeCount(String applicationId, String recoveryCode);
 
     /**
      * Find all recovery codes for given user ID.
@@ -63,8 +63,8 @@ public interface RecoveryCodeRepository extends CrudRepository<RecoveryCodeEntit
      * @param userId User ID.
      * @return Recovery codes matching search criteria.
      */
-    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.applicationId = :applicationId AND r.userId = :userId ORDER BY r.timestampCreated DESC")
-    List<RecoveryCodeEntity> findAllByApplicationIdAndUserId(Long applicationId, String userId);
+    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.application.id = :applicationId AND r.userId = :userId ORDER BY r.timestampCreated DESC")
+    List<RecoveryCodeEntity> findAllByApplicationIdAndUserId(String applicationId, String userId);
 
     /**
      * Find all recovery codes for given application ID and user ID.
@@ -72,8 +72,8 @@ public interface RecoveryCodeRepository extends CrudRepository<RecoveryCodeEntit
      * @param activationId Activation ID.
      * @return Recovery codes matching search criteria.
      */
-    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.applicationId = :applicationId AND r.activationId = :activationId ORDER BY r.timestampCreated DESC")
-    List<RecoveryCodeEntity> findAllByApplicationIdAndActivationId(Long applicationId, String activationId);
+    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.application.id = :applicationId AND r.activationId = :activationId ORDER BY r.timestampCreated DESC")
+    List<RecoveryCodeEntity> findAllByApplicationIdAndActivationId(String applicationId, String activationId);
 
     /**
      * Find all recovery codes for given application ID, user ID and activation ID.
@@ -82,8 +82,8 @@ public interface RecoveryCodeRepository extends CrudRepository<RecoveryCodeEntit
      * @param activationId Activation ID.
      * @return Recovery codes matching search criteria.
      */
-    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.applicationId = :applicationId AND r.userId = :userId AND r.activationId = :activationId ORDER BY r.timestampCreated DESC")
-    List<RecoveryCodeEntity> findAllRecoveryCodes(Long applicationId, String userId, String activationId);
+    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.application.id = :applicationId AND r.userId = :userId AND r.activationId = :activationId ORDER BY r.timestampCreated DESC")
+    List<RecoveryCodeEntity> findAllRecoveryCodes(String applicationId, String userId, String activationId);
 
     /**
      * Find recovery code entity for given application ID and recovery code.
@@ -91,6 +91,7 @@ public interface RecoveryCodeRepository extends CrudRepository<RecoveryCodeEntit
      * @param recoveryCode Recovery code.
      * @return Recovery code entity matching search criteria.
      */
-    RecoveryCodeEntity findByApplicationIdAndRecoveryCode(Long applicationId, String recoveryCode);
+    @Query("SELECT r FROM RecoveryCodeEntity r WHERE r.application.id = :applicationId AND r.recoveryCode = :recoveryCode ORDER BY r.timestampCreated DESC")
+    RecoveryCodeEntity findByApplicationIdAndRecoveryCode(String applicationId, String recoveryCode);
 
 }

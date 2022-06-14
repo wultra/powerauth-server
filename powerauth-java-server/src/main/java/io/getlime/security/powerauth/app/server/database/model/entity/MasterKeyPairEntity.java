@@ -231,7 +231,7 @@ public class MasterKeyPairEntity implements Serializable {
                 + ", name=" + name
                 + ", masterKeyPublic=" + masterKeyPublicBase64
                 + ", timestampCreated=" + timestampCreated
-                + ", application=" + application.getId()
+                + ", application=" + application.getRid()
                 + '}';
     }
 
