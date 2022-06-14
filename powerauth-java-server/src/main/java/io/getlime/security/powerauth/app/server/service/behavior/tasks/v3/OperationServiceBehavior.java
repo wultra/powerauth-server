@@ -18,6 +18,8 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -66,6 +68,7 @@ public class OperationServiceBehavior {
     private final ApplicationRepository applicationRepository;
 
     private final ServiceBehaviorCatalogue behavior;
+    private final AuditingServiceBehavior audit;
 
     private LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -78,11 +81,13 @@ public class OperationServiceBehavior {
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
             ApplicationRepository applicationRepository, ServiceBehaviorCatalogue behavior,
+            AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
         this.templateRepository = templateRepository;
         this.applicationRepository = applicationRepository;
         this.behavior = behavior;
+        this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
@@ -162,6 +167,24 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampExpires(timestampExpiration);
         operationEntity.setTimestampFinalized(null); // empty initially
 
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type("operation")
+                .param("id", operationId)
+                .param("userId", userId)
+                .param("applications", applications)
+                .param("externalId", externalId)
+                .param("activationFlag", activationFlag)
+                .param("operationType", templateEntity.getOperationType())
+                .param("template", templateEntity.getTemplateName())
+                .param("data", operationData)
+                .param("parameters", parameters)
+                .param("status", OperationStatusDo.PENDING.name())
+                .param("allowedSignatureType", templateEntity.getSignatureType())
+                .param("maxFailureCount", operationEntity.getMaxFailureCount())
+                .param("timestampExpires", timestampExpiration)
+                .build();
+        audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
+
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
         return convertFromEntity(savedEntity);
@@ -217,6 +240,17 @@ public class OperationServiceBehavior {
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
+            final AuditDetail auditDetail = AuditDetail.builder()
+                    .type("operation")
+                    .param("id", operationId)
+                    .param("userId", userId)
+                    .param("appId", applicationId)
+                    .param("status", operationEntity.getStatus().name())
+                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("failureCount", operationEntity.getFailureCount())
+                    .build();
+            audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
+
             final OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.APPROVED);
             response.setOperation(operationDetailResponse);
@@ -237,6 +271,17 @@ public class OperationServiceBehavior {
 
                 logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
+                final AuditDetail auditDetail = AuditDetail.builder()
+                        .type("operation")
+                        .param("id", operationId)
+                        .param("userId", userId)
+                        .param("appId", applicationId)
+                        .param("status", operationEntity.getStatus().name())
+                        .param("additionalData", operationEntity.getAdditionalData())
+                        .param("failureCount", operationEntity.getFailureCount())
+                        .build();
+                audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
+
                 final OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.APPROVAL_FAILED);
                 response.setOperation(operationDetailResponse);
@@ -252,6 +297,18 @@ public class OperationServiceBehavior {
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
                 logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+
+                final AuditDetail auditDetail = AuditDetail.builder()
+                        .type("operation")
+                        .param("id", operationId)
+                        .param("userId", userId)
+                        .param("appId", applicationId)
+                        .param("status", operationEntity.getStatus().name())
+                        .param("additionalData", operationEntity.getAdditionalData())
+                        .param("failureCount", operationEntity.getFailureCount())
+                        .param("maxFailureCount", operationEntity.getMaxFailureCount())
+                        .build();
+                audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
                 final OperationUserActionResponse response = new OperationUserActionResponse();
                 response.setResult(UserActionResult.OPERATION_FAILED);
@@ -303,12 +360,37 @@ public class OperationServiceBehavior {
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
+            logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+
+            final AuditDetail auditDetail = AuditDetail.builder()
+                    .type("operation")
+                    .param("id", operationId)
+                    .param("userId", userId)
+                    .param("appId", applicationId)
+                    .param("status", operationEntity.getStatus().name())
+                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("failureCount", operationEntity.getFailureCount())
+                    .build();
+            audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
+
             final OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.REJECTED);
             response.setOperation(operationDetailResponse);
             return response;
         } else {
             logger.info("Operation reject failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+
+            final AuditDetail auditDetail = AuditDetail.builder()
+                    .type("operation")
+                    .param("id", operationId)
+                    .param("userId", userId)
+                    .param("appId", applicationId)
+                    .param("failureCount", operationEntity.getFailureCount())
+                    .param("status", operationEntity.getStatus().name())
+                    .param("additionalData", operationEntity.getAdditionalData())
+                    .build();
+            audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
+
             final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
             final OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.REJECT_FAILED);
@@ -350,6 +432,17 @@ public class OperationServiceBehavior {
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
+            logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
+
+            final AuditDetail auditDetail = AuditDetail.builder()
+                    .type("operation")
+                    .param("id", operationId)
+                    .param("failureCount", operationEntity.getFailureCount())
+                    .param("status", operationEntity.getStatus().name())
+                    .param("additionalData", operationEntity.getAdditionalData())
+                    .build();
+            audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
+
             OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.APPROVAL_FAILED);
             response.setOperation(operationDetailResponse);
@@ -363,6 +456,17 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+
+            logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
+
+            final AuditDetail auditDetail = AuditDetail.builder()
+                    .type("operation")
+                    .param("id", operationId)
+                    .param("failureCount", operationEntity.getFailureCount())
+                    .param("status", operationEntity.getStatus().name())
+                    .param("additionalData", operationEntity.getAdditionalData())
+                    .build();
+            audit.log(AuditLevel.INFO, "Operation approval permanently failed via explicit server call with ID: {}", auditDetail, operationId);
 
             OperationUserActionResponse response = new OperationUserActionResponse();
             response.setResult(UserActionResult.OPERATION_FAILED);
@@ -398,6 +502,18 @@ public class OperationServiceBehavior {
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
+
+        logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
+
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type("operation")
+                .param("id", operationId)
+                .param("failureCount", operationEntity.getFailureCount())
+                .param("status", operationEntity.getStatus().name())
+                .param("additionalData", operationEntity.getAdditionalData())
+                .build();
+        audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
+
         return convertFromEntity(savedEntity);
     }
 

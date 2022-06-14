@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2022 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,31 +17,40 @@
  */
 package io.getlime.security.powerauth.app.server.configuration;
 
-import net.javacrumbs.shedlock.core.LockProvider;
-import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import com.wultra.core.audit.base.Audit;
+import com.wultra.core.audit.base.AuditFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.JdbcTemplate;
-
-import javax.sql.DataSource;
 
 /**
- * Configuration for scheduled jobs.
+ * Configuration of auditing for PowerAuth.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Configuration
-public class ScheduledJobConfiguration {
+@ComponentScan(basePackages = {"com.wultra.core.audit.base"})
+public class PowerAuthAuditConfiguration {
 
+    private final AuditFactory auditFactory;
+
+    /**
+     * Configuration constructor.
+     * @param auditFactory Audit factory.
+     */
+    @Autowired
+    public PowerAuthAuditConfiguration(AuditFactory auditFactory) {
+        this.auditFactory = auditFactory;
+    }
+
+    /**
+     * Prepare audit interface.
+     * @return Audit interface.
+     */
     @Bean
-    public LockProvider lockProvider(DataSource dataSource) {
-        return new JdbcTemplateLockProvider(
-                JdbcTemplateLockProvider.Configuration.builder()
-                        .withJdbcTemplate(new JdbcTemplate(dataSource))
-                        .usingDbTime()
-                        .build()
-        );
+    public Audit audit() {
+        return auditFactory.getAudit();
     }
 
 }

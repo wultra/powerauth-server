@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.v3.ActivationHistoryResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
@@ -43,14 +45,16 @@ public class ActivationHistoryServiceBehavior {
     private final ActivationHistoryRepository activationHistoryRepository;
 
     private final ActivationRepository activationRepository;
+    private final AuditingServiceBehavior audit;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository) {
+    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, AuditingServiceBehavior audit) {
         this.activationHistoryRepository = activationHistoryRepository;
         this.activationRepository = activationRepository;
+        this.audit = audit;
     }
 
     /**
@@ -96,6 +100,9 @@ public class ActivationHistoryServiceBehavior {
         activation.getActivationHistory().add(activationHistoryEntity);
         // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
         activationRepository.save(activation);
+
+        logAuditItem(activation, externalUserId, historyEventReason);
+
     }
 
     /**
@@ -132,6 +139,56 @@ public class ActivationHistoryServiceBehavior {
         }
 
         return response;
+    }
+
+    // Private methods
+
+    private void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
+        // Prepare shared parameters
+        final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
+                .type("activation")
+                .param("activationId", activation.getActivationId())
+                .param("userId", activation.getUserId())
+                .param("applicationId", activation.getApplication().getId())
+                .param("status", activation.getActivationStatus())
+                .param("maxFailedAttempts", activation.getMaxFailedAttempts());
+
+        // Handle other than CREATED states with rich info
+        if (activation.getActivationStatus() != ActivationStatus.CREATED) {
+            auditDetailBuilder
+                    .param("activationName", activation.getActivationName())
+                    .param("platform", activation.getPlatform())
+                    .param("failedAttempts", activation.getFailedAttempts())
+                    .param("deviceInfo", activation.getDeviceInfo())
+                    .param("reason", (activation.getActivationStatus() == ActivationStatus.BLOCKED) ? activation.getBlockedReason() : historyEventReason)
+                    .param("activationVersion", activation.getVersion());
+        }
+
+        // Check presence of external user
+        if (externalUserId != null) {
+            auditDetailBuilder
+                    .param("externalUserId", externalUserId);
+        }
+
+        // Build audit log message
+        final AuditDetail auditDetail = auditDetailBuilder.build();
+        switch (activation.getActivationStatus()) {
+            case CREATED: {
+                audit.log(AuditLevel.INFO, "Created activation with ID: {}", auditDetail, activation.getActivationId());
+                return;
+            }
+            case PENDING_COMMIT:
+            case BLOCKED:
+            case ACTIVE: {
+                audit.log(AuditLevel.INFO, "Activation ID: {} is now {}", auditDetail, activation.getActivationId(), activation.getActivationStatus());
+                return;
+            }
+            case REMOVED:
+            default: {
+                audit.log(AuditLevel.INFO, "Removing activation with ID: {}", auditDetail, activation.getActivationId());
+            }
+        }
+
     }
 
 }

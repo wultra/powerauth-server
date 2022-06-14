@@ -18,6 +18,9 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.google.common.io.BaseEncoding;
+import com.wultra.core.audit.base.Audit;
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.v3.SignatureAuditResponse;
 import com.wultra.security.powerauth.client.v3.SignatureType;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
@@ -51,10 +54,35 @@ public class AuditingServiceBehavior {
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final KeyValueMapConverter keyValueMapConverter;
 
+    // Generic auditing capability
+    private final Audit audit;
+
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter, Audit audit) {
         this.signatureAuditRepository = signatureAuditRepository;
         this.keyValueMapConverter = keyValueMapConverter;
+        this.audit = audit;
+    }
+
+    /**
+     * Log information with specified level, message, audit details, and message args.
+     * @param level Level
+     * @param message Message
+     * @param auditDetail Audit detail
+     * @param args Arguments
+     */
+    public void log(AuditLevel level, String message, AuditDetail auditDetail,  Object... args) {
+        audit.log(message, level, auditDetail, args);
+    }
+
+    /**
+     * Log information with specified level, message, audit details, and message args.
+     * @param level Level
+     * @param message Message
+     * @param args Arguments
+     */
+    public void log(AuditLevel level, String message, Object... args) {
+        audit.log(message, level, args);
     }
 
     /**
@@ -76,11 +104,11 @@ public class AuditingServiceBehavior {
             signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForApplicationAndUser(applicationId, userId, startingDate, endingDate);
         }
 
-        SignatureAuditResponse response = new SignatureAuditResponse();
+        final SignatureAuditResponse response = new SignatureAuditResponse();
         if (signatureAuditEntityList != null) {
             for (SignatureEntity signatureEntity : signatureAuditEntityList) {
 
-                SignatureAuditResponse.Items item = new SignatureAuditResponse.Items();
+                final SignatureAuditResponse.Items item = new SignatureAuditResponse.Items();
 
                 item.setId(signatureEntity.getId());
                 item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
@@ -118,14 +146,18 @@ public class AuditingServiceBehavior {
      * @param currentTimestamp Record timestamp.
      */
     public void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Boolean valid, Integer version, String note, Date currentTimestamp) {
+
+        final String additionalInfo = keyValueMapConverter.toString(signatureData.getAdditionalInfo());
+        final String data = BaseEncoding.base64().encode(signatureData.getData());
+
         // Audit the signature
-        SignatureEntity signatureAuditRecord = new SignatureEntity();
+        final SignatureEntity signatureAuditRecord = new SignatureEntity();
         signatureAuditRecord.setActivation(activation);
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
-        signatureAuditRecord.setAdditionalInfo(keyValueMapConverter.toString(signatureData.getAdditionalInfo()));
-        signatureAuditRecord.setDataBase64(BaseEncoding.base64().encode(signatureData.getData()));
+        signatureAuditRecord.setAdditionalInfo(additionalInfo);
+        signatureAuditRecord.setDataBase64(data);
         signatureAuditRecord.setSignature(signatureData.getSignature());
         signatureAuditRecord.setSignatureType(signatureType.value());
         signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
@@ -134,6 +166,30 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setNote(note);
         signatureAuditRecord.setTimestampCreated(currentTimestamp);
         signatureAuditRepository.save(signatureAuditRecord);
+
+        // Store additional audit log
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .param("activationId", activation.getActivationId())
+                .param("applicationId", activation.getApplication().getId())
+                .param("userId", activation.getUserId())
+                .param("valid", valid)
+                .param("counter", activation.getCounter())
+                .param("counterData", activation.getCtrDataBase64())
+                .param("activationStatus", activation.getActivationStatus())
+                .param("additionalInfo", additionalInfo)
+                .param("data", data)
+                .param("signature", signatureData.getSignature())
+                .param("signatureType", signatureType.value())
+                .param("signatureVersion", signatureData.getSignatureVersion())
+                .param("activationVersion", version)
+                .param("note", note)
+                .param("timestamp", currentTimestamp)
+                .build();
+        audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
+                (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
+                activation.getActivationId(),
+                activation.getUserId()
+        );
     }
 
 }
