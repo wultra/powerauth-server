@@ -67,7 +67,9 @@ public class CallbackUrlAuthenticationEntity implements Serializable {
     /**
      * Inner-class with certificate authentication credentials.
      */
-    public static class Certificate {
+    public static class Certificate implements Serializable {
+
+        private static final long serialVersionUID = -3123397103510377094L;
 
         protected boolean enabled;
         protected boolean useCustomKeyStore;
@@ -155,7 +157,9 @@ public class CallbackUrlAuthenticationEntity implements Serializable {
     /**
      * Inner-class with Basic HTTP authentication credentials.
      */
-    public static class HttpBasic {
+    public static class HttpBasic implements Serializable {
+
+        private static final long serialVersionUID = 4449327538548490513L;
 
         protected boolean enabled;
         protected String username;
