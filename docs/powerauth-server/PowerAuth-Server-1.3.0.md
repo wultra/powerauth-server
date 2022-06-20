@@ -260,3 +260,18 @@ We consider the 5-minute interval to still be safe, since the relatively high ac
 ```
 powerauth.service.crypto.activationValidityInMilliseconds=120000
 ```
+
+## Database Dialect Configuration
+
+The latest release of PowerAuth requires configuration of database dialect.
+
+The dialect is specified using following configuration property:
+```properties
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+```
+
+Use the most specific dialect, if possible, such as:
+- `org.hibernate.dialect.Oracle12cDialect` for Oracle 12c or higher
+- `org.hibernate.dialect.PostgreSQL95Dialect` for PostgreSQL 9.5 or higher
+
+You can find additional database dialects in Hibernate documentation.
