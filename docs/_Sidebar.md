@@ -21,6 +21,14 @@
 - [Database Structure](./Database-Structure.md)
 - [Error Codes](./Server-Error-Codes.md)
 
+**PowerAuth Admin**
+
+- [Deploying PowerAuth Admin](./Deploying-PowerAuth-Admin.md)
+- [Deploying PowerAuth Admin on JBoss/Wildfly](./Admin-Deploying-Wildfly.md)
+- [Setting Up LDAP Authentication](./Setting-Up-LDAP-Authentication.md)
+- [Configuration of Activation Recovery](./Activation-Recovery.md)
+- [Configuration Properties](./Configuration-Properties-Admin.md)
+
 **Advanced Topics**
 
 - [Encrypting DB Records](./Encrypting-Records-in-Database.md)
