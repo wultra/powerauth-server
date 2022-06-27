@@ -1977,7 +1977,7 @@ public class ActivationServiceBehavior {
         try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}, revoking recovery codes.", activation.getActivationId());
-                removeActivation(activation, null, true);
+                deactivatePendingActivation(currentTimestamp, activation, false);
             });
         }
     }
