@@ -268,7 +268,7 @@ CREATE TABLE shedlock (
 --
 -- Create audit log table.
 --
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     audit_log_id       VARCHAR(36) PRIMARY KEY,
     application_name   VARCHAR(256) NOT NULL,
     audit_level        VARCHAR(32) NOT NULL,
@@ -287,7 +287,7 @@ CREATE TABLE audit_log (
 --
 -- Create audit parameters table.
 --
-CREATE TABLE audit_param (
+CREATE TABLE IF NOT EXISTS audit_param (
     audit_log_id       VARCHAR(36),
     timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     param_key          VARCHAR(256),
