@@ -28,6 +28,7 @@ import javax.persistence.LockModeType;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Database repository for activation entities.
@@ -167,4 +168,14 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.userId IN :userIds AND ((:applicationIds) IS NULL OR a.application.id IN :applicationIds) AND a.timestampLastUsed < :timestampLastUsedBefore AND a.timestampLastUsed >= :timestampLastUsedAfter AND a.activationStatus IN :states")
     List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
+
+    /**
+     * Fetch all activations that are in a given state, were created after a specified timestamp, and are already expired according to provided current timestamp.
+     * @param states Activation states that are used for the lookup.
+     * @param startingTimestamp Timestamp of when the activation must have been created.
+     * @param currentTimestamp Current timestamp, to see expired operations.
+     * @return Stream of activations.
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampCreated >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
+    Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 }
