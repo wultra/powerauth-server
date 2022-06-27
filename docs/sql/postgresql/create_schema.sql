@@ -259,6 +259,35 @@ CREATE TABLE shedlock (
 );
 
 --
+-- Create audit log table.
+--
+CREATE TABLE IF NOT EXISTS audit_log (
+    audit_log_id       VARCHAR(36) PRIMARY KEY,
+    application_name   VARCHAR(256) NOT NULL,
+    audit_level        VARCHAR(32) NOT NULL,
+    audit_type         VARCHAR(256),
+    timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    message            TEXT NOT NULL,
+    exception_message  TEXT,
+    stack_trace        TEXT,
+    param              TEXT,
+    calling_class      VARCHAR(256) NOT NULL,
+    thread_name        VARCHAR(256) NOT NULL,
+    version            VARCHAR(256),
+    build_time         TIMESTAMP
+);
+
+--
+-- Create audit parameters table.
+--
+CREATE TABLE IF NOT EXISTS audit_param (
+    audit_log_id       VARCHAR(36),
+    timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    param_key          VARCHAR(256),
+    param_value        VARCHAR(4000)
+);
+
+--
 --  Ref Constraints for Table PA_ACTIVATION
 --
 ALTER TABLE pa_activation ADD CONSTRAINT activation_keypair_fk FOREIGN KEY (master_keypair_id) REFERENCES pa_master_keypair (id);
@@ -312,57 +341,69 @@ ALTER TABLE pa_recovery_config ADD CONSTRAINT recovery_config_app_fk FOREIGN KEY
 
 
 ---
---- Indexes for better performance. PostgreSQL does not create indexes on foreign key automatically.
+--- Indexes for better performance. PostgreSQL does not CREATE INDEXes ON foreign key automatically.
 ---
 
-CREATE INDEX PA_ACTIVATION_APPLICATION ON PA_ACTIVATION(APPLICATION_ID);
+CREATE INDEX pa_activation_application ON pa_activation(application_id);
 
-CREATE INDEX PA_ACTIVATION_KEYPAIR ON PA_ACTIVATION(MASTER_KEYPAIR_ID);
+CREATE INDEX pa_activation_keypair ON pa_activation(master_keypair_id);
 
-CREATE INDEX PA_ACTIVATION_CODE ON PA_ACTIVATION(ACTIVATION_CODE);
+CREATE INDEX pa_activation_code ON pa_activation(activation_code);
 
-CREATE INDEX PA_ACTIVATION_USER_ID ON PA_ACTIVATION(USER_ID);
+CREATE INDEX pa_activation_user_id ON pa_activation(user_id);
 
-CREATE INDEX PA_ACTIVATION_HISTORY_ACT ON PA_ACTIVATION_HISTORY(ACTIVATION_ID);
+CREATE INDEX pa_activation_history_act ON pa_activation_history(activation_id);
 
-CREATE INDEX PA_ACTIVATION_HISTORY_CREATED ON PA_ACTIVATION_HISTORY(TIMESTAMP_CREATED);
+CREATE INDEX pa_activation_history_created ON pa_activation_history(timestamp_created);
 
-CREATE INDEX PA_APPLICATION_VERSION_APP ON PA_APPLICATION_VERSION(APPLICATION_ID);
+CREATE INDEX pa_application_version_app ON pa_application_version(application_id);
 
-CREATE INDEX PA_MASTER_KEYPAIR_APPLICATION ON PA_MASTER_KEYPAIR(APPLICATION_ID);
+CREATE INDEX pa_master_keypair_application ON pa_master_keypair(application_id);
 
-CREATE UNIQUE INDEX PA_APP_VERSION_APP_KEY ON PA_APPLICATION_VERSION(APPLICATION_KEY);
+CREATE UNIQUE INDEX pa_app_version_app_key ON pa_application_version(application_key);
 
-CREATE INDEX PA_APP_CALLBACK_APP ON PA_APPLICATION_CALLBACK(APPLICATION_ID);
+CREATE INDEX pa_app_callback_app ON pa_application_callback(application_id);
 
-CREATE UNIQUE INDEX PA_INTEGRATION_TOKEN ON PA_INTEGRATION(CLIENT_TOKEN);
+CREATE UNIQUE INDEX pa_integration_token ON pa_integration(client_token);
 
-CREATE INDEX PA_SIGNATURE_AUDIT_ACTIVATION ON PA_SIGNATURE_AUDIT(ACTIVATION_ID);
+CREATE INDEX pa_signature_audit_activation ON pa_signature_audit(activation_id);
 
-CREATE INDEX PA_SIGNATURE_AUDIT_CREATED ON PA_SIGNATURE_AUDIT(TIMESTAMP_CREATED);
+CREATE INDEX pa_signature_audit_created ON pa_signature_audit(timestamp_created);
 
-CREATE INDEX PA_TOKEN_ACTIVATION ON PA_TOKEN(ACTIVATION_ID);
+CREATE INDEX pa_token_activation ON pa_token(activation_id);
 
-CREATE INDEX PA_RECOVERY_CODE_CODE ON PA_RECOVERY_CODE(RECOVERY_CODE);
+CREATE INDEX pa_recovery_code_code ON pa_recovery_code(recovery_code);
 
-CREATE INDEX PA_RECOVERY_CODE_APP ON PA_RECOVERY_CODE(APPLICATION_ID);
+CREATE INDEX pa_recovery_code_app ON pa_recovery_code(application_id);
 
-CREATE INDEX PA_RECOVERY_CODE_USER ON PA_RECOVERY_CODE(USER_ID);
+CREATE INDEX pa_recovery_code_user ON pa_recovery_code(user_id);
 
-CREATE INDEX PA_RECOVERY_CODE_ACT ON PA_RECOVERY_CODE(ACTIVATION_ID);
+CREATE INDEX pa_recovery_code_act ON pa_recovery_code(activation_id);
 
-CREATE UNIQUE INDEX PA_RECOVERY_CODE_PUK ON PA_RECOVERY_PUK(RECOVERY_CODE_ID, PUK_INDEX);
+CREATE UNIQUE INDEX pa_recovery_code_puk ON pa_recovery_puk(recovery_code_id, puk_index);
 
-CREATE INDEX PA_RECOVERY_PUK_CODE ON PA_RECOVERY_PUK(RECOVERY_CODE_ID);
+CREATE INDEX pa_recovery_puk_code ON pa_recovery_puk(recovery_code_id);
 
-CREATE UNIQUE INDEX PA_RECOVERY_CONFIG_APP ON PA_RECOVERY_CONFIG(APPLICATION_ID);
+CREATE UNIQUE INDEX pa_recovery_config_app ON pa_recovery_config(application_id);
 
-CREATE UNIQUE INDEX PA_APPLICATION_NAME ON PA_APPLICATION(NAME);
+CREATE UNIQUE INDEX pa_application_name ON pa_application(name);
 
-CREATE INDEX PA_OPERATION_USER ON PA_OPERATION(USER_ID);
+CREATE INDEX pa_operation_user ON pa_operation(user_id);
 
-CREATE INDEX PA_OPERATION_TS_CREATED_IDX ON PA_OPERATION(TIMESTAMP_CREATED);
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created);
 
-CREATE INDEX PA_OPERATION_TS_EXPIRES_IDX ON PA_OPERATION(TIMESTAMP_EXPIRES);
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 
-CREATE INDEX PA_OPERATION_TEMPLATE_NAME_IDX ON PA_OPERATION_TEMPLATE(TEMPLATE_NAME);
+CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
+
+--
+-- Auditing indexes.
+--
+CREATE INDEX audit_log_timestamp ON audit_log (timestamp_created);
+CREATE INDEX audit_log_application ON audit_log (application_name);
+CREATE INDEX audit_log_level ON audit_log (audit_level);
+CREATE INDEX audit_log_type ON audit_log (audit_type);
+CREATE INDEX audit_param_log ON audit_param (audit_log_id);
+CREATE INDEX audit_param_timestamp ON audit_param (timestamp_created);
+CREATE INDEX audit_param_key ON audit_param (param_key);
+CREATE INDEX audit_param_value ON audit_param (param_value);
