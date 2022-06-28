@@ -170,12 +170,12 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
     List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states);
 
     /**
-     * Fetch all activations that are in a given state, were created after a specified timestamp, and are already expired according to provided current timestamp.
+     * Fetch all activations that are in a given state, were expired after a specified timestamp, and are already expired according to a provided current timestamp.
      * @param states Activation states that are used for the lookup.
-     * @param startingTimestamp Timestamp of when the activation must have been created.
-     * @param currentTimestamp Current timestamp, to see expired operations.
+     * @param startingTimestamp Timestamp after which the activation was expired.
+     * @param currentTimestamp Current timestamp, to identify already expired operations.
      * @return Stream of activations.
      */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampCreated >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampActivationExpire >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 }
