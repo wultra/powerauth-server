@@ -120,7 +120,7 @@ public class PowerAuthServiceConfiguration {
     /**
      * How many milliseconds should the activation cleanup job look to the past.
      */
-    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds}")
+    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds:3600000}")
     @Min(0)
     private int activationsCleanupLookBackInMilliseconds;
 
