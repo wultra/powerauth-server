@@ -112,6 +112,10 @@ Create tables for auditing:
 - `audit_log` - table used to store audit logs
 - `audit_param` - table used to store detailed parameters for audit logs
 
+<!-- begin box warning -->
+The auditing tables may be already present in your database schema in case the database schema is not separated for different PowerAuth applications. You might have also added these tables as part of migration to release `1.2.5` before these duplicate migration instructions were removed. In case tables `audit_log` and `audit_param` are already present, you can safely skip this migration step.
+<!-- end -->
+
 ### Oracle
 
 ```sql
@@ -163,7 +167,7 @@ CREATE INDEX audit_param_value ON audit_param (param_value);
 --
 -- Create audit log table.
 --
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     audit_log_id       VARCHAR(36) PRIMARY KEY,
     application_name   VARCHAR(256) NOT NULL,
     audit_level        VARCHAR(32) NOT NULL,
@@ -182,7 +186,7 @@ CREATE TABLE audit_log (
 --
 -- Create audit parameters table.
 --
-CREATE TABLE audit_param (
+CREATE TABLE IF NOT EXISTS audit_param (
     audit_log_id       VARCHAR(36),
     timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     param_key          VARCHAR(256),
@@ -208,7 +212,7 @@ CREATE INDEX audit_param_value ON audit_param (param_value);
 --
 -- Create audit log table.
 --
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     audit_log_id       VARCHAR(36) PRIMARY KEY,
     application_name   VARCHAR(256) NOT NULL,
     audit_level        VARCHAR(32) NOT NULL,
@@ -227,7 +231,7 @@ CREATE TABLE audit_log (
 --
 -- Create audit parameters table.
 --
-CREATE TABLE audit_param (
+CREATE TABLE IF NOT EXISTS audit_param (
     audit_log_id       VARCHAR(36),
     timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     param_key          VARCHAR(256),
