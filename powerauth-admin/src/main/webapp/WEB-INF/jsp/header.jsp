@@ -44,6 +44,9 @@
                 <ul class="nav navbar-nav navbar-right">
                     <li><a href="${pageContext.request.contextPath}/logout">Logout</a></li>
                 </ul>
+                <p class="navbar-text navbar-right gray">
+                    <strong><c:out value="${pageContext.request.userPrincipal.name}"/></strong>
+                </p>
             </c:if>
         </div>
         <!--/.nav-collapse -->
