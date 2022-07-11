@@ -16,11 +16,10 @@
 
 package io.getlime.security.app.admin.configuration;
 
-import io.getlime.security.app.admin.security.SecurityMethod;
+import io.getlime.security.app.admin.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configurers.ldap.LdapAuthenticationProviderConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
@@ -33,10 +32,14 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final ApplicationConfiguration configuration;
+    private final LdapConfiguration ldapConfiguration;
+    private final ActiveDirectoryConfiguration activeDirectoryConfiguration;
 
     @Autowired
-    public WebSecurityConfig(ApplicationConfiguration configuration) {
+    public WebSecurityConfig(ApplicationConfiguration configuration, LdapConfiguration ldapConfiguration, ActiveDirectoryConfiguration activeDirectoryConfiguration) {
         this.configuration = configuration;
+        this.ldapConfiguration = ldapConfiguration;
+        this.activeDirectoryConfiguration = activeDirectoryConfiguration;
     }
 
     @Override
@@ -54,49 +57,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         }
     }
 
-    @Autowired
+    @Override
     public void configure(AuthenticationManagerBuilder auth) throws Exception {
-        if (SecurityMethod.isLdap(configuration.getSecurityMethod())) {
-
-            LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder> ldapAuthentication = auth.ldapAuthentication();
-            if (!configuration.getLdapGroupRoleAttribute().isEmpty()) {
-                ldapAuthentication = ldapAuthentication.groupRoleAttribute(configuration.getLdapGroupRoleAttribute());
-            }
-            if (!configuration.getLdapGroupSearchBase().isEmpty()) {
-                ldapAuthentication = ldapAuthentication.groupSearchBase(configuration.getLdapGroupSearchBase());
-            }
-            if (!configuration.getLdapGroupSearchFilter().isEmpty()) {
-                ldapAuthentication = ldapAuthentication.groupSearchFilter(configuration.getLdapGroupSearchFilter());
-            }
-            if (!configuration.getLdapUserDNPatterns().isEmpty()) {
-                ldapAuthentication = ldapAuthentication.userDnPatterns(configuration.getLdapUserDNPatterns());
-            }
-            if (!configuration.getLdapUserSearchBase().isEmpty()) {
-                ldapAuthentication = ldapAuthentication.userSearchBase(configuration.getLdapUserSearchBase());
-            }
-            if (!configuration.getLdapUserSearchFilter().isEmpty()) {
-                ldapAuthentication = ldapAuthentication.userSearchFilter(configuration.getLdapUserSearchFilter());
-            }
-
-            LdapAuthenticationProviderConfigurer<AuthenticationManagerBuilder>.ContextSourceBuilder contextSource = ldapAuthentication.contextSource();
-            if (!configuration.getLdapUrl().isEmpty()) {
-                contextSource.url(configuration.getLdapUrl());
-            }
-            if (!configuration.getLdapPort().isEmpty()) {
-                contextSource.port(Integer.parseInt(configuration.getLdapPort()));
-            }
-            if (!configuration.getLdapRoot().isEmpty()) {
-                contextSource.root(configuration.getLdapRoot());
-            }
-            if (!configuration.getLdapLdif().isEmpty()) {
-                contextSource.ldif(configuration.getLdapLdif());
-            }
-            if (!configuration.getLdapManagerDN().isEmpty()) {
-                contextSource.managerDn(configuration.getLdapManagerDN());
-            }
-            if (!configuration.getLdapManagerPassword().isEmpty()) {
-                contextSource.managerPassword(configuration.getLdapManagerPassword());
-            }
+        final String securityMethod = configuration.getSecurityMethod();
+        if (SecurityUtil.isLdap(securityMethod)) {
+            SecurityUtil.configureLdap(auth, ldapConfiguration);
+        } else if (SecurityUtil.isActiveDirectory(securityMethod)) {
+            SecurityUtil.configureActiveDirectory(auth, activeDirectoryConfiguration);
         }
     }
 
