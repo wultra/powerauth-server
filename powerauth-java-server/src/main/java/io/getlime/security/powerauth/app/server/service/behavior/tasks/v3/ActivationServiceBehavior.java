@@ -56,10 +56,14 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import javax.validation.constraints.NotNull;
@@ -75,6 +79,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Behavior class implementing processes related with activations. Used to move the
@@ -1954,6 +1959,26 @@ public class ActivationServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
+
+    // Scheduled tasks
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
+    @SchedulerLock(name = "expireActivationsTask")
+    @Transactional
+    public void expireOperations() {
+        LockAssert.assertLocked();
+        final Date currentTimestamp = new Date();
+        final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
+        logger.debug("Running scheduled task for expiring activations");
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final ImmutableSet<ActivationStatus> activationStatuses = ImmutableSet.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
+        try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
+            abandonedActivations.forEach(activation -> {
+                logger.info("Removing abandoned activation with ID: {}, revoking recovery codes.", activation.getActivationId());
+                deactivatePendingActivation(currentTimestamp, activation, false);
+            });
         }
     }
 

@@ -716,7 +716,7 @@ public class OperationServiceBehavior {
 
     // Scheduled tasks
 
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup}")
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup:5000}")
     @SchedulerLock(name = "expireOperationsTask")
     @Transactional
     public void expireOperations() {
