@@ -11,7 +11,7 @@ Migration from release `1.2.x` of PowerAuth server to release `1.3.x` is split i
 
 In earlier versions of PowerAuth Server, we addressed applications via their numeric (`Long`) database record ID. This proved to be problematic, since the same application had different IDs on different environments. In 1.3.x and further, we now address applications via ID equal to their string name (contents of the `name` column in `pa_application` table), and we now call this value "application ID".
 
-<!-- begin box warn -->
+<!-- begin box warning -->
 We highly recommend renaming the application in the database by editing `pa_application.name` column, so that the name is in a technical format, i.e., "mobile-token-retail", rather than in human readable name, such as "Mobile Token For Retail Clients".
 <!-- end -->
 
