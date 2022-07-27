@@ -7,6 +7,18 @@ Migration from release `1.2.x` of PowerAuth server to release `1.3.x` is split i
 - [Migration from 1.2.x to 1.2.5](./PowerAuth-Server-1.2.5.md) - apply these steps for upgrade to version `1.2.5`
 - Migration from 1.2.5 to 1.3.x (this document) - apply steps below for upgrade from version `1.2.5` to version `1.3.x`
 
+## Change in Application ID (breaking change)
+
+In earlier versions of PowerAuth Server, we addressed applications via their numeric (`Long`) database record ID. This proved to be problematic, since the same application had different IDs on different environments. In 1.3.x and further, we now address applications via ID equal to their string name (contents of the `name` column in `pa_application` table), and we now call this value "application ID".
+
+<!-- begin box warn -->
+We highly recommend renaming the application in the database by editing `pa_application.name` column, so that the name is in a technical format, i.e., "mobile-token-retail", rather than in human readable name, such as "Mobile Token For Retail Clients".
+<!-- end -->
+
+This change is consistently reflected in all other parts of PowerAuth stack, i.e., in Push Server or Web Flow.
+
+In case your system needs to store IDs of application, you need to reflect this change. It is no longer possible to access applications using their numeric database record ID.
+
 ## Database Changes
 
 ### Relation Between Operations and Applications
