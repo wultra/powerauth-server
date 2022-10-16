@@ -154,7 +154,7 @@
                         </configuration>
                     </plugin>
                 </plugins>
-                </build>
+            </build>
         </profile>
     </profiles>
 
