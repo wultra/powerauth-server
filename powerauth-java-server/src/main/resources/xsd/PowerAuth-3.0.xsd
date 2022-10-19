@@ -1237,6 +1237,8 @@
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="tokenValid" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="activationStatus" type="tns:ActivationStatus" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="blockedReason" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="activationId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="userId" type="xs:string" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="applicationId" type="xs:string" minOccurs="0" maxOccurs="1"/>

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
@@ -82,6 +83,7 @@ public class TokenBehavior {
 
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+    private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     private final ObjectMapper objectMapper;
 
@@ -274,31 +276,26 @@ public class TokenBehavior {
 
             // Check if the activation is in correct state
             final ActivationRecordEntity activation = token.getActivation();
+            final byte[] tokenSecret = BaseEncoding.base64().decode(token.getTokenSecret());
+            final boolean isTokenValid;
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
-
-            final byte[] tokenSecret = BaseEncoding.base64().decode(token.getTokenSecret());
-
-            final boolean isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
-
-            if (isTokenValid) {
-                final ValidateTokenResponse response = new ValidateTokenResponse();
-                response.setTokenValid(true);
-                response.setActivationId(activation.getActivationId());
-                response.setApplicationId(activation.getApplication().getId());
-                response.getApplicationRoles().addAll(activation.getApplication().getRoles());
-                response.getActivationFlags().addAll(activation.getFlags());
-                response.setUserId(activation.getUserId());
-                response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
-                return response;
+                isTokenValid = false;
             } else {
-                final ValidateTokenResponse response = new ValidateTokenResponse();
-                response.setTokenValid(false);
-                return response;
+                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
             }
+
+            final ValidateTokenResponse response = new ValidateTokenResponse();
+            response.setTokenValid(isTokenValid);
+            response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
+            response.setBlockedReason(activation.getBlockedReason());
+            response.setActivationId(activation.getActivationId());
+            response.setApplicationId(activation.getApplication().getId());
+            response.getApplicationRoles().addAll(activation.getApplication().getRoles());
+            response.getActivationFlags().addAll(activation.getFlags());
+            response.setUserId(activation.getUserId());
+            response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
+            return response;
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
