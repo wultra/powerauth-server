@@ -21,7 +21,7 @@ After change:
 ```java
 try {
     final ValidateTokenResponse response = powerauthClient.validateToken(request);
-    if (response.activationStatus != ActivationStatus.ACTIVE) {
+    if (response.getActivationStatus() != ActivationStatus.ACTIVE) {
         // error handling for inactive activations
     }
 } catch (PowerAuthClientException ex) {
