@@ -6,4 +6,4 @@ This guide contains instructions for migration from PowerAuth Server version `1.
 
 In earlier versions of PowerAuth Server, the token verification endpoint `/rest/v3/token/validate` returned an error in case the activation used by the token was not active. In order to always return activation status as part of the response, we changed the endpoint behaviour and removed the error handling for inactive activations. This change unifies the business logic with signature verification endpoint.
 
-Adaptation to this change is required only in case this endpoint is called directly on PowerAuth server. In case you use the @PowerAuthToken annotation for token validation, no changes are required.
+Adaptation to this change is required only in case this endpoint is called directly on PowerAuth server. In case you use the `@PowerAuthToken` annotation for token validation, no changes are required.
