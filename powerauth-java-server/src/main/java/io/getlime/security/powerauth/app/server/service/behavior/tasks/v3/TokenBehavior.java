@@ -287,7 +287,7 @@ public class TokenBehavior {
 
             final ValidateTokenResponse response = new ValidateTokenResponse();
             response.setTokenValid(isTokenValid);
-            response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.ACTIVE));
+            response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             response.setBlockedReason(activation.getBlockedReason());
             response.setActivationId(activation.getActivationId());
             response.setApplicationId(activation.getApplication().getId());
