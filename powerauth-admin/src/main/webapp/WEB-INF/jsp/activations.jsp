@@ -194,8 +194,8 @@
                                     <a class="black"
                                        href='${pageContext.request.contextPath}/application/detail/<c:out value="${item.applicationId}"/>#versions'>
                                         <c:forEach items="${applications}" var="application">
-                                            <c:if test="${application.id == item.applicationId}">
-                                                <c:out value="${application.applicationName}"/>
+                                            <c:if test="${application.applicationId == item.applicationId}">
+                                                <c:out value="${application.applicationId}"/>
                                             </c:if>
                                         </c:forEach>
                                     </a>
