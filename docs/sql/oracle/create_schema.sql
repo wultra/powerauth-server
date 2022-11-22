@@ -250,17 +250,19 @@ CREATE TABLE pa_operation_application (
 --
 -- DDL for Table SHEDLOCK
 --
-CREATE TABLE shedlock (
+BEGIN EXECUTE IMMEDIATE 'CREATE TABLE shedlock (
     name       VARCHAR(64)  NOT NULL PRIMARY KEY,
     lock_until TIMESTAMP(3) NOT NULL,
     locked_at  TIMESTAMP(3) NOT NULL,
     locked_by  VARCHAR(255) NOT NULL
-);
+)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
 
 --
 -- Create audit log table.
 --
-CREATE TABLE audit_log (
+BEGIN EXECUTE IMMEDIATE 'CREATE TABLE audit_log (
     audit_log_id       VARCHAR2(36 CHAR) PRIMARY KEY,
     application_name   VARCHAR2(256 CHAR) NOT NULL,
     audit_level        VARCHAR2(32 CHAR) NOT NULL,
@@ -274,17 +276,21 @@ CREATE TABLE audit_log (
     thread_name        VARCHAR2(256 CHAR) NOT NULL,
     version            VARCHAR2(256 CHAR),
     build_time         TIMESTAMP
-);
+)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
 
 --
 -- Create audit parameters table.
 --
-CREATE TABLE audit_param (
+BEGIN EXECUTE IMMEDIATE 'CREATE TABLE audit_param (
     audit_log_id       VARCHAR2(36 CHAR),
     timestamp_created  TIMESTAMP,
     param_key          VARCHAR2(256 CHAR),
     param_value        VARCHAR2(4000 CHAR)
-);
+)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
 
 --
 --  Ref Constraints for Table PA_ACTIVATION
@@ -398,11 +404,34 @@ CREATE INDEX PA_OPERATION_TEMPLATE_NAME_IDX ON PA_OPERATION_TEMPLATE(TEMPLATE_NA
 --
 -- Auditing indexes.
 --
-CREATE INDEX audit_log_timestamp ON audit_log (timestamp_created);
-CREATE INDEX audit_log_application ON audit_log (application_name);
-CREATE INDEX audit_log_level ON audit_log (audit_level);
-CREATE INDEX audit_log_type ON audit_log (audit_type);
-CREATE INDEX audit_param_log ON audit_param (audit_log_id);
-CREATE INDEX audit_param_timestamp ON audit_param (timestamp_created);
-CREATE INDEX audit_param_key ON audit_param (param_key);
-CREATE INDEX audit_param_value ON audit_param (param_value);
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_log_timestamp ON audit_log (timestamp_created)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_log_application ON audit_log (application_name)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_log_level ON audit_log (audit_level)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_log_type ON audit_log (audit_type)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_param_log ON audit_param (audit_log_id)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_param_timestamp ON audit_param (timestamp_created)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_param_key ON audit_param (param_key)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
+
+BEGIN EXECUTE IMMEDIATE 'CREATE INDEX audit_param_value ON audit_param (param_value)';
+EXCEPTION WHEN OTHERS THEN IF SQLCODE != -955 THEN RAISE; END IF; END;
+/
