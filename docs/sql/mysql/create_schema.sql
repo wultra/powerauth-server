@@ -227,6 +227,7 @@ CREATE TABLE pa_operation (
     timestamp_created datetime NOT NULL,
     timestamp_expires datetime NOT NULL,
     timestamp_finalized datetime NULL,
+    risk_flags varchar(255),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -241,6 +242,7 @@ CREATE TABLE pa_operation_template (
     signature_type varchar(255) NOT NULL,
     max_failure_count bigint(20) NOT NULL,
     expiration bigint(20) NOT NULL,
+    risk_flags varchar(255),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 

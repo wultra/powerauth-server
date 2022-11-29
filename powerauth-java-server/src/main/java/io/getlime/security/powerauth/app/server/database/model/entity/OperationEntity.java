@@ -99,6 +99,9 @@ public class OperationEntity implements Serializable {
     @Column(name = "timestamp_finalized")
     private Date timestampFinalized;
 
+    @Column(name = "risk_flags")
+    private String riskFlags;
+
     /**
      * Get operation ID.
      * @return Operation ID.
@@ -371,6 +374,24 @@ public class OperationEntity implements Serializable {
         this.timestampFinalized = timestampFinalized;
     }
 
+    /**
+     * Get risk flags.
+     *
+     * @return Risk flags.
+     */
+    public String getRiskFlags() {
+        return riskFlags;
+    }
+
+    /**
+     * Set risk flags.
+     *
+     * @param riskFlags Risk flags.
+     */
+    public void setRiskFlags(String riskFlags) {
+        this.riskFlags = riskFlags;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -384,13 +405,14 @@ public class OperationEntity implements Serializable {
                 && templateName.equals(that.templateName)
                 && data.equals(that.data)
                 && Objects.equals(parameters, that.parameters)
-                && Objects.equals(additionalData, that.additionalData);
+                && Objects.equals(additionalData, that.additionalData)
+                && Objects.equals(riskFlags, that.riskFlags);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData
+                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData, riskFlags
         );
     }
 
@@ -414,6 +436,7 @@ public class OperationEntity implements Serializable {
                 ", timestampCreated=" + timestampCreated +
                 ", timestampExpires=" + timestampExpires +
                 ", timestampFinalized=" + timestampFinalized +
+                ", riskFlags=" + riskFlags +
                 '}';
     }
 }

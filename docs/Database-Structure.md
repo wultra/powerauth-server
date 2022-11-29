@@ -492,7 +492,8 @@ CREATE TABLE "pa_operation" (
     "max_failure_count"     BIGINT NOT NULL,
     "timestamp_created"     TIMESTAMP NOT NULL,
     "timestamp_expires"     TIMESTAMP NOT NULL,
-    "timestamp_finalized"   TIMESTAMP
+    "timestamp_finalized"   TIMESTAMP,
+    "risk_flags"            VARCHAR(255)
 );
 ```
 
@@ -514,6 +515,7 @@ CREATE TABLE "pa_operation" (
 | timestamp_created | timestamp | - | Timestamp of when the operation was created. |
 | timestamp_expires | timestamp | - | Timestamp of when the operation will expire. |
 | timestamp_finalized | timestamp | - | Timestamp of when the operation reached the terminal state (approved, rejected, expired, etc.). |
+| risk_flages | varchar(255) | - | Risk flags. |
 <!-- end -->
 
 <!-- begin database table pa_operation_template -->
@@ -531,7 +533,8 @@ CREATE TABLE "pa_operation_template" (
     "data_template"         VARCHAR(255) NOT NULL,
     "signature_type"        VARCHAR(255) NOT NULL,
     "max_failure_count"     BIGINT NOT NULL,
-    "expiration"            BIGINT NOT NULL
+    "expiration"            BIGINT NOT NULL,
+    "risk_flags"            VARCHAR(255)
 );
 ```
 
@@ -546,6 +549,7 @@ CREATE TABLE "pa_operation_template" (
 | signature_type | varchar(255)  | - | Comma-separated list of allowed signature types. |
 | max_failure_count | bigint | - | Maximum allowed number of failed attempts when approving the operation. |
 | expiration | bigint | - | Operation expiration in seconds (300 = 5 minutes). |
+| risk_flages | varchar(255) | - | Risk flags. |
 <!-- end -->
 
 <!-- begin database table pa_operation_application -->

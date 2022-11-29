@@ -30,3 +30,39 @@ try {
 ```
 
 Adaptation to this change is required only in case this endpoint is called directly on PowerAuth server. In case you use the `@PowerAuthToken` annotation for token validation, no changes are required.
+
+## Database Changes
+
+### Add Risk Flags to Operations and Templates
+
+Add a column `risk_flags` to the templates and operations.
+
+#### PostgreSQL
+
+```sql
+ALTER TABLE pa_operation
+    ADD COLUMN risk_flags VARCHAR(255);
+
+ALTER TABLE pa_operation_template
+    ADD COLUMN risk_flags VARCHAR(255);
+```
+
+#### Oracle
+
+```sql
+ALTER TABLE pa_operation
+    ADD risk_flags VARCHAR2(255 CHAR);
+
+ALTER TABLE pa_operation_template
+    ADD risk_flags VARCHAR2(255 CHAR);
+```
+
+#### MySQL
+
+```sql
+ALTER TABLE pa_operation
+    ADD COLUMN risk_flags varchar(255);
+
+ALTER TABLE pa_operation_template
+    ADD COLUMN risk_flags varchar(255);
+```
