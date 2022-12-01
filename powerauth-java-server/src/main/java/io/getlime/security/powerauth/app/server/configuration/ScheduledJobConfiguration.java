@@ -17,8 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.configuration;
 
+import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.core.LockProvider;
 import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -31,16 +34,26 @@ import javax.sql.DataSource;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
+@Slf4j
 public class ScheduledJobConfiguration {
+
+    @Value("${spring.jpa.properties.hibernate.default_schema:}")
+    private String defaultSchema;
+
+    private static final String SHEDLOCK_TABLE_NAME = "shedlock";
 
     @Bean
     public LockProvider lockProvider(DataSource dataSource) {
+        final String tableName = StringUtils.isBlank(defaultSchema)
+                ? SHEDLOCK_TABLE_NAME
+                : defaultSchema + "." + SHEDLOCK_TABLE_NAME;
+        logger.info("Following database table will be used by shedlock: {}", tableName);
         return new JdbcTemplateLockProvider(
                 JdbcTemplateLockProvider.Configuration.builder()
                         .withJdbcTemplate(new JdbcTemplate(dataSource))
+                        .withTableName(tableName)
                         .usingDbTime()
-                        .build()
-        );
+                        .build());
     }
 
 }
