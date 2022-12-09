@@ -124,6 +124,23 @@
 
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- PowerAuth dependencies -->
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-client-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-rest-client-spring</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
         <plugins>
             <plugin>
