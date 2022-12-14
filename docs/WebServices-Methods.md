@@ -2324,7 +2324,7 @@ REST endpoint: `POST /rest/v3/operation/reject`
 | `Date` | `timestampCreated` | Timestamp of when the operation was created |
 | `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
 | `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
 
 ## Operation Templates
 
@@ -2346,7 +2346,7 @@ REST endpoint: `POST /rest/v3/operation/template/create`
 | `List<SignatureType>` | `signatureType` | Allowed signature types |
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
 
 #### Response
 
@@ -2361,7 +2361,7 @@ REST endpoint: `POST /rest/v3/operation/template/create`
 | `List<SignatureType>` | `signatureType` | Allowed signature types |
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
   
 ### Method 'getAllTemplates'
 
@@ -2388,7 +2388,7 @@ Collection of items with the following structure:
 | `List<SignatureType>` | `signatureType` | Allowed signature types |
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
 
 ### Method 'getTemplateDetail'
 
@@ -2417,7 +2417,7 @@ REST endpoint: `POST /rest/v3/operation/template/detail`
 | `List<SignatureType>` | `signatureType` | Allowed signature types |
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
 
 ### Method 'updateOperationTemplate'
 
@@ -2437,7 +2437,7 @@ REST endpoint: `POST /rest/v3/operation/template/update`
 | `List<SignatureType>` | `signatureType` | Allowed signature types |
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
 
 #### Response
 
@@ -2452,7 +2452,7 @@ REST endpoint: `POST /rest/v3/operation/template/update`
 | `List<SignatureType>` | `signatureType` | Allowed signature types |
 | `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
 | `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags |
+| `String` | `riskFlags` | Risk flags. Just case-sensitive letters without any separator, e.g. `XFC` |
 
 ### Method 'removeOperationTemplate'
 
