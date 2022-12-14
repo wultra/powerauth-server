@@ -223,7 +223,8 @@ CREATE TABLE pa_operation (
     max_failure_count     BIGINT NOT NULL,
     timestamp_created     TIMESTAMP NOT NULL,
     timestamp_expires     TIMESTAMP NOT NULL,
-    timestamp_finalized   TIMESTAMP
+    timestamp_finalized   TIMESTAMP,
+    risk_flags            VARCHAR(255)
 );
 
 --
@@ -236,7 +237,8 @@ CREATE TABLE pa_operation_template (
     data_template         VARCHAR(255) NOT NULL,
     signature_type        VARCHAR(255) NOT NULL,
     max_failure_count     BIGINT NOT NULL,
-    expiration            BIGINT NOT NULL
+    expiration            BIGINT NOT NULL,
+    risk_flags            VARCHAR(255)
 );
 
 --
