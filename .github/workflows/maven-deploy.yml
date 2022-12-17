@@ -21,15 +21,13 @@ on:
         description: internal or external repository
   push:
     branches:
-     - 'develop'
-     - 'test/ci'
-
-
+      - 'develop'
+      - 'test/ci'
 
 jobs:
-  maven-deploy-internal:
+  maven-deploy-push:
     if: ${{ github.event_name == 'push' }}
-    name: Deploy to ${{ inputs.environment }}
+    name: Deploy to jfrog
     uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@develop
     with:
       environment: internal-publish
@@ -38,10 +36,10 @@ jobs:
       username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
 
-  maven-deploy-public:
+  maven-deploy-manual:
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    name: Deploy to ${{ inputs.environment }}
-    uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@fix/proper_environment_for_maven_publish
+    name: Deploy by parameter
+    uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@develop
     with:
       environment: ${{ inputs.environment }}
       release_type: ${{ inputs.release_type }}

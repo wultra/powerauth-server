@@ -5,9 +5,8 @@ on:
   push:
     branches:
       - 'develop'
-      - 'issues/owasp_dependency_check'
 
 jobs:
   owasp-check:
-      uses: wultra/wultra-infrastructure/.github/workflows/owasp-dependency-check.yml@issues/owasp_dependency_check
+      uses: wultra/wultra-infrastructure/.github/workflows/owasp-dependency-check.yml@develop
       secrets: inherit
