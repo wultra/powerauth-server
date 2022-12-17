@@ -1,0 +1,14 @@
+name: Run OWASP Dependency Check
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - 'develop'
+      - 'issues/owasp_dependency_check'
+
+jobs:
+  owasp-check:
+    steps:
+      - uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@issues/owasp_dependency_check
+        secrets: inherit
