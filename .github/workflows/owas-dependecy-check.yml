@@ -9,6 +9,5 @@ on:
 
 jobs:
   owasp-check:
-    steps:
-      - uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@issues/owasp_dependency_check
-        secrets: inherit
+      uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@issues/owasp_dependency_check
+      secrets: inherit
