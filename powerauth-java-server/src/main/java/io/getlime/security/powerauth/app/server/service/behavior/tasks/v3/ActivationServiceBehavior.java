@@ -169,7 +169,7 @@ public class ActivationServiceBehavior {
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
             }
             activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            revokeRecoveryCodes(activation);
+            revokeRecoveryCodes(activation.getActivationId());
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         }
@@ -1460,7 +1460,7 @@ public class ActivationServiceBehavior {
         if (revokeRecoveryCodes ||
                 (activation.getActivationStatus() == ActivationStatus.CREATED ||
                         activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT)) {
-            revokeRecoveryCodes(activation);
+            revokeRecoveryCodes(activation.getActivationId());
         }
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
         callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
@@ -1953,15 +1953,15 @@ public class ActivationServiceBehavior {
 
     /**
      * Revoke recovery codes for an activation entity.
-     * @param activation Activation entity.
+     * @param activationId Activation identifier.
      */
-    private void revokeRecoveryCodes(ActivationRecordEntity activation) {
-        logger.info("Revoking recovery codes for activation ID: {}", activation.getActivationId());
+    private void revokeRecoveryCodes(String activationId) {
+        logger.info("Revoking recovery codes for activation ID: {}", activationId);
         final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-        final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activation.getActivationId());
+        final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
         final Date now = new Date();
         for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
-            logger.debug("Revoking recovery code: {} for activation ID: {}", recoveryCode.getRecoveryCode(), activation.getActivationId());
+            logger.debug("Revoking recovery code: {} for activation ID: {}", recoveryCode.getRecoveryCode(), activationId);
             // revoke only codes that are not yet revoked, to avoid messing up with timestamp
             if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
                 recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
