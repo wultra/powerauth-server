@@ -11,7 +11,7 @@ Bouncy Castle library installation depends on Java version and used web containe
 PowerAuth server uses dynamic initialization of Bouncy Castle provider, so it is not required to configure security provider statically in the Java Runtime configuration.
 
 You can get the Bouncy Castle provider here:
-https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on
+https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on
 
 ### Installing on Java 11
 
@@ -19,7 +19,7 @@ Java 11 no longer provides a library extension mechanism and thus Bouncy Castle 
 
 #### Bouncy Castle on Tomcat
 
-Copy [`bcprov-jdk15on-168.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${CATALINA_HOME}/lib` folder.
+Copy [`bcprov-jdk18on-172.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on) to your `${CATALINA_HOME}/lib` folder.
 
 <!-- begin box warning -->
 Bouncy Castle library will not work properly in case any war file deployed to Tomcat contains another copy of the Bouncy Castle library, even if the war file is not related to PowerAuth.
@@ -28,7 +28,7 @@ Bouncy Castle library must be only present in the `${CATALINA_HOME}/lib` folder.
 
 #### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-168.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk18on-172.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -46,12 +46,12 @@ The module should be defined using a new module XML file in JBoss folder `module
 <?xml version="1.0" encoding="UTF-8"?>
 <module name="org.bouncycastle.external" xmlns="urn:jboss:module:1.8">
     <resources>
-        <resource-root path="bcprov-jdk15on-167.jar"/>
+        <resource-root path="bcprov-jdk18on-172.jar"/>
     </resources>
 </module>
 ```
 
-Finally, copy the Bouncy Castle library `bcprov-jdk15on-167.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
+Finally, copy the Bouncy Castle library `bcprov-jdk18on-172.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
 
 <!-- begin box warning -->
 Do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth.
@@ -82,7 +82,7 @@ Java 8 provides a library extension mechanism which can be used to installed Bou
 
 ##### Standalone Tomcat
 
-When running a standalone Tomcat instance, all you need to do is to copy [`bcprov-jdk15on-167.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk15on) to your `${JDK_HOME}/jre/lib/ext` folder.
+When running a standalone Tomcat instance, all you need to do is to copy [`bcprov-jdk18on-172.jar`](https://mvnrepository.com/artifact/org.bouncycastle/bcprov-jdk18on) to your `${JDK_HOME}/jre/lib/ext` folder.
 
 ##### Embedded Tomcat
 
@@ -96,7 +96,7 @@ Make sure to add the provider to the top of the list (ideally, N=2).
 
 #### Bouncy Castle on JBoss / Wildfly
 
-PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk15on-167.jar`
+PowerAuth server requires a specific version of Bouncy Castle library: `bcprov-jdk18on-172.jar`
 
 In order to make PowerAuth Server work on JBoss / Wildfly, you need to add and enable the external Bouncy Castle module on the server
 by adding the `<global-modules>` element in the `standalone.xml` file:
@@ -114,12 +114,12 @@ The module should be defined using a new module XML file in JBoss folder `module
 <?xml version="1.0" encoding="UTF-8"?>
 <module name="org.bouncycastle.external" xmlns="urn:jboss:module:1.8">
     <resources>
-        <resource-root path="bcprov-jdk15on-167.jar"/>
+        <resource-root path="bcprov-jdk18on-172.jar"/>
     </resources>
 </module>
 ```
 
-Finally, copy the Bouncy Castle library `bcprov-jdk15on-167.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
+Finally, copy the Bouncy Castle library `bcprov-jdk18on-172.jar` into folder  `modules/system/layers/base/org/bouncycastle/external/main` so that it is available for the module.
 
 <!-- begin box warning -->
 Do not reuse Bouncy Castle module `org.bouncycastle` from JBoss, because version of library provided by JBoss may differ from version required by PowerAuth.

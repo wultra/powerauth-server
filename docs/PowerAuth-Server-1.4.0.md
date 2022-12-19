@@ -66,3 +66,18 @@ ALTER TABLE pa_operation
 ALTER TABLE pa_operation_template
     ADD COLUMN risk_flags varchar(255);
 ```
+
+## Bouncy Castle Library Update to Version 1.72
+
+Bouncy Castle library has been updated to version `1.72`.
+The newest version of Bouncy Castle library can be downloaded from: [https://www.bouncycastle.org/download/bcprov-jdk18on-172.jar](https://www.bouncycastle.org/download/bcprov-jdk18on-172.jar)
+
+Installation on **Java 8**:
+- Update Bouncy Castle library the `lib/ext` folder of the Java runtime
+
+Installation on **Java 11**:
+- Tomcat: update Bouncy Castle library in `CATALINA_HOME/lib`
+- JBoss / Wildfly: update Bouncy Castle library global module
+- Other web containers: follow instructions for installing a global library for the web container
+
+For more details about installation of the library see [Installing Bouncy Castle](./Installing-Bouncy-Castle.md).
