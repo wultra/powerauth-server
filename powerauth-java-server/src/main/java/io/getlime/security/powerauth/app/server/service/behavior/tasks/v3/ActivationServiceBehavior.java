@@ -1460,7 +1460,6 @@ public class ActivationServiceBehavior {
         if (revokeRecoveryCodes ||
                 (activation.getActivationStatus() == ActivationStatus.CREATED ||
                         activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT)) {
-            logger.info("Revoking recovery codes for activation ID: {}", activation.getActivationId());
             revokeRecoveryCodes(activation);
         }
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
@@ -1957,6 +1956,7 @@ public class ActivationServiceBehavior {
      * @param activation Activation entity.
      */
     private void revokeRecoveryCodes(ActivationRecordEntity activation) {
+        logger.info("Revoking recovery codes for activation ID: {}", activation.getActivationId());
         final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
         final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activation.getActivationId());
         final Date now = new Date();
