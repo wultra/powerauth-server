@@ -1967,7 +1967,7 @@ public class ActivationServiceBehavior {
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
     @SchedulerLock(name = "expireActivationsTask")
     @Transactional
-    public void expireOperations() {
+    public void expireActivations() {
         LockAssert.assertLocked();
         final Date currentTimestamp = new Date();
         final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
