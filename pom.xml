@@ -192,6 +192,8 @@
                                 <bannedDependencies>
                                     <excludes>
                                         <exclude>org.apache.tomcat.embed:*:*:*:compile</exclude>
+                                        <exclude>org.bouncycastle:bcpkix-jdk15on:*:*:compile</exclude>
+                                        <exclude>org.bouncycastle:bcprov-jdk15on:*:*:compile</exclude>
                                     </excludes>
                                 </bannedDependencies>
                             </rules>
