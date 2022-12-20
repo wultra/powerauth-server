@@ -168,10 +168,7 @@ public class ActivationServiceBehavior {
                 // Make sure activation is locked until the end of transaction in case it was not locked yet
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
             }
-            activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            revokeRecoveryCodes(activation.getActivationId());
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+            removeActivationInternal(activation, null, true);
         }
     }
 
@@ -1455,15 +1452,11 @@ public class ActivationServiceBehavior {
      */
     public RemoveActivationResponse removeActivation(@NotNull ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
         logger.info("Processing activation removal, activation ID: {}", activation.getActivationId());
-        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
         // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
-        if (revokeRecoveryCodes ||
-                (activation.getActivationStatus() == ActivationStatus.CREATED ||
-                        activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT)) {
-            revokeRecoveryCodes(activation.getActivationId());
-        }
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+        revokeRecoveryCodes = revokeRecoveryCodes
+                || activation.getActivationStatus() == ActivationStatus.CREATED
+                || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT;
+        removeActivationInternal(activation, externalUserId, revokeRecoveryCodes);
         RemoveActivationResponse response = new RemoveActivationResponse();
         response.setActivationId(activation.getActivationId());
         response.setRemoved(true);
@@ -1952,6 +1945,21 @@ public class ActivationServiceBehavior {
     }
 
     /**
+     * Internal logic for processing activation removal.
+     * @param activation Activation entity.
+     * @param externalUserId External user identifier.
+     * @param revokeRecoveryCodes Whether associated recovery codes should be revoked.
+     */
+    private void removeActivationInternal(ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
+        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
+        if (revokeRecoveryCodes) {
+            revokeRecoveryCodes(activation.getActivationId());
+        }
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
+        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+    }
+
+    /**
      * Revoke recovery codes for an activation entity.
      * @param activationId Activation identifier.
      */
@@ -1993,7 +2001,7 @@ public class ActivationServiceBehavior {
         try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
-                removeActivation(activation, null, true);
+                deactivatePendingActivation(currentTimestamp, activation, true);
             });
         }
     }
