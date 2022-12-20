@@ -1452,10 +1452,6 @@ public class ActivationServiceBehavior {
      */
     public RemoveActivationResponse removeActivation(@NotNull ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
         logger.info("Processing activation removal, activation ID: {}", activation.getActivationId());
-        // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
-        revokeRecoveryCodes = revokeRecoveryCodes
-                || activation.getActivationStatus() == ActivationStatus.CREATED
-                || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT;
         removeActivationInternal(activation, externalUserId, revokeRecoveryCodes);
         RemoveActivationResponse response = new RemoveActivationResponse();
         response.setActivationId(activation.getActivationId());
@@ -1952,6 +1948,10 @@ public class ActivationServiceBehavior {
      */
     private void removeActivationInternal(ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
+        // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
+        revokeRecoveryCodes = revokeRecoveryCodes
+                || activation.getActivationStatus() == ActivationStatus.CREATED
+                || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT;
         if (revokeRecoveryCodes) {
             revokeRecoveryCodes(activation.getActivationId());
         }
