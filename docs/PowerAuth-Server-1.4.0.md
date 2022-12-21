@@ -66,3 +66,9 @@ ALTER TABLE pa_operation
 ALTER TABLE pa_operation_template
     ADD COLUMN risk_flags varchar(255);
 ```
+
+### Added Database Indexes
+
+```sql
+CREATE INDEX pa_activation_expiration on pa_activation (activation_status, timestamp_activation_expire);
+```
