@@ -1946,13 +1946,12 @@ public class ActivationServiceBehavior {
      * @param externalUserId External user identifier.
      * @param revokeRecoveryCodes Whether associated recovery codes should be revoked.
      */
-    private void removeActivationInternal(ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
+    private void removeActivationInternal(final ActivationRecordEntity activation, final String externalUserId, final boolean revokeRecoveryCodes) {
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
         // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
-        revokeRecoveryCodes = revokeRecoveryCodes
+        if (revokeRecoveryCodes
                 || activation.getActivationStatus() == ActivationStatus.CREATED
-                || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT;
-        if (revokeRecoveryCodes) {
+                || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) {
             revokeRecoveryCodes(activation.getActivationId());
         }
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
