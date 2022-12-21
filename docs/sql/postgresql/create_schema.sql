@@ -354,6 +354,8 @@ CREATE INDEX pa_activation_code ON pa_activation(activation_code);
 
 CREATE INDEX pa_activation_user_id ON pa_activation(user_id);
 
+CREATE INDEX pa_activation_expiration on pa_activation (activation_status, timestamp_activation_expire);
+
 CREATE INDEX pa_activation_history_act ON pa_activation_history(activation_id);
 
 CREATE INDEX pa_activation_history_created ON pa_activation_history(timestamp_created);

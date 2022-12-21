@@ -299,35 +299,59 @@ CREATE TABLE IF NOT EXISTS audit_param (
 -- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
 --
 
-CREATE INDEX `pa_activation_code` ON `pa_activation`(`activation_code`);
+CREATE INDEX pa_activation_application ON pa_activation(application_id);
 
-CREATE INDEX `pa_activation_user_id` ON `pa_activation`(`user_id`);
+CREATE INDEX pa_activation_keypair ON pa_activation(master_keypair_id);
 
-CREATE INDEX `pa_activation_history_created` ON `pa_activation_history`(`timestamp_created`);
+CREATE INDEX pa_activation_code ON pa_activation(activation_code);
 
-CREATE UNIQUE INDEX `pa_app_version_app_key` ON `pa_application_version`(`application_key`);
+CREATE INDEX pa_activation_user_id ON pa_activation(user_id);
 
-CREATE INDEX `pa_app_callback_app` ON `pa_application_callback`(`application_id`);
+CREATE INDEX pa_activation_expiration on pa_activation (activation_status, timestamp_activation_expire);
 
-CREATE UNIQUE INDEX `pa_integration_token` ON `pa_integration`(`client_token`);
+CREATE INDEX pa_activation_history_act ON pa_activation_history(activation_id);
 
-CREATE INDEX `pa_signature_audit_created` ON `pa_signature_audit`(`timestamp_created`);
+CREATE INDEX pa_activation_history_created ON pa_activation_history(timestamp_created);
 
-CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
+CREATE INDEX pa_application_version_app ON pa_application_version(application_id);
 
-CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
+CREATE INDEX pa_master_keypair_application ON pa_master_keypair(application_id);
 
-CREATE INDEX `pa_operation_user` ON `pa_operation`(`user_id`);
+CREATE UNIQUE INDEX pa_app_version_app_key ON pa_application_version(application_key);
 
-CREATE INDEX `pa_operation_ts_created_idx` ON `pa_operation`(`timestamp_created`);
+CREATE INDEX pa_app_callback_app ON pa_application_callback(application_id);
 
-CREATE INDEX `pa_operation_ts_expires_idx` ON `pa_operation`(`timestamp_expires`);
+CREATE UNIQUE INDEX pa_integration_token ON pa_integration(client_token);
 
-CREATE INDEX `pa_operation_template_name_idx` ON `pa_operation_template` (`template_name`);
+CREATE INDEX pa_signature_audit_activation ON pa_signature_audit(activation_id);
 
-CREATE UNIQUE INDEX `pa_recovery_code_puk` ON `pa_recovery_puk`(`recovery_code_id`, `puk_index`);
+CREATE INDEX pa_signature_audit_created ON pa_signature_audit(timestamp_created);
 
-CREATE UNIQUE INDEX `pa_application_name` ON `pa_application`(`name`);
+CREATE INDEX pa_token_activation ON pa_token(activation_id);
+
+CREATE INDEX pa_recovery_code_code ON pa_recovery_code(recovery_code);
+
+CREATE INDEX pa_recovery_code_app ON pa_recovery_code(application_id);
+
+CREATE INDEX pa_recovery_code_user ON pa_recovery_code(user_id);
+
+CREATE INDEX pa_recovery_code_act ON pa_recovery_code(activation_id);
+
+CREATE UNIQUE INDEX pa_recovery_code_puk ON pa_recovery_puk(recovery_code_id, puk_index);
+
+CREATE INDEX pa_recovery_puk_code ON pa_recovery_puk(recovery_code_id);
+
+CREATE UNIQUE INDEX pa_recovery_config_app ON pa_recovery_config(application_id);
+
+CREATE UNIQUE INDEX pa_application_name ON pa_application(name);
+
+CREATE INDEX pa_operation_user ON pa_operation(user_id);
+
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created);
+
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
+
+CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
 
 --
 -- Auditing indexes.
