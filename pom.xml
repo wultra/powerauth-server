@@ -26,7 +26,7 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>1.4.0</version>
+    <version>${powerauth.version}</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -80,6 +80,8 @@
     </modules>
 
     <properties>
+        <powerauth.version>1.5.0-SNAPSHOT</powerauth.version>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <!-- Maven Properties and Dependencies -->
