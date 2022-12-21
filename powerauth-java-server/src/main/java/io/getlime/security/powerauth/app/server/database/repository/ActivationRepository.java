@@ -171,11 +171,13 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
 
     /**
      * Fetch all activations that are in a given state, were expired after a specified timestamp, and are already expired according to a provided current timestamp.
+     * The activations are locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues.
      * @param states Activation states that are used for the lookup.
      * @param startingTimestamp Timestamp after which the activation was expired.
      * @param currentTimestamp Current timestamp, to identify already expired operations.
      * @return Stream of activations.
      */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampActivationExpire >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 }
