@@ -62,6 +62,9 @@ public class OperationTemplateEntity implements Serializable {
     @Column(name = "expiration", nullable=false)
     private Long expiration;
 
+    @Column(name = "risk_flags")
+    private String riskFlags;
+
     /**
      * Default constructor.
      */
@@ -180,6 +183,24 @@ public class OperationTemplateEntity implements Serializable {
         this.expiration = expiration;
     }
 
+    /**
+     * Get risk flags.
+     *
+     * @return Risk flags.
+     */
+    public String getRiskFlags() {
+        return riskFlags;
+    }
+
+    /**
+     * Set risk flags.
+     *
+     * @param riskFlags Risk flags.
+     */
+    public void setRiskFlags(String riskFlags) {
+        this.riskFlags = riskFlags;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OperationTemplateEntity)) return false;
@@ -189,12 +210,13 @@ public class OperationTemplateEntity implements Serializable {
                 && Objects.equals(dataTemplate, that.dataTemplate)
                 && Arrays.equals(signatureType, that.signatureType)
                 && Objects.equals(maxFailureCount, that.maxFailureCount)
-                && Objects.equals(expiration, that.expiration);
+                && Objects.equals(expiration, that.expiration)
+                && Objects.equals(riskFlags, that.riskFlags);
     }
 
     @Override public int hashCode() {
         int result = Objects.hash(
-                templateName, operationType, dataTemplate, maxFailureCount, expiration
+                templateName, operationType, dataTemplate, maxFailureCount, expiration, riskFlags
         );
         result = 31 * result + Arrays.hashCode(signatureType);
         return result;
@@ -209,6 +231,7 @@ public class OperationTemplateEntity implements Serializable {
                 ", signatureType=" + Arrays.toString(signatureType) +
                 ", maxFailureCount=" + maxFailureCount +
                 ", expiration=" + expiration +
+                ", riskFlags=" + riskFlags +
                 '}';
     }
 }

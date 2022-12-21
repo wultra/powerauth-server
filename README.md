@@ -1,6 +1,6 @@
 # PowerAuth Server
 
-[![Build Status](https://travis-ci.org/wultra/powerauth-server.svg?branch=master)](https://travis-ci.org/wultra/powerauth-server)
+[![Build Status](https://github.com/wultra/powerauth-server/actions/workflows/maven-test.yml/badge.svg?branch=master)](https://github.com/wultra/powerauth-server/actions/workflows/maven-test.yml?query=branch%3Amaster)
 [![Status](https://scan.coverity.com/projects/16632/badge.svg)](https://scan.coverity.com/projects/wultra-powerauth-server)
 [![GitHub issues](https://img.shields.io/github/issues/wultra/powerauth-server.svg?maxAge=2592000)](https://github.com/wultra/powerauth-server/issues)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)

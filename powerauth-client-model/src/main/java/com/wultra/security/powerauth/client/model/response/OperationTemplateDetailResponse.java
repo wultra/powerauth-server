@@ -36,6 +36,7 @@ public class OperationTemplateDetailResponse {
     private List<SignatureType> signatureType;
     private Long maxFailureCount;
     private Long expiration;
+    private String riskFlags;
 
     public Long getId() {
         return id;
@@ -91,5 +92,13 @@ public class OperationTemplateDetailResponse {
 
     public void setExpiration(Long expiration) {
         this.expiration = expiration;
+    }
+
+    public String getRiskFlags() {
+        return riskFlags;
+    }
+
+    public void setRiskFlags(String riskFlags) {
+        this.riskFlags = riskFlags;
     }
 }

@@ -118,6 +118,13 @@ public class PowerAuthServiceConfiguration {
     private int activationValidityBeforeActive;
 
     /**
+     * How many milliseconds should the activation cleanup job look to the past.
+     */
+    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds:3600000}")
+    @Min(0)
+    private int activationsCleanupLookBackInMilliseconds;
+
+    /**
      * How many failed signatures cause activation record blocking. The maximum supported value is 64.
      */
     @Value("${powerauth.service.crypto.signatureMaxFailedAttempts}")
@@ -399,6 +406,24 @@ public class PowerAuthServiceConfiguration {
     public void setActivationValidityBeforeActive(int activationValidityBeforeActive) {
         this.activationValidityBeforeActive = activationValidityBeforeActive;
     }
+
+    /**
+     * Get look-back milliseconds for activation cleanup.
+     * @return How long the activation cleanup job should look back in time.
+     */
+    public int getActivationsCleanupLookBackInMilliseconds() {
+        return activationsCleanupLookBackInMilliseconds;
+    }
+
+    /**
+     * Set look-back milliseconds for activation cleanup.
+     * @param activationsCleanupLookBackInMilliseconds How long the activation cleanup job should look back in time.
+     */
+    public void setActivationsCleanupLookBackInMilliseconds(int activationsCleanupLookBackInMilliseconds) {
+        this.activationsCleanupLookBackInMilliseconds = activationsCleanupLookBackInMilliseconds;
+    }
+
+
 
     /**
      * Get the signature validation lookahead.

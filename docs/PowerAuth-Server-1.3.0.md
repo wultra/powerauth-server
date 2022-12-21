@@ -7,6 +7,18 @@ Migration from release `1.2.x` of PowerAuth server to release `1.3.x` is split i
 - [Migration from 1.2.x to 1.2.5](./PowerAuth-Server-1.2.5.md) - apply these steps for upgrade to version `1.2.5`
 - Migration from 1.2.5 to 1.3.x (this document) - apply steps below for upgrade from version `1.2.5` to version `1.3.x`
 
+## Change in Application ID (breaking change)
+
+In earlier versions of PowerAuth Server, we addressed applications via their numeric (`Long`) database record ID. This proved to be problematic, since the same application had different IDs on different environments. In 1.3.x and further, we now address applications via ID equal to their string name (contents of the `name` column in `pa_application` table), and we now call this value "application ID".
+
+<!-- begin box warning -->
+We highly recommend renaming the application in the database by editing `pa_application.name` column, so that the name is in a technical format, i.e., "mobile-token-retail", rather than in human readable name, such as "Mobile Token For Retail Clients".
+<!-- end -->
+
+This change is consistently reflected in all other parts of PowerAuth stack, i.e., in Push Server or Web Flow.
+
+In case your system needs to store IDs of application, you need to reflect this change. It is no longer possible to access applications using their numeric database record ID.
+
 ## Database Changes
 
 ### Relation Between Operations and Applications
@@ -112,6 +124,10 @@ Create tables for auditing:
 - `audit_log` - table used to store audit logs
 - `audit_param` - table used to store detailed parameters for audit logs
 
+<!-- begin box warning -->
+The auditing tables may be already present in your database schema in case the database schema is not separated for different PowerAuth applications. You might have also added these tables as part of migration to release `1.2.5` before these duplicate migration instructions were removed. In case tables `audit_log` and `audit_param` are already present, you can safely skip this migration step.
+<!-- end -->
+
 ### Oracle
 
 ```sql
@@ -163,7 +179,7 @@ CREATE INDEX audit_param_value ON audit_param (param_value);
 --
 -- Create audit log table.
 --
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     audit_log_id       VARCHAR(36) PRIMARY KEY,
     application_name   VARCHAR(256) NOT NULL,
     audit_level        VARCHAR(32) NOT NULL,
@@ -182,7 +198,7 @@ CREATE TABLE audit_log (
 --
 -- Create audit parameters table.
 --
-CREATE TABLE audit_param (
+CREATE TABLE IF NOT EXISTS audit_param (
     audit_log_id       VARCHAR(36),
     timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     param_key          VARCHAR(256),
@@ -208,7 +224,7 @@ CREATE INDEX audit_param_value ON audit_param (param_value);
 --
 -- Create audit log table.
 --
-CREATE TABLE audit_log (
+CREATE TABLE IF NOT EXISTS audit_log (
     audit_log_id       VARCHAR(36) PRIMARY KEY,
     application_name   VARCHAR(256) NOT NULL,
     audit_level        VARCHAR(32) NOT NULL,
@@ -227,7 +243,7 @@ CREATE TABLE audit_log (
 --
 -- Create audit parameters table.
 --
-CREATE TABLE audit_param (
+CREATE TABLE IF NOT EXISTS audit_param (
     audit_log_id       VARCHAR(36),
     timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     param_key          VARCHAR(256),
@@ -260,3 +276,18 @@ We consider the 5-minute interval to still be safe, since the relatively high ac
 ```
 powerauth.service.crypto.activationValidityInMilliseconds=120000
 ```
+
+## Database Dialect Configuration
+
+The latest release of PowerAuth requires configuration of database dialect.
+
+The dialect is specified using following configuration property:
+```properties
+spring.jpa.database-platform=org.hibernate.dialect.PostgreSQL95Dialect
+```
+
+Use the most specific dialect, if possible, such as:
+- `org.hibernate.dialect.Oracle12cDialect` for Oracle 12c or higher
+- `org.hibernate.dialect.PostgreSQL95Dialect` for PostgreSQL 9.5 or higher
+
+You can find additional database dialects in Hibernate documentation.

@@ -22,15 +22,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>powerauth-client-model</artifactId>
-    <version>1.3.0</version>
     <name>powerauth-client-model</name>
     <description>PowerAuth Server Client Model</description>
 
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.3.0</version>
-        <relativePath>../pom.xml</relativePath>
+        <version>1.4.0</version>
     </parent>
 
     <dependencies>
@@ -42,7 +40,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.xml.bind</groupId>

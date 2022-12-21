@@ -49,6 +49,7 @@ public class OperationDetailResponse {
     private Date timestampCreated;
     private Date timestampExpires;
     private Date timestampFinalized;
+    private String riskFlags;
 
     public void setId(String id) {
         this.id = id;
@@ -184,5 +185,13 @@ public class OperationDetailResponse {
 
     public Date getTimestampFinalized() {
         return timestampFinalized;
+    }
+
+    public String getRiskFlags() {
+        return riskFlags;
+    }
+
+    public void setRiskFlags(String riskFlags) {
+        this.riskFlags = riskFlags;
     }
 }

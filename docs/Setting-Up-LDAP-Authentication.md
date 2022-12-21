@@ -1,6 +1,10 @@
 # Setting Up LDAP Authentication
 
-PowerAuth Admin supports optional authentication using the LDAP protocol. This option is disabled by default, but we recommend setting up LDAP based authentication at least for the production environment.
+PowerAuth Admin supports optional authentication using the LDAP protocol. This option is disabled by default. In case you are using PowerAuth Admin in a multi-user account, we recommend setting up at least the file-based LDAP authentication.
+
+<!-- begin box warning -->
+In case you are using Active Directory, please follow the [separate documentation](./Setting-Up-Active-Directory-Authentication.md).
+<!-- end -->
 
 ## Enabling LDAP Authentication
 

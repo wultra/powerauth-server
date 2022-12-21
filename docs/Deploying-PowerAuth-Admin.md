@@ -2,9 +2,12 @@
 
 This chapter explains how to deploy PowerAuth Admin.
 
-PowerAuth Admin is a Java EE application (packaged as an executable WAR file) that you can use to work with the PowerAuth Server services in a easy to use visual way. Also, PowerAuth Admin project may serve as a simple example application for the Internet banking integrators, since in essence, it performs the very same tasks.
+PowerAuth Admin is a web administration console for the [PowerAuth Server](https://github.com/wultra/powerauth-server).
+It allows an easy application setup, an activation management and integration configurations.
 
-*__Important note: Since PowerAuth Admin is a very simple application with direct access to the PowerAuth Server REST services, it must not be under any circumstances published publicly and must be constrained to the in-house closed infrastructure.__*
+<!-- begin box warning -->
+Important note: Since PowerAuth Admin is a very simple application with direct access to the PowerAuth Server REST services, it must not be under any circumstances published publicly and must be constrained to the in-house closed infrastructure.
+<!-- end -->
 
 ## Downloading PowerAuth Admin
 
@@ -29,7 +32,9 @@ powerauth.service.security.clientSecret=
 
 The credentials are stored in the `pa_integration` table.
 
-_Note: The RESTful interface is secured using Basic HTTP Authentication (pre-emptive)._
+<!-- begin box info -->
+Note: The RESTful interface is secured using Basic HTTP Authentication (pre-emptive).
+<!-- end -->
 
 ## Disabling SSL Validation During Development
 
@@ -55,7 +60,9 @@ To deploy PowerAuth Admin to Apache Tomcat, simply copy the WAR file in your `we
 
 Running PowerAuth Admin application from console using the `java -jar` command is not supported.
 
-*__Important note: Since PowerAuth Admin is a very simple application with direct access to the PowerAuth Server REST services, it must not be under any circumstances published publicly and must be constrained to the in-house closed infrastructure.__*
+<!-- begin box warning -->
+Important note: Since PowerAuth Admin is a very simple application with direct access to the PowerAuth Server REST services, it must not be under any circumstances published publicly and must be constrained to the in-house closed infrastructure.
+<!-- end -->
 
 ## Deploying PowerAuth Admin On JBoss / Wildfly
 

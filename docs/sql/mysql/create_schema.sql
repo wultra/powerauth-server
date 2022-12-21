@@ -227,8 +227,8 @@ CREATE TABLE pa_operation (
     timestamp_created datetime NOT NULL,
     timestamp_expires datetime NOT NULL,
     timestamp_finalized datetime NULL,
-    PRIMARY KEY (id),
-    CONSTRAINT `FK_OPERATION_APPLICATION` FOREIGN KEY (`application_id`) REFERENCES `pa_application` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+    risk_flags varchar(255),
+    PRIMARY KEY (id)
 ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
@@ -242,6 +242,7 @@ CREATE TABLE pa_operation_template (
     signature_type varchar(255) NOT NULL,
     max_failure_count bigint(20) NOT NULL,
     expiration bigint(20) NOT NULL,
+    risk_flags varchar(255),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -257,7 +258,7 @@ CREATE TABLE pa_operation_application (
 --
 -- DDL for Table SHEDLOCK
 --
-CREATE TABLE shedlock (
+CREATE TABLE IF NOT EXISTS shedlock (
     name VARCHAR(64) NOT NULL,
     lock_until TIMESTAMP(3) NOT NULL,
     locked_at TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -266,35 +267,100 @@ CREATE TABLE shedlock (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 --
+-- Create audit log table.
+--
+CREATE TABLE IF NOT EXISTS audit_log (
+    audit_log_id       VARCHAR(36) PRIMARY KEY,
+    application_name   VARCHAR(256) NOT NULL,
+    audit_level        VARCHAR(32) NOT NULL,
+    audit_type         VARCHAR(256),
+    timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    message            TEXT NOT NULL,
+    exception_message  TEXT,
+    stack_trace        TEXT,
+    param              TEXT,
+    calling_class      VARCHAR(256) NOT NULL,
+    thread_name        VARCHAR(256) NOT NULL,
+    version            VARCHAR(256),
+    build_time         TIMESTAMP NULL
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
+-- Create audit parameters table.
+--
+CREATE TABLE IF NOT EXISTS audit_param (
+    audit_log_id       VARCHAR(36),
+    timestamp_created  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    param_key          VARCHAR(256),
+    param_value        VARCHAR(3072)
+) ENGINE=InnoDB AUTO_INCREMENT=1 CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+--
 -- Indexes for better performance. InnoDB engine creates indexes on foreign keys automatically, so they are not included.
 --
 
-CREATE INDEX `pa_activation_code` ON `pa_activation`(`activation_code`);
+CREATE INDEX pa_activation_application ON pa_activation(application_id);
 
-CREATE INDEX `pa_activation_user_id` ON `pa_activation`(`user_id`);
+CREATE INDEX pa_activation_keypair ON pa_activation(master_keypair_id);
 
-CREATE INDEX `pa_activation_history_created` ON `pa_activation_history`(`timestamp_created`);
+CREATE INDEX pa_activation_code ON pa_activation(activation_code);
 
-CREATE UNIQUE INDEX `pa_app_version_app_key` ON `pa_application_version`(`application_key`);
+CREATE INDEX pa_activation_user_id ON pa_activation(user_id);
 
-CREATE INDEX `pa_app_callback_app` ON `pa_application_callback`(`application_id`);
+CREATE INDEX pa_activation_expiration on pa_activation (activation_status, timestamp_activation_expire);
 
-CREATE UNIQUE INDEX `pa_integration_token` ON `pa_integration`(`client_token`);
+CREATE INDEX pa_activation_history_act ON pa_activation_history(activation_id);
 
-CREATE INDEX `pa_signature_audit_created` ON `pa_signature_audit`(`timestamp_created`);
+CREATE INDEX pa_activation_history_created ON pa_activation_history(timestamp_created);
 
-CREATE INDEX `pa_recovery_code` ON `pa_recovery_code`(`recovery_code`);
+CREATE INDEX pa_application_version_app ON pa_application_version(application_id);
 
-CREATE INDEX `pa_recovery_code_user` ON `pa_recovery_code`(`user_id`);
+CREATE INDEX pa_master_keypair_application ON pa_master_keypair(application_id);
 
-CREATE INDEX `pa_operation_user` ON `pa_operation`(`user_id`);
+CREATE UNIQUE INDEX pa_app_version_app_key ON pa_application_version(application_key);
 
-CREATE INDEX `pa_operation_ts_created_idx` ON `pa_operation`(`timestamp_created`);
+CREATE INDEX pa_app_callback_app ON pa_application_callback(application_id);
 
-CREATE INDEX `pa_operation_ts_expires_idx` ON `pa_operation`(`timestamp_expires`);
+CREATE UNIQUE INDEX pa_integration_token ON pa_integration(client_token);
 
-CREATE INDEX `pa_operation_template_name_idx` ON `pa_operation_template` (`template_name`);
+CREATE INDEX pa_signature_audit_activation ON pa_signature_audit(activation_id);
 
-CREATE UNIQUE INDEX `pa_recovery_code_puk` ON `pa_recovery_puk`(`recovery_code_id`, `puk_index`);
+CREATE INDEX pa_signature_audit_created ON pa_signature_audit(timestamp_created);
 
-CREATE UNIQUE INDEX `pa_application_name` ON `pa_application`(`name`);
+CREATE INDEX pa_token_activation ON pa_token(activation_id);
+
+CREATE INDEX pa_recovery_code_code ON pa_recovery_code(recovery_code);
+
+CREATE INDEX pa_recovery_code_app ON pa_recovery_code(application_id);
+
+CREATE INDEX pa_recovery_code_user ON pa_recovery_code(user_id);
+
+CREATE INDEX pa_recovery_code_act ON pa_recovery_code(activation_id);
+
+CREATE UNIQUE INDEX pa_recovery_code_puk ON pa_recovery_puk(recovery_code_id, puk_index);
+
+CREATE INDEX pa_recovery_puk_code ON pa_recovery_puk(recovery_code_id);
+
+CREATE UNIQUE INDEX pa_recovery_config_app ON pa_recovery_config(application_id);
+
+CREATE UNIQUE INDEX pa_application_name ON pa_application(name);
+
+CREATE INDEX pa_operation_user ON pa_operation(user_id);
+
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created);
+
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
+
+CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
+
+--
+-- Auditing indexes.
+--
+CREATE INDEX IF NOT EXISTS audit_log_timestamp ON audit_log (timestamp_created);
+CREATE INDEX IF NOT EXISTS audit_log_application ON audit_log (application_name);
+CREATE INDEX IF NOT EXISTS audit_log_level ON audit_log (audit_level);
+CREATE INDEX IF NOT EXISTS audit_log_type ON audit_log (audit_type);
+CREATE INDEX IF NOT EXISTS audit_param_log ON audit_param (audit_log_id);
+CREATE INDEX IF NOT EXISTS audit_param_timestamp ON audit_param (timestamp_created);
+CREATE INDEX IF NOT EXISTS audit_param_key ON audit_param (param_key);
+CREATE FULLTEXT INDEX audit_param_value ON audit_param (param_value);

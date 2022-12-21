@@ -166,6 +166,7 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampCreated(currentTimestamp);
         operationEntity.setTimestampExpires(timestampExpiration);
         operationEntity.setTimestampFinalized(null); // empty initially
+        operationEntity.setRiskFlags(templateEntity.getRiskFlags());
 
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type("operation")
@@ -632,6 +633,8 @@ public class OperationServiceBehavior {
         destination.setTimestampCreated(source.getTimestampCreated());
         destination.setTimestampExpires(source.getTimestampExpires());
         destination.setTimestampFinalized(source.getTimestampFinalized());
+        destination.setRiskFlags(source.getRiskFlags());
+
         switch (source.getStatus()) {
             case PENDING:
                 destination.setStatus(OperationStatus.PENDING);
@@ -716,7 +719,7 @@ public class OperationServiceBehavior {
 
     // Scheduled tasks
 
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup}")
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup:5000}")
     @SchedulerLock(name = "expireOperationsTask")
     @Transactional
     public void expireOperations() {

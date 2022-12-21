@@ -56,10 +56,14 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import javax.validation.constraints.NotNull;
@@ -75,6 +79,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Behavior class implementing processes related with activations. Used to move the
@@ -158,13 +163,12 @@ public class ActivationServiceBehavior {
      */
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) {
         if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+            logger.info("Deactivating pending activation, activation ID: {}", activation.getActivationId());
             if (!isActivationLocked) {
                 // Make sure activation is locked until the end of transaction in case it was not locked yet
                 activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
             }
-            activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-            activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+            removeActivationInternal(activation, null, true);
         }
     }
 
@@ -1447,29 +1451,8 @@ public class ActivationServiceBehavior {
      * @return Response with confirmation of removal.
      */
     public RemoveActivationResponse removeActivation(@NotNull ActivationRecordEntity activation, String externalUserId, boolean revokeRecoveryCodes) {
-        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
-        if (revokeRecoveryCodes) {
-            final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
-            final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activation.getActivationId());
-            final Date now = new Date();
-            for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
-                // revoke only codes that are not yet revoked, to avoid messing up with timestamp
-                if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
-                    recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
-                    recoveryCode.setTimestampLastChange(now);
-                    // Change status of PUKs with status VALID to INVALID
-                    for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
-                        if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
-                            puk.setStatus(RecoveryPukStatus.INVALID);
-                            puk.setTimestampLastChange(now);
-                        }
-                    }
-                    recoveryCodeRepository.save(recoveryCode);
-                }
-            }
-        }
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
-        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+        logger.info("Processing activation removal, activation ID: {}", activation.getActivationId());
+        removeActivationInternal(activation, externalUserId, revokeRecoveryCodes);
         RemoveActivationResponse response = new RemoveActivationResponse();
         response.setActivationId(activation.getActivationId());
         response.setRemoved(true);
@@ -1954,6 +1937,71 @@ public class ActivationServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
+
+    /**
+     * Internal logic for processing activation removal.
+     * @param activation Activation entity.
+     * @param externalUserId External user identifier.
+     * @param revokeRecoveryCodes Whether associated recovery codes should be revoked.
+     */
+    private void removeActivationInternal(final ActivationRecordEntity activation, final String externalUserId, final boolean revokeRecoveryCodes) {
+        activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.REMOVED);
+        // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
+        if (revokeRecoveryCodes
+                || activation.getActivationStatus() == ActivationStatus.CREATED
+                || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) {
+            revokeRecoveryCodes(activation.getActivationId());
+        }
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
+        callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+    }
+
+    /**
+     * Revoke recovery codes for an activation entity.
+     * @param activationId Activation identifier.
+     */
+    private void revokeRecoveryCodes(String activationId) {
+        logger.info("Revoking recovery codes for activation ID: {}", activationId);
+        final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
+        final List<RecoveryCodeEntity> recoveryCodeEntities = recoveryCodeRepository.findAllByActivationId(activationId);
+        final Date now = new Date();
+        for (RecoveryCodeEntity recoveryCode : recoveryCodeEntities) {
+            logger.debug("Revoking recovery code: {} for activation ID: {}", recoveryCode.getRecoveryCode(), activationId);
+            // revoke only codes that are not yet revoked, to avoid messing up with timestamp
+            if (!RecoveryCodeStatus.REVOKED.equals(recoveryCode.getStatus())) {
+                recoveryCode.setStatus(RecoveryCodeStatus.REVOKED);
+                recoveryCode.setTimestampLastChange(now);
+                // Change status of PUKs with status VALID to INVALID
+                for (RecoveryPukEntity puk : recoveryCode.getRecoveryPuks()) {
+                    if (RecoveryPukStatus.VALID.equals(puk.getStatus())) {
+                        puk.setStatus(RecoveryPukStatus.INVALID);
+                        puk.setTimestampLastChange(now);
+                    }
+                }
+                recoveryCodeRepository.save(recoveryCode);
+            }
+        }
+    }
+
+    // Scheduled tasks
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
+    @SchedulerLock(name = "expireActivationsTask")
+    @Transactional
+    public void expireActivations() {
+        LockAssert.assertLocked();
+        final Date currentTimestamp = new Date();
+        final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
+        logger.debug("Running scheduled task for expiring activations");
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final ImmutableSet<ActivationStatus> activationStatuses = ImmutableSet.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
+        try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
+            abandonedActivations.forEach(activation -> {
+                logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
+                deactivatePendingActivation(currentTimestamp, activation, true);
+            });
         }
     }
 

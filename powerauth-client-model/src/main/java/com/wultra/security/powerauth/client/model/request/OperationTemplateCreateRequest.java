@@ -36,6 +36,7 @@ public class OperationTemplateCreateRequest {
     private final List<SignatureType> signatureType = new ArrayList<>();
     private Long maxFailureCount;
     private Long expiration;
+    private String riskFlags;
 
     public String getTemplateName() {
         return templateName;
@@ -81,6 +82,14 @@ public class OperationTemplateCreateRequest {
         this.expiration = expiration;
     }
 
+    public String getRiskFlags() {
+        return riskFlags;
+    }
+
+    public void setRiskFlags(String riskFlags) {
+        this.riskFlags = riskFlags;
+    }
+
     @Override
     public String toString() {
         return "OperationTemplateCreateRequest{" +
@@ -90,6 +99,7 @@ public class OperationTemplateCreateRequest {
                 ", signatureType=" + signatureType +
                 ", maxFailureCount=" + maxFailureCount +
                 ", expiration=" + expiration +
+                ", riskFlags=" + riskFlags +
                 '}';
     }
 }
