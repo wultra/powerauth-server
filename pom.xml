@@ -26,7 +26,7 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>${powerauth.version}</version>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <parent>
@@ -80,7 +80,7 @@
     </modules>
 
     <properties>
-        <powerauth.version>1.5.0-SNAPSHOT</powerauth.version>
+        <revision>1.5.0-SNAPSHOT</revision>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
