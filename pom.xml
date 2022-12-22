@@ -93,10 +93,10 @@
         <!-- Spring Dependencies -->
         <spring-cloud-vault.version>3.1.1</spring-cloud-vault.version>
 
-        <!-- PowerAuth Dependencies -->
+        <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.5.0-SNAPSHOT</powerauth-java-crypto.version>
-        <powerauth-rest-base.version>1.6.0</powerauth-rest-base.version>
-        <powerauth-audit-base.version>1.6.0</powerauth-audit-base.version>
+        <wultra-core.version>1.7.0-SNAPSHOT</wultra-core.version>
+
         <bcprov-jdk18on.version>1.72</bcprov-jdk18on.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
@@ -125,6 +125,25 @@
                 <groupId>io.getlime.security</groupId>
                 <artifactId>powerauth-rest-client-spring</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <!--  Wultra Dependencies  -->
+            <dependency>
+                <groupId>io.getlime.core</groupId>
+                <artifactId>audit-base</artifactId>
+                <version>${wultra-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.core</groupId>
+                <artifactId>rest-client-base</artifactId>
+                <version>${wultra-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.core</groupId>
+                <artifactId>rest-model-base</artifactId>
+                <version>${wultra-core.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
