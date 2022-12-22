@@ -347,13 +347,13 @@ CREATE UNIQUE INDEX pa_application_name ON pa_application(name);
 
 CREATE INDEX pa_operation_user ON pa_operation(user_id);
 
-CREATE INDEX pa_operation_ts_created ON pa_operation(timestamp_created);
+CREATE INDEX pa_operation_ts_created_idx ON pa_operation(timestamp_created);
 
-CREATE INDEX pa_operation_ts_expires ON pa_operation(timestamp_expires);
+CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 
 CREATE INDEX pa_operation_status_exp ON pa_operation(timestamp_expires, status);
 
-CREATE INDEX pa_operation_template_name ON pa_operation_template(template_name);
+CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
 
 --
 -- Auditing indexes.
