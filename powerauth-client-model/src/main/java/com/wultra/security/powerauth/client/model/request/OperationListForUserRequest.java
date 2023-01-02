@@ -41,7 +41,7 @@ public class OperationListForUserRequest {
         return applications;
     }
 
-    public void setApplicationId(List<String> applications) {
+    public void setApplications(List<String> applications) {
         this.applications = applications;
     }
 
