@@ -101,14 +101,7 @@
         <powerauth-audit-base.version>1.6.0</powerauth-audit-base.version>
         <bcprov-jdk18on.version>1.72</bcprov-jdk18on.version>
 
-        <!-- Java 11 Dependencies -->
-        <jaxb-api.version>2.3.1</jaxb-api.version>
-        <jaxb-impl.version>2.3.4</jaxb-impl.version>
-        <jaxb-runtime.version>2.3.4</jaxb-runtime.version>
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
-        <javax.xml.soap-api.version>1.4.0</javax.xml.soap-api.version>
-        <javax.validation.version>2.0.1.Final</javax.validation.version>
-        <saaj-impl.version>1.5.3</saaj-impl.version>
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi.version>1.6.9</springdoc-openapi.version>
@@ -192,7 +185,21 @@
                                         <exclude>org.apache.tomcat.embed:*:*:*:compile</exclude>
                                         <exclude>org.bouncycastle:bcpkix-jdk15on:*:*:compile</exclude>
                                         <exclude>org.bouncycastle:bcprov-jdk15on:*:*:compile</exclude>
+                                        <!-- Force switching to Jakarta EE -->
+                                        <exclude>javax.*</exclude>
+                                        <!-- already on application server or servlet container -->
+                                        <exclude>jakarta.servlet:jakarta.servlet-api:*</exclude>
+                                        <exclude>jakarta.servlet.jsp:jakarta.servlet.jsp-api:*</exclude>
+                                        <!-- replaced by jakarta -->
+                                        <exclude>com.sun.mail</exclude>
+                                        <exclude>com.sun.xml.bind</exclude>
                                     </excludes>
+                                    <includes>
+                                        <!-- Jakarta API are allowed to be provided -->
+                                        <include>jakarta.*:*:jar:*:provided</include>
+                                        <!-- Not yet migrated to Jakarta -->
+                                        <include>javax.cache:*</include>
+                                    </includes>
                                 </bannedDependencies>
                             </rules>
                         </configuration>
@@ -302,6 +309,5 @@
             </snapshots>
         </repository>
     </repositories>
-
 
 </project>
