@@ -326,7 +326,7 @@ public class SignatureSharedServiceBehavior {
                 final PowerAuthSignatureTypes powerAuthSignatureTypes = signatureTypeConverter.convertFrom(signatureType);
                 final List<SecretKey> signatureKeys = powerAuthServerKeyFactory.keysForSignatureType(powerAuthSignatureTypes, masterSecretKey);
 
-                signatureValid = powerAuthServerSignature.verifySignatureForData(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getSignatureFormat());
+                signatureValid = powerAuthServerSignature.verifySignatureForData(signatureData.getData(), signatureData.getSignature(), signatureKeys, ctrData, signatureData.getSignatureConfiguration());
                 if (signatureValid) {
                     // Set the next valid value of numeric counter based on current iteration counter +1
                     ctrNext = iteratedCounter + 1;

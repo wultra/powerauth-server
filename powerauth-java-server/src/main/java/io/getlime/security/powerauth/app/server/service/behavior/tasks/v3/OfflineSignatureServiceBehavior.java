@@ -37,6 +37,7 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OfflineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -96,19 +97,20 @@ public class OfflineSignatureServiceBehavior {
     /**
      * Verify signature for given activation and provided data in offline mode. Log every validation attempt in the audit log.
      *
-     * @param activationId           Activation ID.
-     * @param signatureTypes         Signature types to try to use during verification of offline signature.
-     * @param signature              Provided signature.
-     * @param dataString             String with data used to compute the signature.
-     * @param keyConversionUtilities Conversion utility class.
+     * @param activationId              Activation ID.
+     * @param signatureTypes            Signature types to try to use during verification of offline signature.
+     * @param signature                 Provided signature.
+     * @param dataString                String with data used to compute the signature.
+     * @param expectedComponentLength   Expected length of the signature factor component.
+     * @param keyConversionUtilities    Conversion utility class.
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, List<SignatureType> signatureTypes, String signature, KeyValueMap additionalInfo,
-                                                                 String dataString, KeyConvertor keyConversionUtilities)
+                                                                 String dataString, Integer expectedComponentLength, KeyConvertor keyConversionUtilities)
             throws GenericServiceException {
         try {
-            return verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, keyConversionUtilities);
+            return verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, expectedComponentLength, keyConversionUtilities);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -261,6 +263,7 @@ public class OfflineSignatureServiceBehavior {
      * @param signature Signature.
      * @param additionalInfo Additional information related to signature verification.
      * @param dataString Signature data.
+     * @param expectedComponentLength Expected length of the signature factor component.
      * @param keyConversionUtilities Key convertor.
      * @return Verify offline signature response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
@@ -270,7 +273,7 @@ public class OfflineSignatureServiceBehavior {
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
     private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(String activationId, List<SignatureType> signatureTypes, String signature, KeyValueMap additionalInfo,
-                                                                      String dataString, KeyConvertor keyConversionUtilities)
+                                                                      String dataString, Integer expectedComponentLength, KeyConvertor keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
@@ -283,7 +286,11 @@ public class OfflineSignatureServiceBehavior {
 
             // Application secret is "offline" in offline mode
             final byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
-            final SignatureData signatureData = new SignatureData(data, signature, PowerAuthSignatureFormat.DECIMAL, null, additionalInfo, null);
+            final SignatureConfiguration signatureConfiguration = new SignatureConfiguration(PowerAuthSignatureFormat.DECIMAL);
+            if (expectedComponentLength != null) {
+                signatureConfiguration.putInteger(SignatureConfiguration.DECIMAL_SIGNATURE_COMPONENT_LENGTH, expectedComponentLength);
+            }
+            final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, null, additionalInfo, null);
             final OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {

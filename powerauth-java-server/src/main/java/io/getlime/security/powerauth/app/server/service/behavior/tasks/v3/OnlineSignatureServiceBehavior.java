@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -143,6 +144,7 @@ public class OnlineSignatureServiceBehavior {
 
             // Convert signature version to expected signature format.
             final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
+            final SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureFormat);
 
             // Check the activation - application relationship and version support
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
@@ -151,7 +153,7 @@ public class OnlineSignatureServiceBehavior {
                 logger.warn("Application version is incorrect, application key: {}", applicationKey);
                 // Get the data and append application KEY in this case, just for auditing reasons
                 final byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
-                final SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
+                final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, signatureVersion, additionalInfo, forcedSignatureVersion);
                 final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
                 signatureSharedServiceBehavior.handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
@@ -160,7 +162,7 @@ public class OnlineSignatureServiceBehavior {
             }
 
             final byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
-            final SignatureData signatureData = new SignatureData(data, signature, signatureFormat, signatureVersion, additionalInfo, forcedSignatureVersion);
+            final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, signatureVersion, additionalInfo, forcedSignatureVersion);
             final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
