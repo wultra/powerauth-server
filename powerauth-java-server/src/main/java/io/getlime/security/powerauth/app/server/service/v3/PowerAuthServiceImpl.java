@@ -41,6 +41,7 @@ import org.springframework.boot.info.BuildProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigInteger;
 import java.util.*;
 
 /**
@@ -483,6 +484,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String activationId = request.getActivationId();
             final String data = request.getData();
             final String signature = request.getSignature();
+            final BigInteger componentLength = request.getComponentLength();
             final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
             // The order of signature types is important. PowerAuth server logs first found signature type
             // as used signature type in case signature verification fails. In case the POSSESSION_BIOMETRY signature
@@ -491,9 +493,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             if (request.isAllowBiometry()) {
                 allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);
             }
+            final int expectedComponentLength = (componentLength != null) ? componentLength.intValue() : powerAuthServiceConfiguration.getOfflineSignatureComponentLength();
             final KeyValueMap additionalInfo = new KeyValueMap();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, keyConvertor);
+            final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, expectedComponentLength, keyConvertor);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {

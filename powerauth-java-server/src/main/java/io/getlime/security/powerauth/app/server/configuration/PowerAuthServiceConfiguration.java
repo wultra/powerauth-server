@@ -142,6 +142,14 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * When validating the offline (or decimalized) signature, how many digits should a factor-related component have.
+     */
+    @Value("${powerauth.service.crypto.offlineSignatureComponentLength}")
+    @Min(4)
+    @Max(8)
+    private int offlineSignatureComponentLength;
+
+    /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
      */
     @Value("${powerauth.service.http.proxy.enabled}")
@@ -439,6 +447,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSignatureValidationLookahead(long signatureValidationLookahead) {
         this.signatureValidationLookahead = signatureValidationLookahead;
+    }
+
+    /**
+     * Get offline signature factor-related component length.
+     * @return Factor-related component length.
+     */
+    public int getOfflineSignatureComponentLength() {
+        return offlineSignatureComponentLength;
+    }
+
+    /**
+     * Set offline signature factor-related component length.
+     * @param offlineSignatureComponentLength Factor-related component length.
+     */
+    public void setOfflineSignatureComponentLength(int offlineSignatureComponentLength) {
+        this.offlineSignatureComponentLength = offlineSignatureComponentLength;
     }
 
     /**

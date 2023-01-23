@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
 import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
+import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 
 /**
  * Data related to both online and offline signatures.
@@ -30,7 +30,7 @@ public class SignatureData {
     private byte[] data;
     private String signature;
     private String signatureVersion;
-    private PowerAuthSignatureFormat signatureFormat;
+    private SignatureConfiguration signatureConfiguration;
     private KeyValueMap additionalInfo;
     private Integer forcedSignatureVersion;
 
@@ -41,19 +41,19 @@ public class SignatureData {
     }
 
     /**
-     * Signature data constructur.
+     * Signature data constructor.
      * @param data Signed data.
      * @param signature Data signature.
-     * @param signatureFormat Format of signature
+     * @param signatureConfiguration Format of signature with associated parameters.
      * @param signatureVersion Version of requested signature
      * @param additionalInfo Additional information related to the signature.
      * @param forcedSignatureVersion Forced signature version during upgrade.
      */
-    public SignatureData(byte[] data, String signature, PowerAuthSignatureFormat signatureFormat, String signatureVersion, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
+    public SignatureData(byte[] data, String signature, SignatureConfiguration signatureConfiguration, String signatureVersion, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
         this.data = data;
         this.signature = signature;
         this.signatureVersion = signatureVersion;
-        this.signatureFormat = signatureFormat;
+        this.signatureConfiguration = signatureConfiguration;
         this.additionalInfo = additionalInfo;
         this.forcedSignatureVersion = forcedSignatureVersion;
     }
@@ -83,11 +83,11 @@ public class SignatureData {
     }
 
     /**
-     * Get signature format.
-     * @return Signature format.
+     * Get signature configuration.
+     * @return Signature configuration.
      */
-    public PowerAuthSignatureFormat getSignatureFormat() {
-        return signatureFormat;
+    public SignatureConfiguration getSignatureConfiguration() {
+        return signatureConfiguration;
     }
 
     /**
