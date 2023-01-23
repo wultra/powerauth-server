@@ -144,10 +144,10 @@ public class PowerAuthServiceConfiguration {
     /**
      * When validating the offline (or decimalized) signature, how many digits should a factor-related component have.
      */
-    @Value("${powerauth.service.crypto.decimalComponentLength}")
-    @Min(1)
-    @Max(64)
-    private int decimalComponentLength;
+    @Value("${powerauth.service.crypto.offlineSignatureComponentLength}")
+    @Min(4)
+    @Max(8)
+    private int offlineSignatureComponentLength;
 
     /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
@@ -450,19 +450,19 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get decimal factor-related component length.
+     * Get offline signature factor-related component length.
      * @return Factor-related component length.
      */
-    public int getDecimalComponentLength() {
-        return decimalComponentLength;
+    public int getOfflineSignatureComponentLength() {
+        return offlineSignatureComponentLength;
     }
 
     /**
-     * Set decimal factor-related component length.
-     * @param decimalComponentLength Factor-related component length.
+     * Set offline signature factor-related component length.
+     * @param offlineSignatureComponentLength Factor-related component length.
      */
-    public void setDecimalComponentLenght(int decimalComponentLength) {
-        this.decimalComponentLength = decimalComponentLength;
+    public void setOfflineSignatureComponentLength(int offlineSignatureComponentLength) {
+        this.offlineSignatureComponentLength = offlineSignatureComponentLength;
     }
 
     /**

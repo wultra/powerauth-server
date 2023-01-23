@@ -493,7 +493,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             if (request.isAllowBiometry()) {
                 allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);
             }
-            final int expectedComponentLength = (componentLength != null) ? componentLength.intValue() : powerAuthServiceConfiguration.getDecimalComponentLength();
+            final int expectedComponentLength = (componentLength != null) ? componentLength.intValue() : powerAuthServiceConfiguration.getOfflineSignatureComponentLength();
             final KeyValueMap additionalInfo = new KeyValueMap();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
             final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, additionalInfo, data, expectedComponentLength, keyConvertor);

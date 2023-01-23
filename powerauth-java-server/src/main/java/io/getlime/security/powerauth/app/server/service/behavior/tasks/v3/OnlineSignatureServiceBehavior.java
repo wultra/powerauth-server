@@ -144,7 +144,7 @@ public class OnlineSignatureServiceBehavior {
 
             // Convert signature version to expected signature format.
             final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
-            final SignatureConfiguration signatureConfiguration = new SignatureConfiguration(signatureFormat);
+            final SignatureConfiguration signatureConfiguration = SignatureConfiguration.forFormat(signatureFormat);
 
             // Check the activation - application relationship and version support
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
