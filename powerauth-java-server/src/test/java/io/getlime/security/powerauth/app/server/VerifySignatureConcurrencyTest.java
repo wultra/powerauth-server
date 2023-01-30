@@ -32,7 +32,7 @@ import java.util.UUID;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@Disabled("The test requires running MySQL database.")
+@Disabled("The test requires running database.")
 public class VerifySignatureConcurrencyTest {
 
     private PowerAuthService powerAuthService;
