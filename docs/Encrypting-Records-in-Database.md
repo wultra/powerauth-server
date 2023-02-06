@@ -8,7 +8,6 @@ As a basic security measure, we suggest using data encryption support of your da
 
 - [Oracle](https://docs.oracle.com/en/database/oracle/oracle-database/12.2/asoag/asopart1.html)
 - [PostgreSQL](https://www.postgresql.org/docs/11/encryption-options.html)
-- [MySQL](https://dev.mysql.com/doc/mysql-secure-deployment-guide/5.7/en/secure-deployment-data-encryption.html)
 
 ## Additional Record Encryption
 
