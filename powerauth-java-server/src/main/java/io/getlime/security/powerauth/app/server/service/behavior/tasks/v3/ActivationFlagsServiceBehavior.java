@@ -36,6 +36,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -156,6 +157,7 @@ public class ActivationFlagsServiceBehavior {
         Collections.sort(activationFlags);
         activation.getFlags().clear();
         activation.getFlags().addAll(activationFlags);
+        activation.setTimestampLastChange(new Date());
         activationRepository.save(activation);
 
         final UpdateActivationFlagsResponse response = new UpdateActivationFlagsResponse();
@@ -191,6 +193,7 @@ public class ActivationFlagsServiceBehavior {
                 .build();
         audit.log(AuditLevel.INFO, "Removing activation flags: {} from activation {}", auditDetail, activationFlags, activationId);
         activation.getFlags().removeAll(activationFlags);
+        activation.setTimestampLastChange(new Date());
         activationRepository.save(activation);
 
         final RemoveActivationFlagsResponse response = new RemoveActivationFlagsResponse();
