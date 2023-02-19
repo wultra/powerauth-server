@@ -149,6 +149,11 @@ public class OperationServiceBehavior {
             timestampExpires = new Date(currentTimestamp.getTime() + expiration);
         }
 
+        if (timestampExpires.before(new Date())) {
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
         // Build operation data
         final StringSubstitutor sub = new StringSubstitutor(parameters);
         final String operationData = sub.replace(templateEntity.getDataTemplate());
