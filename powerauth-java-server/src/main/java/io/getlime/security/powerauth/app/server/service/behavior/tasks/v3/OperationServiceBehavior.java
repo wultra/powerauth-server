@@ -109,6 +109,11 @@ public class OperationServiceBehavior {
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
 
+        if (timestampExpiresRequest != null && timestampExpiresRequest.before(currentTimestamp)) {
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
         // Fetch the operation template
         final Optional<OperationTemplateEntity> template = templateRepository.findTemplateByName(templateName);
         if (!template.isPresent()) {
@@ -124,11 +129,6 @@ public class OperationServiceBehavior {
         } else {
             final long expiration = templateEntity.getExpiration() * 1000L;
             timestampExpires = new Date(currentTimestamp.getTime() + expiration);
-        }
-
-        if (timestampExpires.before(currentTimestamp)) {
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
         // Check if applications exist
