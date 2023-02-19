@@ -140,7 +140,7 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
         }
 
-        // Get operation expiration date
+        // Resolve the operation expiration date
         final Date timestampExpires;
         if (timestampExpiresRequest != null) {
             timestampExpires = timestampExpiresRequest;
