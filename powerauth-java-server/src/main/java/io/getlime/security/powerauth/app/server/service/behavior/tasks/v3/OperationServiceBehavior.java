@@ -117,6 +117,20 @@ public class OperationServiceBehavior {
         }
         final OperationTemplateEntity templateEntity = template.get();
 
+        // Resolve the operation expiration date
+        final Date timestampExpires;
+        if (timestampExpiresRequest != null) {
+            timestampExpires = timestampExpiresRequest;
+        } else {
+            final long expiration = templateEntity.getExpiration() * 1000L;
+            timestampExpires = new Date(currentTimestamp.getTime() + expiration);
+        }
+
+        if (timestampExpires.before(currentTimestamp)) {
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
         // Check if applications exist
         final List<ApplicationEntity> applicationEntities = applicationRepository.findAllByIdIn(applications);
         if (applicationEntities.size() != applications.size()) {
@@ -138,20 +152,6 @@ public class OperationServiceBehavior {
             logger.error("Unable to generate token due to too many UUID.randomUUID() collisions. Check your random generator setup.");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
-        }
-
-        // Resolve the operation expiration date
-        final Date timestampExpires;
-        if (timestampExpiresRequest != null) {
-            timestampExpires = timestampExpiresRequest;
-        } else {
-            final long expiration = templateEntity.getExpiration() * 1000L;
-            timestampExpires = new Date(currentTimestamp.getTime() + expiration);
-        }
-
-        if (timestampExpires.before(new Date())) {
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
         // Build operation data
