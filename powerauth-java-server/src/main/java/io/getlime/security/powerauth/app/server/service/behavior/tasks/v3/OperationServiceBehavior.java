@@ -102,11 +102,17 @@ public class OperationServiceBehavior {
         final List<String> applications = request.getApplications();
         final String activationFlag = request.getActivationFlag();
         final String templateName = request.getTemplateName();
+        final Date timestampExpiresRequest = request.getTimestampExpires();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
 
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
+
+        if (timestampExpiresRequest != null && timestampExpiresRequest.before(currentTimestamp)) {
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
 
         // Fetch the operation template
         final Optional<OperationTemplateEntity> template = templateRepository.findTemplateByName(templateName);
@@ -115,6 +121,15 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
         final OperationTemplateEntity templateEntity = template.get();
+
+        // Resolve the operation expiration date
+        final Date timestampExpires;
+        if (timestampExpiresRequest != null) {
+            timestampExpires = timestampExpiresRequest;
+        } else {
+            final long expiration = templateEntity.getExpiration() * 1000L;
+            timestampExpires = new Date(currentTimestamp.getTime() + expiration);
+        }
 
         // Check if applications exist
         final List<ApplicationEntity> applicationEntities = applicationRepository.findAllByIdIn(applications);
@@ -139,10 +154,6 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
         }
 
-        // Get operation expiration date
-        final long expiration = templateEntity.getExpiration() * 1000L;
-        final Date timestampExpiration = new Date(currentTimestamp.getTime() + expiration);
-
         // Build operation data
         final StringSubstitutor sub = new StringSubstitutor(parameters);
         final String operationData = sub.replace(templateEntity.getDataTemplate());
@@ -164,7 +175,7 @@ public class OperationServiceBehavior {
         operationEntity.setFailureCount(0L);
         operationEntity.setMaxFailureCount(templateEntity.getMaxFailureCount());
         operationEntity.setTimestampCreated(currentTimestamp);
-        operationEntity.setTimestampExpires(timestampExpiration);
+        operationEntity.setTimestampExpires(timestampExpires);
         operationEntity.setTimestampFinalized(null); // empty initially
         operationEntity.setRiskFlags(templateEntity.getRiskFlags());
 
@@ -182,7 +193,7 @@ public class OperationServiceBehavior {
                 .param("status", OperationStatusDo.PENDING.name())
                 .param("allowedSignatureType", templateEntity.getSignatureType())
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
-                .param("timestampExpires", timestampExpiration)
+                .param("timestampExpires", timestampExpires)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 

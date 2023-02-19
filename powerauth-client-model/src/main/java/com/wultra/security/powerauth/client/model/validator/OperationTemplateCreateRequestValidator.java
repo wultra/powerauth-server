@@ -65,7 +65,7 @@ public class OperationTemplateCreateRequestValidator {
             return "Template expiration value must not be null when creating operation template.";
         }
         if (source.getExpiration() <= 0) {
-            return "Template expiration value must not be greater than zero.";
+            return "Template expiration value must be greater than zero.";
         }
         if (source.getMaxFailureCount() == null) {
             return "Template maximum allowed failure count must not be null.";

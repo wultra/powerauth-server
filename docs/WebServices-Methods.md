@@ -1971,6 +1971,7 @@ REST endpoint: `POST /rest/v3/operation/create`
 | `String`              | `userId` | The identifier of the user |
 | `String`              | `applicationId` | An identifier of an application |
 | `String`              | `templateName` | Name of the template used for creating the operation |
+| `Date`                | `timestampExpires` | Timestamp of when the operation will expire, overrides expiration period from operation template |
 | `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
 | `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
 
