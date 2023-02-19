@@ -102,6 +102,7 @@ public class OperationServiceBehavior {
         final List<String> applications = request.getApplications();
         final String activationFlag = request.getActivationFlag();
         final String templateName = request.getTemplateName();
+        final Date timestampExpiresRequest = request.getTimestampExpires();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
 
@@ -140,8 +141,13 @@ public class OperationServiceBehavior {
         }
 
         // Get operation expiration date
-        final long expiration = templateEntity.getExpiration() * 1000L;
-        final Date timestampExpiration = new Date(currentTimestamp.getTime() + expiration);
+        final Date timestampExpires;
+        if (timestampExpiresRequest != null) {
+            timestampExpires = timestampExpiresRequest;
+        } else {
+            final long expiration = templateEntity.getExpiration() * 1000L;
+            timestampExpires = new Date(currentTimestamp.getTime() + expiration);
+        }
 
         // Build operation data
         final StringSubstitutor sub = new StringSubstitutor(parameters);
@@ -164,7 +170,7 @@ public class OperationServiceBehavior {
         operationEntity.setFailureCount(0L);
         operationEntity.setMaxFailureCount(templateEntity.getMaxFailureCount());
         operationEntity.setTimestampCreated(currentTimestamp);
-        operationEntity.setTimestampExpires(timestampExpiration);
+        operationEntity.setTimestampExpires(timestampExpires);
         operationEntity.setTimestampFinalized(null); // empty initially
         operationEntity.setRiskFlags(templateEntity.getRiskFlags());
 
@@ -182,7 +188,7 @@ public class OperationServiceBehavior {
                 .param("status", OperationStatusDo.PENDING.name())
                 .param("allowedSignatureType", templateEntity.getSignatureType())
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
-                .param("timestampExpires", timestampExpiration)
+                .param("timestampExpires", timestampExpires)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 

@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +34,7 @@ public class OperationCreateRequest {
     private List<String> applications;
     private String activationFlag;
     private String templateName;
+    private Date timestampExpires;
     private String externalId;
     private final Map<String, String> parameters = new LinkedHashMap<>();
 
@@ -66,6 +68,14 @@ public class OperationCreateRequest {
 
     public void setTemplateName(String templateName) {
         this.templateName = templateName;
+    }
+
+    public Date getTimestampExpires() {
+        return timestampExpires;
+    }
+
+    public void setTimestampExpires(Date timestampExpires) {
+        this.timestampExpires = timestampExpires;
     }
 
     public String getExternalId() {
