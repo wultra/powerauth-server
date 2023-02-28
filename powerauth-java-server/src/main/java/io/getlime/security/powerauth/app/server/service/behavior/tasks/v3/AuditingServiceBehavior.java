@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
@@ -35,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.xml.datatype.DatatypeConfigurationException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 
@@ -148,7 +148,7 @@ public class AuditingServiceBehavior {
     public void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Boolean valid, Integer version, String note, Date currentTimestamp) {
 
         final String additionalInfo = keyValueMapConverter.toString(signatureData.getAdditionalInfo());
-        final String data = BaseEncoding.base64().encode(signatureData.getData());
+        final String data = Base64.getEncoder().encodeToString(signatureData.getData());
 
         // Audit the signature
         final SignatureEntity signatureAuditRecord = new SignatureEntity();

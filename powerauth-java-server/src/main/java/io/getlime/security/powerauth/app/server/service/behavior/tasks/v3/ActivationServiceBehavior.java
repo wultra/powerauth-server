@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
@@ -406,7 +405,7 @@ public class ActivationServiceBehavior {
                     // since both keys were not exchanged yet and transport cannot be secured.
                     byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
                     // Use random nonce in case that challenge was provided.
-                    String randomStatusBlobNonce = challenge == null ? null : BaseEncoding.base64().encode(keyGenerator.generateRandomBytes(16));
+                    String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
                     // Activation signature
                     MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
@@ -416,7 +415,7 @@ public class ActivationServiceBehavior {
                         throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
                     }
                     String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-                    byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterPrivateKeyBase64);
+                    byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterPrivateKeyBase64);
                     byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(
                             activation.getActivationCode(),
                             keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes)
@@ -435,10 +434,10 @@ public class ActivationServiceBehavior {
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                     response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
-                    response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
+                    response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                     response.setActivationCode(activation.getActivationCode());
-                    response.setActivationSignature(BaseEncoding.base64().encode(activationSignature));
+                    response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignature));
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
@@ -474,9 +473,9 @@ public class ActivationServiceBehavior {
                     // the real encryptedStatusBlob value.
                     if (devicePublicKeyBase64 != null) {
 
-                        PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
-                        PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(devicePublicKeyBase64));
-                        PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(serverPublicKeyBase64));
+                        PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
+                        PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(Base64.getDecoder().decode(devicePublicKeyBase64));
+                        PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(Base64.getDecoder().decode(serverPublicKeyBase64));
 
                         SecretKey masterSecretKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
                         SecretKey transportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterSecretKey);
@@ -488,7 +487,7 @@ public class ActivationServiceBehavior {
                             // the counter value, before it's encoded into the status blob. The value might be replaced
                             // in `encryptedStatusBlob()` function that injects random data, depending on the version
                             // of the status blob encryption.
-                            final byte[] ctrData = BaseEncoding.base64().decode(ctrDataBase64);
+                            final byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
                             ctrDataHashForStatusBlob = powerAuthServerActivation.calculateHashFromHashBasedCounter(ctrData, transportKey);
                         } else {
                             // In crypto v2 counter data is not present, so use an array of zero bytes. This might be
@@ -500,9 +499,9 @@ public class ActivationServiceBehavior {
                         byte[] statusNonce;
                         if (challenge != null) {
                             // If challenge is present, then also generate a new nonce. Protocol V3.1+
-                            statusChallenge = BaseEncoding.base64().decode(challenge);
+                            statusChallenge = Base64.getDecoder().decode(challenge);
                             statusNonce = keyGenerator.generateRandomBytes(16);
-                            encryptedStatusBlobNonce = BaseEncoding.base64().encode(statusNonce);
+                            encryptedStatusBlobNonce = Base64.getEncoder().encodeToString(statusNonce);
                         } else {
                             // Older protocol versions, where IV derivation is not available.
                             statusChallenge = null;
@@ -552,7 +551,7 @@ public class ActivationServiceBehavior {
                     response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
                     response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
                     response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
-                    response.setEncryptedStatusBlob(BaseEncoding.base64().encode(encryptedStatusBlob));
+                    response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(encryptedStatusBlob));
                     response.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
                     response.setActivationCode(null);
                     response.setActivationSignature(null);
@@ -571,7 +570,7 @@ public class ActivationServiceBehavior {
                 // a random status blob
                 byte[] randomStatusBlob = keyGenerator.generateRandomBytes(32);
                 // Use random nonce in case that challenge was provided.
-                String randomStatusBlobNonce = challenge == null ? null : BaseEncoding.base64().encode(keyGenerator.generateRandomBytes(16));
+                String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
                 // Generate date
                 XMLGregorianCalendar zeroDate = XMLGregorianCalendarConverter.convertFrom(new Date(0));
@@ -593,7 +592,7 @@ public class ActivationServiceBehavior {
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
-                response.setEncryptedStatusBlob(BaseEncoding.base64().encode(randomStatusBlob));
+                response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                 response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                 response.setActivationCode(null);
                 response.setActivationSignature(null);
@@ -701,7 +700,7 @@ public class ActivationServiceBehavior {
                 logger.error("No master key pair found for application ID: {}", applicationId);
                 throw ex;
             }
-            byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterKeyPair.getMasterKeyPrivateBase64());
+            byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterKeyPair.getMasterKeyPrivateBase64());
             PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes);
 
             // Generate new activation data, generate a unique activation ID
@@ -742,7 +741,7 @@ public class ActivationServiceBehavior {
             byte[] activationSignature = powerAuthServerActivation.generateActivationSignature(activationCode, masterPrivateKey);
 
             // Encode the signature
-            String activationSignatureBase64 = BaseEncoding.base64().encode(activationSignature);
+            String activationSignatureBase64 = Base64.getEncoder().encodeToString(activationSignature);
 
             // Generate server key pair
             KeyPair serverKeyPair = powerAuthServerActivation.generateServerKeyPair();
@@ -767,7 +766,7 @@ public class ActivationServiceBehavior {
             activation.setApplication(masterKeyPair.getApplication());
             activation.setMasterKeyPair(masterKeyPair);
             activation.setMaxFailedAttempts(maxAttempt);
-            activation.setServerPublicKeyBase64(BaseEncoding.base64().encode(serverKeyPublicBytes));
+            activation.setServerPublicKeyBase64(Base64.getEncoder().encodeToString(serverKeyPublicBytes));
             activation.setTimestampActivationExpire(timestampExpiration);
             activation.setTimestampCreated(timestamp);
             activation.setTimestampLastUsed(timestamp);
@@ -860,7 +859,7 @@ public class ActivationServiceBehavior {
             }
 
             String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
 
             // Get application secret
             byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
@@ -903,7 +902,7 @@ public class ActivationServiceBehavior {
             validateActivationOtp(ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
-            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
+            byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
             PublicKey devicePublicKey = null;
 
             try {
@@ -915,7 +914,7 @@ public class ActivationServiceBehavior {
             // Initialize hash based counter
             HashBasedCounter counter = new HashBasedCounter();
             byte[] ctrData = counter.init();
-            String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
+            String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
             // If Activation OTP is available, then the status is set directly to "ACTIVE".
             // We don't need to commit such activation afterwards.
@@ -925,7 +924,7 @@ public class ActivationServiceBehavior {
             // Update the activation record
             activation.setActivationStatus(activationStatus);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
             if (request.getPlatform() != null) {
@@ -961,8 +960,8 @@ public class ActivationServiceBehavior {
 
             // Encrypt response data
             EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
-            String encryptedData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
-            String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
+            String encryptedData = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
+            String mac = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -1080,7 +1079,7 @@ public class ActivationServiceBehavior {
             }
 
             String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
 
             // Get application secret
             byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
@@ -1102,7 +1101,7 @@ public class ActivationServiceBehavior {
             }
 
             // Extract the device public key from request
-            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(request.getDevicePublicKey());
+            byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
             PublicKey devicePublicKey;
 
             try {
@@ -1116,12 +1115,12 @@ public class ActivationServiceBehavior {
             // Initialize hash based counter
             HashBasedCounter counter = new HashBasedCounter();
             byte[] ctrData = counter.init();
-            String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
+            String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
             // Update and persist the activation record
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
             activation.setExtras(request.getExtras());
             if (request.getPlatform() != null) {
@@ -1158,8 +1157,8 @@ public class ActivationServiceBehavior {
 
             // Encrypt response data
             EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
-            String encryptedData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
-            String mac = BaseEncoding.base64().encode(responseCryptogram.getMac());
+            String encryptedData = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
+            String mac = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
 
             // Generate encrypted response
             CreateActivationResponse encryptedResponse = new CreateActivationResponse();
@@ -1558,10 +1557,10 @@ public class ActivationServiceBehavior {
             final String activationOtp = request.getActivationOtp();
 
             // Prepare ECIES request cryptogram
-            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
-            byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
-            byte[] macBytes = BaseEncoding.base64().decode(mac);
-            byte[] nonceBytes = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKey);
+            byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
+            byte[] macBytes = Base64.getDecoder().decode(mac);
+            byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final EciesCryptogram eciesCryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
 
             // Prepare repositories
@@ -1604,7 +1603,7 @@ public class ActivationServiceBehavior {
             }
 
             String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+            PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
 
             // Get application secret
             byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
@@ -1743,7 +1742,7 @@ public class ActivationServiceBehavior {
             validateCreatedActivation(activation, application, true);
 
             // Extract the device public key from request
-            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(layer2Request.getDevicePublicKey());
+            byte[] devicePublicKeyBytes = Base64.getDecoder().decode(layer2Request.getDevicePublicKey());
             PublicKey devicePublicKey;
 
             try {
@@ -1757,12 +1756,12 @@ public class ActivationServiceBehavior {
             // Initialize hash based counter
             HashBasedCounter counter = new HashBasedCounter();
             byte[] ctrData = counter.init();
-            String ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
+            String ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
 
             // Update and persist the activation record, activation is automatically committed in the next step in RESTful integration.
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
             activation.setExtras(layer2Request.getExtras());
             if (layer2Request.getPlatform() != null) {
@@ -1799,8 +1798,8 @@ public class ActivationServiceBehavior {
 
             // Encrypt response data
             final EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
-            final String encryptedDataResponse = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
-            final String macResponse = BaseEncoding.base64().encode(responseCryptogram.getMac());
+            final String encryptedDataResponse = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
+            final String macResponse = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
 
             final RecoveryCodeActivationResponse encryptedResponse = new RecoveryCodeActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());

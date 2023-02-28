@@ -1,7 +1,6 @@
 package io.getlime.security.powerauth.app.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
@@ -25,10 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
@@ -74,13 +70,13 @@ public class VerifySignatureConcurrencyTest {
 
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName("test_activation");
-        requestL2.setDevicePublicKey(BaseEncoding.base64().encode(publicKeyBytes));
+        requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
 
         GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
 
-        ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(detailResponse.getMasterPublicKey()));
+        ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
 
         EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey, createApplicationVersionResponse.getApplicationSecret().getBytes(StandardCharsets.UTF_8), EciesSharedInfo1.ACTIVATION_LAYER_2);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -93,10 +89,10 @@ public class VerifySignatureConcurrencyTest {
         createActivationRequest.setTimestampActivationExpire(XMLGregorianCalendarConverter.convertFrom(expiration.getTime()));
         createActivationRequest.setMaxFailureCount(5L);
         createActivationRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
-        createActivationRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
-        createActivationRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        createActivationRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
-        createActivationRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
+        createActivationRequest.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData()));
+        createActivationRequest.setMac(Base64.getEncoder().encodeToString(eciesCryptogram.getMac()));
+        createActivationRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey()));
+        createActivationRequest.setNonce(Base64.getEncoder().encodeToString(eciesCryptogram.getNonce()));
         CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
 
         // Commit activation

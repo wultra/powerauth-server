@@ -16,7 +16,6 @@
 
 package io.getlime.security.app.admin.util;
 
-import com.google.common.io.BaseEncoding;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
@@ -28,6 +27,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Utility class for generating QR codes.
@@ -55,7 +55,7 @@ public class QRUtil {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(image, "png", baos);
             byte[] bytes = baos.toByteArray();
-            return "data:image/png;base64," + BaseEncoding.base64().encode(bytes);
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
         } catch (WriterException | IOException e) {
             e.printStackTrace();
         }

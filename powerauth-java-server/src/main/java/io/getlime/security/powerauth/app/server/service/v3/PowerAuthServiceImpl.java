@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.v3;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.validator.*;
@@ -308,10 +307,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
             final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
-            final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            final byte[] mac = BaseEncoding.base64().decode(request.getMac());
-            final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
-            final byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+            final byte[] mac = Base64.getDecoder().decode(request.getMac());
+            final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
+            final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
             final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, cryptogram, keyConvertor);
@@ -345,10 +344,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final Long maxFailedCount = request.getMaxFailureCount();
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
-            final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            final byte[] mac = BaseEncoding.base64().decode(request.getMac());
-            final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
-            final byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+            final byte[] mac = Base64.getDecoder().decode(request.getMac());
+            final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
+            final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
             logger.info("CreateActivationRequest received, user ID: {}", userId);
             final CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
@@ -673,10 +672,10 @@ public class PowerAuthServiceImpl implements PowerAuthService {
             final SignatureType signatureType = request.getSignatureType();
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
-            byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-            byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
-            byte[] mac = BaseEncoding.base64().decode(request.getMac());
-            byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+            byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+            byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
+            byte[] mac = Base64.getDecoder().decode(request.getMac());
+            byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
 
             logger.info("VaultUnlockRequest received, activation ID: {}", activationId);
 

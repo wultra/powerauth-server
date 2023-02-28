@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
 import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -50,6 +49,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Behavior class implementing the end-to-end encryption related processes. The
@@ -122,8 +122,8 @@ public class EncryptionServiceBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
             // Convert the keys
-            PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(devicePublicKeyBase64));
-            PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
+            PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(Base64.getDecoder().decode(devicePublicKeyBase64));
+            PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             SecretKey masterKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(serverPrivateKey, devicePublicKey);
             SecretKey masterTransportKey = powerAuthServerKeyFactory.generateServerTransportKey(masterKey);
@@ -134,7 +134,7 @@ public class EncryptionServiceBehavior {
             // Use provided index or generate own, if not provided.
             byte[] sessionIndexBytes = null;
             if (sessionIndex != null) {
-                sessionIndexBytes = BaseEncoding.base64().decode(sessionIndex);
+                sessionIndexBytes = Base64.getDecoder().decode(sessionIndex);
             }
             byte[] index;
             if (sessionIndexBytes == null || sessionIndexBytes.length != 16) {
@@ -146,8 +146,8 @@ public class EncryptionServiceBehavior {
             byte[] tmpBytes = new HMACHashUtilities().hash(index, masterTransportKeyData);
             byte[] derivedTransportKeyBytes = keyGenerator.convert32Bto16B(tmpBytes);
 
-            String indexBase64 = BaseEncoding.base64().encode(index);
-            String derivedTransportKeyBase64 = BaseEncoding.base64().encode(derivedTransportKeyBytes);
+            String indexBase64 = Base64.getEncoder().encodeToString(index);
+            String derivedTransportKeyBase64 = Base64.getEncoder().encodeToString(derivedTransportKeyBytes);
 
             GetPersonalizedEncryptionKeyResponse response = new GetPersonalizedEncryptionKeyResponse();
             response.setActivationId(activation.getActivationId());
@@ -200,11 +200,11 @@ public class EncryptionServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
-            byte[] ephemeralKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKeyBase64);
+            byte[] ephemeralKeyBytes = Base64.getDecoder().decode(ephemeralPublicKeyBase64);
             PublicKey ephemeralPublicKey = keyConversionUtilities.convertBytesToPublicKey(ephemeralKeyBytes);
 
             String masterPrivateKeyBase64 = keypair.getMasterKeyPrivateBase64();
-            PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+            PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
 
             SecretKey masterKey = powerAuthServerKeyFactory.generateServerMasterSecretKey(masterPrivateKey, ephemeralPublicKey);
             byte[] masterTransportKeyData = keyConversionUtilities.convertSharedSecretKeyToBytes(masterKey);
@@ -214,7 +214,7 @@ public class EncryptionServiceBehavior {
             // Use provided index or generate own, if not provided.
             byte[] sessionIndexBytes = null;
             if (sessionIndexBase64 != null) {
-                sessionIndexBytes = BaseEncoding.base64().decode(sessionIndexBase64);
+                sessionIndexBytes = Base64.getDecoder().decode(sessionIndexBase64);
             }
             byte[] index;
             if (sessionIndexBytes == null || sessionIndexBytes.length != 16) {
@@ -226,8 +226,8 @@ public class EncryptionServiceBehavior {
             byte[] tmpBytes = new HMACHashUtilities().hash(index, masterTransportKeyData);
             byte[] derivedTransportKeyBytes = keyGenerator.convert32Bto16B(tmpBytes);
 
-            String indexBase64 = BaseEncoding.base64().encode(index);
-            String derivedTransportKeyBase64 = BaseEncoding.base64().encode(derivedTransportKeyBytes);
+            String indexBase64 = Base64.getEncoder().encodeToString(index);
+            String derivedTransportKeyBase64 = Base64.getEncoder().encodeToString(derivedTransportKeyBytes);
 
             GetNonPersonalizedEncryptionKeyResponse response = new GetNonPersonalizedEncryptionKeyResponse();
             response.setApplicationKey(applicationKey);

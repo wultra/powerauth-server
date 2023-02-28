@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -35,6 +34,7 @@ import org.springframework.stereotype.Component;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Behavior class implementing the asymmetric (ECDSA) signature validation related processes. The
@@ -75,9 +75,9 @@ public class AsymmetricSignatureServiceBehavior {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
                 return false;
             }
-            byte[] devicePublicKeyData = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
-            return signatureUtils.validateECDSASignature(BaseEncoding.base64().decode(data), BaseEncoding.base64().decode(signature), devicePublicKey);
+            return signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing

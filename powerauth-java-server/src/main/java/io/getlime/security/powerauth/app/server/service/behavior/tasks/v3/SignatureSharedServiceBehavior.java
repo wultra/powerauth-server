@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import com.wultra.security.powerauth.client.v3.SignatureType;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
@@ -55,6 +54,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -275,8 +275,8 @@ public class SignatureSharedServiceBehavior {
         final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
 
         // Decode the keys to byte[]
-        final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
-        final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+        final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
+        final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
         final PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
         final PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
 
@@ -301,7 +301,7 @@ public class SignatureSharedServiceBehavior {
         final HashBasedCounter hashBasedCounter = new HashBasedCounter();
         // Get counter data from activation for version 3
         if (signatureVersion == 3) {
-            ctrHash = BaseEncoding.base64().decode(activation.getCtrDataBase64());
+            ctrHash = Base64.getDecoder().decode(activation.getCtrDataBase64());
         }
         // Signature type which was used to verify signature succesfully
         SignatureType usedSignatureType = null;
@@ -422,7 +422,7 @@ public class SignatureSharedServiceBehavior {
 
         if (verificationResponse.getForcedSignatureVersion() == 3) {
             // Set the ctrData to next valid ctrData value
-            activation.setCtrDataBase64(BaseEncoding.base64().encode(verificationResponse.getCtrDataNext()));
+            activation.setCtrDataBase64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
         }
 
         // Set the activation record counter to next valid counter value

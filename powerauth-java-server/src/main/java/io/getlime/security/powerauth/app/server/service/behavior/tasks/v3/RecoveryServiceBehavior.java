@@ -18,7 +18,6 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
@@ -174,9 +173,9 @@ public class RecoveryServiceBehavior {
             String recoveryPrivateKeyBase64 = recoveryConfigEntity.getRecoveryPostcardPrivateKeyBase64();
             final RecoveryPrivateKey recoveryPrivateKeyEncrypted = new RecoveryPrivateKey(encryptionMode, recoveryPrivateKeyBase64);
             String decryptedPrivateKey = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, applicationEntity.getRid());
-            final byte[] privateKeyBytes = BaseEncoding.base64().decode(decryptedPrivateKey);
+            final byte[] privateKeyBytes = Base64.getDecoder().decode(decryptedPrivateKey);
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(privateKeyBytes);
-            final byte[] publicKeyBytes = BaseEncoding.base64().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
+            final byte[] publicKeyBytes = Base64.getDecoder().decode(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
             final PublicKey publicKey = keyConversion.convertBytesToPublicKey(publicKeyBytes);
 
             final SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
@@ -235,7 +234,7 @@ public class RecoveryServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             CreateRecoveryCodeResponse response = new CreateRecoveryCodeResponse();
-            response.setNonce(BaseEncoding.base64().encode(nonce));
+            response.setNonce(Base64.getEncoder().encodeToString(nonce));
             response.setUserId(userId);
             response.setRecoveryCodeId(recoveryCodeEntity.getId());
             response.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
@@ -311,13 +310,13 @@ public class RecoveryServiceBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
@@ -327,10 +326,10 @@ public class RecoveryServiceBehavior {
                     applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE);
 
             // Decrypt request data
-            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
-            final byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
-            final byte[] macBytes = BaseEncoding.base64().decode(mac);
-            final byte[] nonceBytes = nonce != null ? BaseEncoding.base64().decode(nonce) : null;
+            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKey);
+            final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
+            final byte[] macBytes = Base64.getDecoder().decode(mac);
+            final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : null;
             final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
             final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
 
@@ -383,8 +382,8 @@ public class RecoveryServiceBehavior {
 
             // Encrypt response using previously created ECIES decryptor
             final EciesCryptogram eciesResponse = decryptor.encryptResponse(responseBytes);
-            final String encryptedDataResponse = BaseEncoding.base64().encode(eciesResponse.getEncryptedData());
-            final String macResponse = BaseEncoding.base64().encode(eciesResponse.getMac());
+            final String encryptedDataResponse = Base64.getEncoder().encodeToString(eciesResponse.getEncryptedData());
+            final String macResponse = Base64.getEncoder().encodeToString(eciesResponse.getMac());
 
             // Return response
             final ConfirmRecoveryCodeResponse response = new ConfirmRecoveryCodeResponse();
@@ -644,7 +643,7 @@ public class RecoveryServiceBehavior {
                 PublicKey publicKey = kp.getPublic();
                 byte[] privateKeyBytes = keyConversion.convertPrivateKeyToBytes(privateKey);
                 byte[] publicKeyBytes = keyConversion.convertPublicKeyToBytes(publicKey);
-                String publicKeyBase64 = BaseEncoding.base64().encode(publicKeyBytes);
+                String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
 
                 RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationEntity.getRid());
                 recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(recoveryPrivateKey.getRecoveryPrivateKeyBase64());

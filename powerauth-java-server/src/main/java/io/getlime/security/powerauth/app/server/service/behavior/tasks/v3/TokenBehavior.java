@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
@@ -59,6 +58,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Optional;
 
@@ -115,10 +115,10 @@ public class TokenBehavior {
     public CreateTokenResponse createToken(CreateTokenRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String applicationKey = request.getApplicationKey();
-        final byte[] ephemeralPublicKey = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
-        final byte[] encryptedData = BaseEncoding.base64().decode(request.getEncryptedData());
-        final byte[] mac = BaseEncoding.base64().decode(request.getMac());
-        final byte[] nonce = request.getNonce() != null ? BaseEncoding.base64().decode(request.getNonce()) : null;
+        final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+        final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
+        final byte[] mac = Base64.getDecoder().decode(request.getMac());
+        final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
         final SignatureType signatureType = request.getSignatureType();
 
         // Convert received ECIES request data to cryptogram
@@ -127,8 +127,8 @@ public class TokenBehavior {
         final EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.value(), keyConversion);
 
         final CreateTokenResponse response = new CreateTokenResponse();
-        response.setMac(BaseEncoding.base64().encode(encryptedCryptogram.getMac()));
-        response.setEncryptedData(BaseEncoding.base64().encode(encryptedCryptogram.getEncryptedData()));
+        response.setMac(Base64.getEncoder().encodeToString(encryptedCryptogram.getMac()));
+        response.setEncryptedData(Base64.getEncoder().encodeToString(encryptedCryptogram.getEncryptedData()));
         return response;
     }
 
@@ -165,7 +165,7 @@ public class TokenBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-            final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
 
             // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
@@ -173,7 +173,7 @@ public class TokenBehavior {
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
@@ -206,7 +206,7 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNABLE_TO_GENERATE_TOKEN);
             }
             // Perform the following operations before writing to database to avoid rollbacks.
-            final String tokenSecret = BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret());
+            final String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret());
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);
@@ -260,9 +260,9 @@ public class TokenBehavior {
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
         try {
             final String tokenId = request.getTokenId();
-            final byte[] nonce = BaseEncoding.base64().decode(request.getNonce());
+            final byte[] nonce = Base64.getDecoder().decode(request.getNonce());
             final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());
-            final byte[] tokenDigest = BaseEncoding.base64().decode(request.getTokenDigest());
+            final byte[] tokenDigest = Base64.getDecoder().decode(request.getTokenDigest());
 
             // Lookup the token
             final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
@@ -276,7 +276,7 @@ public class TokenBehavior {
 
             // Check if the activation is in correct state
             final ActivationRecordEntity activation = token.getActivation();
-            final byte[] tokenSecret = BaseEncoding.base64().decode(token.getTokenSecret());
+            final byte[] tokenSecret = Base64.getDecoder().decode(token.getTokenSecret());
             final boolean isTokenValid;
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
