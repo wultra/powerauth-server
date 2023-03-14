@@ -159,6 +159,9 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setAdditionalInfo(additionalInfo);
         signatureAuditRecord.setDataBase64(data);
         signatureAuditRecord.setSignature(signatureData.getSignature());
+        signatureAuditRecord.setSignatureDataMethod(signatureData.getRequestMethod());
+        signatureAuditRecord.setSignatureDataUriId(signatureData.getRequestUriId());
+        signatureAuditRecord.setSignatureDataBody(signatureData.getRequestBody());
         signatureAuditRecord.setSignatureType(signatureType.value());
         signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
         signatureAuditRecord.setValid(valid);
@@ -179,6 +182,9 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
+                .param("signatureDataMethod", signatureData.getRequestMethod())
+                .param("signatureDataUriId", signatureData.getRequestUriId())
+                .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.value())
                 .param("signatureVersion", signatureData.getSignatureVersion())
                 .param("activationVersion", version)

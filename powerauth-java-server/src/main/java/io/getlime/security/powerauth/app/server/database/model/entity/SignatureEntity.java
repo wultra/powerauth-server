@@ -71,6 +71,15 @@ public class SignatureEntity implements Serializable {
     @Column(name = "signature", nullable = false, updatable = false)
     private String signature;
 
+    @Column(name = "signature_data_method", updatable = false)
+    private String signatureDataMethod;
+
+    @Column(name = "signature_data_uri_id", updatable = false)
+    private String signatureDataUriId;
+
+    @Column(name = "signature_data_body", updatable = false)
+    private String signatureDataBody;
+
     @Column(name = "note", updatable = false)
     private String note;
 
@@ -101,6 +110,9 @@ public class SignatureEntity implements Serializable {
      * @param signatureVersion        Requested signature version.
      * @param signatureType           Requested signature type.
      * @param signature               Signature value.
+     * @param signatureDataMethod     Signature data method.
+     * @param signatureDataUriId      Signature data URI identifier.
+     * @param signatureDataBody       Signature data body.
      * @param additionalInfo          Additional information related to this signature.
      * @param note                    Signature audit log note, with more information about the log reason.
      * @param valid                   True if the signature was valid, false otherwise.
@@ -116,6 +128,9 @@ public class SignatureEntity implements Serializable {
             String signatureVersion,
             String signatureType,
             String signature,
+            String signatureDataMethod,
+            String signatureDataUriId,
+            String signatureDataBody,
             String additionalInfo,
             String note,
             Boolean valid,
@@ -131,6 +146,9 @@ public class SignatureEntity implements Serializable {
         this.signatureVersion = signatureVersion;
         this.signatureType = signatureType;
         this.signature = signature;
+        this.signatureDataMethod = signatureDataMethod;
+        this.signatureDataUriId = signatureDataUriId;
+        this.signatureDataBody = signatureDataBody;
         this.additionalInfo = additionalInfo;
         this.note = note;
         this.valid = valid;
@@ -317,6 +335,60 @@ public class SignatureEntity implements Serializable {
     }
 
     /**
+     * Get signature data HTTP method.
+     *
+     * @return Signature data HTTP method.
+     */
+    public String getSignatureDataMethod() {
+        return signatureDataMethod;
+    }
+
+    /**
+     * Set signature data HTTP method.
+     *
+     * @param signatureDataMethod Signature data HTTP method.
+     */
+    public void setSignatureDataMethod(String signatureDataMethod) {
+        this.signatureDataMethod = signatureDataMethod;
+    }
+
+    /**
+     * Get signature data resource URI identifier.
+     *
+     * @return Signature data resource URI identifier.
+     */
+    public String getSignatureDataUriId() {
+        return signatureDataUriId;
+    }
+
+    /**
+     * Set signature data resource URI identifier.
+     *
+     * @param signatureDataUriId Signature data URI identifier.
+     */
+    public void setSignatureDataUriId(String signatureDataUriId) {
+        this.signatureDataUriId = signatureDataUriId;
+    }
+
+    /**
+     * Get signature data body.
+     *
+     * @return Signature data body.
+     */
+    public String getSignatureDataBody() {
+        return signatureDataBody;
+    }
+
+    /**
+     * Set signature data body.
+     *
+     * @param signatureDataBody Signature data body.
+     */
+    public void setSignatureDataBody(String signatureDataBody) {
+        this.signatureDataBody = signatureDataBody;
+    }
+
+    /**
      * Get additional information related to this signature.
      * @return Additional information.
      */
@@ -394,6 +466,9 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.dataBase64);
         hash = 23 * hash + Objects.hashCode(this.signatureType);
         hash = 23 * hash + Objects.hashCode(this.signature);
+        hash = 23 * hash + Objects.hashCode(this.signatureDataMethod);
+        hash = 23 * hash + Objects.hashCode(this.signatureDataUriId);
+        hash = 23 * hash + Objects.hashCode(this.signatureDataBody);
         hash = 23 * hash + Objects.hashCode(this.additionalInfo);
         hash = 23 * hash + Objects.hashCode(this.note);
         hash = 23 * hash + Objects.hashCode(this.valid);
@@ -421,6 +496,15 @@ public class SignatureEntity implements Serializable {
             return false;
         }
         if (!Objects.equals(this.signature, other.signature)) {
+            return false;
+        }
+        if (!Objects.equals(this.signatureDataMethod, other.signatureDataMethod)) {
+            return false;
+        }
+        if (!Objects.equals(this.signatureDataUriId, other.signatureDataUriId)) {
+            return false;
+        }
+        if (!Objects.equals(this.signatureDataBody, other.signatureDataBody)) {
             return false;
         }
         if (!Objects.equals(this.additionalInfo, other.additionalInfo)) {
