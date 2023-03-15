@@ -50,6 +50,7 @@ public class SignatureDataParser {
         final String[] parts = dataString.split("&");
         if (parts.length != 5) {
             // Non-standard request data, do not parse such data
+            logger.warn("Invalid request data: {}", dataString);
             return null;
         }
         final String method = parts[0];
