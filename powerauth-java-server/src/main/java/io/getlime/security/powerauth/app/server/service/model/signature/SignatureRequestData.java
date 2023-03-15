@@ -17,10 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
 /**
  * Parsed signature request data.
@@ -30,6 +27,7 @@ import lombok.ToString;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class SignatureRequestData {
 
     private String method;

@@ -57,7 +57,11 @@ public class SignatureDataParser {
         try {
             final String uriIdentifier = new String(BaseEncoding.base64().decode(parts[1]), StandardCharsets.UTF_8);
             final String body = new String(BaseEncoding.base64().decode(parts[3]), StandardCharsets.UTF_8);
-            return new SignatureRequestData(method, uriIdentifier, body);
+            return SignatureRequestData.builder()
+                    .method(method)
+                    .uriIdentifier(uriIdentifier)
+                    .body(body)
+                    .build();
         } catch (IllegalArgumentException ex) {
             logger.warn("Invalid request data, error: {}", ex.getMessage(), ex);
             return null;
