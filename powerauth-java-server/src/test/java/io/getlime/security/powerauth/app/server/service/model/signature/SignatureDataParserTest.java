@@ -31,10 +31,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class SignatureDataParserTest {
+class SignatureDataParserTest {
 
     @Test
-    public void testSignatureDataParserValid() {
+   void testSignatureDataParserValid() {
         final byte[] rawData = "POST&L3BhL3Rva2VuL2NyZWF0ZQ==&YD375huieypEKAr16VhgZg==&eyJlbmNyeXB0ZWREYXRhIjoiU3poXC9MNU9HUkRpdStIb2NtQ0ZXT1E9PSIsIm5vbmNlIjoiSmtnM3F3bEN1cG5UTXJVbWFYaU5adz09IiwibWFjIjoiQnd1Q2V4eVN1aWh3ckNRXC9ETFJNc0pEVXBMMW5GM2RKMHpZdVFrcXNjTjA9IiwiZXBoZW1lcmFsUHVibGljS2V5IjoiQWp6ODBmdzZtRDZYbVBDMUxYdEtUZWN2MHhFNUJ1R3FBVEtmaHNtTHhuVkEifQ==&Pgd67vpBT6/Y+2fNBt7Sxg==".getBytes(StandardCharsets.UTF_8);
         final SignatureRequestData parsedData = SignatureDataParser.parseRequestData(rawData);
         assertEquals("POST", parsedData.getMethod());
@@ -43,7 +43,7 @@ public class SignatureDataParserTest {
     }
 
     @Test
-    public void testSignatureDataParserValidInvalid() {
+   void testSignatureDataParserValidInvalid() {
         final byte[] rawData = "POSTL3BhL3Rva2VuL2NyZWF0ZQ==&YD375huieypEKAr16VhgZg==&eyJlbmNyeXB0ZWREYXRhIjoiU3poXC9MNU9HUkRpdStIb2NtQ0ZXT1E9PSIsIm5vbmNlIjoiSmtnM3F3bEN1cG5UTXJVbWFYaU5adz09IiwibWFjIjoiQnd1Q2V4eVN1aWh3ckNRXC9ETFJNc0pEVXBMMW5GM2RKMHpZdVFrcXNjTjA9IiwiZXBoZW1lcmFsUHVibGljS2V5IjoiQWp6ODBmdzZtRDZYbVBDMUxYdEtUZWN2MHhFNUJ1R3FBVEtmaHNtTHhuVkEifQ==&Pgd67vpBT6/Y+2fNBt7Sxg==".getBytes(StandardCharsets.UTF_8);
         final SignatureRequestData parsedData = SignatureDataParser.parseRequestData(rawData);
         assertNull(parsedData);
