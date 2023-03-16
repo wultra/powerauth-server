@@ -88,20 +88,23 @@ CREATE TABLE pa_master_keypair
 --
 CREATE TABLE pa_signature_audit
 (
-    id                  BIGINT NOT NULL PRIMARY KEY,
-    activation_id       VARCHAR(37) NOT NULL,
-    activation_counter  INTEGER NOT NULL,
-    activation_ctr_data VARCHAR(255),
-    activation_status   INTEGER,
-    additional_info     VARCHAR(255),
-    data_base64         TEXT,
-    note                VARCHAR(255),
-    signature_type      VARCHAR(255) NOT NULL,
-    signature           VARCHAR(255) NOT NULL,
-    timestamp_created   TIMESTAMP (6) NOT NULL,
-    valid               BOOLEAN,
-    version             INTEGER DEFAULT 2,
-    signature_version   VARCHAR(255)
+    id                      BIGINT NOT NULL PRIMARY KEY,
+    activation_id           VARCHAR(37) NOT NULL,
+    activation_counter      INTEGER NOT NULL,
+    activation_ctr_data     VARCHAR(255),
+    activation_status       INTEGER,
+    additional_info         VARCHAR(255),
+    data_base64             TEXT,
+    note                    VARCHAR(255),
+    signature_type          VARCHAR(255) NOT NULL,
+    signature               VARCHAR(255) NOT NULL,
+    signature_data_method   VARCHAR(32),
+    signature_data_uri_id   VARCHAR(255),
+    signature_data_body     TEXT,
+    timestamp_created       TIMESTAMP (6) NOT NULL,
+    valid                   BOOLEAN,
+    version                 INTEGER DEFAULT 2,
+    signature_version       VARCHAR(255)
 );
 
 --

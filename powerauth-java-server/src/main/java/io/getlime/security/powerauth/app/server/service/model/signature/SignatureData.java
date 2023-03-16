@@ -28,6 +28,7 @@ import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 public class SignatureData {
 
     private byte[] data;
+    private SignatureRequestData requestData;
     private String signature;
     private String signatureVersion;
     private SignatureConfiguration signatureConfiguration;
@@ -56,6 +57,7 @@ public class SignatureData {
         this.signatureConfiguration = signatureConfiguration;
         this.additionalInfo = additionalInfo;
         this.forcedSignatureVersion = forcedSignatureVersion;
+        this.requestData = SignatureDataParser.parseRequestData(data);
     }
 
     /**
@@ -105,4 +107,38 @@ public class SignatureData {
     public Integer getForcedSignatureVersion() {
         return forcedSignatureVersion;
     }
+
+    /**
+     * Get parsed method from request data.
+     * @return Method from request data.
+     */
+    public String getRequestMethod() {
+        if (requestData == null) {
+            return null;
+        }
+        return requestData.getMethod();
+    }
+
+    /**
+     * Get parsed URI identifier from request data.
+     * @return URI identifier from request data.
+     */
+    public String getRequestUriId() {
+        if (requestData == null) {
+            return null;
+        }
+        return requestData.getUriIdentifier();
+    }
+
+    /**
+     * Get parsed request body from request data.
+     * @return Request body from request data.
+     */
+    public String getRequestBody() {
+        if (requestData == null) {
+            return null;
+        }
+        return requestData.getBody();
+    }
+
 }
