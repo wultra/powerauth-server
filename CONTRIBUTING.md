@@ -5,7 +5,7 @@ Thank you for investing your time in contributing to our project!
 
 ## Commits Signing
 
-In order to eliminate the risk that someone unknown smuggles an unknown commit to our GitHub repositories, we require all developers to sign all their commits.
+In order to eliminate the risk that an unknown commit is merged to one of our GitHub repositories, we require all developers to sign all their commits.
 All developers can then prove their identity via the signature and the commits will be verified.
 [Learn more about signing commits](https://docs.github.com/articles/about-gpg/).
 
@@ -25,6 +25,7 @@ Don't forget to [link PR to issue](https://docs.github.com/en/issues/tracking-yo
 ## Continuous Integration
 
 PRs are verified by Continues Integration tools. All checks should pass.
+
 
 ## Contributor License Agreement
 
