@@ -30,17 +30,21 @@ import org.springframework.util.StringUtils;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class SecurityUtil {
+public final class SecurityUtil {
 
     /**
      * Authentication via LDAP.
      */
-    public static final String LDAP = "ldap";
+    private static final String LDAP = "ldap";
 
     /**
      * Authentication via Active Directory.
      */
-    public static final String ACTIVE_DIRECTORY = "active-directory";
+    private static final String ACTIVE_DIRECTORY = "active-directory";
+
+    SecurityUtil() {
+        throw new IllegalStateException("Should not be instantiated");
+    }
 
     /**
      * Checks if a provided security method is LDAP authentication.
