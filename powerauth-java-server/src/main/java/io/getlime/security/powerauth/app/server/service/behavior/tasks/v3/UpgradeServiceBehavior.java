@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.CommitUpgradeRequest;
 import com.wultra.security.powerauth.client.v3.CommitUpgradeResponse;
 import com.wultra.security.powerauth.client.v3.StartUpgradeRequest;
@@ -58,6 +57,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Behavior class implementing the activation upgrade process.
@@ -116,10 +116,10 @@ public class UpgradeServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
         }
 
-        byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKey);
-        byte[] encryptedDataBytes = BaseEncoding.base64().decode(encryptedData);
-        byte[] macBytes = BaseEncoding.base64().decode(mac);
-        byte[] nonceBytes = nonce != null ? BaseEncoding.base64().decode(nonce) : null;
+        byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKey);
+        byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
+        byte[] macBytes = Base64.getDecoder().decode(mac);
+        byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : null;
         final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
 
         // Lookup the activation
@@ -153,14 +153,14 @@ public class UpgradeServiceBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
 
             // KEY_SERVER_PRIVATE is used in Crypto version 3.0 for ECIES, note that in version 2.0 KEY_SERVER_MASTER_PRIVATE is used
             final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get ECIES parameters
             byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
             SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
@@ -183,7 +183,7 @@ public class UpgradeServiceBehavior {
                 // Initialize hash based counter
                 final HashBasedCounter hashBasedCounter = new HashBasedCounter();
                 byte[] ctrData = hashBasedCounter.init();
-                ctrDataBase64 = BaseEncoding.base64().encode(ctrData);
+                ctrDataBase64 = Base64.getEncoder().encodeToString(ctrData);
                 activation.setCtrDataBase64(ctrDataBase64);
 
                 // Store activation with generated ctr_data in database
@@ -202,8 +202,8 @@ public class UpgradeServiceBehavior {
 
             final EciesCryptogram cryptogramResponse = decryptor.encryptResponse(payloadBytes);
             final StartUpgradeResponse response = new StartUpgradeResponse();
-            response.setEncryptedData(BaseEncoding.base64().encode(cryptogramResponse.getEncryptedData()));
-            response.setMac(BaseEncoding.base64().encode(cryptogramResponse.getMac()));
+            response.setEncryptedData(Base64.getEncoder().encodeToString(cryptogramResponse.getEncryptedData()));
+            response.setMac(Base64.getEncoder().encodeToString(cryptogramResponse.getMac()));
 
             // Save activation as last step to avoid rollbacks
             if (activationShouldBeSaved) {

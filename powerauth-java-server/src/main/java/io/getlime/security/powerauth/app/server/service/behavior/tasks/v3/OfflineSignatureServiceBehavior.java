@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -39,7 +38,6 @@ import io.getlime.security.powerauth.app.server.service.model.signature.Signatur
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
 import io.getlime.security.powerauth.crypto.lib.config.DecimalSignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -55,6 +53,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -151,7 +150,7 @@ public class OfflineSignatureServiceBehavior {
 
             // Generate nonce
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
-            final String nonce = BaseEncoding.base64().encode(nonceBytes);
+            final String nonce = Base64.getEncoder().encodeToString(nonceBytes);
 
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -160,13 +159,13 @@ public class OfflineSignatureServiceBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
             // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
-            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(serverPrivateKeyBase64));
+            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
-            final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
+            final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
             final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
@@ -221,17 +220,17 @@ public class OfflineSignatureServiceBehavior {
 
             // Generate nonce
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
-            final String nonce = BaseEncoding.base64().encode(nonceBytes);
+            final String nonce = Base64.getEncoder().encodeToString(nonceBytes);
 
             // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(BaseEncoding.base64().decode(keyPrivateBase64));
+            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(keyPrivateBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
             final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
-            final String ecdsaSignature = BaseEncoding.base64().encode(ecdsaSignatureBytes);
+            final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
             final String offlineData = (data + "\n" + nonce + "\n" + KEY_MASTER_SERVER_PRIVATE_INDICATOR + ecdsaSignature);

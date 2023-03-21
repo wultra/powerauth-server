@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
-import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * Converter for server private key which handles key encryption and decryption in case it is configured.
@@ -102,13 +102,13 @@ public class ServerPrivateKeyConverter {
 
                 try {
                     // Convert master DB encryption key
-                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
                     SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, userId, activationId);
 
                     // Base64-decode server private key
-                    byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+                    byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (serverPrivateKeyBytes.length < 16) {
@@ -127,7 +127,7 @@ public class ServerPrivateKeyConverter {
                     byte[] decryptedServerPrivateKey = aesEncryptionUtils.decrypt(encryptedServerPrivateKey, iv, secretKey);
 
                     // Base64-encode decrypted serverPrivateKey
-                    return BaseEncoding.base64().encode(decryptedServerPrivateKey);
+                    return Base64.getEncoder().encodeToString(decryptedServerPrivateKey);
 
                 } catch (InvalidKeyException ex) {
                     logger.error(ex.getMessage(), ex);
@@ -166,12 +166,12 @@ public class ServerPrivateKeyConverter {
 
         // In case master DB encryption key does not exist, do not encrypt the server private key
         if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return new ServerPrivateKey(EncryptionMode.NO_ENCRYPTION, BaseEncoding.base64().encode(serverPrivateKey));
+            return new ServerPrivateKey(EncryptionMode.NO_ENCRYPTION, Base64.getEncoder().encodeToString(serverPrivateKey));
         }
 
         try {
             // Convert master DB encryption key
-            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
             SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, userId, activationId);
@@ -189,7 +189,7 @@ public class ServerPrivateKeyConverter {
             byte[] record = baos.toByteArray();
 
             // Base64-encode output and create ServerPrivateKey instance
-            String encryptedKeyBase64 = BaseEncoding.base64().encode(record);
+            String encryptedKeyBase64 = Base64.getEncoder().encodeToString(record);
 
             // Return encrypted record including encryption mode
             return new ServerPrivateKey(EncryptionMode.AES_HMAC, encryptedKeyBase64);

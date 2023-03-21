@@ -18,7 +18,6 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v2.CreateActivationResponse;
 import com.wultra.security.powerauth.client.v2.PrepareActivationResponse;
 import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
@@ -50,6 +49,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Objects;
 import java.util.Set;
@@ -242,19 +242,19 @@ public class ActivationServiceBehavior {
 
             // Get master private key
             String masterPrivateKeyBase64 = activation.getMasterKeyPair().getMasterKeyPrivateBase64();
-            byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterPrivateKeyBase64);
+            byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterPrivateKeyBase64);
             PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes);
 
             // Get client ephemeral public key
             PublicKey clientEphemeralPublicKey = null;
             if (clientEphemeralPublicKeyBase64 != null) { // additional encryption is used
-                byte[] clientEphemeralPublicKeyBytes = BaseEncoding.base64().decode(clientEphemeralPublicKeyBase64);
+                byte[] clientEphemeralPublicKeyBytes = Base64.getDecoder().decode(clientEphemeralPublicKeyBase64);
                 clientEphemeralPublicKey = keyConversionUtilities.convertBytesToPublicKey(clientEphemeralPublicKeyBytes);
             }
 
             // Decrypt the device public key
-            byte[] C_devicePublicKey = BaseEncoding.base64().decode(cDevicePublicKeyBase64);
-            byte[] activationNonce = BaseEncoding.base64().decode(activationNonceBase64);
+            byte[] C_devicePublicKey = Base64.getDecoder().decode(cDevicePublicKeyBase64);
+            byte[] activationNonce = Base64.getDecoder().decode(activationNonceBase64);
 
             PublicKey devicePublicKey = null;
             try {
@@ -270,14 +270,14 @@ public class ActivationServiceBehavior {
                 handleInvalidPublicKey(activation);
             }
 
-            byte[] applicationSignatureBytes = BaseEncoding.base64().decode(applicationSignature);
+            byte[] applicationSignatureBytes = Base64.getDecoder().decode(applicationSignature);
 
             if (!powerAuthServerActivation.validateApplicationSignature(
                     activationIdShort,
                     activationNonce,
                     C_devicePublicKey,
-                    BaseEncoding.base64().decode(applicationKey),
-                    BaseEncoding.base64().decode(applicationVersion.getApplicationSecret()),
+                    Base64.getDecoder().decode(applicationKey),
+                    Base64.getDecoder().decode(applicationVersion.getApplicationSecret()),
                     applicationSignatureBytes)) {
                 logger.warn("Activation signature is invalid, activation ID short: {}", activationIdShort);
                 // Rollback is not required, error occurs before writing to database
@@ -287,7 +287,7 @@ public class ActivationServiceBehavior {
             // Generate response data before writing to database to avoid rollbacks
             byte[] activationNonceServer = powerAuthServerActivation.generateActivationNonce();
             String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
-            PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(serverPublicKeyBase64));
+            PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(Base64.getDecoder().decode(serverPublicKeyBase64));
             KeyPair ephemeralKeyPair = new KeyGenerator().generateKeyPair();
             PrivateKey ephemeralPrivateKey = ephemeralKeyPair.getPrivate();
             PublicKey ephemeralPublicKey = ephemeralKeyPair.getPublic();
@@ -304,7 +304,7 @@ public class ActivationServiceBehavior {
 
             // Update and persist the activation record
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(activationName);
             activation.setExtras(extras);
             // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version in activation status
@@ -316,10 +316,10 @@ public class ActivationServiceBehavior {
             // Compute the response
             PrepareActivationResponse response = new PrepareActivationResponse();
             response.setActivationId(activation.getActivationId());
-            response.setActivationNonce(BaseEncoding.base64().encode(activationNonceServer));
-            response.setEncryptedServerPublicKey(BaseEncoding.base64().encode(C_serverPublicKey));
-            response.setEncryptedServerPublicKeySignature(BaseEncoding.base64().encode(C_serverPubKeySignature));
-            response.setEphemeralPublicKey(BaseEncoding.base64().encode(ephemeralPublicKeyBytes));
+            response.setActivationNonce(Base64.getEncoder().encodeToString(activationNonceServer));
+            response.setEncryptedServerPublicKey(Base64.getEncoder().encodeToString(C_serverPublicKey));
+            response.setEncryptedServerPublicKeySignature(Base64.getEncoder().encodeToString(C_serverPubKeySignature));
+            response.setEphemeralPublicKey(Base64.getEncoder().encodeToString(ephemeralPublicKeyBytes));
 
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
@@ -423,19 +423,19 @@ public class ActivationServiceBehavior {
 
             // Get master private key
             String masterPrivateKeyBase64 = activation.getMasterKeyPair().getMasterKeyPrivateBase64();
-            byte[] masterPrivateKeyBytes = BaseEncoding.base64().decode(masterPrivateKeyBase64);
+            byte[] masterPrivateKeyBytes = Base64.getDecoder().decode(masterPrivateKeyBase64);
             PrivateKey masterPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(masterPrivateKeyBytes);
 
             // Get client ephemeral public key
             PublicKey clientEphemeralPublicKey = null;
             if (clientEphemeralPublicKeyBase64 != null) { // additional encryption is used
-                byte[] clientEphemeralPublicKeyBytes = BaseEncoding.base64().decode(clientEphemeralPublicKeyBase64);
+                byte[] clientEphemeralPublicKeyBytes = Base64.getDecoder().decode(clientEphemeralPublicKeyBase64);
                 clientEphemeralPublicKey = keyConversionUtilities.convertBytesToPublicKey(clientEphemeralPublicKeyBytes);
             }
 
             // Decrypt the device public key
-            byte[] C_devicePublicKey = BaseEncoding.base64().decode(cDevicePublicKeyBase64);
-            byte[] activationNonce = BaseEncoding.base64().decode(activationNonceBase64);
+            byte[] C_devicePublicKey = Base64.getDecoder().decode(cDevicePublicKeyBase64);
+            byte[] activationNonce = Base64.getDecoder().decode(activationNonceBase64);
 
             PublicKey devicePublicKey;
             try {
@@ -453,14 +453,14 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_EXPIRED);
             }
 
-            byte[] applicationSignatureBytes = BaseEncoding.base64().decode(applicationSignature);
+            byte[] applicationSignatureBytes = Base64.getDecoder().decode(applicationSignature);
 
             if (!powerAuthServerActivation.validateApplicationSignature(
                     identity,
                     activationNonce,
                     C_devicePublicKey,
-                    BaseEncoding.base64().decode(applicationKey),
-                    BaseEncoding.base64().decode(applicationVersion.getApplicationSecret()),
+                    Base64.getDecoder().decode(applicationKey),
+                    Base64.getDecoder().decode(applicationVersion.getApplicationSecret()),
                     applicationSignatureBytes)) {
                 logger.warn("Activation signature is invalid, activation ID: {}", activationId);
                 // Activation signature is invalid, rollback this transaction
@@ -469,7 +469,7 @@ public class ActivationServiceBehavior {
 
             // Update and persist the activation record
             activation.setActivationStatus(ActivationStatus.PENDING_COMMIT);
-            activation.setDevicePublicKeyBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
+            activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversionUtilities.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(activationName);
             activation.setExtras(extras);
             // PowerAuth protocol version 2.0 and 2.1 uses 0x2 as version
@@ -482,7 +482,7 @@ public class ActivationServiceBehavior {
             // Generate response data
             byte[] activationNonceServer = powerAuthServerActivation.generateActivationNonce();
             String serverPublicKeyBase64 = activation.getServerPublicKeyBase64();
-            PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(BaseEncoding.base64().decode(serverPublicKeyBase64));
+            PublicKey serverPublicKey = keyConversionUtilities.convertBytesToPublicKey(Base64.getDecoder().decode(serverPublicKeyBase64));
             KeyPair ephemeralKeyPair = new KeyGenerator().generateKeyPair();
             PrivateKey ephemeralPrivateKey = ephemeralKeyPair.getPrivate();
             PublicKey ephemeralPublicKey = ephemeralKeyPair.getPublic();
@@ -500,10 +500,10 @@ public class ActivationServiceBehavior {
             // Compute the response
             CreateActivationResponse response = new CreateActivationResponse();
             response.setActivationId(activation.getActivationId());
-            response.setActivationNonce(BaseEncoding.base64().encode(activationNonceServer));
-            response.setEncryptedServerPublicKey(BaseEncoding.base64().encode(C_serverPublicKey));
-            response.setEncryptedServerPublicKeySignature(BaseEncoding.base64().encode(C_serverPubKeySignature));
-            response.setEphemeralPublicKey(BaseEncoding.base64().encode(ephemeralPublicKeyBytes));
+            response.setActivationNonce(Base64.getEncoder().encodeToString(activationNonceServer));
+            response.setEncryptedServerPublicKey(Base64.getEncoder().encodeToString(C_serverPublicKey));
+            response.setEncryptedServerPublicKeySignature(Base64.getEncoder().encodeToString(C_serverPubKeySignature));
+            response.setEphemeralPublicKey(Base64.getEncoder().encodeToString(ephemeralPublicKeyBytes));
 
             return response;
         } catch (InvalidKeySpecException | InvalidKeyException ex) {

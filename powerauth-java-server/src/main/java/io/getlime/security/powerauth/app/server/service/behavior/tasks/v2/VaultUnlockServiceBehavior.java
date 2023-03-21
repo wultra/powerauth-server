@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v2.VaultUnlockResponse;
 import io.getlime.security.powerauth.app.server.converter.v2.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -44,6 +43,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Behavior class implementing the vault unlock related processes. The class separates the
@@ -112,8 +112,8 @@ public class VaultUnlockServiceBehavior {
                     String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
                     // Get the server private and device public keys as byte[]
-                    byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
-                    byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+                    byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
+                    byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
                     PrivateKey serverPrivateKey = keyConversionUtilities.convertBytesToPrivateKey(serverPrivateKeyBytes);
                     PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyBytes);
 
@@ -133,7 +133,7 @@ public class VaultUnlockServiceBehavior {
                     response.setRemainingAttempts(BigInteger.valueOf(activation.getMaxFailedAttempts()));
                     response.setSignatureValid(true);
                     response.setUserId(activation.getUserId());
-                    response.setEncryptedVaultEncryptionKey(BaseEncoding.base64().encode(cKeyBytes));
+                    response.setEncryptedVaultEncryptionKey(Base64.getEncoder().encodeToString(cKeyBytes));
 
                     return response;
 

@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import com.wultra.security.powerauth.client.v3.SignatureType;
 import com.wultra.security.powerauth.client.v3.VaultUnlockResponse;
@@ -61,6 +60,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Behavior class implementing the vault unlock related processes. The class separates the
@@ -135,7 +135,7 @@ public class VaultUnlockServiceBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application version
@@ -151,7 +151,7 @@ public class VaultUnlockServiceBehavior {
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
@@ -204,7 +204,7 @@ public class VaultUnlockServiceBehavior {
             if (signatureResponse.isSignatureValid()) {
                 // Store encrypted vault unlock key in response
                 byte[] encryptedVaultEncryptionKeyBytes = powerAuthServerVault.encryptVaultEncryptionKey(serverPrivateKey, devicePublicKey);
-                String encryptedVaultEncryptionKey = BaseEncoding.base64().encode(encryptedVaultEncryptionKeyBytes);
+                String encryptedVaultEncryptionKey = Base64.getEncoder().encodeToString(encryptedVaultEncryptionKeyBytes);
                 responsePayload.setEncryptedVaultEncryptionKey(encryptedVaultEncryptionKey);
             }
 
@@ -213,8 +213,8 @@ public class VaultUnlockServiceBehavior {
 
             // Encrypt response payload
             EciesCryptogram responseCryptogram = decryptor.encryptResponse(reponsePayloadBytes);
-            String responseData = BaseEncoding.base64().encode(responseCryptogram.getEncryptedData());
-            String responseMac = BaseEncoding.base64().encode(responseCryptogram.getMac());
+            String responseData = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
+            String responseMac = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
 
             // Return vault unlock response, set signature validity
             VaultUnlockResponse response = new VaultUnlockResponse();

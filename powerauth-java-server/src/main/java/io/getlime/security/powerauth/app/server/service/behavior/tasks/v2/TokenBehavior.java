@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v2;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v2.CreateTokenRequest;
 import com.wultra.security.powerauth.client.v2.CreateTokenResponse;
 import com.wultra.security.powerauth.client.v2.SignatureType;
@@ -47,6 +46,7 @@ import org.springframework.stereotype.Component;
 import java.security.PrivateKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.Optional;
 
@@ -106,8 +106,8 @@ public class TokenBehavior {
         EciesCryptogram eciesCryptogram = createToken(activationId, ephemeralPublicKeyBase64, signatureType.value(), keyConversion);
 
         final CreateTokenResponse response = new CreateTokenResponse();
-        response.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        response.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
+        response.setMac(Base64.getEncoder().encodeToString(eciesCryptogram.getMac()));
+        response.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData()));
         return response;
     }
 
@@ -149,8 +149,8 @@ public class TokenBehavior {
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
 
             // KEY_SERVER_MASTER_PRIVATE is used in Crypto version 2.0 for ECIES, note that in version 3.0 KEY_SERVER_PRIVATE is used
-            final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
-            final byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(ephemeralPublicKeyBase64);
+            final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKeyBase64);
 
             // Generate unique token ID.
             String tokenId = null;
@@ -174,7 +174,7 @@ public class TokenBehavior {
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Perform the following operations before writing to database to avoid rollbacks
-            String tokenSecret = BaseEncoding.base64().encode(tokenGenerator.generateTokenSecret());
+            String tokenSecret = Base64.getEncoder().encodeToString(tokenGenerator.generateTokenSecret());
             final TokenInfo tokenInfo = new TokenInfo();
             tokenInfo.setTokenId(tokenId);
             tokenInfo.setTokenSecret(tokenSecret);

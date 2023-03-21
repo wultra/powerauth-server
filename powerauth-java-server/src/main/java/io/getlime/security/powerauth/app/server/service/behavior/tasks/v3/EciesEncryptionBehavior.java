@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.v3.GetEciesDecryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -53,6 +52,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
 
 /**
  * Behavior class implementing the ECIES service logic.
@@ -140,7 +140,7 @@ public class EciesEncryptionBehavior {
             }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
 
             // Get application secret
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
@@ -149,14 +149,14 @@ public class EciesEncryptionBehavior {
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.APPLICATION_SCOPE_GENERIC);
 
             // Initialize decryptor with ephemeral public key
-            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
+            byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
             final EciesEnvelopeKey envelopeKey = decryptor.getEnvelopeKey();
             GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-            response.setSecretKey(BaseEncoding.base64().encode(envelopeKey.getSecretKey()));
-            response.setSharedInfo2(BaseEncoding.base64().encode(decryptor.getSharedInfo2()));
+            response.setSecretKey(Base64.getEncoder().encodeToString(envelopeKey.getSecretKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(decryptor.getSharedInfo2()));
             return response;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
@@ -227,12 +227,12 @@ public class EciesEncryptionBehavior {
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
-            final byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(serverPrivateKeyBase64);
+            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
-            final byte[] devicePublicKeyBytes = BaseEncoding.base64().decode(activation.getDevicePublicKeyBase64());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
@@ -241,14 +241,14 @@ public class EciesEncryptionBehavior {
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC);
 
             // Initialize decryptor with ephemeral public key
-            byte[] ephemeralPublicKeyBytes = BaseEncoding.base64().decode(request.getEphemeralPublicKey());
+            byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
             final EciesEnvelopeKey envelopeKey = decryptor.getEnvelopeKey();
             GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
-            response.setSecretKey(BaseEncoding.base64().encode(envelopeKey.getSecretKey()));
-            response.setSharedInfo2(BaseEncoding.base64().encode(decryptor.getSharedInfo2()));
+            response.setSecretKey(Base64.getEncoder().encodeToString(envelopeKey.getSecretKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(decryptor.getSharedInfo2()));
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);

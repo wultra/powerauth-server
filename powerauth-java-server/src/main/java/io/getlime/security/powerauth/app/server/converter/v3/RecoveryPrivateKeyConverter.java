@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
-import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * Converter for recovery postcard private key which handles key encryption and decryption in case it is configured.
@@ -101,13 +101,13 @@ public class RecoveryPrivateKeyConverter {
 
                 try {
                     // Convert master DB encryption key
-                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key and application ID
                     SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid);
 
                     // Base64-decode recovery postcard private key
-                    byte[] recoveryPrivateKeyBytes = BaseEncoding.base64().decode(recoveryPrivateKeyBase64);
+                    byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(recoveryPrivateKeyBase64);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (recoveryPrivateKeyBytes.length < 16) {
@@ -126,7 +126,7 @@ public class RecoveryPrivateKeyConverter {
                     byte[] decryptedRecoveryPrivateKey = aesEncryptionUtils.decrypt(encryptedRecoveryPrivateKey, iv, secretKey);
 
                     // Base64-encode decrypted recoveryPrivateKey
-                    return BaseEncoding.base64().encode(decryptedRecoveryPrivateKey);
+                    return Base64.getEncoder().encodeToString(decryptedRecoveryPrivateKey);
 
                 } catch (InvalidKeyException ex) {
                     logger.error(ex.getMessage(), ex);
@@ -164,12 +164,12 @@ public class RecoveryPrivateKeyConverter {
 
         // In case master DB encryption key does not exist, do not encrypt the server private key
         if (masterDbEncryptionKeyBase64 == null || masterDbEncryptionKeyBase64.isEmpty()) {
-            return new RecoveryPrivateKey(EncryptionMode.NO_ENCRYPTION, BaseEncoding.base64().encode(recoveryPrivateKey));
+            return new RecoveryPrivateKey(EncryptionMode.NO_ENCRYPTION, Base64.getEncoder().encodeToString(recoveryPrivateKey));
         }
 
         try {
             // Convert master DB encryption key
-            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key and application ID
             SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid);
@@ -187,7 +187,7 @@ public class RecoveryPrivateKeyConverter {
             byte[] record = baos.toByteArray();
 
             // Base64-encode output and create ServerPrivateKey instance
-            String encryptedKeyBase64 = BaseEncoding.base64().encode(record);
+            String encryptedKeyBase64 = Base64.getEncoder().encodeToString(record);
 
             // Return encrypted record including encryption mode
             return new RecoveryPrivateKey(EncryptionMode.AES_HMAC, encryptedKeyBase64);

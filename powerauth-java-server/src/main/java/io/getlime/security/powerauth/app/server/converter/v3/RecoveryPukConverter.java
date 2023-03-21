@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
-import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPuk;
@@ -40,6 +39,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.util.Arrays;
+import java.util.Base64;
 
 /**
  * Converter for recovery PUK which handles record encryption and decryption in case it is configured.
@@ -104,13 +104,13 @@ public class RecoveryPukConverter {
 
                 try {
                     // Convert master DB encryption key
-                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+                    SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
                     // Derive secret key from master DB encryption key, userId and activationId
                     SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid, userId, recoveryCode, pukIndex);
 
                     // Base64-decode PUK hash
-                    byte[] pukHashBytes = BaseEncoding.base64().decode(pukHashFromDB);
+                    byte[] pukHashBytes = Base64.getDecoder().decode(pukHashFromDB);
 
                     // Check that the length of the byte array is sufficient to avoid AIOOBE on the next calls
                     if (pukHashBytes.length < 16) {
@@ -175,7 +175,7 @@ public class RecoveryPukConverter {
 
         try {
             // Convert master DB encryption key
-            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(BaseEncoding.base64().decode(masterDbEncryptionKeyBase64));
+            SecretKey masterDbEncryptionKey = keyConvertor.convertBytesToSharedSecretKey(Base64.getDecoder().decode(masterDbEncryptionKeyBase64));
 
             // Derive secret key from master DB encryption key, userId and activationId
             SecretKey secretKey = deriveSecretKey(masterDbEncryptionKey, applicationRid, userId, recoveryCode, pukIndex);
@@ -193,7 +193,7 @@ public class RecoveryPukConverter {
             byte[] encryptedData = baos.toByteArray();
 
             // Base64-encode output and create ServerPrivateKey instance
-            String encryptedPukHashBase64 = BaseEncoding.base64().encode(encryptedData);
+            String encryptedPukHashBase64 = Base64.getEncoder().encodeToString(encryptedData);
 
             // Return encrypted record including encryption mode
             return new RecoveryPuk(EncryptionMode.AES_HMAC, encryptedPukHashBase64);

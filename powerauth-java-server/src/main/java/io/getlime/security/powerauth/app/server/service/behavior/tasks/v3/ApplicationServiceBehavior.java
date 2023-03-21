@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -38,6 +37,7 @@ import org.springframework.stereotype.Component;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -178,8 +178,8 @@ public class ApplicationServiceBehavior {
             // Generate the default master key pair
             final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
             keyPair.setApplication(application);
-            keyPair.setMasterKeyPrivateBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
-            keyPair.setMasterKeyPublicBase64(BaseEncoding.base64().encode(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
+            keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
+            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
             keyPair.setTimestampCreated(new Date());
             keyPair.setName(id + " Default Keypair");
             repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
@@ -189,8 +189,8 @@ public class ApplicationServiceBehavior {
             version.setApplication(application);
             version.setId("default");
             version.setSupported(true);
-            version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
-            version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
+            version.setApplicationKey(Base64.getEncoder().encodeToString(applicationKeyBytes));
+            version.setApplicationSecret(Base64.getEncoder().encodeToString(applicationSecretBytes));
             repositoryCatalogue.getApplicationVersionRepository().save(version);
 
             final CreateApplicationResponse response = new CreateApplicationResponse();
@@ -241,8 +241,8 @@ public class ApplicationServiceBehavior {
         version.setApplication(application);
         version.setId(applicationVersionId);
         version.setSupported(true);
-        version.setApplicationKey(BaseEncoding.base64().encode(applicationKeyBytes));
-        version.setApplicationSecret(BaseEncoding.base64().encode(applicationSecretBytes));
+        version.setApplicationKey(Base64.getEncoder().encodeToString(applicationKeyBytes));
+        version.setApplicationSecret(Base64.getEncoder().encodeToString(applicationSecretBytes));
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
         final CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();

@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server;
 
-import com.google.common.io.BaseEncoding;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -27,6 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,7 +59,7 @@ public class ServerPrivateKeyConverterTest {
 
     @Test
     public void testEncryptionAndDecryptionSuccess() throws Exception {
-        byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
+        byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
         ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes,"test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         String serverPrivateKeyActual = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         assertEquals(SERVER_PRIVATE_KEY_PLAIN, serverPrivateKeyActual);
@@ -67,7 +68,7 @@ public class ServerPrivateKeyConverterTest {
     @Test
     public void testEncryptionAndDecryptionDifferentUserFail() {
         assertThrows(GenericServiceException.class, ()-> {
-            byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
+            byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
             ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
             serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test2", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         });
@@ -76,7 +77,7 @@ public class ServerPrivateKeyConverterTest {
     @Test
     public void testEncryptionAndDecryptionDifferentActivationFailServerPrivateKeyConverter() {
         assertThrows(GenericServiceException.class, ()-> {
-            byte[] serverPrivateKeyBytes = BaseEncoding.base64().decode(SERVER_PRIVATE_KEY_PLAIN);
+            byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(SERVER_PRIVATE_KEY_PLAIN);
             ServerPrivateKey serverPrivateKeyEncrypted = serverPrivateKeyConverter.toDBValue(serverPrivateKeyBytes, "test", "015286e0-e1c5-4ee1-8d1b-c6947cab0a56");
             serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, "test", "115286e0-e1c5-4ee1-8d1b-c6947cab0a56");
         });
