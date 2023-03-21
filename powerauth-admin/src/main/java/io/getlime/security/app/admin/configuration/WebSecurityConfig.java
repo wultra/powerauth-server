@@ -17,11 +17,16 @@
 package io.getlime.security.app.admin.configuration;
 
 import io.getlime.security.app.admin.util.SecurityUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
+import org.springframework.security.web.SecurityFilterChain;
 
 /**
  * Spring Security configuration class.
@@ -29,7 +34,9 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
  * @author Petr Dvorak, petr@wultra.com
  */
 @Configuration
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+@EnableWebSecurity
+@Slf4j
+public class WebSecurityConfig {
 
     private final ApplicationConfiguration configuration;
     private final LdapConfiguration ldapConfiguration;
@@ -42,27 +49,36 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         this.activeDirectoryConfiguration = activeDirectoryConfiguration;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
         if (!configuration.getSecurityMethod().isEmpty()) {
-            http.authorizeRequests()
-                    .antMatchers("/resources/**", "/api/service/**", "/actuator/**").permitAll()
-                    .anyRequest().fullyAuthenticated()
-                    .and()
-                    .formLogin().loginPage("/login").permitAll()
-                    .and()
-                    .logout().permitAll();
-            http.httpBasic()
-                    .disable();
+            logger.info("Initializing HTTP authentication");
+            return http
+                    .authorizeRequests(authorize -> authorize
+                        .antMatchers("/resources/**", "/api/service/**", "/actuator/**")
+                            .permitAll()
+                        .anyRequest()
+                            .fullyAuthenticated())
+                    .formLogin(formLogin ->
+                        formLogin.loginPage("/login")
+                            .permitAll())
+                    .logout(LogoutConfigurer::permitAll)
+                    .httpBasic(AbstractHttpConfigurer::disable)
+                    .build();
+        } else {
+            logger.info("HTTP authentication is disabled");
+            return http.build();
         }
     }
 
-    @Override
-    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+    @Autowired
+    public void registerAuthenticationProvider(final AuthenticationManagerBuilder auth) throws Exception {
         final String securityMethod = configuration.getSecurityMethod();
         if (SecurityUtil.isLdap(securityMethod)) {
+            logger.info("Initializing ldap authentication provider.");
             SecurityUtil.configureLdap(auth, ldapConfiguration);
         } else if (SecurityUtil.isActiveDirectory(securityMethod)) {
+            logger.info("Initializing active-directory authentication provider.");
             SecurityUtil.configureActiveDirectory(auth, activeDirectoryConfiguration);
         }
     }

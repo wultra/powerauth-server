@@ -20,16 +20,16 @@ package io.getlime.security.powerauth.app.server.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
-import io.getlime.security.powerauth.app.server.integration.IntegrationUserDetailsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.SecurityFilterChain;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -37,7 +37,7 @@ import javax.servlet.http.HttpServletResponse;
  * Class that implements configuration of the Spring Security for RESTful interface
  * of the PowerAuth Server. This configuration is prepared in such a way that it
  * does not apply to the SOAP interface - only to REST.
- *
+ * <p>
  * If a configuration "powerauth.service.restrictAccess" suggests that access should be
  * restricted, HTTP Basic Authentication is used for RESTful API endpoints. Username and
  * passwords can be set in the "pa_integration" table.
@@ -46,41 +46,43 @@ import javax.servlet.http.HttpServletResponse;
  */
 @Configuration
 @EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+@Slf4j
+public class WebSecurityConfig {
 
-    private final IntegrationUserDetailsService userDetailsService;
     private final PowerAuthServiceConfiguration configuration;
     private final ObjectMapper objectMapper;
 
     /**
      * Configuration constructor.
-     * @param userDetailsService User details service.
      * @param configuration PowerAuth service configuration.
      * @param objectMapper Object mapper.
      */
-    public WebSecurityConfig(IntegrationUserDetailsService userDetailsService, PowerAuthServiceConfiguration configuration, ObjectMapper objectMapper) {
-        this.userDetailsService = userDetailsService;
+    public WebSecurityConfig(PowerAuthServiceConfiguration configuration, ObjectMapper objectMapper) {
         this.configuration = configuration;
         this.objectMapper = objectMapper;
     }
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
         if (configuration.getRestrictAccess()) {
-            http
-                    .authorizeRequests()
-                    .antMatchers("/rest/**").authenticated()
-                    .antMatchers("/actuator/**", "/swagger-resources/**").permitAll()
-                    .anyRequest().permitAll()
-                    .and()
-                    .httpBasic()
-                    .authenticationEntryPoint(authenticationEntryPoint())
-                    .and()
-                    .csrf().disable();
+            logger.info("Initializing basic http authentication");
+            return http
+                    .authorizeRequests(authorize -> authorize
+                        .antMatchers("/rest/**")
+                            .authenticated()
+                        .antMatchers("/actuator/**", "/swagger-resources/**")
+                            .permitAll()
+                        .anyRequest()
+                            .permitAll())
+                    .httpBasic(httpBasic -> httpBasic.authenticationEntryPoint(authenticationEntryPoint()))
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .build();
         } else {
-            http
+            logger.info("No http authentication used");
+            return http
                     .httpBasic().disable()
-                    .csrf().disable();
+                    .csrf(AbstractHttpConfigurer::disable)
+                    .build();
         }
     }
 
@@ -96,15 +98,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         };
     }
 
-    @Override
+    @Bean
     @SuppressWarnings("deprecation")
-    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+    public PasswordEncoder passwordEncoder() {
         // API client token and secret are stored in plain text so that they can be displayed in PowerAuth Admin
-        auth.userDetailsService(userDetailsService).passwordEncoder(NoOpPasswordEncoder.getInstance());
-    }
-
-    @Override
-    protected UserDetailsService userDetailsService() {
-        return userDetailsService;
+        logger.info("Initializing NoOpPasswordEncoder");
+        return NoOpPasswordEncoder.getInstance();
     }
 }

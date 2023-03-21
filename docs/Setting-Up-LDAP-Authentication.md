@@ -10,13 +10,14 @@ In case you are using Active Directory, please follow the [separate documentatio
 
 To enable LDAP authentication, set following property:
 
-```sh
+```properties
 powerauth.admin.security.method=ldap
 ```
 
 ## Using Simple File-Based LDAP Directory (LDIF)
 
-You can use a simple file-based LDAP directory for PowerAuth Admin authentication, in case your organization does not use LDAP or in case you would like to keep PowerAuth Admin users completely separated from your other LDAP users. This mechanism uses Spring Security to start an [embedded LDAP Server](http://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#using-an-embedded-test-server).
+You can use a simple file-based LDAP directory for PowerAuth Admin authentication, in case your organization does not use LDAP or in case you would like to keep PowerAuth Admin users completely separated from your other LDAP users.
+This mechanism uses Spring Security to start an [embedded LDAP Server](https://docs.spring.io/spring-security/reference/5.7/servlet/authentication/passwords/ldap.html#servlet-authentication-ldap-embedded).
 
 First, create an LDIF file `${LDIF_LOCATION}/admins.ldif` (replace `${LDIF_LOCATION}` with desired file location) with following content:
 
