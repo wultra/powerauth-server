@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-signature-data" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_signature_audit" columnName="signature_data_method"/>
+            </not>
+        </preConditions>
+        <comment>Add signature_data_method column</comment>
+        <addColumn tableName="pa_signature_audit">
+            <column name="signature_data_method" type="varchar(32)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-signature-data" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_signature_audit" columnName="signature_data_uri_id"/>
+            </not>
+        </preConditions>
+        <comment>Add signature_data_uri_id column</comment>
+        <addColumn tableName="pa_signature_audit">
+            <column name="signature_data_uri_id" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-signature-data" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_signature_audit" columnName="signature_data_body"/>
+            </not>
+        </preConditions>
+        <comment>Add signature_data_body column</comment>
+        <addColumn tableName="pa_signature_audit">
+            <column name="signature_data_body" type="text" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
