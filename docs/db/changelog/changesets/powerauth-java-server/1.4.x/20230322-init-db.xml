@@ -96,6 +96,51 @@
     <changeSet id="10" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
+                <tableExists tableName="pa_application"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_application</comment>
+        <createTable tableName="pa_application">
+            <column name="id" type="integer">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="roles" type="varchar(255)" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="11" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_master_keypair"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_master_keypair</comment>
+        <createTable tableName="pa_master_keypair">
+            <column name="id" type="integer">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="application_id" type="integer">
+                <constraints nullable="false" foreignKeyName="keypair_application_fk" referencedTableName="pa_application" referencedColumnNames="id" />
+            </column>
+            <column name="master_key_private_base64" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="master_key_public_base64" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="name" type="varchar(255)" />
+            <column name="timestamp_created" type="timestamp(6)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="12" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
                 <tableExists tableName="pa_activation"/>
             </not>
         </preConditions>
@@ -161,25 +206,7 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="11" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="pa_application"/>
-            </not>
-        </preConditions>
-        <comment>Create a new table pa_application</comment>
-        <createTable tableName="pa_application">
-            <column name="id" type="integer">
-                <constraints primaryKey="true" />
-            </column>
-            <column name="name" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="roles" type="varchar(255)" />
-        </createTable>
-    </changeSet>
-
-    <changeSet id="12" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
+    <changeSet id="13" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="pa_application_version"/>
@@ -197,33 +224,6 @@
             <column name="application_secret" type="varchar(255)" />
             <column name="name" type="varchar(255)" />
             <column name="supported" type="boolean" />
-        </createTable>
-    </changeSet>
-
-    <changeSet id="13" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="pa_master_keypair"/>
-            </not>
-        </preConditions>
-        <comment>Create a new table pa_master_keypair</comment>
-        <createTable tableName="pa_master_keypair">
-            <column name="id" type="integer">
-                <constraints primaryKey="true" />
-            </column>
-            <column name="application_id" type="integer">
-                <constraints nullable="false" foreignKeyName="keypair_application_fk" referencedTableName="pa_application" referencedColumnNames="id" />
-            </column>
-            <column name="master_key_private_base64" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="master_key_public_base64" type="varchar(255)">
-                <constraints nullable="false" />
-            </column>
-            <column name="name" type="varchar(255)" />
-            <column name="timestamp_created" type="timestamp(6)">
-                <constraints nullable="false" />
-            </column>
         </createTable>
     </changeSet>
 
@@ -411,7 +411,7 @@
                 <constraints primaryKey="true" />
             </column>
             <column name="recovery_code_id" type="bigint">
-                <constraints nullable="false" foreignKeyName="recovery_puk_code_fk" referencedTableName="pa_recovery_code" referencedColumnNames="in" />
+                <constraints nullable="false" foreignKeyName="recovery_puk_code_fk" referencedTableName="pa_recovery_code" referencedColumnNames="id" />
             </column>
             <column name="puk" type="varchar(255)" />
             <column name="puk_encryption" type="integer" defaultValue="0">
