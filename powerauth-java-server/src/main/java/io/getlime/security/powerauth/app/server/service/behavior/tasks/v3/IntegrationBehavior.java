@@ -17,7 +17,12 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.Integration;
+import com.wultra.security.powerauth.client.model.request.CreateIntegrationRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveIntegrationRequest;
+import com.wultra.security.powerauth.client.model.response.CreateIntegrationResponse;
+import com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse;
+import com.wultra.security.powerauth.client.model.response.RemoveIntegrationResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.IntegrationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.IntegrationRepository;
@@ -77,7 +82,7 @@ public class IntegrationBehavior {
         GetIntegrationListResponse response = new GetIntegrationListResponse();
         response.setRestrictedAccess(configuration.getRestrictAccess());
         for (IntegrationEntity i: integrations) {
-            GetIntegrationListResponse.Items item = new GetIntegrationListResponse.Items();
+            Integration item = new Integration();
             item.setId(i.getId());
             item.setName(i.getName());
             item.setClientToken(i.getClientToken());

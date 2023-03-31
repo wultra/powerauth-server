@@ -17,7 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
@@ -92,11 +94,10 @@ public class ApplicationServiceBehavior {
         final List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
 
-            final GetApplicationDetailResponse.Versions ver = new GetApplicationDetailResponse.Versions();
+            final ApplicationVersion ver = new ApplicationVersion();
             ver.setApplicationVersionId(version.getId());
             ver.setApplicationKey(version.getApplicationKey());
             ver.setApplicationSecret(version.getApplicationSecret());
-            ver.setApplicationVersionId(version.getId());
             ver.setSupported(version.getSupported());
 
             response.getVersions().add(ver);
@@ -137,7 +138,7 @@ public class ApplicationServiceBehavior {
         final GetApplicationListResponse response = new GetApplicationListResponse();
 
         for (ApplicationEntity application : result) {
-            final GetApplicationListResponse.Applications app = new GetApplicationListResponse.Applications();
+            final Application app = new Application();
             app.setApplicationId(application.getId());
             app.getApplicationRoles().addAll(application.getRoles());
             response.getApplications().add(app);
@@ -246,7 +247,6 @@ public class ApplicationServiceBehavior {
         version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
         final CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();
-        response.setApplicationVersionId(version.getId());
         response.setApplicationVersionId(version.getId());
         response.setApplicationKey(version.getApplicationKey());
         response.setApplicationSecret(version.getApplicationSecret());

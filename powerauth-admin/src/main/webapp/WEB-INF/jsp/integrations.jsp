@@ -18,8 +18,7 @@
             At this moment, any application is able to call this instance of the PowerAuth Server with
             no restrictions as long as it can see the service. You can change this behavior and set up access
             restriction by adding one or more "integrations". Each "integration" represents an application that
-            accesses PowerAuth Server instance and provides access credentials (HTTP Basic in case of
-            RESTful interface, WS-Security with "username-token" security in case of SOAP interface).
+            accesses PowerAuth Server instance and provides access credentials (HTTP Basic).
         </div>
         <div class="panel-body">
             To enable access restriction on PowerAuth Server, set the following property for the

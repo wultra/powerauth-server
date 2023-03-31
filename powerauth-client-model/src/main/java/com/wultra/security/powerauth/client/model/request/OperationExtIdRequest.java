@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,24 +28,10 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationExtIdRequest {
 
     private String externalId;
-    private List<String> applications;
+    private List<String> applications = new ArrayList<>();
 
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public List<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(List<String> applications) {
-        this.applications = applications;
-    }
 }

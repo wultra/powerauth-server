@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import lombok.Data;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -28,6 +29,7 @@ import java.util.Map;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationApproveRequest {
 
     private String operationId;
@@ -36,49 +38,5 @@ public class OperationApproveRequest {
     private String data;
     private SignatureType signatureType;
     private final Map<String, String> additionalData = new LinkedHashMap<>();
-
-    public String getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getApplicationId() {
-        return applicationId;
-    }
-
-    public void setApplicationId(String applicationId) {
-        this.applicationId = applicationId;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public SignatureType getSignatureType() {
-        return signatureType;
-    }
-
-    public void setSignatureType(SignatureType signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    public Map<String, String> getAdditionalData() {
-        return additionalData;
-    }
 
 }

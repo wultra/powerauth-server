@@ -18,8 +18,10 @@
 
 package io.getlime.security.powerauth.app.server.converter.v3;
 
+import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
+
 /**
- * Converter class between {@link com.wultra.security.powerauth.client.v3.ActivationOtpValidation} and
+ * Converter class between {@link ActivationOtpValidation} and
  * {@link io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation}.
  */
 public class ActivationOtpValidationConverter {
@@ -30,18 +32,18 @@ public class ActivationOtpValidationConverter {
      * @param otpValidation Activation OTP validation mode.
      * @return Converted activation OTP validation mode.
      */
-    public com.wultra.security.powerauth.client.v3.ActivationOtpValidation convertFrom(io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation otpValidation) {
+    public ActivationOtpValidation convertFrom(io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation otpValidation) {
         if (otpValidation != null) {
             switch (otpValidation) {
                 case NONE:
-                    return com.wultra.security.powerauth.client.v3.ActivationOtpValidation.NONE;
+                    return ActivationOtpValidation.NONE;
                 case ON_COMMIT:
-                    return com.wultra.security.powerauth.client.v3.ActivationOtpValidation.ON_COMMIT;
+                    return ActivationOtpValidation.ON_COMMIT;
                 case ON_KEY_EXCHANGE:
-                    return com.wultra.security.powerauth.client.v3.ActivationOtpValidation.ON_KEY_EXCHANGE;
+                    return ActivationOtpValidation.ON_KEY_EXCHANGE;
             }
         }
-        return com.wultra.security.powerauth.client.v3.ActivationOtpValidation.NONE;
+        return ActivationOtpValidation.NONE;
     }
 
     /**
@@ -49,7 +51,7 @@ public class ActivationOtpValidationConverter {
      * @param otpValidation Activation OTP validation mode.
      * @return Converted activation OTP validation mode.
      */
-    public io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation convertTo(com.wultra.security.powerauth.client.v3.ActivationOtpValidation otpValidation) {
+    public io.getlime.security.powerauth.app.server.database.model.ActivationOtpValidation convertTo(ActivationOtpValidation otpValidation) {
         if (otpValidation != null) {
             switch (otpValidation) {
                 case NONE:

@@ -19,10 +19,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.CommitUpgradeRequest;
-import com.wultra.security.powerauth.client.v3.CommitUpgradeResponse;
-import com.wultra.security.powerauth.client.v3.StartUpgradeRequest;
-import com.wultra.security.powerauth.client.v3.StartUpgradeResponse;
+import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
+import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
+import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
+import com.wultra.security.powerauth.client.model.response.StartUpgradeResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;

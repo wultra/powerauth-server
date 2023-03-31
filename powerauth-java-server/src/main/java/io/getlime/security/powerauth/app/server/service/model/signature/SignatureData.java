@@ -17,8 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
+
+import java.util.List;
 
 /**
  * Data related to both online and offline signatures.
@@ -32,7 +34,7 @@ public class SignatureData {
     private String signature;
     private String signatureVersion;
     private SignatureConfiguration signatureConfiguration;
-    private KeyValueMap additionalInfo;
+    private List<KeyValue> additionalInfo;
     private Integer forcedSignatureVersion;
 
     /**
@@ -50,7 +52,7 @@ public class SignatureData {
      * @param additionalInfo Additional information related to the signature.
      * @param forcedSignatureVersion Forced signature version during upgrade.
      */
-    public SignatureData(byte[] data, String signature, SignatureConfiguration signatureConfiguration, String signatureVersion, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
+    public SignatureData(byte[] data, String signature, SignatureConfiguration signatureConfiguration, String signatureVersion, List<KeyValue> additionalInfo, Integer forcedSignatureVersion) {
         this.data = data;
         this.signature = signature;
         this.signatureVersion = signatureVersion;
@@ -96,7 +98,7 @@ public class SignatureData {
      * Get additional information related to the signature.
      * @return Additional information related to the signature.
      */
-    public KeyValueMap getAdditionalInfo() {
+    public List<KeyValue> getAdditionalInfo() {
         return additionalInfo;
     }
 

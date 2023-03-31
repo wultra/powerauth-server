@@ -17,7 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
@@ -106,7 +110,7 @@ public class OfflineSignatureServiceBehavior {
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, List<SignatureType> signatureTypes, String signature, KeyValueMap additionalInfo,
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, List<SignatureType> signatureTypes, String signature, List<KeyValue> additionalInfo,
                                                                  String dataString, Integer expectedComponentLength, KeyConvertor keyConversionUtilities)
             throws GenericServiceException {
         try {
@@ -272,7 +276,7 @@ public class OfflineSignatureServiceBehavior {
      * @throws GenericCryptoException In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
-    private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(String activationId, List<SignatureType> signatureTypes, String signature, KeyValueMap additionalInfo,
+    private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(String activationId, List<SignatureType> signatureTypes, String signature, List<KeyValue> additionalInfo,
                                                                       String dataString, Integer expectedComponentLength, KeyConvertor keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance

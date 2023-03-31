@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
-import com.wultra.security.powerauth.client.v3.HttpAuthenticationPrivate;
-import com.wultra.security.powerauth.client.v3.HttpAuthenticationPublic;
+import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
+import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
 
 /**

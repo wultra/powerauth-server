@@ -24,17 +24,16 @@ import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
+import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
+import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest;
-import com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse;
-import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest;
-import com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse;
-import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
@@ -44,11 +43,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Class implementing a PowerAuth REST client.
@@ -170,38 +167,14 @@ public class PowerAuthRestClient implements PowerAuthClient {
         }
     }
 
-    /**
-     * Convert date to XMLGregorianCalendar
-     *
-     * @param date Date to be converted.
-     * @return A new instance of {@link XMLGregorianCalendar}.
-     */
-    private XMLGregorianCalendar calendarWithDate(Date date) {
-        try {
-            GregorianCalendar c = new GregorianCalendar();
-            c.setTime(date);
-            return DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
-        } catch (DatatypeConfigurationException e) {
-            // Unless there is a terrible configuration error, this should not happen
-            logger.error("Unable to prepare a new calendar instance", e);
-        }
-        return null;
-    }
-
-    @Override
-    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request) throws PowerAuthClientException {
-        return getSystemStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public GetSystemStatusResponse getSystemStatus(GetSystemStatusRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/status", request, queryParams, httpHeaders, GetSystemStatusResponse.class);
-    }
-
     @Override
     public GetSystemStatusResponse getSystemStatus() throws PowerAuthClientException {
-        GetSystemStatusRequest request = new GetSystemStatusRequest();
-        return getSystemStatus(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+        return getSystemStatus(EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetSystemStatusResponse getSystemStatus(MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/status", null, queryParams, httpHeaders, GetSystemStatusResponse.class);
     }
 
     @Override
@@ -258,7 +231,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
             request.setMaxFailureCount(maxFailureCount);
         }
         if (timestampActivationExpire != null) {
-            request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
+            request.setTimestampActivationExpire(timestampActivationExpire);
         }
         return initActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
@@ -303,7 +276,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         CreateActivationRequest request = new CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
-            request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
+            request.setTimestampActivationExpire(timestampActivationExpire);
         }
         if (maxFailureCount != null) {
             request.setMaxFailureCount(maxFailureCount);
@@ -422,7 +395,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<GetActivationListForUserResponse.Activations> getActivationListForUser(String userId) throws PowerAuthClientException {
+    public List<Activation> getActivationListForUser(String userId) throws PowerAuthClientException {
         GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId(userId);
         return getActivationListForUser(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getActivations();
@@ -439,17 +412,17 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<LookupActivationsResponse.Activations> lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
+    public List<Activation> lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws PowerAuthClientException {
         LookupActivationsRequest request = new LookupActivationsRequest();
         request.getUserIds().addAll(userIds);
         if (applicationIds != null) {
             request.getApplicationIds().addAll(applicationIds);
         }
         if (timestampLastUsedBefore != null) {
-            request.setTimestampLastUsedBefore(calendarWithDate(timestampLastUsedBefore));
+            request.setTimestampLastUsedBefore(timestampLastUsedBefore);
         }
         if (timestampLastUsedAfter != null) {
-            request.setTimestampLastUsedAfter(calendarWithDate(timestampLastUsedAfter));
+            request.setTimestampLastUsedAfter(timestampLastUsedAfter);
         }
         if (activationStatus != null) {
             request.setActivationStatus(activationStatus);
@@ -617,21 +590,21 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<SignatureAuditItem> getSignatureAuditLog(String userId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
-        request.setTimestampFrom(calendarWithDate(startingDate));
-        request.setTimestampTo(calendarWithDate(endingDate));
+        request.setTimestampFrom(startingDate);
+        request.setTimestampTo(endingDate);
         return getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
     }
 
     @Override
-    public List<SignatureAuditResponse.Items> getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<SignatureAuditItem> getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         SignatureAuditRequest request = new SignatureAuditRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
-        request.setTimestampFrom(calendarWithDate(startingDate));
-        request.setTimestampTo(calendarWithDate(endingDate));
+        request.setTimestampFrom(startingDate);
+        request.setTimestampTo(endingDate);
         return getSignatureAuditLog(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
     }
 
@@ -646,11 +619,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public List<ActivationHistoryResponse.Items> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
+    public List<ActivationHistoryItem> getActivationHistory(String activationId, Date startingDate, Date endingDate) throws PowerAuthClientException {
         ActivationHistoryRequest request = new ActivationHistoryRequest();
         request.setActivationId(activationId);
-        request.setTimestampFrom(calendarWithDate(startingDate));
-        request.setTimestampTo(calendarWithDate(endingDate));
+        request.setTimestampFrom(startingDate);
+        request.setTimestampTo(endingDate);
         return getActivationHistory(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
     }
 
@@ -692,18 +665,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request) throws PowerAuthClientException {
-        return getApplicationList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public GetApplicationListResponse getApplicationList() throws PowerAuthClientException {
+        return getApplicationList(EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public GetApplicationListResponse getApplicationList(GetApplicationListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/application/list", request, queryParams, httpHeaders, GetApplicationListResponse.class);
-    }
-
-    @Override
-    public List<GetApplicationListResponse.Applications> getApplicationList() throws PowerAuthClientException {
-        return getApplicationList(new GetApplicationListRequest(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getApplications();
+    public GetApplicationListResponse getApplicationList(MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/application/list", null, queryParams, httpHeaders, GetApplicationListResponse.class);
     }
 
     @Override
@@ -829,18 +797,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request) throws PowerAuthClientException {
-        return getIntegrationList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public GetIntegrationListResponse getIntegrationList() throws PowerAuthClientException {
+        return getIntegrationList(EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public GetIntegrationListResponse getIntegrationList(GetIntegrationListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/integration/list", request, queryParams, httpHeaders, GetIntegrationListResponse.class);
-    }
-
-    @Override
-    public List<GetIntegrationListResponse.Items> getIntegrationList() throws PowerAuthClientException {
-        return getIntegrationList(new GetIntegrationListRequest(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getItems();
+    public GetIntegrationListResponse getIntegrationList(MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/integration/list", null, queryParams, httpHeaders, GetIntegrationListResponse.class);
     }
 
     @Override
@@ -909,20 +872,15 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws PowerAuthClientException {
+    public GetCallbackUrlListResponse getCallbackUrlList(String applicationId) throws PowerAuthClientException {
+        final GetCallbackUrlListRequest request = new GetCallbackUrlListRequest();
+        request.setApplicationId(applicationId);
         return getCallbackUrlList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
     public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/application/callback/list", request, queryParams, httpHeaders, GetCallbackUrlListResponse.class);
-    }
-
-    @Override
-    public List<GetCallbackUrlListResponse.CallbackUrlList> getCallbackUrlList(String applicationId) throws PowerAuthClientException {
-        GetCallbackUrlListRequest request = new GetCallbackUrlListRequest();
-        request.setApplicationId(applicationId);
-        return getCallbackUrlList(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getCallbackUrlList();
     }
 
     @Override
@@ -1434,7 +1392,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public OperationTemplateListResponse operationTemplateList() throws PowerAuthClientException {
-        return callV3RestApi("/operation/template/list", new Object(), EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, OperationTemplateListResponse.class);
+        return callV3RestApi("/operation/template/list", null, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, OperationTemplateListResponse.class);
     }
 
     @Override
@@ -1475,196 +1433,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public Response removeOperationTemplate(OperationTemplateDeleteRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/template/remove", request, queryParams, httpHeaders, Response.class);
-    }
-
-    @Override
-    public PowerAuthClientV2 v2() {
-        return new PowerAuthServiceClientV2();
-    }
-
-    /**
-     * Client with PowerAuth version 2.0 methods. This client will be deprecated in future release.
-     */
-    public class PowerAuthServiceClientV2 implements PowerAuthClientV2 {
-
-        private static final String PA_REST_V2_PREFIX = "/v2";
-
-        /**
-         * Call the PowerAuth v2 API.
-         *
-         * @param path Path of the endpoint.
-         * @param request Request object.
-         * @param queryParams HTTP query parameters.
-         * @param httpHeaders HTTP headers.
-         * @param responseType Response type.
-         * @return Response.
-         */
-        private <T> T callV2RestApi(String path, Object request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders, Class<T> responseType) throws PowerAuthClientException {
-            ObjectRequest<?> objectRequest = new ObjectRequest<>(request);
-            try {
-                ObjectResponse<T> objectResponse = restClient.postObject(PA_REST_V2_PREFIX + path, objectRequest, responseType);
-                return objectResponse.getResponseObject();
-            } catch (RestClientException ex) {
-                if (ex.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                    // Error handling for PowerAuth errors
-                    handleBadRequestError(ex);
-                }
-                // Error handling for generic HTTP errors
-                throw new PowerAuthClientException(ex.getMessage(), ex);
-            }
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request) throws PowerAuthClientException {
-            return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(com.wultra.security.powerauth.client.v2.PrepareActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-            return callV2RestApi("/activation/prepare", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.PrepareActivationResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.PrepareActivationResponse prepareActivation(String activationIdShort, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationKey, String applicationSignature) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.PrepareActivationRequest request = new com.wultra.security.powerauth.client.v2.PrepareActivationRequest();
-            request.setActivationIdShort(activationIdShort);
-            request.setActivationName(activationName);
-            request.setActivationNonce(activationNonce);
-            request.setEphemeralPublicKey(ephemeralPublicKey);
-            request.setEncryptedDevicePublicKey(cDevicePublicKey);
-            request.setExtras(extras);
-            request.setApplicationKey(applicationKey);
-            request.setApplicationSignature(applicationSignature);
-            return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request) throws PowerAuthClientException {
-            return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(com.wultra.security.powerauth.client.v2.CreateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-            return callV2RestApi("/activation/create", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.CreateActivationResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, String identity, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
-            return createActivation(
-                    applicationKey,
-                    userId,
-                    null,
-                    null,
-                    identity,
-                    "00000-00000",
-                    activationName,
-                    activationNonce,
-                    ephemeralPublicKey,
-                    cDevicePublicKey,
-                    extras,
-                    applicationSignature
-            );
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateActivationResponse createActivation(String applicationKey, String userId, Long maxFailureCount, Date timestampActivationExpire, String identity, String activationOtp, String activationName, String activationNonce, String ephemeralPublicKey, String cDevicePublicKey, String extras, String applicationSignature) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.CreateActivationRequest request = new com.wultra.security.powerauth.client.v2.CreateActivationRequest();
-            request.setApplicationKey(applicationKey);
-            request.setUserId(userId);
-            if (maxFailureCount != null) {
-                request.setMaxFailureCount(maxFailureCount);
-            }
-            if (timestampActivationExpire != null) {
-                request.setTimestampActivationExpire(calendarWithDate(timestampActivationExpire));
-            }
-            request.setIdentity(identity);
-            request.setActivationOtp(activationOtp);
-            request.setActivationName(activationName);
-            request.setActivationNonce(activationNonce);
-            request.setEphemeralPublicKey(ephemeralPublicKey);
-            request.setEncryptedDevicePublicKey(cDevicePublicKey);
-            request.setExtras(extras);
-            request.setApplicationSignature(applicationSignature);
-            return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request) throws PowerAuthClientException {
-            return unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(com.wultra.security.powerauth.client.v2.VaultUnlockRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-            return callV2RestApi("/vault/unlock", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.VaultUnlockResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.VaultUnlockResponse unlockVault(String activationId, String applicationKey, String data, String signature, com.wultra.security.powerauth.client.v2.SignatureType signatureType, String reason) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.VaultUnlockRequest request = new com.wultra.security.powerauth.client.v2.VaultUnlockRequest();
-            request.setActivationId(activationId);
-            request.setApplicationKey(applicationKey);
-            request.setData(data);
-            request.setSignature(signature);
-            request.setSignatureType(signatureType);
-            request.setReason(reason);
-            return unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(GetPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
-            return generatePersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-            return callV2RestApi("/activation/encryption/key/create", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyResponse generatePersonalizedE2EEncryptionKey(String activationId, String sessionIndex) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetPersonalizedEncryptionKeyRequest();
-            request.setActivationId(activationId);
-            request.setSessionIndex(sessionIndex);
-            return generatePersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(GetNonPersonalizedEncryptionKeyRequest request) throws PowerAuthClientException {
-            return generateNonPersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-            return callV2RestApi("/application/encryption/key/create", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyResponse generateNonPersonalizedE2EEncryptionKey(String applicationKey, String ephemeralPublicKeyBase64, String sessionIndex) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest request = new com.wultra.security.powerauth.client.v2.GetNonPersonalizedEncryptionKeyRequest();
-            request.setApplicationKey(applicationKey);
-            request.setEphemeralPublicKey(ephemeralPublicKeyBase64);
-            request.setSessionIndex(sessionIndex);
-            return generateNonPersonalizedE2EEncryptionKey(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request) throws PowerAuthClientException {
-            return createToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(com.wultra.security.powerauth.client.v2.CreateTokenRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-            return callV2RestApi("/token/create", request, queryParams, httpHeaders, com.wultra.security.powerauth.client.v2.CreateTokenResponse.class);
-        }
-
-        @Override
-        public com.wultra.security.powerauth.client.v2.CreateTokenResponse createToken(String activationId, String ephemeralPublicKey, com.wultra.security.powerauth.client.v2.SignatureType signatureType) throws PowerAuthClientException {
-            com.wultra.security.powerauth.client.v2.CreateTokenRequest request = new com.wultra.security.powerauth.client.v2.CreateTokenRequest();
-            request.setActivationId(activationId);
-            request.setEphemeralPublicKey(ephemeralPublicKey);
-            request.setSignatureType(signatureType);
-            return createToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-        }
     }
 
 }

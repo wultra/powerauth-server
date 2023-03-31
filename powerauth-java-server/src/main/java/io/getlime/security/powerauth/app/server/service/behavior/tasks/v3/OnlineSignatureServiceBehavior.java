@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import com.wultra.security.powerauth.client.v3.SignatureType;
-import com.wultra.security.powerauth.client.v3.VerifySignatureResponse;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -90,7 +90,7 @@ public class OnlineSignatureServiceBehavior {
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, String signatureVersion, KeyValueMap additionalInfo,
+    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, String signatureVersion, List<KeyValue> additionalInfo,
                                                    String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
             throws GenericServiceException {
         try {
@@ -128,7 +128,7 @@ public class OnlineSignatureServiceBehavior {
      * @throws GenericCryptoException In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
-    private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, String signatureVersion, KeyValueMap additionalInfo,
+    private VerifySignatureResponse verifySignatureImpl(String activationId, SignatureType signatureType, String signature, String signatureVersion, List<KeyValue> additionalInfo,
                                                         String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
         // Prepare current timestamp in advance

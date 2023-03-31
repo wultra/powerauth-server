@@ -19,7 +19,6 @@
 package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationExtIdRequest;
-import org.springframework.util.StringUtils;
 
 /**
  * Validator for OperationExtIdRequest class.

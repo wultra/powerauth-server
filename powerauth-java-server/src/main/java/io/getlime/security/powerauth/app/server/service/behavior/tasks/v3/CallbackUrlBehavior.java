@@ -20,7 +20,16 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
+import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
+import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateCallbackUrlRequest;
+import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
+import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
+import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
+import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
@@ -210,7 +219,7 @@ public class CallbackUrlBehavior {
         final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(request.getApplicationId());
         final GetCallbackUrlListResponse response = new GetCallbackUrlListResponse();
         for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
-            final GetCallbackUrlListResponse.CallbackUrlList item = new GetCallbackUrlListResponse.CallbackUrlList();
+            final CallbackUrl item = new CallbackUrl();
             item.setId(callbackUrl.getId());
             item.setApplicationId(callbackUrl.getApplication().getId());
             item.setName(callbackUrl.getName());

@@ -35,8 +35,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Class that implements configuration of the Spring Security for RESTful interface
- * of the PowerAuth Server. This configuration is prepared in such a way that it
- * does not apply to the SOAP interface - only to REST.
+ * of the PowerAuth Server.
  * <p>
  * If a configuration "powerauth.service.restrictAccess" suggests that access should be
  * restricted, HTTP Basic Authentication is used for RESTful API endpoints. Username and

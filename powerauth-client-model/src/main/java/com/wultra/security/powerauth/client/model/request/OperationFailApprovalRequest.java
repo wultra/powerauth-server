@@ -18,27 +18,20 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
+ * Request object for operation approval failure.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationFailApprovalRequest {
 
     private String operationId;
     private final Map<String, String> additionalData = new LinkedHashMap<>();
-
-    public String getOperationId() {
-        return operationId;
-    }
-
-    public void setOperationId(String operationId) {
-        this.operationId = operationId;
-    }
-
-    public Map<String, String> getAdditionalData() {
-        return additionalData;
-    }
 
 }

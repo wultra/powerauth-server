@@ -41,10 +41,6 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
         <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
@@ -53,58 +49,5 @@
             <artifactId>spring-core</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.15.2</version>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.glassfish.jaxb</groupId>
-                        <artifactId>jaxb-runtime</artifactId>
-                        <version>${glassfish-jaxb.version}</version>
-                    </dependency>
-                </dependencies>
-                <executions>
-                    <execution>
-                        <id>PowerAuth 2.0</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                            <schemaDirectory>../powerauth-java-server/src/main/resources/xsd</schemaDirectory>
-                            <schemaIncludes>
-                                <include>PowerAuth-2.0.xsd</include>
-                            </schemaIncludes>
-                            <generatePackage>com.wultra.security.powerauth.client.v2</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v2</generateDirectory>
-                            <episode>false</episode>
-                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>PowerAuth 3.0</id>
-                        <goals>
-                            <goal>generate</goal>
-                        </goals>
-                        <configuration>
-                            <schemaLanguage>XMLSCHEMA</schemaLanguage>
-                            <schemaDirectory>../powerauth-java-server/src/main/resources/xsd</schemaDirectory>
-                            <schemaIncludes>
-                                <include>PowerAuth-3.0.xsd</include>
-                            </schemaIncludes>
-                            <generatePackage>com.wultra.security.powerauth.client.v3</generatePackage>
-                            <generateDirectory>${project.build.directory}/generated-sources/jaxb2/v3</generateDirectory>
-                            <episode>false</episode>
-                            <addIfExistsToEpisodeSchemaBindings>false</addIfExistsToEpisodeSchemaBindings>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

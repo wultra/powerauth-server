@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
@@ -384,10 +384,10 @@ public class SignatureSharedServiceBehavior {
                 activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
                 // Save the activation and log change
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-                final KeyValueMap.Entry entry = new KeyValueMap.Entry();
+                final KeyValue entry = new KeyValue();
                 entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
                 entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
-                signatureData.getAdditionalInfo().getEntry().add(entry);
+                signatureData.getAdditionalInfo().add(entry);
                 // notify callback listeners
                 notifyCallbackListeners = true;
             } else {
@@ -471,10 +471,10 @@ public class SignatureSharedServiceBehavior {
         // and it is unclear which signature type was used to generate the signature because the signature
         // verification failed.
         if (biometryAllowedInOfflineMode) {
-            final KeyValueMap.Entry entryBiometry = new KeyValueMap.Entry();
+            final KeyValue entryBiometry = new KeyValue();
             entryBiometry.setKey(AdditionalInformation.Key.BIOMETRY_ALLOWED);
             entryBiometry.setValue("TRUE");
-            signatureData.getAdditionalInfo().getEntry().add(entryBiometry);
+            signatureData.getAdditionalInfo().add(entryBiometry);
         }
 
         long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
@@ -483,11 +483,10 @@ public class SignatureSharedServiceBehavior {
             activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             // Save the activation and log change
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
-            final KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
-            final KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            final KeyValue entry = new KeyValue();
             entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
             entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
-            additionalInfo.getEntry().add(entry);
+            signatureData.getAdditionalInfo().add(entry);
             // notify callback listeners
             notifyCallbackListeners = true;
         } else {
@@ -546,11 +545,10 @@ public class SignatureSharedServiceBehavior {
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
 
         // Prepare data for the signature audit log
-        final KeyValueMap additionalInfo = signatureData.getAdditionalInfo();
-        final KeyValueMap.Entry entry = new KeyValueMap.Entry();
+        final KeyValue entry = new KeyValue();
         entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
         entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
-        additionalInfo.getEntry().add(entry);
+        signatureData.getAdditionalInfo().add(entry);
 
         // Create the audit log record
         auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false,

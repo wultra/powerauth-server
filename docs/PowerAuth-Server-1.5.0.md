@@ -2,6 +2,10 @@
 
 This guide contains instructions for migration from PowerAuth Server version `1.3.x` to version `1.5.0`.
 
+## SOAP Removal
+
+In 1.5.x, we definitely removed the SOAP interface and only support RESTful API.
+
 ## Database Changes
 
 ### Add Signature Data in an Easy to Parse Structure

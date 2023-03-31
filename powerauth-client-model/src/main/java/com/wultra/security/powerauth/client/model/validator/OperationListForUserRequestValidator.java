@@ -19,7 +19,6 @@
 package com.wultra.security.powerauth.client.model.validator;
 
 import com.wultra.security.powerauth.client.model.request.OperationListForUserRequest;
-import org.springframework.util.StringUtils;
 
 /**
  * Validator for OperationListForUserRequest class.

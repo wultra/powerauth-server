@@ -1,8 +1,9 @@
 package io.getlime.security.powerauth.app.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.*;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -62,7 +63,7 @@ public class VerifySignatureConcurrencyTest {
         byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
 
         // Compute application signature
-        PowerAuthClientActivation clientActivation = new PowerAuthClientActivation();
+        new PowerAuthClientActivation();
 
         // Generate expiration time
         Calendar expiration = Calendar.getInstance();
@@ -86,7 +87,7 @@ public class VerifySignatureConcurrencyTest {
         // Create activation
         CreateActivationRequest createActivationRequest = new CreateActivationRequest();
         createActivationRequest.setUserId("test");
-        createActivationRequest.setTimestampActivationExpire(XMLGregorianCalendarConverter.convertFrom(expiration.getTime()));
+        createActivationRequest.setTimestampActivationExpire(expiration.getTime());
         createActivationRequest.setMaxFailureCount(5L);
         createActivationRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
         createActivationRequest.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData()));
@@ -98,7 +99,7 @@ public class VerifySignatureConcurrencyTest {
         // Commit activation
         CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
         commitActivationRequest.setActivationId(createActivationResponse.getActivationId());
-        CommitActivationResponse commitActivationResponse = powerAuthService.commitActivation(commitActivationRequest);
+        powerAuthService.commitActivation(commitActivationRequest);
 
         // Finally here comes the test - create two threads and verify signatures in parallel
         Runnable verifySignatureRunnable = () -> {
@@ -109,7 +110,7 @@ public class VerifySignatureConcurrencyTest {
                 verifySignatureRequest.setSignatureType(SignatureType.KNOWLEDGE);
                 verifySignatureRequest.setData("data");
                 verifySignatureRequest.setSignature("bad signature");
-                VerifySignatureResponse response = powerAuthService.verifySignature(verifySignatureRequest);
+                powerAuthService.verifySignature(verifySignatureRequest);
             } catch (Exception e) {
                 e.printStackTrace();
             }

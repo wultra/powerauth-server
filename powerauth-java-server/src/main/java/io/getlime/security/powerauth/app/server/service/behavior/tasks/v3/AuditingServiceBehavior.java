@@ -20,12 +20,12 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.wultra.core.audit.base.Audit;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.security.powerauth.client.v3.SignatureAuditResponse;
-import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.SignatureTypeConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
@@ -33,7 +33,6 @@ import io.getlime.security.powerauth.app.server.service.model.signature.Signatur
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.DatatypeConfigurationException;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -93,9 +92,8 @@ public class AuditingServiceBehavior {
      * @param startingDate  Since when should the log be displayed.
      * @param endingDate    Until when should the log be displayed.
      * @return Response with log items.
-     * @throws DatatypeConfigurationException In case date cannot be converted.
      */
-    public SignatureAuditResponse getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) throws DatatypeConfigurationException {
+    public SignatureAuditResponse getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) {
 
         List<SignatureEntity> signatureAuditEntityList;
         if (applicationId == null) {
@@ -108,7 +106,7 @@ public class AuditingServiceBehavior {
         if (signatureAuditEntityList != null) {
             for (SignatureEntity signatureEntity : signatureAuditEntityList) {
 
-                final SignatureAuditResponse.Items item = new SignatureAuditResponse.Items();
+                final SignatureAuditItem item = new SignatureAuditItem();
 
                 item.setId(signatureEntity.getId());
                 item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
@@ -123,7 +121,7 @@ public class AuditingServiceBehavior {
                 item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
                 item.setValid(signatureEntity.getValid());
                 item.setVersion(signatureEntity.getVersion());
-                item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(signatureEntity.getTimestampCreated()));
+                item.setTimestampCreated(signatureEntity.getTimestampCreated());
                 item.setNote(signatureEntity.getNote());
                 item.setUserId(signatureEntity.getActivation().getUserId());
 
@@ -162,7 +160,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setSignatureDataMethod(signatureData.getRequestMethod());
         signatureAuditRecord.setSignatureDataUriId(signatureData.getRequestUriId());
         signatureAuditRecord.setSignatureDataBody(signatureData.getRequestBody());
-        signatureAuditRecord.setSignatureType(signatureType.value());
+        signatureAuditRecord.setSignatureType(signatureType.name());
         signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
         signatureAuditRecord.setValid(valid);
         signatureAuditRecord.setVersion(version);
@@ -185,7 +183,7 @@ public class AuditingServiceBehavior {
                 .param("signatureDataMethod", signatureData.getRequestMethod())
                 .param("signatureDataUriId", signatureData.getRequestUriId())
                 .param("signatureDataBody", signatureData.getRequestBody())
-                .param("signatureType", signatureType.value())
+                .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())
                 .param("activationVersion", version)
                 .param("note", note)

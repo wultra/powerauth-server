@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server;
 
-import com.wultra.security.powerauth.client.v3.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import org.junit.jupiter.api.Test;

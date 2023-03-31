@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.GetEciesDecryptorRequest;
-import com.wultra.security.powerauth.client.v3.GetEciesDecryptorResponse;
+import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -90,7 +90,7 @@ public class EciesEncryptionBehavior {
      * Obtain ECIES decryptor parameters to allow decryption of ECIES-encrypted messages on intermediate server.
      * This interface doesn't allow keys derivation, it only provides ECIES decryptor parameters used for generic
      * encryption (sharedInfo1 = /pa/generic/**).
-     *
+     * <p>
      * If activationId is not present, then it creates ECIES decryptor for application scope.
      * If activationId is present, then it creates ECIES decryptor for activation scope.
      *

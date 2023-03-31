@@ -1,17 +1,10 @@
 # Web Services - Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server REST / SOAP services.
+This is a reference documentation of the methods published by the PowerAuth Server REST services.
 
 The REST service methods can be browsed using Swagger on deployed PowerAuth instance:
 
 - http://localhost:8080/powerauth-java-server/swagger-ui.html
-
-SOAP service methods are defined in the WSDL files (deprecated):
-
-- [serviceV3.wsdl](http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl)
-- [serviceV2.wsdl](http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl)
-
-The versioning of SOAP methods is described in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 The following `v3` methods are published using the service:
 

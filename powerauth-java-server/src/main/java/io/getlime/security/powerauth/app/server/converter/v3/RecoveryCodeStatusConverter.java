@@ -17,8 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
+import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
+
 /**
- * Converter class between {@link com.wultra.security.powerauth.client.v3.RecoveryCodeStatus} and
+ * Converter class between {@link RecoveryCodeStatus} and
  * {@link io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -30,21 +32,21 @@ public class RecoveryCodeStatusConverter {
      * @param recoveryCodeStatus Recovery code status.
      * @return Converted recovery code status.
      */
-    public com.wultra.security.powerauth.client.v3.RecoveryCodeStatus convertFrom(io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus recoveryCodeStatus) {
+    public RecoveryCodeStatus convertFrom(io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus recoveryCodeStatus) {
         if (recoveryCodeStatus == null) {
             return null;
         }
         switch (recoveryCodeStatus) {
             case CREATED:
-                return com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.CREATED;
+                return RecoveryCodeStatus.CREATED;
             case ACTIVE:
-                return com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.ACTIVE;
+                return RecoveryCodeStatus.ACTIVE;
             case BLOCKED:
-                return com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.BLOCKED;
+                return RecoveryCodeStatus.BLOCKED;
             case REVOKED:
-                return com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.REVOKED;
+                return RecoveryCodeStatus.REVOKED;
         }
-        return com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.REVOKED;
+        return RecoveryCodeStatus.REVOKED;
     }
 
     /**
@@ -52,7 +54,7 @@ public class RecoveryCodeStatusConverter {
      * @param recoveryCodeStatus Recovery code status.
      * @return Converted recovery code status.
      */
-    public io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus convertTo(com.wultra.security.powerauth.client.v3.RecoveryCodeStatus recoveryCodeStatus) {
+    public io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus convertTo(RecoveryCodeStatus recoveryCodeStatus) {
         if (recoveryCodeStatus == null) {
             return null;
         }

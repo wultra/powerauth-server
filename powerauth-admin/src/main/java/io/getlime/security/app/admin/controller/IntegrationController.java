@@ -18,8 +18,7 @@ package io.getlime.security.app.admin.controller;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.GetIntegrationListRequest;
-import com.wultra.security.powerauth.client.v3.GetIntegrationListResponse;
+import com.wultra.security.powerauth.client.model.response.GetIntegrationListResponse;
 import io.getlime.security.app.admin.configuration.PowerAuthWebServiceConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,8 +55,7 @@ public class IntegrationController {
     @GetMapping("/integration/list")
     public String integrationList(Map<String, Object> model) {
         try {
-            GetIntegrationListRequest request = new GetIntegrationListRequest();
-            GetIntegrationListResponse integrationListResponse = client.getIntegrationList(request);
+            GetIntegrationListResponse integrationListResponse = client.getIntegrationList();
             model.put("restrictedAccess", integrationListResponse.isRestrictedAccess());
             model.put("integrations", integrationListResponse.getItems());
             return "integrations";
@@ -70,16 +68,15 @@ public class IntegrationController {
     /**
      * Create a new integration.
      *
-     * @param model Model with passed parameters.
      * @return "integrationCreate" view.
      */
     @GetMapping("/integration/create")
-    public String integrationCreate(Map<String, Object> model) {
+    public String integrationCreate() {
         return "integrationCreate";
     }
 
     /**
-     * Execute the integration create action by calling the SOAP service.
+     * Execute the integration create action by calling the service.
      *
      * @param name Integration name.
      * @return Redirect to the integration list.
@@ -99,11 +96,10 @@ public class IntegrationController {
      * Remove integration.
      *
      * @param integrationId Integration ID
-     * @param model         Model with passed parameters.
      * @return Redirect user to given URL or to activation detail, in case 'redirect' is null or empty.
      */
     @PostMapping(value = "/integration/remove/do.submit")
-    public String removeActivation(@RequestParam("integrationId") String integrationId, Map<String, Object> model) {
+    public String removeActivation(@RequestParam("integrationId") String integrationId) {
         try {
             if (!configuration.isCurrentSecuritySettings(integrationId)) {
                 client.removeIntegration(integrationId);
