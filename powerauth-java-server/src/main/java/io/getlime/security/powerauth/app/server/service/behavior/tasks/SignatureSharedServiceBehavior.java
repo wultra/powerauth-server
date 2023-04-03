@@ -420,11 +420,6 @@ public class SignatureSharedServiceBehavior {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        if (verificationResponse.getForcedSignatureVersion() == 3) {
-            // Set the ctrData to next valid ctrData value
-            activation.setCtrDataBase64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
-        }
-
         // Set the activation record counter to next valid counter value
         activation.setCounter(verificationResponse.getCtrNext());
 
@@ -436,11 +431,17 @@ public class SignatureSharedServiceBehavior {
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
+        // Create the audit log record with current activation ctrDataBase64.
+        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, verificationResponse.getUsedSignatureType(), true, verificationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
+
+        if (verificationResponse.getForcedSignatureVersion() == 3) {
+            // Set the ctrData to next valid ctrData value
+            final String nextData = Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext());
+            activation.setCtrDataBase64(nextData);
+        }
+
         // Save the activation
         activationRepository.save(activation);
-
-        // Create the audit log record.
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, verificationResponse.getUsedSignatureType(), true, verificationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
     }
 
     /**
