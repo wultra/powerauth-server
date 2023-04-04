@@ -55,6 +55,14 @@ import java.util.*;
 @Component("powerAuthServiceImplV3")
 public class PowerAuthService {
 
+    private static final Logger logger = LoggerFactory.getLogger(PowerAuthService.class);
+    
+    // Minimum date for SQL timestamps: 01/01/1970 @ 12:00am (UTC)
+    private static final Date MIN_TIMESTAMP = new Date(1L);
+
+    // Maximum date for SQL timestamps: 01/01/9999 @ 12:00am (UTC)
+    private static final Date MAX_TIMESTAMP = new Date(253370764800000L);
+
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     private ServiceBehaviorCatalogue behavior;
@@ -64,15 +72,6 @@ public class PowerAuthService {
     private BuildProperties buildProperties;
 
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
-    // Minimum date for SQL timestamps: 01/01/1970 @ 12:00am (UTC)
-    private static final Date MIN_TIMESTAMP = new Date(1L);
-
-    // Maximum date for SQL timestamps: 01/01/9999 @ 12:00am (UTC)
-    private static final Date MAX_TIMESTAMP = new Date(253370764800000L);
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(PowerAuthService.class);
 
     @Autowired
     public void setPowerAuthServiceConfiguration(PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
