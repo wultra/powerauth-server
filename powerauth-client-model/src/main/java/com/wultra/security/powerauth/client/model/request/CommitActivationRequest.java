@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for committing activation.
@@ -30,6 +31,7 @@ public class CommitActivationRequest {
 
     private String activationId;
     private String externalUserId;
+    @ToString.Exclude
     private String activationOtp;
 
 }

@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class for representing a service errors. It has static string fields
+ * Class for representing service errors. It has static string fields
  * for all possible error codes and list that registers the error code.
  * The {@link io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider}
  * class is then used for looking up the displayable error message.

@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for unlocking secure vault.
@@ -32,12 +33,14 @@ public class VaultUnlockRequest {
     private String activationId;
     private String applicationKey;
     private String signedData;
+    @ToString.Exclude
     private String signature;
     private SignatureType signatureType;
     private String signatureVersion;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
     private String nonce;
 
 }

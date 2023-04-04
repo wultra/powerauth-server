@@ -385,7 +385,7 @@ public interface PowerAuthClient {
      * @return {@link RemoveActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException;
+    RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws PowerAuthClientException;
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
@@ -1620,7 +1620,7 @@ public interface PowerAuthClient {
      * @return Update recovery configuration response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException;
+    UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, boolean activationRecoveryEnabled, boolean recoveryPostcardEnabled, boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException;
 
     /**
      * List activation flags.

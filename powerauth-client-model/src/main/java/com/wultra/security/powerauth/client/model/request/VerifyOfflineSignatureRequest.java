@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.math.BigInteger;
 
@@ -32,6 +33,7 @@ public class VerifyOfflineSignatureRequest {
 
     private String activationId;
     private String data;
+    @ToString.Exclude
     private String signature;
     private BigInteger componentLength;
     private boolean allowBiometry;

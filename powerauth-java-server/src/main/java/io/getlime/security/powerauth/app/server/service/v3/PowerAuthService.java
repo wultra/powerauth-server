@@ -558,11 +558,7 @@ public class PowerAuthService {
         try {
             final String activationId = request.getActivationId();
             final String externalUserId = request.getExternalUserId();
-            Boolean revokeRecoveryCodes = request.getRevokeRecoveryCodes();
-            if (revokeRecoveryCodes == null) {
-                // The default value is false for revokeRecoveryCodes
-                revokeRecoveryCodes = false;
-            }
+            boolean revokeRecoveryCodes = request.isRevokeRecoveryCodes();
             logger.info("RemoveActivationRequest received, activation ID: {}, revoke recovery codes: {}", activationId, revokeRecoveryCodes);
             final RemoveActivationResponse response = behavior.getActivationServiceBehavior().removeActivation(activationId, externalUserId, revokeRecoveryCodes);
             logger.info("RemoveActivationRequest succeeded");

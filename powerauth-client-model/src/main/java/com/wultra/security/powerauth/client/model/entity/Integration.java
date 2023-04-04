@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.client.model.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing integration system entity.
@@ -30,6 +31,7 @@ public class Integration {
     private String id;
     private String name;
     private String clientToken;
+    @ToString.Exclude
     private String clientSecret;
 
 }

@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for activation via recovery code.
@@ -28,14 +29,18 @@ import lombok.Data;
 @Data
 public class RecoveryCodeActivationRequest {
     private Boolean generateRecoveryCodes;
+    @ToString.Exclude
     private String recoveryCode;
+    @ToString.Exclude
     private String puk;
     private String applicationKey;
     private Long maxFailureCount;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
     private String nonce;
+    @ToString.Exclude
     private String activationOtp;
 
 }

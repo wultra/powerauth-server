@@ -31,7 +31,7 @@ public class GetRecoveryConfigResponse {
     private String applicationId;
     private boolean activationRecoveryEnabled;
     private boolean recoveryPostcardEnabled;
-    private Boolean allowMultipleRecoveryCodes;
+    private boolean allowMultipleRecoveryCodes;
     private String postcardPublicKey;
     private String remotePostcardPublicKey;
 

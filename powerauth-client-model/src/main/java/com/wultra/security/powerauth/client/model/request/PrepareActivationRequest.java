@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for activation preparation request (mobile device key exchange).
@@ -34,6 +35,7 @@ public class PrepareActivationRequest {
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
     private String nonce;
 
 }

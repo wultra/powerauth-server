@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with new integration system.
@@ -31,6 +32,7 @@ public class CreateIntegrationResponse {
     private String id;
     private String name;
     private String clientToken;
+    @ToString.Exclude
     private String clientSecret;
 
 }

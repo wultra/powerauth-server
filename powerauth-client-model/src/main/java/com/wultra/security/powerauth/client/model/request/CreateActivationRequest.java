@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.Date;
 
@@ -38,7 +39,9 @@ public class CreateActivationRequest {
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
     private String nonce;
+    @ToString.Exclude
     private String activationOtp;
 
 }

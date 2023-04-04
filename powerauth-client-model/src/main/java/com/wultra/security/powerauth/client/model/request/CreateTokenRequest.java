@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for creating HMAC token.
@@ -34,6 +35,7 @@ public class CreateTokenRequest {
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
     private String nonce;
     private SignatureType signatureType;
 

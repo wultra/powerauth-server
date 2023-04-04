@@ -29,6 +29,6 @@ import lombok.Data;
 public class RemoveActivationResponse {
 
     private String activationId;
-    private Boolean removed;
+    private boolean removed;
 
 }

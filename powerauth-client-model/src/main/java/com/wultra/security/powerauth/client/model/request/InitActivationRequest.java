@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.Date;
 
@@ -36,6 +37,7 @@ public class InitActivationRequest {
     private Date timestampActivationExpire;
     private Long maxFailureCount;
     private ActivationOtpValidation activationOtpValidation;
+    @ToString.Exclude
     private String activationOtp;
 
 }

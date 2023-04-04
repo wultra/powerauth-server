@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for signature verification.
@@ -32,6 +33,7 @@ public class VerifySignatureRequest {
     private String activationId;
     private String applicationKey;
     private String data;
+    @ToString.Exclude
     private String signature;
     private SignatureType signatureType;
     private String signatureVersion;

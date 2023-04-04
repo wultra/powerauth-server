@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with created payload for personalized offline signatures.
@@ -29,6 +30,7 @@ import lombok.Data;
 public class CreatePersonalizedOfflineSignaturePayloadResponse {
 
     private String offlineData;
+    @ToString.Exclude
     private String nonce;
 
 }

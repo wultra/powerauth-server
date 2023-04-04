@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with new application version.
@@ -31,6 +32,7 @@ public class CreateApplicationVersionResponse {
     private String applicationVersionId;
     private String applicationVersionName;
     private String applicationKey;
+    @ToString.Exclude
     private String applicationSecret;
     private boolean supported;
 

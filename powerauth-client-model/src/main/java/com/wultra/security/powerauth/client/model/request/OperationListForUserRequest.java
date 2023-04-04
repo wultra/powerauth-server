@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
 public class OperationListForUserRequest {
 
     private String userId;
-    private List<String> applications;
+    private List<String> applications = new ArrayList<>();
     private String activationFlag;
 
 }

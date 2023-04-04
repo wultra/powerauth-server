@@ -604,7 +604,7 @@ public class RecoveryServiceBehavior {
         response.setApplicationId(applicationId);
         response.setActivationRecoveryEnabled(recoveryConfigEntity.getActivationRecoveryEnabled());
         response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());
-        response.setAllowMultipleRecoveryCodes(recoveryConfigEntity.getAllowMultipleRecoveryCodes());
+        response.setAllowMultipleRecoveryCodes(Optional.ofNullable(recoveryConfigEntity.getAllowMultipleRecoveryCodes()).orElse(false));
         response.setPostcardPublicKey(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
         response.setRemotePostcardPublicKey(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
         return response;
@@ -653,7 +653,7 @@ public class RecoveryServiceBehavior {
             }
             recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());
             recoveryConfigEntity.setRecoveryPostcardEnabled(request.isRecoveryPostcardEnabled());
-            recoveryConfigEntity.setAllowMultipleRecoveryCodes(request.getAllowMultipleRecoveryCodes());
+            recoveryConfigEntity.setAllowMultipleRecoveryCodes(request.isAllowMultipleRecoveryCodes());
             if (request.getRemotePostcardPublicKey() != null) {
                 recoveryConfigEntity.setRemotePostcardPublicKeyBase64(request.getRemotePostcardPublicKey());
                 if (request.getRemotePostcardPublicKey().isEmpty()) {

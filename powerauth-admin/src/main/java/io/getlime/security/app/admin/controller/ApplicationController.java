@@ -118,7 +118,7 @@ public class ApplicationController {
             model.put("masterPublicKey", applicationDetails.getMasterPublicKey());
             model.put("activationRecoveryEnabled", recoveryConfig.isActivationRecoveryEnabled());
             model.put("recoveryPostcardEnabled", recoveryConfig.isRecoveryPostcardEnabled());
-            model.put("allowMultipleRecoveryCodes", recoveryConfig.getAllowMultipleRecoveryCodes());
+            model.put("allowMultipleRecoveryCodes", recoveryConfig.isAllowMultipleRecoveryCodes());
             model.put("postcardPublicKey", recoveryConfig.getPostcardPublicKey());
             model.put("remotePostcardPublicKey", recoveryConfig.getRemotePostcardPublicKey());
             model.put("versions", Lists.reverse(applicationDetails.getVersions()));

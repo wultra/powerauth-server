@@ -29,6 +29,6 @@ import lombok.Data;
 public class RemoveIntegrationResponse {
 
     private String id;
-    private Boolean removed;
+    private boolean removed;
 
 }

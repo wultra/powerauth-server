@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with ECIES decryptor configuration.
@@ -28,7 +29,9 @@ import lombok.Data;
 @Data
 public class GetEciesDecryptorResponse {
 
+    @ToString.Exclude
     private String secretKey;
+    @ToString.Exclude
     private String sharedInfo2;
 
 }

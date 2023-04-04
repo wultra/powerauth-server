@@ -30,6 +30,6 @@ public class RemoveActivationRequest {
 
     private String activationId;
     private String externalUserId;
-    private Boolean revokeRecoveryCodes;
+    private boolean revokeRecoveryCodes;
 
 }

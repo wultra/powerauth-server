@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for ECDSA signature verification.
@@ -30,6 +31,7 @@ public class VerifyECDSASignatureRequest {
 
     private String activationId;
     private String data;
+    @ToString.Exclude
     private String signature;
 
 }

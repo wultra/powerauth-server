@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.client.model.response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -47,10 +48,15 @@ public class GetActivationStatusResponse {
     private Date timestampCreated;
     private Date timestampLastUsed;
     private Date timestampLastChange;
+    @ToString.Exclude
     private String encryptedStatusBlob;
+    @ToString.Exclude
     private String encryptedStatusBlobNonce;
+    @ToString.Exclude
     private String activationCode;
+    @ToString.Exclude
     private String activationSignature;
+    @ToString.Exclude
     private String devicePublicKeyFingerprint;
     private long version;
     private List<String> activationFlags = new ArrayList<>();

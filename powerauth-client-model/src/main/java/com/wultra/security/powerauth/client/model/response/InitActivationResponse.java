@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with initialized activation information.
@@ -29,7 +30,9 @@ import lombok.Data;
 public class InitActivationResponse {
 
     private String activationId;
+    @ToString.Exclude
     private String activationCode;
+    @ToString.Exclude
     private String activationSignature;
     private String userId;
     private String applicationId;

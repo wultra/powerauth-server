@@ -376,7 +376,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, Boolean revokeRecoveryCodes) throws PowerAuthClientException {
+    public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws PowerAuthClientException {
         RemoveActivationRequest request = new RemoveActivationRequest();
         request.setActivationId(activationId);
         request.setExternalUserId(externalUserId);
@@ -1158,7 +1158,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
+    public UpdateRecoveryConfigResponse updateRecoveryConfig(String applicationId, boolean activationRecoveryEnabled, boolean recoveryPostcardEnabled, boolean allowMultipleRecoveryCodes, String remoteRecoveryPublicKeyBase64) throws PowerAuthClientException {
         UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
         request.setApplicationId(applicationId);
         request.setActivationRecoveryEnabled(activationRecoveryEnabled);

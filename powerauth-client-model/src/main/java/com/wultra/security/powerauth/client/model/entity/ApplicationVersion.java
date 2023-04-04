@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.client.model.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing application version entity.
@@ -29,6 +30,7 @@ public class ApplicationVersion {
 
     private String applicationVersionId;
     private String applicationKey;
+    @ToString.Exclude
     private String applicationSecret;
     private boolean supported;
 

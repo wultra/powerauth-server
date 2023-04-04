@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for validating HMAC token signature.
@@ -29,7 +30,9 @@ import lombok.Data;
 public class ValidateTokenRequest {
 
     private String tokenId;
+    @ToString.Exclude
     private String tokenDigest;
+    @ToString.Exclude
     private String nonce;
     private long timestamp;
 
