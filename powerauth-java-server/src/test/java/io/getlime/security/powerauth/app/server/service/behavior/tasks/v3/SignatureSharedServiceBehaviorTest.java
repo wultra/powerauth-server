@@ -52,7 +52,7 @@ class SignatureSharedServiceBehaviorTest {
 
     @Sql
     @Test
-    void testHandleValidSignatureOnline() {
+    void testHandleValidSignature() {
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
         final SignatureResponse signatureResponse = new SignatureResponse(true, 1L, new byte[]{'x'}, 3, SignatureType.POSSESSION_KNOWLEDGE);
         final byte[] data = Base64.getDecoder().decode("UE9TVCZMM0JoTDNOcFoyNWhkSFZ5WlM5MllXeHBaR0YwWlE9PSYyaVR6Ry9CMzVRSmY3SHhaZmNseUZnPT0mUVd4c0lIbHZkWElnWW1GelpTQmhjbVVnWW1Wc2IyNW5JSFJ2SUhWeklRPT0mbzk3MGdVQkx2d0NUZGJJT1BrWjBsdz09");
