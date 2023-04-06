@@ -400,7 +400,8 @@ public class SignatureSharedServiceBehavior {
         }
 
         // Create the audit log record
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false, activation.getVersion(),
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+        auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType, false, activation.getVersion(),
                 "activation_invalid_application", currentTimestamp);
 
         // Notify callback listeners, if needed
@@ -417,11 +418,11 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleValidSignatureImpl(ActivationRecordEntity activation, SignatureResponse verificationResponse, SignatureData signatureData, Date currentTimestamp) {
-        // Create the audit log record with current activation ctrDataBase64.
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, verificationResponse.getUsedSignatureType(), true, verificationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
-
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
+        // Keep unchanged values of ctrDataBase64 and counter before calculating next ones.
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
 
         if (verificationResponse.getForcedSignatureVersion() == 3) {
             // Set the ctrData to next valid ctrData value
@@ -442,6 +443,9 @@ public class SignatureSharedServiceBehavior {
 
         // Save the activation
         activationRepository.save(activation);
+
+        // Create the audit log record with activation values of ctrDataBase64 and counter before calculating next ones.
+        auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, verificationResponse.getUsedSignatureType(), true, verificationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
     }
 
     /**
@@ -496,7 +500,8 @@ public class SignatureSharedServiceBehavior {
         }
 
         // Create the audit log record.
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType,false,
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+        auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType,false,
                 verificationResponse.getForcedSignatureVersion(), "signature_does_not_match", currentTimestamp);
 
         // Notify callback listeners, if needed
@@ -523,7 +528,8 @@ public class SignatureSharedServiceBehavior {
         activationRepository.save(activation);
 
         // Create the audit log record
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false,
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+        auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType, false,
                 activation.getVersion(), "activation_invalid_state", currentTimestamp);
     }
 
@@ -552,11 +558,23 @@ public class SignatureSharedServiceBehavior {
         signatureData.getAdditionalInfo().add(entry);
 
         // Create the audit log record
-        auditingServiceBehavior.logSignatureAuditRecord(activation, signatureData, signatureType, false,
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+        auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType, false,
                 activation.getVersion(), "activation_invalid_state_ctr_mismatch", currentTimestamp);
 
         // Notify callback listeners
         callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
+    }
+
+    private static AuditingServiceBehavior.ActivationRecordDto createActivationDtoFrom(ActivationRecordEntity activation) {
+        return AuditingServiceBehavior.ActivationRecordDto.builder()
+                .activationId(activation.getActivationId())
+                .applicationId(activation.getApplication().getId())
+                .counter(activation.getCounter())
+                .ctrDataBase64(activation.getCtrDataBase64())
+                .userId(activation.getUserId())
+                .activationStatus(activation.getActivationStatus())
+                .build();
     }
 
     /**
