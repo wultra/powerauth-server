@@ -369,6 +369,8 @@ public class SignatureSharedServiceBehavior {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+
         // By default do not notify listeners
         boolean notifyCallbackListeners = false;
 
@@ -400,7 +402,6 @@ public class SignatureSharedServiceBehavior {
         }
 
         // Create the audit log record
-        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
         auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType, false, activation.getVersion(),
                 "activation_invalid_application", currentTimestamp);
 
@@ -460,6 +461,8 @@ public class SignatureSharedServiceBehavior {
         // Get ActivationRepository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+
         // By default do not notify listeners
         boolean notifyCallbackListeners = false;
 
@@ -500,7 +503,6 @@ public class SignatureSharedServiceBehavior {
         }
 
         // Create the audit log record.
-        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
         auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType,false,
                 verificationResponse.getForcedSignatureVersion(), "signature_does_not_match", currentTimestamp);
 
@@ -541,6 +543,8 @@ public class SignatureSharedServiceBehavior {
      * @param currentTimestamp Signature verification timestamp.
      */
     private void handleInactiveActivationWithMismatchSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
+        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
+
         // Update the last used date
         activation.setTimestampLastUsed(currentTimestamp);
 
@@ -558,7 +562,6 @@ public class SignatureSharedServiceBehavior {
         signatureData.getAdditionalInfo().add(entry);
 
         // Create the audit log record
-        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
         auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, signatureType, false,
                 activation.getVersion(), "activation_invalid_state_ctr_mismatch", currentTimestamp);
 

@@ -17,7 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import com.wultra.security.powerauth.client.v3.SignatureType;
+import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
@@ -29,6 +31,7 @@ import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import java.util.Base64;
@@ -42,6 +45,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
 @SpringBootTest
+@Sql
+@Transactional
 class SignatureSharedServiceBehaviorTest {
 
     @Autowired
@@ -50,31 +55,79 @@ class SignatureSharedServiceBehaviorTest {
     @Autowired
     private EntityManager entityManager;
 
-    @Sql
     @Test
     void testHandleValidSignature() {
         final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
         final SignatureResponse signatureResponse = new SignatureResponse(true, 1L, new byte[]{'x'}, 3, SignatureType.POSSESSION_KNOWLEDGE);
-        final byte[] data = Base64.getDecoder().decode("UE9TVCZMM0JoTDNOcFoyNWhkSFZ5WlM5MllXeHBaR0YwWlE9PSYyaVR6Ry9CMzVRSmY3SHhaZmNseUZnPT0mUVd4c0lIbHZkWElnWW1GelpTQmhjbVVnWW1Wc2IyNW5JSFJ2SUhWeklRPT0mbzk3MGdVQkx2d0NUZGJJT1BrWjBsdz09");
-        final SignatureData signatureData = new SignatureData(data, "39319618-09892741", SignatureConfiguration.decimal(), "3.0", null, 3);
-        final OnlineSignatureRequest onlineSignatureRequest = new OnlineSignatureRequest(signatureData, SignatureType.POSSESSION_KNOWLEDGE);
-        final Date currentTimestamp = new Date();
 
         assertEquals(0, activation.getCounter());
         assertEquals("D5XibWWPCv+nOOfcdfnUGQ==", activation.getCtrDataBase64());
 
-        tested.handleValidSignature(activation, signatureResponse, onlineSignatureRequest, currentTimestamp);
+        tested.handleValidSignature(activation, signatureResponse, createOnlineSignatureRequest(), new Date());
 
         assertEquals(1, activation.getCounter());
         assertEquals("eA==", activation.getCtrDataBase64());
 
-        final SignatureEntity signatureEntity = entityManager.createQuery("select s from SignatureEntity s where s.activation =: activation", SignatureEntity.class)
-                .setParameter("activation", activation)
-                .getResultList().stream()
-                    .findFirst()
-                    .orElseThrow(() -> new AssertionFailedError("No SignatureEntity found"));
+        final SignatureEntity signatureEntity = getSignatureEntityBy(activation);
 
         assertEquals(0, signatureEntity.getActivationCounter());
         assertEquals("D5XibWWPCv+nOOfcdfnUGQ==", signatureEntity.getActivationCtrDataBase64());
+    }
+
+    @Test
+    void testHandleInactiveActivationWithMismatchSignature() {
+        final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
+
+        assertEquals(ActivationStatus.ACTIVE, activation.getActivationStatus());
+
+        tested.handleInactiveActivationWithMismatchSignature(activation, createOnlineSignatureRequest(), new Date());
+
+        assertEquals(ActivationStatus.BLOCKED, activation.getActivationStatus());
+
+        final SignatureEntity signatureEntity = getSignatureEntityBy(activation);
+        assertEquals(ActivationStatus.ACTIVE, signatureEntity.getActivationStatus(), "Activation status has changed but audit should contain previous status");
+    }
+
+    @Test
+    void testHandleInvalidApplicationVersion() {
+        final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
+
+        assertEquals(ActivationStatus.ACTIVE, activation.getActivationStatus());
+
+        tested.handleInvalidApplicationVersion(activation, createOnlineSignatureRequest(), new Date());
+
+        assertEquals(ActivationStatus.BLOCKED, activation.getActivationStatus());
+
+        final SignatureEntity signatureEntity = getSignatureEntityBy(activation);
+        assertEquals(ActivationStatus.ACTIVE, signatureEntity.getActivationStatus(), "Activation status has changed but audit should contain previous status");
+    }
+
+    @Test
+    void testHandleInvalidSignature() {
+        final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
+        final SignatureResponse signatureResponse = new SignatureResponse(true, 1L, new byte[]{'x'}, 3, SignatureType.POSSESSION_KNOWLEDGE);
+
+        assertEquals(ActivationStatus.ACTIVE, activation.getActivationStatus());
+
+        tested.handleInvalidSignature(activation, signatureResponse, createOnlineSignatureRequest(), new Date());
+
+        assertEquals(ActivationStatus.BLOCKED, activation.getActivationStatus());
+
+        final SignatureEntity signatureEntity = getSignatureEntityBy(activation);
+        assertEquals(ActivationStatus.ACTIVE, signatureEntity.getActivationStatus(), "Activation status has changed but audit should contain previous status");
+    }
+
+    private static OnlineSignatureRequest createOnlineSignatureRequest() {
+        final byte[] data = Base64.getDecoder().decode("UE9TVCZMM0JoTDNOcFoyNWhkSFZ5WlM5MllXeHBaR0YwWlE9PSYyaVR6Ry9CMzVRSmY3SHhaZmNseUZnPT0mUVd4c0lIbHZkWElnWW1GelpTQmhjbVVnWW1Wc2IyNW5JSFJ2SUhWeklRPT0mbzk3MGdVQkx2d0NUZGJJT1BrWjBsdz09");
+        final SignatureData signatureData = new SignatureData(data, "39319618-09892741", SignatureConfiguration.decimal(), "3.0", new KeyValueMap(), 3);
+        return new OnlineSignatureRequest(signatureData, SignatureType.POSSESSION_KNOWLEDGE);
+    }
+
+    private SignatureEntity getSignatureEntityBy(ActivationRecordEntity activation) {
+        return entityManager.createQuery("select s from SignatureEntity s where s.activation =: activation", SignatureEntity.class)
+                .setParameter("activation", activation)
+                .getResultList().stream()
+                .findFirst()
+                .orElseThrow(() -> new AssertionFailedError("No SignatureEntity found"));
     }
 }
