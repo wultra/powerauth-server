@@ -427,8 +427,7 @@ public class SignatureSharedServiceBehavior {
 
         if (verificationResponse.getForcedSignatureVersion() == 3) {
             // Set the ctrData to next valid ctrData value
-            final String nextData = Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext());
-            activation.setCtrDataBase64(nextData);
+            activation.setCtrDataBase64(Base64.getEncoder().encodeToString(verificationResponse.getCtrDataNext()));
         }
 
         // Set the activation record counter to next valid counter value
