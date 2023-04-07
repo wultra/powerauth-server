@@ -115,7 +115,7 @@
                             <p>
                                 Created<br>
                                 <span class="black">
-                                    <fmt:formatDate type="both" pattern="yyyy/MM/dd HH:mm:ss" value="${timestampCreated.toGregorianCalendar().time}"/>
+                                    <fmt:formatDate type="both" pattern="yyyy/MM/dd HH:mm:ss" value="${timestampCreated}"/>
                                 </span>
                             </p>
                         </td>
@@ -123,7 +123,7 @@
                             <p>
                                 Last Used<br>
                                 <span class="black">
-                                    <fmt:formatDate type="both" pattern="yyyy/MM/dd HH:mm:ss" value="${timestampLastUsed.toGregorianCalendar().time}"/>
+                                    <fmt:formatDate type="both" pattern="yyyy/MM/dd HH:mm:ss" value="${timestampLastUsed}"/>
                                 </span>
                             </p>
                         </td>
@@ -397,10 +397,10 @@
                                                     <c:out value="${item.data}"/>
                                                 </span>
                                             </p>
-                                            <c:if test="${not empty item.additionalInfo.entry}">
+                                            <c:if test="${not empty item.additionalInfo}">
                                                 <p class="wrap gray">
                                                     Additional Information<br>
-                                                    <c:forEach var="entry" items="${item.additionalInfo.entry}">
+                                                    <c:forEach var="entry" items="${item.additionalInfo}">
                                                         <span class="black">
                                                             <c:out value="${entry.key}"/>: <c:out value="${entry.value}"/>
                                                         </span>
@@ -438,7 +438,7 @@
                                             <p>
                                                 Date<br>
                                                 <span class="black">
-                                                    <fmt:formatDate type="both" pattern="yyyy/MM/dd HH:mm:ss" value="${item.timestampCreated.toGregorianCalendar().time}"/>
+                                                    <fmt:formatDate type="both" pattern="yyyy/MM/dd HH:mm:ss" value="${item.timestampCreated}"/>
                                                 </span>
                                             </p>
                                         </td>

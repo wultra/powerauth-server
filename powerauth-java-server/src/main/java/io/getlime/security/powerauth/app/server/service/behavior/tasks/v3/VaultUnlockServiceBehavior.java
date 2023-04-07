@@ -19,10 +19,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import com.wultra.security.powerauth.client.v3.SignatureType;
-import com.wultra.security.powerauth.client.v3.VaultUnlockResponse;
-import com.wultra.security.powerauth.client.v3.VerifySignatureResponse;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.response.VaultUnlockResponse;
+import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
@@ -60,7 +60,10 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Behavior class implementing the vault unlock related processes. The class separates the
@@ -185,19 +188,19 @@ public class VaultUnlockServiceBehavior {
 
             // Save vault unlock reason into additional info which is logged in signature audit log.
             // If value unlock reason is missing, use default NOT_SPECIFIED value.
-            KeyValueMap additionalInfo = new KeyValueMap();
-            KeyValueMap.Entry entry = new KeyValueMap.Entry();
+            KeyValue entry = new KeyValue();
             entry.setKey(AdditionalInformation.Key.VAULT_UNLOCKED_REASON);
             if (reason == null) {
                 entry.setValue(AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
             } else {
                 entry.setValue(reason);
             }
-            additionalInfo.getEntry().add(entry);
+            final List<KeyValue> additionalInformationList = new ArrayList<>();
+            additionalInformationList.add(entry);
 
             // Verify the signature
             VerifySignatureResponse signatureResponse = behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType,
-                    signature, signatureVersion, additionalInfo, signedData, applicationKey, null, keyConversion);
+                    signature, signatureVersion, additionalInformationList, signedData, applicationKey, null, keyConversion);
 
             VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
 

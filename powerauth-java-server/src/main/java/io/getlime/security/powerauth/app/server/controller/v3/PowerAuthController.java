@@ -19,14 +19,16 @@ package io.getlime.security.powerauth.app.server.controller.v3;
 
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.client.v3.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Class implementing the RESTful controller for PowerAuth service.
@@ -46,16 +48,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getSystemStatus(GetSystemStatusRequest)} method and
+     * Call {@link PowerAuthService#getSystemStatus()} method and
      * return the response.
      *
-     * @param request Get system status request.
      * @return System status response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/status")
-    public ObjectResponse<GetSystemStatusResponse> getSystemStatus(@RequestBody ObjectRequest<GetSystemStatusRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getSystemStatus(request.getRequestObject()));
+    public ObjectResponse<GetSystemStatusResponse> getSystemStatus() throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getSystemStatus());
     }
 
     /**
@@ -330,16 +331,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getApplicationList(GetApplicationListRequest)} method and
+     * Call {@link PowerAuthService#getApplicationList()} method and
      * return the response.
      *
-     * @param request Application list request.
      * @return Application list response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/application/list")
-    public ObjectResponse<GetApplicationListResponse> getApplicationList(@RequestBody ObjectRequest<GetApplicationListRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getApplicationList(request.getRequestObject()));
+    public ObjectResponse<GetApplicationListResponse> getApplicationList() throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getApplicationList());
     }
 
     /**
@@ -434,15 +434,15 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getIntegrationList(GetIntegrationListRequest)} method and
+     * Call {@link PowerAuthService#getIntegrationList()} method and
      * return the response.
      *
      * @return Get integration list response.
      * @throws Exception In case the service throws exception.
      */
     @PostMapping("/integration/list")
-    public ObjectResponse<GetIntegrationListResponse> getIntegrationList(@RequestBody ObjectRequest<GetIntegrationListRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getIntegrationList(request.getRequestObject()));
+    public ObjectResponse<GetIntegrationListResponse> getIntegrationList() throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.getIntegrationList());
     }
 
     /**

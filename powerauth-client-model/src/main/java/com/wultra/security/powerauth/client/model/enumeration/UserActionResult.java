@@ -19,12 +19,34 @@
 package com.wultra.security.powerauth.client.model.enumeration;
 
 /**
+ * Enum representing action user can take with operations.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum UserActionResult {
+
+    /**
+     * User approved the operation.
+     */
     APPROVED,
+
+    /**
+     * User tried to approve the operation, but failed.
+     */
     APPROVAL_FAILED,
+
+    /**
+     * User rejected the operation.
+     */
     REJECTED,
+
+    /**
+     * User tried to reject the operation, but failed.
+     */
     REJECT_FAILED,
+
+    /**
+     * The failures of approval or rejection were so frequent, that the operation failed completely.
+     */
     OPERATION_FAILED
 }

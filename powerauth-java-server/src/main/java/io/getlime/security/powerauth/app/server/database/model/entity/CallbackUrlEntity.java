@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.Application;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
 import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;

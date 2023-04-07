@@ -19,10 +19,10 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateDetailRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateListResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.OperationTemplateConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;

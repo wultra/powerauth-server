@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.converter.v3;
 
-import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 
 /**
@@ -45,24 +45,7 @@ final public class SignatureTypeConverter {
     }
 
     public SignatureType convertFrom(String signatureType) {
-        return SignatureType.fromValue(signatureType.toUpperCase());
-    }
-
-    public com.wultra.security.powerauth.client.v3.SignatureType convertFrom(com.wultra.security.powerauth.client.v2.SignatureType signatureType) {
-        switch (signatureType) {
-            case POSSESSION:
-                return SignatureType.POSSESSION;
-            case KNOWLEDGE:
-                return SignatureType.KNOWLEDGE;
-            case BIOMETRY:
-                return SignatureType.BIOMETRY;
-            case POSSESSION_KNOWLEDGE:
-                return SignatureType.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY:
-                return SignatureType.POSSESSION_BIOMETRY;
-            default:
-                return SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
-        }
+        return SignatureType.enumFromString(signatureType.toUpperCase());
     }
 
     public SignatureType convertTo(PowerAuthSignatureTypes powerAuthSignatureTypes) {

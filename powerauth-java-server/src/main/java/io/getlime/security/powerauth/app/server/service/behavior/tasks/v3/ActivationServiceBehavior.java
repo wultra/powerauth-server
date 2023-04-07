@@ -20,16 +20,15 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableSet;
-import com.wultra.security.powerauth.client.v3.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.*;
+import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukConverter;
+import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.*;
@@ -66,8 +65,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import javax.validation.constraints.NotNull;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.XMLGregorianCalendar;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -230,9 +227,8 @@ public class ActivationServiceBehavior {
      * @param applicationId Application ID
      * @param userId        User ID
      * @return Response with list of matching activations
-     * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId) throws DatatypeConfigurationException {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId) {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -255,7 +251,7 @@ public class ActivationServiceBehavior {
                 deactivatePendingActivation(timestamp, activation, false);
 
                 // Map between database object and service objects
-                GetActivationListForUserResponse.Activations activationServiceItem = new GetActivationListForUserResponse.Activations();
+                Activation activationServiceItem = new Activation();
                 activationServiceItem.setActivationId(activation.getActivationId());
                 activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                 activationServiceItem.setBlockedReason(activation.getBlockedReason());
@@ -264,12 +260,12 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.getActivationFlags().addAll(activation.getFlags());
-                activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
-                activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
-                activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+                activationServiceItem.setTimestampCreated(activation.getTimestampCreated());
+                activationServiceItem.setTimestampLastUsed(activation.getTimestampLastUsed());
+                activationServiceItem.setTimestampLastChange(activation.getTimestampLastChange());
                 activationServiceItem.setUserId(activation.getUserId());
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
-                // Unknown version is converted to 0 in SOAP
+                // Unknown version is converted to 0 in service
                 activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                 response.getActivations().add(activationServiceItem);
             }
@@ -286,9 +282,8 @@ public class ActivationServiceBehavior {
      * @param timestampLastUsedAfter Last used timestamp to be used in the activations query, return all records where timestampLastUsed &gt;= timestampLastUsedAfter.
      * @param activationStatus Activation status to be used in the activations query (optional).
      * @return Response with list of matching activations.
-     * @throws DatatypeConfigurationException If calendar conversion fails.
      */
-    public LookupActivationsResponse lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) throws DatatypeConfigurationException {
+    public LookupActivationsResponse lookupActivations(List<String> userIds, List<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, ActivationStatus activationStatus, List<String> activationFlags) {
         final LookupActivationsResponse response = new LookupActivationsResponse();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         if (applicationIds != null && applicationIds.isEmpty()) {
@@ -311,7 +306,8 @@ public class ActivationServiceBehavior {
         // Filter activation by activation flags in case they are specified
         if (activationFlags != null && !activationFlags.isEmpty()) {
             List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
-                    activation.getFlags().containsAll(activationFlags)).collect(Collectors.toList());
+                    new HashSet<>(activation.getFlags()).containsAll(activationFlags)).collect(Collectors.toList()
+            );
             filteredActivationList.addAll(activationsWithFlags);
         } else {
             filteredActivationList.addAll(activationsList);
@@ -319,7 +315,7 @@ public class ActivationServiceBehavior {
 
         for (ActivationRecordEntity activation : filteredActivationList) {
             // Map between database object and service objects
-            LookupActivationsResponse.Activations activationServiceItem = new LookupActivationsResponse.Activations();
+            Activation activationServiceItem = new Activation();
             activationServiceItem.setActivationId(activation.getActivationId());
             activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             activationServiceItem.setBlockedReason(activation.getBlockedReason());
@@ -328,12 +324,12 @@ public class ActivationServiceBehavior {
             activationServiceItem.setPlatform(activation.getPlatform());
             activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
             activationServiceItem.getActivationFlags().addAll(activation.getFlags());
-            activationServiceItem.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
-            activationServiceItem.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
-            activationServiceItem.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+            activationServiceItem.setTimestampCreated(activation.getTimestampCreated());
+            activationServiceItem.setTimestampLastUsed(activation.getTimestampLastUsed());
+            activationServiceItem.setTimestampLastChange(activation.getTimestampLastChange());
             activationServiceItem.setUserId(activation.getUserId());
             activationServiceItem.setApplicationId(activation.getApplication().getId());
-            // Unknown version is converted to 0 in SOAP
+            // Unknown version is converted to 0 in service
             activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
             response.getActivations().add(activationServiceItem);
         }
@@ -373,10 +369,9 @@ public class ActivationServiceBehavior {
      * @param challenge              Challenge for activation status blob encryption (since protocol V3.1)
      * @param keyConversionUtilities Key conversion utility class
      * @return Activation status response
-     * @throws DatatypeConfigurationException Thrown when calendar conversion fails.
      * @throws GenericServiceException        Thrown when cryptography error occurs.
      */
-    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, KeyConvertor keyConversionUtilities) throws DatatypeConfigurationException, GenericServiceException {
+    public GetActivationStatusResponse getActivationStatus(String activationId, String challenge, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
             final Date timestamp = new Date();
@@ -431,9 +426,9 @@ public class ActivationServiceBehavior {
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
                     response.setApplicationId(applicationId);
-                    response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
-                    response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
-                    response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+                    response.setTimestampCreated(activation.getTimestampCreated());
+                    response.setTimestampLastUsed(activation.getTimestampLastUsed());
+                    response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                     response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                     response.setActivationCode(activation.getActivationCode());
@@ -442,7 +437,7 @@ public class ActivationServiceBehavior {
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
-                    // Unknown version is converted to 0 in SOAP
+                    // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
 
@@ -548,9 +543,9 @@ public class ActivationServiceBehavior {
                     response.setUserId(activation.getUserId());
                     response.setExtras(activation.getExtras());
                     response.setApplicationId(applicationId);
-                    response.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampCreated()));
-                    response.setTimestampLastUsed(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastUsed()));
-                    response.setTimestampLastChange(XMLGregorianCalendarConverter.convertFrom(activation.getTimestampLastChange()));
+                    response.setTimestampCreated(activation.getTimestampCreated());
+                    response.setTimestampLastUsed(activation.getTimestampLastUsed());
+                    response.setTimestampLastChange(activation.getTimestampLastChange());
                     response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(encryptedStatusBlob));
                     response.setEncryptedStatusBlobNonce(encryptedStatusBlobNonce);
                     response.setActivationCode(null);
@@ -559,7 +554,7 @@ public class ActivationServiceBehavior {
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
-                    // Unknown version is converted to 0 in SOAP
+                    // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
 
@@ -573,13 +568,13 @@ public class ActivationServiceBehavior {
                 String randomStatusBlobNonce = challenge == null ? null : Base64.getEncoder().encodeToString(keyGenerator.generateRandomBytes(16));
 
                 // Generate date
-                XMLGregorianCalendar zeroDate = XMLGregorianCalendarConverter.convertFrom(new Date(0));
+                final Date zeroDate = new Date(0);
 
                 // return the data
                 GetActivationStatusResponse response = new GetActivationStatusResponse();
                 response.setActivationId(activationId);
                 response.setActivationStatus(activationStatusConverter.convert(ActivationStatus.REMOVED));
-                response.setActivationOtpValidation(ActivationOtpValidation.NONE);
+                response.setActivationOtpValidation(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE);
                 response.setBlockedReason(null);
                 response.setActivationName("unknown");
                 response.setUserId("unknown");
@@ -587,8 +582,6 @@ public class ActivationServiceBehavior {
                 response.setExtras(null);
                 response.setPlatform(null);
                 response.setDeviceInfo(null);
-                // Initialize empty flags
-                response.getActivationFlags();
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
@@ -631,7 +624,7 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException If invalid values are provided.
      */
     public InitActivationResponse initActivation(String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
-                                                 ActivationOtpValidation activationOtpValidation, String activationOtp, List<String> flags,
+                                                 com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, String activationOtp, List<String> flags,
                                                  KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
             // Generate timestamp in advance
@@ -682,10 +675,10 @@ public class ActivationServiceBehavior {
             // Validate combination of activation OTP and OTP validation mode.
             final boolean hasActivationOtp = activationOtp != null && !activationOtp.isEmpty();
             if (activationOtpValidation == null) {
-                activationOtpValidation = ActivationOtpValidation.NONE;
+                activationOtpValidation = com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
             }
-            if ((activationOtpValidation == ActivationOtpValidation.NONE && hasActivationOtp) ||
-                    (activationOtpValidation != ActivationOtpValidation.NONE && !hasActivationOtp)) {
+            if ((activationOtpValidation == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && hasActivationOtp) ||
+                    (activationOtpValidation != com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE && !hasActivationOtp)) {
                 logger.warn("Activation OTP doesn't match its validation mode.");
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
@@ -899,7 +892,7 @@ public class ActivationServiceBehavior {
             // Validate that the activation is in correct state for the prepare step
             validateCreatedActivation(activation, application, false);
             // Validate activation OTP
-            validateActivationOtp(ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
+            validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
             byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
@@ -1052,7 +1045,7 @@ public class ActivationServiceBehavior {
             final String applicationId = application.getId();
 
             // Prepare activation OTP mode
-            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
+            final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
 
             // Create an activation record and obtain the activation database record
             InitActivationResponse initResponse = this.initActivation(applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
@@ -1230,7 +1223,7 @@ public class ActivationServiceBehavior {
         }
 
         // Validate activation OTP
-        validateActivationOtp(ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
+        validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT, activationOtp, activation, externalUserId);
 
         // Change activation state to ACTIVE
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.ActivationStatus.ACTIVE);
@@ -1336,13 +1329,13 @@ public class ActivationServiceBehavior {
      * @param externalUserId    User ID of user who is performing this validation. Use null value if activation owner caused the change.
      * @throws GenericServiceException In case invalid data is provided or activation OTP is invalid.
      */
-    private void validateActivationOtp(ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
+    private void validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation currentStage, String confirmationOtp, ActivationRecordEntity activation, String externalUserId) throws GenericServiceException {
 
         final String activationId = activation.getActivationId();
-        final ActivationOtpValidation expectedStage = activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation());
+        final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation expectedStage = activationOtpValidationConverter.convertFrom(activation.getActivationOtpValidation());
         final String expectedOtpHash = activation.getActivationOtp();
 
-        if (currentStage == ActivationOtpValidation.NONE) {
+        if (currentStage == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE) {
             // This should never happen.
             logger.info("Internal error in activation OTP validation: {}", activationId);
             // Rollback is not required, database is not used for writing yet.
@@ -1351,7 +1344,7 @@ public class ActivationServiceBehavior {
 
         // Check whether activation OTP validation is turned OFF. In this case, the confirmation OTP must not
         // be provided.
-        if (expectedStage == ActivationOtpValidation.NONE) {
+        if (expectedStage == com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE) {
             if (confirmationOtp != null) {
                 logger.info("Activation OTP is not used, but is provided: {}", activationId);
                 // Rollback is not required, database is not used for writing yet.
@@ -1546,7 +1539,7 @@ public class ActivationServiceBehavior {
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Extract request data
-            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
+            final Boolean shouldGenerateRecoveryCodes = request.getGenerateRecoveryCodes();
             final String recoveryCode = request.getRecoveryCode();
             final String puk = request.getPuk();
             final String applicationKey = request.getApplicationKey();
@@ -1722,7 +1715,7 @@ public class ActivationServiceBehavior {
             recoveryCodeRepository.save(recoveryCodeEntity);
 
             // Prepare activation OTP mode
-            final ActivationOtpValidation activationOtpValidation = activationOtp != null ? ActivationOtpValidation.ON_COMMIT : ActivationOtpValidation.NONE;
+            final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
 
             // Initialize version 3 activation entity.
             // Parameter maxFailureCount can be customized, activationExpireTime is null because activation is committed immediately.

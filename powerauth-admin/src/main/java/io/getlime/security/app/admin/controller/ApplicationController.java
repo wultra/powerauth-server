@@ -18,15 +18,22 @@ package io.getlime.security.app.admin.controller;
 
 import com.google.common.collect.Lists;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
+import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
+import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.net.MalformedURLException;
@@ -61,8 +68,8 @@ public class ApplicationController {
     @GetMapping("/")
     public String homePage() {
         try {
-            List<GetApplicationListResponse.Applications> applicationList = client.getApplicationList();
-            if (applicationList.isEmpty()) {
+            final GetApplicationListResponse applicationList = client.getApplicationList();
+            if (applicationList.getApplications().isEmpty()) {
                 return "redirect:/application/list";
             } else {
                 return "redirect:/activation/list";
@@ -82,9 +89,9 @@ public class ApplicationController {
     @GetMapping("/application/list")
     public String applicationList(Map<String, Object> model) {
         try {
-            final List<GetApplicationListResponse.Applications> applicationList = client.getApplicationList();
-            final List<GetApplicationListResponse.Applications> sortedList = applicationList.stream()
-                    .sorted(Comparator.comparing(GetApplicationListResponse.Applications::getApplicationId))
+            final GetApplicationListResponse applicationList = client.getApplicationList();
+            final List<Application> sortedList = applicationList.getApplications().stream()
+                    .sorted(Comparator.comparing(Application::getApplicationId))
                     .collect(Collectors.toList());
             model.put("applications", sortedList);
             return "applications";
@@ -106,7 +113,7 @@ public class ApplicationController {
         try {
             GetApplicationDetailResponse applicationDetails = client.getApplicationDetail(id);
             GetRecoveryConfigResponse recoveryConfig = client.getRecoveryConfig(id);
-            List<GetCallbackUrlListResponse.CallbackUrlList> callbackUrlList = client.getCallbackUrlList(id);
+            GetCallbackUrlListResponse callbackUrlList = client.getCallbackUrlList(id);
             model.put("id", applicationDetails.getApplicationId());
             model.put("masterPublicKey", applicationDetails.getMasterPublicKey());
             model.put("activationRecoveryEnabled", recoveryConfig.isActivationRecoveryEnabled());
@@ -116,7 +123,7 @@ public class ApplicationController {
             model.put("remotePostcardPublicKey", recoveryConfig.getRemotePostcardPublicKey());
             model.put("versions", Lists.reverse(applicationDetails.getVersions()));
             model.put("roles", applicationDetails.getApplicationRoles());
-            model.put("callbacks", callbackUrlList);
+            model.put("callbacks", callbackUrlList.getCallbackUrlList());
             return "applicationDetail";
         } catch (PowerAuthClientException ex) {
             logger.warn(ex.getMessage(), ex);
@@ -177,8 +184,8 @@ public class ApplicationController {
             return "error";
         }
         try {
-            List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = client.getCallbackUrlList(applicationId);
-            for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+            final GetCallbackUrlListResponse callbacks = client.getCallbackUrlList(applicationId);
+            for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
                 if (callback.getId().equals(callbackId)) {
                     model.put("callbackId", callbackId);
                     model.put("applicationId", applicationId);
@@ -237,7 +244,7 @@ public class ApplicationController {
     }
 
     /**
-     * Execute the application create action by calling the SOAP service.
+     * Execute the application create action by calling the service.
      *
      * @param id Application ID.
      * @param redirectAttributes Redirect attributes.
@@ -259,7 +266,7 @@ public class ApplicationController {
     }
 
     /**
-     * Execute the application version create action by calling the SOAP service.
+     * Execute the application version create action by calling the service.
      *
      * @param applicationId Application ID.
      * @param applicationVersionId Application version ID.

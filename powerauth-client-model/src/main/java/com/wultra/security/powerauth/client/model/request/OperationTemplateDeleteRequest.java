@@ -18,20 +18,16 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 /**
  * Delete operation template with given ID.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationTemplateDeleteRequest {
 
     private Long id;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 }

@@ -16,11 +16,12 @@
 
 package io.getlime.security.app.admin.model;
 
-import com.wultra.security.powerauth.client.v3.ActivationStatus;
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * Signature audit item.
@@ -35,7 +36,7 @@ public class SignatureAuditItem {
     private String activationId;
     private long activationCounter;
     private ActivationStatus activationStatus;
-    private KeyValueMap additionalInfo;
+    private List<KeyValue> additionalInfo;
     private String data;
     private SignatureType signatureType;
     private String signatureVersion;
@@ -94,11 +95,11 @@ public class SignatureAuditItem {
         this.activationStatus = activationStatus;
     }
 
-    public KeyValueMap getAdditionalInfo() {
+    public List<KeyValue> getAdditionalInfo() {
         return additionalInfo;
     }
 
-    public void setAdditionalInfo(KeyValueMap additionalInfo) {
+    public void setAdditionalInfo(List<KeyValue> additionalInfo) {
         this.additionalInfo = additionalInfo;
     }
 

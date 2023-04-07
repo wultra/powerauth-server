@@ -19,9 +19,9 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.security.powerauth.client.v3.ActivationHistoryResponse;
+import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
+import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
 import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -121,7 +121,7 @@ public class ActivationHistoryServiceBehavior {
         if (activationHistoryEntityList != null) {
             for (ActivationHistoryEntity activationHistoryEntity : activationHistoryEntityList) {
 
-                ActivationHistoryResponse.Items item = new ActivationHistoryResponse.Items();
+                ActivationHistoryItem item = new ActivationHistoryItem();
 
                 item.setId(activationHistoryEntity.getId());
                 item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
@@ -132,7 +132,7 @@ public class ActivationHistoryServiceBehavior {
                     item.setVersion(Long.valueOf(activationVersion));
                 }
                 item.setExternalUserId(activationHistoryEntity.getExternalUserId());
-                item.setTimestampCreated(XMLGregorianCalendarConverter.convertFrom(activationHistoryEntity.getTimestampCreated()));
+                item.setTimestampCreated(activationHistoryEntity.getTimestampCreated());
 
                 response.getItems().add(item);
             }

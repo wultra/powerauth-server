@@ -25,7 +25,14 @@ package com.wultra.security.powerauth.client.model.enumeration;
  */
 public enum CallbackUrlType {
 
+    /**
+     * Callback URL called whenever activation status changes.
+     */
     ACTIVATION_STATUS_CHANGE("ACTIVATION_STATUS_CHANGE"),
+
+    /**
+     * Callback URL called whenever operation status changes.
+     */
     OPERATION_STATUS_CHANGE("OPERATION_STATUS_CHANGE");
 
     private final String value;

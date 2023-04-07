@@ -19,7 +19,13 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
+import com.wultra.security.powerauth.client.model.request.ValidateTokenRequest;
+import com.wultra.security.powerauth.client.model.response.CreateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.RemoveTokenResponse;
+import com.wultra.security.powerauth.client.model.response.ValidateTokenResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
@@ -124,7 +130,7 @@ public class TokenBehavior {
         // Convert received ECIES request data to cryptogram
         final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
 
-        final EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.value(), keyConversion);
+        final EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.name(), keyConversion);
 
         final CreateTokenResponse response = new CreateTokenResponse();
         response.setMac(Base64.getEncoder().encodeToString(encryptedCryptogram.getMac()));

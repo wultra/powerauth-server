@@ -18,13 +18,38 @@
 package com.wultra.security.powerauth.client.model.enumeration;
 
 /**
+ * Enumeration representing operation status.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum OperationStatus {
+    /**
+     * Operation is pending approval.
+     */
     PENDING,
+
+    /**
+     * Operation was canceled by the user.
+     */
     CANCELED,
+
+    /**
+     * Operation expired.
+     */
     EXPIRED,
+
+    /**
+     * Operation was approved by the user.
+     */
     APPROVED,
+
+    /**
+     * Operation was rejected by the user.
+     */
     REJECTED,
+
+    /**
+     * Operation approval attempts failed repeatedly, hence the operation approval failed.
+     */
     FAILED
 }

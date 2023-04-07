@@ -18,14 +18,15 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.RecoveryCode;
+import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryCodeStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPukStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.v3.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
@@ -238,14 +239,14 @@ public class RecoveryServiceBehavior {
             response.setUserId(userId);
             response.setRecoveryCodeId(recoveryCodeEntity.getId());
             response.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
-            response.setStatus(com.wultra.security.powerauth.client.v3.RecoveryCodeStatus.CREATED);
-            List<CreateRecoveryCodeResponse.Puks> pukListResponse = response.getPuks();
+            response.setStatus(com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus.CREATED);
+            List<RecoveryCodePuk> pukListResponse = response.getPuks();
             for (int i = 1; i <= pukDerivationIndexes.size(); i++) {
                 Long pukDerivationIndex = pukDerivationIndexes.get(i);
-                CreateRecoveryCodeResponse.Puks pukResponse = new CreateRecoveryCodeResponse.Puks();
+                RecoveryCodePuk pukResponse = new RecoveryCodePuk();
                 pukResponse.setPukIndex(i);
                 pukResponse.setPukDerivationIndex(pukDerivationIndex);
-                pukResponse.setStatus(com.wultra.security.powerauth.client.v3.RecoveryPukStatus.VALID);
+                pukResponse.setStatus(com.wultra.security.powerauth.client.model.enumeration.RecoveryPukStatus.VALID);
                 pukListResponse.add(pukResponse);
             }
             return response;
@@ -503,9 +504,9 @@ public class RecoveryServiceBehavior {
         recoveryCodesEntities.removeAll(recoveryCodesToRemove);
 
         LookupRecoveryCodesResponse response = new LookupRecoveryCodesResponse();
-        List<LookupRecoveryCodesResponse.RecoveryCodes> recoveryCodes = response.getRecoveryCodes();
+        List<RecoveryCode> recoveryCodes = response.getRecoveryCodes();
         for (RecoveryCodeEntity recoveryCodeEntity: recoveryCodesEntities) {
-            LookupRecoveryCodesResponse.RecoveryCodes recoveryCode = new LookupRecoveryCodesResponse.RecoveryCodes();
+            RecoveryCode recoveryCode = new RecoveryCode();
             recoveryCode.setRecoveryCodeId(recoveryCodeEntity.getId());
             recoveryCode.setRecoveryCodeMasked(recoveryCodeEntity.getRecoveryCodeMasked());
             recoveryCode.setApplicationId(recoveryCodeEntity.getApplication().getId());
@@ -513,7 +514,7 @@ public class RecoveryServiceBehavior {
             recoveryCode.setActivationId(recoveryCodeEntity.getActivationId());
             recoveryCode.setStatus(recoveryCodeStatusConverter.convertFrom(recoveryCodeEntity.getStatus()));
             for (RecoveryPukEntity recoveryPukEntity: recoveryCodeEntity.getRecoveryPuks()) {
-                LookupRecoveryCodesResponse.RecoveryCodes.Puks puk = new LookupRecoveryCodesResponse.RecoveryCodes.Puks();
+                RecoveryCodePuk puk = new RecoveryCodePuk();
                 puk.setStatus(recoveryPukStatusConverter.convertFrom(recoveryPukEntity.getStatus()));
                 puk.setPukIndex(recoveryPukEntity.getPukIndex());
                 recoveryCode.getPuks().add(puk);
@@ -603,7 +604,7 @@ public class RecoveryServiceBehavior {
         response.setApplicationId(applicationId);
         response.setActivationRecoveryEnabled(recoveryConfigEntity.getActivationRecoveryEnabled());
         response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());
-        response.setAllowMultipleRecoveryCodes(recoveryConfigEntity.getAllowMultipleRecoveryCodes());
+        response.setAllowMultipleRecoveryCodes(Optional.ofNullable(recoveryConfigEntity.getAllowMultipleRecoveryCodes()).orElse(false));
         response.setPostcardPublicKey(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
         response.setRemotePostcardPublicKey(recoveryConfigEntity.getRemotePostcardPublicKeyBase64());
         return response;

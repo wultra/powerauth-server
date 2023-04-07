@@ -18,17 +18,19 @@
 package io.getlime.security.powerauth.app.server.converter.v3;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Converter for {@link KeyValueMap} to {@link String}.
+ * Converter for {@link KeyValue} to {@link String}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -48,11 +50,11 @@ public class KeyValueMapConverter {
     }
 
     /**
-     * Convert {@link KeyValueMap} to {@link String}.
+     * Convert {@link List<KeyValue>} to {@link String}.
      * @param keyValueMap KeyValueMap.
      * @return String value of KeyValueMap in JSON format.
      */
-    public String toString(KeyValueMap keyValueMap) {
+    public String toString(List<KeyValue> keyValueMap) {
         if (keyValueMap == null) {
             return null;
         }
@@ -65,36 +67,20 @@ public class KeyValueMapConverter {
     }
 
     /**
-     * Convert {@link String} to {@link KeyValueMap}.
+     * Convert {@link String} to {@link KeyValue}.
      * @param s String value of KeyValueMap in JSON format.
      * @return Constructed KeyValueMap.
      */
-    public KeyValueMap fromString(String s) {
+    public List<KeyValue> fromString(String s) {
         if (s == null || s.isEmpty()) {
-            return new KeyValueMap();
+            return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(s, KeyValueMap.class);
+            return objectMapper.readValue(s, new TypeReference<List<KeyValue>>(){});
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload.", ex);
-            return new KeyValueMap();
+            return new ArrayList<>();
         }
     }
 
-    /**
-     * Convert PowerAuth version 2.0 KeyValueMap to version 3.0 KeyValueMap.
-     * @param keyValueMap Version 2.0 KeyValueMap to convert.
-     * @return Converted KeyValueMap in version 3.0.
-     */
-    public KeyValueMap fromKeyValueMap(com.wultra.security.powerauth.client.v2.KeyValueMap keyValueMap) {
-        KeyValueMap result = new KeyValueMap();
-        List<KeyValueMap.Entry> entriesV3 = result.getEntry();
-        for (com.wultra.security.powerauth.client.v2.KeyValueMap.Entry entryV2: keyValueMap.getEntry()) {
-            KeyValueMap.Entry entry = new KeyValueMap.Entry();
-            entry.setKey(entryV2.getKey());
-            entry.setValue(entryV2.getValue());
-            entriesV3.add(entry);
-        }
-        return result;
-    }
 }

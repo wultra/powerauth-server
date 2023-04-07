@@ -17,10 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
-import com.wultra.security.powerauth.client.v3.AddApplicationRolesResponse;
-import com.wultra.security.powerauth.client.v3.ListApplicationRolesResponse;
-import com.wultra.security.powerauth.client.v3.RemoveApplicationRolesResponse;
-import com.wultra.security.powerauth.client.v3.UpdateApplicationRolesResponse;
+import com.wultra.security.powerauth.client.model.response.AddApplicationRolesResponse;
+import com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse;
+import com.wultra.security.powerauth.client.model.response.RemoveApplicationRolesResponse;
+import com.wultra.security.powerauth.client.model.response.UpdateApplicationRolesResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;

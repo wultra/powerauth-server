@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,7 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationTemplateCreateRequest {
 
     private String templateName;
@@ -38,68 +40,4 @@ public class OperationTemplateCreateRequest {
     private Long expiration;
     private String riskFlags;
 
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public String getOperationType() {
-        return operationType;
-    }
-
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    public String getDataTemplate() {
-        return dataTemplate;
-    }
-
-    public void setDataTemplate(String dataTemplate) {
-        this.dataTemplate = dataTemplate;
-    }
-
-    public List<SignatureType> getSignatureType() {
-        return signatureType;
-    }
-
-    public Long getMaxFailureCount() {
-        return maxFailureCount;
-    }
-
-    public void setMaxFailureCount(Long maxFailureCount) {
-        this.maxFailureCount = maxFailureCount;
-    }
-
-    public Long getExpiration() {
-        return expiration;
-    }
-
-    public void setExpiration(Long expiration) {
-        this.expiration = expiration;
-    }
-
-    public String getRiskFlags() {
-        return riskFlags;
-    }
-
-    public void setRiskFlags(String riskFlags) {
-        this.riskFlags = riskFlags;
-    }
-
-    @Override
-    public String toString() {
-        return "OperationTemplateCreateRequest{" +
-                "templateName='" + templateName + '\'' +
-                ", operationType='" + operationType + '\'' +
-                ", dataTemplate='" + dataTemplate + '\'' +
-                ", signatureType=" + signatureType +
-                ", maxFailureCount=" + maxFailureCount +
-                ", expiration=" + expiration +
-                ", riskFlags=" + riskFlags +
-                '}';
-    }
 }

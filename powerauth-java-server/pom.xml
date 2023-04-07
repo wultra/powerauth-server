@@ -41,43 +41,15 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>log4j-to-slf4j</artifactId>
-                    <groupId>org.apache.logging.log4j</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.springframework.ws</groupId>
-            <artifactId>spring-ws-core</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.ws</groupId>
-            <artifactId>spring-ws-security</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                    <groupId>org.bouncycastle</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>ehcache</artifactId>
-                    <groupId>net.sf.ehcache</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>geronimo-javamail_1.4_mail</artifactId>
-                    <groupId>org.apache.geronimo.javamail</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -198,29 +170,6 @@
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>test</scope>
-        </dependency>
-
-        <!-- Dependencies for Java 11 -->
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.istack</groupId>
-            <artifactId>istack-commons-runtime</artifactId>
-            <version>${istack-commons-runtime.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>jakarta.xml.soap</groupId>
-            <artifactId>jakarta.xml.soap-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.messaging.saaj</groupId>
-            <artifactId>saaj-impl</artifactId>
         </dependency>
     </dependencies>
 

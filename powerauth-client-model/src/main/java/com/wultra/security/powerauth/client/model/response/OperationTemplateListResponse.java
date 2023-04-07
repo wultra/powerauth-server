@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
 import java.util.ArrayList;
 
 /**
@@ -25,6 +28,8 @@ import java.util.ArrayList;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
+@EqualsAndHashCode(callSuper = true)
 public class OperationTemplateListResponse extends ArrayList<OperationTemplateDetailResponse> {
 
     private static final long serialVersionUID = -4732152578937870213L;

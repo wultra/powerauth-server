@@ -19,10 +19,10 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.security.powerauth.client.v3.AddActivationFlagsResponse;
-import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
-import com.wultra.security.powerauth.client.v3.RemoveActivationFlagsResponse;
-import com.wultra.security.powerauth.client.v3.UpdateActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.response.AddActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.response.RemoveActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.response.UpdateActivationFlagsResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;

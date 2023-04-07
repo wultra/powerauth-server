@@ -28,8 +28,7 @@ import java.util.Locale;
 
 /**
  * Class responsible for providing localized error messages in case of
- * SOAP fault exceptions. Currently, only EN locale is provided with the
- * server.
+ * exceptions. Currently, only EN locale is provided with the server.
  *
  * @author Petr Dvorak, petr@wultra.com
  */

@@ -2,6 +2,14 @@
 
 This guide contains instructions for migration from PowerAuth Server version `1.3.x` to version `1.5.0`.
 
+## SOAP Removal
+
+In 1.5.x, we definitely removed the SOAP interface and only support RESTful API.
+
+## Protocol V2 End-of-Life
+
+In 1.5.x, we definitely removed the legacy V2 protocol support and only support versions 3.x and newer. With this change, we also unified package name for model classes to `com.wultra.security.powerauth.client.model.*`.
+
 ## Database Changes
 
 ### Add Signature Data in an Easy to Parse Structure
