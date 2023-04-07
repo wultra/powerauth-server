@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.model;
 
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+
 /**
  * Compound value of server private key. Key can be stored encrypted or decrypted based on key encryption mode.
  *

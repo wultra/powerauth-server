@@ -17,7 +17,12 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.*;
+import io.getlime.security.powerauth.app.server.database.model.converter.ActivationFlagConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -127,7 +132,7 @@ public class ActivationRecordEntity implements Serializable {
     private MasterKeyPairEntity masterKeyPair;
 
     @OneToMany(mappedBy = "activation", cascade = CascadeType.ALL)
-    @OrderBy("timestamp_created")
+    @OrderBy("timestampCreated")
     private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
     /**

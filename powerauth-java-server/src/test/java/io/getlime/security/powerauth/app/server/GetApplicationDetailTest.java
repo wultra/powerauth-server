@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.client.model.response.CreateApplicationResp
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

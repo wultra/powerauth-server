@@ -50,7 +50,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a " +
-            "WHERE o.userId = :userId AND a.id IN :applicationIds AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
+            "WHERE o.userId = :userId AND a.id IN :applicationIds AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated DESC")
     Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds);
 
@@ -58,7 +58,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o " +
-            "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.OperationStatusDo.PENDING " +
+            "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated")
     Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);
 

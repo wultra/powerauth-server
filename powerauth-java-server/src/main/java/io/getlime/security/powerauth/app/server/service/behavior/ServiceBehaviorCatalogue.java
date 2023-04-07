@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior;
 
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.*;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;

@@ -17,9 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatus;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryPukStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
+import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryPukStatusConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;

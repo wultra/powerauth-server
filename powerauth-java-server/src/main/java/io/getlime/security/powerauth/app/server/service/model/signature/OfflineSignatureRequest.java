@@ -38,7 +38,7 @@ public class OfflineSignatureRequest {
     }
 
     /**
-     * Offline signature request constructur.
+     * Offline signature request constructor.
      * @param signatureData Data related to the signature.
      * @param signatureTypes Signature types to try to use during verification of signature.
      */

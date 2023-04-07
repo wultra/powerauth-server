@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server;
 
-import io.getlime.security.powerauth.app.server.converter.v3.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;

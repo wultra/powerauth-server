@@ -18,7 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 
 import javax.persistence.*;

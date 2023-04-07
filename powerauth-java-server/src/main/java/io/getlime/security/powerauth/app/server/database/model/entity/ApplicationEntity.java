@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.ApplicationRoleConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ApplicationRoleConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -138,6 +138,14 @@ public class ApplicationEntity implements Serializable {
      */
     public List<CallbackUrlEntity> getCallbacks() {
         return callbacks;
+    }
+
+    /**
+     * Get the list of recovery codes.
+     * @return List of recovery codes.
+     */
+    public List<RecoveryCodeEntity> getRecoveryCodes() {
+        return recoveryCodes;
     }
 
     @Override
