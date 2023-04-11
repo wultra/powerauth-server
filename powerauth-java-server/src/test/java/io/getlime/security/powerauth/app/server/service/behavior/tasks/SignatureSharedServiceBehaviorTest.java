@@ -15,13 +15,13 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.service.behavior.tasks.v3;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import com.wultra.security.powerauth.client.v3.SignatureType;
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
@@ -34,8 +34,10 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -119,7 +121,9 @@ class SignatureSharedServiceBehaviorTest {
 
     private static OnlineSignatureRequest createOnlineSignatureRequest() {
         final byte[] data = Base64.getDecoder().decode("UE9TVCZMM0JoTDNOcFoyNWhkSFZ5WlM5MllXeHBaR0YwWlE9PSYyaVR6Ry9CMzVRSmY3SHhaZmNseUZnPT0mUVd4c0lIbHZkWElnWW1GelpTQmhjbVVnWW1Wc2IyNW5JSFJ2SUhWeklRPT0mbzk3MGdVQkx2d0NUZGJJT1BrWjBsdz09");
-        final SignatureData signatureData = new SignatureData(data, "39319618-09892741", SignatureConfiguration.decimal(), "3.0", new KeyValueMap(), 3);
+        final List<KeyValue> additionalInfo = new ArrayList<>();
+        additionalInfo.add(new KeyValue());
+        final SignatureData signatureData = new SignatureData(data, "39319618-09892741", SignatureConfiguration.decimal(), "3.0", additionalInfo, 3);
         return new OnlineSignatureRequest(signatureData, SignatureType.POSSESSION_KNOWLEDGE);
     }
 
