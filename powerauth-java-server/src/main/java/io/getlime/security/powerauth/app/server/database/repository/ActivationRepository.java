@@ -19,9 +19,9 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.LockModeType;
@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Repository
-public interface ActivationRepository extends CrudRepository<ActivationRecordEntity, String> {
+public interface ActivationRepository extends JpaRepository<ActivationRecordEntity, String> {
 
     /**
      * Find the first activation with given activation ID.

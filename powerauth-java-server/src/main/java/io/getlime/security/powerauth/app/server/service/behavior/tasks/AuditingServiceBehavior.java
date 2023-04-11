@@ -28,8 +28,12 @@ import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import lombok.Builder;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +52,8 @@ public class AuditingServiceBehavior {
 
     private final SignatureAuditRepository signatureAuditRepository;
 
+    private final ActivationRepository activationRepository;
+
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
@@ -57,8 +63,9 @@ public class AuditingServiceBehavior {
     private final Audit audit;
 
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, KeyValueMapConverter keyValueMapConverter, Audit audit) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, ActivationRepository activationRepository, KeyValueMapConverter keyValueMapConverter, Audit audit) {
         this.signatureAuditRepository = signatureAuditRepository;
+        this.activationRepository = activationRepository;
         this.keyValueMapConverter = keyValueMapConverter;
         this.audit = audit;
     }
@@ -143,14 +150,14 @@ public class AuditingServiceBehavior {
      * @param note             Record additional info (for example, reason for signature validation failure).
      * @param currentTimestamp Record timestamp.
      */
-    public void logSignatureAuditRecord(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Boolean valid, Integer version, String note, Date currentTimestamp) {
+    public void logSignatureAuditRecord(ActivationRecordDto activation, SignatureData signatureData, SignatureType signatureType, boolean valid, Integer version, String note, Date currentTimestamp) {
 
         final String additionalInfo = keyValueMapConverter.toString(signatureData.getAdditionalInfo());
         final String data = Base64.getEncoder().encodeToString(signatureData.getData());
 
         // Audit the signature
         final SignatureEntity signatureAuditRecord = new SignatureEntity();
-        signatureAuditRecord.setActivation(activation);
+        signatureAuditRecord.setActivation(activationRepository.getReferenceById(activation.getActivationId()));
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
         signatureAuditRecord.setActivationStatus(activation.getActivationStatus());
@@ -171,7 +178,7 @@ public class AuditingServiceBehavior {
         // Store additional audit log
         final AuditDetail auditDetail = AuditDetail.builder()
                 .param("activationId", activation.getActivationId())
-                .param("applicationId", activation.getApplication().getId())
+                .param("applicationId", activation.getApplicationId())
                 .param("userId", activation.getUserId())
                 .param("valid", valid)
                 .param("counter", activation.getCounter())
@@ -194,6 +201,20 @@ public class AuditingServiceBehavior {
                 activation.getActivationId(),
                 activation.getUserId()
         );
+    }
+
+    /**
+     * DTO for {@link ActivationRecordEntity}.
+     */
+    @Getter
+    @Builder
+    public static class ActivationRecordDto {
+        @lombok.NonNull private String activationId;
+        @lombok.NonNull private String applicationId;
+        @lombok.NonNull private Long counter;
+        @lombok.NonNull private String userId;
+        @lombok.NonNull private String ctrDataBase64;
+        @lombok.NonNull private ActivationStatus activationStatus;
     }
 
 }
