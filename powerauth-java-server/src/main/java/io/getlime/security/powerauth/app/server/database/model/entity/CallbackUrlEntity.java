@@ -17,10 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlTypeConverter;
+import io.getlime.security.powerauth.app.server.converter.CallbackAttributeConverter;
+import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;

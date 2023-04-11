@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 import javax.persistence.*;
 import java.io.Serializable;

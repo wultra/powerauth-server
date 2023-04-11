@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;

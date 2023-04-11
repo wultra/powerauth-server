@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatus;
-import io.getlime.security.powerauth.app.server.database.model.RecoveryCodeStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
+import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryCodeStatusConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;

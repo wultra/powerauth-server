@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -106,11 +106,11 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
 
     /**
      * Get count of activations identified by an activation short ID associated with given application.
-     *
+     * <p>
      * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
      * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
      * supported.
-     *
+     * <p>
      * This method will be removed when crypto version 2.0 is deprecated.
      *
      * @param applicationId     Application ID
@@ -122,7 +122,7 @@ public interface ActivationRepository extends CrudRepository<ActivationRecordEnt
 
     /**
      * Get count of activations identified by an activation code associated with given application.
-     *
+     * <p>
      * The check for the first half of activation code is required for version 2.0 of PowerAuth crypto. In future the
      * uniqueness check will be extended to whole activation code once version 2.0 of PowerAuth crypto is no longer
      * supported.

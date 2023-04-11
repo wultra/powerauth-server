@@ -5,7 +5,7 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
-import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;

@@ -51,7 +51,7 @@ public class OpenApiConfiguration {
 
     @Bean
     public GroupedOpenApi powerAuthApiGroup() {
-        String[] packages = {"io.getlime.security.powerauth.app.server.controller.v2", "io.getlime.security.powerauth.app.server.controller.v3"};
+        final String[] packages = {"io.getlime.security.powerauth.app.server.controller.api"};
 
         return GroupedOpenApi.builder()
                 .group("powerauth")

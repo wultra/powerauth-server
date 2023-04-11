@@ -36,7 +36,7 @@ public class OnlineSignatureRequest {
     }
 
     /**
-     * Online signature request constructur.
+     * Online signature request constructor.
      * @param signatureData Data related to the signature.
      * @param signatureType Signature type to use during verification of signature.
      */

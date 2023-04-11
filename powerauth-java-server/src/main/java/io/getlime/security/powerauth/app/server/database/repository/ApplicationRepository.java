@@ -43,7 +43,7 @@ public interface ApplicationRepository extends CrudRepository<ApplicationEntity,
     /**
      * Find distinct applications are match the ID values.
      * @param applicationIds List of application IDs.
-     * @return Count of distinct applications with provided IDs.
+     * @return List of distinct applications with provided IDs.
      */
     List<ApplicationEntity> findAllByIdIn(List<String> applicationIds);
 }

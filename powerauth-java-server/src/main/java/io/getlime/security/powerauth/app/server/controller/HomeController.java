@@ -61,7 +61,7 @@ public class HomeController {
         model.addAttribute("restrictAccess", configuration.getRestrictAccess());
 
         // Add info about DB encryption
-        boolean dbEncryption = configuration.getMasterDbEncryptionKey() != null && !configuration.getMasterDbEncryptionKey().isEmpty();
+        final boolean dbEncryption = configuration.getMasterDbEncryptionKey() != null && !configuration.getMasterDbEncryptionKey().isEmpty();
         model.addAttribute("dbEncryption", dbEncryption);
 
         return "home";

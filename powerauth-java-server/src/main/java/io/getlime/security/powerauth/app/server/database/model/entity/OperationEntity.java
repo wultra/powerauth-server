@@ -18,10 +18,10 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.MapToJsonConverter;
-import io.getlime.security.powerauth.app.server.database.model.OperationStatusDo;
-import io.getlime.security.powerauth.app.server.database.model.OperationStatusDoConverter;
-import io.getlime.security.powerauth.app.server.database.model.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.MapToJsonConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.database.model.converter.OperationStatusDoConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 
 import javax.persistence.*;
@@ -69,12 +69,10 @@ public class OperationEntity implements Serializable {
     @Column(name = "data", nullable = false)
     private String data;
 
-    @SuppressWarnings("JpaAttributeTypeInspection")
     @Column(name = "parameters")
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> parameters = new HashMap<>();
 
-    @SuppressWarnings("JpaAttributeTypeInspection")
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> additionalData = new HashMap<>();

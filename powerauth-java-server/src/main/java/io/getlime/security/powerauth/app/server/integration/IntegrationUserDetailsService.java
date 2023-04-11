@@ -62,9 +62,9 @@ public class IntegrationUserDetailsService implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        IntegrationEntity integration = integrationRepository.findFirstByClientToken(username);
+        final IntegrationEntity integration = integrationRepository.findFirstByClientToken(username);
         if (integration != null) {
-            List<GrantedAuthority> authorities = new ArrayList<>();
+            final List<GrantedAuthority> authorities = new ArrayList<>();
             authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
             return new User(integration.getClientToken(), integration.getClientSecret(), authorities);
         } else {
