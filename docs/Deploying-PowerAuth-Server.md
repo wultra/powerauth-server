@@ -44,7 +44,6 @@ spring.datasource.username=powerauth
 spring.datasource.password=
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.connection.characterEncoding=utf8
 spring.jpa.properties.hibernate.connection.useUnicode=true
@@ -62,7 +61,6 @@ spring.datasource.password=*********
 spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
 
 ### PostgreSQL Connectivity Parameters
@@ -75,7 +73,6 @@ spring.datasource.password=*********
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
 
 ### Specifying Database Connection Character Set
