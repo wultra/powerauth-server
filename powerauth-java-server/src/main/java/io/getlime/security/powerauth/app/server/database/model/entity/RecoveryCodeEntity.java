@@ -17,10 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
 import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryCodeStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;

@@ -28,10 +28,10 @@ import com.wultra.security.powerauth.client.model.response.OperationDetailRespon
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
@@ -40,6 +40,7 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import jakarta.validation.constraints.NotNull;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.text.StringSubstitutor;
@@ -50,7 +51,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;

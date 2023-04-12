@@ -18,8 +18,8 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.converter.ApplicationRoleConverter;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;

@@ -17,14 +17,14 @@
  */
 package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.LockModeType;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;

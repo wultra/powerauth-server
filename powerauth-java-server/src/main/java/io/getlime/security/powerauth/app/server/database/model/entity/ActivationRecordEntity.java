@@ -23,8 +23,8 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Activat
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;

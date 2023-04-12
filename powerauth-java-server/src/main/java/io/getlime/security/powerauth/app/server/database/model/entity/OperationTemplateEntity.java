@@ -20,8 +20,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;

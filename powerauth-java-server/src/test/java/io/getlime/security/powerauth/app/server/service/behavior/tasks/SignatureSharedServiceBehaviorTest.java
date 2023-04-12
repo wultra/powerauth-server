@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSi
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
 import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
+import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;

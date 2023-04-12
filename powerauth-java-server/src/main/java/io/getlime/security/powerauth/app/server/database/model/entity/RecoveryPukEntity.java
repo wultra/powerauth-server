@@ -17,11 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryPukStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
-import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryPukStatusConverter;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;

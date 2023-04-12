@@ -19,10 +19,10 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.converter.CallbackAttributeConverter;
 import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;

@@ -54,8 +54,8 @@ public class WebSecurityConfig {
         if (!configuration.getSecurityMethod().isEmpty()) {
             logger.info("Initializing HTTP authentication");
             return http
-                    .authorizeRequests(authorize -> authorize
-                        .antMatchers("/resources/**", "/api/service/**", "/actuator/**")
+                    .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/resources/**", "/api/service/**", "/actuator/**")
                             .permitAll()
                         .anyRequest()
                             .fullyAuthenticated())
