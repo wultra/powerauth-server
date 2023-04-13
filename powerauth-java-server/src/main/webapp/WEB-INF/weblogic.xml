@@ -2,7 +2,7 @@
 <weblogic-web-app>
     <container-descriptor>
         <prefer-application-packages>
-            <package-name>javax.validation.*</package-name>
+            <package-name>jakarta.validation.*</package-name>
             <package-name>org.hibernate.validator.*</package-name>
         </prefer-application-packages>
     </container-descriptor>
