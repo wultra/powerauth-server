@@ -2,6 +2,22 @@
 
 This guide contains instructions for migration from PowerAuth Server version `1.3.x` to version `1.5.0`.
 
+## Spring Boot 3
+
+The PowerAuth Server was upgraded to Spring Boot 3, Spring Framework 6, and Hibernate 6.
+It requires Java 17 or newer.
+
+Remove this property.
+
+`spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false`
+
+Make sure that you use dialect without version.
+
+```properties
+# spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
+# spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
+```
+
 ## SOAP Removal
 
 In 1.5.x, we definitely removed the SOAP interface and only support RESTful API.

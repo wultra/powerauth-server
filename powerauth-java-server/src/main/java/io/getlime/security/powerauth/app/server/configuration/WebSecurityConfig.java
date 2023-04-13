@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,8 +31,6 @@ import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * Class that implements configuration of the Spring Security for RESTful interface
@@ -66,10 +65,10 @@ public class WebSecurityConfig {
         if (configuration.getRestrictAccess()) {
             logger.info("Initializing basic http authentication");
             return http
-                    .authorizeRequests(authorize -> authorize
-                        .antMatchers("/rest/**")
+                    .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/rest/**")
                             .authenticated()
-                        .antMatchers("/actuator/**", "/swagger-resources/**")
+                        .requestMatchers("/actuator/**", "/swagger-resources/**")
                             .permitAll()
                         .anyRequest()
                             .permitAll())

@@ -20,12 +20,12 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.LockModeType;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;

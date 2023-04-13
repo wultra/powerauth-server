@@ -20,12 +20,12 @@ package io.getlime.security.powerauth.app.server.converter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.io.IOException;
 
 /**

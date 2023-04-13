@@ -17,11 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryPukStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
-import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryPukStatusConverter;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -38,7 +38,7 @@ public class RecoveryPukEntity implements Serializable {
     private static final long serialVersionUID = 1836238476585497799L;
 
     @Id
-    @SequenceGenerator(name = "pa_recovery_puk", sequenceName = "pa_recovery_puk_seq")
+    @SequenceGenerator(name = "pa_recovery_puk", sequenceName = "pa_recovery_puk_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_puk")
     @Column(name = "id")
     private Long id;

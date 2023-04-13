@@ -19,10 +19,10 @@
 package io.getlime.security.powerauth.app.server.database.model.converter;
 
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

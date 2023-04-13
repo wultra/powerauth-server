@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.10</version>
+        <version>3.0.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -80,34 +80,22 @@
     </modules>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <!-- Maven Properties and Dependencies -->
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-        <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
-        <maven-deploy-plugin.version>3.0.0</maven-deploy-plugin.version>
-        <maven-javadoc-plugin.version>3.5.0</maven-javadoc-plugin.version>
-        <maven-enforcer-plugin.version>3.2.1</maven-enforcer-plugin.version>
-
         <!-- Spring Dependencies -->
         <spring-cloud-vault.version>4.0.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.5.0-SNAPSHOT</powerauth-java-crypto.version>
-        <wultra-core.version>1.6.0</wultra-core.version>
-        <!-- TODO: Upgrade to 1.7.0-SNAPSHOT once Spring Boot 3 is implemented. -->
-        <!--wultra-core.version>1.7.0-SNAPSHOT</wultra-core.version-->
+        <wultra-core.version>1.7.0-SNAPSHOT</wultra-core.version>
 
         <bcprov-jdk18on.version>1.72</bcprov-jdk18on.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi.version>1.6.14</springdoc-openapi.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.0.4</springdoc-openapi-starter-webmvc-ui.version>
 
         <!-- Scheduled Job Dependencies -->
-        <schedlock.version>4.44.0</schedlock.version>
+        <schedlock.version>5.1.0</schedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.10.0</commons-text.version>
