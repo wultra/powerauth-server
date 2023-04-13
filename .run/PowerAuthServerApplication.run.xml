@@ -1,9 +1,11 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="PowerAuthServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
     <option name="ACTIVE_PROFILES" value="dev" />
+    <option name="DEBUG_MODE" value="true" />
     <module name="powerauth-java-server" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="io.getlime.security.powerauth.app.server.Application" />
     <option name="VM_PARAMETERS" value="-Dserver.servlet.context-path=/powerauth-java-server" />
+    <option name="WORKING_DIRECTORY" value="file://$MODULE_WORKING_DIR$" />
     <method v="2">
       <option name="Make" enabled="true" />
       <option name="Maven.BeforeRunTask" enabled="true" file="$PROJECT_DIR$/powerauth-java-server/pom.xml" goal="process-resources" />
