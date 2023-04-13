@@ -37,7 +37,7 @@ public class ActivationHistoryEntity implements Serializable {
     private static final long serialVersionUID = -8232192926562045920L;
 
     @Id
-    @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq")
+    @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_activation_history")
     @Column(name = "id")
     private Long id;

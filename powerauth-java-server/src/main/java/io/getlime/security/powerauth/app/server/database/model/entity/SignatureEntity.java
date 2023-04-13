@@ -37,7 +37,7 @@ public class SignatureEntity implements Serializable {
     private static final long serialVersionUID = 1930424474990335368L;
 
     @Id
-    @SequenceGenerator(name = "pa_signature_audit", sequenceName = "pa_signature_audit_seq")
+    @SequenceGenerator(name = "pa_signature_audit", sequenceName = "pa_signature_audit_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_signature_audit")
     @Column(name = "id")
     private Long id;

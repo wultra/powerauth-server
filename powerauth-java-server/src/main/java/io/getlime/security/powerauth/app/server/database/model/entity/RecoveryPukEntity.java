@@ -38,7 +38,7 @@ public class RecoveryPukEntity implements Serializable {
     private static final long serialVersionUID = 1836238476585497799L;
 
     @Id
-    @SequenceGenerator(name = "pa_recovery_puk", sequenceName = "pa_recovery_puk_seq")
+    @SequenceGenerator(name = "pa_recovery_puk", sequenceName = "pa_recovery_puk_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_puk")
     @Column(name = "id")
     private Long id;

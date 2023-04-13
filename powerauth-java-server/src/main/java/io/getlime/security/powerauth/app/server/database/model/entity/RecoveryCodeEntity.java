@@ -39,7 +39,7 @@ public class RecoveryCodeEntity implements Serializable {
     private static final long serialVersionUID = 3356659945010116930L;
 
     @Id
-    @SequenceGenerator(name = "pa_recovery_code", sequenceName = "pa_recovery_code_seq")
+    @SequenceGenerator(name = "pa_recovery_code", sequenceName = "pa_recovery_code_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_code")
     @Column(name = "id")
     private Long id;
