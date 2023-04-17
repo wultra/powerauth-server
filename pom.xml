@@ -92,7 +92,7 @@
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi-starter-webmvc-ui.version>2.0.4</springdoc-openapi-starter-webmvc-ui.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.1.0</springdoc-openapi-starter-webmvc-ui.version>
 
         <!-- Scheduled Job Dependencies -->
         <schedlock.version>5.1.0</schedlock.version>
