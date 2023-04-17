@@ -247,7 +247,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, Boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
         final PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);

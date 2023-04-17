@@ -820,7 +820,7 @@ public class ActivationServiceBehavior {
      * @return ECIES encrypted activation information.
      * @throws GenericServiceException If invalid values are provided.
      */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, Boolean shouldGenerateRecoveryCodes, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             final Date timestamp = new Date();
@@ -936,9 +936,9 @@ public class ActivationServiceBehavior {
             // Create a new recovery code and PUK for new activation if activation recovery is enabled.
             // Perform these operations before writing to database to avoid rollbacks.
             ActivationRecovery activationRecovery = null;
-            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
+            if (shouldGenerateRecoveryCodes) {
                 final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
-                if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                if (recoveryConfigEntity != null && recoveryConfigEntity.isActivationRecoveryEnabled()) {
                     activationRecovery = createRecoveryCodeForActivation(activation, isActive);
                 }
             }
@@ -1134,7 +1134,7 @@ public class ActivationServiceBehavior {
             ActivationRecovery activationRecovery = null;
             if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
                 final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
-                if (recoveryConfigEntity != null && recoveryConfigEntity.getActivationRecoveryEnabled()) {
+                if (recoveryConfigEntity != null && recoveryConfigEntity.isActivationRecoveryEnabled()) {
                     activationRecovery = createRecoveryCodeForActivation(activation, false);
                 }
             }
@@ -1582,7 +1582,7 @@ public class ActivationServiceBehavior {
 
             // Check whether activation recovery is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
-            if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
+            if (recoveryConfigEntity == null || !recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1834,7 +1834,7 @@ public class ActivationServiceBehavior {
         try {
             // Check whether activation recovery is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activationEntity.getApplication().getId());
-            if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
+            if (recoveryConfigEntity == null || !recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
