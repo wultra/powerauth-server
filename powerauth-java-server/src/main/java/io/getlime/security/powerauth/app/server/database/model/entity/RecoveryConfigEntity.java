@@ -41,7 +41,7 @@ public class RecoveryConfigEntity implements Serializable {
     private Long id;
 
     @Column(name = "activation_recovery_enabled", nullable = false)
-    private Boolean activationRecoveryEnabled;
+    private boolean activationRecoveryEnabled;
 
     @Column(name = "recovery_postcard_enabled", nullable = false)
     private Boolean recoveryPostcardEnabled;
@@ -82,7 +82,7 @@ public class RecoveryConfigEntity implements Serializable {
      * @param recoveryPostcardPublicKeyBase64 Base64 encoded local recovery postcard public key.
      * @param remotePostcardPublicKeyBase64 Base64 encoded remote recovery postcard public key.
      */
-    public RecoveryConfigEntity(Long id, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64, EncryptionMode recoveryPrivateKeyEncryptionBase64) {
+    public RecoveryConfigEntity(Long id, boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64, EncryptionMode recoveryPrivateKeyEncryptionBase64) {
         this.id = id;
         this.activationRecoveryEnabled = activationRecoveryEnabled;
         this.recoveryPostcardEnabled = recoveryPostcardEnabled;
@@ -112,10 +112,10 @@ public class RecoveryConfigEntity implements Serializable {
     }
 
     /**
-     * Get whether activation recovery is enabled.
+     * Return whether activation recovery is enabled.
      * @return Whether activation recovery is enabled.
      */
-    public Boolean getActivationRecoveryEnabled() {
+    public boolean isActivationRecoveryEnabled() {
         return activationRecoveryEnabled;
     }
 

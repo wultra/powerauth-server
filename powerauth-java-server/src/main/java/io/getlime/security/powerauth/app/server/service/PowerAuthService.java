@@ -297,7 +297,7 @@ public class PowerAuthService {
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
-            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
+            final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             final byte[] mac = Base64.getDecoder().decode(request.getMac());
             final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());

@@ -140,7 +140,7 @@ public class RecoveryServiceBehavior {
 
             // Check whether activation recovery and recovery postcard is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationEntity.getId());
-            if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
+            if (recoveryConfigEntity == null || !recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -160,7 +160,7 @@ public class RecoveryServiceBehavior {
 
             // Check whether user has any recovery code related to postcard (no activationId) in state CREATED or ACTIVE,
             // in this case the recovery code needs to be revoked first.
-            if ((recoveryConfigEntity.getActivationRecoveryEnabled() == null) || !recoveryConfigEntity.getAllowMultipleRecoveryCodes()) {
+            if (!recoveryConfigEntity.getAllowMultipleRecoveryCodes()) {
                 List<RecoveryCodeEntity> existingRecoveryCodes = recoveryCodeRepository.findAllByApplicationIdAndUserId(applicationEntity.getId(), userId);
                 for (RecoveryCodeEntity recoveryCodeEntity : existingRecoveryCodes) {
                     if (recoveryCodeEntity.getActivationId() == null
@@ -295,7 +295,7 @@ public class RecoveryServiceBehavior {
 
             // Check whether activation recovery is enabled
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activation.getApplication().getId());
-            if (recoveryConfigEntity == null || !recoveryConfigEntity.getActivationRecoveryEnabled()) {
+            if (recoveryConfigEntity == null || !recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -604,7 +604,7 @@ public class RecoveryServiceBehavior {
         }
         GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
         response.setApplicationId(applicationId);
-        response.setActivationRecoveryEnabled(recoveryConfigEntity.getActivationRecoveryEnabled());
+        response.setActivationRecoveryEnabled(recoveryConfigEntity.isActivationRecoveryEnabled());
         response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());
         response.setAllowMultipleRecoveryCodes(Optional.ofNullable(recoveryConfigEntity.getAllowMultipleRecoveryCodes()).orElse(false));
         response.setPostcardPublicKey(recoveryConfigEntity.getRecoveryPostcardPublicKeyBase64());
