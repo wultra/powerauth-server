@@ -18,7 +18,9 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.converter.ApplicationRoleConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ListConverterMutabilityPlan;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Mutability;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -47,6 +49,7 @@ public class ApplicationEntity implements Serializable {
 
     @Column(name = "roles")
     @Convert(converter = ApplicationRoleConverter.class)
+    @Mutability(ListConverterMutabilityPlan.class)
     private final List<String> roles = new ArrayList<>();
 
     @OneToMany(mappedBy = "application")
