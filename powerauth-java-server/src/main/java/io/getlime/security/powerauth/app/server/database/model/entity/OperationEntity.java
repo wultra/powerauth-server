@@ -18,12 +18,11 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.converter.MapToJsonConverter;
-import io.getlime.security.powerauth.app.server.database.model.converter.OperationStatusDoConverter;
-import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Mutability;
 
 import java.io.Serializable;
 import java.util.*;
@@ -71,10 +70,12 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "parameters")
     @Convert(converter = MapToJsonConverter.class)
+    @Mutability(MapConverterMutabilityPlan.class)
     private Map<String, String> parameters = new HashMap<>();
 
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
+    @Mutability(MapConverterMutabilityPlan.class)
     private Map<String, String> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
@@ -83,6 +84,7 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "signature_type", nullable = false)
     @Convert(converter = SignatureTypeConverter.class)
+    @Mutability(PowerAuthSignatureArrayConverterMutabilityPlan.class)
     private PowerAuthSignatureTypes[] signatureType;
 
     @Column(name = "failure_count", nullable = false)
