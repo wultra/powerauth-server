@@ -17,10 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.converter;
 
-import org.hibernate.SharedSessionContract;
-import org.hibernate.type.descriptor.java.MutabilityPlan;
+import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,26 +27,10 @@ import java.util.Map;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public class MapConverterMutabilityPlan implements MutabilityPlan<Map<String, String>> {
+public class MapConverterMutabilityPlan extends MutableMutabilityPlan<Map<String, String>> {
 
     @Override
-    public boolean isMutable() {
-        return true;
-    }
-
-    @Override
-    public Map<String, String> deepCopy(Map<String, String> value) {
+    public Map<String, String> deepCopyNotNull(Map<String, String> value) {
         return new HashMap<>(value);
-    }
-
-    @Override
-    public Serializable disassemble(Map<String, String> value, SharedSessionContract session) {
-        return new HashMap<>(value);
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public Map<String, String> assemble(Serializable cached, SharedSessionContract session) {
-        return new HashMap<>((Map<String, String>)cached);
     }
 }
