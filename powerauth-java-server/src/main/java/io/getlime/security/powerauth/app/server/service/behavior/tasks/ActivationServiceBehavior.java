@@ -1012,7 +1012,7 @@ public class ActivationServiceBehavior {
     public CreateActivationResponse createActivation(
             String userId,
             Date activationExpireTimestamp,
-            Boolean shouldGenerateRecoveryCodes,
+            boolean shouldGenerateRecoveryCodes,
             Long maxFailureCount,
             String applicationKey,
             EciesCryptogram eciesCryptogram,
@@ -1026,7 +1026,6 @@ public class ActivationServiceBehavior {
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
             final ApplicationVersionRepository applicationVersionRepository = repositoryCatalogue.getApplicationVersionRepository();
-            final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             final ApplicationVersionEntity applicationVersion = applicationVersionRepository.findByApplicationKey(applicationKey);
             // If there is no such activation version or activation version is unsupported, exit
@@ -1130,14 +1129,7 @@ public class ActivationServiceBehavior {
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
 
-            // Create a new recovery code and PUK for new activation if activation recovery is enabled
-            ActivationRecovery activationRecovery = null;
-            if (shouldGenerateRecoveryCodes == null || shouldGenerateRecoveryCodes) {
-                final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationId);
-                if (recoveryConfigEntity != null && recoveryConfigEntity.isActivationRecoveryEnabled()) {
-                    activationRecovery = createRecoveryCodeForActivation(activation, false);
-                }
-            }
+            final ActivationRecovery activationRecovery = createActivationRecovery(shouldGenerateRecoveryCodes, activation);
 
             // Generate activation layer 2 response
             final ActivationLayer2Response layer2Response = new ActivationLayer2Response();
@@ -1180,6 +1172,17 @@ public class ActivationServiceBehavior {
             // Rollback transaction to avoid data inconsistency because of cryptography errors
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
+    }
+
+    // Create a new recovery code and PUK for new activation if activation recovery is enabled
+    private ActivationRecovery createActivationRecovery(boolean shouldGenerateRecoveryCodes, ActivationRecordEntity activation) throws GenericServiceException {
+        if (shouldGenerateRecoveryCodes) {
+            final RecoveryConfigEntity recoveryConfigEntity = repositoryCatalogue.getRecoveryConfigRepository().findByApplicationId(activation.getApplication().getId());
+            if (recoveryConfigEntity != null && recoveryConfigEntity.isActivationRecoveryEnabled()) {
+                return createRecoveryCodeForActivation(activation, false);
+            }
+        }
+        return null;
     }
 
     /**

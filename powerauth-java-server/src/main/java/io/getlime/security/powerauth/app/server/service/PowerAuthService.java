@@ -330,7 +330,7 @@ public class PowerAuthService {
             // Get request parameters
             final String userId = request.getUserId();
             final Date activationExpireTimestamp = request.getTimestampActivationExpire();
-            final Boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
+            final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final Long maxFailedCount = request.getMaxFailureCount();
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
