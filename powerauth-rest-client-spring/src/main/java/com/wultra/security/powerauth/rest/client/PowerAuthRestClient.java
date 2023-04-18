@@ -286,7 +286,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
-        request.setGenerateRecoveryCodes(true);
         return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 

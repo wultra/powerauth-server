@@ -33,7 +33,7 @@ public class CreateActivationRequest {
 
     private String userId;
     private Date timestampActivationExpire;
-    private boolean generateRecoveryCodes;
+    private boolean generateRecoveryCodes = true;
     private Long maxFailureCount;
     private String applicationKey;
     private String ephemeralPublicKey;
