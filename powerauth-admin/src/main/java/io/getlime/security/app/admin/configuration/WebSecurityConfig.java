@@ -17,6 +17,7 @@
 package io.getlime.security.app.admin.configuration;
 
 import io.getlime.security.app.admin.util.SecurityUtil;
+import jakarta.servlet.DispatcherType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -55,6 +56,8 @@ public class WebSecurityConfig {
             logger.info("Initializing HTTP authentication");
             return http
                     .authorizeHttpRequests(authorize -> authorize
+                        .dispatcherTypeMatchers(DispatcherType.FORWARD)
+                            .permitAll()
                         .requestMatchers("/resources/**", "/api/service/**", "/actuator/**")
                             .permitAll()
                         .anyRequest()
