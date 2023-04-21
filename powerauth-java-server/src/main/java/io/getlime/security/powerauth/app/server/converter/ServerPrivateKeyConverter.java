@@ -77,8 +77,8 @@ public class ServerPrivateKeyConverter {
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public String fromDBValue(ServerPrivateKey serverPrivateKey, String userId, String activationId) throws GenericServiceException {
-        final String serverPrivateKeyBase64 = serverPrivateKey.getServerPrivateKeyBase64();
-        final EncryptionMode encryptionMode = serverPrivateKey.getEncryptionMode();
+        final String serverPrivateKeyBase64 = serverPrivateKey.serverPrivateKeyBase64();
+        final EncryptionMode encryptionMode = serverPrivateKey.encryptionMode();
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
             // Rollback is not required, error occurs before writing to database

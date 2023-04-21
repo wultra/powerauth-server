@@ -769,8 +769,8 @@ public class ActivationServiceBehavior {
 
             // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
             final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
-            activation.setServerPrivateKeyEncryption(serverPrivateKey.getEncryptionMode());
-            activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
+            activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionMode());
+            activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
@@ -1901,8 +1901,8 @@ public class ActivationServiceBehavior {
             recoveryPukEntity.setPukIndex(1L);
             final String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
             final RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, application.getRid(), userId, recoveryCode, recoveryPukEntity.getPukIndex());
-            recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
-            recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
+            recoveryPukEntity.setPuk(recoveryPuk.pukHash());
+            recoveryPukEntity.setPukEncryption(recoveryPuk.encryptionMode());
             recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
             recoveryPukEntity.setRecoveryCode(recoveryCodeEntity);
             recoveryCodeEntity.getRecoveryPuks().add(recoveryPukEntity);

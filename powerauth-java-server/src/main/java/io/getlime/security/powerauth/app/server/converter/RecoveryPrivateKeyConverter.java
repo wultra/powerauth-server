@@ -76,8 +76,8 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericServiceException In case recovery postcard private key decryption fails.
      */
     public String fromDBValue(RecoveryPrivateKey recoveryPrivateKey, long applicationRid) throws GenericServiceException {
-        final String recoveryPrivateKeyBase64 = recoveryPrivateKey.getRecoveryPrivateKeyBase64();
-        final EncryptionMode encryptionMode = recoveryPrivateKey.getEncryptionMode();
+        final String recoveryPrivateKeyBase64 = recoveryPrivateKey.recoveryPrivateKeyBase64();
+        final EncryptionMode encryptionMode = recoveryPrivateKey.encryptionMode();
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
             // Rollback is not required, error occurs before writing to database

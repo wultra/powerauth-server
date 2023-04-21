@@ -79,8 +79,8 @@ public class RecoveryPukConverter {
      * @throws GenericServiceException In case recovery PUK hash decryption fails.
      */
     public String fromDBValue(RecoveryPuk pukHash, long applicationRid, String userId, String recoveryCode, long pukIndex) throws GenericServiceException {
-        final String pukHashFromDB = pukHash.getPukHash();
-        final EncryptionMode encryptionMode = pukHash.getEncryptionMode();
+        final String pukHashFromDB = pukHash.pukHash();
+        final EncryptionMode encryptionMode = pukHash.encryptionMode();
         if (encryptionMode == null) {
             logger.error("Missing key encryption mode");
             // Rollback is not required, error occurs before writing to database
