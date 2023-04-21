@@ -36,17 +36,12 @@ public class RecoveryCodeStatusConverter {
         if (recoveryCodeStatus == null) {
             return null;
         }
-        switch (recoveryCodeStatus) {
-            case CREATED:
-                return RecoveryCodeStatus.CREATED;
-            case ACTIVE:
-                return RecoveryCodeStatus.ACTIVE;
-            case BLOCKED:
-                return RecoveryCodeStatus.BLOCKED;
-            case REVOKED:
-                return RecoveryCodeStatus.REVOKED;
-        }
-        return RecoveryCodeStatus.REVOKED;
+        return switch (recoveryCodeStatus) {
+            case CREATED -> RecoveryCodeStatus.CREATED;
+            case ACTIVE -> RecoveryCodeStatus.ACTIVE;
+            case BLOCKED -> RecoveryCodeStatus.BLOCKED;
+            case REVOKED -> RecoveryCodeStatus.REVOKED;
+        };
     }
 
     /**
@@ -58,17 +53,12 @@ public class RecoveryCodeStatusConverter {
         if (recoveryCodeStatus == null) {
             return null;
         }
-        switch (recoveryCodeStatus) {
-            case CREATED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.CREATED;
-            case ACTIVE:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.ACTIVE;
-            case BLOCKED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.BLOCKED;
-            case REVOKED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.REVOKED;
-        }
-        return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.REVOKED;
+        return switch (recoveryCodeStatus) {
+            case CREATED -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.CREATED;
+            case ACTIVE -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.ACTIVE;
+            case BLOCKED -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.BLOCKED;
+            case REVOKED -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus.REVOKED;
+        };
     }
 
 }

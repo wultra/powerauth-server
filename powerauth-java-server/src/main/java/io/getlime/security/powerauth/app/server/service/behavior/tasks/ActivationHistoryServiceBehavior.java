@@ -170,20 +170,12 @@ public class ActivationHistoryServiceBehavior {
         // Build audit log message
         final AuditDetail auditDetail = auditDetailBuilder.build();
         switch (activation.getActivationStatus()) {
-            case CREATED: {
+            case CREATED ->
                 audit.log(AuditLevel.INFO, "Created activation with ID: {}", auditDetail, activation.getActivationId());
-                return;
-            }
-            case PENDING_COMMIT:
-            case BLOCKED:
-            case ACTIVE: {
+            case PENDING_COMMIT, BLOCKED, ACTIVE ->
                 audit.log(AuditLevel.INFO, "Activation ID: {} is now {}", auditDetail, activation.getActivationId(), activation.getActivationStatus());
-                return;
-            }
-            case REMOVED:
-            default: {
+            default ->
                 audit.log(AuditLevel.INFO, "Removing activation with ID: {}", auditDetail, activation.getActivationId());
-            }
         }
 
     }

@@ -647,24 +647,12 @@ public class OperationServiceBehavior {
         destination.setRiskFlags(source.getRiskFlags());
 
         switch (source.getStatus()) {
-            case PENDING:
-                destination.setStatus(OperationStatus.PENDING);
-                break;
-            case CANCELED:
-                destination.setStatus(OperationStatus.CANCELED);
-                break;
-            case EXPIRED:
-                destination.setStatus(OperationStatus.EXPIRED);
-                break;
-            case APPROVED:
-                destination.setStatus(OperationStatus.APPROVED);
-                break;
-            case REJECTED:
-                destination.setStatus(OperationStatus.REJECTED);
-                break;
-            case FAILED:
-                destination.setStatus(OperationStatus.FAILED);
-                break;
+            case PENDING -> destination.setStatus(OperationStatus.PENDING);
+            case CANCELED -> destination.setStatus(OperationStatus.CANCELED);
+            case EXPIRED -> destination.setStatus(OperationStatus.EXPIRED);
+            case APPROVED -> destination.setStatus(OperationStatus.APPROVED);
+            case REJECTED -> destination.setStatus(OperationStatus.REJECTED);
+            case FAILED -> destination.setStatus(OperationStatus.FAILED);
         }
         return destination;
     }

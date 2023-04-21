@@ -36,15 +36,11 @@ public class RecoveryPukStatusConverter {
         if (recoveryPukStatus == null) {
             return null;
         }
-        switch (recoveryPukStatus) {
-            case VALID:
-                return RecoveryPukStatus.VALID;
-            case USED:
-                return RecoveryPukStatus.USED;
-            case INVALID:
-                return RecoveryPukStatus.INVALID;
-        }
-        return RecoveryPukStatus.INVALID;
+        return switch (recoveryPukStatus) {
+            case VALID -> RecoveryPukStatus.VALID;
+            case USED -> RecoveryPukStatus.USED;
+            case INVALID -> RecoveryPukStatus.INVALID;
+        };
     }
 
     /**
@@ -56,15 +52,11 @@ public class RecoveryPukStatusConverter {
         if (recoveryPukStatus == null) {
             return null;
         }
-        switch (recoveryPukStatus) {
-            case VALID:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.VALID;
-            case USED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.USED;
-            case INVALID:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.INVALID;
-        }
-        return io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.INVALID;
+        return switch (recoveryPukStatus) {
+            case VALID -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.VALID;
+            case USED -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.USED;
+            case INVALID -> io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus.INVALID;
+        };
     }
 
 }

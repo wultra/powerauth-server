@@ -519,20 +519,15 @@ public class ActivationServiceBehavior {
 
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
-                            case 2:
-                                activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey);
-                                break;
-
-                            case 3:
-                                activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
-                                break;
-
-                            default:
+                            case 2 -> activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey);
+                            case 3 ->
+                                    activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
+                            default -> {
                                 logger.error("Unsupported activation version: {}", activation.getVersion());
                                 // Rollback is not required, database is not used for writing
                                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                            }
                         }
-
                     }
 
                     // return the data

@@ -33,32 +33,22 @@ public class RecoveryCodeStatusConverter implements AttributeConverter<RecoveryC
 
     @Override
     public Integer convertToDatabaseColumn(RecoveryCodeStatus status) {
-        switch (status) {
-            case CREATED:
-                return 1;
-            case ACTIVE:
-                return 2;
-            case BLOCKED:
-                return 3;
-            case REVOKED:
-            default:
-                return 4;
-        }
+        return switch (status) {
+            case CREATED -> 1;
+            case ACTIVE -> 2;
+            case BLOCKED -> 3;
+            default -> 4;
+        };
     }
 
     @Override
     public RecoveryCodeStatus convertToEntityAttribute(Integer b) {
-        switch (b) {
-            case 1:
-                return RecoveryCodeStatus.CREATED;
-            case 2:
-                return RecoveryCodeStatus.ACTIVE;
-            case 3:
-                return RecoveryCodeStatus.BLOCKED;
-            case 4:
-            default:
-                return RecoveryCodeStatus.REVOKED;
-        }
+        return switch (b) {
+            case 1 -> RecoveryCodeStatus.CREATED;
+            case 2 -> RecoveryCodeStatus.ACTIVE;
+            case 3 -> RecoveryCodeStatus.BLOCKED;
+            default -> RecoveryCodeStatus.REVOKED;
+        };
     }
 
 }

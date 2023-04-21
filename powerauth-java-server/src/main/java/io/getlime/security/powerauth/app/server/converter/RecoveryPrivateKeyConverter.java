@@ -85,11 +85,10 @@ public class RecoveryPrivateKeyConverter {
         }
 
         switch (encryptionMode) {
-
-            case NO_ENCRYPTION:
+            case NO_ENCRYPTION -> {
                 return recoveryPrivateKeyBase64;
-
-            case AES_HMAC:
+            }
+            case AES_HMAC -> {
                 final String masterDbEncryptionKeyBase64 = powerAuthServiceConfiguration.getMasterDbEncryptionKey();
 
                 // In case master DB encryption key does not exist, do not encrypt the server private key
@@ -141,11 +140,12 @@ public class RecoveryPrivateKeyConverter {
                     // Rollback is not required, cryptography methods are executed before database is used for writing
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
                 }
-
-            default:
+            }
+            default -> {
                 logger.error("Unknown key encryption mode: {}", encryptionMode.getValue());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.UNSUPPORTED_ENCRYPTION_MODE);
+            }
         }
     }
 

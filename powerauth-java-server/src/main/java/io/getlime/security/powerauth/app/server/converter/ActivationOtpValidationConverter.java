@@ -34,14 +34,11 @@ public class ActivationOtpValidationConverter {
      */
     public ActivationOtpValidation convertFrom(io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation otpValidation) {
         if (otpValidation != null) {
-            switch (otpValidation) {
-                case NONE:
-                    return ActivationOtpValidation.NONE;
-                case ON_COMMIT:
-                    return ActivationOtpValidation.ON_COMMIT;
-                case ON_KEY_EXCHANGE:
-                    return ActivationOtpValidation.ON_KEY_EXCHANGE;
-            }
+            return switch (otpValidation) {
+                case NONE -> ActivationOtpValidation.NONE;
+                case ON_COMMIT -> ActivationOtpValidation.ON_COMMIT;
+                case ON_KEY_EXCHANGE -> ActivationOtpValidation.ON_KEY_EXCHANGE;
+            };
         }
         return ActivationOtpValidation.NONE;
     }
@@ -53,14 +50,12 @@ public class ActivationOtpValidationConverter {
      */
     public io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation convertTo(ActivationOtpValidation otpValidation) {
         if (otpValidation != null) {
-            switch (otpValidation) {
-                case NONE:
-                    return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.NONE;
-                case ON_COMMIT:
-                    return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.ON_COMMIT;
-                case ON_KEY_EXCHANGE:
-                    return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE;
-            }
+            return switch (otpValidation) {
+                case NONE -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.NONE;
+                case ON_COMMIT -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.ON_COMMIT;
+                case ON_KEY_EXCHANGE ->
+                        io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE;
+            };
         }
         return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation.NONE;
     }
