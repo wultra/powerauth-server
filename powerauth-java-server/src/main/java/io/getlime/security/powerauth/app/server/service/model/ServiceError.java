@@ -112,7 +112,7 @@ public class ServiceError {
 
     /**
      * Token with given token ID does not exist.
-     *
+     * <p>
      * The error code is obsolete, because the error is handled using regular response instead of an exception.
      */
     public static final String INVALID_TOKEN = "ERR0016";
