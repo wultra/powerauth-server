@@ -77,7 +77,6 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -308,9 +307,9 @@ public class ActivationServiceBehavior {
         final List<ActivationRecordEntity> filteredActivationList = new ArrayList<>();
         // Filter activation by activation flags in case they are specified
         if (activationFlags != null && !activationFlags.isEmpty()) {
-            final List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
-                    new HashSet<>(activation.getFlags()).containsAll(activationFlags)).collect(Collectors.toList()
-            );
+            final List<ActivationRecordEntity> activationsWithFlags = activationsList.stream()
+                    .filter(activation -> new HashSet<>(activation.getFlags()).containsAll(activationFlags))
+                    .toList();
             filteredActivationList.addAll(activationsWithFlags);
         } else {
             filteredActivationList.addAll(activationsList);

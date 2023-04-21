@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Behavior class implementing management of application roles.
@@ -103,7 +102,7 @@ public class ApplicationRolesServiceBehavior {
         }
         final ApplicationEntity application = applicationOptional.get();
         final List<String> currentRoles = application.getRoles();
-        final List<String> newRoles = applicationRoles.stream().filter(role -> !currentRoles.contains(role)).collect(Collectors.toList());
+        final List<String> newRoles = applicationRoles.stream().filter(role -> !currentRoles.contains(role)).toList();
         final List<String> allRoles = new ArrayList<>(currentRoles);
         allRoles.addAll(newRoles);
         Collections.sort(allRoles);
