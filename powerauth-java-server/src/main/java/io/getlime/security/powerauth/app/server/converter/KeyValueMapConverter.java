@@ -76,7 +76,7 @@ public class KeyValueMapConverter {
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(s, new TypeReference<List<KeyValue>>(){});
+            return objectMapper.readValue(s, new TypeReference<>(){});
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload.", ex);
             return new ArrayList<>();

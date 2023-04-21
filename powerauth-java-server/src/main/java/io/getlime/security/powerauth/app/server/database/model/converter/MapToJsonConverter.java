@@ -73,7 +73,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, String
             return new HashMap<>();
         }
         try {
-            return objectMapper.readValue(s, new TypeReference<Map<String, String>>(){});
+            return objectMapper.readValue(s, new TypeReference<>(){});
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for operation parameters, error: " + ex.getMessage(), ex);
             return new HashMap<>();

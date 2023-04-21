@@ -72,7 +72,7 @@ public class CallbackAttributeConverter implements AttributeConverter<List<Strin
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(attributes, new TypeReference<List<String>>(){});
+            return objectMapper.readValue(attributes, new TypeReference<>(){});
         } catch (IOException ex) {
             logger.error("Unable to parse JSON payload.", ex);
             return new ArrayList<>();
