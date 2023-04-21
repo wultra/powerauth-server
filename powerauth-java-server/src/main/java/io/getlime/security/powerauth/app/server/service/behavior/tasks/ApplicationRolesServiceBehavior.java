@@ -70,7 +70,7 @@ public class ApplicationRolesServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -96,7 +96,7 @@ public class ApplicationRolesServiceBehavior {
         }
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -133,7 +133,7 @@ public class ApplicationRolesServiceBehavior {
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         response.setApplicationId(applicationId);
         final Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -162,7 +162,7 @@ public class ApplicationRolesServiceBehavior {
         }
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);

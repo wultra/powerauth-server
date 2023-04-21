@@ -208,7 +208,7 @@ public class OfflineSignatureServiceBehavior {
         final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-        if (!applicationEntityOptional.isPresent()) {
+        if (applicationEntityOptional.isEmpty()) {
             logger.warn("No application found with ID: {}", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }

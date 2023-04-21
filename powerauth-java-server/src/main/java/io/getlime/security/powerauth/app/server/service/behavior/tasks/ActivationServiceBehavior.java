@@ -648,7 +648,7 @@ public class ActivationServiceBehavior {
             // Find application by application key
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-            if (!applicationEntityOptional.isPresent()) {
+            if (applicationEntityOptional.isEmpty()) {
                 logger.warn("Application does not exist: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);

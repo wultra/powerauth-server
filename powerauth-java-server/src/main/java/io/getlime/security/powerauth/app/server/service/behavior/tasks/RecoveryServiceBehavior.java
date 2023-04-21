@@ -131,7 +131,7 @@ public class RecoveryServiceBehavior {
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-            if (!applicationOptional.isPresent()) {
+            if (applicationOptional.isEmpty()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -442,7 +442,7 @@ public class RecoveryServiceBehavior {
         // If an application was specified, validate it exists
         if (applicationId != null) {
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-            if (!applicationEntityOptional.isPresent()) {
+            if (applicationEntityOptional.isEmpty()) {
                 // Only application ID is specified, such request is not allowed
                 logger.warn("Invalid application specified for lookup of recovery codes: {}", applicationId);
                 // Rollback is not required, database is not used for writing
@@ -547,7 +547,7 @@ public class RecoveryServiceBehavior {
         int revokedCount = 0;
         for (Long recoveryCodeId : recoveryCodeIds) {
             Optional<RecoveryCodeEntity> recoveryCodeOptional = recoveryCodeRepository.findById(recoveryCodeId);
-            if (!recoveryCodeOptional.isPresent()) {
+            if (recoveryCodeOptional.isEmpty()) {
                 // Silently ignore invalid recovery code IDs
                 continue;
             }
@@ -585,7 +585,7 @@ public class RecoveryServiceBehavior {
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
         final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.warn("Application does not exist, application ID: {}", applicationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -625,7 +625,7 @@ public class RecoveryServiceBehavior {
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-            if (!applicationOptional.isPresent()) {
+            if (applicationOptional.isEmpty()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
