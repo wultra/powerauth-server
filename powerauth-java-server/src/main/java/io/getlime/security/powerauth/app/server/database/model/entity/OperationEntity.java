@@ -400,8 +400,7 @@ public class OperationEntity implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OperationEntity)) return false;
-        OperationEntity that = (OperationEntity) o;
+        if (!(o instanceof final OperationEntity that)) return false;
         return id.equals(that.id) // ID is generated on application level
                 && userId.equals(that.userId)
                 && applications.equals(that.applications)

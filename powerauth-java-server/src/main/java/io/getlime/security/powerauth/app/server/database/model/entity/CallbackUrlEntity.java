@@ -181,8 +181,7 @@ public class CallbackUrlEntity implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CallbackUrlEntity)) return false;
-        CallbackUrlEntity that = (CallbackUrlEntity) o;
+        if (!(o instanceof final CallbackUrlEntity that)) return false;
         return application.equals(that.application) && name.equals(that.getName()) && type == that.type && callbackUrl.equals(that.callbackUrl);
     }
 

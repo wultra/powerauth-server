@@ -205,8 +205,7 @@ public class OperationTemplateEntity implements Serializable {
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OperationTemplateEntity)) return false;
-        OperationTemplateEntity that = (OperationTemplateEntity) o;
+        if (!(o instanceof final OperationTemplateEntity that)) return false;
         return templateName.equals(that.templateName)
                 && operationType.equals(that.operationType)
                 && Objects.equals(dataTemplate, that.dataTemplate)
