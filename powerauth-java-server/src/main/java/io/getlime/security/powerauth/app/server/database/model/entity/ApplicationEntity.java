@@ -22,6 +22,7 @@ import io.getlime.security.powerauth.app.server.database.model.converter.ListCon
 import jakarta.persistence.*;
 import org.hibernate.annotations.Mutability;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,7 @@ import java.util.Objects;
 @Table(name = "pa_application")
 public class ApplicationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1295434927785255417L;
 
     @Id

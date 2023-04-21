@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Mutability;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -36,6 +37,7 @@ import java.util.*;
 @Table(name = "pa_operation")
 public class OperationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -5284589668386509303L;
 
     @Id

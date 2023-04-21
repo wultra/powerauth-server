@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import jakarta.persistence.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -32,6 +33,7 @@ import java.util.Objects;
 @Table(name = "pa_application_version")
 public class ApplicationVersionEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -5107229264389219556L;
 
     @Id

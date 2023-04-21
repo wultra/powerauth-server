@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.exceptions;
 
+import java.io.Serial;
+
 /**
  * Exception for case when activation recovery fails.
  *
@@ -24,6 +26,7 @@ package io.getlime.security.powerauth.app.server.service.exceptions;
  */
 public class ActivationRecoveryException extends GenericServiceException {
 
+    @Serial
     private static final long serialVersionUID = 3813163488487380284L;
 
     private final int currentRecoveryPukIndex;

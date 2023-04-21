@@ -23,6 +23,7 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Callbac
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import jakarta.persistence.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +37,7 @@ import java.util.Objects;
 @Table(name = "pa_application_callback")
 public class CallbackUrlEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 3372029113954119581L;
 
     @Id

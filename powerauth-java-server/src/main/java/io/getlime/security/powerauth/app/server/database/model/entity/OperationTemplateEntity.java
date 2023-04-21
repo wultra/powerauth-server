@@ -22,6 +22,7 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Signatu
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import java.util.Objects;
 @Table(name = "pa_operation_template")
 public class OperationTemplateEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -1534031615106111156L;
 
     @Id
