@@ -71,7 +71,7 @@ public class ApplicationRoleConverter implements AttributeConverter<List<String>
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(roles, new TypeReference<List<String>>(){});
+            return objectMapper.readValue(roles, new TypeReference<>(){});
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
             return new ArrayList<>();

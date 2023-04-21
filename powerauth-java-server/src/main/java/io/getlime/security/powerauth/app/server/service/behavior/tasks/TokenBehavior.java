@@ -201,7 +201,7 @@ public class TokenBehavior {
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateTokenIdIterations(); i++) {
                 String tmpTokenId = tokenGenerator.generateTokenId();
                 final Optional<TokenEntity> tmpTokenOptional = repositoryCatalogue.getTokenRepository().findById(tmpTokenId);
-                if (!tmpTokenOptional.isPresent()) {
+                if (tmpTokenOptional.isEmpty()) {
                     tokenId = tmpTokenId;
                     break;
                 } // ... else this token ID has a collision, reset it and try to find another one
@@ -272,7 +272,7 @@ public class TokenBehavior {
 
             // Lookup the token
             final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
-            if (!tokenEntityOptional.isPresent()) {
+            if (tokenEntityOptional.isEmpty()) {
                 // Instead of throwing INVALID_TOKEN exception a response with invalid token is returned
                 final ValidateTokenResponse response = new ValidateTokenResponse();
                 response.setTokenValid(false);

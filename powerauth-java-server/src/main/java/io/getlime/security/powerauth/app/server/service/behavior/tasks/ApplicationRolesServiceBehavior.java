@@ -36,7 +36,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Behavior class implementing management of application roles.
@@ -70,7 +69,7 @@ public class ApplicationRolesServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -96,14 +95,14 @@ public class ApplicationRolesServiceBehavior {
         }
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
         final ApplicationEntity application = applicationOptional.get();
         final List<String> currentRoles = application.getRoles();
-        final List<String> newRoles = applicationRoles.stream().filter(role -> !currentRoles.contains(role)).collect(Collectors.toList());
+        final List<String> newRoles = applicationRoles.stream().filter(role -> !currentRoles.contains(role)).toList();
         final List<String> allRoles = new ArrayList<>(currentRoles);
         allRoles.addAll(newRoles);
         Collections.sort(allRoles);
@@ -133,7 +132,7 @@ public class ApplicationRolesServiceBehavior {
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         response.setApplicationId(applicationId);
         final Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -162,7 +161,7 @@ public class ApplicationRolesServiceBehavior {
         }
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> applicationOptional =  applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: {}", applicationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);

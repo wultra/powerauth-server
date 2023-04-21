@@ -22,6 +22,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
 import jakarta.persistence.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -35,6 +36,7 @@ import java.util.Objects;
 @Table(name = "pa_recovery_puk")
 public class RecoveryPukEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1836238476585497799L;
 
     @Id

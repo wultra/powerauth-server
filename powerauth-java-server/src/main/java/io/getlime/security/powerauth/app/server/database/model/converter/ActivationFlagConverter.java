@@ -71,7 +71,7 @@ public class ActivationFlagConverter implements AttributeConverter<List<String>,
             return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(flags, new TypeReference<List<String>>(){});
+            return objectMapper.readValue(flags, new TypeReference<>(){});
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for activation flags, error: " + ex.getMessage(), ex);
             return new ArrayList<>();

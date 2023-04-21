@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 import jakarta.persistence.*;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -32,6 +34,7 @@ import java.util.Objects;
 @Table(name = "pa_recovery_config")
 public class RecoveryConfigEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -6333795855186594869L;
 
     @Id

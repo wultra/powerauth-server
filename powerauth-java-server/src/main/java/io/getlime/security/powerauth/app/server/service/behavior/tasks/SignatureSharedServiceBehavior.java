@@ -309,16 +309,15 @@ public class SignatureSharedServiceBehavior {
         counterLoop:
         for (long iteratedCounter = ctr; iteratedCounter < ctr + powerAuthServiceConfiguration.getSignatureValidationLookahead(); iteratedCounter++) {
             switch (signatureVersion) {
-                case 2:
+                case 2 ->
                     // Use numeric counter for counter data
-                    ctrData = ByteBuffer.allocate(16).putLong(8, iteratedCounter).array();
-                    break;
-                case 3:
+                        ctrData = ByteBuffer.allocate(16).putLong(8, iteratedCounter).array();
+                case 3 -> {
                     // Set ctrData for current iteration
                     ctrData = ctrHash;
                     // Increment the hash based counter
                     ctrHash = hashBasedCounter.next(ctrHash);
-                    break;
+                }
             }
             // Check all signature types for each counter value in case there are multiple signature types
             for (SignatureType signatureType : signatureTypes) {

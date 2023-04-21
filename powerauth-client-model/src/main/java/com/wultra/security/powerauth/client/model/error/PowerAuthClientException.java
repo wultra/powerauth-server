@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.client.model.error;
 
+import java.io.Serial;
+
 /**
  * PowerAuth client exception.
  *
@@ -24,6 +26,7 @@ package com.wultra.security.powerauth.client.model.error;
  */
 public class PowerAuthClientException extends Exception {
 
+    @Serial
     private static final long serialVersionUID = -4721271754602015511L;
 
     private PowerAuthError powerAuthError;

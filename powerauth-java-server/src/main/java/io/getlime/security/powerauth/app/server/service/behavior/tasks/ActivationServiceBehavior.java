@@ -77,7 +77,6 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -308,9 +307,9 @@ public class ActivationServiceBehavior {
         final List<ActivationRecordEntity> filteredActivationList = new ArrayList<>();
         // Filter activation by activation flags in case they are specified
         if (activationFlags != null && !activationFlags.isEmpty()) {
-            final List<ActivationRecordEntity> activationsWithFlags = activationsList.stream().filter(activation ->
-                    new HashSet<>(activation.getFlags()).containsAll(activationFlags)).collect(Collectors.toList()
-            );
+            final List<ActivationRecordEntity> activationsWithFlags = activationsList.stream()
+                    .filter(activation -> new HashSet<>(activation.getFlags()).containsAll(activationFlags))
+                    .toList();
             filteredActivationList.addAll(activationsWithFlags);
         } else {
             filteredActivationList.addAll(activationsList);
@@ -520,20 +519,15 @@ public class ActivationServiceBehavior {
 
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
-                            case 2:
-                                activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey);
-                                break;
-
-                            case 3:
-                                activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
-                                break;
-
-                            default:
+                            case 2 -> activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey);
+                            case 3 ->
+                                    activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
+                            default -> {
                                 logger.error("Unsupported activation version: {}", activation.getVersion());
                                 // Rollback is not required, database is not used for writing
                                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+                            }
                         }
-
                     }
 
                     // return the data
@@ -648,7 +642,7 @@ public class ActivationServiceBehavior {
             // Find application by application key
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-            if (!applicationEntityOptional.isPresent()) {
+            if (applicationEntityOptional.isEmpty()) {
                 logger.warn("Application does not exist: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -775,8 +769,8 @@ public class ActivationServiceBehavior {
 
             // Convert server private key to DB columns serverPrivateKeyEncryption specifying encryption mode and serverPrivateKey with base64-encoded key.
             final ServerPrivateKey serverPrivateKey = serverPrivateKeyConverter.toDBValue(serverKeyPrivateBytes, userId, activationId);
-            activation.setServerPrivateKeyEncryption(serverPrivateKey.getEncryptionMode());
-            activation.setServerPrivateKeyBase64(serverPrivateKey.getServerPrivateKeyBase64());
+            activation.setServerPrivateKeyEncryption(serverPrivateKey.encryptionMode());
+            activation.setServerPrivateKeyBase64(serverPrivateKey.serverPrivateKeyBase64());
 
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
@@ -1476,11 +1470,7 @@ public class ActivationServiceBehavior {
         // early null check done above, no null check needed here
         if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
-            if (reason == null) {
-                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED);
-            } else {
-                activation.setBlockedReason(reason);
-            }
+            activation.setBlockedReason(Objects.requireNonNullElse(reason, AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED));
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
@@ -1911,8 +1901,8 @@ public class ActivationServiceBehavior {
             recoveryPukEntity.setPukIndex(1L);
             final String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
             final RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, application.getRid(), userId, recoveryCode, recoveryPukEntity.getPukIndex());
-            recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
-            recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
+            recoveryPukEntity.setPuk(recoveryPuk.pukHash());
+            recoveryPukEntity.setPukEncryption(recoveryPuk.encryptionMode());
             recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
             recoveryPukEntity.setRecoveryCode(recoveryCodeEntity);
             recoveryCodeEntity.getRecoveryPuks().add(recoveryPukEntity);

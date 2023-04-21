@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
 import org.hibernate.annotations.Mutability;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -36,6 +37,7 @@ import java.util.*;
 @Table(name = "pa_operation")
 public class OperationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -5284589668386509303L;
 
     @Id
@@ -398,8 +400,7 @@ public class OperationEntity implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OperationEntity)) return false;
-        OperationEntity that = (OperationEntity) o;
+        if (!(o instanceof final OperationEntity that)) return false;
         return id.equals(that.id) // ID is generated on application level
                 && userId.equals(that.userId)
                 && applications.equals(that.applications)

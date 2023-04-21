@@ -33,28 +33,20 @@ public class RecoveryPukStatusConverter implements AttributeConverter<RecoveryPu
 
     @Override
     public Integer convertToDatabaseColumn(RecoveryPukStatus status) {
-        switch (status) {
-            case VALID:
-                return 1;
-            case USED:
-                return 2;
-            case INVALID:
-            default:
-                return 3;
-        }
+        return switch (status) {
+            case VALID -> 1;
+            case USED -> 2;
+            default -> 3;
+        };
     }
 
     @Override
     public RecoveryPukStatus convertToEntityAttribute(Integer b) {
-        switch (b) {
-            case 1:
-                return RecoveryPukStatus.VALID;
-            case 2:
-                return RecoveryPukStatus.USED;
-            case 3:
-            default:
-                return RecoveryPukStatus.INVALID;
-        }
+        return switch (b) {
+            case 1 -> RecoveryPukStatus.VALID;
+            case 2 -> RecoveryPukStatus.USED;
+            default -> RecoveryPukStatus.INVALID;
+        };
     }
 
 }

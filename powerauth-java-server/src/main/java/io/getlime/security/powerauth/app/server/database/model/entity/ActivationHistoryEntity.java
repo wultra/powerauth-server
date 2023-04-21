@@ -21,6 +21,7 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Activat
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -34,6 +35,7 @@ import java.util.Objects;
 @Table(name = "pa_activation_history")
 public class ActivationHistoryEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -8232192926562045920L;
 
     @Id

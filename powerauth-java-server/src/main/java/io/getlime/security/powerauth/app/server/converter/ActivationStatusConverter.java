@@ -28,35 +28,23 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 public class ActivationStatusConverter {
 
     public ActivationStatus convert(io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus activationStatus) {
-        switch (activationStatus) {
-            case CREATED:
-                return ActivationStatus.CREATED;
-            case PENDING_COMMIT:
-                return ActivationStatus.PENDING_COMMIT;
-            case ACTIVE:
-                return ActivationStatus.ACTIVE;
-            case BLOCKED:
-                return ActivationStatus.BLOCKED;
-            case REMOVED:
-                return ActivationStatus.REMOVED;
-        }
-        return ActivationStatus.REMOVED;
+        return switch (activationStatus) {
+            case CREATED -> ActivationStatus.CREATED;
+            case PENDING_COMMIT -> ActivationStatus.PENDING_COMMIT;
+            case ACTIVE -> ActivationStatus.ACTIVE;
+            case BLOCKED -> ActivationStatus.BLOCKED;
+            case REMOVED -> ActivationStatus.REMOVED;
+        };
     }
 
     public io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus convert(ActivationStatus activationStatus) {
-        switch (activationStatus) {
-            case CREATED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.CREATED;
-            case PENDING_COMMIT:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.PENDING_COMMIT;
-            case ACTIVE:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE;
-            case BLOCKED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.BLOCKED;
-            case REMOVED:
-                return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED;
-        }
-        return io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED;
+        return switch (activationStatus) {
+            case CREATED -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.CREATED;
+            case PENDING_COMMIT -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.PENDING_COMMIT;
+            case ACTIVE -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.ACTIVE;
+            case BLOCKED -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.BLOCKED;
+            case REMOVED -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED;
+        };
     }
 
 }

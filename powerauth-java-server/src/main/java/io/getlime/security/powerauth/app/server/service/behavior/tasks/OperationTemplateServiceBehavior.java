@@ -81,7 +81,7 @@ public class OperationTemplateServiceBehavior {
     public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws GenericServiceException {
         final Long id = request.getId();
         final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
-        if (!template.isPresent()) {
+        if (template.isEmpty()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
         return operationTemplateConverter.convertFromDB(template.get());
@@ -113,7 +113,7 @@ public class OperationTemplateServiceBehavior {
 
         // Check if the template exists
         final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
-        if (!template.isPresent()) {
+        if (template.isEmpty()) {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
 

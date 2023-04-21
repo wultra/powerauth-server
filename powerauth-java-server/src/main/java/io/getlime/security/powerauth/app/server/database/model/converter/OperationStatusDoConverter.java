@@ -34,38 +34,28 @@ public class OperationStatusDoConverter implements AttributeConverter<OperationS
 
     @Override
     public Integer convertToDatabaseColumn(OperationStatusDo status) {
-        switch (status) {
-            case PENDING:
-                return 1;
-            case CANCELED:
-                return 2;
-            case EXPIRED:
-                return 3;
-            case APPROVED:
-                return 4;
-            case REJECTED:
-                return 5;
-            default: // FAILED
-                return 6;
-        }
+        return switch (status) {
+            case PENDING -> 1;
+            case CANCELED -> 2;
+            case EXPIRED -> 3;
+            case APPROVED -> 4;
+            case REJECTED -> 5;
+            // FAILED
+            default -> 6;
+        };
     }
 
     @Override
     public OperationStatusDo convertToEntityAttribute(Integer b) {
-        switch (b) {
-            case 1:
-                return OperationStatusDo.PENDING;
-            case 2:
-                return OperationStatusDo.CANCELED;
-            case 3:
-                return OperationStatusDo.EXPIRED;
-            case 4:
-                return OperationStatusDo.APPROVED;
-            case 5:
-                return OperationStatusDo.REJECTED;
-            default: // 6
-                return OperationStatusDo.FAILED;
-        }
+        return switch (b) {
+            case 1 -> OperationStatusDo.PENDING;
+            case 2 -> OperationStatusDo.CANCELED;
+            case 3 -> OperationStatusDo.EXPIRED;
+            case 4 -> OperationStatusDo.APPROVED;
+            case 5 -> OperationStatusDo.REJECTED;
+            // 6
+            default -> OperationStatusDo.FAILED;
+        };
     }
 
 }

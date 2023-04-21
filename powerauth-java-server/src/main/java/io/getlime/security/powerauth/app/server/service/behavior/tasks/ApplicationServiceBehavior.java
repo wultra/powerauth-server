@@ -307,7 +307,7 @@ public class ApplicationServiceBehavior {
      */
     private ApplicationEntity findApplicationById(String applicationId) throws GenericServiceException {
         final Optional<ApplicationEntity> applicationOptional = repositoryCatalogue.getApplicationRepository().findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.info("Application not found, application ID: '{}'", applicationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -324,7 +324,7 @@ public class ApplicationServiceBehavior {
      */
     private ApplicationVersionEntity findApplicationVersion(String appId, String versionId) throws GenericServiceException {
         final Optional<ApplicationVersionEntity> applicationVersionOptional = repositoryCatalogue.getApplicationVersionRepository().findFirstByApplicationIdAndName(appId, versionId);
-        if (!applicationVersionOptional.isPresent()) {
+        if (applicationVersionOptional.isEmpty()) {
             logger.info("Application version not found, application version ID: {}", versionId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);

@@ -21,6 +21,7 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Recover
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
 import jakarta.persistence.*;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,6 +37,7 @@ import java.util.Objects;
 @Table(name = "pa_recovery_code")
 public class RecoveryCodeEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 3356659945010116930L;
 
     @Id

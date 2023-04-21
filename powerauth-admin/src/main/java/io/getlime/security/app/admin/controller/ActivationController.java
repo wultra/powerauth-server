@@ -231,21 +231,16 @@ public class ActivationController {
                 return "redirect:/activation/list?userId=" + userId;
             }
             switch (activationOtpValidation) {
-                case "NONE":
-                    response = client.initActivation(userId, applicationId);
-                    break;
-
-                case "ON_KEY_EXCHANGE":
-                    response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_KEY_EXCHANGE, activationOtp);
-                    break;
-
-                case "ON_COMMIT":
-                    response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_COMMIT, activationOtp);
-                    break;
-
-                default:
+                case "NONE" ->
+                        response = client.initActivation(userId, applicationId);
+                case "ON_KEY_EXCHANGE" ->
+                        response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_KEY_EXCHANGE, activationOtp);
+                case "ON_COMMIT" ->
+                        response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_COMMIT, activationOtp);
+                default -> {
                     redirectAttributes.addFlashAttribute("error", "Invalid OTP validation mode.");
                     return "redirect:/activation/list?userId=" + userId;
+                }
             }
 
 

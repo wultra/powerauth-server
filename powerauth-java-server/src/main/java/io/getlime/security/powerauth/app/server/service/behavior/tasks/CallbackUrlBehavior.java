@@ -112,7 +112,7 @@ public class CallbackUrlBehavior {
         final String applicationId = request.getApplicationId();
         final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
 
-        if (!applicationEntityOptional.isPresent()) {
+        if (applicationEntityOptional.isEmpty()) {
             logger.warn("Invalid callback URL application: " + request.getApplicationId());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
@@ -154,7 +154,7 @@ public class CallbackUrlBehavior {
         }
 
         final Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
-        if (!entityOptional.isPresent()) {
+        if (entityOptional.isEmpty()) {
             logger.warn("Invalid callback ID: "+request.getId());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -404,7 +404,7 @@ public class CallbackUrlBehavior {
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
         final Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
         final Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-        final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<String>(){};
+        final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
         final RestClient restClient = getRestClient(callbackUrlEntity);
         restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
     }

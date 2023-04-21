@@ -28,20 +28,14 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 final public class SignatureTypeConverter {
 
     public PowerAuthSignatureTypes convertFrom(SignatureType signatureType) {
-        switch (signatureType) {
-            case POSSESSION:
-                return PowerAuthSignatureTypes.POSSESSION;
-            case KNOWLEDGE:
-                return PowerAuthSignatureTypes.KNOWLEDGE;
-            case BIOMETRY:
-                return PowerAuthSignatureTypes.BIOMETRY;
-            case POSSESSION_KNOWLEDGE:
-                return PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY:
-                return PowerAuthSignatureTypes.POSSESSION_BIOMETRY;
-            default:
-                return PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
-        }
+        return switch (signatureType) {
+            case POSSESSION -> PowerAuthSignatureTypes.POSSESSION;
+            case KNOWLEDGE -> PowerAuthSignatureTypes.KNOWLEDGE;
+            case BIOMETRY -> PowerAuthSignatureTypes.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> PowerAuthSignatureTypes.POSSESSION_BIOMETRY;
+            default -> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
     }
 
     public SignatureType convertFrom(String signatureType) {
@@ -49,21 +43,14 @@ final public class SignatureTypeConverter {
     }
 
     public SignatureType convertTo(PowerAuthSignatureTypes powerAuthSignatureTypes) {
-        switch (powerAuthSignatureTypes) {
-            case POSSESSION:
-                return SignatureType.POSSESSION;
-            case KNOWLEDGE:
-                return SignatureType.KNOWLEDGE;
-            case BIOMETRY:
-                return SignatureType.BIOMETRY;
-            case POSSESSION_KNOWLEDGE:
-                return SignatureType.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY:
-                return SignatureType.POSSESSION_BIOMETRY;
-            default:
-                return SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
-        }
+        return switch (powerAuthSignatureTypes) {
+            case POSSESSION -> SignatureType.POSSESSION;
+            case KNOWLEDGE -> SignatureType.KNOWLEDGE;
+            case BIOMETRY -> SignatureType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE -> SignatureType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY -> SignatureType.POSSESSION_BIOMETRY;
+            default -> SignatureType.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
     }
-
 
 }

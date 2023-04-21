@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.exceptions;
 
+import java.io.Serial;
+
 /**
  * Exception for any service interface error. Note that this type of exception doesn't cause the transaction rollback.
  *
@@ -24,6 +26,7 @@ package io.getlime.security.powerauth.app.server.service.exceptions;
  */
 public class GenericServiceException extends Exception {
 
+    @Serial
     private static final long serialVersionUID = 7185138483623356230L;
 
     private final String code;

@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import jakarta.persistence.*;
 import org.hibernate.annotations.Mutability;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,6 +43,7 @@ import java.util.Objects;
 @Table(name = "pa_activation")
 public class ActivationRecordEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 7512286634644851705L;
 
     @Id

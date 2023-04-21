@@ -116,7 +116,7 @@ public class OperationServiceBehavior {
 
         // Fetch the operation template
         final Optional<OperationTemplateEntity> template = templateRepository.findTemplateByName(templateName);
-        if (!template.isPresent()) {
+        if (template.isEmpty()) {
             logger.error("Operation template was not found: {}. Check your configuration in pa_operation_template table.", templateName);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
         }
@@ -143,7 +143,7 @@ public class OperationServiceBehavior {
         for (int i = 0; i < powerAuthServiceConfiguration.getGenerateOperationIterations(); i++) {
             final String tmpOperationId = UUID.randomUUID().toString();
             final Optional<OperationEntity> tmpTokenOptional = operationRepository.findOperation(tmpOperationId);
-            if (!tmpTokenOptional.isPresent()) {
+            if (tmpTokenOptional.isEmpty()) {
                 operationId = tmpOperationId;
                 break;
             } // ... else this token ID has a collision, reset it and try to find another one
@@ -215,14 +215,14 @@ public class OperationServiceBehavior {
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
-        if (!operationOptional.isPresent()) {
+        if (operationOptional.isEmpty()) {
             logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
         }
 
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (!application.isPresent()) {
+        if (application.isEmpty()) {
             logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
@@ -340,14 +340,14 @@ public class OperationServiceBehavior {
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
-        if (!operationOptional.isPresent()) {
+        if (operationOptional.isEmpty()) {
             logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
         }
 
         // Fetch application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (!application.isPresent()) {
+        if (application.isEmpty()) {
             logger.error("Application was not found for ID: {}.", applicationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
@@ -419,7 +419,7 @@ public class OperationServiceBehavior {
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
-        if (!operationOptional.isPresent()) {
+        if (operationOptional.isEmpty()) {
             logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
@@ -496,7 +496,7 @@ public class OperationServiceBehavior {
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
-        if (!operationOptional.isPresent()) {
+        if (operationOptional.isEmpty()) {
             logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
@@ -536,7 +536,7 @@ public class OperationServiceBehavior {
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-        if (!operationOptional.isPresent()) {
+        if (operationOptional.isEmpty()) {
             logger.warn("Operation was not found for ID: {}.", operationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
@@ -647,24 +647,12 @@ public class OperationServiceBehavior {
         destination.setRiskFlags(source.getRiskFlags());
 
         switch (source.getStatus()) {
-            case PENDING:
-                destination.setStatus(OperationStatus.PENDING);
-                break;
-            case CANCELED:
-                destination.setStatus(OperationStatus.CANCELED);
-                break;
-            case EXPIRED:
-                destination.setStatus(OperationStatus.EXPIRED);
-                break;
-            case APPROVED:
-                destination.setStatus(OperationStatus.APPROVED);
-                break;
-            case REJECTED:
-                destination.setStatus(OperationStatus.REJECTED);
-                break;
-            case FAILED:
-                destination.setStatus(OperationStatus.FAILED);
-                break;
+            case PENDING -> destination.setStatus(OperationStatus.PENDING);
+            case CANCELED -> destination.setStatus(OperationStatus.CANCELED);
+            case EXPIRED -> destination.setStatus(OperationStatus.EXPIRED);
+            case APPROVED -> destination.setStatus(OperationStatus.APPROVED);
+            case REJECTED -> destination.setStatus(OperationStatus.REJECTED);
+            case FAILED -> destination.setStatus(OperationStatus.FAILED);
         }
         return destination;
     }

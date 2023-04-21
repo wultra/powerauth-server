@@ -131,7 +131,7 @@ public class RecoveryServiceBehavior {
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-            if (!applicationOptional.isPresent()) {
+            if (applicationOptional.isEmpty()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -227,8 +227,8 @@ public class RecoveryServiceBehavior {
                 recoveryPukEntity.setPukIndex((long) i);
                 String pukHash = PasswordHash.hash(puk.getBytes(StandardCharsets.UTF_8));
                 RecoveryPuk recoveryPuk = recoveryPukConverter.toDBValue(pukHash, applicationEntity.getRid(), userId, recoveryCode, recoveryPukEntity.getPukIndex());
-                recoveryPukEntity.setPuk(recoveryPuk.getPukHash());
-                recoveryPukEntity.setPukEncryption(recoveryPuk.getEncryptionMode());
+                recoveryPukEntity.setPuk(recoveryPuk.pukHash());
+                recoveryPukEntity.setPukEncryption(recoveryPuk.encryptionMode());
                 recoveryPukEntity.setStatus(RecoveryPukStatus.VALID);
                 recoveryPukEntity.setRecoveryCode(recoveryCodeEntity);
                 recoveryCodeEntity.getRecoveryPuks().add(recoveryPukEntity);
@@ -442,7 +442,7 @@ public class RecoveryServiceBehavior {
         // If an application was specified, validate it exists
         if (applicationId != null) {
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-            if (!applicationEntityOptional.isPresent()) {
+            if (applicationEntityOptional.isEmpty()) {
                 // Only application ID is specified, such request is not allowed
                 logger.warn("Invalid application specified for lookup of recovery codes: {}", applicationId);
                 // Rollback is not required, database is not used for writing
@@ -547,7 +547,7 @@ public class RecoveryServiceBehavior {
         int revokedCount = 0;
         for (Long recoveryCodeId : recoveryCodeIds) {
             Optional<RecoveryCodeEntity> recoveryCodeOptional = recoveryCodeRepository.findById(recoveryCodeId);
-            if (!recoveryCodeOptional.isPresent()) {
+            if (recoveryCodeOptional.isEmpty()) {
                 // Silently ignore invalid recovery code IDs
                 continue;
             }
@@ -585,7 +585,7 @@ public class RecoveryServiceBehavior {
         final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
         final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
         final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-        if (!applicationOptional.isPresent()) {
+        if (applicationOptional.isEmpty()) {
             logger.warn("Application does not exist, application ID: {}", applicationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -625,7 +625,7 @@ public class RecoveryServiceBehavior {
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
             final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-            if (!applicationOptional.isPresent()) {
+            if (applicationOptional.isEmpty()) {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -649,8 +649,8 @@ public class RecoveryServiceBehavior {
                 String publicKeyBase64 = Base64.getEncoder().encodeToString(publicKeyBytes);
 
                 RecoveryPrivateKey recoveryPrivateKey = recoveryPrivateKeyConverter.toDBValue(privateKeyBytes, applicationEntity.getRid());
-                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(recoveryPrivateKey.getRecoveryPrivateKeyBase64());
-                recoveryConfigEntity.setPrivateKeyEncryption(recoveryPrivateKey.getEncryptionMode());
+                recoveryConfigEntity.setRecoveryPostcardPrivateKeyBase64(recoveryPrivateKey.recoveryPrivateKeyBase64());
+                recoveryConfigEntity.setPrivateKeyEncryption(recoveryPrivateKey.encryptionMode());
                 recoveryConfigEntity.setRecoveryPostcardPublicKeyBase64(publicKeyBase64);
             }
             recoveryConfigEntity.setActivationRecoveryEnabled(request.isActivationRecoveryEnabled());

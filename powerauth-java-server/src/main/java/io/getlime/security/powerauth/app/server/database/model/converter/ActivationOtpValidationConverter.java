@@ -37,14 +37,11 @@ public class ActivationOtpValidationConverter implements AttributeConverter<Acti
      */
     @Override
     public Integer convertToDatabaseColumn(ActivationOtpValidation validation) {
-        switch (validation) {
-            case ON_KEY_EXCHANGE:
-                return 1;
-            case ON_COMMIT:
-                return 2;
-            default:
-                return 0;
-        }
+        return switch (validation) {
+            case ON_KEY_EXCHANGE -> 1;
+            case ON_COMMIT -> 2;
+            default -> 0;
+        };
     }
 
     /**
@@ -54,13 +51,10 @@ public class ActivationOtpValidationConverter implements AttributeConverter<Acti
      */
     @Override
     public ActivationOtpValidation convertToEntityAttribute(Integer value) {
-        switch (value) {
-            case 1:
-                return ActivationOtpValidation.ON_KEY_EXCHANGE;
-            case 2:
-                return ActivationOtpValidation.ON_COMMIT;
-            default:
-                return ActivationOtpValidation.NONE;
-        }
+        return switch (value) {
+            case 1 -> ActivationOtpValidation.ON_KEY_EXCHANGE;
+            case 2 -> ActivationOtpValidation.ON_COMMIT;
+            default -> ActivationOtpValidation.NONE;
+        };
     }
 }

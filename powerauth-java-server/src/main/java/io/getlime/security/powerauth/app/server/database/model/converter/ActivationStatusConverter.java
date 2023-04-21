@@ -34,34 +34,24 @@ public class ActivationStatusConverter implements AttributeConverter<ActivationS
 
     @Override
     public Integer convertToDatabaseColumn(ActivationStatus status) {
-        switch (status) {
-            case CREATED:
-                return 1;
-            case PENDING_COMMIT:
-                return 2;
-            case ACTIVE:
-                return 3;
-            case BLOCKED:
-                return 4;
-            default:
-                return 5;
-        }
+        return switch (status) {
+            case CREATED -> 1;
+            case PENDING_COMMIT -> 2;
+            case ACTIVE -> 3;
+            case BLOCKED -> 4;
+            default -> 5;
+        };
     }
 
     @Override
     public ActivationStatus convertToEntityAttribute(Integer b) {
-        switch (b) {
-            case 1:
-                return ActivationStatus.CREATED;
-            case 2:
-                return ActivationStatus.PENDING_COMMIT;
-            case 3:
-                return ActivationStatus.ACTIVE;
-            case 4:
-                return ActivationStatus.BLOCKED;
-            default:
-                return ActivationStatus.REMOVED;
-        }
+        return switch (b) {
+            case 1 -> ActivationStatus.CREATED;
+            case 2 -> ActivationStatus.PENDING_COMMIT;
+            case 3 -> ActivationStatus.ACTIVE;
+            case 4 -> ActivationStatus.BLOCKED;
+            default -> ActivationStatus.REMOVED;
+        };
     }
 
 }
