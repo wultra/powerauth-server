@@ -1475,11 +1475,7 @@ public class ActivationServiceBehavior {
         // early null check done above, no null check needed here
         if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
-            if (reason == null) {
-                activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED);
-            } else {
-                activation.setBlockedReason(reason);
-            }
+            activation.setBlockedReason(Objects.requireNonNullElse(reason, AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED));
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
         } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {

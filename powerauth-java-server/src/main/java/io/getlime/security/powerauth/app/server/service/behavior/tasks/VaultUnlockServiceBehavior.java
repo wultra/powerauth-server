@@ -63,6 +63,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Behavior class implementing the vault unlock related processes. The class separates the
@@ -189,11 +190,7 @@ public class VaultUnlockServiceBehavior {
             // If value unlock reason is missing, use default NOT_SPECIFIED value.
             final KeyValue entry = new KeyValue();
             entry.setKey(AdditionalInformation.Key.VAULT_UNLOCKED_REASON);
-            if (reason == null) {
-                entry.setValue(AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED);
-            } else {
-                entry.setValue(reason);
-            }
+            entry.setValue(Objects.requireNonNullElse(reason, AdditionalInformation.Reason.VAULT_UNLOCKED_REASON_NOT_SPECIFIED));
             final List<KeyValue> additionalInformationList = new ArrayList<>();
             additionalInformationList.add(entry);
 
