@@ -19,10 +19,10 @@
 
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import com.google.common.io.BaseEncoding;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Signature data parser.
@@ -55,8 +55,8 @@ public class SignatureDataParser {
         }
         final String method = parts[0];
         try {
-            final String uriIdentifier = new String(BaseEncoding.base64().decode(parts[1]), StandardCharsets.UTF_8);
-            final String body = new String(BaseEncoding.base64().decode(parts[3]), StandardCharsets.UTF_8);
+            final String uriIdentifier = new String(Base64.getDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            final String body = new String(Base64.getDecoder().decode(parts[3]), StandardCharsets.UTF_8);
             return SignatureRequestData.builder()
                     .method(method)
                     .uriIdentifier(uriIdentifier)

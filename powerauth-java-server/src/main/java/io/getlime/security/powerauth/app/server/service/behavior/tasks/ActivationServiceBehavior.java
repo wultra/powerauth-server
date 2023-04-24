@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -871,7 +870,7 @@ public class ActivationServiceBehavior {
             }
 
             // Fetch the current activation by activation code
-            final Set<ActivationStatus> states = ImmutableSet.of(ActivationStatus.CREATED);
+            final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
             ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, timestamp);
 
@@ -1981,7 +1980,7 @@ public class ActivationServiceBehavior {
         final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
         logger.debug("Running scheduled task for expiring activations");
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ImmutableSet<ActivationStatus> activationStatuses = ImmutableSet.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
+        final Set<ActivationStatus> activationStatuses = Set.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
         try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());

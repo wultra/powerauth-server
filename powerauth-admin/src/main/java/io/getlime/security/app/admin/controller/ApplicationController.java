@@ -16,12 +16,8 @@
 
 package io.getlime.security.app.admin.controller;
 
-import com.google.common.collect.Lists;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.entity.Application;
-import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
-import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
-import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
+import com.wultra.security.powerauth.client.model.entity.*;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -121,7 +117,7 @@ public class ApplicationController {
             model.put("allowMultipleRecoveryCodes", recoveryConfig.isAllowMultipleRecoveryCodes());
             model.put("postcardPublicKey", recoveryConfig.getPostcardPublicKey());
             model.put("remotePostcardPublicKey", recoveryConfig.getRemotePostcardPublicKey());
-            model.put("versions", Lists.reverse(applicationDetails.getVersions()));
+            model.put("versions", reverse(applicationDetails.getVersions()));
             model.put("roles", applicationDetails.getApplicationRoles());
             model.put("callbacks", callbackUrlList.getCallbackUrlList());
             return "applicationDetail";
@@ -596,6 +592,12 @@ public class ApplicationController {
             httpAuthentication.setHttpBasic(httpBasicAuth);
         }
         return httpAuthentication;
+    }
+
+    private static <T> List<T> reverse(final List<T> source) {
+        final List<T> target = new ArrayList<>(source);
+        Collections.reverse(target);
+        return target;
     }
 
 }
