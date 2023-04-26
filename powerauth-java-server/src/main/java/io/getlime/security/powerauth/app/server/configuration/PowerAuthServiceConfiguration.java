@@ -212,6 +212,12 @@ public class PowerAuthServiceConfiguration {
     private boolean secureVaultBiometricAuthenticationEnabled;
 
     /**
+     * Length of OTP generated for proximity check.
+     */
+    @Value("${powerauth.service.proximity-check.otp.length}")
+    private int proximityCheckOtpLength;
+
+    /**
      * Prepare and configure object mapper.
      * @return Object mapper.
      */
@@ -623,5 +629,23 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSecureVaultBiometricAuthenticationEnabled(boolean secureVaultBiometricAuthenticationEnabled) {
         this.secureVaultBiometricAuthenticationEnabled = secureVaultBiometricAuthenticationEnabled;
+    }
+
+    /**
+     * Get length of OTP generated for proximity check.
+     *
+     * @return length of OTP
+     */
+    public int getProximityCheckOtpLength() {
+        return proximityCheckOtpLength;
+    }
+
+    /**
+     * Set length of OTP generated for proximity check.
+     *
+     * @param proximityCheckOtpLength length of OTP
+     */
+    public void setProximityCheckOtpLength(int proximityCheckOtpLength) {
+        this.proximityCheckOtpLength = proximityCheckOtpLength;
     }
 }

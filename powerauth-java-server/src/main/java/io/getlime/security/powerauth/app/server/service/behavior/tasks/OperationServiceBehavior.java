@@ -40,6 +40,9 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.totp.Totp;
 import jakarta.validation.constraints.NotNull;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -51,6 +54,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +66,8 @@ import java.util.stream.Stream;
  */
 @Service
 public class OperationServiceBehavior {
+
+    private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
@@ -543,8 +549,9 @@ public class OperationServiceBehavior {
         }
 
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-        // TODO Lubos generate TOTP
-        return convertFromEntity(operationEntity);
+        final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
+        operationDetailResponse.setTotp(generateTotp(operationEntity, powerAuthServiceConfiguration.getProximityCheckOtpLength()));
+        return operationDetailResponse;
     }
 
     public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
@@ -718,13 +725,34 @@ public class OperationServiceBehavior {
         return m3;
     }
 
-    private static String generateTotpSeed(final OperationCreateRequest request, final OperationTemplateEntity template) {
+    private static String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
+        final String seed = operation.getTotpSeed();
+        if (seed == null) {
+            return null;
+        }
+
+        try {
+            return new String(Totp.generateTotpSha256(Base64.getDecoder().decode(seed), LocalDateTime.now(), otpLength));
+        } catch (CryptoProviderException e) {
+            logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operation.getId(), operation.getUserId(), e);
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+        }
+    }
+
+    private static String generateTotpSeed(final OperationCreateRequest request, final OperationTemplateEntity template) throws GenericServiceException {
         if (Boolean.FALSE.equals(request.getProximityCheckEnabled())) {
-            logger.debug("Proximity check is disabled in request from userId={}", request.getUserId());
+            logger.debug("Proximity check is disabled in request from user ID: {}", request.getUserId());
             return null;
         } else if (Boolean.TRUE.equals(request.getProximityCheckEnabled()) || template.isProximityCheckEnabled()) {
-            logger.debug("Proximity check is enabled, generating TOTP seed for userId={}, templateName={}", request.getUserId(), template.getTemplateName());
-            // TODO Lubos generate TOTP seed
+            logger.debug("Proximity check is enabled, generating TOTP seed for user ID: {}, templateName: {}", request.getUserId(), template.getTemplateName());
+            final KeyGenerator keyGenerator = new KeyGenerator();
+            try {
+                final byte[] seed = keyGenerator.generateRandomBytes(PROXIMITY_OTP_SEED_LENGTH);
+                return Base64.getEncoder().encodeToString(seed);
+            } catch (CryptoProviderException e) {
+                logger.error("Unable to generate proximity OTP seed for operation, user ID: {}", request.getUserId(), e);
+                throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+            }
         }
         return null;
     }
