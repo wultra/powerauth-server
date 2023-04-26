@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.client.model.response;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -52,5 +53,11 @@ public class OperationDetailResponse {
     private Date timestampExpires;
     private Date timestampFinalized;
     private String riskFlags;
+
+    /**
+     * TOTP for proximity check (if enabled) valid for the current time step.
+     */
+    @ToString.Exclude
+    private String totp;
 
 }

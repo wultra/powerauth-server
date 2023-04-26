@@ -178,6 +178,7 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampExpires(timestampExpires);
         operationEntity.setTimestampFinalized(null); // empty initially
         operationEntity.setRiskFlags(templateEntity.getRiskFlags());
+        operationEntity.setTotpSeed(generateTotpSeed(request, templateEntity));
 
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type("operation")
@@ -542,6 +543,7 @@ public class OperationServiceBehavior {
         }
 
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        // TODO Lubos generate TOTP
         return convertFromEntity(operationEntity);
     }
 
@@ -714,6 +716,17 @@ public class OperationServiceBehavior {
             m3.putAll(m2);
         }
         return m3;
+    }
+
+    private static String generateTotpSeed(final OperationCreateRequest request, final OperationTemplateEntity template) {
+        if (Boolean.FALSE.equals(request.getProximityCheckEnabled())) {
+            logger.debug("Proximity check is disabled in request from userId={}", request.getUserId());
+            return null;
+        } else if (Boolean.TRUE.equals(request.getProximityCheckEnabled()) || template.isProximityCheckEnabled()) {
+            logger.debug("Proximity check is enabled, generating TOTP seed for userId={}, templateName={}", request.getUserId(), template.getTemplateName());
+            // TODO Lubos generate TOTP seed
+        }
+        return null;
     }
 
     // Scheduled tasks
