@@ -2341,7 +2341,7 @@ REST endpoint: `POST /rest/v3/operation/template/create`
 | `String`              | `operationType`           | The type of the operation that is created based on the template                  |
 | `String`              | `dataTemplate`            | Template for the operation data                                                  |
 | `List<SignatureType>` | `signatureType`           | Allowed signature types                                                          |
-| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for th operation                      |
+| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
 | `Long`                | `expiration`              | Operation expiration period in seconds                                           |
 | `String`              | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
 | `boolean`             | `proximity_check_enabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
