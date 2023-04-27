@@ -44,6 +44,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.totp.Totp;
 import jakarta.validation.constraints.NotNull;
+import lombok.SneakyThrows;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.text.StringSubstitutor;
@@ -551,7 +552,7 @@ public class OperationServiceBehavior {
 
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
-        operationDetailResponse.setTotp(generateTotp(operationEntity, powerAuthServiceConfiguration.getProximityCheckOtpLength()));
+        generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
     }
 
@@ -597,7 +598,9 @@ public class OperationServiceBehavior {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
                 if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-                    result.add(convertFromEntity(operationEntity));
+                    final OperationDetailResponse operationDetail = convertFromEntity(operationEntity);
+                    generateAndSetOtpToOperationDetail(operationEntity, operationDetail);
+                    result.add(operationDetail);
                 }
             });
         }
@@ -726,6 +729,11 @@ public class OperationServiceBehavior {
         return m3;
     }
 
+    @SneakyThrows(GenericServiceException.class)
+    private void generateAndSetOtpToOperationDetail(final OperationEntity operation, final OperationDetailResponse operationDetailResponse) {
+        operationDetailResponse.setTotp(generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength()));
+    }
+
     private static String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
         final String seed = operation.getTotpSeed();
         if (seed == null) {
@@ -762,7 +770,7 @@ public class OperationServiceBehavior {
         if (operation.getTotpSeed() == null) {
             return true;
         }
-        final String otp = request.getAdditionalData().get("proximity_otp"); // TODO Lubos - constant, better name, import static additional data correct?
+        final String otp = request.getAdditionalData().get("proximity_otp"); // TODO Lubos - constant, better name, is additional data correct?
         if (otp == null) {
             logger.info("Proximity check enabled for operation ID: {} but OTP not sent", operation.getId());
             return false;
