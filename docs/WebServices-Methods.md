@@ -2194,13 +2194,14 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationApproveRequest`
 
-| Type            | Name | Description |
-|-----------------|------|-------------|
-| `String`        | `operationId` | The identifier of the operation |
-| `String`        | `userId` | The identifier of the user who attempts to approve the operation |
-| `String`        | `applicationId` | The identifier of the application |
-| `String`        | `data` | Operation data that the user attempts to approve |
-| `SignatureType` | `signatureType` | Signature type used when approving the operation |
+| Type                  | Name             | Description                                                      |
+|-----------------------|------------------|------------------------------------------------------------------|
+| `String`              | `operationId`    | The identifier of the operation                                  |
+| `String`              | `userId`         | The identifier of the user who attempts to approve the operation |
+| `String`              | `applicationId`  | The identifier of the application                                |
+| `String`              | `data`           | Operation data that the user attempts to approve                 |
+| `SignatureType`       | `signatureType`  | Signature type used when approving the operation                 |
+| `Map<String, String>` | `additionalData` | Operation context, such as the IP address of the caller          |
 
 #### Response
 

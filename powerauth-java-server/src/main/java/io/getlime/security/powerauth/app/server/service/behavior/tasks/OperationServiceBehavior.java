@@ -248,7 +248,8 @@ public class OperationServiceBehavior {
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
-            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
+            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
+            && proximityCheckPassed(operationEntity, request)){
 
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.APPROVED);
@@ -755,6 +756,25 @@ public class OperationServiceBehavior {
             }
         }
         return null;
+    }
+
+    private static boolean proximityCheckPassed(final OperationEntity operation, final OperationApproveRequest request) {
+        if (operation.getTotpSeed() == null) {
+            return true;
+        }
+        final String otp = request.getAdditionalData().get("proximity_otp"); // TODO Lubos - constant, better name, import static additional data correct?
+        if (otp == null) {
+            logger.info("Proximity check enabled for operation ID: {} but OTP not sent", operation.getId());
+            return false;
+        }
+        try {
+            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(operation.getTotpSeed()), LocalDateTime.now());
+            logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
+            return result;
+        } catch (CryptoProviderException e) {
+            logger.error("Unable to validate OTP for operation ID: {}", operation.getId(), e);
+            return false;
+        }
     }
 
     // Scheduled tasks
