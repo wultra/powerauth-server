@@ -731,7 +731,8 @@ public class OperationServiceBehavior {
 
     @SneakyThrows(GenericServiceException.class)
     private void generateAndSetOtpToOperationDetail(final OperationEntity operation, final OperationDetailResponse operationDetailResponse) {
-        operationDetailResponse.setTotp(generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength()));
+        final String totp = generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength());
+        operationDetailResponse.setTotp(totp);
     }
 
     private static String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {

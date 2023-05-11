@@ -22,12 +22,14 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -40,6 +42,11 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties("ext")
 @Validated
 public class PowerAuthServiceConfiguration {
+
+    /**
+     * Minimal value for {@link #proximityCheckOtpLength}.
+     */
+    private static final int MINIMAL_PROXIMITY_CHECK_OTP_LENGTH = 6;
 
     /**
      * When asking for server status, this variable will be returned as application
@@ -647,5 +654,11 @@ public class PowerAuthServiceConfiguration {
      */
     public void setProximityCheckOtpLength(int proximityCheckOtpLength) {
         this.proximityCheckOtpLength = proximityCheckOtpLength;
+    }
+
+    @PostConstruct
+    void validate() {
+        Assert.state(proximityCheckOtpLength >= MINIMAL_PROXIMITY_CHECK_OTP_LENGTH,
+                "Proximity check OTP length %d is smaller then required minimal %d".formatted(proximityCheckOtpLength, MINIMAL_PROXIMITY_CHECK_OTP_LENGTH));
     }
 }
