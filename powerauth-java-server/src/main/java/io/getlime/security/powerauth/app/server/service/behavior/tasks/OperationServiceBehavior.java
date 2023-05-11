@@ -737,12 +737,15 @@ public class OperationServiceBehavior {
     private static String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
         final String seed = operation.getTotpSeed();
         if (seed == null) {
+            logger.debug("Seed is null for operation ID: {}", operation.getId());
             return null;
         }
 
         try {
-            return new String(Totp.generateTotpSha256(Base64.getDecoder().decode(seed), LocalDateTime.now(), otpLength));
-        } catch (CryptoProviderException e) {
+            byte[] seedBytes = Base64.getDecoder().decode(seed);
+            byte[] totp = Totp.generateTotpSha256(seedBytes, LocalDateTime.now(), otpLength);
+            return new String(totp);
+        } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operation.getId(), operation.getUserId(), e);
             throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
         }
@@ -763,6 +766,7 @@ public class OperationServiceBehavior {
                 throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
             }
         }
+        logger.debug("Proximity check not enabled neither in request user ID: {} nor in templateName: {}", request.getUserId(), template.getTemplateName());
         return null;
     }
 
@@ -772,14 +776,14 @@ public class OperationServiceBehavior {
         }
         final String otp = request.getAdditionalData().get("proximity_otp"); // TODO Lubos - constant, better name, is additional data correct?
         if (otp == null) {
-            logger.info("Proximity check enabled for operation ID: {} but OTP not sent", operation.getId());
+            logger.warn("Proximity check enabled for operation ID: {} but OTP not sent", operation.getId());
             return false;
         }
         try {
             boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(operation.getTotpSeed()), LocalDateTime.now());
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
             return result;
-        } catch (CryptoProviderException e) {
+        } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to validate OTP for operation ID: {}", operation.getId(), e);
             return false;
         }

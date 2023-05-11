@@ -214,7 +214,7 @@ public class PowerAuthServiceConfiguration {
     /**
      * Length of OTP generated for proximity check.
      */
-    @Value("${powerauth.service.proximity-check.otp.length:6}")
+    @Value("${powerauth.service.proximity-check.otp.length:8}")
     private int proximityCheckOtpLength;
 
     /**

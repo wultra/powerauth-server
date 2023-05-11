@@ -34,7 +34,7 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.service.recovery.maxFailedAttempts`                | `5`       | Maximum failed attempts for activation recovery                           |
 | `powerauth.service.secureVault.enableBiometricAuthentication` | `false`   | Whether biometric authentication is enabled when accessing Secure Vault   |
 | `powerauth.server.db.master.encryption.key`                   | `_empty_` | Master DB encryption key for decryption of server private key in database |
-| `powerauth.service.proximity-check.otp.length`                | `6`       | Length of OTP generated for proximity check                               |
+| `powerauth.service.proximity-check.otp.length`                | `8`       | Length of OTP generated for proximity check                               |
 
 ## HTTP Configuration
 
