@@ -58,6 +58,6 @@ public class OperationDetailResponse {
      * TOTP for proximity check (if enabled) valid for the current time step.
      */
     @ToString.Exclude
-    private String totp;
+    private String proximityOtp;
 
 }

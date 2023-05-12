@@ -69,6 +69,7 @@ import java.util.stream.Stream;
 public class OperationServiceBehavior {
 
     private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
+    private static final String PROXIMITY_OTP = "proximity_otp";
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
@@ -732,7 +733,7 @@ public class OperationServiceBehavior {
     @SneakyThrows(GenericServiceException.class)
     private void generateAndSetOtpToOperationDetail(final OperationEntity operation, final OperationDetailResponse operationDetailResponse) {
         final String totp = generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength());
-        operationDetailResponse.setTotp(totp);
+        operationDetailResponse.setProximityOtp(totp);
     }
 
     private static String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
@@ -775,9 +776,9 @@ public class OperationServiceBehavior {
         if (operation.getTotpSeed() == null) {
             return true;
         }
-        final String otp = request.getAdditionalData().get("proximity_otp"); // TODO Lubos - constant, better name, is additional data correct?
+        final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otp == null) {
-            logger.warn("Proximity check enabled for operation ID: {} but OTP not sent", operation.getId());
+            logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
             return false;
         }
         try {
@@ -785,7 +786,7 @@ public class OperationServiceBehavior {
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
             return result;
         } catch (CryptoProviderException | IllegalArgumentException e) {
-            logger.error("Unable to validate OTP for operation ID: {}", operation.getId(), e);
+            logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
             return false;
         }
     }

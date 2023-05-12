@@ -2026,7 +2026,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
 | `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
 | `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `String`              | `totp`               | TOTP for proximity check (if enabled) valid for the current time step.           |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
 
 ### Method 'findPendingOperationsForUser'
 
@@ -2067,7 +2067,7 @@ A collection of records with the following structure:
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
 | `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
 | `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `String`              | `totp`               | TOTP for proximity check (if enabled) valid for the current time step.           |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
 
 ### Method 'findAllOperationsForUser'
 

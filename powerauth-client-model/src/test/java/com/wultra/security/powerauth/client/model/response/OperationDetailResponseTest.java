@@ -31,7 +31,7 @@ class OperationDetailResponseTest {
     @Test
     void testToString() {
         final OperationDetailResponse tested = new OperationDetailResponse();
-        tested.setTotp("top secret");
+        tested.setProximityOtp("top secret");
 
         final String result = tested.toString();
 
