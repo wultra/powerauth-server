@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
+import com.wultra.core.http.common.request.RequestContext;
+import com.wultra.core.http.common.request.RequestContextConverter;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -54,6 +56,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -736,19 +740,26 @@ public class OperationServiceBehavior {
         operationDetailResponse.setProximityOtp(totp);
     }
 
-    private static String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
+    private String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
         final String seed = operation.getTotpSeed();
+        final String operationId = operation.getId();
+
         if (seed == null) {
-            logger.debug("Seed is null for operation ID: {}", operation.getId());
+            logger.debug("Seed is null for operation ID: {}", operationId);
             return null;
         }
 
         try {
             byte[] seedBytes = Base64.getDecoder().decode(seed);
-            byte[] totp = Totp.generateTotpSha256(seedBytes, LocalDateTime.now(), otpLength);
+            final LocalDateTime now = LocalDateTime.now();
+            byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
+
+            final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
+            audit.log(AuditLevel.INFO, "Proximity OTP generated for operation ID: {}", auditDetail, operationId);
+
             return new String(totp);
         } catch (CryptoProviderException | IllegalArgumentException e) {
-            logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operation.getId(), operation.getUserId(), e);
+            logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operationId, operation.getUserId(), e);
             throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
         }
     }
@@ -772,23 +783,51 @@ public class OperationServiceBehavior {
         return null;
     }
 
-    private static boolean proximityCheckPassed(final OperationEntity operation, final OperationApproveRequest request) {
-        if (operation.getTotpSeed() == null) {
+    private boolean proximityCheckPassed(final OperationEntity operation, final OperationApproveRequest request) {
+        final String seed = operation.getTotpSeed();
+        if (seed == null) {
             return true;
         }
+
         final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otp == null) {
             logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
             return false;
         }
         try {
-            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(operation.getTotpSeed()), LocalDateTime.now());
+            final LocalDateTime now = LocalDateTime.now();
+            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(seed), now);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
+
+            final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
+            audit.log(AuditLevel.INFO, "Proximity OTP verified with result: {} for operation ID: {}", auditDetail, result, operation.getId());
+
             return result;
         } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
             return false;
         }
+    }
+
+    private static AuditDetail createProximityOtpAuditDetail(final OperationEntity operation, final String seed, final LocalDateTime now) {
+        final Optional<RequestContext> requestContext = fetchRequestContext();
+        return AuditDetail.builder()
+                .type("proximityOtp")
+                .param("id", operation.getId())
+                .param("userId", operation.getUserId())
+                .param("seed", seed)
+                .param("time", now)
+                .param("ipAddress", requestContext.map(RequestContext::getIpAddress).orElse("n/a"))
+                .param("userAgent", requestContext.map(RequestContext::getUserAgent).orElse("n/a"))
+                .build();
+    }
+
+    private static Optional<RequestContext> fetchRequestContext() {
+        final ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (requestAttributes == null) {
+            return Optional.empty();
+        }
+        return Optional.of(RequestContextConverter.convert(requestAttributes.getRequest()));
     }
 
     // Scheduled tasks
