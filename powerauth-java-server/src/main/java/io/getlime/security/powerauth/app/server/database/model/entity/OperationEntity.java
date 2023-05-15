@@ -108,6 +108,12 @@ public class OperationEntity implements Serializable {
     private String riskFlags;
 
     /**
+     * Optional TOTP seed used for proximity check, base64 encoded.
+     */
+    @Column(name = "totp_seed")
+    private String totpSeed;
+
+    /**
      * Get operation ID.
      * @return Operation ID.
      */
@@ -397,6 +403,24 @@ public class OperationEntity implements Serializable {
         this.riskFlags = riskFlags;
     }
 
+    /**
+     * Get TOTP seed, base64 encoded.
+     *
+     * @return TOTP seed.
+     */
+    public String getTotpSeed() {
+        return totpSeed;
+    }
+
+    /**
+     * Set TOTP sees, base64 encoded.
+     *
+     * @param totpSeed TOTP seed.
+     */
+    public void setTotpSeed(String totpSeed) {
+        this.totpSeed = totpSeed;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -410,13 +434,14 @@ public class OperationEntity implements Serializable {
                 && data.equals(that.data)
                 && Objects.equals(parameters, that.parameters)
                 && Objects.equals(additionalData, that.additionalData)
-                && Objects.equals(riskFlags, that.riskFlags);
+                && Objects.equals(riskFlags, that.riskFlags)
+                && Objects.equals(totpSeed, that.totpSeed);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData, riskFlags
+                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData, riskFlags, totpSeed
         );
     }
 

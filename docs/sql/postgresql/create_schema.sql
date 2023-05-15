@@ -227,21 +227,23 @@ CREATE TABLE pa_operation (
     timestamp_created     TIMESTAMP NOT NULL,
     timestamp_expires     TIMESTAMP NOT NULL,
     timestamp_finalized   TIMESTAMP,
-    risk_flags            VARCHAR(255)
+    risk_flags            VARCHAR(255),
+    totp_seed             VARCHAR(24)
 );
 
 --
 -- DDL for Table PA_OPERATION_TEMPLATE
 --
 CREATE TABLE pa_operation_template (
-    id                    BIGINT NOT NULL PRIMARY KEY,
-    template_name         VARCHAR(255) NOT NULL,
-    operation_type        VARCHAR(255) NOT NULL,
-    data_template         VARCHAR(255) NOT NULL,
-    signature_type        VARCHAR(255) NOT NULL,
-    max_failure_count     BIGINT NOT NULL,
-    expiration            BIGINT NOT NULL,
-    risk_flags            VARCHAR(255)
+    id                      BIGINT       NOT NULL PRIMARY KEY,
+    template_name           VARCHAR(255) NOT NULL,
+    operation_type          VARCHAR(255) NOT NULL,
+    data_template           VARCHAR(255) NOT NULL,
+    signature_type          VARCHAR(255) NOT NULL,
+    max_failure_count       BIGINT       NOT NULL,
+    expiration              BIGINT       NOT NULL,
+    risk_flags              VARCHAR(255),
+    proximity_check_enabled BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
 --

@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
+import com.wultra.core.http.common.request.RequestContext;
+import com.wultra.core.http.common.request.RequestContextConverter;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -40,7 +42,11 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.totp.Totp;
 import jakarta.validation.constraints.NotNull;
+import lombok.SneakyThrows;
 import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.text.StringSubstitutor;
@@ -50,7 +56,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -62,6 +71,9 @@ import java.util.stream.Stream;
  */
 @Service
 public class OperationServiceBehavior {
+
+    private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
+    private static final String PROXIMITY_OTP = "proximity_otp";
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
@@ -178,6 +190,7 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampExpires(timestampExpires);
         operationEntity.setTimestampFinalized(null); // empty initially
         operationEntity.setRiskFlags(templateEntity.getRiskFlags());
+        operationEntity.setTotpSeed(generateTotpSeed(request, templateEntity));
 
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type("operation")
@@ -241,7 +254,8 @@ public class OperationServiceBehavior {
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
-            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
+            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
+            && proximityCheckPassed(operationEntity, request)){
 
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.APPROVED);
@@ -542,7 +556,9 @@ public class OperationServiceBehavior {
         }
 
         final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
-        return convertFromEntity(operationEntity);
+        final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
+        generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
+        return operationDetailResponse;
     }
 
     public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
@@ -587,7 +603,9 @@ public class OperationServiceBehavior {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
                 if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-                    result.add(convertFromEntity(operationEntity));
+                    final OperationDetailResponse operationDetail = convertFromEntity(operationEntity);
+                    generateAndSetOtpToOperationDetail(operationEntity, operationDetail);
+                    result.add(operationDetail);
                 }
             });
         }
@@ -714,6 +732,103 @@ public class OperationServiceBehavior {
             m3.putAll(m2);
         }
         return m3;
+    }
+
+    @SneakyThrows(GenericServiceException.class)
+    private void generateAndSetOtpToOperationDetail(final OperationEntity operation, final OperationDetailResponse operationDetailResponse) {
+        final String totp = generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength());
+        operationDetailResponse.setProximityOtp(totp);
+    }
+
+    private String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
+        final String seed = operation.getTotpSeed();
+        final String operationId = operation.getId();
+
+        if (seed == null) {
+            logger.debug("Seed is null for operation ID: {}", operationId);
+            return null;
+        }
+
+        try {
+            byte[] seedBytes = Base64.getDecoder().decode(seed);
+            final LocalDateTime now = LocalDateTime.now();
+            byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
+
+            final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
+            audit.log(AuditLevel.INFO, "Proximity OTP generated for operation ID: {}", auditDetail, operationId);
+
+            return new String(totp);
+        } catch (CryptoProviderException | IllegalArgumentException e) {
+            logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operationId, operation.getUserId(), e);
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+        }
+    }
+
+    private static String generateTotpSeed(final OperationCreateRequest request, final OperationTemplateEntity template) throws GenericServiceException {
+        if (Boolean.FALSE.equals(request.getProximityCheckEnabled())) {
+            logger.debug("Proximity check is disabled in request from user ID: {}", request.getUserId());
+            return null;
+        } else if (Boolean.TRUE.equals(request.getProximityCheckEnabled()) || template.isProximityCheckEnabled()) {
+            logger.debug("Proximity check is enabled, generating TOTP seed for user ID: {}, templateName: {}", request.getUserId(), template.getTemplateName());
+            final KeyGenerator keyGenerator = new KeyGenerator();
+            try {
+                final byte[] seed = keyGenerator.generateRandomBytes(PROXIMITY_OTP_SEED_LENGTH);
+                return Base64.getEncoder().encodeToString(seed);
+            } catch (CryptoProviderException e) {
+                logger.error("Unable to generate proximity OTP seed for operation, user ID: {}", request.getUserId(), e);
+                throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+            }
+        }
+        logger.debug("Proximity check not enabled neither in request user ID: {} nor in templateName: {}", request.getUserId(), template.getTemplateName());
+        return null;
+    }
+
+    private boolean proximityCheckPassed(final OperationEntity operation, final OperationApproveRequest request) {
+        final String seed = operation.getTotpSeed();
+        if (seed == null) {
+            return true;
+        }
+
+        final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
+        if (otp == null) {
+            logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
+            return false;
+        }
+        try {
+            final LocalDateTime now = LocalDateTime.now();
+            final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
+            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(seed), now, otpLength);
+            logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
+
+            final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
+            audit.log(AuditLevel.INFO, "Proximity OTP verified with result: {} for operation ID: {}", auditDetail, result, operation.getId());
+
+            return result;
+        } catch (CryptoProviderException | IllegalArgumentException e) {
+            logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
+            return false;
+        }
+    }
+
+    private static AuditDetail createProximityOtpAuditDetail(final OperationEntity operation, final String seed, final LocalDateTime now) {
+        final Optional<RequestContext> requestContext = fetchRequestContext();
+        return AuditDetail.builder()
+                .type("proximityOtp")
+                .param("id", operation.getId())
+                .param("userId", operation.getUserId())
+                .param("seed", seed)
+                .param("time", now)
+                .param("ipAddress", requestContext.map(RequestContext::getIpAddress).orElse("n/a"))
+                .param("userAgent", requestContext.map(RequestContext::getUserAgent).orElse("n/a"))
+                .build();
+    }
+
+    private static Optional<RequestContext> fetchRequestContext() {
+        final ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (requestAttributes == null) {
+            return Optional.empty();
+        }
+        return Optional.of(RequestContextConverter.convert(requestAttributes.getRequest()));
     }
 
     // Scheduled tasks

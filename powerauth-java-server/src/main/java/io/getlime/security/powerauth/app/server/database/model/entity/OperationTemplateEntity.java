@@ -67,11 +67,8 @@ public class OperationTemplateEntity implements Serializable {
     @Column(name = "risk_flags")
     private String riskFlags;
 
-    /**
-     * Default constructor.
-     */
-    public OperationTemplateEntity() {
-    }
+    @Column(name = "proximity_check_enabled")
+    private boolean proximityCheckEnabled;
 
     /**
      * Get template ID.
@@ -203,6 +200,24 @@ public class OperationTemplateEntity implements Serializable {
         this.riskFlags = riskFlags;
     }
 
+    /**
+     * Get whether proximity check enabled.
+     *
+     * @return Proximity check enabled.
+     */
+    public boolean isProximityCheckEnabled() {
+        return proximityCheckEnabled;
+    }
+
+    /**
+     * Set whether proximity check enabled.
+     *
+     * @param proximityCheckEnabled Proximity check enabled.
+     */
+    public void setProximityCheckEnabled(boolean proximityCheckEnabled) {
+        this.proximityCheckEnabled = proximityCheckEnabled;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof final OperationTemplateEntity that)) return false;
@@ -212,12 +227,13 @@ public class OperationTemplateEntity implements Serializable {
                 && Arrays.equals(signatureType, that.signatureType)
                 && Objects.equals(maxFailureCount, that.maxFailureCount)
                 && Objects.equals(expiration, that.expiration)
-                && Objects.equals(riskFlags, that.riskFlags);
+                && Objects.equals(riskFlags, that.riskFlags)
+                && Objects.equals(proximityCheckEnabled, that.proximityCheckEnabled);
     }
 
     @Override public int hashCode() {
         int result = Objects.hash(
-                templateName, operationType, dataTemplate, maxFailureCount, expiration, riskFlags
+                templateName, operationType, dataTemplate, maxFailureCount, expiration, riskFlags, proximityCheckEnabled
         );
         result = 31 * result + Arrays.hashCode(signatureType);
         return result;
@@ -233,6 +249,7 @@ public class OperationTemplateEntity implements Serializable {
                 ", maxFailureCount=" + maxFailureCount +
                 ", expiration=" + expiration +
                 ", riskFlags=" + riskFlags +
+                ", proximityCheckEnabled=" + proximityCheckEnabled +
                 '}';
     }
 }

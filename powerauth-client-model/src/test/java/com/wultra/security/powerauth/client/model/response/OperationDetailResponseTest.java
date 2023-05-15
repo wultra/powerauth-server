@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,30 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.wultra.security.powerauth.client.model.response;
 
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import lombok.Data;
+import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 /**
- * Model object representing operation template.
+ * Test for {@link OperationDetailResponse}.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@Data
-public class OperationTemplateDetailResponse {
+class OperationDetailResponseTest {
 
-    private Long id;
-    private String templateName;
-    private String operationType;
-    private String dataTemplate;
-    private List<SignatureType> signatureType;
-    private Long maxFailureCount;
-    private Long expiration;
-    private String riskFlags;
-    private boolean proximityCheckEnabled;
+    @Test
+    void testToString() {
+        final OperationDetailResponse tested = new OperationDetailResponse();
+        tested.setProximityOtp("top secret");
 
+        final String result = tested.toString();
+
+        assertFalse(result.contains("top secret"));
+    }
 }
