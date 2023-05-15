@@ -796,7 +796,8 @@ public class OperationServiceBehavior {
         }
         try {
             final LocalDateTime now = LocalDateTime.now();
-            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(seed), now);
+            final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
+            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(seed), now, otpLength);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
 
             final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
