@@ -48,6 +48,7 @@ public class OperationTemplateConverter {
         destination.setMaxFailureCount(source.getMaxFailureCount());
         destination.setExpiration(source.getExpiration());
         destination.setRiskFlags(source.getRiskFlags());
+        destination.setProximityCheckEnabled(source.isProximityCheckEnabled());
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
@@ -72,6 +73,7 @@ public class OperationTemplateConverter {
         original.setMaxFailureCount(source.getMaxFailureCount());
         original.setExpiration(source.getExpiration());
         original.setRiskFlags(source.getRiskFlags());
+        original.setProximityCheckEnabled(source.isProximityCheckEnabled());
 
         final List<PowerAuthSignatureTypes> signatureTypes = new ArrayList<>();
         for (final SignatureType type : source.getSignatureType()) {
@@ -95,6 +97,7 @@ public class OperationTemplateConverter {
         destination.setExpiration(source.getExpiration());
         destination.setMaxFailureCount(source.getMaxFailureCount());
         destination.setRiskFlags(source.getRiskFlags());
+        destination.setProximityCheckEnabled(source.isProximityCheckEnabled());
         final List<SignatureType> signatureTypesResponse = new ArrayList<>();
         for (final PowerAuthSignatureTypes type : source.getSignatureType()) {
             final SignatureType signatureType = SignatureType.enumFromString(type.toString());

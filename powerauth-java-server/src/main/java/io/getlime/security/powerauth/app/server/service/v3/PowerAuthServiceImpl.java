@@ -1814,24 +1814,26 @@ public class PowerAuthServiceImpl implements PowerAuthService {
         if (error != null) {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
+
+        final String operationId = request.getOperationId();
         try {
             logger.info("OperationApproveRequest received, operation ID: {}, user ID: {}, application ID: {}, signatureType: {}",
-                    request.getOperationId(),
+                    operationId,
                     request.getUserId(),
                     request.getApplicationId(),
                     request.getSignatureType()
             );
             final OperationUserActionResponse response = behavior.getOperationBehavior().attemptApproveOperation(request);
-            logger.info("OperationApproveRequest succeeded");
+            logger.info("OperationApproveRequest succeeded, operation ID: {}", operationId);
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
         } catch (RuntimeException | Error ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            logger.error("Runtime exception or error occurred, transaction will be rolled back, operation ID: {}", operationId, ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
+            logger.error("Unknown error occurred, operation ID: {}", operationId, ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
