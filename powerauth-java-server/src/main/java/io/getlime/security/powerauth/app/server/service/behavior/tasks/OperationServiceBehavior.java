@@ -59,6 +59,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -757,7 +758,7 @@ public class OperationServiceBehavior {
             final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
             audit.log(AuditLevel.INFO, "Proximity OTP generated for operation ID: {}", auditDetail, operationId);
 
-            return new String(totp);
+            return new String(totp, StandardCharsets.UTF_8);
         } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operationId, operation.getUserId(), e);
             throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
@@ -797,7 +798,7 @@ public class OperationServiceBehavior {
         try {
             final LocalDateTime now = LocalDateTime.now();
             final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
-            boolean result = Totp.validateTotpSha256(otp.getBytes(), Base64.getDecoder().decode(seed), now, otpLength);
+            final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
 
             final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
