@@ -45,6 +45,8 @@ public class GetActivationStatusResponse {
     private String platform;
     private String deviceInfo;
     private String applicationId;
+    private Long failedAttempts;
+    private Long maxFailedAttempts;
     private Date timestampCreated;
     private Date timestampLastUsed;
     private Date timestampLastChange;
@@ -60,5 +62,6 @@ public class GetActivationStatusResponse {
     private String devicePublicKeyFingerprint;
     private long version;
     private List<String> activationFlags = new ArrayList<>();
+    private List<String> applicationRoles = new ArrayList<>();
 
 }
