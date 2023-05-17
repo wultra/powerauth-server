@@ -29,9 +29,9 @@ Report for unique users in past 30 days (monthly active users = MAU).
 - Parameters:
   - `application` - specifies for what application should the report be generated
 - Report data:
-    - `application` - specifies for what application the report was generated
-    - `days` - constant value `30`
-    - `users` - number of unique active users in past 30 days
+  - `application` - specifies for what application the report was generated
+  - `days` - constant value `30`
+  - `users` - number of unique active users in past 30 days
 
 ### Unique Active Users In Past Days
 
@@ -39,12 +39,12 @@ Report for the unique users in specified number of days since today.
 
 - Report name: `USERS_IN_PAST_DAYS`
 - Parameters:
-    - `application` - specifies for what application should the report be generated
-    - `days` - how many days back in the past the report should look, at most 365 
+  - `application` - specifies for what application should the report be generated
+  - `days` - how many days back in the past the report should look, at most 365 
 - Report data:
-    - `application` - specifies for what application the report was generated
-    - `days` - for how many days the report was generated
-    - `users` - number of unique active users in given number of days
+  - `application` - specifies for what application the report was generated
+  - `days` - for how many days the report was generated
+  - `users` - number of unique active users in given number of days
 
 <!-- begin api POST /rest/v3/telemetry/report -->
 ### Generate Telemetry Report
