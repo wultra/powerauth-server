@@ -180,4 +180,16 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampActivationExpire >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
+
+    /**
+     * Return number of unique users who used given application between specified dates. The comparison includes results that
+     * have last used timestamps in exact match with provided timestamps (closed interval).
+     * @param applicationId Application ID.
+     * @param fromDate Starting date.
+     * @param toDate Ending date.
+     * @return Number of unique users.
+     */
+    @Query("SELECT COUNT(DISTINCT a.userId) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.timestampLastUsed >= :fromDate AND a.timestampLastUsed <= :toDate")
+    int uniqueUserCountForApplicationBetweenDates(String applicationId, Date fromDate, Date toDate);
+
 }

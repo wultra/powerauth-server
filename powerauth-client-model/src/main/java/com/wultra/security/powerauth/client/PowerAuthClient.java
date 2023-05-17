@@ -2072,4 +2072,22 @@ public interface PowerAuthClient {
      */
     Response removeOperationTemplate(OperationTemplateDeleteRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
+    /**
+     * Request telemetry report.
+     * @param request Report specification.
+     * @return Report data.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request) throws PowerAuthClientException;
+
+    /**
+     * Request telemetry report.
+     * @param request Report specification.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Report data.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
 }
