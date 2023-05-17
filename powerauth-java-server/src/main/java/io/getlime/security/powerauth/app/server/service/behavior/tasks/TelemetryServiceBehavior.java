@@ -101,7 +101,7 @@ public class TelemetryServiceBehavior {
         final Date toDate = new Date();
         final Date fromDate = new Date(Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli());
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final int userCount = activationRepository.uniqueUserCountForApplicationBetweenDates(applicationId, fromDate, toDate);
+        final long userCount = activationRepository.uniqueUserCountForApplicationBetweenDates(applicationId, fromDate, toDate);
         final TelemetryReportResponse response = new TelemetryReportResponse();
         response.setName(reportName);
         response.getReportData().put(RESULT_APPLICATION, applicationId);

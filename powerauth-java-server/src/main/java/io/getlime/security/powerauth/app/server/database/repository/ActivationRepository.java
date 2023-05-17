@@ -190,6 +190,6 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Number of unique users.
      */
     @Query("SELECT COUNT(DISTINCT a.userId) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.timestampLastUsed >= :fromDate AND a.timestampLastUsed <= :toDate")
-    int uniqueUserCountForApplicationBetweenDates(String applicationId, Date fromDate, Date toDate);
+    long uniqueUserCountForApplicationBetweenDates(String applicationId, Date fromDate, Date toDate);
 
 }
