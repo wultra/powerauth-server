@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Configuration
-@ComponentScan(basePackages = {"com.wultra.core.audit.base"})
+@ComponentScan(basePackages = {"com.wultra.core.audit.base", "com.wultra.powerauth.fido2"})
 public class PowerAuthAuditConfiguration {
 
     private final AuditFactory auditFactory;

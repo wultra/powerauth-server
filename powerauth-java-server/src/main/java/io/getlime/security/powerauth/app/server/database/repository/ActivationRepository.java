@@ -180,4 +180,15 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampActivationExpire >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
+
+    /**
+     * Find all activations for given user ID
+     *
+     * @param applicationId Application ID.
+     * @param externalId External authenticatorId
+     * @return List of activations for given user
+     */
+    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.externalId = :externalId")
+    List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId);
+
 }

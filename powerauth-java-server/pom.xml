@@ -113,6 +113,11 @@
             <groupId>io.getlime.core</groupId>
             <artifactId>audit-base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2</artifactId>
+            <version>1.5.0-SNAPSHOT</version>
+        </dependency>
 
         <!-- Documentation -->
         <dependency>

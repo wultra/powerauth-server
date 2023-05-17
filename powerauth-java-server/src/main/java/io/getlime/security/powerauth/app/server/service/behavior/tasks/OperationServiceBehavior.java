@@ -237,13 +237,15 @@ public class OperationServiceBehavior {
 
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
-        if (operationEntity.getUserId().equals(userId) // correct user approved the operation
+        final String expectedUserId = operationEntity.getUserId();
+        if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user approved the operation, or no prior user was set
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
 
             // Approve the operation
+            operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.APPROVED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -274,6 +276,7 @@ public class OperationServiceBehavior {
             final Long maxFailureCount = operationEntity.getMaxFailureCount();
 
             if (failureCount < maxFailureCount) {
+                operationEntity.setUserId(userId);
                 operationEntity.setFailureCount(failureCount);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
@@ -299,6 +302,7 @@ public class OperationServiceBehavior {
                 response.setOperation(operationDetailResponse);
                 return response;
             } else {
+                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.FAILED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
@@ -360,10 +364,12 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
         }
 
-        if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
+        final String expectedUserId = operationEntity.getUserId();
+        if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user approved the operation, or no prior user was set
                 && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
             // Reject the operation
+            operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.REJECTED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));

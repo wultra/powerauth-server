@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
@@ -256,8 +257,10 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setActivationId(activation.getActivationId());
                 activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
                 activationServiceItem.setBlockedReason(activation.getBlockedReason());
+                activationServiceItem.setExternalId(activation.getExternalId());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setProtocol(activation.getProtocol());
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.getActivationFlags().addAll(activation.getFlags());
@@ -268,6 +271,9 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setApplicationId(activation.getApplication().getId());
                 // Unknown version is converted to 0 in service
                 activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
+                activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
+                activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
                 response.getActivations().add(activationServiceItem);
             }
         }
@@ -320,8 +326,10 @@ public class ActivationServiceBehavior {
             activationServiceItem.setActivationId(activation.getActivationId());
             activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             activationServiceItem.setBlockedReason(activation.getBlockedReason());
+            activationServiceItem.setExternalId(activation.getExternalId());
             activationServiceItem.setActivationName(activation.getActivationName());
             activationServiceItem.setExtras(activation.getExtras());
+            activationServiceItem.setProtocol(activation.getProtocol());
             activationServiceItem.setPlatform(activation.getPlatform());
             activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
             activationServiceItem.getActivationFlags().addAll(activation.getFlags());
@@ -332,6 +340,9 @@ public class ActivationServiceBehavior {
             activationServiceItem.setApplicationId(activation.getApplication().getId());
             // Unknown version is converted to 0 in service
             activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+            activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
+            activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
+            activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
             response.getActivations().add(activationServiceItem);
         }
 
@@ -619,7 +630,7 @@ public class ActivationServiceBehavior {
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
+    public InitActivationResponse initActivation(Protocols protocols, String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
                                                  com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, String activationOtp, List<String> flags,
                                                  KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
@@ -743,12 +754,14 @@ public class ActivationServiceBehavior {
             activation.setActivationCode(activationCode);
             activation.setActivationOtpValidation(activationOtpValidationConverter.convertTo(activationOtpValidation));
             activation.setActivationOtp(activationOtpHash);
+            activation.setExternalId(null);
             activation.setActivationName(null);
             activation.setActivationStatus(ActivationStatus.CREATED);
             activation.setCounter(0L);
             activation.setCtrDataBase64(null);
             activation.setDevicePublicKeyBase64(null);
             activation.setExtras(null);
+            activation.setProtocol(protocols.toString());
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
@@ -914,6 +927,7 @@ public class ActivationServiceBehavior {
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
+            activation.setExternalId(request.getExternalId());
             activation.setExtras(request.getExtras());
             if (request.getPlatform() != null) {
                 activation.setPlatform(request.getPlatform().toLowerCase());
@@ -1042,7 +1056,7 @@ public class ActivationServiceBehavior {
             final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
 
             // Create an activation record and obtain the activation database record
-            final InitActivationResponse initResponse = this.initActivation(applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
+            final InitActivationResponse initResponse = this.initActivation(Protocols.POWERAUTH, applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
             final String activationId = initResponse.getActivationId();
             final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
@@ -1108,6 +1122,7 @@ public class ActivationServiceBehavior {
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(request.getActivationName());
+            activation.setExternalId(request.getExternalId());
             activation.setExtras(request.getExtras());
             if (request.getPlatform() != null) {
                 activation.setPlatform(request.getPlatform().toLowerCase());
@@ -1713,6 +1728,7 @@ public class ActivationServiceBehavior {
             // Initialize version 3 activation entity.
             // Parameter maxFailureCount can be customized, activationExpireTime is null because activation is committed immediately.
             final InitActivationResponse initResponse = initActivation(
+                    Protocols.POWERAUTH,
                     applicationId,
                     recoveryCodeEntity.getUserId(),
                     maxFailureCount,
@@ -1748,6 +1764,7 @@ public class ActivationServiceBehavior {
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConversion.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(layer2Request.getActivationName());
+            activation.setExternalId(layer2Request.getExternalId());
             activation.setExtras(layer2Request.getExtras());
             if (layer2Request.getPlatform() != null) {
                 activation.setPlatform(layer2Request.getPlatform().toLowerCase());
@@ -1969,6 +1986,45 @@ public class ActivationServiceBehavior {
         }
     }
 
+    public List<Activation> findByExternalId(String applicationId, String externalId) {
+        final Date timestamp = new Date();
+        final List<ActivationRecordEntity> activationsList = repositoryCatalogue.getActivationRepository().findByExternalId(applicationId, externalId);
+
+        final List<Activation> result = new ArrayList<>();
+
+        if (activationsList != null) {
+            for (ActivationRecordEntity activation : activationsList) {
+
+                deactivatePendingActivation(timestamp, activation, false);
+
+                // Map between database object and service objects
+                final Activation activationServiceItem = new Activation();
+                activationServiceItem.setActivationId(activation.getActivationId());
+                activationServiceItem.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+                activationServiceItem.setBlockedReason(activation.getBlockedReason());
+                activationServiceItem.setExternalId(activation.getExternalId());
+                activationServiceItem.setActivationName(activation.getActivationName());
+                activationServiceItem.setExtras(activation.getExtras());
+                activationServiceItem.setProtocol(activation.getProtocol());
+                activationServiceItem.setPlatform(activation.getPlatform());
+                activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
+                activationServiceItem.getActivationFlags().addAll(activation.getFlags());
+                activationServiceItem.setTimestampCreated(activation.getTimestampCreated());
+                activationServiceItem.setTimestampLastUsed(activation.getTimestampLastUsed());
+                activationServiceItem.setTimestampLastChange(activation.getTimestampLastChange());
+                activationServiceItem.setUserId(activation.getUserId());
+                activationServiceItem.setApplicationId(activation.getApplication().getId());
+                // Unknown version is converted to 0 in service
+                activationServiceItem.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
+                activationServiceItem.setFailedAttempts(activation.getFailedAttempts());
+                activationServiceItem.setMaxFailedAttempts(activation.getMaxFailedAttempts());
+                activationServiceItem.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
+                result.add(activationServiceItem);
+            }
+        }
+        return result;
+    }
+
     // Scheduled tasks
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
@@ -1988,5 +2044,4 @@ public class ActivationServiceBehavior {
             });
         }
     }
-
 }

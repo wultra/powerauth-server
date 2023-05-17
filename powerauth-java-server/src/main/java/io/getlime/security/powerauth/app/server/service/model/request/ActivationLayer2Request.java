@@ -28,6 +28,7 @@ public class ActivationLayer2Request {
     private String devicePublicKey;
     private String activationOtp;
     private String activationName;
+    private String externalId;
     private String extras;
     private String platform;
     private String deviceInfo;
@@ -36,18 +37,6 @@ public class ActivationLayer2Request {
      * Default constructor.
      */
     public ActivationLayer2Request() {
-    }
-
-    /**
-     * Parameterized constructor.
-     * @param devicePublicKey Device public key.
-     * @param activationName Activation name.
-     * @param extras Activation extras.
-     */
-    public ActivationLayer2Request(String devicePublicKey, String activationName, String extras) {
-        this.devicePublicKey = devicePublicKey;
-        this.activationName = activationName;
-        this.extras = extras;
     }
 
     /**
@@ -96,6 +85,23 @@ public class ActivationLayer2Request {
      */
     public void setActivationName(String activationName) {
         this.activationName = activationName;
+    }
+
+    /**
+     * Get external ID.
+     *
+     * @return External ID.
+     */
+    public String getExternalId() {
+        return externalId;
+    }
+
+    /**
+     * Set external ID.
+     * @param externalId External ID.
+     */
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     /**

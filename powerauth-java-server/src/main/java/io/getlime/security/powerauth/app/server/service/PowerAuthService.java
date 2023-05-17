@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.client.model.validator.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -257,6 +258,7 @@ public class PowerAuthService {
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
         try {
+            final Protocols protocol = request.getProtocol();
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             final Long maxFailedCount = request.getMaxFailureCount();
@@ -265,6 +267,7 @@ public class PowerAuthService {
             final String activationOtp = request.getActivationOtp();
             logger.info("InitActivationRequest received, user ID: {}, application ID: {}", userId, applicationId);
             final InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(
+                    protocol,
                     applicationId,
                     userId,
                     maxFailedCount,
