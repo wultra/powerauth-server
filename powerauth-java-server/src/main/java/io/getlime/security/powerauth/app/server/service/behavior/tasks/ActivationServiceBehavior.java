@@ -392,7 +392,8 @@ public class ActivationServiceBehavior {
                 // Deactivate old pending activations first
                 deactivatePendingActivation(timestamp, activation, false);
 
-                final String applicationId = activation.getApplication().getId();
+                final ApplicationEntity application = activation.getApplication();
+                final String applicationId = application.getId();
 
                 // Handle CREATED activation
                 if (activation.getActivationStatus() == ActivationStatus.CREATED) {
@@ -427,6 +428,8 @@ public class ActivationServiceBehavior {
                     response.setActivationName(activation.getActivationName());
                     response.setExtras(activation.getExtras());
                     response.setApplicationId(applicationId);
+                    response.setFailedAttempts(activation.getFailedAttempts());
+                    response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     response.setTimestampCreated(activation.getTimestampCreated());
                     response.setTimestampLastUsed(activation.getTimestampLastUsed());
                     response.setTimestampLastChange(activation.getTimestampLastChange());
@@ -438,6 +441,7 @@ public class ActivationServiceBehavior {
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
+                    response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -539,6 +543,8 @@ public class ActivationServiceBehavior {
                     response.setUserId(activation.getUserId());
                     response.setExtras(activation.getExtras());
                     response.setApplicationId(applicationId);
+                    response.setFailedAttempts(activation.getFailedAttempts());
+                    response.setMaxFailedAttempts(activation.getMaxFailedAttempts());
                     response.setTimestampCreated(activation.getTimestampCreated());
                     response.setTimestampLastUsed(activation.getTimestampLastUsed());
                     response.setTimestampLastChange(activation.getTimestampLastChange());
@@ -550,6 +556,7 @@ public class ActivationServiceBehavior {
                     response.setPlatform(activation.getPlatform());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
+                    response.getApplicationRoles().addAll(application.getRoles());
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
@@ -581,6 +588,8 @@ public class ActivationServiceBehavior {
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);
                 response.setTimestampLastChange(null);
+                response.setFailedAttempts(0L);
+                response.setMaxFailedAttempts(powerAuthServiceConfiguration.getSignatureMaxFailedAttempts());
                 response.setEncryptedStatusBlob(Base64.getEncoder().encodeToString(randomStatusBlob));
                 response.setEncryptedStatusBlobNonce(randomStatusBlobNonce);
                 response.setActivationCode(null);
