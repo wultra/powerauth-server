@@ -587,7 +587,7 @@ REST endpoint: `POST /rest/v3/activation/status`
 | `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                              |
 | `String[]`                | `activationFlags`            | Activation flags                                                                          |
 | `String`                  | `applicationId`              | An identifier fo an application                                                           |
-| `String[]`                | `application roles`          | Application roles                                                                         |
+| `String[]`                | `applicationRoles`           | Application roles                                                                         |
 | `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                               |
 | `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                             |
 | `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                              |
