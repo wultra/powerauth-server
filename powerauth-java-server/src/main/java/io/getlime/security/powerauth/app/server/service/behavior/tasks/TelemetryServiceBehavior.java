@@ -99,7 +99,7 @@ public class TelemetryServiceBehavior {
         }
 
         final Date toDate = new Date();
-        final Date fromDate = new Date(Instant.now().minus(days, ChronoUnit.DAYS).toEpochMilli());
+        final Date fromDate = Date.from(Instant.now().minus(days, ChronoUnit.DAYS));
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final long userCount = activationRepository.uniqueUserCountForApplicationBetweenDates(applicationId, fromDate, toDate);
         final TelemetryReportResponse response = new TelemetryReportResponse();
