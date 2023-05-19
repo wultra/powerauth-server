@@ -25,11 +25,11 @@ import java.io.Serial;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class UnknownTelemetryReportNameException extends Throwable {
+public class TelemetryReportException extends Throwable {
     @Serial
     private static final long serialVersionUID = 8770243960531807727L;
 
-    public UnknownTelemetryReportNameException(String message) {
+    public TelemetryReportException(String message) {
         super(message);
     }
 }

@@ -22,7 +22,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.app.server.service.exceptions.UnknownTelemetryReportNameException;
+import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -48,8 +48,8 @@ public class RESTControllerAdvice {
      * @return Activation recovery error.
      */
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    @ExceptionHandler(value = UnknownTelemetryReportNameException.class)
-    public @ResponseBody ObjectResponse<PowerAuthError> handleUnknownTelemetryReportNameException(UnknownTelemetryReportNameException ex) {
+    @ExceptionHandler(value = TelemetryReportException.class)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleUnknownTelemetryReportNameException(TelemetryReportException ex) {
         logger.error("Error occurred while processing the request: {}", ex.getMessage());
         logger.debug("Exception details:", ex);
         final PowerAuthError error = new PowerAuthError();

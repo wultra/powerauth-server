@@ -21,7 +21,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.security.powerauth.client.model.response.TelemetryReportResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.service.exceptions.UnknownTelemetryReportNameException;
+import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +61,7 @@ public class TelemetryServiceBehavior {
         this.repositoryCatalogue = repositoryCatalogue;
     }
 
-    public TelemetryReportResponse report(String reportName, Map<String, Object> parameters) throws UnknownTelemetryReportNameException {
+    public TelemetryReportResponse report(String reportName, Map<String, Object> parameters) throws TelemetryReportException {
         switch (reportName.toUpperCase()) {
             case CURRENT_MAU -> {
                 final Map<String, Object> updatedParameters = new HashMap<>(parameters);
@@ -72,7 +72,7 @@ public class TelemetryServiceBehavior {
                 return reportUsersInPastDays(USERS_IN_PAST_DAYS, parameters);
             }
             default -> {
-                throw new UnknownTelemetryReportNameException("Unknown report name: " + reportName);
+                throw new TelemetryReportException("Unknown report name: " + reportName);
             }
         }
     }
@@ -83,19 +83,19 @@ public class TelemetryServiceBehavior {
      * @param parameters Report parameters.
      * @return Number of unique app users in specified period.
      */
-    private TelemetryReportResponse reportUsersInPastDays(String reportName, Map<String, Object> parameters) throws UnknownTelemetryReportNameException {
+    private TelemetryReportResponse reportUsersInPastDays(String reportName, Map<String, Object> parameters) throws TelemetryReportException {
         final Integer days = (Integer) parameters.get(PARAM_DAYS);
         final String applicationId = (String) parameters.get(PARAM_APPLICATION);
 
         // Validate report parameters are present
         if (days == null) {
-            throw new UnknownTelemetryReportNameException("Missing parameter 'days'.");
+            throw new TelemetryReportException("Missing parameter 'days'.");
         }
         if (days > 365) {
-            throw new UnknownTelemetryReportNameException("The parameter 'days' must be smaller than 365. Provided: " + days);
+            throw new TelemetryReportException("The parameter 'days' must be smaller than 365. Provided: " + days);
         }
         if (applicationId == null) {
-            throw new UnknownTelemetryReportNameException("Missing parameter 'application'.");
+            throw new TelemetryReportException("Missing parameter 'application'.");
         }
 
         final Date toDate = new Date();

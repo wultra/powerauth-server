@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.client.model.response.TelemetryReportRespon
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.TelemetryServiceBehavior;
-import io.getlime.security.powerauth.app.server.service.exceptions.UnknownTelemetryReportNameException;
+import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +51,7 @@ public class TelemetryController {
     }
 
     @PostMapping("report")
-    public ObjectResponse<TelemetryReportResponse> report(@Valid @RequestBody ObjectRequest<TelemetryReportRequest> request) throws UnknownTelemetryReportNameException {
+    public ObjectResponse<TelemetryReportResponse> report(@Valid @RequestBody ObjectRequest<TelemetryReportRequest> request) throws TelemetryReportException {
         final TelemetryReportRequest requestObject = request.getRequestObject();
         final String reportName = requestObject.getName();
         final Map<String, Object> parameters = requestObject.getParameters();
