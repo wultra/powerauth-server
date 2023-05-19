@@ -1435,4 +1435,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
         return callV3RestApi("/operation/template/remove", request, queryParams, httpHeaders, Response.class);
     }
 
+    @Override
+    public TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request) throws PowerAuthClientException {
+        return requestTelemetryReport(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    public TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/telemetry/report", request, queryParams, httpHeaders, TelemetryReportResponse.class);
+    }
+
 }
