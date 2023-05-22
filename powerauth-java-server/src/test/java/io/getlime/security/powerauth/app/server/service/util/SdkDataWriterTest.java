@@ -19,10 +19,11 @@
 
 package io.getlime.security.powerauth.app.server.service.util;
 
+import org.bouncycastle.util.encoders.Base64;
 import org.junit.jupiter.api.Test;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,28 +36,35 @@ public class SdkDataWriterTest {
 
     @Test
     public void testCountWrite() {
-        final Map<Integer, String> values = new LinkedHashMap<>();
-        values.put(0, "00");
-        values.put(1, "01");
-        values.put(127, "7F");
-        values.put(128, "8080");
-        values.put(16383, "BFFF");
-        values.put(16384, "C0004000");
-        values.put(1073741823, "FFFFFFFF");
-        values.forEach((key, value) -> {
+        final String countsGeneratedBySdk = "AAF/gICA/4EAgQG//8AAQADAAP//wAEAAMD////BAAAAwQIDBP////8=";
+        final SdkDataReader readerSdk = new SdkDataReader(Base64.decode(countsGeneratedBySdk));
+        final List<Long> expectedCounts = new ArrayList<>();
+        expectedCounts.add(0L);
+        expectedCounts.add(1L);
+        expectedCounts.add(0x7FL);
+        expectedCounts.add(0x80L);
+        expectedCounts.add(0xFFL);
+        expectedCounts.add(0x100L);
+        expectedCounts.add(0x101L);
+        expectedCounts.add(0x3FFFL);
+        expectedCounts.add(0x4000L);
+        expectedCounts.add(0xFFFFL);
+        expectedCounts.add(0x10000L);
+        expectedCounts.add(0xFFFFFFL);
+        expectedCounts.add(0x1000000L);
+        expectedCounts.add(0x1020304L);
+        expectedCounts.add(0x3FFFFFFFL);
+        expectedCounts.forEach(countExpected -> {
+            final int countExpectedFromSdk = readerSdk.readCount();
             // Attempt to write value into serialized data, compare with expected hex value
             final SdkDataWriter sdkDataWriter = new SdkDataWriter();
-            sdkDataWriter.writeCount(key);
+            sdkDataWriter.writeCount(Math.toIntExact(countExpected));
             byte[] serialized = sdkDataWriter.getSerializedData();
-            StringBuilder result = new StringBuilder();
-            for (byte b : serialized) {
-                result.append(String.format("%02X", b));
-            }
-            assertEquals(value, result.toString());
-            // Attempt to read value from serialized data, it should match the key
+            // Attempt to read value from serialized data, it should match the expected count from SDK
             final SdkDataReader sdkDataReader = new SdkDataReader(serialized);
-            int count = sdkDataReader.readCount();
-            assertEquals(key, count);
+            int countDeserialized = sdkDataReader.readCount();
+            assertEquals(countExpected, countDeserialized);
+            assertEquals(countExpectedFromSdk, countDeserialized);
         });
     }
 
