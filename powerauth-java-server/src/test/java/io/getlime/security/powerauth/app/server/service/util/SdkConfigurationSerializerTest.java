@@ -36,7 +36,7 @@ public class SdkConfigurationSerializerTest {
         final String appKey = "w4+hAeogFLTZjcSjPwbG2g==";
         final String appSecret = "Szls/7JWbKN+FAOijHcsPA==";
         final String masterPublicKey = "BEEOwljSgItBIAnzr3f7K36s+KKoUzC8LE+K+7Dy0X6iAkcPXAjLP1KKPxdqyM/iihHAcW5x/WzJPCbtytcJo2w=";
-        final String expectedValue = "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUFBBEEOwljSgItBIAnzr3f7K36s+KKoUzC8LE+K+7Dy0X6iAkcPXAjLP1KKPxdqyM/iihHAcW5x/WzJPCbtytcJo2w=";
+        final String expectedValue = "ARDDj6EB6iAUtNmNxKM/BsbaEEs5bP+yVmyjfhQDoox3LDwBAUEEQQ7CWNKAi0EgCfOvd/srfqz4oqhTMLwsT4r7sPLRfqICRw9cCMs/Uoo/F2rIz+KKEcBxbnH9bMk8Ju3K1wmjbA==";
         final String serialized = SdkConfigurationSerializer.serialize(new SdkConfiguration(appKey, appSecret, masterPublicKey));
         assertEquals(expectedValue, serialized);
         final SdkConfiguration config = SdkConfigurationSerializer.deserialize(serialized);

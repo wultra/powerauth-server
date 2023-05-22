@@ -60,7 +60,6 @@ public class SdkConfigurationSerializer {
         writer.writeCount(1);
         writer.writeByte(MASTER_PUBLIC_KEY_CRYPTO_V3);
         final byte[] publicKeyBytes = Base64.getDecoder().decode(masterPublicKeyBase64);
-        writer.writeCount(publicKeyBytes.length);
         writer.writeData(publicKeyBytes);
         return Base64.getEncoder().encodeToString(writer.getSerializedData());
     }
@@ -90,12 +89,7 @@ public class SdkConfigurationSerializer {
             // Invalid key ID
             return null;
         }
-        final int keySize = reader.readCount();
-        if (keySize != 65) {
-            // Invalid public key size
-            return null;
-        }
-        final byte[] masterPublicKey = reader.readData(keySize);
+        final byte[] masterPublicKey = reader.readData(0);
         final String appKeyBase64 = Base64.getEncoder().encodeToString(appKey);
         final String appSecretBase64 = Base64.getEncoder().encodeToString(appSecret);
         final String masterPublicKeyBase64 = Base64.getEncoder().encodeToString(masterPublicKey);
