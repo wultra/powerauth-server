@@ -36,7 +36,7 @@ public class SdkDataWriterTest {
 
     @Test
     public void testCountWrite() {
-        final String countsGeneratedBySdk = "AAF/gICA/4EAgQG//8AAQADAAP//wAEAAMD////BAAAAwQIDBP////8=";
+        final String countsGeneratedBySdk = "AAF/gICA/4EAgQG//8AAQADAAP//wAEAAMD////BAAAAwQIDBNAgMED/////";
         final SdkDataReader readerSdk = new SdkDataReader(Base64.decode(countsGeneratedBySdk));
         final List<Long> expectedCounts = new ArrayList<>();
         expectedCounts.add(0L);
@@ -53,6 +53,7 @@ public class SdkDataWriterTest {
         expectedCounts.add(0xFFFFFFL);
         expectedCounts.add(0x1000000L);
         expectedCounts.add(0x1020304L);
+        expectedCounts.add(0x10203040L);
         expectedCounts.add(0x3FFFFFFFL);
         expectedCounts.forEach(countExpected -> {
             final int countExpectedFromSdk = readerSdk.readCount();
