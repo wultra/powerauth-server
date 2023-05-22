@@ -141,6 +141,7 @@
                             <xs:element name="applicationVersionId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationKey" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="applicationSecret" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                            <xs:element name="mobileSdkConfig" type="xs:string" minOccurs="1" maxOccurs="1"/>
                             <xs:element name="supported" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
                         </xs:sequence>
                     </xs:complexType>

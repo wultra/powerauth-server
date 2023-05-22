@@ -78,6 +78,7 @@
                                                             <th>Version</th>
                                                             <th>Application Key</th>
                                                             <th>Application Secret</th>
+                                                            <th>Mobile SDK Config</th>
                                                             <th>Supported</th>
                                                             <th>Actions</th>
                                                         </tr>
@@ -96,14 +97,20 @@
                                                                     </c:choose>
                                                                 </td>
                                                                 <td class="text-nowrap">
-                                                                    <c:out value="${item.applicationKey}"/>
+                                                                    <c:out value="${fn:substring(item.applicationKey, 0, 8)}..."/>
                                                                     <button class="btn btn-default btn-table btn-clipboard" type="button" data-clipboard-text="<c:out value="${item.applicationKey}"/>">
                                                                         <span class="glyphicon glyphicon-copy"></span>
                                                                     </button>
                                                                 </td>
                                                                 <td class="text-nowrap">
-                                                                    <c:out value="${item.applicationSecret}"/>
+                                                                    <c:out value="${fn:substring(item.applicationSecret, 0, 8)}..."/>
                                                                     <button class="btn btn-default btn-table btn-clipboard" type="button" data-clipboard-text="<c:out value="${item.applicationSecret}"/>">
+                                                                        <span class="glyphicon glyphicon-copy"></span>
+                                                                    </button>
+                                                                </td>
+                                                                <td class="text-nowrap">
+                                                                    <c:out value="${fn:substring(item.mobileSdkConfig, 0, 8)}..."/>
+                                                                    <button class="btn btn-default btn-table btn-clipboard" type="button" data-clipboard-text="<c:out value="${item.mobileSdkConfig}"/>">
                                                                         <span class="glyphicon glyphicon-copy"></span>
                                                                     </button>
                                                                 </td>

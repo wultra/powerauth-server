@@ -32,6 +32,8 @@ public class ApplicationVersion {
     private String applicationKey;
     @ToString.Exclude
     private String applicationSecret;
+    @ToString.Exclude
+    private String mobileSdkConfig;
     private boolean supported;
 
 }
