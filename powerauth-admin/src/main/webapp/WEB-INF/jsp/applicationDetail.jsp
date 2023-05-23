@@ -47,24 +47,7 @@
                                             </div>
                                         </div>
 
-                                        <div class="col-sm-4">
-                                            <div class="panel panel-default">
-                                                <div class="panel-heading">
-                                                    <h3 class="panel-title btn-sm pull-left">Master Server Public Key</h3>
-                                                    <button class="btn btn-default btn-clipboard pull-right" type="button" data-clipboard-text="<c:out value="${masterPublicKey}"/>">
-                                                        <span class="glyphicon glyphicon-copy"></span>
-                                                    </button>
-                                                    <div class="clearfix"></div>
-                                                </div>
-                                                <div class="panel-body">
-                                                    <div class="code wrap">
-                                                        <c:out value="${masterPublicKey}"/>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-sm-8">
+                                        <div class="col-sm-12">
                                             <div class="panel panel-default">
                                                 <div class="panel-heading">
                                                     <h3 class="panel-title btn-sm pull-left">Application Versions</h3>
@@ -76,8 +59,6 @@
                                                         <thead>
                                                         <tr>
                                                             <th>Version</th>
-                                                            <th>Application Key</th>
-                                                            <th>Application Secret</th>
                                                             <th>Mobile SDK Config</th>
                                                             <th>Supported</th>
                                                             <th>Actions</th>
@@ -96,20 +77,8 @@
                                                                         </c:otherwise>
                                                                     </c:choose>
                                                                 </td>
-                                                                <td class="text-nowrap">
-                                                                    <c:out value="${fn:substring(item.applicationKey, 0, 8)}..."/>
-                                                                    <button class="btn btn-default btn-table btn-clipboard" type="button" data-clipboard-text="<c:out value="${item.applicationKey}"/>">
-                                                                        <span class="glyphicon glyphicon-copy"></span>
-                                                                    </button>
-                                                                </td>
-                                                                <td class="text-nowrap">
-                                                                    <c:out value="${fn:substring(item.applicationSecret, 0, 8)}..."/>
-                                                                    <button class="btn btn-default btn-table btn-clipboard" type="button" data-clipboard-text="<c:out value="${item.applicationSecret}"/>">
-                                                                        <span class="glyphicon glyphicon-copy"></span>
-                                                                    </button>
-                                                                </td>
-                                                                <td class="text-nowrap">
-                                                                    <c:out value="${fn:substring(item.mobileSdkConfig, 0, 8)}..."/>
+                                                                <td>
+                                                                    <c:out value="${fn:substring(item.mobileSdkConfig, 0, 50)}..."/>
                                                                     <button class="btn btn-default btn-table btn-clipboard" type="button" data-clipboard-text="<c:out value="${item.mobileSdkConfig}"/>">
                                                                         <span class="glyphicon glyphicon-copy"></span>
                                                                     </button>
@@ -131,7 +100,7 @@
                                                                                 <input type="hidden" name="enabled" value="false"/>
                                                                                 <input type="hidden" name="version" value="<c:out value="${item.applicationVersionId}"/>"/>
                                                                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                                                                <input type="submit" value="Disable" class="btn btn-sm btn-danger pull-right btn-table"/>
+                                                                                <input type="submit" value="Disable" class="btn btn-sm btn-danger btn-table"/>
                                                                             </form>
                                                                         </c:when>
                                                                         <c:otherwise>
@@ -139,7 +108,7 @@
                                                                                 <input type="hidden" name="enabled" value="true"/>
                                                                                 <input type="hidden" name="version" value="<c:out value="${item.applicationVersionId}"/>"/>
                                                                                 <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}"/>
-                                                                                <input type="submit" value="Enable" class="btn btn-sm btn-default pull-right btn-table"/>
+                                                                                <input type="submit" value="Enable" class="btn btn-sm btn-default btn-table"/>
                                                                             </form>
                                                                         </c:otherwise>
                                                                     </c:choose>
