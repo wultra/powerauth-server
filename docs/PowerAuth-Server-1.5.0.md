@@ -18,6 +18,19 @@ Make sure that you use dialect without version.
 # spring.jpa.database-platform=org.hibernate.dialect.OracleDialect
 ```
 
+## Support for PowerAuth Protocol Version 3.2
+
+This release adds support for PowerAuth protocol version 3.2, which adds several enhancements:
+- Simplified configuration of PowerAuth Mobile SDK
+- Protection against replay attacks in ECIES scheme
+- Time synchronization between PowerAuth mobile SDK and server
+
+### Simplified Configuration of PowerAuth Mobile SDK. 
+
+You can use the `mobileSdkConfig` value from `POST /rest/v3/application/detail`, see [REST API documentation](https://github.com/wultra/powerauth-server/blob/develop/docs/WebServices-Methods.md#method-getapplicationdetail). This value contains encoded master public key, application key and application secret.
+
+Starting with version 1.5.x you can use this single configuration Base-64 encoded string for configuring the PowerAuth mobile SDK instead of using three separated configuration parameters.
+
 ## SOAP Removal
 
 In 1.5.x, we definitely removed the SOAP interface and only support RESTful API.
