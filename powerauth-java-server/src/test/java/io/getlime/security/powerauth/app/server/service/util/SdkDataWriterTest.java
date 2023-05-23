@@ -60,10 +60,10 @@ public class SdkDataWriterTest {
             // Attempt to write value into serialized data, compare with expected hex value
             final SdkDataWriter sdkDataWriter = new SdkDataWriter();
             sdkDataWriter.writeCount(Math.toIntExact(countExpected));
-            byte[] serialized = sdkDataWriter.getSerializedData();
+            final byte[] serialized = sdkDataWriter.getSerializedData();
             // Attempt to read value from serialized data, it should match the expected count from SDK
             final SdkDataReader sdkDataReader = new SdkDataReader(serialized);
-            int countDeserialized = sdkDataReader.readCount();
+            final int countDeserialized = sdkDataReader.readCount();
             assertEquals(countExpected, countDeserialized);
             assertEquals(countExpectedFromSdk, countDeserialized);
         });
@@ -75,4 +75,26 @@ public class SdkDataWriterTest {
         assertFalse(sdkDataWriter.writeCount(1073741824));
         assertEquals(0, sdkDataWriter.getSerializedData().length);
     }
+
+    @Test
+    public void testCountWriteInvalidMaxInt() {
+        final SdkDataWriter sdkDataWriter = new SdkDataWriter();
+        assertFalse(sdkDataWriter.writeCount(Integer.MAX_VALUE));
+        assertEquals(0, sdkDataWriter.getSerializedData().length);
+    }
+
+    @Test
+    public void testCountWriteInvalidNegative() {
+        final SdkDataWriter sdkDataWriter = new SdkDataWriter();
+        assertFalse(sdkDataWriter.writeCount(-1));
+        assertEquals(0, sdkDataWriter.getSerializedData().length);
+    }
+
+    @Test
+    public void testCountWriteInvalidMinInt() {
+        final SdkDataWriter sdkDataWriter = new SdkDataWriter();
+        assertFalse(sdkDataWriter.writeCount(Integer.MIN_VALUE));
+        assertEquals(0, sdkDataWriter.getSerializedData().length);
+    }
+
 }
