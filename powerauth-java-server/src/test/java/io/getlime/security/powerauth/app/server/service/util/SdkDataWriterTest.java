@@ -38,23 +38,23 @@ public class SdkDataWriterTest {
     public void testCountWrite() {
         final String countsGeneratedBySdk = "AAF/gICA/4EAgQG//8AAQADAAP//wAEAAMD////BAAAAwQIDBNAgMED/////";
         final SdkDataReader readerSdk = new SdkDataReader(Base64.decode(countsGeneratedBySdk));
-        final List<Long> expectedCounts = new ArrayList<>();
-        expectedCounts.add(0L);
-        expectedCounts.add(1L);
-        expectedCounts.add(0x7FL);
-        expectedCounts.add(0x80L);
-        expectedCounts.add(0xFFL);
-        expectedCounts.add(0x100L);
-        expectedCounts.add(0x101L);
-        expectedCounts.add(0x3FFFL);
-        expectedCounts.add(0x4000L);
-        expectedCounts.add(0xFFFFL);
-        expectedCounts.add(0x10000L);
-        expectedCounts.add(0xFFFFFFL);
-        expectedCounts.add(0x1000000L);
-        expectedCounts.add(0x1020304L);
-        expectedCounts.add(0x10203040L);
-        expectedCounts.add(0x3FFFFFFFL);
+        final List<Integer> expectedCounts = new ArrayList<>();
+        expectedCounts.add(0);
+        expectedCounts.add(1);
+        expectedCounts.add(0x7F);
+        expectedCounts.add(0x80);
+        expectedCounts.add(0xFF);
+        expectedCounts.add(0x100);
+        expectedCounts.add(0x101);
+        expectedCounts.add(0x3FFF);
+        expectedCounts.add(0x4000);
+        expectedCounts.add(0xFFFF);
+        expectedCounts.add(0x10000);
+        expectedCounts.add(0xFFFFFF);
+        expectedCounts.add(0x1000000);
+        expectedCounts.add(0x1020304);
+        expectedCounts.add(0x10203040);
+        expectedCounts.add(0x3FFFFFFF);
         expectedCounts.forEach(countExpected -> {
             final int countExpectedFromSdk = readerSdk.readCount();
             // Attempt to write value into serialized data, compare with expected hex value
