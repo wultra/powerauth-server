@@ -51,6 +51,30 @@ ALTER TABLE PA_SIGNATURE_AUDIT ADD COLUMN SIGNATURE_DATA_URI_ID VARCHAR2(255 CHA
 ALTER TABLE PA_SIGNATURE_AUDIT ADD COLUMN SIGNATURE_DATA_BODY CLOB;
 ```
 
+
+### Add Proximity Check Support
+
+Add following columns:
+- `pa_operation.totp_seed` - Optional TOTP seed used for proximity check, base64 encoded.
+- `pa_operation_template.proximity_check_enabled` - Whether proximity check should be used.
+
+
+#### PostgreSQL
+
+```sql
+ALTER TABLE pa_operation ADD COLUMN totp_seed VARCHAR(24);
+ALTER TABLE pa_operation_template ADD COLUMN proximity_check_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+```
+
+
+#### Oracle
+
+```sql
+ALTER TABLE PA_OPERATION ADD COLUMN TOTP_SEED VARCHAR2(24 CHAR);
+ALTER TABLE PA_OPERATION_TEMPLATE ADD COLUMN PROXIMITY_CHECK_ENABLED NUMBER(1, 0) DEFAULT 0 NOT NULL;
+```
+
+
 ### Drop MySQL Support
 
 Since version `1.5.0`, MySQL database is not supported anymore.
