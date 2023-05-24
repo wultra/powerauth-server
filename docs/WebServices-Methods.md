@@ -233,6 +233,7 @@ REST endpoint: `POST /rest/v3/application/detail`
 | `String`  | `applicationVersionId` | An identifier of an application version |
 | `String`  | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String`  | `applicationSecret` | An application secret associated with this version |
+| `String`  | `mobileSdkConfig` | PowerAuth mobile SDK configuration which includes encoded master public key, application key and application secret |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
 ### Method 'lookupApplicationByAppKey'
