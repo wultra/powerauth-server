@@ -56,8 +56,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -216,10 +215,8 @@ public class OperationServiceBehavior {
     }
 
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request) throws GenericServiceException {
-        final Date currentTimestamp = new Date();
-        final LocalDateTime currentLocalDateTime = currentTimestamp.toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime();
+        final Instant currentInstant = Instant.now();
+        final Date currentTimestamp = Date.from(currentInstant);
 
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
@@ -252,7 +249,7 @@ public class OperationServiceBehavior {
 
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
-        final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentLocalDateTime);
+        final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
 
         if (operationEntity.getUserId().equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
@@ -761,7 +758,7 @@ public class OperationServiceBehavior {
 
         try {
             byte[] seedBytes = Base64.getDecoder().decode(seed);
-            final LocalDateTime now = LocalDateTime.now();
+            final Instant now = Instant.now();
             byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
 
             return new String(totp, StandardCharsets.UTF_8);
@@ -794,7 +791,7 @@ public class OperationServiceBehavior {
         return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
     }
 
-    private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final LocalDateTime now) {
+    private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
         final String seed = operation.getTotpSeed();
         if (seed == null) {
             return ProximityCheckResult.DISABLED;
