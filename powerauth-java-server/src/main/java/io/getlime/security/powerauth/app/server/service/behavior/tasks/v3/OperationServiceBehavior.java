@@ -50,6 +50,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -182,7 +184,8 @@ public class OperationServiceBehavior {
                 .param("status", OperationStatusDo.PENDING.name())
                 .param("allowedSignatureType", templateEntity.getSignatureType())
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
-                .param("timestampExpires", timestampExpiration)
+                .param("timestampExpires", timestampExpires)
+                .param("proximityCheckEnabled", operationEntity.getTotpSeed() != null)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
@@ -193,7 +196,8 @@ public class OperationServiceBehavior {
     }
 
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request) throws GenericServiceException {
-        final Date currentTimestamp = new Date();
+        final Instant currentInstant = Instant.now();
+        final Date currentTimestamp = Date.from(currentInstant);
 
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
@@ -226,11 +230,14 @@ public class OperationServiceBehavior {
 
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
+        final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
+
         if (operationEntity.getUserId().equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
-            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount()) { // operation has sufficient attempts left (redundant check)
+            && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
+            && proximityCheckPassed(proximityCheckResult)){
 
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.APPROVED);
@@ -249,6 +256,8 @@ public class OperationServiceBehavior {
                     .param("status", operationEntity.getStatus().name())
                     .param("additionalData", operationEntity.getAdditionalData())
                     .param("failureCount", operationEntity.getFailureCount())
+                    .param("proximityCheckResult", proximityCheckResult)
+                    .param("currentTimestamp", currentTimestamp)
                     .build();
             audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
 
@@ -280,6 +289,8 @@ public class OperationServiceBehavior {
                         .param("status", operationEntity.getStatus().name())
                         .param("additionalData", operationEntity.getAdditionalData())
                         .param("failureCount", operationEntity.getFailureCount())
+                        .param("proximityCheckResult", proximityCheckResult)
+                        .param("currentTimestamp", currentTimestamp)
                         .build();
                 audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
 
@@ -308,6 +319,8 @@ public class OperationServiceBehavior {
                         .param("additionalData", operationEntity.getAdditionalData())
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("maxFailureCount", operationEntity.getMaxFailureCount())
+                        .param("proximityCheckResult", proximityCheckResult)
+                        .param("currentTimestamp", currentTimestamp)
                         .build();
                 audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
@@ -717,6 +730,78 @@ public class OperationServiceBehavior {
         return m3;
     }
 
+    @SneakyThrows(GenericServiceException.class)
+    private void generateAndSetOtpToOperationDetail(final OperationEntity operation, final OperationDetailResponse operationDetailResponse) {
+        final String totp = generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength());
+        operationDetailResponse.setProximityOtp(totp);
+    }
+
+    private String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
+        final String seed = operation.getTotpSeed();
+        final String operationId = operation.getId();
+
+        if (seed == null) {
+            logger.debug("Seed is null for operation ID: {}", operationId);
+            return null;
+        }
+
+        try {
+            byte[] seedBytes = Base64.getDecoder().decode(seed);
+            final Instant now = Instant.now();
+            byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
+
+            return new String(totp, StandardCharsets.UTF_8);
+        } catch (CryptoProviderException | IllegalArgumentException e) {
+            logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operationId, operation.getUserId(), e);
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+        }
+    }
+
+    private static String generateTotpSeed(final OperationCreateRequest request, final OperationTemplateEntity template) throws GenericServiceException {
+        if (Boolean.FALSE.equals(request.getProximityCheckEnabled())) {
+            logger.debug("Proximity check is disabled in request from user ID: {}", request.getUserId());
+            return null;
+        } else if (Boolean.TRUE.equals(request.getProximityCheckEnabled()) || template.isProximityCheckEnabled()) {
+            logger.debug("Proximity check is enabled, generating TOTP seed for user ID: {}, templateName: {}", request.getUserId(), template.getTemplateName());
+            final KeyGenerator keyGenerator = new KeyGenerator();
+            try {
+                final byte[] seed = keyGenerator.generateRandomBytes(PROXIMITY_OTP_SEED_LENGTH);
+                return Base64.getEncoder().encodeToString(seed);
+            } catch (CryptoProviderException e) {
+                logger.error("Unable to generate proximity OTP seed for operation, user ID: {}", request.getUserId(), e);
+                throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+            }
+        }
+        logger.debug("Proximity check not enabled neither in request user ID: {} nor in templateName: {}", request.getUserId(), template.getTemplateName());
+        return null;
+    }
+
+    private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult) {
+        return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
+    }
+
+    private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
+        final String seed = operation.getTotpSeed();
+        if (seed == null) {
+            return ProximityCheckResult.DISABLED;
+        }
+
+        final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
+        if (otp == null) {
+            logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
+            return ProximityCheckResult.FAILED;
+        }
+        try {
+            final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
+            final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength);
+            logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
+            return result ? ProximityCheckResult.SUCCESS : ProximityCheckResult.FAILED;
+        } catch (CryptoProviderException | IllegalArgumentException e) {
+            logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
+            return ProximityCheckResult.ERROR;
+        }
+    }
+
     // Scheduled tasks
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup:5000}")
@@ -729,5 +814,12 @@ public class OperationServiceBehavior {
         try (final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp)) {
             pendingOperations.forEach(op -> expireOperation(op, currentTimestamp));
         }
+    }
+
+    private enum ProximityCheckResult {
+        SUCCESS,
+        FAILED,
+        DISABLED,
+        ERROR
     }
 }
