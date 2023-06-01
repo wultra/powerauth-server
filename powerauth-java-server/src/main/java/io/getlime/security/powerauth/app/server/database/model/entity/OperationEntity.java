@@ -84,7 +84,6 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "signature_type", nullable = false)
     @Convert(converter = SignatureTypeConverter.class)
-    @Mutability(PowerAuthSignatureArrayConverterMutabilityPlan.class)
     private PowerAuthSignatureTypes[] signatureType;
 
     @Column(name = "failure_count", nullable = false)
