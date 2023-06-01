@@ -20,8 +20,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
-import com.wultra.core.http.common.request.RequestContext;
-import com.wultra.core.http.common.request.RequestContextConverter;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -56,11 +54,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -208,6 +204,7 @@ public class OperationServiceBehavior {
                 .param("allowedSignatureType", templateEntity.getSignatureType())
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
                 .param("timestampExpires", timestampExpires)
+                .param("proximityCheckEnabled", operationEntity.getTotpSeed() != null)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
@@ -218,7 +215,8 @@ public class OperationServiceBehavior {
     }
 
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request) throws GenericServiceException {
-        final Date currentTimestamp = new Date();
+        final Instant currentInstant = Instant.now();
+        final Date currentTimestamp = Date.from(currentInstant);
 
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
@@ -251,12 +249,14 @@ public class OperationServiceBehavior {
 
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
+        final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
+
         if (operationEntity.getUserId().equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
-            && proximityCheckPassed(operationEntity, request)){
+            && proximityCheckPassed(proximityCheckResult)){
 
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.APPROVED);
@@ -275,6 +275,8 @@ public class OperationServiceBehavior {
                     .param("status", operationEntity.getStatus().name())
                     .param("additionalData", operationEntity.getAdditionalData())
                     .param("failureCount", operationEntity.getFailureCount())
+                    .param("proximityCheckResult", proximityCheckResult)
+                    .param("currentTimestamp", currentTimestamp)
                     .build();
             audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
 
@@ -306,6 +308,8 @@ public class OperationServiceBehavior {
                         .param("status", operationEntity.getStatus().name())
                         .param("additionalData", operationEntity.getAdditionalData())
                         .param("failureCount", operationEntity.getFailureCount())
+                        .param("proximityCheckResult", proximityCheckResult)
+                        .param("currentTimestamp", currentTimestamp)
                         .build();
                 audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
 
@@ -334,6 +338,8 @@ public class OperationServiceBehavior {
                         .param("additionalData", operationEntity.getAdditionalData())
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("maxFailureCount", operationEntity.getMaxFailureCount())
+                        .param("proximityCheckResult", proximityCheckResult)
+                        .param("currentTimestamp", currentTimestamp)
                         .build();
                 audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
@@ -752,11 +758,8 @@ public class OperationServiceBehavior {
 
         try {
             byte[] seedBytes = Base64.getDecoder().decode(seed);
-            final LocalDateTime now = LocalDateTime.now();
+            final Instant now = Instant.now();
             byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
-
-            final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
-            audit.log(AuditLevel.INFO, "Proximity OTP generated for operation ID: {}", auditDetail, operationId);
 
             return new String(totp, StandardCharsets.UTF_8);
         } catch (CryptoProviderException | IllegalArgumentException e) {
@@ -784,52 +787,30 @@ public class OperationServiceBehavior {
         return null;
     }
 
-    private boolean proximityCheckPassed(final OperationEntity operation, final OperationApproveRequest request) {
+    private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult) {
+        return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
+    }
+
+    private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
         final String seed = operation.getTotpSeed();
         if (seed == null) {
-            return true;
+            return ProximityCheckResult.DISABLED;
         }
 
         final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
         if (otp == null) {
             logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
-            return false;
+            return ProximityCheckResult.FAILED;
         }
         try {
-            final LocalDateTime now = LocalDateTime.now();
             final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
-
-            final AuditDetail auditDetail = createProximityOtpAuditDetail(operation, seed, now);
-            audit.log(AuditLevel.INFO, "Proximity OTP verified with result: {} for operation ID: {}", auditDetail, result, operation.getId());
-
-            return result;
+            return result ? ProximityCheckResult.SUCCESS : ProximityCheckResult.FAILED;
         } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
-            return false;
+            return ProximityCheckResult.ERROR;
         }
-    }
-
-    private static AuditDetail createProximityOtpAuditDetail(final OperationEntity operation, final String seed, final LocalDateTime now) {
-        final Optional<RequestContext> requestContext = fetchRequestContext();
-        return AuditDetail.builder()
-                .type("proximityOtp")
-                .param("id", operation.getId())
-                .param("userId", operation.getUserId())
-                .param("seed", seed)
-                .param("time", now)
-                .param("ipAddress", requestContext.map(RequestContext::getIpAddress).orElse("n/a"))
-                .param("userAgent", requestContext.map(RequestContext::getUserAgent).orElse("n/a"))
-                .build();
-    }
-
-    private static Optional<RequestContext> fetchRequestContext() {
-        final ServletRequestAttributes requestAttributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-        if (requestAttributes == null) {
-            return Optional.empty();
-        }
-        return Optional.of(RequestContextConverter.convert(requestAttributes.getRequest()));
     }
 
     // Scheduled tasks
@@ -844,5 +825,12 @@ public class OperationServiceBehavior {
         try (final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp)) {
             pendingOperations.forEach(op -> expireOperation(op, currentTimestamp));
         }
+    }
+
+    private enum ProximityCheckResult {
+        SUCCESS,
+        FAILED,
+        DISABLED,
+        ERROR
     }
 }

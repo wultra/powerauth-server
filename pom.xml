@@ -135,12 +135,6 @@
                 <artifactId>rest-model-base</artifactId>
                 <version>${wultra-core.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>io.getlime.core</groupId>
-                <artifactId>http-common</artifactId>
-                <version>${wultra-core.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
