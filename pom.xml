@@ -137,12 +137,6 @@
                 <artifactId>powerauth-rest-client-spring</artifactId>
                 <version>${project.version}</version>
             </dependency>
-
-            <dependency>
-                <groupId>io.getlime.core</groupId>
-                <artifactId>http-common</artifactId>
-                <version>${wultra-core.version}</version>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -310,6 +304,5 @@
             </snapshots>
         </repository>
     </repositories>
-
 
 </project>
