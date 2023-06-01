@@ -72,12 +72,10 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "parameters")
     @Convert(converter = MapToJsonConverter.class)
-    @Mutability(MapConverterMutabilityPlan.class)
     private Map<String, String> parameters = new HashMap<>();
 
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
-    @Mutability(MapConverterMutabilityPlan.class)
     private Map<String, String> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
