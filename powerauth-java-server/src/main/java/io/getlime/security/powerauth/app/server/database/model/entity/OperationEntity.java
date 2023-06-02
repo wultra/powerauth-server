@@ -72,12 +72,10 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "parameters")
     @Convert(converter = MapToJsonConverter.class)
-    @Mutability(MapConverterMutabilityPlan.class)
     private Map<String, String> parameters = new HashMap<>();
 
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
-    @Mutability(MapConverterMutabilityPlan.class)
     private Map<String, String> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
@@ -86,7 +84,6 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "signature_type", nullable = false)
     @Convert(converter = SignatureTypeConverter.class)
-    @Mutability(PowerAuthSignatureArrayConverterMutabilityPlan.class)
     private PowerAuthSignatureTypes[] signatureType;
 
     @Column(name = "failure_count", nullable = false)
