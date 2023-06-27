@@ -40,11 +40,12 @@ import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.app.server.service.util.EciesDataUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -112,6 +113,7 @@ public class ActivationServiceBehavior {
     private final EciesFactory eciesFactory = new EciesFactory();
     private final ObjectMapper objectMapper;
     private final IdentifierGenerator identifierGenerator = new IdentifierGenerator();
+    private final KeyGenerator keyGenerator = new KeyGenerator();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
@@ -619,7 +621,7 @@ public class ActivationServiceBehavior {
      *
      * @param applicationId             Application ID
      * @param userId                    User ID
-     * @param maxFailureCount            Maximum failed attempt count (5)
+     * @param maxFailureCount           Maximum failed attempt count (5)
      * @param activationExpireTimestamp Timestamp after which activation can no longer be completed
      * @param activationOtpValidation   Activation OTP validation mode
      * @param activationOtp             Activation OTP
@@ -817,12 +819,15 @@ public class ActivationServiceBehavior {
      *
      * @param activationCode Activation code.
      * @param applicationKey Application key.
-     * @param shouldGenerateRecoveryCodes Flag indicating if recovery codes shoud be generated. If null is provided, the system settings are used.
-     * @param eciesCryptogram Ecies cryptogram.
+     * @param shouldGenerateRecoveryCodes Flag indicating if recovery codes should be generated. If null is provided, the system settings are used.
+     * @param eciesPayload ECIES payload.
+     * @param version Protocol version.
+     * @param keyConversion Key convertor.
      * @return ECIES encrypted activation information.
      * @throws GenericServiceException If invalid values are provided.
      */
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, EciesCryptogram eciesCryptogram, KeyConvertor keyConversion) throws GenericServiceException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes,
+                                                       EciesPayload eciesPayload, String version, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
             final Date timestamp = new Date();
@@ -863,10 +868,12 @@ public class ActivationServiceBehavior {
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
 
             // Get ecies decryptor
-            final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2);
+            final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication(
+                    (ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2,
+                    eciesPayload.getParameters(), eciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Decrypt activation data
-            final byte[] activationData = eciesDecryptor.decryptRequest(eciesCryptogram);
+            final byte[] activationData = eciesDecryptor.decrypt(eciesPayload);
 
             // Convert JSON data to activation layer 2 request object
             final ActivationLayer2Request request;
@@ -956,9 +963,15 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
-            final String encryptedData = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
-            final String mac = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
+                    eciesDecryptor.getEnvelopeKey(), applicationSecret, null, parametersResponse);
+
+            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, eciesPayload.getParameters());
+            final String encryptedData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
+            final String mac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -971,6 +984,8 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
+            encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
@@ -1005,8 +1020,9 @@ public class ActivationServiceBehavior {
      * @param shouldGenerateRecoveryCodes    Flag indicating if recovery codes should be generated. If null is provided, system settings are used.
      * @param maxFailureCount                Maximum failed attempt count (default = 5)
      * @param applicationKey                 Application key
-     * @param eciesCryptogram                ECIES cryptogram
+     * @param eciesPayload                   ECIES payload
      * @param keyConversion                  Utility class for key conversion
+     * @param version                        Crypto protocol version
      * @param activationOtp                  Additional activation OTP
      * @return ECIES encrypted activation information
      * @throws GenericServiceException       In case create activation fails
@@ -1017,8 +1033,9 @@ public class ActivationServiceBehavior {
             boolean shouldGenerateRecoveryCodes,
             Long maxFailureCount,
             String applicationKey,
-            EciesCryptogram eciesCryptogram,
+            EciesPayload eciesPayload,
             String activationOtp,
+            String version,
             KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Get current timestamp
@@ -1081,10 +1098,12 @@ public class ActivationServiceBehavior {
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
 
             // Get ecies decryptor
-            final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2);
+            final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication(
+                    (ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2,
+                    eciesPayload.getParameters(), eciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Decrypt activation data
-            final byte[] activationData = eciesDecryptor.decryptRequest(eciesCryptogram);
+            final byte[] activationData = eciesDecryptor.decrypt(eciesPayload);
 
             // Convert JSON data to activation layer 2 request object
             ActivationLayer2Request request;
@@ -1144,9 +1163,15 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
-            final String encryptedData = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
-            final String mac = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
+                    eciesDecryptor.getEnvelopeKey(), applicationSecret, null, parametersResponse);
+
+            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, eciesPayload.getParameters());
+            final String encryptedData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
+            final String mac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
 
             // Generate encrypted response
             final CreateActivationResponse encryptedResponse = new CreateActivationResponse();
@@ -1155,6 +1180,8 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
+            encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {
@@ -1556,7 +1583,12 @@ public class ActivationServiceBehavior {
             final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
             final byte[] macBytes = Base64.getDecoder().decode(mac);
             final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final EciesCryptogram eciesCryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
+            final String version = request.getProtocolVersion();
+            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+            final byte[] associatedData = "3.2".equals(version) ? EciesDataUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
+            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
 
             // Prepare repositories
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -1604,10 +1636,12 @@ public class ActivationServiceBehavior {
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
 
             // Get ecies decryptor
-            final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2);
+            final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptorForApplication(
+                    (ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.ACTIVATION_LAYER_2,
+                    eciesParameters, ephemeralPublicKeyBytes);
 
             // Decrypt activation data
-            final byte[] activationData = eciesDecryptor.decryptRequest(eciesCryptogram);
+            final byte[] activationData = eciesDecryptor.decrypt(eciesPayload);
 
             // Convert JSON data to activation layer 2 request object
             ActivationLayer2Request layer2Request;
@@ -1791,9 +1825,15 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final EciesCryptogram responseCryptogram = eciesDecryptor.encryptResponse(responseData);
-            final String encryptedDataResponse = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
-            final String macResponse = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
+                    eciesDecryptor.getEnvelopeKey(), applicationSecret, null, parametersResponse);
+
+            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, parametersResponse);
+            final String encryptedDataResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
+            final String macResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
 
             final RecoveryCodeActivationResponse encryptedResponse = new RecoveryCodeActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
@@ -1801,6 +1841,8 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedDataResponse);
             encryptedResponse.setMac(macResponse);
+            encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
         } catch (InvalidKeySpecException ex) {

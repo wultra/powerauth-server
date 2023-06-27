@@ -31,5 +31,8 @@ public class GetEciesDecryptorRequest {
     private String activationId;
     private String applicationKey;
     private String ephemeralPublicKey;
+    private String nonce;
+    private String protocolVersion;
+    private Long timestamp;
 
 }

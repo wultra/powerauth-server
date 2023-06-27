@@ -31,5 +31,7 @@ public class VaultUnlockResponse {
     private String encryptedData;
     private String mac;
     private boolean signatureValid;
+    private String nonce;
+    private Long timestamp;
 
 }

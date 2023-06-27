@@ -36,5 +36,7 @@ public class StartUpgradeRequest {
     private String mac;
     @ToString.Exclude
     private String nonce;
+    private String protocolVersion;
+    private Long timestamp;
 
 }

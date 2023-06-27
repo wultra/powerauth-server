@@ -42,5 +42,6 @@ public class VaultUnlockRequest {
     private String mac;
     @ToString.Exclude
     private String nonce;
+    private Long timestamp;
 
 }

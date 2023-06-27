@@ -38,10 +38,11 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -60,10 +61,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Behavior class implementing the vault unlock related processes. The class separates the
@@ -86,6 +84,7 @@ public class VaultUnlockServiceBehavior {
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
+    private final KeyGenerator keyGenerator = new KeyGenerator();
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
     private final ObjectMapper objectMapper;
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -113,13 +112,13 @@ public class VaultUnlockServiceBehavior {
      * @param signature              PowerAuth signature.
      * @param signatureType          PowerAuth signature type.
      * @param signatureVersion       PowerAuth signature version.
-     * @param cryptogram             ECIES cryptogram.
+     * @param eciesPayload           ECIES payload.
      * @param keyConversion          Key conversion utilities.
      * @return Vault unlock response with a properly encrypted vault unlock key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType, String signatureVersion,
-                                           String signedData, EciesCryptogram cryptogram, KeyConvertor keyConversion)
+                                           String signedData, EciesPayload eciesPayload, KeyConvertor keyConversion)
             throws GenericServiceException {
         try {
             // Lookup the activation
@@ -161,10 +160,11 @@ public class VaultUnlockServiceBehavior {
 
             // Get decryptor for the activation
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
-                    applicationSecret, transportKeyBytes, EciesSharedInfo1.VAULT_UNLOCK);
+                    applicationSecret, transportKeyBytes, EciesSharedInfo1.VAULT_UNLOCK, eciesPayload.getParameters(),
+                    eciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Decrypt request to obtain vault unlock reason
-            final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+            final byte[] decryptedData = decryptor.decrypt(eciesPayload);
 
             // Convert JSON data to vault unlock request object
             VaultUnlockRequestPayload request;
@@ -211,14 +211,22 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final EciesCryptogram responseCryptogram = decryptor.encryptResponse(reponsePayloadBytes);
-            final String responseData = Base64.getEncoder().encodeToString(responseCryptogram.getEncryptedData());
-            final String responseMac = Base64.getEncoder().encodeToString(responseCryptogram.getMac());
+            final byte[] nonceBytesResponse = "3.2".equals(signatureVersion) ? keyGenerator.generateRandomBytes(16) : null;
+            final Long timestampResponse = "3.2".equals(signatureVersion) ? new Date().getTime() : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
+                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
+
+            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(reponsePayloadBytes, parametersResponse);
+            final String responseData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
+            final String responseMac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
 
             // Return vault unlock response, set signature validity
             final VaultUnlockResponse response = new VaultUnlockResponse();
             response.setEncryptedData(responseData);
             response.setMac(responseMac);
+            response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            response.setTimestamp(timestampResponse);
             response.setSignatureValid(signatureResponse.isSignatureValid());
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {

@@ -41,11 +41,13 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
+import io.getlime.security.powerauth.app.server.service.util.EciesDataUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -66,6 +68,7 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Optional;
 
 /**
@@ -90,6 +93,7 @@ public class TokenBehavior {
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final KeyGenerator keyGenerator = new KeyGenerator();
 
     private final ObjectMapper objectMapper;
 
@@ -125,16 +129,22 @@ public class TokenBehavior {
         final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
         final byte[] mac = Base64.getDecoder().decode(request.getMac());
         final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
+        final String version = request.getProtocolVersion();
+        final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+        final byte[] associatedData = "3.2".equals(version) ? EciesDataUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId) : null;
+        final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
+        final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
+        final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+
         final SignatureType signatureType = request.getSignatureType();
 
-        // Convert received ECIES request data to cryptogram
-        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
-
-        final EciesCryptogram encryptedCryptogram = createToken(activationId, applicationKey, cryptogram, signatureType.name(), keyConversion);
+        final EciesPayload responseEciesPayload = createToken(activationId, applicationKey, eciesPayload, signatureType.name(), version, keyConversion);
 
         final CreateTokenResponse response = new CreateTokenResponse();
-        response.setMac(Base64.getEncoder().encodeToString(encryptedCryptogram.getMac()));
-        response.setEncryptedData(Base64.getEncoder().encodeToString(encryptedCryptogram.getEncryptedData()));
+        response.setMac(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac()));
+        response.setEncryptedData(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData()));
+        response.setNonce(responseEciesPayload.getParameters().getNonce() != null ? Base64.getEncoder().encodeToString(responseEciesPayload.getParameters().getNonce()) : null);
+        response.setTimestamp(responseEciesPayload.getParameters().getTimestamp());
         return response;
     }
 
@@ -143,13 +153,15 @@ public class TokenBehavior {
      *
      * @param activationId Activation ID.
      * @param applicationKey Application key.
-     * @param cryptogram ECIES cryptogram.
+     * @param eciesPayload ECIES payload.
      * @param signatureType Signature type.
+     * @param version Protocol version.
      * @param keyConversion Key conversion utility class.
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EciesCryptogram createToken(String activationId, String applicationKey, EciesCryptogram cryptogram, String signatureType, KeyConvertor keyConversion) throws GenericServiceException {
+    private EciesPayload createToken(String activationId, String applicationKey, EciesPayload eciesPayload,
+                                     String signatureType, String version, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
@@ -185,11 +197,12 @@ public class TokenBehavior {
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
             // Get decryptor for the activation
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
-                    applicationSecret, transportKeyBytes, EciesSharedInfo1.CREATE_TOKEN);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation(
+                    (ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.CREATE_TOKEN,
+                    eciesPayload.getParameters(), eciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
-            final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+            final byte[] decryptedData = decryptor.decrypt(eciesPayload);
             if (decryptedData.length == 0) {
                 logger.warn("Invalid decrypted request data");
                 // Rollback is not required, error occurs before writing to database
@@ -220,7 +233,13 @@ public class TokenBehavior {
             final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response using previously created ECIES decryptor
-            final EciesCryptogram response = decryptor.encryptResponse(tokenBytes);
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
+                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
+
+            final EciesPayload response = encryptorResponse.encrypt(tokenBytes, parametersResponse);
 
             // Create a new token
             final TokenEntity token = new TokenEntity();

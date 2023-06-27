@@ -39,11 +39,12 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ConfirmRecoveryRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.ConfirmRecoveryResponsePayload;
+import io.getlime.security.powerauth.app.server.service.util.EciesDataUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
@@ -280,7 +281,7 @@ public class RecoveryServiceBehavior {
             final String ephemeralPublicKey = request.getEphemeralPublicKey();
             final String encryptedData = request.getEncryptedData();
             final String mac = request.getMac();
-            final String nonce = request.getNonce();
+            final String nonceRequest = request.getNonce();
 
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
@@ -325,16 +326,21 @@ public class RecoveryServiceBehavior {
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
             // Get decryptor for the activation
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
-                    applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE);
-
-            // Decrypt request data
             final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKey);
+            final byte[] nonceBytesRequest = nonceRequest != null ? Base64.getDecoder().decode(nonceRequest) : null;
+            final String version = request.getProtocolVersion();
+            final Long timestampRequest = "3.2".equals(version) ? request.getTimestamp() : null;
+            final byte[] associatedData = "3.2".equals(version) ? EciesDataUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId) : null;
+            // Decrypt request data
             final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
             final byte[] macBytes = Base64.getDecoder().decode(mac);
-            final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : null;
-            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
-            final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+            final EciesCryptogram cryptogramRequest = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
+            final EciesParameters parametersRequest = EciesParameters.builder().nonce(nonceBytesRequest).associatedData(associatedData).timestamp(timestampRequest).build();
+            final EciesPayload payloadRequest = new EciesPayload(cryptogramRequest, parametersRequest);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
+                    applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE, parametersRequest, ephemeralPublicKeyBytes);
+
+            final byte[] decryptedData = decryptor.decrypt(payloadRequest);
 
             // Convert JSON data to confirm recovery request object
             final ConfirmRecoveryRequestPayload requestPayload = objectMapper.readValue(decryptedData, ConfirmRecoveryRequestPayload.class);
@@ -383,10 +389,17 @@ public class RecoveryServiceBehavior {
             // Convert response payload
             final byte[] responseBytes = objectMapper.writeValueAsBytes(responsePayload);
 
-            // Encrypt response using previously created ECIES decryptor
-            final EciesCryptogram eciesResponse = decryptor.encryptResponse(responseBytes);
-            final String encryptedDataResponse = Base64.getEncoder().encodeToString(eciesResponse.getEncryptedData());
-            final String macResponse = Base64.getEncoder().encodeToString(eciesResponse.getMac());
+            // Encrypt response using ECIES encryptor
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
+
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(associatedData).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
+                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
+
+            final EciesPayload eciesResponse = encryptorResponse.encrypt(responseBytes, parametersResponse);
+            final String encryptedDataResponse = Base64.getEncoder().encodeToString(eciesResponse.getCryptogram().getEncryptedData());
+            final String macResponse = Base64.getEncoder().encodeToString(eciesResponse.getCryptogram().getMac());
 
             // Return response
             final ConfirmRecoveryCodeResponse response = new ConfirmRecoveryCodeResponse();
@@ -394,6 +407,8 @@ public class RecoveryServiceBehavior {
             response.setUserId(recoveryCodeEntity.getUserId());
             response.setEncryptedData(encryptedDataResponse);
             response.setMac(macResponse);
+            response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            response.setTimestamp(timestampResponse);
 
             // Confirm recovery code and persist it
             if (inCreatedState) {

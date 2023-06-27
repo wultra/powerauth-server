@@ -34,6 +34,8 @@ public class PrepareActivationResponse {
     private String applicationId;
     private String encryptedData;
     private String mac;
+    private String nonce;
+    private Long timestamp;
     private ActivationStatus activationStatus;
 
 }
