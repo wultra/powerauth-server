@@ -195,6 +195,7 @@ public class AuditingServiceBehavior {
                 .param("activationVersion", version)
                 .param("note", note)
                 .param("timestamp", currentTimestamp)
+                .param("type", AuditType.SIGNATURE.getCode())
                 .build();
         audit.log("Signature validation completed: {}, activation ID: {}, user ID: {}", AuditLevel.INFO, auditDetail,
                 (valid ? "SUCCESS" : "FAILURE (" + note + ")"),
@@ -215,6 +216,25 @@ public class AuditingServiceBehavior {
         @lombok.NonNull private String userId;
         @lombok.NonNull private String ctrDataBase64;
         @lombok.NonNull private ActivationStatus activationStatus;
+        @lombok.NonNull private AuditType auditType;
+    }
+
+    protected enum AuditType {
+        SIGNATURE("signature"),
+
+        OPERATION("operation"),
+
+        ACTIVATION("activation");
+
+        private final String code;
+
+        AuditType(final String code) {
+            this.code = code;
+        }
+
+        public String getCode() {
+            return this.code;
+        }
     }
 
 }

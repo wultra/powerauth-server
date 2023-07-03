@@ -143,7 +143,7 @@ public class ActivationHistoryServiceBehavior {
     private void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
         // Prepare shared parameters
         final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
-                .type("activation")
+                .type(AuditingServiceBehavior.AuditType.ACTIVATION.getCode())
                 .param("activationId", activation.getActivationId())
                 .param("userId", activation.getUserId())
                 .param("applicationId", activation.getApplication().getId())
