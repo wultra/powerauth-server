@@ -216,7 +216,6 @@ public class AuditingServiceBehavior {
         @lombok.NonNull private String userId;
         @lombok.NonNull private String ctrDataBase64;
         @lombok.NonNull private ActivationStatus activationStatus;
-        @lombok.NonNull private AuditType auditType;
     }
 
     protected enum AuditType {
