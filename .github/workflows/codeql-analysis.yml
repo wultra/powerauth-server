@@ -11,7 +11,7 @@ on:
 
 jobs:
   CodeQL_Analysis:
-    uses: wultra/wultra-infrastructure/.github/workflows/codeql-analysis.yml@issues/85-codeql-github-action-parent
+    uses: wultra/wultra-infrastructure/.github/workflows/codeql-analysis.yml@develop
     with:
       languages: "['java', 'javascript']"
       # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
