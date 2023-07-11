@@ -18,7 +18,9 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.request.GetEciesEncryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
+import com.wultra.security.powerauth.client.model.response.GetEciesEncryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -33,6 +35,7 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.util.EciesDataUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEnvelopeKey;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
@@ -54,6 +57,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
@@ -106,6 +110,26 @@ public class EciesEncryptionBehavior {
         } else {
             // Activation scope
             return getEciesDecryptorParametersForActivation(request, keyConvertor);
+        }
+    }
+
+    /**
+     * Obtain ECIES encryptor parameters to allow decryption of ECIES-encrypted messages on intermediate server.
+     * This interface doesn't allow keys derivation, it only provides ECIES encryptor parameters used for generic
+     * encryption (sharedInfo1 = /pa/generic/**).
+     * <p>
+     * If activationId is not present, then it creates ECIES encryptor for application scope.
+     * If activationId is present, then it creates ECIES encryptor for activation scope.
+     *
+     * @return ECIES decryptor parameters.
+     */
+    public GetEciesEncryptorResponse getEciesEncryptorParameters(GetEciesEncryptorRequest request) throws GenericServiceException {
+        if (request.getActivationId() == null) {
+            // Application scope
+            return getEciesEncryptorParametersForApplication(request);
+        } else {
+            // Activation scope
+            return getEciesEncryptorParametersForActivation(request, keyConvertor);
         }
     }
 
@@ -168,6 +192,85 @@ public class EciesEncryptionBehavior {
             final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
             response.setSecretKey(Base64.getEncoder().encodeToString(envelopeKey.getSecretKey()));
             response.setSharedInfo2(Base64.getEncoder().encodeToString(decryptor.getSharedInfo2()));
+            return response;
+        } catch (InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INCORRECT_MASTER_SERVER_KEYPAIR_PRIVATE);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
+
+    /**
+     * Get ECIES encryptor parameters for application scope.
+     *
+     * @param request Request to get ECIES encryptor parameters.
+     * @return ECIES decryptor parameters for application scope.
+     * @throws GenericServiceException In case ECIES encryptor parameters could not be extracted.
+     */
+    private GetEciesEncryptorResponse getEciesEncryptorParametersForApplication(GetEciesEncryptorRequest request) throws GenericServiceException {
+        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
+            logger.warn("Invalid request for ECIES encryptor");
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.ENCRYPTION_FAILED);
+        }
+
+        try {
+            // Lookup the application version and check that it is supported
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
+            // Get master private key
+            final ApplicationEntity application = applicationVersion.getApplication();
+            final String applicationId = application.getId();
+            final MasterKeyPairEntity masterKeyPairEntity = repositoryCatalogue.getMasterKeyPairRepository().findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+            if (masterKeyPairEntity == null) {
+                logger.error("Missing key pair for application ID: {}", applicationId);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
+
+            final String masterPublicKeyBase64 = masterKeyPairEntity.getMasterKeyPublicBase64();
+            final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(masterPublicKeyBase64));
+
+            // Get application secret
+            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+
+            final String applicationKey = request.getApplicationKey();
+            final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
+            final String version = request.getProtocolVersion();
+            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+            final byte[] associatedData = "3.2".equals(version) ? EciesDataUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).timestamp(timestamp).associatedData(associatedData).build();
+            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+            // Get decryptor for the application
+            final EciesEncryptor encryptor = eciesFactory.getEciesEncryptorForApplication(
+                    (ECPublicKey) publicKey, applicationSecret, EciesSharedInfo1.APPLICATION_SCOPE_GENERIC,
+                    eciesParameters);
+
+            // Initialize decryptor with ephemeral public key
+            encryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+
+            // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
+            final EciesEnvelopeKey envelopeKey = encryptor.getEnvelopeKey();
+            final GetEciesEncryptorResponse response = new GetEciesEncryptorResponse();
+            response.setSecretKey(Base64.getEncoder().encodeToString(envelopeKey.getSecretKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptor.getSharedInfo2()));
             return response;
         } catch (InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
@@ -270,6 +373,113 @@ public class EciesEncryptionBehavior {
             final GetEciesDecryptorResponse response = new GetEciesDecryptorResponse();
             response.setSecretKey(Base64.getEncoder().encodeToString(envelopeKey.getSecretKey()));
             response.setSharedInfo2(Base64.getEncoder().encodeToString(decryptor.getSharedInfo2()));
+            return response;
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (EciesException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }
+    }
+
+    /**
+     * Get ECIES encryptor parameters for activation scope.
+     *
+     * @param request Request to get ECIES encryptor parameters.
+     * @return ECIES encryptor parameters for activation scope.
+     * @throws GenericServiceException In case ECIES encryptor parameters could not be extracted.
+     */
+    private GetEciesEncryptorResponse getEciesEncryptorParametersForActivation(GetEciesEncryptorRequest request, KeyConvertor keyConversion) throws GenericServiceException {
+        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
+            logger.warn("Invalid request for ECIES encryptor");
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+        }
+
+        try {
+            // Lookup the activation
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(request.getActivationId());
+            if (activation == null) {
+                logger.info("Activation does not exist, activation ID: {}", request.getActivationId());
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            // Check if the activation is in correct state
+            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.info("Activation is not ACTIVE, activation ID: {}", request.getActivationId());
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Lookup the application version and check that it is supported
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
+            // Check that application key from request belongs to same application as activation ID from request
+            if (!applicationVersion.getApplication().getRid().equals(activation.getApplication().getRid())) {
+                logger.warn("Application version does not match, application key: {}", request.getApplicationKey());
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
+            // Get the server private key, decrypt it if required
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
+            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
+
+            // Get the server public key, decrypt it if required
+            final String serverPublicKeyFromEntity = activation.getServerPublicKeyBase64();
+            final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(serverPublicKeyFromEntity);
+            final PrivateKey serverPublicKey = keyConvertor.convertBytesToPrivateKey(serverPublicKeyBytes);
+
+            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
+            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
+
+            final Long timestamp = request.getTimestamp();
+            final String version = request.getProtocolVersion();
+            final String applicationKey = request.getApplicationKey();
+            final String activationId = request.getActivationId();
+            final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
+            final byte[] associatedData = EciesDataUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).timestamp(timestamp).associatedData(associatedData).build();
+            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+
+            // Get decryptor for the activation
+            final EciesEncryptor encryptor = eciesFactory.getEciesEncryptorForActivation(
+                    (ECPublicKey) serverPublicKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC,
+                    eciesParameters);
+
+            // Initialize decryptor with ephemeral public key
+            encryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
+
+            // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
+            final EciesEnvelopeKey envelopeKey = encryptor.getEnvelopeKey();
+            final GetEciesEncryptorResponse response = new GetEciesEncryptorResponse();
+            response.setSecretKey(Base64.getEncoder().encodeToString(envelopeKey.getSecretKey()));
+            response.setSharedInfo2(Base64.getEncoder().encodeToString(encryptor.getSharedInfo2()));
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
