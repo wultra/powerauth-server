@@ -199,6 +199,13 @@ public class PowerAuthServiceConfiguration {
     private long tokenTimestampValidityInMilliseconds;
 
     /**
+     * Token timestamp validity to future in milliseconds, checked before validating the token.
+     */
+    @Value("${powerauth.service.token.timestamp.forward.validity}")
+    @Min(0)
+    private long tokenTimestampForwardValidityInMilliseconds;
+
+    /**
      * Master DB encryption key.
      */
     @Value("${powerauth.server.db.master.encryption.key}")
@@ -587,6 +594,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setTokenTimestampValidityInMilliseconds(long tokenTimestampValidityInMilliseconds) {
         this.tokenTimestampValidityInMilliseconds = tokenTimestampValidityInMilliseconds;
+    }
+
+    /**
+     * Get the token timestamp validity into future in milliseconds.
+     * @return Token timestamp validity into future in milliseconds
+     */
+    public long getTokenTimestampForwardValidityInMilliseconds() {
+        return tokenTimestampForwardValidityInMilliseconds;
+    }
+
+    /**
+     * Set the token timestamp validity into future in milliseconds.
+     * @param tokenTimestampForwardValidityInMilliseconds Token timestamp validity into future in milliseconds
+     */
+    public void setTokenTimestampForwardValidityInMilliseconds(long tokenTimestampForwardValidityInMilliseconds) {
+        this.tokenTimestampForwardValidityInMilliseconds = tokenTimestampForwardValidityInMilliseconds;
     }
 
     /**

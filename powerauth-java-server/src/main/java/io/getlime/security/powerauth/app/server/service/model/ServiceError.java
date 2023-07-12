@@ -252,9 +252,14 @@ public class ServiceError {
      */
     public static final String DUPLICATE_APPLICATION = "ERR0043";
 
+    /**
+     * Token timestamp is too much in the future.
+     */
+    public static final String TOKEN_TIMESTAMP_TOO_IN_FUTURE = "ERR0044";
+
 
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(43);
+        List<String> list = new ArrayList<>(44);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -299,6 +304,7 @@ public class ServiceError {
         list.add(OPERATION_ERROR);
         list.add(OPERATION_TEMPLATE_ERROR);
         list.add(DUPLICATE_APPLICATION);
+        list.add(TOKEN_TIMESTAMP_TOO_IN_FUTURE);
         return list;
     }
 
