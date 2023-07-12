@@ -46,6 +46,8 @@ public class AssertionChallengeConverter {
         destination.setUserId(source.getUserId());
         destination.setApplicationIds(source.getApplicationIds());
         destination.setChallenge(source.getChallenge());
+        destination.setFailedAttempts(source.getFailedAttempts());
+        destination.setMaxFailedAttempts(source.getMaxFailedAttempts());
         return destination;
     }
 

@@ -18,11 +18,17 @@
 
 package com.wultra.security.powerauth.client.model.enumeration;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
+ * Enumeration representing supported protocols for authenticators.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum Protocols {
+    @JsonProperty("powerauth")
     POWERAUTH("powerauth"),
+    @JsonProperty("fido2")
     FIDO2("fido2");
 
     private final String protocol;

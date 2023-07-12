@@ -45,14 +45,16 @@ public class AssertionService {
     private final CryptographyService cryptographyService;
     private final ChallengeProvider challengeProvider;
     private final AuthenticatorProvider authenticatorProvider;
+    private final AssertionVerificationProvider assertionVerificationProvider;
     private final AssertionConverter assertionConverter;
     private final AssertionChallengeConverter assertionChallengeConverter;
 
     @Autowired
-    public AssertionService(CryptographyService cryptographyService, ChallengeProvider challengeProvider, AuthenticatorProvider authenticatorProvider, AssertionConverter assertionConverter, AssertionChallengeConverter assertionChallengeConverter) {
+    public AssertionService(CryptographyService cryptographyService, ChallengeProvider challengeProvider, AuthenticatorProvider authenticatorProvider, AssertionVerificationProvider assertionVerificationProvider, AssertionConverter assertionConverter, AssertionChallengeConverter assertionChallengeConverter) {
         this.cryptographyService = cryptographyService;
         this.challengeProvider = challengeProvider;
         this.authenticatorProvider = authenticatorProvider;
+        this.assertionVerificationProvider = assertionVerificationProvider;
         this.assertionConverter = assertionConverter;
         this.assertionChallengeConverter = assertionChallengeConverter;
     }
@@ -64,8 +66,8 @@ public class AssertionService {
      * @return Assertion challenge information.
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
-        final AssertionChallenge assertionChallenge = challengeProvider.provideChallengeForAuthentication(
-                null, request.getApplicationIds(), request.getOperationType(), request.getParameters(), request.getExternalId()
+        final AssertionChallenge assertionChallenge = assertionVerificationProvider.provideChallengeForAssertion(
+                request.getApplicationIds(), request.getOperationType(), request.getParameters(), request.getExternalId()
         );
         if (assertionChallenge == null) {
             throw new Fido2AuthenticationFailedException("Unable to obtain challenge with provided parameters.");
@@ -84,15 +86,19 @@ public class AssertionService {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
             final String authenticatorId = request.getId();
+            final String challenge = request.getResponse().getClientDataJSON().getChallenge();
             final AuthenticatorDetail authenticatorDetail = authenticatorProvider.findByCredentialId(applicationId, authenticatorId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, response.getClientDataJSON(), response.getAuthenticatorData(), response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
+                    assertionVerificationProvider.approveAssertion(challenge, authenticatorDetail);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
                 } else {
+                    assertionVerificationProvider.failAssertion(challenge, authenticatorDetail);
                     throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect signature.");
                 }
             } else {
+                assertionVerificationProvider.failAssertion(challenge, authenticatorDetail);
                 throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect authenticator state.");
             }
         } catch (Exception e) {

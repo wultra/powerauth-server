@@ -90,7 +90,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
         }
 
-        final GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId);
+        final GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2));
 
         final List<AuthenticatorDetail> authenticatorDetailList = new ArrayList<>();
         for (Activation activation : activationList.getActivations()) {
@@ -100,7 +100,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             if (activation.getActivationStatus() == ActivationStatus.REMOVED && activation.getDevicePublicKeyBase64() == null) { // never finished removed activations
                 continue;
             }
-            if (!Protocols.FIDO2.toString().equals(activation.getProtocol())) {
+            if (!Protocols.FIDO2.toString().equalsIgnoreCase(activation.getProtocol())) { // Check the protocol, just in case
                 continue;
             }
             final AuthenticatorDetail authenticatorDetail = convert(activation, application.get());
@@ -153,7 +153,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // Search for activation without lock to avoid potential deadlocks
             ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, timestamp);
 
-            // Make sure to deactivate the activation if it is expired
+            // Check if the activation exists
             if (activation == null) {
                 logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
                 // Rollback is not required, error occurs before writing to database

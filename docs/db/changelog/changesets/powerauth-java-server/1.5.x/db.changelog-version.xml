@@ -4,6 +4,6 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
     <include file="20230323-add-columns-signature-data.xml" relativeToChangelogFile="true" />
-    <include file="20230430-add-columns-external-id.xml" relativeToChangelogFile="true" />
+    <include file="20230430-add-columns-fido2.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

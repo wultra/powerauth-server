@@ -230,7 +230,7 @@ public class ActivationServiceBehavior {
      * @param userId        User ID
      * @return Response with list of matching activations
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId) {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Set<Protocols> protocols) {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -251,6 +251,10 @@ public class ActivationServiceBehavior {
             for (ActivationRecordEntity activation : activationsList) {
 
                 deactivatePendingActivation(timestamp, activation, false);
+
+                if (!protocols.contains(Protocols.valueOf(activation.getProtocol().toUpperCase()))) { // skip authenticators that were not required
+                    continue;
+                }
 
                 // Map between database object and service objects
                 final Activation activationServiceItem = new Activation();
@@ -630,7 +634,7 @@ public class ActivationServiceBehavior {
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Protocols protocols, String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
+    public InitActivationResponse initActivation(Protocols protocol, String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
                                                  com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, String activationOtp, List<String> flags,
                                                  KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
@@ -761,7 +765,7 @@ public class ActivationServiceBehavior {
             activation.setCtrDataBase64(null);
             activation.setDevicePublicKeyBase64(null);
             activation.setExtras(null);
-            activation.setProtocol(protocols.toString());
+            activation.setProtocol(protocol.toString());
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);

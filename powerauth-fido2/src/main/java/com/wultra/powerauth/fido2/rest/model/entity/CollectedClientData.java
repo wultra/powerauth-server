@@ -18,6 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToStringDeserializer;
 import jakarta.validation.constraints.NotBlank;
@@ -30,6 +31,7 @@ import lombok.Data;
 @Data
 public class CollectedClientData {
     @NotEmpty
+    @JsonIgnore
     private String encoded;
     @NotBlank
     private String type;

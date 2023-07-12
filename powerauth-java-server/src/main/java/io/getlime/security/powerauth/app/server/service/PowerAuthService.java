@@ -143,8 +143,9 @@ public class PowerAuthService {
         try {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
+            final Set<Protocols> protocols = request.getProtocols();
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, protocols);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {

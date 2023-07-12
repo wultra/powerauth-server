@@ -18,6 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.AttestationStatementDeserializer;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.AuthenticatorDataDeserializer;
@@ -29,6 +30,7 @@ import lombok.Data;
 @Data
 public class AttestationObject {
 
+    @JsonIgnore
     private String encoded;
 
     private String fmt;

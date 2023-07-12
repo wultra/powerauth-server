@@ -21,7 +21,7 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-external-id" author="Petr Dvorak">
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-fido2" author="Petr Dvorak">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_activation" columnName="external_id"/>
@@ -33,7 +33,7 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="2" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-external-id" author="Petr Dvorak">
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-fido2" author="Petr Dvorak">
         <preConditions onFail="MARK_RAN">
             <not>
                 <columnExists tableName="pa_activation" columnName="protocol"/>
@@ -45,8 +45,12 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="3" logicalFilePath="" author="Petr Dvorak">
+    <changeSet id="3" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-fido2" author="Petr Dvorak">
         <dropNotNullConstraint tableName="pa_operation"  columnName="user_id"/>
+    </changeSet>
+
+    <changeSet id="4" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-fido2" author="Petr Dvořák">
+        <modifyDataType tableName="pa_activation" columnName="extras" newDataType="TEXT"/>
     </changeSet>
 
 </databaseChangeLog>

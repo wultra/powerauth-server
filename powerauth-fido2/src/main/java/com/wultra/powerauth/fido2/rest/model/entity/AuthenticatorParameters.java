@@ -16,21 +16,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.service;
+package com.wultra.powerauth.fido2.rest.model.entity;
 
-import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Interface for handling authenticator handling logic.
+ * Data class representing the parameters obtained from the authenticator registration.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface AuthenticatorProvider {
-    AuthenticatorDetail storeAuthenticator(String applicationId, String challenge, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException;
-    List<AuthenticatorDetail> findByUserId(String userId, String applicationId) throws Fido2AuthenticationFailedException;
-    AuthenticatorDetail findByCredentialId(String credentialId, String applicationId) throws Fido2AuthenticationFailedException;
+@Data
+public class AuthenticatorParameters {
+
+    @NotBlank
+    private String id;
+    @NotBlank
+    private String type;
+    @NotBlank
+    private String authenticatorAttachment;
+    private AuthenticatorAttestationResponse response = new AuthenticatorAttestationResponse();
+    @NotBlank
+    private String relyingPartyId;
+    private List<String> allowedOrigins = new ArrayList<>();
+    private List<String> allowedTopOrigins = new ArrayList<>();
+    private boolean requiresUserVerification;
 
 }

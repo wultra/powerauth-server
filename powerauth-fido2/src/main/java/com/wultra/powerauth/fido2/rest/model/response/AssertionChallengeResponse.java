@@ -30,4 +30,6 @@ public class AssertionChallengeResponse {
     private List<String> applicationIds;
     private String challenge;
     private String userId;
+    private Long failedAttempts;
+    private Long maxFailedAttempts;
 }

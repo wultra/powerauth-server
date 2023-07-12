@@ -76,7 +76,7 @@ public class RegistrationService {
             throw new Fido2AuthenticationFailedException(error);
         }
 
-        final AuthenticatorAttestationResponse response = requestObject.getResponse();
+        final AuthenticatorAttestationResponse response = requestObject.getAuthenticatorParameters().getResponse();
 
         final CollectedClientData clientDataJSON = response.getClientDataJSON();
         final String challengeValue = clientDataJSON.getChallenge();

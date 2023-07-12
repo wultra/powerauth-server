@@ -40,13 +40,25 @@ public class RegistrationRequestValidator {
 
     public String validate(RegistrationRequest request) {
 
-        if (request == null || request.getResponse() == null
-                || request.getResponse().getClientDataJSON() == null
-                || request.getResponse().getAttestationObject() == null) {
-            return "Invalid request, you need to include response.clientDataJSON and response.attestationObject.";
+        if (request == null) {
+            return "Null request provided.";
         }
 
-        final CollectedClientData clientDataJSON = request.getResponse().getClientDataJSON();
+        final AuthenticatorParameters authenticatorParameters = request.getAuthenticatorParameters();
+
+        if (authenticatorParameters == null) {
+            return "Null authenticator parameters provided.";
+        }
+
+        final AuthenticatorAttestationResponse response = authenticatorParameters.getResponse();
+
+        if (response == null
+                || response.getClientDataJSON() == null
+                || response.getAttestationObject() == null) {
+            return "Invalid request authenticator parameters, you need to include response.clientDataJSON and response.attestationObject.";
+        }
+
+        final CollectedClientData clientDataJSON = response.getClientDataJSON();
 
         if (!"webauthn.create".equals(clientDataJSON.getType())) {
             return "Request does not contain webauthn.create type.";
@@ -58,24 +70,24 @@ public class RegistrationRequestValidator {
         }
 
         final String origin = clientDataJSON.getOrigin();
-        final List<String> allowedOrigins = request.getAllowedOrigins();
+        final List<String> allowedOrigins = authenticatorParameters.getAllowedOrigins();
         if (origin == null || !allowedOrigins.contains(origin)) {
             return "Request does not contain the correct origin.";
         }
 
-        final List<String> allowedTopOrigins = request.getAllowedTopOrigins();
+        final List<String> allowedTopOrigins = authenticatorParameters.getAllowedTopOrigins();
         if (clientDataJSON.getTopOrigin() != null && !allowedTopOrigins.contains(clientDataJSON.getTopOrigin())) {
             return "Request contains the top origin which is not allowed.";
         }
 
-        final AttestationObject attestationObject = request.getResponse().getAttestationObject();
+        final AttestationObject attestationObject = response.getAttestationObject();
         final AuthenticatorData authData = attestationObject.getAuthData();
         if (authData == null) {
             return "Missing authentication data.";
         }
 
         final byte[] rpIdHash = authData.getRpIdHash();
-        final String relyingPartyId = request.getRelyingPartyId();
+        final String relyingPartyId = authenticatorParameters.getRelyingPartyId();
         final byte[] expectedRpIdHash = Hash.sha256(relyingPartyId);
         if (!Arrays.equals(rpIdHash, expectedRpIdHash)) {
             return "The origin does not match relying party ID.";
@@ -87,7 +99,7 @@ public class RegistrationRequestValidator {
             return "User is not present during the authentication.";
         }
 
-        final boolean requiresUserVerification = request.isRequiresUserVerification();
+        final boolean requiresUserVerification = authenticatorParameters.isRequiresUserVerification();
         if (requiresUserVerification && !flags.isUserVerified()) {
             return "User is not present during the authentication, but user verification is required.";
         }

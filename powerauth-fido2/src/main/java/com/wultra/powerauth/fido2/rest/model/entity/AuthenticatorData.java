@@ -18,6 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
@@ -29,6 +30,7 @@ import lombok.Data;
 public class AuthenticatorData {
 
     @NotEmpty
+    @JsonIgnore
     private byte[] encoded;
     @NotEmpty
     private byte[] rpIdHash;

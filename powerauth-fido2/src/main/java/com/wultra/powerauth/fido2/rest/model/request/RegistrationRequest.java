@@ -19,6 +19,7 @@
 package com.wultra.powerauth.fido2.rest.model.request;
 
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAttestationResponse;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -39,18 +40,7 @@ public class RegistrationRequest {
     private String expectedChallenge;
 
     // Authenticator parameters
-    @NotBlank
-    private String id;
-    @NotBlank
-    private String type;
-    @NotBlank
-    private String authenticatorAttachment;
-    private AuthenticatorAttestationResponse response = new AuthenticatorAttestationResponse();
-    @NotBlank
-    private String relyingPartyId;
-    private List<String> allowedOrigins = new ArrayList<>();
-    private List<String> allowedTopOrigins = new ArrayList<>();
-    private boolean requiresUserVerification;
+    private AuthenticatorParameters authenticatorParameters;
 
 
 }

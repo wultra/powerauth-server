@@ -18,7 +18,6 @@
 
 package com.wultra.powerauth.fido2.service;
 
-import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 
@@ -51,33 +50,6 @@ public interface ChallengeProvider {
      * @throws Exception In case any issue occur during processing.
      */
     RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws Exception;
-
-    /**
-     * Obtain challenge for authentication.
-     *
-     * @param userId User ID.
-     * @param applicationIds List of application ID.
-     * @param operationType Type of the operation this challenge is for.
-     * @param parameters Operation parameters.
-     * @return Assertion challenge.
-     * @throws Exception In case any issue occur during processing.
-     */
-    default AssertionChallenge provideChallengeForAuthentication(String userId, List<String> applicationIds, String operationType, Map<String, String> parameters) throws Exception {
-        return provideChallengeForAuthentication(userId, applicationIds, operationType, parameters, null);
-    };
-
-    /**
-     * Obtain challenge for authentication.
-     *
-     * @param userId User ID.
-     * @param applicationIds List of application ID.
-     * @param operationType Type of the operation this challenge is for.
-     * @param parameters Operation parameters.
-     * @param externalAuthenticationId External ID of operation, i.e., transaction in transaction system.
-     * @return Assertion challenge.
-     * @throws Exception In case any issue occur during processing.
-     */
-    AssertionChallenge provideChallengeForAuthentication(String userId, List<String> applicationIds, String operationType, Map<String, String> parameters, String externalAuthenticationId) throws Exception;
 
     /**
      * Revoke challenge based on the challenge value.

@@ -18,10 +18,13 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import lombok.Data;
 
+import java.util.Set;
+
 /**
- * Model class representing request for activation lisf for a given user.
+ * Model class representing request for activation list for a given user.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -30,5 +33,6 @@ public class GetActivationListForUserRequest {
 
     private String userId;
     private String applicationId;
+    private Set<Protocols> protocols = Set.of(Protocols.FIDO2, Protocols.POWERAUTH);
 
 }

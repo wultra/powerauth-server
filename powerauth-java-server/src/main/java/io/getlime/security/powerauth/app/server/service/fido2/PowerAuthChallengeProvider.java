@@ -19,18 +19,15 @@
 package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.service.ChallengeProvider;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -41,10 +38,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
+ * Challenge provider based on the PowerAuth core implementations.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
@@ -109,22 +107,6 @@ public class PowerAuthChallengeProvider implements ChallengeProvider {
         registrationChallenge.setActivationId(initActivationResponse.getActivationId());
         registrationChallenge.setChallenge(initActivationResponse.getActivationCode());
         return registrationChallenge;
-    }
-
-    @Override
-    @Transactional
-    public AssertionChallenge provideChallengeForAuthentication(String userId, List<String> applicationIds, String operationType, Map<String, String> parameters, String externalAuthenticationId) throws GenericServiceException {
-        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
-        operationCreateRequest.setApplications(applicationIds);
-        operationCreateRequest.setTemplateName(operationType);
-        operationCreateRequest.getParameters().putAll(parameters);
-
-        final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
-        final AssertionChallenge assertionChallenge = new AssertionChallenge();
-        assertionChallenge.setUserId(operationDetailResponse.getUserId());
-        assertionChallenge.setApplicationIds(operationDetailResponse.getApplications());
-        assertionChallenge.setChallenge(operationDetailResponse.getId() + "&" + operationDetailResponse.getData());
-        return assertionChallenge;
     }
 
     @Override
