@@ -1,16 +1,17 @@
 name: "CodeQL"
 
 on:
+  workflow_dispatch:
   push:
     branches: [ develop, master ]
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ develop ]
   schedule:
-    - cron: '0 2 * * 5'
+    - cron: '0 2 * * 4'
 
 jobs:
-  CodeQL_Analysis:
+  codeql-analysis:
     uses: wultra/wultra-infrastructure/.github/workflows/codeql-analysis.yml@develop
     with:
       languages: "['java', 'javascript']"
