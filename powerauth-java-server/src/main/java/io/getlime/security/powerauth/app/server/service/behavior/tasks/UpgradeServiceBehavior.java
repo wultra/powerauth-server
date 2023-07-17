@@ -211,7 +211,7 @@ public class UpgradeServiceBehavior {
             // Encrypt response payload and return it
             final byte[] payloadBytes = objectMapper.writeValueAsBytes(payload);
 
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = ("3.2".equals(version) || "3.1".equals(version)) ? keyGenerator.generateRandomBytes(16) : null;
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
@@ -221,6 +221,7 @@ public class UpgradeServiceBehavior {
             final StartUpgradeResponse response = new StartUpgradeResponse();
             response.setEncryptedData(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getEncryptedData()));
             response.setMac(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getMac()));
+            response.setEphemeralPublicKey(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getEphemeralPublicKey()));
             response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
 

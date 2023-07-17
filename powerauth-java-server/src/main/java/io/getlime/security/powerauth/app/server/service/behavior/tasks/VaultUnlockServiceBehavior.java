@@ -211,20 +211,22 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final byte[] nonceBytesResponse = "3.2".equals(signatureVersion) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = ("3.2".equals(signatureVersion) || "3.1".equals(signature)) ? keyGenerator.generateRandomBytes(16) : null;
             final Long timestampResponse = "3.2".equals(signatureVersion) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
                     decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
 
             final EciesPayload responseEciesPayload = encryptorResponse.encrypt(reponsePayloadBytes, parametersResponse);
-            final String responseData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
-            final String responseMac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
+            final String dataResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
+            final String macResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
+            final String ephemeralPublicKeyResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Return vault unlock response, set signature validity
             final VaultUnlockResponse response = new VaultUnlockResponse();
-            response.setEncryptedData(responseData);
-            response.setMac(responseMac);
+            response.setEncryptedData(dataResponse);
+            response.setMac(macResponse);
+            response.setEphemeralPublicKey(ephemeralPublicKeyResponse);
             response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
             response.setSignatureValid(signatureResponse.isSignatureValid());

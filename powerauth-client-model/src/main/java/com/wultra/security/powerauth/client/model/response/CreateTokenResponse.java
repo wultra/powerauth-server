@@ -30,6 +30,7 @@ public class CreateTokenResponse {
 
     private String encryptedData;
     private String mac;
+    private String ephemeralPublicKey;
     private String nonce;
     private Long timestamp;
 

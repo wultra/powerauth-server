@@ -390,7 +390,7 @@ public class RecoveryServiceBehavior {
             final byte[] responseBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response using ECIES encryptor
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = ("3.2".equals(version) || "3.1".equals(version)) ? keyGenerator.generateRandomBytes(16) : null;
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
 
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(associatedData).timestamp(timestampResponse).build();
@@ -407,6 +407,7 @@ public class RecoveryServiceBehavior {
             response.setUserId(recoveryCodeEntity.getUserId());
             response.setEncryptedData(encryptedDataResponse);
             response.setMac(macResponse);
+            response.setEphemeralPublicKey(ephemeralPublicKey);
             response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
 
