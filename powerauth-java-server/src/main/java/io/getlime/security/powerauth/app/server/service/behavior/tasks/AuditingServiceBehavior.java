@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.SignatureE
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
+import io.getlime.security.powerauth.app.server.service.enumeration.AuditType;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import lombok.Builder;
 import lombok.Getter;
@@ -216,49 +217,6 @@ public class AuditingServiceBehavior {
         @lombok.NonNull private String userId;
         @lombok.NonNull private String ctrDataBase64;
         @lombok.NonNull private ActivationStatus activationStatus;
-    }
-
-    /**
-     * This enum represents different types of audits.
-     */
-    enum AuditType {
-        /**
-         * Audit type for signatures.
-         */
-        SIGNATURE("signature"),
-
-        /**
-         * Audit type for operations.
-         */
-        OPERATION("operation"),
-
-        /**
-         * Audit type for activations.
-         */
-        ACTIVATION("activation");
-
-        /**
-         * The code associated with each audit type.
-         */
-        private final String code;
-
-        /**
-         * Constructor to initialize the audit type with its code.
-         *
-         * @param code the code of the audit type
-         */
-        AuditType(final String code) {
-            this.code = code;
-        }
-
-        /**
-         * Get the code of the audit type.
-         *
-         * @return the code of the audit type
-         */
-        public String getCode() {
-            return this.code;
-        }
     }
 
 }

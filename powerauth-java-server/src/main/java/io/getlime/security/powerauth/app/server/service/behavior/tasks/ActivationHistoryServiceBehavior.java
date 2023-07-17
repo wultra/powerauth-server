@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.service.enumeration.AuditType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -143,7 +144,7 @@ public class ActivationHistoryServiceBehavior {
     private void logAuditItem(ActivationRecordEntity activation, String externalUserId, String historyEventReason) {
         // Prepare shared parameters
         final AuditDetail.Builder auditDetailBuilder = AuditDetail.builder()
-                .type(AuditingServiceBehavior.AuditType.ACTIVATION.getCode())
+                .type(AuditType.ACTIVATION.getCode())
                 .param("activationId", activation.getActivationId())
                 .param("userId", activation.getUserId())
                 .param("applicationId", activation.getApplication().getId())

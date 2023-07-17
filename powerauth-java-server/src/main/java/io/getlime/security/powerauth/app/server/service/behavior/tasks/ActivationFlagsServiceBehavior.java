@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.client.model.response.UpdateActivationFlags
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.service.enumeration.AuditType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -108,7 +109,7 @@ public class ActivationFlagsServiceBehavior {
         final List<String> newFlags = activationFlags.stream().filter(flag -> !currentFlags.contains(flag)).collect(Collectors.toList());
         if (!newFlags.isEmpty()) { // only in case there are new flags
             final AuditDetail auditDetail = AuditDetail.builder()
-                    .type(AuditingServiceBehavior.AuditType.ACTIVATION.getCode())
+                    .type(AuditType.ACTIVATION.getCode())
                     .param("activationId", activationId)
                     .param("flags", newFlags)
                     .param("addedFlags", activationFlags)
@@ -148,7 +149,7 @@ public class ActivationFlagsServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
         final AuditDetail auditDetail = AuditDetail.builder()
-                .type(AuditingServiceBehavior.AuditType.ACTIVATION.getCode())
+                .type(AuditType.ACTIVATION.getCode())
                 .param("activationId", activationId)
                 .param("flags", activationFlags)
                 .build();
@@ -185,7 +186,7 @@ public class ActivationFlagsServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
         final AuditDetail auditDetail = AuditDetail.builder()
-                .type(AuditingServiceBehavior.AuditType.ACTIVATION.getCode())
+                .type(AuditType.ACTIVATION.getCode())
                 .param("activationId", activationId)
                 .param("removedFlags", activationFlags)
                 .build();

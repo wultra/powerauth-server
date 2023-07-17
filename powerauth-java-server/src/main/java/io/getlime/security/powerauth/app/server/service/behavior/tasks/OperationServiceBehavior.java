@@ -36,6 +36,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ApplicationR
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.enumeration.AuditType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -190,7 +191,7 @@ public class OperationServiceBehavior {
         operationEntity.setTotpSeed(generateTotpSeed(request, templateEntity));
 
         final AuditDetail auditDetail = AuditDetail.builder()
-                .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                .type(AuditType.OPERATION.getCode())
                 .param("id", operationId)
                 .param("userId", userId)
                 .param("applications", applications)
@@ -268,7 +269,7 @@ public class OperationServiceBehavior {
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
             final AuditDetail auditDetail = AuditDetail.builder()
-                    .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                    .type(AuditType.OPERATION.getCode())
                     .param("id", operationId)
                     .param("userId", userId)
                     .param("appId", applicationId)
@@ -301,7 +302,7 @@ public class OperationServiceBehavior {
                 logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
-                        .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                        .type(AuditType.OPERATION.getCode())
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
@@ -330,7 +331,7 @@ public class OperationServiceBehavior {
                 logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
-                        .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                        .type(AuditType.OPERATION.getCode())
                         .param("id", operationId)
                         .param("userId", userId)
                         .param("appId", applicationId)
@@ -396,7 +397,7 @@ public class OperationServiceBehavior {
             logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
             final AuditDetail auditDetail = AuditDetail.builder()
-                    .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                    .type(AuditType.OPERATION.getCode())
                     .param("id", operationId)
                     .param("userId", userId)
                     .param("appId", applicationId)
@@ -414,7 +415,7 @@ public class OperationServiceBehavior {
             logger.info("Operation reject failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
             final AuditDetail auditDetail = AuditDetail.builder()
-                    .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                    .type(AuditType.OPERATION.getCode())
                     .param("id", operationId)
                     .param("userId", userId)
                     .param("appId", applicationId)
@@ -468,7 +469,7 @@ public class OperationServiceBehavior {
             logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
 
             final AuditDetail auditDetail = AuditDetail.builder()
-                    .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                    .type(AuditType.OPERATION.getCode())
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
@@ -493,7 +494,7 @@ public class OperationServiceBehavior {
             logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
 
             final AuditDetail auditDetail = AuditDetail.builder()
-                    .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                    .type(AuditType.OPERATION.getCode())
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
@@ -539,7 +540,7 @@ public class OperationServiceBehavior {
         logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
 
         final AuditDetail auditDetail = AuditDetail.builder()
-                .type(AuditingServiceBehavior.AuditType.OPERATION.getCode())
+                .type(AuditType.OPERATION.getCode())
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
