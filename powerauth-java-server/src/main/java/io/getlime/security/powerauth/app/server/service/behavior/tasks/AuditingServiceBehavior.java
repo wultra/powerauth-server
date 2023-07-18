@@ -31,7 +31,6 @@ import io.getlime.security.powerauth.app.server.database.model.entity.SignatureE
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
-import io.getlime.security.powerauth.app.server.service.enumeration.AuditType;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import lombok.Builder;
 import lombok.Getter;
