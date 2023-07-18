@@ -73,8 +73,8 @@ public class SdkConfigurationSerializer {
         final byte[] serializedBytes = Base64.getDecoder().decode(serialized);
         final SdkDataReader reader = new SdkDataReader(serializedBytes);
         final Byte version = reader.readByte();
-        if (version != SDK_CONFIGURATION_VERSION) {
-            // Unexpected SDK configuration version
+        if (version == null || version != SDK_CONFIGURATION_VERSION) {
+            logger.warn("Unexpected SDK configuration version: {}", version);
             return null;
         }
         final byte[] appKey = reader.readData(16);
