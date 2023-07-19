@@ -1167,11 +1167,12 @@ public class ActivationServiceBehavior {
             // Encrypt response data
             final byte[] nonceBytesResponse = ("3.2".equals(version) || "3.1".equals(version)) ? keyGenerator.generateRandomBytes(16) : null;
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
-            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final byte[] associatedData = "3.2".equals(version) ? EciesDataUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(associatedData).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
                     eciesDecryptor.getEnvelopeKey(), applicationSecret, null, parametersResponse);
 
-            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, eciesPayload.getParameters());
+            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, parametersResponse);
             final String encryptedData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
             final String mac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
             final String ephemeralPublicKey = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey());

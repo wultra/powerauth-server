@@ -211,7 +211,7 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final byte[] nonceBytesResponse = ("3.2".equals(signatureVersion) || "3.1".equals(signature)) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = ("3.2".equals(signatureVersion) || "3.1".equals(signatureVersion)) ? keyGenerator.generateRandomBytes(16) : null;
             final Long timestampResponse = "3.2".equals(signatureVersion) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
