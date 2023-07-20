@@ -49,9 +49,9 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.totp.Totp;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigInteger;
@@ -72,6 +72,7 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
+@AllArgsConstructor
 @Slf4j
 public class OfflineSignatureServiceBehavior {
 
@@ -86,24 +87,7 @@ public class OfflineSignatureServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private ServerPrivateKeyConverter serverPrivateKeyConverter;
-
-    @Autowired
-    public OfflineSignatureServiceBehavior(
-            RepositoryCatalogue repositoryCatalogue,
-            SignatureSharedServiceBehavior signatureSharedServiceBehavior,
-            LocalizationProvider localizationProvider,
-            PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.signatureSharedServiceBehavior = signatureSharedServiceBehavior;
-        this.localizationProvider = localizationProvider;
-        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-    }
-
-    @Autowired
-    public void setServerPrivateKeyConverter(ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-    }
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     /**
      * Verify signature for given activation and provided data in offline mode. Log every validation attempt in the audit log.
