@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with vault unlock data required by the client.
@@ -32,6 +33,7 @@ public class VaultUnlockResponse {
     private String mac;
     private String ephemeralPublicKey;
     private boolean signatureValid;
+    @ToString.Exclude
     private String nonce;
     private Long timestamp;
 

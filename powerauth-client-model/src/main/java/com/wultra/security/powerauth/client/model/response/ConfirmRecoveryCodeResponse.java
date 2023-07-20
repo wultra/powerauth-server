@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with recovery code confirmation.
@@ -33,6 +34,7 @@ public class ConfirmRecoveryCodeResponse {
     private String encryptedData;
     private String mac;
     private String ephemeralPublicKey;
+    @ToString.Exclude
     private String nonce;
     private Long timestamp;
 

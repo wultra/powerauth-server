@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing request for ECIES encryptor initialization.
@@ -31,6 +32,7 @@ public class GetEciesEncryptorRequest {
     private String activationId;
     private String applicationKey;
     private String ephemeralPublicKey;
+    @ToString.Exclude
     private String nonce;
     private String protocolVersion;
     private Long timestamp;

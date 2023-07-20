@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with created activation.
@@ -35,6 +36,7 @@ public class CreateActivationResponse {
     private String encryptedData;
     private String mac;
     private String ephemeralPublicKey;
+    @ToString.Exclude
     private String nonce;
     private Long timestamp;
     private ActivationStatus activationStatus;

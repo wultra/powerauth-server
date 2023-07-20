@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with information about started protocol upgrade.
@@ -31,6 +32,7 @@ public class StartUpgradeResponse {
     private String encryptedData;
     private String mac;
     private String ephemeralPublicKey;
+    @ToString.Exclude
     private String nonce;
     private Long timestamp;
 
