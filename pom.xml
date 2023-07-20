@@ -93,6 +93,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi-starter-webmvc-ui.version>2.2.0</springdoc-openapi-starter-webmvc-ui.version>
+        <swagger-annotations-jakarta.version>2.2.8</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
         <schedlock.version>5.1.0</schedlock.version>
@@ -134,6 +135,12 @@
                 <groupId>io.getlime.core</groupId>
                 <artifactId>rest-model-base</artifactId>
                 <version>${wultra-core.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>${swagger-annotations-jakarta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

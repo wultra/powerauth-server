@@ -22,15 +22,16 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
@@ -45,10 +46,11 @@ import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.totp.Totp;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +59,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -69,6 +72,7 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
+@Slf4j
 public class OfflineSignatureServiceBehavior {
 
     private static final String APPLICATION_SECRET_OFFLINE_MODE = "offline";
@@ -78,19 +82,22 @@ public class OfflineSignatureServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
     private final LocalizationProvider localizationProvider;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(OfflineSignatureServiceBehavior.class);
-
     @Autowired
-    public OfflineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, SignatureSharedServiceBehavior signatureSharedServiceBehavior, LocalizationProvider localizationProvider) {
+    public OfflineSignatureServiceBehavior(
+            RepositoryCatalogue repositoryCatalogue,
+            SignatureSharedServiceBehavior signatureSharedServiceBehavior,
+            LocalizationProvider localizationProvider,
+            PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.signatureSharedServiceBehavior = signatureSharedServiceBehavior;
         this.localizationProvider = localizationProvider;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     @Autowired
@@ -132,16 +139,15 @@ public class OfflineSignatureServiceBehavior {
 
     /**
      * Create personalized offline signature payload for displaying a QR code in offline mode.
-     * @param activationId Activation ID.
-     * @param data Normalized data used for offline signature verification.
-     * @param keyConversionUtilities Key convertor.
+     * @param request parameter object
      * @return Response with data for QR code and cryptographic nonce.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(String activationId, String data, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final CreatePersonalizedOfflineSignaturePayloadParameter request) throws GenericServiceException {
 
         // Fetch activation details from the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final String activationId = request.getActivationId();
         final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
         if (activation == null) {
             logger.info("Activation not found, activation ID: {}", activationId);
@@ -152,9 +158,7 @@ public class OfflineSignatureServiceBehavior {
         // Proceed and compute the results
         try {
 
-            // Generate nonce
-            final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
-            final String nonce = Base64.getEncoder().encodeToString(nonceBytes);
+            final String nonce = fetchNonce(request);
 
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -163,16 +167,17 @@ public class OfflineSignatureServiceBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
             // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
-            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
+            final PrivateKey privateKey = request.getKeyConversionUtilities().convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final byte[] signatureBase = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
+            final String dataPlusNonce = fetchDataAndTotp(request, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
+            final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
 
             // Construct complete offline data as '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}'
-            final String offlineData = (data + "\n" + nonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
+            final String offlineData = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR + ecdsaSignature);
 
             // Return the result
             final CreatePersonalizedOfflineSignaturePayloadResponse response = new CreatePersonalizedOfflineSignaturePayloadResponse();
@@ -193,6 +198,27 @@ public class OfflineSignatureServiceBehavior {
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
+    }
+
+    private static String fetchDataAndTotp(CreatePersonalizedOfflineSignaturePayloadParameter request, int digitsNumber) throws CryptoProviderException {
+        if (StringUtils.isBlank(request.getProximityCheckSeed())) {
+            return request.getData();
+        }
+        logger.debug("Generating TOTP for proximity check, activation ID: {}", request.getActivationId());
+        final byte[] seed = Base64.getDecoder().decode(request.getProximityCheckSeed());
+        final byte[] totp = Totp.generateTotpSha256(seed, Instant.now(), request.getProximityCheckStepLength(), digitsNumber);
+        return request.getData() + "\n" + new String(totp, StandardCharsets.UTF_8);
+    }
+
+    private static String fetchNonce(CreatePersonalizedOfflineSignaturePayloadParameter request) throws CryptoProviderException {
+        if (StringUtils.isNotBlank(request.getNonce())) {
+            logger.debug("Using provided nonce, activation ID: {}", request.getActivationId());
+            return request.getNonce();
+        }
+
+        logger.debug("Generating random nonce, activation ID: {}", request.getActivationId());
+        final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
+        return Base64.getEncoder().encodeToString(nonceBytes);
     }
 
     /**
@@ -305,6 +331,7 @@ public class OfflineSignatureServiceBehavior {
                     return invalidStateResponse(activationId, activation.getActivationStatus());
                 }
 
+                // TODO Lubos validate TOTP
                 final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, keyConversionUtilities);
 
                 // Check if the signature is valid

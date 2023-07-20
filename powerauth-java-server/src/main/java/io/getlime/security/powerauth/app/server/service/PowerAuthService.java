@@ -29,6 +29,7 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.CreatePersonalizedOfflineSignaturePayloadParameter;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
@@ -50,6 +51,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -441,10 +443,9 @@ public class PowerAuthService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            final String activationId = request.getActivationId();
-            final String data = request.getData();
-            logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", activationId);
-            final CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConvertor);
+            logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", request.getActivationId());
+            final CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior()
+                    .createPersonalizedOfflineSignaturePayload(convert(request, keyConvertor));
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -457,6 +458,22 @@ public class PowerAuthService {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
+    }
+
+    private static CreatePersonalizedOfflineSignaturePayloadParameter convert(final CreatePersonalizedOfflineSignaturePayloadRequest request, final KeyConvertor keyConvertor) {
+        final var builder = CreatePersonalizedOfflineSignaturePayloadParameter.builder()
+                .activationId(request.getActivationId())
+                .data(request.getActivationId())
+                .keyConversionUtilities(keyConvertor)
+                .nonce(request.getNonce());
+
+        if (request.getProximityCheck() != null) {
+            logger.debug("Proximity check enabled, activation ID: {}", request.getActivationId());
+            builder.proximityCheckSeed(request.getProximityCheck().getSeed());
+            builder.proximityCheckStepLength(Duration.ofSeconds(request.getProximityCheck().getStepLength()));
+        }
+
+        return builder.build();
     }
 
     @Transactional
