@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
@@ -92,20 +91,14 @@ public class OfflineSignatureServiceBehavior {
     /**
      * Verify signature for given activation and provided data in offline mode. Log every validation attempt in the audit log.
      *
-     * @param activationId              Activation ID.
-     * @param signatureTypes            Signature types to try to use during verification of offline signature.
-     * @param signature                 Provided signature.
-     * @param dataString                String with data used to compute the signature.
-     * @param expectedComponentLength   Expected length of the signature factor component.
-     * @param keyConversionUtilities    Conversion utility class.
+     * @param request parameter object
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(String activationId, List<SignatureType> signatureTypes, String signature, List<KeyValue> additionalInfo,
-                                                                 String dataString, Integer expectedComponentLength, KeyConvertor keyConversionUtilities)
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(final VerifyOfflineSignatureParameter request)
             throws GenericServiceException {
         try {
-            return verifyOfflineSignatureImpl(activationId, signatureTypes, signature, additionalInfo, dataString, expectedComponentLength, keyConversionUtilities);
+            return verifyOfflineSignatureImpl(request);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -272,13 +265,7 @@ public class OfflineSignatureServiceBehavior {
 
     /**
      * Verify offline signature implementation.
-     * @param activationId Activation ID.
-     * @param signatureTypes Signature types to try to use for signature verification.
-     * @param signature Signature.
-     * @param additionalInfo Additional information related to signature verification.
-     * @param dataString Signature data.
-     * @param expectedComponentLength Expected length of the signature factor component.
-     * @param keyConversionUtilities Key convertor.
+     * @param request parameter object
      * @return Verify offline signature response.
      * @throws InvalidKeySpecException In case a key specification is invalid.
      * @throws InvalidKeyException In case a key is invalid.
@@ -286,9 +273,10 @@ public class OfflineSignatureServiceBehavior {
      * @throws GenericCryptoException In case of a cryptography error.
      * @throws CryptoProviderException In case cryptography provider is incorrectly initialized.
      */
-    private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(String activationId, List<SignatureType> signatureTypes, String signature, List<KeyValue> additionalInfo,
-                                                                      String dataString, Integer expectedComponentLength, KeyConvertor keyConversionUtilities)
+    private VerifyOfflineSignatureResponse verifyOfflineSignatureImpl(final VerifyOfflineSignatureParameter request)
             throws InvalidKeySpecException, InvalidKeyException, GenericServiceException, GenericCryptoException, CryptoProviderException {
+        final String activationId = request.getActivationId();
+
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
 
@@ -299,13 +287,13 @@ public class OfflineSignatureServiceBehavior {
         if (activation != null) {
 
             // Application secret is "offline" in offline mode
-            final byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
+            final byte[] data = (request.getDataString() + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
             final DecimalSignatureConfiguration signatureConfiguration = SignatureConfiguration.decimal();
-            if (expectedComponentLength != null) {
-                signatureConfiguration.setLength(expectedComponentLength);
+            if (request.getExpectedComponentLength() != null) {
+                signatureConfiguration.setLength(request.getExpectedComponentLength());
             }
-            final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, null, additionalInfo, null);
-            final OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, signatureTypes);
+            final SignatureData signatureData = new SignatureData(data, request.getSignature(), signatureConfiguration, null, request.getAdditionalInfo(), null);
+            final OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, request.getSignatureTypes());
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
@@ -316,7 +304,7 @@ public class OfflineSignatureServiceBehavior {
                 }
 
                 // TODO Lubos validate TOTP
-                final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, keyConversionUtilities);
+                final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, request.getKeyConversionUtilities());
 
                 // Check if the signature is valid
                 if (verificationResponse.isSignatureValid()) {
