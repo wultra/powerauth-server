@@ -58,6 +58,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
@@ -303,11 +304,11 @@ public class OfflineSignatureServiceBehavior {
                     return invalidStateResponse(activationId, activation.getActivationStatus());
                 }
 
-                // TODO Lubos validate TOTP
                 final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, request.getKeyConversionUtilities());
+                final boolean proximityCheckPassed = processProximityCheck(request, powerAuthServiceConfiguration.getProximityCheckOtpLength());
 
                 // Check if the signature is valid
-                if (verificationResponse.isSignatureValid()) {
+                if (verificationResponse.isSignatureValid() && proximityCheckPassed) {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
@@ -333,6 +334,31 @@ public class OfflineSignatureServiceBehavior {
             return invalidStateResponse(activationId, ActivationStatus.REMOVED);
 
         }
+    }
+
+    private boolean processProximityCheck(final VerifyOfflineSignatureParameter request, final int digitsNumber) throws CryptoProviderException {
+        if (StringUtils.isBlank(request.getProximityCheckSeed())) {
+            logger.debug("Proximity seed is not present and is TOTP not being verified, activation ID: {}", request.getActivationId());
+            return true;
+        }
+
+        final int steps = request.getProximityCheckStepCount();
+        logger.debug("Verifying proximity TOTP, activation ID: {}, steps count: {}", request.getActivationId(), steps);
+
+        final String[] dataElements = request.getDataString().split("&");
+        final String operationData = dataElements[dataElements.length - 1];
+
+        final String[] operationDataElements = new String(Base64.getDecoder().decode(operationData), StandardCharsets.UTF_8).split("&");
+        final String totp = operationDataElements[operationDataElements.length - 1];
+
+        final byte[] totpBytes = totp.getBytes(StandardCharsets.UTF_8);
+        final byte[] seed = Base64.getDecoder().decode(request.getProximityCheckSeed());
+        final Duration stepLength = request.getProximityCheckStepLength();
+
+        final boolean result = Totp.validateTotpSha256(totpBytes, seed, Instant.now(), digitsNumber, steps, stepLength);
+        logger.debug("Result of proximity TOTP validation: {}, activation ID: {}", result, request.getActivationId());
+
+        return result;
     }
 
     /**

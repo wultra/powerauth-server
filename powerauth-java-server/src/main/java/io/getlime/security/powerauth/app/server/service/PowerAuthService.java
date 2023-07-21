@@ -464,7 +464,7 @@ public class PowerAuthService {
     private static CreatePersonalizedOfflineSignaturePayloadParameter convert(final CreatePersonalizedOfflineSignaturePayloadRequest request, final KeyConvertor keyConvertor) {
         final var builder = CreatePersonalizedOfflineSignaturePayloadParameter.builder()
                 .activationId(request.getActivationId())
-                .data(request.getActivationId())
+                .data(request.getData())
                 .keyConversionUtilities(keyConvertor)
                 .nonce(request.getNonce());
 
