@@ -154,9 +154,14 @@ public class VaultUnlockServiceBehavior {
                 return response;
             }
 
-            // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
-                    eciesPayload.getParameters().getNonce(), activationId);
+            if (eciesPayload.getParameters().getTimestamp() != null) {
+                // Check ECIES request for replay attacks and persist unique value from request
+                eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                        new Date(eciesPayload.getParameters().getTimestamp()),
+                        eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                        eciesPayload.getParameters().getNonce(),
+                        activationId);
+            }
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);

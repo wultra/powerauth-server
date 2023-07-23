@@ -77,6 +77,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -104,7 +107,7 @@ public class ActivationServiceBehavior {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
-    private final ReplayVerificationService eciesreplayPersistenceService;
+    private final ReplayVerificationService eciesReplayPersistenceService;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -125,7 +128,7 @@ public class ActivationServiceBehavior {
     public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
+        this.eciesReplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
     }
 
@@ -865,9 +868,14 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
-            // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
-                    eciesPayload.getParameters().getNonce(), null);
+            if (eciesPayload.getParameters().getTimestamp() != null) {
+                // Check ECIES request for replay attacks and persist unique value from request
+                eciesReplayPersistenceService.checkAndPersistUniqueValue(
+                        new Date(eciesPayload.getParameters().getTimestamp()),
+                        eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                        eciesPayload.getParameters().getNonce(),
+                        null);
+            }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
@@ -1101,9 +1109,13 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
-            // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
-                    eciesPayload.getParameters().getNonce(), null);
+            if (eciesPayload.getParameters().getTimestamp() != null) {
+                // Check ECIES request for replay attacks and persist unique value from request
+                eciesReplayPersistenceService.checkAndPersistUniqueValue(
+                        new Date(eciesPayload.getParameters().getTimestamp()),
+                        eciesPayload.getParameters().getNonce(),
+                        null);
+            }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
@@ -1646,8 +1658,13 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
-            // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(ephemeralPublicKeyBytes, nonceBytes, null);
+            if (eciesPayload.getParameters().getTimestamp() != null) {
+                // Check ECIES request for replay attacks and persist unique value from request
+                eciesReplayPersistenceService.checkAndPersistUniqueValue(new Date(eciesPayload.getParameters().getTimestamp()),
+                        ephemeralPublicKeyBytes,
+                        nonceBytes,
+                        null);
+            }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));

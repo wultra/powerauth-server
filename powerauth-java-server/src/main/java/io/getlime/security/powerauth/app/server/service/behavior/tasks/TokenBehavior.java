@@ -182,9 +182,13 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
-                    eciesPayload.getParameters().getNonce(), activationId);
+            if (eciesPayload.getParameters().getTimestamp() != null) {
+                // Check ECIES request for replay attacks and persist unique value from request
+                eciesreplayPersistenceService.checkAndPersistUniqueValue(new Date(eciesPayload.getParameters().getTimestamp()),
+                        eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                        eciesPayload.getParameters().getNonce(),
+                        activationId);
+            }
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -316,7 +320,9 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                eciesreplayPersistenceService.checkAndPersistUniqueValue(nonce, activation.getActivationId());
+                eciesreplayPersistenceService.checkAndPersistUniqueValue(new Date(request.getTimestamp()),
+                        nonce,
+                        activation.getActivationId());
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
             }

@@ -19,6 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.service.replay;
 
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.entity.UniqueValueEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.database.repository.UniqueValueRepository;
@@ -40,14 +41,17 @@ import java.util.Date;
 public class ReplayPersistenceService {
 
     private final UniqueValueRepository uniqueValueRepository;
+    private final PowerAuthServiceConfiguration config;
 
     /**
      * Service constructor.
      * @param uniqueValueRepository Unique value repository.
+     * @param config PowerAuth service configuration.
      */
     @Autowired
-    public ReplayPersistenceService(UniqueValueRepository uniqueValueRepository) {
+    public ReplayPersistenceService(UniqueValueRepository uniqueValueRepository, PowerAuthServiceConfiguration config) {
         this.uniqueValueRepository = uniqueValueRepository;
+        this.config = config;
     }
 
     /**
@@ -67,7 +71,7 @@ public class ReplayPersistenceService {
      * @return Whether unique value was added successfully.
      */
     public boolean persistUniqueValue(final UniqueValueType type, final String identifier, final String uniqueValue) {
-        final Instant expiration = Instant.now().plus(2, ChronoUnit.HOURS);
+        final Instant expiration = Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS);
         final UniqueValueEntity uniqueVal = new UniqueValueEntity();
         uniqueVal.setType(type);
         uniqueVal.setIdentifier(identifier);

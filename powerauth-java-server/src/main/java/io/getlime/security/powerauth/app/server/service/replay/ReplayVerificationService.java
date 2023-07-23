@@ -19,6 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.service.replay;
 
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -28,7 +29,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
+import java.util.Date;
 
 /**
  * Service for checking unique cryptography values to prevent replay attacks.
@@ -41,16 +45,19 @@ public class ReplayVerificationService {
 
     private final ReplayPersistenceService replayPersistenceService;
     private final LocalizationProvider localizationProvider;
+    private final PowerAuthServiceConfiguration config;
 
     /**
      * Service constructor.
      * @param replayPersistenceService Replay persistence service.
      * @param localizationProvider Localization provider.
+     * @param powerAuthServiceConfiguration PowerAuth service configuration.
      */
     @Autowired
-    public ReplayVerificationService(ReplayPersistenceService replayPersistenceService, LocalizationProvider localizationProvider) {
+    public ReplayVerificationService(ReplayPersistenceService replayPersistenceService, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.replayPersistenceService = replayPersistenceService;
         this.localizationProvider = localizationProvider;
+        this.config = powerAuthServiceConfiguration;
     }
 
     /**
@@ -59,8 +66,8 @@ public class ReplayVerificationService {
      * @param activationId Activation ID.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(byte[] nonceBytes, String activationId) throws GenericServiceException {
-        checkAndPersistUniqueValue(new byte[0], nonceBytes, activationId);
+    public void checkAndPersistUniqueValue(Date requestTimestamp, byte[] nonceBytes, String activationId) throws GenericServiceException {
+        checkAndPersistUniqueValue(requestTimestamp, new byte[0], nonceBytes, activationId);
     }
 
     /**
@@ -70,8 +77,14 @@ public class ReplayVerificationService {
      * @param activationId Activation ID.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String activationId) throws GenericServiceException {
-        // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
+    public void checkAndPersistUniqueValue(Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String activationId) throws GenericServiceException {
+        final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
+        if (requestTimestamp.after(expiration)) {
+            // Rollback is not required, error occurs before writing to database
+            logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
         final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(ephemeralPublicKeyBytes.length + (nonceBytes != null ? nonceBytes.length : 0));
         uniqueValBuffer.put(ephemeralPublicKeyBytes);
         if (nonceBytes != null) {

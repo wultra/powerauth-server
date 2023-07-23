@@ -156,6 +156,13 @@ public class PowerAuthServiceConfiguration {
     private int offlineSignatureComponentLength;
 
     /**
+     * Expiration of timestamps for ECIES and MAC token requests.
+     */
+    @Value("${powerauth.service.crypto.requestExpirationInMilliseconds}")
+    @Min(0)
+    private int requestExpirationInMilliseconds;
+
+    /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
      */
     @Value("${powerauth.service.http.proxy.enabled}")
@@ -475,6 +482,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setOfflineSignatureComponentLength(int offlineSignatureComponentLength) {
         this.offlineSignatureComponentLength = offlineSignatureComponentLength;
+    }
+
+    /**
+     * Get ECIES request expiration in milliseconds.
+     * @return ECIES request expiration in milliseconds.
+     */
+    public int getRequestExpirationInMilliseconds() {
+        return requestExpirationInMilliseconds;
+    }
+
+    /**
+     * Set ECIES request expiration in milliseconds.
+     * @param requestExpirationInMilliseconds ECIES request expiration in milliseconds.
+     */
+    public void setRequestExpirationInMilliseconds(int requestExpirationInMilliseconds) {
+        this.requestExpirationInMilliseconds = requestExpirationInMilliseconds;
     }
 
     /**

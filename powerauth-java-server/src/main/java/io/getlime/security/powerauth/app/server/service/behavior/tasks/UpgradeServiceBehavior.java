@@ -135,8 +135,13 @@ public class UpgradeServiceBehavior {
         final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
         final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
 
-        // Check ECIES request for replay attacks and persist unique value from request
-        eciesreplayPersistenceService.checkAndPersistUniqueValue(ephemeralPublicKeyBytes, nonceBytes, activationId);
+        if (eciesPayload.getParameters().getTimestamp() != null) {
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(new Date(eciesPayload.getParameters().getTimestamp()),
+                    ephemeralPublicKeyBytes,
+                    nonceBytes,
+                    activationId);
+        }
 
         // Lookup the activation
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);

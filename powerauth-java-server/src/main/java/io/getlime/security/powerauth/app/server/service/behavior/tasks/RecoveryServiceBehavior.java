@@ -344,7 +344,13 @@ public class RecoveryServiceBehavior {
                     applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE, parametersRequest, ephemeralPublicKeyBytes);
 
             // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(ephemeralPublicKeyBytes, nonceBytesRequest, activationId);
+            if (request.getTimestamp() != null) {
+                eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                        new Date(request.getTimestamp()),
+                        ephemeralPublicKeyBytes,
+                        nonceBytesRequest,
+                        activationId);
+            }
 
             final byte[] decryptedData = decryptor.decrypt(payloadRequest);
 
