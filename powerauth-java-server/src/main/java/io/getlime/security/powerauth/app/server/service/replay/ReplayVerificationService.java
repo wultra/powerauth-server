@@ -62,22 +62,26 @@ public class ReplayVerificationService {
 
     /**
      * Check whether unique value exists for MAC Token request.
+     * @param type Unique value type.
+     * @param requestTimestamp Request timestamp.
      * @param nonceBytes Nonce bytes.
      * @param activationId Activation ID.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(Date requestTimestamp, byte[] nonceBytes, String activationId) throws GenericServiceException {
-        checkAndPersistUniqueValue(requestTimestamp, new byte[0], nonceBytes, activationId);
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] nonceBytes, String activationId) throws GenericServiceException {
+        checkAndPersistUniqueValue(type, requestTimestamp, new byte[0], nonceBytes, activationId);
     }
 
     /**
      * Check whether unique value exists for ECIES request.
+     * @param type Unique value type.
+     * @param requestTimestamp Request timestamp.
      * @param ephemeralPublicKeyBytes Ephemeral public key bytes.
      * @param nonceBytes Nonce bytes.
      * @param activationId Activation ID.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String activationId) throws GenericServiceException {
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String activationId) throws GenericServiceException {
         final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
@@ -96,7 +100,7 @@ public class ReplayVerificationService {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (!replayPersistenceService.persistUniqueValue(UniqueValueType.ECIES_ACTIVATION_SCOPE, activationId, uniqueValue)) {
+        if (!replayPersistenceService.persistUniqueValue(type, activationId, uniqueValue)) {
             logger.warn("Unique value could not be persisted");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

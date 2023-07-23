@@ -27,10 +27,7 @@ import io.getlime.security.powerauth.app.server.converter.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.*;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
@@ -346,6 +343,7 @@ public class RecoveryServiceBehavior {
             // Check ECIES request for replay attacks and persist unique value from request
             if (request.getTimestamp() != null) {
                 eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
                         new Date(request.getTimestamp()),
                         ephemeralPublicKeyBytes,
                         nonceBytesRequest,

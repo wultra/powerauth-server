@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -137,7 +138,9 @@ public class UpgradeServiceBehavior {
 
         if (eciesPayload.getParameters().getTimestamp() != null) {
             // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(new Date(eciesPayload.getParameters().getTimestamp()),
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                    UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                    new Date(eciesPayload.getParameters().getTimestamp()),
                     ephemeralPublicKeyBytes,
                     nonceBytes,
                     activationId);

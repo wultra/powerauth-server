@@ -871,6 +871,7 @@ public class ActivationServiceBehavior {
             if (eciesPayload.getParameters().getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 eciesReplayPersistenceService.checkAndPersistUniqueValue(
+                        UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(eciesPayload.getParameters().getTimestamp()),
                         eciesPayload.getCryptogram().getEphemeralPublicKey(),
                         eciesPayload.getParameters().getNonce(),
@@ -1112,6 +1113,7 @@ public class ActivationServiceBehavior {
             if (eciesPayload.getParameters().getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 eciesReplayPersistenceService.checkAndPersistUniqueValue(
+                        UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(eciesPayload.getParameters().getTimestamp()),
                         eciesPayload.getParameters().getNonce(),
                         null);
@@ -1660,7 +1662,9 @@ public class ActivationServiceBehavior {
 
             if (eciesPayload.getParameters().getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                eciesReplayPersistenceService.checkAndPersistUniqueValue(new Date(eciesPayload.getParameters().getTimestamp()),
+                eciesReplayPersistenceService.checkAndPersistUniqueValue(
+                        UniqueValueType.ECIES_APPLICATION_SCOPE,
+                        new Date(eciesPayload.getParameters().getTimestamp()),
                         ephemeralPublicKeyBytes,
                         nonceBytes,
                         null);
