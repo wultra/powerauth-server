@@ -34,6 +34,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Recov
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -88,6 +89,7 @@ public class RecoveryServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
+    private final ReplayVerificationService eciesreplayPersistenceService;
 
     // Business logic implementation classes
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -106,12 +108,13 @@ public class RecoveryServiceBehavior {
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
-                                   ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
+                                   ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
+        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
         this.recoveryPukConverter = recoveryPukConverter;
     }
@@ -339,6 +342,9 @@ public class RecoveryServiceBehavior {
             final EciesPayload payloadRequest = new EciesPayload(cryptogramRequest, parametersRequest);
             final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
                     applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE, parametersRequest, ephemeralPublicKeyBytes);
+
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(ephemeralPublicKeyBytes, nonceBytesRequest, activationId);
 
             final byte[] decryptedData = decryptor.decrypt(payloadRequest);
 

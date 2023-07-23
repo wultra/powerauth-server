@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -81,6 +82,7 @@ public class VaultUnlockServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ServiceBehaviorCatalogue behavior;
+    private final ReplayVerificationService eciesreplayPersistenceService;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
@@ -93,11 +95,12 @@ public class VaultUnlockServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ObjectMapper objectMapper) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.behavior = behavior;
+        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
     }
 
@@ -150,6 +153,10 @@ public class VaultUnlockServiceBehavior {
                 response.setSignatureValid(false);
                 return response;
             }
+
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                    eciesPayload.getParameters().getNonce(), activationId);
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);

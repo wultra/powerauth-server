@@ -255,6 +255,18 @@ CREATE TABLE pa_operation_application (
 );
 
 --
+-- DDL for Table PA_UNIQUE_VALUE
+--
+CREATE TABLE PA_UNIQUE_VALUE (
+    unique_value      VARCHAR2(255 CHAR) NOT NULL PRIMARY KEY,
+    type              NUMBER(10,0) NOT NULL,
+    identifier        VARCHAR2(37 CHAR),
+    timestamp_expires TIMESTAMP NOT NULL
+);
+
+CREATE INDEX pa_unique_value_expiration ON pa_unique_value(timestamp_expires);
+
+--
 -- DDL for Table SHEDLOCK
 --
 BEGIN EXECUTE IMMEDIATE 'CREATE TABLE shedlock (

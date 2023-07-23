@@ -34,6 +34,7 @@ import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.*;
 import io.getlime.security.powerauth.app.server.database.repository.*;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery;
@@ -103,6 +104,8 @@ public class ActivationServiceBehavior {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
+    private final ReplayVerificationService eciesreplayPersistenceService;
+
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
@@ -119,9 +122,10 @@ public class ActivationServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
     }
 
@@ -861,6 +865,10 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
 
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                    eciesPayload.getParameters().getNonce(), null);
+
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
 
@@ -1092,6 +1100,10 @@ public class ActivationServiceBehavior {
                 // Master key pair is missing, rollback this transaction
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
+
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                    eciesPayload.getParameters().getNonce(), null);
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
@@ -1633,6 +1645,9 @@ public class ActivationServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
             }
+
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(ephemeralPublicKeyBytes, nonceBytes, null);
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
             final PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));

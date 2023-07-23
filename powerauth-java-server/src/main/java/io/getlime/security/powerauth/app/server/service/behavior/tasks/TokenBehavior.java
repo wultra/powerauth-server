@@ -37,6 +37,7 @@ import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntity;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -83,6 +84,7 @@ public class TokenBehavior {
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ReplayVerificationService eciesreplayPersistenceService;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -101,11 +103,12 @@ public class TokenBehavior {
     private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ObjectMapper objectMapper) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
     }
 
@@ -178,6 +181,10 @@ public class TokenBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
+
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(eciesPayload.getCryptogram().getEphemeralPublicKey(),
+                    eciesPayload.getParameters().getNonce(), activationId);
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -308,6 +315,9 @@ public class TokenBehavior {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
                 isTokenValid = false;
             } else {
+                // Check MAC token verification request for replay attacks and persist unique value from request
+                eciesreplayPersistenceService.checkAndPersistUniqueValue(nonce, activation.getActivationId());
+                // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
             }
 

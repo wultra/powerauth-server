@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -73,6 +74,7 @@ public class UpgradeServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ReplayVerificationService eciesreplayPersistenceService;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
@@ -90,12 +92,14 @@ public class UpgradeServiceBehavior {
             final RepositoryCatalogue repositoryCatalogue,
             final LocalizationProvider localizationProvider,
             final ServerPrivateKeyConverter serverPrivateKeyConverter,
+            final ReplayVerificationService eciesreplayPersistenceService,
             final ObjectMapper objectMapper,
             final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
 
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
@@ -130,6 +134,9 @@ public class UpgradeServiceBehavior {
         final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
         final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
         final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+
+        // Check ECIES request for replay attacks and persist unique value from request
+        eciesreplayPersistenceService.checkAndPersistUniqueValue(ephemeralPublicKeyBytes, nonceBytes, activationId);
 
         // Lookup the activation
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
