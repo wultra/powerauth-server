@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -132,7 +133,7 @@ public class PowerAuthService {
     }
 
     @Transactional
-    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request) throws GenericServiceException {
+    public GetActivationListForUserResponse getActivationListForUser(GetActivationListForUserRequest request, Pageable pageable) throws GenericServiceException {
         if (request.getUserId() == null) {
             logger.warn("Invalid request parameter userId in method getActivationListForUser");
             // Rollback is not required, database is not used for writing
@@ -143,7 +144,7 @@ public class PowerAuthService {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
