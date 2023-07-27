@@ -45,9 +45,6 @@ public class UniqueValueEntity implements Serializable {
     @Column(name = "type", nullable = false, updatable = false)
     private UniqueValueType type;
 
-    @Column(name = "identifier", updatable = false)
-    private String identifier;
-
     @Column(name = "timestamp_expires", nullable = false, updatable = false)
     private Date timestampExpires;
 
@@ -65,14 +62,6 @@ public class UniqueValueEntity implements Serializable {
 
     public void setType(UniqueValueType type) {
         this.type = type;
-    }
-
-    public String getIdentifier() {
-        return identifier;
-    }
-
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
     }
 
     public Date getTimestampExpires() {
@@ -101,7 +90,6 @@ public class UniqueValueEntity implements Serializable {
         return "UniqueValueEntity{" +
                 "uniqueValue='" + uniqueValue + '\'' +
                 ", type=" + type +
-                ", identifier='" + identifier + '\'' +
                 ", timestampExpires=" + timestampExpires +
                 '}';
     }

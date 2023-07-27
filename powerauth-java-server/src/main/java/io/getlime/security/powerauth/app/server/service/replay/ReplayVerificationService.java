@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
@@ -65,11 +66,11 @@ public class ReplayVerificationService {
      * @param type Unique value type.
      * @param requestTimestamp Request timestamp.
      * @param nonceBytes Nonce bytes.
-     * @param activationId Activation ID.
+     * @param identifier Identifier for the record.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] nonceBytes, String activationId) throws GenericServiceException {
-        checkAndPersistUniqueValue(type, requestTimestamp, new byte[0], nonceBytes, activationId);
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] nonceBytes, String identifier) throws GenericServiceException {
+        checkAndPersistUniqueValue(type, requestTimestamp, new byte[0], nonceBytes, identifier);
     }
 
     /**
@@ -78,10 +79,10 @@ public class ReplayVerificationService {
      * @param requestTimestamp Request timestamp.
      * @param ephemeralPublicKeyBytes Ephemeral public key bytes.
      * @param nonceBytes Nonce bytes.
-     * @param activationId Activation ID.
+     * @param identifier Identifier for the record.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String activationId) throws GenericServiceException {
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String identifier) throws GenericServiceException {
         final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
@@ -89,10 +90,19 @@ public class ReplayVerificationService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(ephemeralPublicKeyBytes.length + (nonceBytes != null ? nonceBytes.length : 0));
-        uniqueValBuffer.put(ephemeralPublicKeyBytes);
+        final byte[] identifierBytes = identifier != null ? identifier.getBytes(StandardCharsets.UTF_8) : new byte[0];
+        final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(
+                (ephemeralPublicKeyBytes != null ? ephemeralPublicKeyBytes.length : 0)
+                        + (nonceBytes != null ? nonceBytes.length : 0)
+                        + identifierBytes.length);
+        if (ephemeralPublicKeyBytes != null) {
+            uniqueValBuffer.put(ephemeralPublicKeyBytes);
+        }
         if (nonceBytes != null) {
             uniqueValBuffer.put(nonceBytes);
+        }
+        if (identifier != null) {
+            uniqueValBuffer.put(identifierBytes);
         }
         final String uniqueValue = Base64.getEncoder().encodeToString(uniqueValBuffer.array());
         if (replayPersistenceService.uniqueValueExists(uniqueValue)) {
@@ -100,7 +110,7 @@ public class ReplayVerificationService {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (!replayPersistenceService.persistUniqueValue(type, activationId, uniqueValue)) {
+        if (!replayPersistenceService.persistUniqueValue(type, uniqueValue)) {
             logger.warn("Unique value could not be persisted");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);

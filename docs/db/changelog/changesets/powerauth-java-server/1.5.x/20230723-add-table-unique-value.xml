@@ -18,7 +18,6 @@
             <column name="type" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="identifier" type="varchar(37)"/>
             <column name="timestamp_expires" type="timestamp">
                 <constraints nullable="false"/>
             </column>

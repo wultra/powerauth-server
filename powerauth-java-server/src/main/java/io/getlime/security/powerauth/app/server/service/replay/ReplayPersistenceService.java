@@ -66,15 +66,13 @@ public class ReplayPersistenceService {
     /**
      * Persist a unique value into the database.
      * @param type Unique value type.
-     * @param identifier Identifier value.
      * @param uniqueValue Unique value.
      * @return Whether unique value was added successfully.
      */
-    public boolean persistUniqueValue(final UniqueValueType type, final String identifier, final String uniqueValue) {
+    public boolean persistUniqueValue(final UniqueValueType type, final String uniqueValue) {
         final Instant expiration = Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS);
         final UniqueValueEntity uniqueVal = new UniqueValueEntity();
         uniqueVal.setType(type);
-        uniqueVal.setIdentifier(identifier);
         uniqueVal.setUniqueValue(uniqueValue);
         uniqueVal.setTimestampExpires(Date.from(expiration));
         try {

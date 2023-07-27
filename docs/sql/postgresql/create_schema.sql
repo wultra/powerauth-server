@@ -261,7 +261,6 @@ CREATE TABLE pa_operation_application (
 CREATE TABLE pa_unique_value (
     unique_value      VARCHAR(255) NOT NULL PRIMARY KEY,
     type              INTEGER NOT NULL,
-    identifier        VARCHAR(37),
     timestamp_expires TIMESTAMP NOT NULL
 );
 

@@ -327,7 +327,7 @@ public class TokenBehavior {
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
                         nonce,
-                        activation.getActivationId());
+                        token.getTokenId());
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
             }

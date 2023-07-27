@@ -1112,6 +1112,7 @@ public class ActivationServiceBehavior {
                 eciesReplayPersistenceService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
                         new Date(eciesPayload.getParameters().getTimestamp()),
+                        eciesPayload.getCryptogram().getEphemeralPublicKey(),
                         eciesPayload.getParameters().getNonce(),
                         null);
             }
