@@ -37,7 +37,6 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ConfirmRecoveryRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.ConfirmRecoveryResponsePayload;
-import io.getlime.security.powerauth.app.server.service.util.EciesDataUtils;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
@@ -48,6 +47,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -330,7 +330,7 @@ public class RecoveryServiceBehavior {
             final byte[] nonceBytesRequest = nonceRequest != null ? Base64.getDecoder().decode(nonceRequest) : null;
             final String version = request.getProtocolVersion();
             final Long timestampRequest = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesDataUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId) : null;
+            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId) : null;
             // Decrypt request data
             final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
             final byte[] macBytes = Base64.getDecoder().decode(mac);
