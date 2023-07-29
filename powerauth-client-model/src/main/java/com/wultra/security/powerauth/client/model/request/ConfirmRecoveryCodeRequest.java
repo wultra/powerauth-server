@@ -36,5 +36,7 @@ public class ConfirmRecoveryCodeRequest {
     private String mac;
     @ToString.Exclude
     private String nonce;
+    private Long timestamp;
+    private String protocolVersion;
 
 }

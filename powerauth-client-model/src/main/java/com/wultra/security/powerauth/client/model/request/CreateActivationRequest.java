@@ -43,5 +43,7 @@ public class CreateActivationRequest {
     private String nonce;
     @ToString.Exclude
     private String activationOtp;
+    private String protocolVersion;
+    private Long timestamp;
 
 }

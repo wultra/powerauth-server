@@ -15,6 +15,7 @@ DROP TABLE IF EXISTS "pa_recovery_puk" CASCADE;
 DROP TABLE IF EXISTS "pa_recovery_code" CASCADE;
 DROP TABLE IF EXISTS "pa_operation" CASCADE;
 DROP TABLE IF EXISTS "pa_operation_template" CASCADE;
+DROP TABLE IF EXISTS "pa_unique_value" CASCADE;
 
 -- Optionally drop the shedlock table
 -- DROP TABLE IF EXISTS "shedlock" CASCADE;

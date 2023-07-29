@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--  Create table pa_unique_value -->
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230723-add-table-unique-value.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_unique_value"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_unique_value</comment>
+        <createTable tableName="pa_unique_value">
+            <column name="unique_value" type="varchar(255)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="type" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timestamp_expires" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.5.x/20230723-add-table-unique-value.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_unique_value" indexName="pa_unique_value_expiration" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_unique_value(timestamp_expires)</comment>
+        <createIndex tableName="pa_unique_value" indexName="pa_unique_value_expiration">
+            <column name="timestamp_expires" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

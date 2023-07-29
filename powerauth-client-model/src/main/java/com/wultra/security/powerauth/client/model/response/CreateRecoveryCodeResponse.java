@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.client.model.response;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.List;
 @Data
 public class CreateRecoveryCodeResponse {
 
+    @ToString.Exclude
     private String nonce;
     private String userId;
     private long recoveryCodeId;

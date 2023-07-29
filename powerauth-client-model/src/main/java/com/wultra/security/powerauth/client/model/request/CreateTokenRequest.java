@@ -38,5 +38,7 @@ public class CreateTokenRequest {
     @ToString.Exclude
     private String nonce;
     private SignatureType signatureType;
+    private String protocolVersion;
+    private Long timestamp;
 
 }
