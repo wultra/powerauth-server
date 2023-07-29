@@ -60,7 +60,6 @@ The following `v3` methods are published using the service:
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
   - [getEciesDecryptor](#method-geteciesdecryptor)
-  - [getEciesEncryptor](#method-geteciesencryptor)
 - Activation Versioning
     - [startUpgrade](#method-startupgrade)
     - [commitUpgrade](#method-commitupgrade)
@@ -1455,31 +1454,6 @@ REST endpoint: `POST /rest/v3/ecies/decryptor`
 #### Response
 
 `GetEciesDecryptorResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `secretKey` | Base64 encoded secret key for ECIES |
-| `String` | `sharedInfo2` | The sharedInfo2 parameter for ECIES |
-
-### Method 'getEciesEncryptor'
-
-Get ECIES encryptor data for request/response encryption on intermediate server.
-
-#### Request
-
-REST endpoint: `POST /rest/v3/ecies/encryptor`
-
-`GetEciesEncryptorRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-
-#### Response
-
-`GetEciesEncryptorResponse`
 
 | Type | Name | Description |
 |------|------|-------------|

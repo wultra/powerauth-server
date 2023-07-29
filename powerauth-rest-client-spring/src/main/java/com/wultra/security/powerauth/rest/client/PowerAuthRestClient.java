@@ -995,28 +995,6 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetEciesEncryptorResponse getEciesEncryptor(GetEciesEncryptorRequest request) throws PowerAuthClientException {
-        return getEciesEncryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
-    public GetEciesEncryptorResponse getEciesEncryptor(GetEciesEncryptorRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/ecies/encryptor", request, queryParams, httpHeaders, GetEciesEncryptorResponse.class);
-    }
-
-    @Override
-    public GetEciesEncryptorResponse getEciesEncryptor(String activationId, String applicationKey, String ephemeralPublicKey, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
-        final GetEciesEncryptorRequest request = new GetEciesEncryptorRequest();
-        request.setActivationId(activationId);
-        request.setApplicationKey(applicationKey);
-        request.setEphemeralPublicKey(ephemeralPublicKey);
-        request.setNonce(nonce);
-        request.setProtocolVersion(protocolVersion);
-        request.setTimestamp(timestamp);
-        return getEciesEncryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
-    }
-
-    @Override
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws PowerAuthClientException {
         return startUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }

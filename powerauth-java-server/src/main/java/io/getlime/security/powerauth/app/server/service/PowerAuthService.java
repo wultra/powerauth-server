@@ -1176,31 +1176,6 @@ public class PowerAuthService {
     }
 
     @Transactional
-    public GetEciesEncryptorResponse getEciesEncryptor(GetEciesEncryptorRequest request) throws GenericServiceException {
-        if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
-            logger.warn("Invalid request parameters in method getEciesEncryptor");
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-        // The activationId value can be null in case the decryptor is used in application scope
-        try {
-            logger.info("GetEciesEncryptorRequest received, application key: {}, activation ID: {}", request.getApplicationKey(), request.getActivationId());
-            final GetEciesEncryptorResponse response = behavior.getEciesEncryptionBehavior().getEciesEncryptorParameters(request);
-            logger.info("GetEciesEncryptorRequest succeeded");
-            return response;
-        } catch (GenericServiceException ex) {
-            // already logged
-            throw ex;
-        } catch (RuntimeException | Error ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
-            throw ex;
-        } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
-        }
-    }
-
-    @Transactional
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
             logger.warn("Invalid request parameters in method startUpgrade");

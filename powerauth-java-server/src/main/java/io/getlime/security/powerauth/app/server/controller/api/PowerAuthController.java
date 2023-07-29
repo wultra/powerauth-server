@@ -561,19 +561,6 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getEciesEncryptor(GetEciesEncryptorRequest)} method and
-     * return the response.
-     *
-     * @param request Get ECIES decryptor parameters for given request.
-     * @return Response with ECIES decryptor parameters.
-     * @throws Exception In case the service throws exception.
-     */
-    @PostMapping("/ecies/encryptor")
-    public ObjectResponse<GetEciesEncryptorResponse> getEciesEncryptor(@RequestBody ObjectRequest<GetEciesEncryptorRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getEciesEncryptor(request.getRequestObject()));
-    }
-
-    /**
      * Call {@link PowerAuthService#startUpgrade(StartUpgradeRequest)} method and
      * return the response.
      * @param request Start upgrade request.

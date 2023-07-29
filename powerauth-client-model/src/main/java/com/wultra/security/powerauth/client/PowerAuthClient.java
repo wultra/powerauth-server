@@ -1347,41 +1347,6 @@ public interface PowerAuthClient {
                                                 String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
-     * Get ECIES encryptor parameters.
-     *
-     * @param request Request for ECIES encryptor parameters.
-     * @return ECIES encryptor parameters.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetEciesEncryptorResponse getEciesEncryptor(GetEciesEncryptorRequest request) throws PowerAuthClientException;
-
-    /**
-     * Get ECIES encryptor parameters.
-     *
-     * @param request Request for ECIES decryptor parameters.
-     * @param queryParams HTTP query parameters.
-     * @param httpHeaders HTTP headers.
-     * @return ECIES encryptor parameters.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetEciesEncryptorResponse getEciesEncryptor(GetEciesEncryptorRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
-
-    /**
-     * Get ECIES encryptor parameters.
-     *
-     * @param activationId       Activation ID.
-     * @param applicationKey     Application key.
-     * @param ephemeralPublicKey Ephemeral public key for ECIES.
-     * @param nonce              ECIES nonce.
-     * @param protocolVersion    Crypto protocol version.
-     * @param timestamp          Unix timestamp in milliseconds for ECIES.
-     * @return ECIES decryptor parameters.
-     * @throws PowerAuthClientException In case REST API call fails.
-     */
-    GetEciesEncryptorResponse getEciesEncryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
-
-    /**
      * Start upgrade of activations to version 3.
      *
      * @param request Start upgrade request.
