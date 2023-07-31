@@ -30,7 +30,7 @@ public class GetActivationListForUserRequest {
 
     private String userId;
     private String applicationId;
-    private Integer page;
-    private Integer size;
+    private Integer pageNumber;
+    private Integer pageSize;
 
 }
