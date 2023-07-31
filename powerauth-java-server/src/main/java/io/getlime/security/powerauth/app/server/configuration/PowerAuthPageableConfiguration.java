@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2022 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,22 +15,31 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.wultra.security.powerauth.client.model.request;
+package io.getlime.security.powerauth.app.server.configuration;
 
 import lombok.Data;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 /**
- * Model class representing request for activation list for a given user.
+ * PowerAuthPageableConfiguration is a configuration class for handling pagination settings.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Jan Dusil, jan.dusil@wultra.com
+ *
  */
+@Configuration
+@ConfigurationProperties("powerauth.service.pagination")
 @Data
-public class GetActivationListForUserRequest {
+public class PowerAuthPageableConfiguration {
 
-    private String userId;
-    private String applicationId;
-    private Integer page;
-    private Integer size;
+    /**
+     * Default page number for pagination.
+     */
+    private int defaultPageNumber;
 
+    /**
+     * Default page size for pagination.
+     */
+    private int defaultPageSize;
 }
+
