@@ -40,13 +40,16 @@ The PowerAuth Server uses the following public configuration properties:
 
 ## HTTP Configuration
 
-| Property | Default | Note |
-|---|---|---|
-| `powerauth.service.http.proxy.enabled` | `false` | Whether proxy is enabled for outgoing HTTP requests |
-| `powerauth.service.http.proxy.host` | `127.0.0.1` | Proxy host for outgoing HTTP requests |
-| `powerauth.service.http.proxy.port` | `8080` | Proxy port for outgoing HTTP requests |
-| `powerauth.service.http.proxy.username` | `_emtpy_` | Proxy username for outgoing HTTP requests |
-| `powerauth.service.http.proxy.password` | `_empty_` | Proxy password for outgoing HTTP requests |
+| Property                                          | Default     | Note                                                |
+|---------------------------------------------------|-------------|-----------------------------------------------------|
+| `powerauth.service.http.proxy.enabled`            | `false`     | Whether proxy is enabled for outgoing HTTP requests |
+| `powerauth.service.http.proxy.host`               | `127.0.0.1` | Proxy host for outgoing HTTP requests               |
+| `powerauth.service.http.proxy.port`               | `8080`      | Proxy port for outgoing HTTP requests               |
+| `powerauth.service.http.proxy.username`           | `_emtpy_`   | Proxy username for outgoing HTTP requests           |
+| `powerauth.service.http.proxy.password`           | `_empty_`   | Proxy password for outgoing HTTP requests           |
+| `powerauth.service.http.connection.timeout`       | `5s`        | HTTP connection timeout                             |
+| `powerauth.service.http.response.timeout`         | `60s`       | HTTP response timeout                               |
+| `powerauth.service.http.connection.max-idle-time` | `200s`      | HTTP max idle time                                  |
 
 ## Spring Vault Configuration
 
