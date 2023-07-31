@@ -256,6 +256,15 @@ CREATE TABLE pa_operation_application (
 );
 
 --
+-- DDL for Table PA_UNIQUE_VALUE
+--
+CREATE TABLE pa_unique_value (
+    unique_value      VARCHAR(255) NOT NULL PRIMARY KEY,
+    type              INTEGER NOT NULL,
+    timestamp_expires TIMESTAMP NOT NULL
+);
+
+--
 -- DDL for Table SHEDLOCK
 --
 CREATE TABLE IF NOT EXISTS shedlock (
@@ -406,6 +415,8 @@ CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 CREATE INDEX pa_operation_status_exp ON pa_operation(timestamp_expires, status);
 
 CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
+
+CREATE INDEX pa_unique_value_expiration ON pa_unique_value(timestamp_expires);
 
 --
 -- Auditing indexes.

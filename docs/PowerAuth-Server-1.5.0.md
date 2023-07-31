@@ -87,6 +87,36 @@ ALTER TABLE PA_OPERATION ADD COLUMN TOTP_SEED VARCHAR2(24 CHAR);
 ALTER TABLE PA_OPERATION_TEMPLATE ADD COLUMN PROXIMITY_CHECK_ENABLED NUMBER(1, 0) DEFAULT 0 NOT NULL;
 ```
 
+### Added Table for Detecting Replay Attacks
+
+A new table `pa_unique_values` was added to store unique values sent in requests, so that replay attacks are prevented.
+
+#### PostgreSQL
+
+```sql
+CREATE TABLE pa_unique_value (
+    unique_value      VARCHAR(255) NOT NULL PRIMARY KEY,
+    type              INTEGER NOT NULL,
+    timestamp_expires TIMESTAMP NOT NULL
+);
+
+CREATE INDEX pa_unique_value_expiration ON pa_unique_value(timestamp_expires);
+```
+
+#### Oracle
+
+```sql
+--
+-- DDL for Table PA_UNIQUE_VALUE
+--
+CREATE TABLE PA_UNIQUE_VALUE (
+    unique_value      VARCHAR2(255 CHAR) NOT NULL PRIMARY KEY,
+    type              NUMBER(10,0) NOT NULL,
+    timestamp_expires TIMESTAMP NOT NULL
+);
+
+CREATE INDEX pa_unique_value_expiration ON pa_unique_value(timestamp_expires);
+```
 
 ### Drop MySQL Support
 

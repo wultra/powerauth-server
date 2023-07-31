@@ -59,7 +59,7 @@ The following `v3` methods are published using the service:
     - [getCallbackUrlList](#method-getcallbackurllist)
     - [removeCallbackUrl](#method-removecallbackurl)
 - End-To-End Encryption
-    - [getEciesDecryptor](#method-geteciesdecryptor)
+  - [getEciesDecryptor](#method-geteciesdecryptor)
 - Activation Versioning
     - [startUpgrade](#method-startupgrade)
     - [commitUpgrade](#method-commitupgrade)

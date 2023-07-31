@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,26 +15,22 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package io.getlime.security.powerauth.app.server.database.repository;
 
-package com.wultra.security.powerauth.client.model.response;
+import io.getlime.security.powerauth.app.server.database.model.entity.UniqueValueEntity;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
-import lombok.Data;
-import lombok.ToString;
+import java.util.Date;
 
 /**
- * Model class representing response with vault unlock data required by the client.
+ * Repository for accessing stored tokens for token-based authentication.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Data
-public class VaultUnlockResponse {
+@Repository
+public interface UniqueValueRepository extends CrudRepository<UniqueValueEntity, String> {
 
-    private String encryptedData;
-    private String mac;
-    private String ephemeralPublicKey;
-    private boolean signatureValid;
-    @ToString.Exclude
-    private String nonce;
-    private Long timestamp;
+    int deleteAllByTimestampExpiresBefore(Date timestampExpires);
 
 }
