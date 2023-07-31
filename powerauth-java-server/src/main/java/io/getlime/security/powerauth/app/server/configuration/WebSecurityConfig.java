@@ -78,7 +78,7 @@ public class WebSecurityConfig {
         } else {
             logger.info("No http authentication used");
             return http
-                    .httpBasic().disable()
+                    .httpBasic(AbstractHttpConfigurer::disable)
                     .csrf(AbstractHttpConfigurer::disable)
                     .build();
         }
