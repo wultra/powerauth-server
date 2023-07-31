@@ -28,6 +28,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.annotation.web.configurers.LogoutConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
  * Spring Security configuration class.
@@ -56,15 +57,18 @@ public class WebSecurityConfig {
             logger.info("Initializing HTTP authentication");
             return http
                     .authorizeHttpRequests(authorize -> authorize
-                        .dispatcherTypeMatchers(DispatcherType.FORWARD)
+                            .dispatcherTypeMatchers(DispatcherType.FORWARD)
                             .permitAll()
-                        .requestMatchers("/resources/**", "/api/service/**", "/actuator/**")
+                            .requestMatchers(
+                                    new AntPathRequestMatcher("/resources/**"),
+                                    new AntPathRequestMatcher("/api/service/**"),
+                                    new AntPathRequestMatcher("/actuator/**"))
                             .permitAll()
-                        .anyRequest()
+                            .anyRequest()
                             .fullyAuthenticated())
                     .formLogin(formLogin ->
-                        formLogin.loginPage("/login")
-                            .permitAll())
+                            formLogin.loginPage("/login")
+                                    .permitAll())
                     .logout(LogoutConfigurer::permitAll)
                     .httpBasic(AbstractHttpConfigurer::disable)
                     .build();
