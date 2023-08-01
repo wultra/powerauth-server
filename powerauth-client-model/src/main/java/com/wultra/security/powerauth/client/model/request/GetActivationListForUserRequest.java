@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 /**
@@ -30,7 +31,9 @@ public class GetActivationListForUserRequest {
 
     private String userId;
     private String applicationId;
+    @Min(0)
     private Integer pageNumber;
+    @Min(1)
     private Integer pageSize;
 
 }

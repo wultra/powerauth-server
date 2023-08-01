@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2022 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,29 +17,24 @@
  */
 package io.getlime.security.powerauth.app.server.configuration;
 
-import lombok.Data;
+import jakarta.validation.constraints.Min;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 /**
- * PowerAuthPageableConfiguration is a configuration class for handling pagination settings.
+ * Configuration class that handles pagination settings in PowerAuth Server.
+ * This includes parameters for default page number and page size.
+ * <p>
+ * 'defaultPageNumber' is the default page number that is used when no specific
+ * page number is provided. It has a minimum value of 0.
+ * <p>
+ * 'defaultPageSize' is the default number of records per page when no specific
+ * page size is provided. It has a minimum value of 1.
+ * <p>
+ * Both properties are read from the "powerauth.service.pagination" configuration block.
  *
  * @author Jan Dusil, jan.dusil@wultra.com
- *
  */
-@Configuration
+
 @ConfigurationProperties("powerauth.service.pagination")
-@Data
-public class PowerAuthPageableConfiguration {
-
-    /**
-     * Default page number for pagination.
-     */
-    private int defaultPageNumber;
-
-    /**
-     * Default page size for pagination.
-     */
-    private int defaultPageSize;
+public record PowerAuthPageableConfiguration(@Min(0) int defaultPageNumber, @Min(1) int defaultPageSize) {
 }
-

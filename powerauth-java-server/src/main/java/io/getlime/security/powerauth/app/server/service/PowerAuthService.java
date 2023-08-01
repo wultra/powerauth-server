@@ -156,9 +156,9 @@ public class PowerAuthService {
         try {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
-            final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.getDefaultPageNumber();
-            final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.getDefaultPageSize();
-            Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
+            final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
+            final Pageable pageable = PageRequest.of(pageNumber, pageSize);
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
             final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable);
             logger.info("GetActivationListForUserRequest succeeded");
