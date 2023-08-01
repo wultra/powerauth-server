@@ -32,6 +32,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Duration;
+
 /**
  * Class holding the configuration data of this PowerAuth Server
  * instance. Default values are in "application.properties" file.
@@ -121,14 +123,14 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.service.crypto.activationValidityInMilliseconds}")
     @Min(0)
-    private int activationValidityBeforeActive;
+    private Duration activationValidityBeforeActive;
 
     /**
      * How many milliseconds should the activation cleanup job look to the past.
      */
-    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds:3600000}")
+    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds:PT1H}")
     @Min(0)
-    private int activationsCleanupLookBackInMilliseconds;
+    private Duration activationsCleanupLookBackInMilliseconds;
 
     /**
      * How many failed signatures cause activation record blocking. The maximum supported value is 64.
@@ -160,7 +162,7 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.service.crypto.requestExpirationInMilliseconds}")
     @Min(0)
-    private int requestExpirationInMilliseconds;
+    private Duration requestExpirationInMilliseconds;
 
     /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
