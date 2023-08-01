@@ -18,10 +18,11 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 /**
- * Model class representing request for activation lisf for a given user.
+ * Model class representing request for activation list for a given user.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -30,5 +31,9 @@ public class GetActivationListForUserRequest {
 
     private String userId;
     private String applicationId;
+    @Min(0)
+    private Integer pageNumber;
+    @Min(1)
+    private Integer pageSize;
 
 }
