@@ -413,10 +413,11 @@ public interface PowerAuthClient {
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
+     * This method will fetch the first page (page 0) of activations for the user, with a page size of 100.
      *
      * @param userId User ID to fetch the activations for.
-     * @return List of activation instances for given user.
-     * @throws PowerAuthClientException In case REST API call fails.
+     * @return List of activation instances for given user. Returns the first 100 activations.
+     * @throws PowerAuthClientException In case the REST API call fails.
      */
     List<Activation> getActivationListForUser(String userId) throws PowerAuthClientException;
 

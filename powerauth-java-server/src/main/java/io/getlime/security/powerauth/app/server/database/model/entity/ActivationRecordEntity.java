@@ -24,7 +24,6 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Activ
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Mutability;
 
 import java.io.Serial;
 import java.io.Serializable;

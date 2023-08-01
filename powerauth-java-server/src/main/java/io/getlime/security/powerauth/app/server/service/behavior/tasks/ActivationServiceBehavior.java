@@ -64,6 +64,7 @@ import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -229,13 +230,18 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Get activations for application ID and user ID
+     * Fetch a paginated list of activations for a given application ID and user ID.
      *
-     * @param applicationId Application ID
-     * @param userId        User ID
-     * @return Response with list of matching activations
+     * @param applicationId The Application ID for which to retrieve activations. If this is null, activations for all
+     *                      applications associated with the provided user ID are retrieved.
+     * @param userId The User ID for which to retrieve activations. This is required and cannot be null.
+     * @param pageable An object that defines the pagination properties, including the page number and the size of each page.
+     *                 It is used to retrieve the activations in a paginated format.
+     * @return A {@link GetActivationListForUserResponse} object that includes the list of matching activations. Each
+     *         activation is represented as an {@link Activation} object. The response also includes the user ID associated
+     *         with the activations.
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId) {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Pageable pageable) {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -245,9 +251,9 @@ public class ActivationServiceBehavior {
 
         List<ActivationRecordEntity> activationsList;
         if (applicationId == null) {
-            activationsList = activationRepository.findByUserId(userId);
+            activationsList = activationRepository.findByUserId(userId, pageable);
         } else {
-            activationsList = activationRepository.findByApplicationIdAndUserId(applicationId, userId);
+            activationsList = activationRepository.findByApplicationIdAndUserId(applicationId, userId, pageable);
         }
 
         final GetActivationListForUserResponse response = new GetActivationListForUserResponse();
