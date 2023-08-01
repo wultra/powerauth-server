@@ -147,7 +147,6 @@ public class TokenBehavior {
         final CreateTokenResponse response = new CreateTokenResponse();
         response.setMac(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac()));
         response.setEncryptedData(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData()));
-        response.setEphemeralPublicKey(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey()));
         response.setNonce(responseEciesPayload.getParameters().getNonce() != null ? Base64.getEncoder().encodeToString(responseEciesPayload.getParameters().getNonce()) : null);
         response.setTimestamp(responseEciesPayload.getParameters().getTimestamp());
         return response;

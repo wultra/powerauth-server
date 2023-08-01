@@ -234,13 +234,11 @@ public class VaultUnlockServiceBehavior {
             final EciesPayload responseEciesPayload = encryptorResponse.encrypt(reponsePayloadBytes, parametersResponse);
             final String dataResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
             final String macResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
-            final String ephemeralPublicKeyResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Return vault unlock response, set signature validity
             final VaultUnlockResponse response = new VaultUnlockResponse();
             response.setEncryptedData(dataResponse);
             response.setMac(macResponse);
-            response.setEphemeralPublicKey(ephemeralPublicKeyResponse);
             response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
             response.setSignatureValid(signatureResponse.isSignatureValid());

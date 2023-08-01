@@ -236,7 +236,6 @@ public class UpgradeServiceBehavior {
             final StartUpgradeResponse response = new StartUpgradeResponse();
             response.setEncryptedData(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getEncryptedData()));
             response.setMac(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getMac()));
-            response.setEphemeralPublicKey(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getEphemeralPublicKey()));
             response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
 

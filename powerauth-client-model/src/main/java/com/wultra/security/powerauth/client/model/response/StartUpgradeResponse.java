@@ -31,7 +31,6 @@ public class StartUpgradeResponse {
 
     private String encryptedData;
     private String mac;
-    private String ephemeralPublicKey;
     @ToString.Exclude
     private String nonce;
     private Long timestamp;

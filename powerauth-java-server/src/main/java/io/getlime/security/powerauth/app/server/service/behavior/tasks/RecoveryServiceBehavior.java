@@ -417,7 +417,6 @@ public class RecoveryServiceBehavior {
             response.setUserId(recoveryCodeEntity.getUserId());
             response.setEncryptedData(encryptedDataResponse);
             response.setMac(macResponse);
-            response.setEphemeralPublicKey(ephemeralPublicKey);
             response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
 

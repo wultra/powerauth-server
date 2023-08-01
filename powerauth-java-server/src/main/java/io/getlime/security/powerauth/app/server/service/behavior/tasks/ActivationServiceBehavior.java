@@ -992,7 +992,6 @@ public class ActivationServiceBehavior {
             final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, parametersResponse);
             final String encryptedData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
             final String mac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
-            final String ephemeralPublicKey = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Persist activation report and notify listeners
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
@@ -1005,7 +1004,6 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
-            encryptedResponse.setEphemeralPublicKey(ephemeralPublicKey);
             encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
@@ -1205,7 +1203,6 @@ public class ActivationServiceBehavior {
             final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, parametersResponse);
             final String encryptedData = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
             final String mac = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
-            final String ephemeralPublicKey = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey());
 
             // Generate encrypted response
             final CreateActivationResponse encryptedResponse = new CreateActivationResponse();
@@ -1214,7 +1211,6 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
-            encryptedResponse.setEphemeralPublicKey(ephemeralPublicKey);
             encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
@@ -1879,7 +1875,6 @@ public class ActivationServiceBehavior {
             final EciesPayload responseEciesPayload = encryptorResponse.encrypt(responseData, parametersResponse);
             final String encryptedDataResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
             final String macResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
-            final String ephemeralPublicKeyResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey());
 
             final RecoveryCodeActivationResponse encryptedResponse = new RecoveryCodeActivationResponse();
             encryptedResponse.setActivationId(activation.getActivationId());
@@ -1887,7 +1882,6 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedDataResponse);
             encryptedResponse.setMac(macResponse);
-            encryptedResponse.setEphemeralPublicKey(ephemeralPublicKeyResponse);
             encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
