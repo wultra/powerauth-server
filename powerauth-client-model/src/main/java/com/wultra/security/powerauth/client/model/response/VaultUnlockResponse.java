@@ -31,7 +31,6 @@ public class VaultUnlockResponse {
 
     private String encryptedData;
     private String mac;
-    private String ephemeralPublicKey;
     private boolean signatureValid;
     @ToString.Exclude
     private String nonce;

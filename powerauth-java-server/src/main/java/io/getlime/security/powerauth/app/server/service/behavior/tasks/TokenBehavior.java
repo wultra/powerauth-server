@@ -147,7 +147,6 @@ public class TokenBehavior {
         final CreateTokenResponse response = new CreateTokenResponse();
         response.setMac(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac()));
         response.setEncryptedData(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData()));
-        response.setEphemeralPublicKey(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEphemeralPublicKey()));
         response.setNonce(responseEciesPayload.getParameters().getNonce() != null ? Base64.getEncoder().encodeToString(responseEciesPayload.getParameters().getNonce()) : null);
         response.setTimestamp(responseEciesPayload.getParameters().getTimestamp());
         return response;
@@ -248,7 +247,7 @@ public class TokenBehavior {
             final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response using previously created ECIES decryptor
-            final byte[] nonceBytesResponse = ("3.1".equals(version) || "3.2".equals(version)) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,

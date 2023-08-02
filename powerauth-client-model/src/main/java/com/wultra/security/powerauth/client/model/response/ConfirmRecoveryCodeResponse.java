@@ -33,7 +33,6 @@ public class ConfirmRecoveryCodeResponse {
     private String userId;
     private String encryptedData;
     private String mac;
-    private String ephemeralPublicKey;
     @ToString.Exclude
     private String nonce;
     private Long timestamp;
