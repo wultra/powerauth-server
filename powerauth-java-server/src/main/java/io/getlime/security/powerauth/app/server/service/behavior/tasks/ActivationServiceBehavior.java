@@ -687,7 +687,8 @@ public class ActivationServiceBehavior {
             // Get activation expiration date from request or from constants, if not provided
             Date timestampExpiration = activationExpireTimestamp;
             if (timestampExpiration == null) {
-                timestampExpiration = Date.from(Instant.now().plus(powerAuthServiceConfiguration.getActivationValidityBeforeActive()));
+                timestampExpiration = new Date(timestamp.getTime()  +
+                        powerAuthServiceConfiguration.getActivationValidityBeforeActive().toMillis());
             }
 
             // Validate combination of activation OTP and OTP validation mode.
