@@ -321,7 +321,7 @@ public class PowerAuthService {
             final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final String version = request.getProtocolVersion();
             final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
             final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
             final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
             final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
@@ -362,7 +362,7 @@ public class PowerAuthService {
             final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final String version = request.getProtocolVersion();
             final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
             final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
             final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
             final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
@@ -694,7 +694,7 @@ public class PowerAuthService {
 
             // Convert received ECIES request data to cryptogram
             final Long timestamp = "3.2".equals(signatureVersion) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(signatureVersion) ? EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, signatureVersion, applicationKey, activationId) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, signatureVersion, applicationKey, activationId);
 
             final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
             final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();

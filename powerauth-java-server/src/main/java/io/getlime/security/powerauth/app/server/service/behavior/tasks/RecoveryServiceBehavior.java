@@ -330,7 +330,7 @@ public class RecoveryServiceBehavior {
             final byte[] nonceBytesRequest = nonceRequest != null ? Base64.getDecoder().decode(nonceRequest) : null;
             final String version = request.getProtocolVersion();
             final Long timestampRequest = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
             // Decrypt request data
             final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
             final byte[] macBytes = Base64.getDecoder().decode(mac);
@@ -400,7 +400,7 @@ public class RecoveryServiceBehavior {
             final byte[] responseBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response using ECIES encryptor
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : nonceBytesRequest;
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
 
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(associatedData).timestamp(timestampResponse).build();
@@ -417,7 +417,7 @@ public class RecoveryServiceBehavior {
             response.setUserId(recoveryCodeEntity.getUserId());
             response.setEncryptedData(encryptedDataResponse);
             response.setMac(macResponse);
-            response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            response.setNonce("3.2".equals(version) ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
 
             // Confirm recovery code and persist it

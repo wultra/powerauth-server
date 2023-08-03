@@ -152,7 +152,7 @@ public class EciesEncryptionBehavior {
             final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final String version = request.getProtocolVersion();
             final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
             final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).timestamp(timestamp).associatedData(associatedData).build();
             final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             // Get decryptor for the application
