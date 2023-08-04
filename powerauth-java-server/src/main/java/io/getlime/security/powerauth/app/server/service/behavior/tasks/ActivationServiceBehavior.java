@@ -983,7 +983,7 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : eciesPayload.getParameters().getNonce();
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
@@ -1004,7 +1004,7 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
-            encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            encryptedResponse.setNonce("3.2".equals(version) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activationStatus));
             return encryptedResponse;
@@ -1193,9 +1193,9 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : eciesPayload.getParameters().getNonce();
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(associatedData).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
                     eciesDecryptor.getEnvelopeKey(), applicationSecret, null, parametersResponse);
@@ -1211,7 +1211,7 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedData);
             encryptedResponse.setMac(mac);
-            encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            encryptedResponse.setNonce("3.2".equals(version) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;
@@ -1616,7 +1616,7 @@ public class ActivationServiceBehavior {
             final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
             final String version = request.getProtocolVersion();
             final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
             final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
             final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
             final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
@@ -1866,7 +1866,7 @@ public class ActivationServiceBehavior {
             final byte[] responseData = objectMapper.writeValueAsBytes(layer2Response);
 
             // Encrypt response data
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : nonceBytes;
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.APPLICATION_SCOPE,
@@ -1882,7 +1882,7 @@ public class ActivationServiceBehavior {
             encryptedResponse.setApplicationId(applicationId);
             encryptedResponse.setEncryptedData(encryptedDataResponse);
             encryptedResponse.setMac(macResponse);
-            encryptedResponse.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            encryptedResponse.setNonce("3.2".equals(version) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             encryptedResponse.setTimestamp(timestampResponse);
             encryptedResponse.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return encryptedResponse;

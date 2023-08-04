@@ -135,7 +135,7 @@ public class TokenBehavior {
         final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
         final String version = request.getProtocolVersion();
         final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-        final byte[] associatedData = "3.2".equals(version) ? EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId) : null;
+        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
         final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
         final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
         final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
@@ -147,7 +147,7 @@ public class TokenBehavior {
         final CreateTokenResponse response = new CreateTokenResponse();
         response.setMac(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac()));
         response.setEncryptedData(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData()));
-        response.setNonce(responseEciesPayload.getParameters().getNonce() != null ? Base64.getEncoder().encodeToString(responseEciesPayload.getParameters().getNonce()) : null);
+        response.setNonce("3.2".equals(version) && responseEciesPayload.getParameters().getNonce() != null ? Base64.getEncoder().encodeToString(responseEciesPayload.getParameters().getNonce()) : null);
         response.setTimestamp(responseEciesPayload.getParameters().getTimestamp());
         return response;
     }
@@ -247,7 +247,7 @@ public class TokenBehavior {
             final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
             // Encrypt response using previously created ECIES decryptor
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : eciesPayload.getParameters().getNonce();
             final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,

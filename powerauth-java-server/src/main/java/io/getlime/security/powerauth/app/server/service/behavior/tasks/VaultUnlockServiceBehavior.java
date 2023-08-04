@@ -225,7 +225,7 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final byte[] nonceBytesResponse = "3.2".equals(signatureVersion) ? keyGenerator.generateRandomBytes(16) : null;
+            final byte[] nonceBytesResponse = "3.2".equals(signatureVersion) ? keyGenerator.generateRandomBytes(16) : eciesPayload.getParameters().getNonce();
             final Long timestampResponse = "3.2".equals(signatureVersion) ? new Date().getTime() : null;
             final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
             final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
@@ -239,7 +239,7 @@ public class VaultUnlockServiceBehavior {
             final VaultUnlockResponse response = new VaultUnlockResponse();
             response.setEncryptedData(dataResponse);
             response.setMac(macResponse);
-            response.setNonce(nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            response.setNonce("3.2".equals(signatureVersion) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
             response.setTimestamp(timestampResponse);
             response.setSignatureValid(signatureResponse.isSignatureValid());
             return response;
