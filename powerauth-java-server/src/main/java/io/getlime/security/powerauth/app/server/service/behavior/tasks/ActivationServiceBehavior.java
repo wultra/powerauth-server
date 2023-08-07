@@ -534,7 +534,6 @@ public class ActivationServiceBehavior {
 
                         // Assign the activation fingerprint
                         switch (activation.getVersion()) {
-                            case 2 -> activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey);
                             case 3 ->
                                     activationFingerPrint = powerAuthServerActivation.computeActivationFingerprint(devicePublicKey, serverPublicKey, activation.getActivationId());
                             default -> {
