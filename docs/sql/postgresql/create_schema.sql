@@ -140,7 +140,7 @@ CREATE TABLE pa_token
 (
     token_id           VARCHAR(37) NOT NULL PRIMARY KEY,
     token_secret       VARCHAR(255) NOT NULL,
-    activation_id      VARCHAR(255) NOT NULL,
+    activation_id      VARCHAR(37) NOT NULL,
     signature_type     VARCHAR(255) NOT NULL,
     timestamp_created  TIMESTAMP (6) NOT NULL
 );
