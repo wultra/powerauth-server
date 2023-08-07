@@ -310,8 +310,6 @@
     </changeSet>
 
     <changeSet id="17" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
-        <validCheckSum>9:3104c5b05d6dd090344e105faad0d13d</validCheckSum>
-        <validCheckSum>9:c34243c38de8be0c2cb9dde519a4a992</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="pa_token"/>
