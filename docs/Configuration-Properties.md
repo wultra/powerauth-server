@@ -28,9 +28,9 @@ The PowerAuth Server uses the following public configuration properties:
 
 | Property                                                      | Default   | Note                                                                                    |
 |---------------------------------------------------------------|-----------|-----------------------------------------------------------------------------------------|
-| `powerauth.service.crypto.activationValidityInMilliseconds`   | `120000`  | Default activation validity period in miliseconds                                       |
+| `powerauth.service.crypto.activationValidityTime`   | `PT2M`  | Default activation validity period (ISO 8601 Duration format) |
 | `powerauth.service.crypto.signatureMaxFailedAttempts`         | `5`       | Maximum failed attempts for signature verification                                      |
-| `powerauth.service.token.timestamp.validity`                  | `7200000` | PowerAuth MAC token timestamp validity in miliseconds                                   |
+| `powerauth.service.token.timestamp.validity`                  | `PT2H` | PowerAuth MAC token timestamp validity (ISO 8601 Duration format) |
 | `powerauth.service.recovery.maxFailedAttempts`                | `5`       | Maximum failed attempts for activation recovery                                         |
 | `powerauth.service.secureVault.enableBiometricAuthentication` | `false`   | Whether biometric authentication is enabled when accessing Secure Vault                 |
 | `powerauth.server.db.master.encryption.key`                   | `_empty_` | Master DB encryption key for decryption of server private key in database               |

@@ -70,7 +70,7 @@ public class ReplayPersistenceService {
      * @return Whether unique value was added successfully.
      */
     public boolean persistUniqueValue(final UniqueValueType type, final String uniqueValue) {
-        final Instant expiration = Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS);
+        final Instant expiration = Instant.now().plus(config.getRequestExpiration());
         final UniqueValueEntity uniqueVal = new UniqueValueEntity();
         uniqueVal.setType(type);
         uniqueVal.setUniqueValue(uniqueValue);

@@ -78,12 +78,13 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * Behavior class implementing processes related with activations. Used to move the
- * implementation outside of the main service implementation.
+ * implementation outside the main service implementation.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -685,7 +686,8 @@ public class ActivationServiceBehavior {
             // Get activation expiration date from request or from constants, if not provided
             Date timestampExpiration = activationExpireTimestamp;
             if (timestampExpiration == null) {
-                timestampExpiration = new Date(timestamp.getTime() + powerAuthServiceConfiguration.getActivationValidityBeforeActive());
+                timestampExpiration = new Date(timestamp.getTime()  +
+                        powerAuthServiceConfiguration.getActivationValidityBeforeActive().toMillis());
             }
 
             // Validate combination of activation OTP and OTP validation mode.
@@ -2062,20 +2064,20 @@ public class ActivationServiceBehavior {
 
     // Scheduled tasks
 
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:PT5S}")
     @SchedulerLock(name = "expireActivationsTask")
     @Transactional
     public void expireActivations() {
         LockAssert.assertLocked();
-        final Date currentTimestamp = new Date();
-        final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
+        final Instant currentTimestamp = Instant.now();
+        final Instant lookBackTimestamp = currentTimestamp.minus(powerAuthServiceConfiguration.getActivationsCleanupLookBack());
         logger.debug("Running scheduled task for expiring activations");
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final Set<ActivationStatus> activationStatuses = Set.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
-        try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
+        try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, Date.from(lookBackTimestamp), Date.from(currentTimestamp))) {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
-                deactivatePendingActivation(currentTimestamp, activation, true);
+                deactivatePendingActivation(Date.from(currentTimestamp), activation, true);
             });
         }
     }
