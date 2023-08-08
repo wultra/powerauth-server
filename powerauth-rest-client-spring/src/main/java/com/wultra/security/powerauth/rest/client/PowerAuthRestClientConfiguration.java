@@ -20,6 +20,8 @@ package com.wultra.security.powerauth.rest.client;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 
+import java.time.Duration;
+
 /**
  * Configuration of PowerAuth REST client.
  *
@@ -31,7 +33,7 @@ public class PowerAuthRestClientConfiguration {
     // Use 1 MB as default maximum memory size
     private int maxMemorySize = 1024 * 1024;
     // Use 5 seconds as default connect timeout
-    private int connectTimeout = 5000;
+    private Duration connectTimeout = Duration.ofMillis(5000);
     private boolean proxyEnabled = false;
     private String proxyHost;
     private int proxyPort;
@@ -60,18 +62,18 @@ public class PowerAuthRestClientConfiguration {
     }
 
     /**
-     * Get connection timeout in milliseconds.
-     * @return Connection timeout in milliseconds.
+     * Get connection timeout as a Duration.
+     * @return Connection timeout as a Duration.
      */
-    public int getConnectTimeout() {
+    public Duration getConnectTimeout() {
         return connectTimeout;
     }
 
     /**
-     * Set connection timeout in milliseconds.
-     * @param connectTimeout Connection timeout in milliseconds.
+     * Set connection timeout as a Duration.
+     * @param connectTimeout Connection timeout as a Duration.
      */
-    public void setConnectTimeout(int connectTimeout) {
+    public void setConnectTimeout(Duration connectTimeout) {
         this.connectTimeout = connectTimeout;
     }
 

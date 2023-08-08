@@ -431,7 +431,7 @@ public class CallbackUrlBehavior {
     private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder();
         if (configuration.getHttpConnectionTimeout() != null) {
-            builder.connectionTimeout(Math.toIntExact(configuration.getHttpConnectionTimeout().toMillis()));
+            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
         }
         if (configuration.getHttpProxyEnabled()) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
