@@ -433,6 +433,12 @@ public class CallbackUrlBehavior {
         if (configuration.getHttpConnectionTimeout() != null) {
             builder.connectionTimeout(configuration.getHttpConnectionTimeout());
         }
+        if (configuration.getHttpResponseTimeout() != null) {
+            builder.responseTimeout(configuration.getHttpResponseTimeout());
+        }
+        if (configuration.getHttpMaxIdleTime() != null) {
+            builder.maxIdleTime(configuration.getHttpMaxIdleTime());
+        }
         if (configuration.getHttpProxyEnabled()) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
             if (configuration.getHttpProxyUsername() != null) {

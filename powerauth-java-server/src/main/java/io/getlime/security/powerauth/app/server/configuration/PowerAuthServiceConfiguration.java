@@ -25,6 +25,8 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -45,6 +47,8 @@ import java.time.format.DateTimeParseException;
 @Configuration
 @ConfigurationProperties("ext")
 @Validated
+@Getter
+@Setter
 public class PowerAuthServiceConfiguration {
 
     /**
@@ -207,6 +211,18 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.service.http.connection.timeout}")
     private Duration httpConnectionTimeout;
+
+    /**
+     * HTTP response timeout.
+     */
+    @Value("${powerauth.service.http.response.timeout}")
+    private Duration httpResponseTimeout;
+
+    /**
+     * HTTP connection max idle time.
+     */
+    @Value("${powerauth.service.http.connection.max-idle-time}")
+    private Duration httpMaxIdleTime;
 
     /**
      * Specifies the validity duration of token timestamps, checked before token validation.
