@@ -60,10 +60,7 @@ import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Behavior class implementing the signature validation related processes. The class separates the
@@ -79,7 +76,6 @@ public class OfflineSignatureServiceBehavior {
     private static final String APPLICATION_SECRET_OFFLINE_MODE = "offline";
     private static final String KEY_MASTER_SERVER_PRIVATE_INDICATOR = "0";
     private static final String KEY_SERVER_PRIVATE_INDICATOR = "1";
-    private static final String ERROR_DETAIL_TOTP_MISSING = "TOTP_MISSING";
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
@@ -289,44 +285,43 @@ public class OfflineSignatureServiceBehavior {
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
-            // Application secret is "offline" in offline mode
-            final byte[] data = (request.getDataString() + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
-            final DecimalSignatureConfiguration signatureConfiguration = SignatureConfiguration.decimal();
-            if (request.getExpectedComponentLength() != null) {
-                signatureConfiguration.setLength(request.getExpectedComponentLength());
-            }
-            final SignatureData signatureData = new SignatureData(data, request.getSignature(), signatureConfiguration, null, request.getAdditionalInfo(), null);
-            final OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest(signatureData, request.getSignatureTypes());
+            final List<OfflineSignatureRequest> offlineSignatureRequests = createOfflineSignatureRequests(request);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
                 // Double-check that there are at least some remaining attempts
                 if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
-                    signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, offlineSignatureRequest, currentTimestamp);
+                    signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, offlineSignatureRequests.get(0), currentTimestamp);
                     return invalidStateResponse(activationId, activation.getActivationStatus());
                 }
 
-                final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, offlineSignatureRequest, request.getKeyConversionUtilities());
-                final VerifyOfflineSignatureResponse.ProximityCheck proximityCheckContext = processProximityCheck(request, powerAuthServiceConfiguration.getProximityCheckOtpLength());
-                final boolean proximityCheckPassed = proximityCheckContext == null || proximityCheckContext.isSuccess();
+                SignatureResponse verificationResponse = new SignatureResponse();
+                OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest();
+                for (OfflineSignatureRequest item :offlineSignatureRequests) {
+                    verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, item, request.getKeyConversionUtilities());
+                    offlineSignatureRequest = item;
+                    if (verificationResponse.isSignatureValid()) {
+                        break;
+                    }
+                }
 
                 // Check if the signature is valid
-                if (verificationResponse.isSignatureValid() && proximityCheckPassed) {
+                if (verificationResponse.isSignatureValid()) {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    return validSignatureResponse(activation, verificationResponse.getUsedSignatureType(), proximityCheckContext);
+                    return validSignatureResponse(activation, verificationResponse.getUsedSignatureType(), null);
 
                 } else {
 
                     signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    return invalidSignatureResponse(activation, offlineSignatureRequest, proximityCheckContext);
+                    return invalidSignatureResponse(activation, offlineSignatureRequest, null);
 
                 }
             } else {
 
-                signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, offlineSignatureRequest, currentTimestamp);
+                signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, offlineSignatureRequests.get(0), currentTimestamp);
 
                 // return the data
                 return invalidStateResponse(activationId, activation.getActivationStatus());
@@ -339,41 +334,70 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
-    private VerifyOfflineSignatureResponse.ProximityCheck processProximityCheck(final VerifyOfflineSignatureParameter request, final int digitsNumber) throws CryptoProviderException {
+    private List<OfflineSignatureRequest> createOfflineSignatureRequests(final VerifyOfflineSignatureParameter request) throws CryptoProviderException {
+        final List<String> proximityOtps = fetchProximityCheckOtps(request);
+        if (proximityOtps.isEmpty()) {
+            return List.of(createOfflineSignatureRequest(request));
+        }
+
+        final List<OfflineSignatureRequest> result = new ArrayList<>();
+        for (String otp : proximityOtps) {
+            result.add(createOfflineSignatureRequestWithPostFix(request, otp));
+        }
+        return result;
+    }
+
+    private OfflineSignatureRequest createOfflineSignatureRequest(final VerifyOfflineSignatureParameter request) {
+        return createOfflineSignatureRequest(request, request.getDataString());
+    }
+
+    private OfflineSignatureRequest createOfflineSignatureRequestWithPostFix(final VerifyOfflineSignatureParameter request, final String postfix) {
+        final String[] dataElements = request.getDataString().split("&");
+        final int dataElementIndex = dataElements.length - 1;
+        // TODO Lubos improve naming
+        final String operationDataBase64 = dataElements[dataElementIndex];
+        final String operationData = new String(Base64.getDecoder().decode(operationDataBase64), StandardCharsets.UTF_8);
+        final String operationDataWithPostFix = operationData + "&" + postfix;
+        final String operationDataWithPostFixBase64 = Base64.getEncoder().encodeToString(operationDataWithPostFix.getBytes(StandardCharsets.UTF_8));
+        dataElements[dataElementIndex] = operationDataWithPostFixBase64;
+        final String dataString = String.join("&", dataElements);
+        return createOfflineSignatureRequest(request, dataString);
+    }
+
+    private OfflineSignatureRequest createOfflineSignatureRequest(final VerifyOfflineSignatureParameter request, final String dataString) {
+        // Application secret is "offline" in offline mode
+        final byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
+        final DecimalSignatureConfiguration signatureConfiguration = SignatureConfiguration.decimal();
+        if (request.getExpectedComponentLength() != null) {
+            signatureConfiguration.setLength(request.getExpectedComponentLength());
+        }
+        final SignatureData signatureData = new SignatureData(data, request.getSignature(), signatureConfiguration, null, request.getAdditionalInfo(), null);
+        return new OfflineSignatureRequest(signatureData, request.getSignatureTypes());
+    }
+
+    private List<String> fetchProximityCheckOtps(final VerifyOfflineSignatureParameter request) throws CryptoProviderException {
         if (StringUtils.isBlank(request.getProximityCheckSeed())) {
             logger.debug("Proximity seed is not present and is TOTP not being verified, activation ID: {}", request.getActivationId());
-            // This case differs from proximityCheck.success=true
-            return null;
+            return Collections.emptyList();
         }
 
+        final int digitsNumber = powerAuthServiceConfiguration.getProximityCheckOtpLength();
         final int steps = request.getProximityCheckStepCount();
-        logger.debug("Verifying proximity TOTP, activation ID: {}, steps count: {}", request.getActivationId(), steps);
+        logger.debug("Generating TOTP, activation ID: {}, steps count: {}", request.getActivationId(), steps);
 
-        final String[] dataElements = request.getDataString().split("&");
-        final String operationDataBase64 = dataElements[dataElements.length - 1];
-        final String operationData = new String(Base64.getDecoder().decode(operationDataBase64), StandardCharsets.UTF_8);
+        final byte[] seed = Base64.getDecoder().decode(request.getProximityCheckSeed());
+        final List<String> result = new ArrayList<>();
 
-        final String[] operationDataElements = operationData.split("&");
-        if (operationDataElements.length <= 2) {
-            logger.debug("Seed for proximity TOTP provided but, operation data missing TOTP value; activation ID: {}", request.getActivationId());
-            return VerifyOfflineSignatureResponse.ProximityCheck.builder()
-                    .success(false)
-                    .errorDetail(ERROR_DETAIL_TOTP_MISSING)
-                    .build();
+        final Duration stepLength = request.getProximityCheckStepLength();
+        final Instant now = Instant.now();
+        for (int i = 0; i <= steps; i++) {
+            final Instant instant = now.minus(stepLength.multipliedBy(i));
+            logger.debug("Generating TOTP, activation ID: {}, instant: {}", request.getActivationId(), instant);
+            final byte[] totp = Totp.generateTotpSha256(seed, instant, stepLength, digitsNumber);
+            result.add(new String(totp, StandardCharsets.UTF_8));
         }
 
-        final String totp = operationDataElements[operationDataElements.length - 1];
-
-        final byte[] totpBytes = totp.getBytes(StandardCharsets.UTF_8);
-        final byte[] seed = Base64.getDecoder().decode(request.getProximityCheckSeed());
-        final Duration stepLength = request.getProximityCheckStepLength();
-
-        final boolean result = Totp.validateTotpSha256(totpBytes, seed, Instant.now(), digitsNumber, steps, stepLength);
-        logger.debug("Result of proximity TOTP validation: {}, activation ID: {}", result, request.getActivationId());
-
-        return VerifyOfflineSignatureResponse.ProximityCheck.builder()
-                .success(result)
-                .build();
+        return result;
     }
 
     /**
