@@ -20,7 +20,10 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
+import lombok.Getter;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -44,5 +47,18 @@ public class VerifyOfflineSignatureResponse {
     private BigInteger remainingAttempts;
     private List<String> applicationRoles = new ArrayList<>();
     private List<String> activationFlags = new ArrayList<>();
+
+    @Schema(description = "Optional proximity check context. Null if the context was not filled in the request.")
+    private ProximityCheck proximityCheck;
+
+    @Builder
+    @Getter
+    public static class ProximityCheck {
+        @Schema(description = "Whether verification of TOTP was successful.")
+        private boolean success;
+
+        @Schema(description = "Optional error detail if TOTP was not successful.")
+        private String errorDetail;
+    }
 
 }
