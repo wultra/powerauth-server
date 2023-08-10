@@ -21,9 +21,7 @@ package com.wultra.security.powerauth.client.model.response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -53,6 +51,9 @@ public class VerifyOfflineSignatureResponse {
 
     @Builder
     @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class ProximityCheck {
         @Schema(description = "Whether verification of TOTP was successful.")
         private boolean success;
