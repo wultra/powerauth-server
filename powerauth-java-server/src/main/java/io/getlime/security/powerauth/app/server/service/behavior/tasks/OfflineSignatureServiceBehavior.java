@@ -348,9 +348,10 @@ public class OfflineSignatureServiceBehavior {
         logger.debug("Verifying proximity TOTP, activation ID: {}, steps count: {}", request.getActivationId(), steps);
 
         final String[] dataElements = request.getDataString().split("&");
-        final String operationData = dataElements[dataElements.length - 1];
+        final String operationDataBase64 = dataElements[dataElements.length - 1];
+        final String operationData = new String(Base64.getDecoder().decode(operationDataBase64), StandardCharsets.UTF_8);
 
-        final String[] operationDataElements = new String(Base64.getDecoder().decode(operationData), StandardCharsets.UTF_8).split("&");
+        final String[] operationDataElements = operationData.split("&");
         if (operationDataElements.length <= 2) {
             logger.debug("Seed for proximity TOTP provided but, operation data missing TOTP value; activation ID: {}", request.getActivationId());
             return VerifyOfflineSignatureResponse.ProximityCheck.builder()
