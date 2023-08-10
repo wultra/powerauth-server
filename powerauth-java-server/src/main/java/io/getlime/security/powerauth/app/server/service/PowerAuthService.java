@@ -36,11 +36,7 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesParameters;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesPayload;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesScope;
-import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -309,27 +305,20 @@ public class PowerAuthService {
 
     @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
-        if (request.getActivationCode() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
-            logger.warn("Invalid request parameters in prepareActivation method");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
             final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
-            final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-            final byte[] mac = Base64.getDecoder().decode(request.getMac());
-            final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-            final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final String version = request.getProtocolVersion();
-            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
-            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+            final String protocolVersion = request.getProtocolVersion();
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, eciesPayload, version, keyConvertor);
+            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, encryptedRequest, protocolVersion, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -346,11 +335,6 @@ public class PowerAuthService {
 
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
-        if (request.getUserId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
-            logger.warn("Invalid request parameters in createActivation method");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
         try {
             // Get request parameters
             final String userId = request.getUserId();
@@ -359,16 +343,14 @@ public class PowerAuthService {
             final Long maxFailedCount = request.getMaxFailureCount();
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
-            final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-            final byte[] mac = Base64.getDecoder().decode(request.getMac());
-            final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-            final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final String version = request.getProtocolVersion();
-            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
-            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+            // Build encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
             logger.info("CreateActivationRequest received, user ID: {}", userId);
             final CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
                     userId,
@@ -376,7 +358,7 @@ public class PowerAuthService {
                     shouldGenerateRecoveryCodes,
                     maxFailedCount,
                     applicationKey,
-                    eciesPayload,
+                    encryptedRequest,
                     activationOtp,
                     request.getProtocolVersion(),
                     keyConvertor
@@ -703,8 +685,7 @@ public class PowerAuthService {
     @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
-                || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
-                || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+                || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null) {
             logger.warn("Invalid request parameters in method vaultUnlock");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -717,11 +698,13 @@ public class PowerAuthService {
             final SignatureType signatureType = request.getSignatureType();
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
-            byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-            byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-            byte[] mac = Base64.getDecoder().decode(request.getMac());
-            byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
             logger.info("VaultUnlockRequest received, activation ID: {}", activationId);
 
             // The only allowed signature type is POSESSION_KNOWLEDGE to prevent attacks with weaker signature types
@@ -734,16 +717,8 @@ public class PowerAuthService {
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
                 }
             }
-
-            // Convert received ECIES request data to cryptogram
-            final Long timestamp = "3.2".equals(signatureVersion) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, signatureVersion, applicationKey, activationId);
-
-            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
             final VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
-                    signature, signatureType, signatureVersion, signedData, eciesPayload, keyConvertor);
+                    signature, signatureType, signatureVersion, signedData, encryptedRequest, keyConvertor);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
