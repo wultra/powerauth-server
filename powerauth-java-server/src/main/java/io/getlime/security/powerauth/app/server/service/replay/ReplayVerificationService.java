@@ -64,45 +64,39 @@ public class ReplayVerificationService {
      * Check whether unique value exists for MAC Token request.
      * @param type Unique value type.
      * @param requestTimestamp Request timestamp.
-     * @param nonceBytes Nonce bytes.
+     * @param nonce Nonce bytes encoded in Base64.
      * @param identifier Identifier for the record.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] nonceBytes, String identifier) throws GenericServiceException {
-        checkAndPersistUniqueValue(type, requestTimestamp, new byte[0], nonceBytes, identifier);
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String nonce, String identifier) throws GenericServiceException {
+        checkAndPersistUniqueValue(type, requestTimestamp, null, nonce, identifier);
     }
 
     /**
      * Check whether unique value exists for ECIES request.
      * @param type Unique value type.
      * @param requestTimestamp Request timestamp.
-     * @param ephemeralPublicKeyBytes Ephemeral public key bytes.
-     * @param nonceBytes Nonce bytes.
+     * @param ephemeralPublicKey Ephemeral public key bytes encoded in Base64.
+     * @param nonce Nonce bytes encoded in Base64.
      * @param identifier Identifier for the record.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String identifier) throws GenericServiceException {
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) throws GenericServiceException {
         final Date expiration = Date.from(Instant.now().plus(config.getRequestExpiration()));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-
+        final byte[] ephemeralPublicKeyBytes = ephemeralPublicKey != null ? Base64.getDecoder().decode(ephemeralPublicKey) : new byte[0];
+        final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : new byte[0];
         final byte[] identifierBytes = identifier != null ? identifier.getBytes(StandardCharsets.UTF_8) : new byte[0];
-        final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(
-                (ephemeralPublicKeyBytes != null ? ephemeralPublicKeyBytes.length : 0)
-                        + (nonceBytes != null ? nonceBytes.length : 0)
-                        + identifierBytes.length);
-        if (ephemeralPublicKeyBytes != null) {
-            uniqueValBuffer.put(ephemeralPublicKeyBytes);
-        }
-        if (nonceBytes != null) {
-            uniqueValBuffer.put(nonceBytes);
-        }
-        if (identifier != null) {
-            uniqueValBuffer.put(identifierBytes);
-        }
+
+        final ByteBuffer uniqueValBuffer = ByteBuffer.allocate(ephemeralPublicKeyBytes.length + nonceBytes.length + identifierBytes.length);
+        uniqueValBuffer.put(ephemeralPublicKeyBytes);
+        uniqueValBuffer.put(nonceBytes);
+        uniqueValBuffer.put(identifierBytes);
+
         final String uniqueValue = Base64.getEncoder().encodeToString(uniqueValBuffer.array());
         if (replayPersistenceService.uniqueValueExists(uniqueValue)) {
             logger.warn("Duplicate request not allowed to prevent replay attacks");
