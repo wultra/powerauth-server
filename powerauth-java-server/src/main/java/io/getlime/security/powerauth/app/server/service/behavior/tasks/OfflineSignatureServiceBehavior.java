@@ -149,6 +149,7 @@ public class OfflineSignatureServiceBehavior {
             final PrivateKey privateKey = request.getKeyConversionUtilities().convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
+            // {DATA} consist of data from request plus optional generated proximity TOTP value
             final SignatureUtils signatureUtils = new SignatureUtils();
             final String dataPlusNonce = fetchDataAndTotp(request, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
@@ -341,6 +342,7 @@ public class OfflineSignatureServiceBehavior {
     private VerifyOfflineSignatureResponse.ProximityCheck processProximityCheck(final VerifyOfflineSignatureParameter request, final int digitsNumber) throws CryptoProviderException {
         if (StringUtils.isBlank(request.getProximityCheckSeed())) {
             logger.debug("Proximity seed is not present and is TOTP not being verified, activation ID: {}", request.getActivationId());
+            // This case differs from proximityCheck.success=true
             return null;
         }
 
