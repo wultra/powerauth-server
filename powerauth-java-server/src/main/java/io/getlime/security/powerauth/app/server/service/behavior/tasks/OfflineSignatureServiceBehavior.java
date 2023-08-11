@@ -67,6 +67,7 @@ import java.util.*;
  * logic from the main service class.
  *
  * @author Petr Dvorak, petr@wultra.com
+ * @link <a href="https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md">Off-line Signature QR Code</a>
  */
 @Component
 @AllArgsConstructor
@@ -285,6 +286,7 @@ public class OfflineSignatureServiceBehavior {
         // Only validate signature for existing ACTIVE activation records
         if (activation != null) {
 
+            // If case of proximity check enabled, there are more signatures to validate
             final List<OfflineSignatureRequest> offlineSignatureRequests = createOfflineSignatureRequests(request);
 
             if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
@@ -334,6 +336,14 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
+    /**
+     * Prepare {@link OfflineSignatureRequest} from the given request.
+     * If proximity check enabled, append OTP to {@link  OfflineSignatureRequest#getSignatureData()}.
+     *
+     * @param request verify offline signature parameter
+     * @return offline signature request
+     * @throws CryptoProviderException in case of a problem to generate the TOTP
+     */
     private List<OfflineSignatureRequest> createOfflineSignatureRequests(final VerifyOfflineSignatureParameter request) throws CryptoProviderException {
         final List<String> proximityOtps = fetchProximityCheckOtps(request);
         if (proximityOtps.isEmpty()) {
@@ -351,22 +361,23 @@ public class OfflineSignatureServiceBehavior {
         return createOfflineSignatureRequest(request, request.getDataString());
     }
 
-    private OfflineSignatureRequest createOfflineSignatureRequestWithPostFix(final VerifyOfflineSignatureParameter request, final String postfix) {
-        final String[] dataElements = request.getDataString().split("&");
-        final int dataElementIndex = dataElements.length - 1;
-        // TODO Lubos improve naming
-        final String operationDataBase64 = dataElements[dataElementIndex];
-        final String operationData = new String(Base64.getDecoder().decode(operationDataBase64), StandardCharsets.UTF_8);
-        final String operationDataWithPostFix = operationData + "&" + postfix;
-        final String operationDataWithPostFixBase64 = Base64.getEncoder().encodeToString(operationDataWithPostFix.getBytes(StandardCharsets.UTF_8));
-        dataElements[dataElementIndex] = operationDataWithPostFixBase64;
-        final String dataString = String.join("&", dataElements);
-        return createOfflineSignatureRequest(request, dataString);
+    private OfflineSignatureRequest createOfflineSignatureRequestWithPostFix(final VerifyOfflineSignatureParameter request, final String otp) {
+        final String[] signatureBaseElements = request.getDataString().split("&");
+        final int dataElementIndex = signatureBaseElements.length - 1;
+        // Original data ${operationId}&${operationData}
+        final String originalDataBase64 = signatureBaseElements[dataElementIndex];
+        final String originalData = new String(Base64.getDecoder().decode(originalDataBase64), StandardCharsets.UTF_8);
+        // Data with appended otp ${operationId}&${operationData}&${otp}
+        final String dataWithPostFix = originalData + "&" + otp;
+        final String dataWithPostFixBase64 = Base64.getEncoder().encodeToString(dataWithPostFix.getBytes(StandardCharsets.UTF_8));
+        signatureBaseElements[dataElementIndex] = dataWithPostFixBase64;
+        final String signatureBaseString = String.join("&", signatureBaseElements);
+        return createOfflineSignatureRequest(request, signatureBaseString);
     }
 
-    private OfflineSignatureRequest createOfflineSignatureRequest(final VerifyOfflineSignatureParameter request, final String dataString) {
+    private OfflineSignatureRequest createOfflineSignatureRequest(final VerifyOfflineSignatureParameter request, final String signatureBase) {
         // Application secret is "offline" in offline mode
-        final byte[] data = (dataString + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
+        final byte[] data = (signatureBase + "&" + APPLICATION_SECRET_OFFLINE_MODE).getBytes(StandardCharsets.UTF_8);
         final DecimalSignatureConfiguration signatureConfiguration = SignatureConfiguration.decimal();
         if (request.getExpectedComponentLength() != null) {
             signatureConfiguration.setLength(request.getExpectedComponentLength());
@@ -375,6 +386,13 @@ public class OfflineSignatureServiceBehavior {
         return new OfflineSignatureRequest(signatureData, request.getSignatureTypes());
     }
 
+    /**
+     * If proximity check is enabled, generates a list of TOTP to validate. Otherwise, an empty collection is returned.
+     *
+     * @param request request verify offline signature parameter
+     * @return list of TOTPs or empty collection
+     * @throws CryptoProviderException CryptoProviderException in case of a problem to generate the TOTP
+     */
     private List<String> fetchProximityCheckOtps(final VerifyOfflineSignatureParameter request) throws CryptoProviderException {
         if (StringUtils.isBlank(request.getProximityCheckSeed())) {
             logger.debug("Proximity seed is not present and is TOTP not being verified, activation ID: {}", request.getActivationId());
