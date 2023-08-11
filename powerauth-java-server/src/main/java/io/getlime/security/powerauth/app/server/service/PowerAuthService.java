@@ -307,6 +307,7 @@ public class PowerAuthService {
             final String applicationKey = request.getApplicationKey();
             final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final String protocolVersion = request.getProtocolVersion();
+            // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -655,6 +656,7 @@ public class PowerAuthService {
             final SignatureType signatureType = request.getSignatureType();
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
+            // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
                     request.getEphemeralPublicKey(),
                     request.getEncryptedData(),
@@ -1065,7 +1067,7 @@ public class PowerAuthService {
 
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method createToken");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1171,7 +1173,7 @@ public class PowerAuthService {
 
     @Transactional
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method startUpgrade");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1243,8 +1245,7 @@ public class PowerAuthService {
 
     @Transactional
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
-                || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method confirmRecoveryCode");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1316,8 +1317,7 @@ public class PowerAuthService {
 
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
-        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
-            || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);

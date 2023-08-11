@@ -42,6 +42,7 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParamet
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import org.slf4j.Logger;
@@ -49,7 +50,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.security.InvalidKeyException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Date;
@@ -252,11 +256,18 @@ public class EciesEncryptionBehavior {
             final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
             final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
+            // Get application secret and transport key used in sharedInfo2 parameter of ECIES
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
+            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
+
+
             // Build encryptor to derive shared info
             final ServerEncryptor encryptor = encryptorFactory.getServerEncryptor(
-                    EncryptorId.APPLICATION_SCOPE_GENERIC,
+                    EncryptorId.ACTIVATION_SCOPE_GENERIC,
                     new EncryptorParameters(request.getProtocolVersion(), applicationVersion.getApplicationKey(), activation.getActivationId()),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret())
+                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Calculate secrets for the external encryptor. The request object may not contain encrypted data and mac.
             final EncryptorSecrets encryptorSecrets = encryptor.calculateSecretsForExternalEncryptor(
@@ -273,7 +284,7 @@ public class EciesEncryptionBehavior {
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
 
-        } catch (InvalidKeySpecException ex) {
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
@@ -285,6 +296,10 @@ public class EciesEncryptionBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, cryptography errors can only occur before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
     }
 }
