@@ -310,13 +310,13 @@ public class OfflineSignatureServiceBehavior {
 
                     signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    return validSignatureResponse(activation, verificationResponse.getUsedSignatureType(), null);
+                    return validSignatureResponse(activation, verificationResponse.getUsedSignatureType());
 
                 } else {
 
                     signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                    return invalidSignatureResponse(activation, offlineSignatureRequest, null);
+                    return invalidSignatureResponse(activation, offlineSignatureRequest);
 
                 }
             } else {
@@ -418,13 +418,9 @@ public class OfflineSignatureServiceBehavior {
      * Generates a valid signature response when signature validation succeeded.
      * @param activation Activation ID.
      * @param usedSignatureType Signature type which was used during validation of the signature.
-     * @param proximityCheck Proximity check context, may be {@code null}.
      * @return Valid signature response.
      */
-    private VerifyOfflineSignatureResponse validSignatureResponse(
-            final ActivationRecordEntity activation,
-            final SignatureType usedSignatureType,
-            final VerifyOfflineSignatureResponse.ProximityCheck proximityCheck) {
+    private VerifyOfflineSignatureResponse validSignatureResponse(ActivationRecordEntity activation, SignatureType usedSignatureType) {
 
         // Extract application ID and application roles
         final String applicationId = activation.getApplication().getId();
@@ -443,7 +439,6 @@ public class OfflineSignatureServiceBehavior {
         response.getApplicationRoles().addAll(applicationRoles);
         response.getActivationFlags().addAll(activationFlags);
         response.setSignatureType(usedSignatureType);
-        response.setProximityCheck(proximityCheck);
         return response;
     }
 
@@ -451,13 +446,9 @@ public class OfflineSignatureServiceBehavior {
      * Generates an invalid signature response when signature validation failed.
      * @param activation Activation ID.
      * @param offlineSignatureRequest Signature request.
-     * @param proximityCheck Proximity check context, may be {@code null}.
      * @return Invalid signature response.
      */
-    private VerifyOfflineSignatureResponse invalidSignatureResponse(
-            final ActivationRecordEntity activation,
-            final OfflineSignatureRequest offlineSignatureRequest,
-            final VerifyOfflineSignatureResponse.ProximityCheck proximityCheck) {
+    private VerifyOfflineSignatureResponse invalidSignatureResponse(ActivationRecordEntity activation, OfflineSignatureRequest offlineSignatureRequest) {
         // Calculate remaining attempts
         final long remainingAttempts = (activation.getMaxFailedAttempts() - activation.getFailedAttempts());
         // Extract application ID and application roles
@@ -478,7 +469,6 @@ public class OfflineSignatureServiceBehavior {
         response.getActivationFlags().addAll(activationFlags);
         // In case multiple signature types are used, use the first one as signature type
         response.setSignatureType(offlineSignatureRequest.getSignatureTypes().iterator().next());
-        response.setProximityCheck(proximityCheck);
         return response;
     }
 }
