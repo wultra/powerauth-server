@@ -17,6 +17,7 @@ jobs:
     uses: wultra/wultra-infrastructure/.github/workflows/codeql-analysis.yml@develop
     with:
       languages: "['java', 'javascript']"
+      secrets: inherit
       # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
       # Use only 'java' to analyze code written in Java, Kotlin or both
       # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
