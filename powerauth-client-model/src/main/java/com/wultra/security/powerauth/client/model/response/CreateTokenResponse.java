@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with newly created HMAC token.
@@ -30,5 +31,8 @@ public class CreateTokenResponse {
 
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
+    private String nonce;
+    private Long timestamp;
 
 }

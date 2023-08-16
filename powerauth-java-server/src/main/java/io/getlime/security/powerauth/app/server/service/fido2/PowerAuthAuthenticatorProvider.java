@@ -41,6 +41,8 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,21 +92,26 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
         }
 
-        final GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2));
-
         final List<AuthenticatorDetail> authenticatorDetailList = new ArrayList<>();
-        for (Activation activation : activationList.getActivations()) {
-            if ((activation.getActivationStatus() == ActivationStatus.CREATED) || (activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT)) { // unfinished activations
-                continue;
+
+        int pageIndex = 0;
+        GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000));
+        while (!activationList.getActivations().isEmpty()) {
+            for (Activation activation : activationList.getActivations()) {
+                if ((activation.getActivationStatus() == ActivationStatus.CREATED) || (activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT)) { // unfinished activations
+                    continue;
+                }
+                if (activation.getActivationStatus() == ActivationStatus.REMOVED && activation.getDevicePublicKeyBase64() == null) { // never finished removed activations
+                    continue;
+                }
+                if (!Protocols.FIDO2.toString().equalsIgnoreCase(activation.getProtocol())) { // Check the protocol, just in case
+                    continue;
+                }
+                final AuthenticatorDetail authenticatorDetail = convert(activation, application.get());
+                authenticatorDetailList.add(authenticatorDetail);
             }
-            if (activation.getActivationStatus() == ActivationStatus.REMOVED && activation.getDevicePublicKeyBase64() == null) { // never finished removed activations
-                continue;
-            }
-            if (!Protocols.FIDO2.toString().equalsIgnoreCase(activation.getProtocol())) { // Check the protocol, just in case
-                continue;
-            }
-            final AuthenticatorDetail authenticatorDetail = convert(activation, application.get());
-            authenticatorDetailList.add(authenticatorDetail);
+            pageIndex++;
+            activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000));
         }
         return authenticatorDetailList;
     }

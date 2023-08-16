@@ -15,23 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.model.converter;
 
-import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
+package io.getlime.security.powerauth.app.server.service.exceptions;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.Serial;
 
 /**
- * Specialization of {@link MutableMutabilityPlan} for {@code List<String>}.
+ * Exception thrown in case of unknown telemetry report is requested.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
-// TODO (racansky, 2023-04-17, https://hibernate.atlassian.net/browse/HHH-16081) workaround for non working-dirty checking
-public class ListConverterMutabilityPlan extends MutableMutabilityPlan<List<String>> {
+public class TelemetryReportException extends Throwable {
+    @Serial
+    private static final long serialVersionUID = 8770243960531807727L;
 
-    @Override
-    protected List<String> deepCopyNotNull(List<String> value) {
-        return new ArrayList<>(value);
+    public TelemetryReportException(String message) {
+        super(message);
     }
 }

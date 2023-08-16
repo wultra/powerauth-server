@@ -32,12 +32,44 @@ import java.util.List;
 @Data
 public class OperationTemplateCreateRequest {
 
+    /**
+     * The name of the operation template.
+     */
     private String templateName;
+
+    /**
+     * The type of the operation that is created based on the template.
+     */
     private String operationType;
+
+    /**
+     * Template for the operation data.
+     */
     private String dataTemplate;
+
+    /**
+     * Allowed signature types.
+     */
     private final List<SignatureType> signatureType = new ArrayList<>();
+
+    /**
+     * How many failed attempts should be allowed for th operation.
+     */
     private Long maxFailureCount;
+
+    /**
+     * Operation expiration period in seconds.
+     */
     private Long expiration;
+
+    /**
+     * Risk flags for offline QR code. Uppercase letters without separator, e.g. {@code XFC}.
+     */
     private String riskFlags;
+
+    /**
+     * Whether proximity check is enabled and TOTP seed should be generated
+     */
+    private boolean proximityCheckEnabled;
 
 }

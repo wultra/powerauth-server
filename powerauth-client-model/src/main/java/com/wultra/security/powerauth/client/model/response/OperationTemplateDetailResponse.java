@@ -39,5 +39,6 @@ public class OperationTemplateDetailResponse {
     private Long maxFailureCount;
     private Long expiration;
     private String riskFlags;
+    private boolean proximityCheckEnabled;
 
 }

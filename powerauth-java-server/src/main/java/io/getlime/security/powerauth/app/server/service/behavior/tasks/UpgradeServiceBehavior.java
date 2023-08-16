@@ -31,18 +31,22 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.response.UpgradeResponsePayload;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import org.slf4j.Logger;
@@ -58,6 +62,7 @@ import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.Date;
 
 /**
  * Behavior class implementing the activation upgrade process.
@@ -70,6 +75,7 @@ public class UpgradeServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
+    private final ReplayVerificationService eciesreplayPersistenceService;
 
     // Helper classes
     private final EciesFactory eciesFactory = new EciesFactory();
@@ -77,6 +83,7 @@ public class UpgradeServiceBehavior {
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private final KeyGenerator keyGenerator = new KeyGenerator();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
@@ -86,12 +93,14 @@ public class UpgradeServiceBehavior {
             final RepositoryCatalogue repositoryCatalogue,
             final LocalizationProvider localizationProvider,
             final ServerPrivateKeyConverter serverPrivateKeyConverter,
+            final ReplayVerificationService eciesreplayPersistenceService,
             final ObjectMapper objectMapper,
             final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
 
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
+        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
         this.objectMapper = objectMapper;
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
@@ -120,7 +129,22 @@ public class UpgradeServiceBehavior {
         final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
         final byte[] macBytes = Base64.getDecoder().decode(mac);
         final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : null;
-        final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
+        final String version = request.getProtocolVersion();
+        final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
+        final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
+        final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
+        final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+
+        if (eciesPayload.getParameters().getTimestamp() != null) {
+            // Check ECIES request for replay attacks and persist unique value from request
+            eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                    UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                    new Date(eciesPayload.getParameters().getTimestamp()),
+                    ephemeralPublicKeyBytes,
+                    nonceBytes,
+                    activationId);
+        }
 
         // Lookup the activation
         final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
@@ -166,10 +190,12 @@ public class UpgradeServiceBehavior {
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
             // Get decryptor for the application
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.UPGRADE);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation(
+                    (ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.UPGRADE,
+                    eciesParameters, ephemeralPublicKeyBytes);
 
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
-            final byte[] decryptedData = decryptor.decryptRequest(cryptogram);
+            final byte[] decryptedData = decryptor.decrypt(eciesPayload);
             if (decryptedData.length == 0) {
                 logger.warn("Invalid decrypted request data");
                 // Rollback is not required, error occurs before writing to database
@@ -200,10 +226,18 @@ public class UpgradeServiceBehavior {
             // Encrypt response payload and return it
             final byte[] payloadBytes = objectMapper.writeValueAsBytes(payload);
 
-            final EciesCryptogram cryptogramResponse = decryptor.encryptResponse(payloadBytes);
+            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : nonceBytes;
+            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
+            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
+            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
+                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
+
+            final EciesPayload payloadResponse = encryptorResponse.encrypt(payloadBytes, parametersResponse);
             final StartUpgradeResponse response = new StartUpgradeResponse();
-            response.setEncryptedData(Base64.getEncoder().encodeToString(cryptogramResponse.getEncryptedData()));
-            response.setMac(Base64.getEncoder().encodeToString(cryptogramResponse.getMac()));
+            response.setEncryptedData(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getEncryptedData()));
+            response.setMac(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getMac()));
+            response.setNonce("3.2".equals(version) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
+            response.setTimestamp(timestampResponse);
 
             // Save activation as last step to avoid rollbacks
             if (activationShouldBeSaved) {

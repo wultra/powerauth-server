@@ -15,23 +15,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.model.converter;
 
-import org.hibernate.type.descriptor.java.MutableMutabilityPlan;
+package com.wultra.security.powerauth.client.model.response;
+
+import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Specialization of {@link MutableMutabilityPlan} for {@code Map<String, String>}.
+ * Response with telemetry report response.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
-// TODO (racansky, 2023-04-17, https://hibernate.atlassian.net/browse/HHH-16081) workaround for non working-dirty checking
-public class MapConverterMutabilityPlan extends MutableMutabilityPlan<Map<String, String>> {
+@Data
+public class TelemetryReportResponse {
 
-    @Override
-    public Map<String, String> deepCopyNotNull(Map<String, String> value) {
-        return new HashMap<>(value);
-    }
+    private String name;
+    private Map<String, Object> reportData = new HashMap<>();
+
 }

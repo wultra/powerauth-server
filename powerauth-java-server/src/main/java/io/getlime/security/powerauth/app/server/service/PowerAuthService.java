@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.validator.*;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -35,11 +36,17 @@ import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingSe
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesPayload;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesScope;
+import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +73,8 @@ public class PowerAuthService {
 
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
+    private PowerAuthPageableConfiguration powerAuthPageableConfiguration;
+
     private ServiceBehaviorCatalogue behavior;
 
     private LocalizationProvider localizationProvider;
@@ -77,6 +86,11 @@ public class PowerAuthService {
     @Autowired
     public void setPowerAuthServiceConfiguration(PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+    }
+
+    @Autowired
+    public void setPowerAuthPageableConfiguration(PowerAuthPageableConfiguration powerAuthPageableConfiguration) {
+        this.powerAuthPageableConfiguration = powerAuthPageableConfiguration;
     }
 
     @Autowired
@@ -144,8 +158,11 @@ public class PowerAuthService {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             final Set<Protocols> protocols = request.getProtocols();
+            final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
+            final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
+            final Pageable pageable = PageRequest.of(pageNumber, pageSize);
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, protocols);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, protocols, pageable);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -306,9 +323,14 @@ public class PowerAuthService {
             final byte[] mac = Base64.getDecoder().decode(request.getMac());
             final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
             final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
+            final String version = request.getProtocolVersion();
+            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
+            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
+            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, cryptogram, keyConvertor);
+            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, eciesPayload, version, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -342,7 +364,12 @@ public class PowerAuthService {
             final byte[] mac = Base64.getDecoder().decode(request.getMac());
             final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
             final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
+            final String version = request.getProtocolVersion();
+            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
+            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
+            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
             logger.info("CreateActivationRequest received, user ID: {}", userId);
             final CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
                     userId,
@@ -350,8 +377,9 @@ public class PowerAuthService {
                     shouldGenerateRecoveryCodes,
                     maxFailedCount,
                     applicationKey,
-                    cryptogram,
+                    eciesPayload,
                     activationOtp,
+                    request.getProtocolVersion(),
                     keyConvertor
             );
             logger.info("CreateActivationRequest succeeded");
@@ -669,10 +697,14 @@ public class PowerAuthService {
             }
 
             // Convert received ECIES request data to cryptogram
-            final EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKey, mac, encryptedData, nonce);
+            final Long timestamp = "3.2".equals(signatureVersion) ? request.getTimestamp() : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, signatureVersion, applicationKey, activationId);
 
+            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
+            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
             final VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
-                    signature, signatureType, signatureVersion, signedData, cryptogram, keyConvertor);
+                    signature, signatureType, signatureVersion, signedData, eciesPayload, keyConvertor);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1092,10 +1124,16 @@ public class PowerAuthService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         // Verify the token timestamp validity
-        if (request.getTimestamp() < System.currentTimeMillis() - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
+        final long currentTimeMillis = System.currentTimeMillis();
+        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
+        }
+        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
+            logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}", request.getTokenId());
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
         }
         try {
             logger.info("ValidateTokenRequest received, token ID: {}", request.getTokenId());
@@ -1749,24 +1787,26 @@ public class PowerAuthService {
         if (error != null) {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
+
+        final String operationId = request.getOperationId();
         try {
             logger.info("OperationApproveRequest received, operation ID: {}, user ID: {}, application ID: {}, signatureType: {}",
-                    request.getOperationId(),
+                    operationId,
                     request.getUserId(),
                     request.getApplicationId(),
                     request.getSignatureType()
             );
             final OperationUserActionResponse response = behavior.getOperationBehavior().attemptApproveOperation(request);
-            logger.info("OperationApproveRequest succeeded");
+            logger.info("OperationApproveRequest succeeded, operation ID: {}", operationId);
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
         } catch (RuntimeException | Error ex) {
-            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            logger.error("Runtime exception or error occurred, transaction will be rolled back, operation ID: {}", operationId, ex);
             throw ex;
         } catch (Exception ex) {
-            logger.error("Unknown error occurred", ex);
+            logger.error("Unknown error occurred, operation ID: {}", operationId, ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }

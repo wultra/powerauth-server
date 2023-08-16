@@ -35,9 +35,12 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEnvelopeKey;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesScope;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import org.slf4j.Logger;
@@ -145,11 +148,19 @@ public class EciesEncryptionBehavior {
             // Get application secret
             final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
 
+            final String applicationKey = request.getApplicationKey();
+            final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
+            final String version = request.getProtocolVersion();
+            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).timestamp(timestamp).associatedData(associatedData).build();
+            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             // Get decryptor for the application
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication((ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.APPLICATION_SCOPE_GENERIC);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForApplication(
+                    (ECPrivateKey) privateKey, applicationSecret, EciesSharedInfo1.APPLICATION_SCOPE_GENERIC,
+                    eciesParameters, ephemeralPublicKeyBytes);
 
             // Initialize decryptor with ephemeral public key
-            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server
@@ -237,11 +248,21 @@ public class EciesEncryptionBehavior {
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
+            final Long timestamp = request.getTimestamp();
+            final String version = request.getProtocolVersion();
+            final String applicationKey = request.getApplicationKey();
+            final String activationId = request.getActivationId();
+            final byte[] nonceBytes = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
+            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
+            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).timestamp(timestamp).associatedData(associatedData).build();
+            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
+
             // Get decryptor for the activation
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC);
+            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation(
+                    (ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.ACTIVATION_SCOPE_GENERIC,
+                    eciesParameters, ephemeralPublicKeyBytes);
 
             // Initialize decryptor with ephemeral public key
-            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(request.getEphemeralPublicKey());
             decryptor.initEnvelopeKey(ephemeralPublicKeyBytes);
 
             // Extract envelope key and sharedInfo2 parameters to allow decryption on intermediate server

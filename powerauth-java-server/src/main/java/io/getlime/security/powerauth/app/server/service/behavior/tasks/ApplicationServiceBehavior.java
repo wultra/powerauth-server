@@ -27,7 +27,9 @@ import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyP
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.SdkConfiguration;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.util.SdkConfigurationSerializer;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -93,11 +95,14 @@ public class ApplicationServiceBehavior {
 
         final List<ApplicationVersionEntity> versions = repositoryCatalogue.getApplicationVersionRepository().findByApplicationId(applicationId);
         for (ApplicationVersionEntity version : versions) {
+            final SdkConfiguration sdkConfig = new SdkConfiguration(version.getApplicationKey(), version.getApplicationSecret(), masterKeyPairEntity.getMasterKeyPublicBase64());
+            final String sdkConfigSerialized = SdkConfigurationSerializer.serialize(sdkConfig);
 
             final ApplicationVersion ver = new ApplicationVersion();
             ver.setApplicationVersionId(version.getId());
             ver.setApplicationKey(version.getApplicationKey());
             ver.setApplicationSecret(version.getApplicationSecret());
+            ver.setMobileSdkConfig(sdkConfigSerialized);
             ver.setSupported(version.getSupported());
 
             response.getVersions().add(ver);

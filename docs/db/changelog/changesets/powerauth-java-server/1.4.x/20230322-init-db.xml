@@ -323,7 +323,7 @@
             <column name="token_secret" type="varchar(255)">
                 <constraints nullable="false" />
             </column>
-            <column name="activation_id" type="varchar(255)">
+            <column name="activation_id" type="varchar(37)">
                 <constraints nullable="false" foreignKeyName="activation_token_fk" referencedTableName="pa_activation" referencedColumnNames="activation_id" />
             </column>
             <column name="signature_type" type="varchar(255)">

@@ -183,10 +183,13 @@ public interface PowerAuthClient {
      * @param encryptedData                 Encrypted data for ECIES.
      * @param mac                           Mac of key and data for ECIES.
      * @param nonce                         Nonce for ECIES.
+     * @param protocolVersion               Crypto protocol version.
+     * @param timestamp                     Unix timestamp in milliseconds for ECIES.
      * @return {@link PrepareActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
+    PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey,
+                                                String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
      * Create a new activation directly, using the createActivation method of the PowerAuth Server
@@ -221,12 +224,14 @@ public interface PowerAuthClient {
      * @param encryptedData             Encrypted data for ECIES.
      * @param mac                       Mac of key and data for ECIES.
      * @param nonce                     Nonce for ECIES.
+     * @param protocolVersion           Crypto protocol version.
+     * @param timestamp                 Unix timestamp in milliseconds for ECIES.
      * @return {@link CreateActivationResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
     CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                               String applicationKey, String ephemeralPublicKey, String encryptedData,
-                                              String mac, String nonce) throws PowerAuthClientException;
+                                              String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
      * Call the updateActivationOtp method of PowerAuth 3.1 Server interface.
@@ -408,10 +413,11 @@ public interface PowerAuthClient {
 
     /**
      * Call the getActivationListForUser method of the PowerAuth 3.0 Server interface.
+     * This method will fetch the first page (page 0) of activations for the user, with a page size of 100.
      *
      * @param userId User ID to fetch the activations for.
-     * @return List of activation instances for given user.
-     * @throws PowerAuthClientException In case REST API call fails.
+     * @return List of activation instances for given user. Returns the first 100 activations.
+     * @throws PowerAuthClientException In case the REST API call fails.
      */
     List<Activation> getActivationListForUser(String userId) throws PowerAuthClientException;
 
@@ -639,12 +645,14 @@ public interface PowerAuthClient {
      * @param encryptedData      Encrypted data for ECIES.
      * @param mac                MAC of key and data for ECIES.
      * @param nonce              Nonce for ECIES.
+     * @param timestamp          Unix timestamp in milliseconds for ECIES.
      * @return {@link VaultUnlockResponse}
      * @throws PowerAuthClientException In case REST API call fails.
      */
     VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                     SignatureType signatureType, String signatureVersion, String signedData,
-                                    String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
+                                    String ephemeralPublicKey, String encryptedData, String mac, String nonce,
+                                    Long timestamp) throws PowerAuthClientException;
 
     /**
      * Call the verifyECDSASignature method of the PowerAuth 3.0 Server interface.
@@ -1232,12 +1240,15 @@ public interface PowerAuthClient {
      * @param encryptedData      Encrypted request data.
      * @param mac                MAC computed for request key and data.
      * @param nonce              Nonce for ECIES.
+     * @param protocolVersion    Crypto protocol version.
+     * @param timestamp          Unix timestamp in milliseconds for ECIES.
      * @param signatureType      Type of the signature used for validating the create request.
      * @return Response with created token.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                    String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException;
+                                    String encryptedData, String mac, String nonce, String protocolVersion,
+                                    Long timestamp, SignatureType signatureType) throws PowerAuthClientException;
 
     /**
      * Validate credentials used for basic token-based authentication.
@@ -1326,11 +1337,15 @@ public interface PowerAuthClient {
      *
      * @param activationId       Activation ID.
      * @param applicationKey     Application key.
-     * @param ephemeralPublicKey Ephemeral key for ECIES.
+     * @param ephemeralPublicKey Ephemeral public key for ECIES.
+     * @param nonce              ECIES nonce.
+     * @param protocolVersion    Crypto protocol version.
+     * @param timestamp          Unix timestamp in milliseconds for ECIES.
      * @return ECIES decryptor parameters.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException;
+    GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.
@@ -1361,11 +1376,14 @@ public interface PowerAuthClient {
      * @param encryptedData      Encrypted request data.
      * @param mac                MAC computed for request key and data.
      * @param nonce              Nonce for ECIES.
+     * @param protocolVersion    Crypto protocol version.
+     * @param timestamp          Unix timestamp in milliseconds for ECIES.
      * @return Start upgrade response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                      String encryptedData, String mac, String nonce) throws PowerAuthClientException;
+                                      String encryptedData, String mac, String nonce,
+                                      String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
      * Commit upgrade of activations to version 3.
@@ -1455,11 +1473,14 @@ public interface PowerAuthClient {
      * @param encryptedData      Encrypted data for ECIES.
      * @param mac                MAC of key and data for ECIES.
      * @param nonce              Nonce for ECIES.
+     * @param protocolVersion    Crypto protocol version.
+     * @param timestamp          Unix timestamp in milliseconds for ECIES.
      * @return Confirm recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                    String encryptedData, String mac, String nonce) throws PowerAuthClientException;
+                                                    String encryptedData, String mac, String nonce,
+                                                    String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
      * Lookup recovery codes.
@@ -1552,12 +1573,15 @@ public interface PowerAuthClient {
      * @param ephemeralPublicKey Ephemeral key for ECIES.
      * @param encryptedData      Encrypted data for ECIES.
      * @param mac                MAC of key and data for ECIES.
-     * @param nonce              nonce for ECIES.
+     * @param nonce              Nonce for ECIES.
+     * @param protocolVersion    Crypto protocol version.
+     * @param timestamp          Unix timestamp in milliseconds for ECIES.
      * @return Create activation using recovery code response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException;
+                                                                     String ephemeralPublicKey, String encryptedData, String mac, String nonce,
+                                                                     String protocolVersion, Long timestamp) throws PowerAuthClientException;
 
     /**
      * Get recovery configuration.
@@ -2071,5 +2095,23 @@ public interface PowerAuthClient {
      * @throws PowerAuthClientException In case REST API call fails.
      */
     Response removeOperationTemplate(OperationTemplateDeleteRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Request telemetry report.
+     * @param request Report specification.
+     * @return Report data.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request) throws PowerAuthClientException;
+
+    /**
+     * Request telemetry report.
+     * @param request Report specification.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Report data.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
 }

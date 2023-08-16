@@ -15,18 +15,19 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.model.converter;
-
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
-import org.hibernate.type.descriptor.java.ArrayMutabilityPlan;
+package io.getlime.security.powerauth.app.server.database.model.enumeration;
 
 /**
+ * Enum representing unique value types.
  *
- * Specialization of {@link ArrayMutabilityPlan} for {@link PowerAuthSignatureTypes}.
- *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-// TODO (racansky, 2023-04-17, https://hibernate.atlassian.net/browse/HHH-16081) workaround for non working-dirty checking
-public class PowerAuthSignatureArrayConverterMutabilityPlan extends ArrayMutabilityPlan<PowerAuthSignatureTypes> {
+public enum UniqueValueType {
+
+    MAC_TOKEN,
+
+    ECIES_APPLICATION_SCOPE,
+
+    ECIES_ACTIVATION_SCOPE
 
 }

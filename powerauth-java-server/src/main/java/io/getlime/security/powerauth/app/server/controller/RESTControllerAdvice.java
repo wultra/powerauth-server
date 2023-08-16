@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,23 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 public class RESTControllerAdvice {
 
     private static final Logger logger = LoggerFactory.getLogger(RESTControllerAdvice.class);
+
+    /**
+     * Resolver for Activation Recovery Exception.
+     * @param ex Activation Recovery Exception.
+     * @return Activation recovery error.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = TelemetryReportException.class)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleUnknownTelemetryReportNameException(TelemetryReportException ex) {
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode("ERROR_TELEMETRY");
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
+        return new ObjectResponse<>("ERROR", error);
+    }
 
     /**
      * Handle all service exceptions using the same error format. Response has a status code 400 Bad Request.

@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -75,7 +76,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @param userId User ID
      * @return List of activations for given user
      */
-    List<ActivationRecordEntity> findByUserId(String userId);
+    List<ActivationRecordEntity> findByUserId(String userId, Pageable pageable);
 
     /**
      * Find all activations for given user ID and application ID
@@ -84,7 +85,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @param userId        User ID
      * @return List of activations for given user and application
      */
-    List<ActivationRecordEntity> findByApplicationIdAndUserId(String applicationId, String userId);
+    List<ActivationRecordEntity> findByApplicationIdAndUserId(String applicationId, String userId, Pageable pageable);
 
     /**
      * Find the first activation associated with given application by the activation code.
@@ -190,5 +191,16 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.externalId = :externalId")
     List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId);
+
+    /**
+     * Return number of unique users who used given application between specified dates. The comparison includes results that
+     * have last used timestamps in exact match with provided timestamps (closed interval).
+     * @param applicationId Application ID.
+     * @param fromDate Starting date.
+     * @param toDate Ending date.
+     * @return Number of unique users.
+     */
+    @Query("SELECT COUNT(DISTINCT a.userId) FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.timestampLastUsed >= :fromDate AND a.timestampLastUsed <= :toDate")
+    long uniqueUserCountForApplicationBetweenDates(String applicationId, Date fromDate, Date toDate);
 
 }

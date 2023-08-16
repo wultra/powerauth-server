@@ -247,7 +247,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+    public PrepareActivationResponse prepareActivation(String activationCode, String applicationKey, boolean shouldGenerateRecoveryCodes, String ephemeralPublicKey, String encryptedData, String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
         final PrepareActivationRequest request = new PrepareActivationRequest();
         request.setActivationCode(activationCode);
         request.setApplicationKey(applicationKey);
@@ -256,6 +256,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         return prepareActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -272,7 +274,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public CreateActivationResponse createActivation(String userId, Date timestampActivationExpire, Long maxFailureCount,
                                                      String applicationKey, String ephemeralPublicKey, String encryptedData,
-                                                     String mac, String nonce) throws PowerAuthClientException {
+                                                     String mac, String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
         final CreateActivationRequest request = new CreateActivationRequest();
         request.setUserId(userId);
         if (timestampActivationExpire != null) {
@@ -286,6 +288,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         return createActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -545,7 +549,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature,
                                            SignatureType signatureType, String signatureVersion, String signedData,
-                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+                                           String ephemeralPublicKey, String encryptedData, String mac, String nonce,
+                                           Long timestamp) throws PowerAuthClientException {
         final VaultUnlockRequest request = new VaultUnlockRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -557,6 +562,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
+        request.setTimestamp(timestamp);
         return unlockVault(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -912,7 +918,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public CreateTokenResponse createToken(String activationId, String applicationKey, String ephemeralPublicKey,
-                                           String encryptedData, String mac, String nonce, SignatureType signatureType) throws PowerAuthClientException {
+                                           String encryptedData, String mac, String nonce, String protocolVersion,
+                                           Long timestamp, SignatureType signatureType) throws PowerAuthClientException {
         final CreateTokenRequest request = new CreateTokenRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -920,6 +927,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setMac(mac);
         request.setEphemeralPublicKey(ephemeralPublicKey);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         request.setSignatureType(signatureType);
         return createToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
@@ -973,11 +982,15 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey) throws PowerAuthClientException {
+    public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
+                                                       String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
         final GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
         request.setEphemeralPublicKey(ephemeralPublicKey);
+        request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -993,7 +1006,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public StartUpgradeResponse startUpgrade(String activationId, String applicationKey, String ephemeralPublicKey,
-                                             String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+                                             String encryptedData, String mac, String nonce, String protocolVersion,
+                                             Long timestamp) throws PowerAuthClientException {
         final StartUpgradeRequest request = new StartUpgradeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1001,6 +1015,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         return startUpgrade(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -1053,7 +1069,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                           String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+                                                           String encryptedData, String mac, String nonce, String protocolVersion,
+                                                           Long timestamp) throws PowerAuthClientException {
         final ConfirmRecoveryCodeRequest request = new ConfirmRecoveryCodeRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1061,6 +1078,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         return confirmRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -1115,7 +1134,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(String recoveryCode, String puk, String applicationKey, Long maxFailureCount,
-                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce) throws PowerAuthClientException {
+                                                                            String ephemeralPublicKey, String encryptedData, String mac, String nonce,
+                                                                            String protocolVersion, Long timestamp) throws PowerAuthClientException {
         final RecoveryCodeActivationRequest request = new RecoveryCodeActivationRequest();
         request.setRecoveryCode(recoveryCode);
         request.setPuk(puk);
@@ -1127,6 +1147,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setEncryptedData(encryptedData);
         request.setMac(mac);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
+        request.setTimestamp(timestamp);
         return createActivationUsingRecoveryCode(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
@@ -1433,6 +1455,15 @@ public class PowerAuthRestClient implements PowerAuthClient {
     @Override
     public Response removeOperationTemplate(OperationTemplateDeleteRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callV3RestApi("/operation/template/remove", request, queryParams, httpHeaders, Response.class);
+    }
+
+    @Override
+    public TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request) throws PowerAuthClientException {
+        return requestTelemetryReport(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    public TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/telemetry/report", request, queryParams, httpHeaders, TelemetryReportResponse.class);
     }
 
 }

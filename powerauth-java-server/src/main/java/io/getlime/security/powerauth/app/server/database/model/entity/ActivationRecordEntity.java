@@ -20,12 +20,10 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationFlagConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
-import io.getlime.security.powerauth.app.server.database.model.converter.ListConverterMutabilityPlan;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
-import org.hibernate.annotations.Mutability;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -83,7 +81,6 @@ public class ActivationRecordEntity implements Serializable {
 
     @Column(name = "flags")
     @Convert(converter = ActivationFlagConverter.class)
-    @Mutability(ListConverterMutabilityPlan.class)
     private final List<String> flags = new ArrayList<>();
 
     @Column(name = "server_private_key_base64", nullable = false)

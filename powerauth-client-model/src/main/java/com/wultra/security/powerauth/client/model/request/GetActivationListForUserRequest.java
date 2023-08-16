@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.util.Set;
@@ -34,5 +35,9 @@ public class GetActivationListForUserRequest {
     private String userId;
     private String applicationId;
     private Set<Protocols> protocols = Set.of(Protocols.FIDO2, Protocols.POWERAUTH);
+    @Min(0)
+    private Integer pageNumber;
+    @Min(1)
+    private Integer pageSize;
 
 }

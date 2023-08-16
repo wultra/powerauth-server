@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * Model class representing response with activation via recovery code.
@@ -34,6 +35,9 @@ public class RecoveryCodeActivationResponse {
     private String applicationId;
     private String encryptedData;
     private String mac;
+    @ToString.Exclude
+    private String nonce;
+    private Long timestamp;
     private ActivationStatus activationStatus;
 
 }

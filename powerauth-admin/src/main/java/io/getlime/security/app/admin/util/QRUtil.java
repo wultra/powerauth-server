@@ -21,6 +21,7 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -34,7 +35,12 @@ import java.util.Base64;
  *
  * @author Petr Dvorak
  */
+@Slf4j
 public class QRUtil {
+
+    private QRUtil() {
+        throw new IllegalStateException("Should not be instantiated");
+    }
 
     /**
      * Encode the string data into a QR code of a given size (size = width = height)
@@ -57,7 +63,7 @@ public class QRUtil {
             byte[] bytes = baos.toByteArray();
             return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
         } catch (WriterException | IOException e) {
-            e.printStackTrace();
+            logger.warn("Problem to encode the string data into a QR code", e);
         }
         return null;
     }

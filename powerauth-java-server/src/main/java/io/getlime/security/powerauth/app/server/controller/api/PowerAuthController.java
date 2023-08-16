@@ -25,10 +25,7 @@ import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Class implementing the RESTful controller for PowerAuth service.
@@ -160,17 +157,20 @@ public class PowerAuthController {
     }
 
     /**
-     * Call {@link PowerAuthService#getActivationListForUser(GetActivationListForUserRequest)} method and
-     * return the response.
+     * This endpoint calls the {@link PowerAuthService#getActivationListForUser(GetActivationListForUserRequest)}
+     * method and returns the response. It provides a list of activations for a given user and application ID.
      *
-     * @param request Activation list request.
-     * @return Activation list response.
-     * @throws Exception In case the service throws exception.
+     * @param request This is an {@link ObjectRequest} that contains a {@link GetActivationListForUserRequest}, which
+     *                includes the user identifier and application identifier for which to retrieve activations.
+     * @return This endpoint returns an {@link ObjectResponse} that contains a {@link GetActivationListForUserResponse},
+     *         which includes the list of activations for the given user and application ID.
+     * @throws Exception In case the service throws an exception, it will be propagated and should be handled by the caller.
      */
     @PostMapping("/activation/list")
     public ObjectResponse<GetActivationListForUserResponse> getActivationListForUser(@RequestBody ObjectRequest<GetActivationListForUserRequest> request) throws Exception {
         return new ObjectResponse<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
     }
+
 
     /**
      * Call {@link PowerAuthService#lookupActivations(LookupActivationsRequest)} method and

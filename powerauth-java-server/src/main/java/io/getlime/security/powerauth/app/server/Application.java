@@ -21,6 +21,7 @@ import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.security.Security;
@@ -33,6 +34,7 @@ import java.security.Security;
 @SpringBootApplication
 @EnableScheduling
 @EnableSchedulerLock(defaultLockAtMostFor = "10m")
+@ConfigurationPropertiesScan
 public class Application {
 
     static {

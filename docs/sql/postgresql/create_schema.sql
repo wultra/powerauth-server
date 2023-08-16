@@ -140,7 +140,7 @@ CREATE TABLE pa_token
 (
     token_id           VARCHAR(37) NOT NULL PRIMARY KEY,
     token_secret       VARCHAR(255) NOT NULL,
-    activation_id      VARCHAR(255) NOT NULL,
+    activation_id      VARCHAR(37) NOT NULL,
     signature_type     VARCHAR(255) NOT NULL,
     timestamp_created  TIMESTAMP (6) NOT NULL
 );
@@ -227,21 +227,23 @@ CREATE TABLE pa_operation (
     timestamp_created     TIMESTAMP NOT NULL,
     timestamp_expires     TIMESTAMP NOT NULL,
     timestamp_finalized   TIMESTAMP,
-    risk_flags            VARCHAR(255)
+    risk_flags            VARCHAR(255),
+    totp_seed             VARCHAR(24)
 );
 
 --
 -- DDL for Table PA_OPERATION_TEMPLATE
 --
 CREATE TABLE pa_operation_template (
-    id                    BIGINT NOT NULL PRIMARY KEY,
-    template_name         VARCHAR(255) NOT NULL,
-    operation_type        VARCHAR(255) NOT NULL,
-    data_template         VARCHAR(255) NOT NULL,
-    signature_type        VARCHAR(255) NOT NULL,
-    max_failure_count     BIGINT NOT NULL,
-    expiration            BIGINT NOT NULL,
-    risk_flags            VARCHAR(255)
+    id                      BIGINT       NOT NULL PRIMARY KEY,
+    template_name           VARCHAR(255) NOT NULL,
+    operation_type          VARCHAR(255) NOT NULL,
+    data_template           VARCHAR(255) NOT NULL,
+    signature_type          VARCHAR(255) NOT NULL,
+    max_failure_count       BIGINT       NOT NULL,
+    expiration              BIGINT       NOT NULL,
+    risk_flags              VARCHAR(255),
+    proximity_check_enabled BOOLEAN      NOT NULL DEFAULT FALSE
 );
 
 --
@@ -251,6 +253,15 @@ CREATE TABLE pa_operation_application (
     application_id BIGINT     NOT NULL,
     operation_id   VARCHAR(37) NOT NULL,
     CONSTRAINT pa_operation_application_pk PRIMARY KEY (application_id, operation_id)
+);
+
+--
+-- DDL for Table PA_UNIQUE_VALUE
+--
+CREATE TABLE pa_unique_value (
+    unique_value      VARCHAR(255) NOT NULL PRIMARY KEY,
+    type              INTEGER NOT NULL,
+    timestamp_expires TIMESTAMP NOT NULL
 );
 
 --
@@ -404,6 +415,8 @@ CREATE INDEX pa_operation_ts_expires_idx ON pa_operation(timestamp_expires);
 CREATE INDEX pa_operation_status_exp ON pa_operation(timestamp_expires, status);
 
 CREATE INDEX pa_operation_template_name_idx ON pa_operation_template(template_name);
+
+CREATE INDEX pa_unique_value_expiration ON pa_unique_value(timestamp_expires);
 
 --
 -- Auditing indexes.
