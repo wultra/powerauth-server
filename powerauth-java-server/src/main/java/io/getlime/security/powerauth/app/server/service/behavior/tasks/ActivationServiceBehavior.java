@@ -906,6 +906,14 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
+            // Ensure presence of the devicePublicKey
+            final String retrievedDevicePublicKey = request.getDevicePublicKey();
+            if (retrievedDevicePublicKey == null || retrievedDevicePublicKey.isEmpty()) {
+                logger.warn("Invalid activation request, activation code: {}", activationCode);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Fetch the current activation by activation code
             final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
@@ -928,7 +936,7 @@ public class ActivationServiceBehavior {
             validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey = null;
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
