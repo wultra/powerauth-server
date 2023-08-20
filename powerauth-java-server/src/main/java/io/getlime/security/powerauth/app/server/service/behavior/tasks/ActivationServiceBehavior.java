@@ -1154,8 +1154,16 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
+            // Ensure presence of the devicePublicKey
+            final String retrievedDevicePublicKey = request.getDevicePublicKey();
+            if (retrievedDevicePublicKey == null || retrievedDevicePublicKey.isEmpty()) {
+                logger.warn("Invalid activation request, activation ID: {}", activationId);
+                // Activation failed due to invalid ECIES request, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+            }
+
             // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey;
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -1703,6 +1711,14 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
+            // Ensure presence of the devicePublicKey
+            final String retrievedDevicePublicKey = layer2Request.getDevicePublicKey();
+            if (retrievedDevicePublicKey == null || retrievedDevicePublicKey.isEmpty()) {
+                logger.warn("Invalid activation request, recovery code: {}", recoveryCode);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+            }
+
             // Get recovery code entity
             final RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(applicationId, recoveryCode);
             if (recoveryCodeEntity == null) {
@@ -1821,7 +1837,7 @@ public class ActivationServiceBehavior {
             validateCreatedActivation(activation, application, true);
 
             // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(layer2Request.getDevicePublicKey());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey;
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
