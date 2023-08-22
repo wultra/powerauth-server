@@ -72,21 +72,20 @@ public class ActivationServiceBehaviorTest {
     public void testPrepareActivationWithValidPayload() throws Exception {
 
         // Create application
-        GetApplicationDetailResponse detailResponse = this.createApplication();
+        final GetApplicationDetailResponse detailResponse = this.createApplication();
 
         // Initiate activation of a user
-        InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
+        final InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
 
         // Generate public key for a client device
-        KeyGenerator keyGenerator = new KeyGenerator();
-        KeyPair keyPair = keyGenerator.generateKeyPair();
-        PublicKey publicKey = keyPair.getPublic();
-        byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
+        final KeyGenerator keyGenerator = new KeyGenerator();
+        final KeyPair keyPair = keyGenerator.generateKeyPair();
+        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(keyPair.getPublic());
 
         // Create request payload
-        ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
-        EciesPayload correctEciesPayload = this.buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesPayload correctEciesPayload = this.buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation
         assertDoesNotThrow(() -> tested.prepareActivation(
@@ -98,14 +97,14 @@ public class ActivationServiceBehaviorTest {
     public void testPrepareActivationWithInvalidPayload() throws Exception {
 
         // Create application
-        GetApplicationDetailResponse detailResponse = this.createApplication();
+        final GetApplicationDetailResponse detailResponse = this.createApplication();
 
         // Initiate activation of a user
-        InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
+        final InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
 
         // Create request payload, omit device public key
-        ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        EciesPayload invalidEciesPayload = this.buildPrepareActivationPayload(requestL2, detailResponse);
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        final EciesPayload invalidEciesPayload = this.buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation with missing devicePublicKey
         GenericServiceException exception = assertThrows(
@@ -130,16 +129,16 @@ public class ActivationServiceBehaviorTest {
                 Base64.getDecoder().decode(applicationDetail.getMasterPublicKey()));
 
         // Encrypt payload
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         new ObjectMapper().writeValue(baos, requestL2);
-        EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey,
+        final EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey,
                 applicationDetail.getVersions().get(0).getApplicationSecret().getBytes(StandardCharsets.UTF_8),
                 EciesSharedInfo1.ACTIVATION_LAYER_2, eciesParameters);
         return eciesEncryptor.encrypt(baos.toByteArray(), eciesParameters);
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
-        String userId = UUID.randomUUID().toString();
+        final String userId = UUID.randomUUID().toString();
         return tested.initActivation(
                 applicationId, userId,
                 null, null, null,null,null,
@@ -147,12 +146,12 @@ public class ActivationServiceBehaviorTest {
     }
 
     private GetApplicationDetailResponse createApplication() throws Exception {
-        String testId = UUID.randomUUID().toString();
-        CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
+        final String testId = UUID.randomUUID().toString();
+        final CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
         createApplicationRequest.setApplicationId(testId);
-        CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
+        final CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
 
-        GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
+        final GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         return powerAuthService.getApplicationDetail(detailRequest);
     }
