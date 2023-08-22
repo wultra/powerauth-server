@@ -168,7 +168,6 @@ public class ActivationServiceBehaviorTest {
     }
 
     private ActivationStatus getActivationStatus(String activationId) throws Exception {
-        // Check status prepared
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
         GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(statusRequest);
