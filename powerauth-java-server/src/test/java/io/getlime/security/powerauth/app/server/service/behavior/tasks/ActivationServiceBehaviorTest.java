@@ -50,7 +50,13 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Test for {@link ActivationServiceBehavior}.
+ *
+ * @author Jan Pesek, janpesek@outlook.com
+ */
 @SpringBootTest
+@Transactional
 public class ActivationServiceBehaviorTest {
 
     @Autowired
@@ -63,8 +69,7 @@ public class ActivationServiceBehaviorTest {
     private final String version = "3.2";
 
     @Test
-    @Transactional
-    void testPrepareActivationWithValidPayload() throws Exception {
+    public void testPrepareActivationWithValidPayload() throws Exception {
 
         // Create application
         GetApplicationDetailResponse detailResponse = this.createApplication();
@@ -90,8 +95,7 @@ public class ActivationServiceBehaviorTest {
     }
 
     @Test
-    @Transactional
-    void testPrepareActivationWithInvalidPayload() throws Exception {
+    public void testPrepareActivationWithInvalidPayload() throws Exception {
 
         // Create application
         GetApplicationDetailResponse detailResponse = this.createApplication();
