@@ -1161,7 +1161,7 @@ public class ActivationServiceBehavior {
             if (!StringUtils.hasText(retrievedDevicePublicKey)) {
                 logger.warn("Invalid activation request, activation ID: {}", activationId);
                 // Activation failed due to invalid ECIES request, rollback transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             // Extract the device public key from request
@@ -1718,7 +1718,7 @@ public class ActivationServiceBehavior {
             if (!StringUtils.hasText(retrievedDevicePublicKey)) {
                 logger.warn("Invalid activation request, recovery code: {}", recoveryCode);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             // Get recovery code entity
