@@ -162,3 +162,17 @@ or newer. All the affected properties are:
 - `powerauth.service.scheduled.job.activationsCleanup`
 - `powerauth.service.scheduled.job.activationsCleanup.lookBack`
 - `powerauth.service.scheduled.job.uniqueValueCleanup`
+
+## RESTful integration Changes
+
+PowerAuth restful integration libraries in version `1.5.0` have the following important changes:
+
+- `@PowerAuthEncryption` annotation now use `enum EncryptionScope` scope parameter provided by this library instead of low level `enum EciesScope`:
+  - Please update your imports to `import io.getlime.security.powerauth.rest.api.spring.encryption.EncryptionScope;`
+  - Replace usage of `EciesScope` with `EncryptionScope`, for example:
+    ```java
+    @PowerAuthEncryption(scope = EncryptionScope.APPLICATION_SCOPE)
+    ```
+- `EciesEncryptionContext` class is replaced with `EncryptionContext`
+  - Please update your imports to `import io.getlime.security.powerauth.rest.api.spring.encryption.EncryptionContext;`
+  - Replace usage of `EciesEncryptionContext` to `EncryptionContext`
