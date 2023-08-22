@@ -18,7 +18,9 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
+import com.wultra.security.powerauth.client.model.request.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
@@ -42,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
-import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.util.Base64;
 import java.util.Date;
@@ -76,6 +77,9 @@ public class ActivationServiceBehaviorTest {
 
         // Initiate activation of a user
         final InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
+        final String activationId = initActivationResponse.getActivationId();
+
+        assertEquals(ActivationStatus.CREATED, this.getActivationStatus(activationId));
 
         // Generate public key for a client device
         final KeyGenerator keyGenerator = new KeyGenerator();
@@ -91,6 +95,8 @@ public class ActivationServiceBehaviorTest {
         assertDoesNotThrow(() -> tested.prepareActivation(
                 initActivationResponse.getActivationCode(), detailResponse.getVersions().get(0).getApplicationKey(),
                 false, correctEciesPayload, this.version, this.keyConvertor));
+
+        assertEquals(ActivationStatus.PENDING_COMMIT, this.getActivationStatus(activationId));
     }
 
     @Test
@@ -101,6 +107,9 @@ public class ActivationServiceBehaviorTest {
 
         // Initiate activation of a user
         final InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
+        final String activationId = initActivationResponse.getActivationId();
+
+        assertEquals(ActivationStatus.CREATED, this.getActivationStatus(activationId));
 
         // Create request payload, omit device public key
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
@@ -113,6 +122,8 @@ public class ActivationServiceBehaviorTest {
                         detailResponse.getVersions().get(0).getApplicationKey(),
                         false, invalidEciesPayload, this.version, this.keyConvertor));
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
+
+        assertEquals(ActivationStatus.CREATED, this.getActivationStatus(activationId));
     }
 
     private EciesPayload buildPrepareActivationPayload(ActivationLayer2Request requestL2,
@@ -154,6 +165,15 @@ public class ActivationServiceBehaviorTest {
         final GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         return powerAuthService.getApplicationDetail(detailRequest);
+    }
+
+    private ActivationStatus getActivationStatus(String activationId) throws Exception {
+        // Check status prepared
+        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
+        statusRequest.setActivationId(activationId);
+        GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(statusRequest);
+
+        return statusResponse.getActivationStatus();
     }
 
 }
