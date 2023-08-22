@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.core.audit.base.util.StringUtil;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -68,6 +69,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -908,7 +910,7 @@ public class ActivationServiceBehavior {
 
             // Ensure presence of the devicePublicKey
             final String retrievedDevicePublicKey = request.getDevicePublicKey();
-            if (retrievedDevicePublicKey == null || retrievedDevicePublicKey.isEmpty()) {
+            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
                 logger.warn("Invalid activation request, activation code: {}", activationCode);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1156,7 +1158,7 @@ public class ActivationServiceBehavior {
 
             // Ensure presence of the devicePublicKey
             final String retrievedDevicePublicKey = request.getDevicePublicKey();
-            if (retrievedDevicePublicKey == null || retrievedDevicePublicKey.isEmpty()) {
+            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
                 logger.warn("Invalid activation request, activation ID: {}", activationId);
                 // Activation failed due to invalid ECIES request, rollback transaction
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
@@ -1713,7 +1715,7 @@ public class ActivationServiceBehavior {
 
             // Ensure presence of the devicePublicKey
             final String retrievedDevicePublicKey = layer2Request.getDevicePublicKey();
-            if (retrievedDevicePublicKey == null || retrievedDevicePublicKey.isEmpty()) {
+            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
                 logger.warn("Invalid activation request, recovery code: {}", recoveryCode);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
