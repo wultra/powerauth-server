@@ -34,6 +34,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
+import java.time.Duration;
+
 /**
  * Class holding the configuration data of this PowerAuth Server
  * instance. Default values are in "application.properties" file.
@@ -200,7 +202,7 @@ public class PowerAuthServiceConfiguration {
      * HTTP connection timeout.
      */
     @Value("${powerauth.service.http.connection.timeout}")
-    private Integer httpConnectionTimeout;
+    private Duration httpConnectionTimeout;
 
     /**
      * HTTP response timeout.
@@ -601,22 +603,6 @@ public class PowerAuthServiceConfiguration {
      */
     public void setHttpProxyPassword(String httpProxyPassword) {
         this.httpProxyPassword = httpProxyPassword;
-    }
-
-    /**
-     * Get HTTP connection timeout.
-     * @return HTTP connection timeout.
-     */
-    public Integer getHttpConnectionTimeout() {
-        return httpConnectionTimeout;
-    }
-
-    /**
-     * Set HTTP connection timeout.
-     * @param httpConnectionTimeout HTTP connection timeout.
-     */
-    public void setHttpConnectionTimeout(Integer httpConnectionTimeout) {
-        this.httpConnectionTimeout = httpConnectionTimeout;
     }
 
     /**
