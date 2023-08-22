@@ -46,7 +46,7 @@ public class ReplayExpirationService {
         this.replayPersistenceService = replayPersistenceService;
     }
 
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.uniqueValueCleanup:PT1M}")
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.uniqueValueCleanup:60000}")
     @SchedulerLock(name = "expireUniqueValuesTask")
     @Transactional
     public void processExpirations() {

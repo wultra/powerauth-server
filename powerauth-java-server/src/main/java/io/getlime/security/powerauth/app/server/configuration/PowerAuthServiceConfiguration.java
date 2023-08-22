@@ -27,16 +27,12 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
-
-import java.time.Duration;
-import java.time.format.DateTimeParseException;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -124,23 +120,19 @@ public class PowerAuthServiceConfiguration {
     private int generateOperationIterations;
 
     /**
-     * Specifies the duration for which a CREATED or PENDING_COMMIT record should remain usable for
+     * How many milliseconds should be CREATED or PENDING_COMMIT record usable for
      * completing the activation.
-     * <p>
-     * The value must be specified in the ISO-8601 duration format PTnHnMn.nS.
      */
-    @Value("${powerauth.service.crypto.activationValidityTime}")
-    @DurationMin(millis = 0)
-    private Duration activationValidityBeforeActive;
+    @Value("${powerauth.service.crypto.activationValidityInMilliseconds}")
+    @Min(0)
+    private int activationValidityBeforeActive;
 
     /**
-     * Specifies the duration to the past that the activation cleanup job should look at.
-     * <p>
-     * The value must be specified in the ISO-8601 duration format PTnHnMn.nS.
+     * How many milliseconds should the activation cleanup job look to the past.
      */
-    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBack:PT1H}")
-    @DurationMin(millis = 0)
-    private Duration activationsCleanupLookBack;
+    @Value("${powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds:3600000}")
+    @Min(0)
+    private int activationsCleanupLookBackInMilliseconds;
 
     /**
      * How many failed signatures cause activation record blocking. The maximum supported value is 64.
@@ -168,13 +160,11 @@ public class PowerAuthServiceConfiguration {
     private int offlineSignatureComponentLength;
 
     /**
-     * Specifies the expiration duration for timestamps used in ECIES and MAC token requests.
-     * <p>
-     * The value is specified in the ISO-8601 duration format PTnHnMn.nS.
+     * Expiration of timestamps for ECIES and MAC token requests.
      */
-    @Value("${powerauth.service.crypto.requestExpirationTime}")
-    @DurationMin(millis = 0)
-    private Duration requestExpiration;
+    @Value("${powerauth.service.crypto.requestExpirationInMilliseconds}")
+    @Min(0)
+    private int requestExpirationInMilliseconds;
 
     /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
@@ -210,7 +200,7 @@ public class PowerAuthServiceConfiguration {
      * HTTP connection timeout.
      */
     @Value("${powerauth.service.http.connection.timeout}")
-    private Duration httpConnectionTimeout;
+    private Integer httpConnectionTimeout;
 
     /**
      * HTTP response timeout.
@@ -225,23 +215,18 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Specifies the validity duration of token timestamps, checked before token validation.
-     * <p>
-     * The value is specified in the ISO-8601 duration format PTnHnMn.nS.
+     * Token timestamp validity in milliseconds, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.validity}")
-    @DurationMin(millis = 1)
-    private Duration tokenTimestampValidity;
+    @Min(1)
+    private long tokenTimestampValidityInMilliseconds;
 
     /**
-     * Specifies the validity duration to future of token timestamps, checked before token validation.
-     * <p>
-     * The value is specified in the ISO-8601 duration format PTnHnMn.nS.
+     * Token timestamp validity to future in milliseconds, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.forward.validity}")
-    @DurationMin(millis = 0)
-    private Duration tokenTimestampForwardValidity;
-
+    @Min(0)
+    private long tokenTimestampForwardValidityInMilliseconds;
 
     /**
      * Master DB encryption key.
@@ -457,67 +442,37 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Gets the length of the period of activation record validity during activation.
-     * @return How long the activation is valid before it becomes active, represented as a {@link Duration}
-     * (2 minutes, by default).
+     * Get length of the period of activation record validity during activation.
+     * @return How long the activation is valid before it expires (2 minutes, in milliseconds, by default).
      */
-    public Duration getActivationValidityBeforeActive() {
+    public int getActivationValidityBeforeActive() {
         return activationValidityBeforeActive;
     }
 
-
     /**
-     * Sets the activation validity period before active as a {@link Duration}.
-     * This is the maximum amount of time an activation is valid before it becomes active.
-     *
-     * @param activationValidityBeforeActive activation validity period as a {@link Duration}
+     * Get length of the period of activation record validity during activation.
+     * @param activationValidityBeforeActive How long the activation is valid before it expires (2 minutes, in milliseconds by defaults).
      */
-    public void setActivationValidityBeforeActive(Duration activationValidityBeforeActive) {
+    public void setActivationValidityBeforeActive(int activationValidityBeforeActive) {
         this.activationValidityBeforeActive = activationValidityBeforeActive;
     }
 
     /**
-     * Sets the activation validity period before active as an ISO-8601 duration string.
-     * This is the maximum amount of time an activation is valid before it becomes active.
-     * The string should be formatted according to the ISO-8601 duration format specification, e.g. "PT2M" for two minutes.
-     *
-     * @param activationValidityBeforeActive activation validity period as an ISO-8601 duration string
+     * Get look-back milliseconds for activation cleanup.
+     * @return How long the activation cleanup job should look back in time.
      */
-    public void setActivationValidityBeforeActive(String activationValidityBeforeActive) {
-        this.activationValidityBeforeActive = Duration.parse(activationValidityBeforeActive);
+    public int getActivationsCleanupLookBackInMilliseconds() {
+        return activationsCleanupLookBackInMilliseconds;
     }
 
     /**
-     * Get the look-back period for the activation cleanup job.
-     * @return The period of time the activation cleanup job should look into the past, represented as a {@link Duration}.
-     * This value indicates how far back in time the cleanup job should look for activations to clean up
-     * (1 hour, by default).
+     * Set look-back milliseconds for activation cleanup.
+     * @param activationsCleanupLookBackInMilliseconds How long the activation cleanup job should look back in time.
      */
-    public Duration getActivationsCleanupLookBack() {
-        return activationsCleanupLookBack;
+    public void setActivationsCleanupLookBackInMilliseconds(int activationsCleanupLookBackInMilliseconds) {
+        this.activationsCleanupLookBackInMilliseconds = activationsCleanupLookBackInMilliseconds;
     }
 
-
-    /**
-     * Sets the cleanup look back time for activations as a {@link Duration}.
-     * This is the maximum amount of time to look back when cleaning up activations.
-     *
-     * @param activationsCleanupLookBack cleanup look back time as a {@link Duration}
-     */
-    public void setActivationsCleanupLookBack(Duration activationsCleanupLookBack) {
-        this.activationsCleanupLookBack = activationsCleanupLookBack;
-    }
-
-    /**
-     * Sets the cleanup look back time for activations as an ISO-8601 duration string.
-     * This is the maximum amount of time to look back when cleaning up activations.
-     * The string should be formatted according to the ISO-8601 duration format specification, e.g. "PT1H" for one hour.
-     *
-     * @param activationsCleanupLookBack cleanup look back time as an ISO-8601 duration string
-     */
-    public void setActivationsCleanupLookBack(String activationsCleanupLookBack) {
-        this.activationsCleanupLookBack = Duration.parse(activationsCleanupLookBack);
-    }
 
 
     /**
@@ -553,28 +508,19 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Gets the ECIES request expiration.
-     * @return The ECIES request expiration, represented as a {@link Duration} (2 hours, by default).
+     * Get ECIES request expiration in milliseconds.
+     * @return ECIES request expiration in milliseconds.
      */
-    public Duration getRequestExpiration() {
-        return requestExpiration;
+    public int getRequestExpirationInMilliseconds() {
+        return requestExpirationInMilliseconds;
     }
 
     /**
-     * Sets the ECIES request expiration.
-     * @param requestExpiration The ECIES request expiration, represented as a {@link Duration}.
+     * Set ECIES request expiration in milliseconds.
+     * @param requestExpirationInMilliseconds ECIES request expiration in milliseconds.
      */
-    public void setRequestExpiration(Duration requestExpiration) {
-        this.requestExpiration = requestExpiration;
-    }
-
-    /**
-     * Sets the ECIES request expiration.
-     * @param requestExpiration The ECIES request expiration, represented as a string in ISO-8601 duration format.
-     * @throws DateTimeParseException if the string cannot be parsed to a Duration.
-     */
-    public void setRequestExpiration(String requestExpiration) {
-        this.requestExpiration = Duration.parse(requestExpiration);
+    public void setRequestExpirationInMilliseconds(int requestExpirationInMilliseconds) {
+        this.requestExpirationInMilliseconds = requestExpirationInMilliseconds;
     }
 
     /**
@@ -658,87 +604,52 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Gets the HTTP connection timeout.
-     * @return The maximum duration of time to wait for an HTTP connection, represented as a {@link Duration}
-     * (5 seconds, by default).
+     * Get HTTP connection timeout.
+     * @return HTTP connection timeout.
      */
-    public Duration getHttpConnectionTimeout() {
+    public Integer getHttpConnectionTimeout() {
         return httpConnectionTimeout;
     }
 
     /**
      * Set HTTP connection timeout.
-     *
-     * @param httpConnectionTimeout HTTP connection timeout, represented as a {@link Duration}.
+     * @param httpConnectionTimeout HTTP connection timeout.
      */
-    public void setHttpConnectionTimeout(Duration httpConnectionTimeout) {
+    public void setHttpConnectionTimeout(Integer httpConnectionTimeout) {
         this.httpConnectionTimeout = httpConnectionTimeout;
     }
 
     /**
-     * Set HTTP connection timeout.
-     *
-     * @param httpConnectionTimeout HTTP connection timeout, represented as a string in ISO-8601 duration format.
-     * @throws DateTimeParseException if the string cannot be parsed to a Duration.
+     * Get the token timestamp validity in milliseconds.
+     * @return Token timestamp validity in milliseconds.
      */
-    public void setHttpConnectionTimeout(String httpConnectionTimeout) {
-        this.httpConnectionTimeout = Duration.parse(httpConnectionTimeout);
+    public long getTokenTimestampValidityInMilliseconds() {
+        return tokenTimestampValidityInMilliseconds;
     }
 
     /**
-     * Gets the token timestamp validity.
-     * @return The validity period of the token timestamp, represented as a {@link Duration} (2 hours, by default).
+     * Set the token timestamp validity in milliseconds.
+     * @param tokenTimestampValidityInMilliseconds Token timestamp validity in milliseconds.
      */
-    public Duration getTokenTimestampValidity() {
-        return tokenTimestampValidity;
+    public void setTokenTimestampValidityInMilliseconds(long tokenTimestampValidityInMilliseconds) {
+        this.tokenTimestampValidityInMilliseconds = tokenTimestampValidityInMilliseconds;
     }
 
     /**
-     * Sets the token timestamp validity using a {@link Duration} object.
-     * @param tokenTimestampValidity The validity period of the token timestamp, represented as a {@link Duration}.
+     * Get the token timestamp validity into future in milliseconds.
+     * @return Token timestamp validity into future in milliseconds
      */
-    public void setTokenTimestampValidity(Duration tokenTimestampValidity) {
-        this.tokenTimestampValidity = tokenTimestampValidity;
+    public long getTokenTimestampForwardValidityInMilliseconds() {
+        return tokenTimestampForwardValidityInMilliseconds;
     }
 
     /**
-     * Sets the token timestamp validity using a string in the ISO-8601 duration format.
-     * @param tokenTimestampValidity Token timestamp validity, represented as a string in ISO-8601 duration format.
-     * @throws DateTimeParseException if the string cannot be parsed to a Duration.
+     * Set the token timestamp validity into future in milliseconds.
+     * @param tokenTimestampForwardValidityInMilliseconds Token timestamp validity into future in milliseconds
      */
-    public void setTokenTimestampValidity(String tokenTimestampValidity) {
-        this.tokenTimestampValidity = Duration.parse(tokenTimestampValidity);
+    public void setTokenTimestampForwardValidityInMilliseconds(long tokenTimestampForwardValidityInMilliseconds) {
+        this.tokenTimestampForwardValidityInMilliseconds = tokenTimestampForwardValidityInMilliseconds;
     }
-
-
-    /**
-     * Gets the token timestamp forward validity.
-     * @return The validity period of the token timestamp into the future, represented as a {@link Duration}
-     * (30 minutes, by default).
-     */
-    public Duration getTokenTimestampForwardValidity() {
-        return tokenTimestampForwardValidity;
-    }
-
-    /**
-     * Sets the token timestamp forward validity using a {@link Duration} object.
-     * @param tokenTimestampForwardValidity The validity period of the token timestamp into the future,
-     * represented as a Duration.
-     */
-    public void setTokenTimestampForwardValidity(Duration tokenTimestampForwardValidity) {
-        this.tokenTimestampForwardValidity = tokenTimestampForwardValidity;
-    }
-
-    /**
-     * Sets the token timestamp forward validity using a string in the ISO-8601 duration format.
-     * @param tokenTimestampForwardValidity Token timestamp forward validity, represented as a string
-     * in ISO-8601 duration format.
-     * @throws DateTimeParseException if the string cannot be parsed to a Duration.
-     */
-    public void setTokenTimestampForwardValidity(String tokenTimestampForwardValidity) {
-        this.tokenTimestampForwardValidity = Duration.parse(tokenTimestampForwardValidity);
-    }
-
 
     /**
      * Get master DB encryption key.

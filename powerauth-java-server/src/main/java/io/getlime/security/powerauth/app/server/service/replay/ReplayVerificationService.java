@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 
@@ -82,7 +83,7 @@ public class ReplayVerificationService {
      * @throws GenericServiceException Thrown in case unique value exists.
      */
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, byte[] ephemeralPublicKeyBytes, byte[] nonceBytes, String identifier) throws GenericServiceException {
-        final Date expiration = Date.from(Instant.now().plus(config.getRequestExpiration()));
+        final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
