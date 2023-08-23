@@ -677,13 +677,16 @@
 
     <xs:element name="CreatePersonalizedOfflineSignaturePayloadRequest">
         <xs:annotation>
-            <xs:documentation>Request for generating personalized signature payload for the offline signature.
+            <xs:documentation>
+                Request for generating personalized signature payload for the offline signature.
             </xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="nonce" type="xs:string" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="proximityCheck" type="tns:ProximityCheck" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -733,14 +736,18 @@
 
     <xs:element name="VerifyOfflineSignatureRequest">
         <xs:annotation>
-            <xs:documentation>Request for the offline signature verification process.</xs:documentation>
+            <xs:documentation>
+                Request for the offline signature verification process.
+            </xs:documentation>
         </xs:annotation>
         <xs:complexType>
             <xs:sequence>
                 <xs:element name="activationId" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="data" type="xs:string" minOccurs="1" maxOccurs="1"/>
                 <xs:element name="signature" type="xs:string" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="componentLength" type="xs:integer" minOccurs="0" maxOccurs="1"/>
                 <xs:element name="allowBiometry" type="xs:boolean" minOccurs="1" maxOccurs="1"/>
+                <xs:element name="proximityCheck" type="tns:ProximityCheck" minOccurs="0" maxOccurs="1"/>
             </xs:sequence>
         </xs:complexType>
     </xs:element>
@@ -1903,6 +1910,14 @@
                     </xs:sequence>
                 </xs:complexType>
             </xs:element>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="ProximityCheck">
+        <xs:sequence>
+            <xs:element name="seed" type="xs:string" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="stepLength" type="xs:int" minOccurs="1" maxOccurs="1"/>
+            <xs:element name="stepCount" type="xs:int" minOccurs="0" maxOccurs="1"/>
         </xs:sequence>
     </xs:complexType>
 

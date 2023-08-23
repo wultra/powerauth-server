@@ -94,9 +94,9 @@
         <spring-cloud-vault.version>3.1.1</spring-cloud-vault.version>
 
         <!-- PowerAuth Dependencies -->
-        <powerauth-java-crypto.version>1.4.0</powerauth-java-crypto.version>
-        <powerauth-rest-base.version>1.6.0</powerauth-rest-base.version>
-        <powerauth-audit-base.version>1.6.0</powerauth-audit-base.version>
+        <powerauth-java-crypto.version>1.4.1</powerauth-java-crypto.version>
+        <powerauth-rest-base.version>1.6.2</powerauth-rest-base.version>
+        <powerauth-audit-base.version>1.6.2</powerauth-audit-base.version>
         <bcprov-jdk18on.version>1.72</bcprov-jdk18on.version>
 
         <!-- Java 11 Dependencies -->
@@ -110,7 +110,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi.version>1.6.9</springdoc-openapi.version>
-
+        <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
         <!-- Scheduled Job Dependencies -->
         <schedlock.version>4.43.0</schedlock.version>
 
@@ -136,6 +136,12 @@
                 <groupId>io.getlime.security</groupId>
                 <artifactId>powerauth-rest-client-spring</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.swagger.core.v3</groupId>
+                <artifactId>swagger-annotations-jakarta</artifactId>
+                <version>${swagger-annotations-jakarta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
