@@ -119,7 +119,7 @@ public class OfflineSignatureServiceBehavior {
      * @return Response with data for QR code and cryptographic nonce.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final CreatePersonalizedOfflineSignaturePayloadParameter request) throws GenericServiceException {
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final OfflineSignatureParameter request) throws GenericServiceException {
 
         // Fetch activation details from the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
@@ -177,7 +177,7 @@ public class OfflineSignatureServiceBehavior {
         }
     }
 
-    private static String fetchDataAndTotp(CreatePersonalizedOfflineSignaturePayloadParameter request, int digitsNumber) throws CryptoProviderException {
+    private static String fetchDataAndTotp(OfflineSignatureParameter request, int digitsNumber) throws CryptoProviderException {
         if (StringUtils.isBlank(request.getProximityCheckSeed())) {
             return request.getData();
         }
@@ -187,7 +187,7 @@ public class OfflineSignatureServiceBehavior {
         return request.getData() + "\n" + new String(totp, StandardCharsets.UTF_8);
     }
 
-    private static String fetchNonce(CreatePersonalizedOfflineSignaturePayloadParameter request) throws CryptoProviderException {
+    private static String fetchNonce(OfflineSignatureParameter request) throws CryptoProviderException {
         if (StringUtils.isNotBlank(request.getNonce())) {
             logger.debug("Using provided nonce, activation ID: {}", request.getActivationId());
             return request.getNonce();

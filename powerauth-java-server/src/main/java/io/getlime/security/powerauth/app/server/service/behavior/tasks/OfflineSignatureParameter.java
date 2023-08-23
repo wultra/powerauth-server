@@ -25,13 +25,13 @@ import lombok.Getter;
 import java.time.Duration;
 
 /**
- * Parameter object for {@link OfflineSignatureServiceBehavior#createPersonalizedOfflineSignaturePayload(CreatePersonalizedOfflineSignaturePayloadParameter)}.
+ * Parameter object for {@link OfflineSignatureServiceBehavior#createPersonalizedOfflineSignaturePayload(OfflineSignatureParameter)}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
 @Builder
 @Getter
-public class CreatePersonalizedOfflineSignaturePayloadParameter {
+public class OfflineSignatureParameter {
 
     private String activationId;
     private String data;

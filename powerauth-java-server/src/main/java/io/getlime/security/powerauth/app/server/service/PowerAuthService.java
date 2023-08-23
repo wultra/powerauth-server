@@ -29,7 +29,7 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceCo
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.CreatePersonalizedOfflineSignaturePayloadParameter;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.VerifyOfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -461,8 +461,8 @@ public class PowerAuthService {
         }
     }
 
-    private static CreatePersonalizedOfflineSignaturePayloadParameter convert(final CreatePersonalizedOfflineSignaturePayloadRequest request, final KeyConvertor keyConvertor) {
-        final var builder = CreatePersonalizedOfflineSignaturePayloadParameter.builder()
+    private static OfflineSignatureParameter convert(final CreatePersonalizedOfflineSignaturePayloadRequest request, final KeyConvertor keyConvertor) {
+        final var builder = OfflineSignatureParameter.builder()
                 .activationId(request.getActivationId())
                 .data(request.getData())
                 .keyConversionUtilities(keyConvertor)
