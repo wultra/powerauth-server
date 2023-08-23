@@ -70,7 +70,7 @@ public class ActivationServiceBehaviorTest {
     private final String version = "3.2";
 
     @Test
-    public void testPrepareActivationWithValidPayload() throws Exception {
+    void testPrepareActivationWithValidPayload() throws Exception {
 
         // Create application
         final GetApplicationDetailResponse detailResponse = this.createApplication();
@@ -100,7 +100,7 @@ public class ActivationServiceBehaviorTest {
     }
 
     @Test
-    public void testPrepareActivationWithInvalidPayload() throws Exception {
+    void testPrepareActivationWithInvalidPayload() throws Exception {
 
         // Create application
         final GetApplicationDetailResponse detailResponse = this.createApplication();
