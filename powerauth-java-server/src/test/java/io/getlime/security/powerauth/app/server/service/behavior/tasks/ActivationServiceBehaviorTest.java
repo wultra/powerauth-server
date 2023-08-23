@@ -73,13 +73,13 @@ public class ActivationServiceBehaviorTest {
     void testPrepareActivationWithValidPayload() throws Exception {
 
         // Create application
-        final GetApplicationDetailResponse detailResponse = this.createApplication();
+        final GetApplicationDetailResponse detailResponse = createApplication();
 
         // Initiate activation of a user
-        final InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
+        final InitActivationResponse initActivationResponse = initActivation(detailResponse.getApplicationId());
         final String activationId = initActivationResponse.getActivationId();
 
-        assertEquals(ActivationStatus.CREATED, this.getActivationStatus(activationId));
+        assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
 
         // Generate public key for a client device
         final KeyGenerator keyGenerator = new KeyGenerator();
@@ -89,41 +89,41 @@ public class ActivationServiceBehaviorTest {
         // Create request payload
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
-        final EciesPayload correctEciesPayload = this.buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesPayload correctEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation
         assertDoesNotThrow(() -> tested.prepareActivation(
                 initActivationResponse.getActivationCode(), detailResponse.getVersions().get(0).getApplicationKey(),
-                false, correctEciesPayload, this.version, this.keyConvertor));
+                false, correctEciesPayload, version, keyConvertor));
 
-        assertEquals(ActivationStatus.PENDING_COMMIT, this.getActivationStatus(activationId));
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
     }
 
     @Test
     void testPrepareActivationWithInvalidPayload() throws Exception {
 
         // Create application
-        final GetApplicationDetailResponse detailResponse = this.createApplication();
+        final GetApplicationDetailResponse detailResponse = createApplication();
 
         // Initiate activation of a user
-        final InitActivationResponse initActivationResponse = this.initActivation(detailResponse.getApplicationId());
+        final InitActivationResponse initActivationResponse = initActivation(detailResponse.getApplicationId());
         final String activationId = initActivationResponse.getActivationId();
 
-        assertEquals(ActivationStatus.CREATED, this.getActivationStatus(activationId));
+        assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
 
         // Create request payload, omit device public key
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        final EciesPayload invalidEciesPayload = this.buildPrepareActivationPayload(requestL2, detailResponse);
+        final EciesPayload invalidEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation with missing devicePublicKey
         GenericServiceException exception = assertThrows(
                 GenericServiceException.class,
                 () -> tested.prepareActivation(initActivationResponse.getActivationCode(),
                         detailResponse.getVersions().get(0).getApplicationKey(),
-                        false, invalidEciesPayload, this.version, this.keyConvertor));
+                        false, invalidEciesPayload, version, keyConvertor));
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
 
-        assertEquals(ActivationStatus.CREATED, this.getActivationStatus(activationId));
+        assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
     }
 
     private EciesPayload buildPrepareActivationPayload(ActivationLayer2Request requestL2,
@@ -131,7 +131,7 @@ public class ActivationServiceBehaviorTest {
 
         // Set parameters
         final String applicationKey = applicationDetail.getVersions().get(0).getApplicationKey();
-        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, this.version, applicationKey, null);
+        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
         final Long timestamp = new Date().getTime();
         final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
         final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
@@ -153,7 +153,7 @@ public class ActivationServiceBehaviorTest {
         return tested.initActivation(
                 applicationId, userId,
                 null, null, null,null,null,
-                this.keyConvertor);
+                keyConvertor);
     }
 
     private GetApplicationDetailResponse createApplication() throws Exception {
