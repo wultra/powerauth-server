@@ -105,8 +105,8 @@ public class ReplayVerificationService {
         }
         if (!replayPersistenceService.persistUniqueValue(type, uniqueValue)) {
             logger.warn("Unique value could not be persisted");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+            // The whole transaction is rolled back in case of this unexpected state
+            throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
     }
 
