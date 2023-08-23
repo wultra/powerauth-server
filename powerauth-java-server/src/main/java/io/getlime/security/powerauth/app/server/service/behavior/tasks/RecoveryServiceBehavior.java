@@ -336,7 +336,7 @@ public class RecoveryServiceBehavior {
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
             // Check ECIES request for replay attacks and persist unique value from request
-            if (encryptedRequest.getTimestamp() != null) {
+            if (replayVerificationService != null && encryptedRequest.getTimestamp() != null) {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
                         new Date(request.getTimestamp()),

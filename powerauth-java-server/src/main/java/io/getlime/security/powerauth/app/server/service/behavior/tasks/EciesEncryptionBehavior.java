@@ -135,7 +135,7 @@ public class EciesEncryptionBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
 
-            if (request.getTimestamp() != null) {
+            if (replayVerificationService != null && request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,
@@ -216,7 +216,7 @@ public class EciesEncryptionBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
-            if (request.getTimestamp() != null) {
+            if (replayVerificationService != null && request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_APPLICATION_SCOPE,

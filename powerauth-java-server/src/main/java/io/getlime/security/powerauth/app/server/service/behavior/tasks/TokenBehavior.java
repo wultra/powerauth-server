@@ -180,7 +180,7 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            if (encryptedRequest.getTimestamp() != null) {
+            if (replayVerificationService != null && encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
@@ -309,11 +309,13 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.MAC_TOKEN,
-                        new Date(request.getTimestamp()),
-                        request.getNonce(),
-                        token.getTokenId());
+                if (replayVerificationService != null) {
+                    replayVerificationService.checkAndPersistUniqueValue(
+                            UniqueValueType.MAC_TOKEN,
+                            new Date(request.getTimestamp()),
+                            request.getNonce(),
+                            token.getTokenId());
+                }
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
             }

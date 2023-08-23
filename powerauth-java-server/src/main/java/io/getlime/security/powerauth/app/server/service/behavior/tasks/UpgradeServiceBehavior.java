@@ -130,7 +130,7 @@ public class UpgradeServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
             }
 
-            if (encryptedRequest.getTimestamp() != null) {
+            if (replayVerificationService != null && encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,

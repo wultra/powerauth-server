@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
@@ -41,6 +42,10 @@ import java.util.Date;
  */
 @Service
 @Slf4j
+@ConditionalOnProperty(
+        value = "powerauth.service.crypto.replay-attack-protection.enabled",
+        havingValue = "true"
+)
 public class ReplayVerificationService {
 
     private final ReplayPersistenceService replayPersistenceService;
