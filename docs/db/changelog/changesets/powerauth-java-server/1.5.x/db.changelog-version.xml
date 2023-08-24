@@ -6,5 +6,6 @@
     <include file="20230323-add-columns-signature-data.xml" relativeToChangelogFile="true" />
     <include file="20230426-add-column-totp-seed.xml" relativeToChangelogFile="true" />
     <include file="20230723-add-table-unique-value.xml" relativeToChangelogFile="true" />
+    <include file="20230824-update-signature-metadata-columns.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
