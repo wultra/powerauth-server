@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.client.model.response.SignatureAuditRespons
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.SignatureMetadata;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -157,6 +158,7 @@ public class AuditingServiceBehavior {
 
         // Audit the signature
         final SignatureEntity signatureAuditRecord = new SignatureEntity();
+        final SignatureMetadata signatureMetadata = new SignatureMetadata(signatureData.getRequestMethod(), signatureData.getRequestUriId());
         signatureAuditRecord.setActivation(activationRepository.getReferenceById(activation.getActivationId()));
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
@@ -164,8 +166,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setAdditionalInfo(additionalInfo);
         signatureAuditRecord.setDataBase64(data);
         signatureAuditRecord.setSignature(signatureData.getSignature());
-        signatureAuditRecord.setSignatureDataMethod(signatureData.getRequestMethod());
-        signatureAuditRecord.setSignatureDataUriId(signatureData.getRequestUriId());
+        signatureAuditRecord.setSignatureMetadata(signatureMetadata);
         signatureAuditRecord.setSignatureDataBody(signatureData.getRequestBody());
         signatureAuditRecord.setSignatureType(signatureType.name());
         signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
