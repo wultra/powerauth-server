@@ -126,6 +126,50 @@ public class ActivationServiceBehaviorTest {
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
     }
 
+    @Test
+    void testCreateActivationWithValidPayload() throws Exception {
+
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        // Generate public key for a client device
+        final KeyGenerator keyGenerator = new KeyGenerator();
+        final KeyPair keyPair = keyGenerator.generateKeyPair();
+        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(keyPair.getPublic());
+
+        // Create request payload
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
+        final EciesPayload correctEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
+
+        // Create activation
+        CreateActivationResponse response = assertDoesNotThrow(
+                () -> tested.createActivation(UUID.randomUUID().toString(), null, false,
+                        null, detailResponse.getVersions().get(0).getApplicationKey(), correctEciesPayload,
+                        null, version, keyConvertor));
+
+        assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(response.getActivationId()));
+    }
+
+    @Test
+    void testCreateActivationWithInvalidPayload() throws Exception {
+
+        // Create application
+        final GetApplicationDetailResponse detailResponse = createApplication();
+
+        // Create request payload, omit device public key
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        final EciesPayload invalidEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
+
+        // Create activation with missing devicePublicKey
+        GenericServiceException exception = assertThrows(
+                GenericServiceException.class,
+                () -> tested.createActivation(UUID.randomUUID().toString(), null, false,
+                        null, detailResponse.getVersions().get(0).getApplicationKey(), invalidEciesPayload,
+                        null, version, keyConvertor));
+        assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
+    }
+
     private EciesPayload buildPrepareActivationPayload(ActivationLayer2Request requestL2,
                                                        GetApplicationDetailResponse applicationDetail) throws Exception {
 
