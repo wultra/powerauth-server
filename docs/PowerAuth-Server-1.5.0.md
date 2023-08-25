@@ -127,3 +127,52 @@ Since version `1.5.0`, MySQL database is not supported anymore.
 
 PostgreSQL JDBC driver is already included in the WAR file.
 Oracle JDBC driver remains optional and must be added to your deployment if desired.
+
+## Configuration properties
+
+In previous versions of PowerAuth Server, time-based properties were represented as a long value, specifying the
+duration in milliseconds. From version `1.5.0` onwards, we've transitioned to using `java.time.Duration` for these
+durations. Consequently, these properties must now be specified in the ISO-8601 duration format (`PnDTnHnMn.nS`),
+providing a more human-readable format and eliminating potential misunderstandings with units.
+
+Consider the following property as an example:
+
+```properties
+powerauth.service.crypto.activationValidityInMilliseconds=300000
+```
+
+Should now be defined as:
+
+```properties
+powerauth.service.crypto.activationValidityTime=PT5M
+```
+
+The ISO-8601 duration format is more explicit about the units of time being used, making it easier to understand and
+adjust the configuration.
+
+Remember to check all your time-based properties to this new format when migrating to PowerAuth Server version `1.5.0`
+or newer. All the affected properties are:
+
+- `powerauth.service.crypto.activationValidityTime`
+- `powerauth.service.crypto.requestExpirationTime`
+- `powerauth.service.http.connection.timeout`
+- `powerauth.service.token.timestamp.validity`
+- `powerauth.service.token.timestamp.forward.validity`
+- `powerauth.service.scheduled.job.operationCleanup`
+- `powerauth.service.scheduled.job.activationsCleanup`
+- `powerauth.service.scheduled.job.activationsCleanup.lookBack`
+- `powerauth.service.scheduled.job.uniqueValueCleanup`
+
+## RESTful integration Changes
+
+PowerAuth restful integration libraries in version `1.5.0` have the following important changes:
+
+- `@PowerAuthEncryption` annotation now use `enum EncryptionScope` scope parameter provided by this library instead of low level `enum EciesScope`:
+  - Please update your imports to `import io.getlime.security.powerauth.rest.api.spring.encryption.EncryptionScope;`
+  - Replace usage of `EciesScope` with `EncryptionScope`, for example:
+    ```java
+    @PowerAuthEncryption(scope = EncryptionScope.APPLICATION_SCOPE)
+    ```
+- `EciesEncryptionContext` class is replaced with `EncryptionContext`
+  - Please update your imports to `import io.getlime.security.powerauth.rest.api.spring.encryption.EncryptionContext;`
+  - Replace usage of `EciesEncryptionContext` to `EncryptionContext`
