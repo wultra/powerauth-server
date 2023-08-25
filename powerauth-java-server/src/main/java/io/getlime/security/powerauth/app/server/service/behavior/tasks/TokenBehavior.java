@@ -43,15 +43,17 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
@@ -85,12 +87,12 @@ public class TokenBehavior {
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ReplayVerificationService eciesreplayPersistenceService;
+    private final ReplayVerificationService replayVerificationService;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
     private final ServerTokenVerifier tokenVerifier = new ServerTokenVerifier();
-    private final EciesFactory eciesFactory = new EciesFactory();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
 
     // Helper classes
@@ -104,12 +106,12 @@ public class TokenBehavior {
     private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
+        this.replayVerificationService = replayVerificationService;
         this.objectMapper = objectMapper;
     }
 
@@ -129,26 +131,22 @@ public class TokenBehavior {
     public CreateTokenResponse createToken(CreateTokenRequest request, KeyConvertor keyConversion) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final String applicationKey = request.getApplicationKey();
-        final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-        final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-        final byte[] mac = Base64.getDecoder().decode(request.getMac());
-        final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
         final String version = request.getProtocolVersion();
-        final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
-        final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-        final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-        final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
-
         final SignatureType signatureType = request.getSignatureType();
 
-        final EciesPayload responseEciesPayload = createToken(activationId, applicationKey, eciesPayload, signatureType.name(), version, keyConversion);
-
+        final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                request.getEphemeralPublicKey(),
+                request.getEncryptedData(),
+                request.getMac(),
+                request.getNonce(),
+                request.getTimestamp()
+        );
+        final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, keyConversion);
         final CreateTokenResponse response = new CreateTokenResponse();
-        response.setMac(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac()));
-        response.setEncryptedData(Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData()));
-        response.setNonce("3.2".equals(version) && responseEciesPayload.getParameters().getNonce() != null ? Base64.getEncoder().encodeToString(responseEciesPayload.getParameters().getNonce()) : null);
-        response.setTimestamp(responseEciesPayload.getParameters().getTimestamp());
+        response.setEncryptedData(encryptedResponse.getEncryptedData());
+        response.setMac(encryptedResponse.getMac());
+        response.setNonce(encryptedResponse.getNonce());
+        response.setTimestamp(encryptedResponse.getTimestamp());
         return response;
     }
 
@@ -157,15 +155,15 @@ public class TokenBehavior {
      *
      * @param activationId Activation ID.
      * @param applicationKey Application key.
-     * @param eciesPayload ECIES payload.
+     * @param encryptedRequest Encrypted request.
      * @param signatureType Signature type.
      * @param version Protocol version.
      * @param keyConversion Key conversion utility class.
-     * @return Response with a newly created token information (ECIES encrypted).
+     * @return Encrypted Response with a newly created token information.
      * @throws GenericServiceException In case a business error occurs.
      */
-    private EciesPayload createToken(String activationId, String applicationKey, EciesPayload eciesPayload,
-                                     String signatureType, String version, KeyConvertor keyConversion) throws GenericServiceException {
+    private EncryptedResponse createToken(String activationId, String applicationKey, EncryptedRequest encryptedRequest,
+                                          String signatureType, String version, KeyConvertor keyConversion) throws GenericServiceException {
         try {
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
@@ -182,13 +180,13 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
             }
 
-            if (eciesPayload.getParameters().getTimestamp() != null) {
+            if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
-                        new Date(eciesPayload.getParameters().getTimestamp()),
-                        eciesPayload.getCryptogram().getEphemeralPublicKey(),
-                        eciesPayload.getParameters().getNonce(),
+                        new Date(encryptedRequest.getTimestamp()),
+                        encryptedRequest.getEphemeralPublicKey(),
+                        encryptedRequest.getNonce(),
                         activationId);
             }
 
@@ -204,24 +202,19 @@ public class TokenBehavior {
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
-            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
-            // Get decryptor for the activation
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation(
-                    (ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.CREATE_TOKEN,
-                    eciesPayload.getParameters(), eciesPayload.getCryptogram().getEphemeralPublicKey());
-
+            // Get server encryptor
+            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+                    EncryptorId.CREATE_TOKEN,
+                    new EncryptorParameters(version, applicationKey, activationId),
+                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+            );
             // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
-            final byte[] decryptedData = decryptor.decrypt(eciesPayload);
-            if (decryptedData.length == 0) {
-                logger.warn("Invalid decrypted request data");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
-            }
+            final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
 
             // Generate unique token ID.
             String tokenId = null;
@@ -246,14 +239,8 @@ public class TokenBehavior {
 
             final byte[] tokenBytes = objectMapper.writeValueAsBytes(tokenInfo);
 
-            // Encrypt response using previously created ECIES decryptor
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : eciesPayload.getParameters().getNonce();
-            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
-            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
-            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
-                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
-
-            final EciesPayload response = encryptorResponse.encrypt(tokenBytes, parametersResponse);
+            // Encrypt response bytes
+            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(tokenBytes);
 
             // Create a new token
             final TokenEntity token = new TokenEntity();
@@ -264,13 +251,13 @@ public class TokenBehavior {
             token.setSignatureTypeCreated(signatureType);
             repositoryCatalogue.getTokenRepository().save(token);
 
-            return response;
+            return encryptedResponse;
 
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (EciesException ex) {
+        } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
@@ -322,10 +309,10 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
-                        nonce,
+                        request.getNonce(),
                         token.getTokenId());
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
