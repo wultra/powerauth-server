@@ -82,13 +82,11 @@ public class ActivationServiceBehaviorTest {
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
 
         // Generate public key for a client device
-        final KeyGenerator keyGenerator = new KeyGenerator();
-        final KeyPair keyPair = keyGenerator.generateKeyPair();
-        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(keyPair.getPublic());
+        final String publicKey = generatePublicKey();
 
         // Create request payload
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
+        requestL2.setDevicePublicKey(publicKey);
         final EciesPayload correctEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation
@@ -133,13 +131,11 @@ public class ActivationServiceBehaviorTest {
         final GetApplicationDetailResponse detailResponse = createApplication();
 
         // Generate public key for a client device
-        final KeyGenerator keyGenerator = new KeyGenerator();
-        final KeyPair keyPair = keyGenerator.generateKeyPair();
-        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(keyPair.getPublic());
+        final String publicKey = generatePublicKey();
 
         // Create request payload
         final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
+        requestL2.setDevicePublicKey(publicKey);
         final EciesPayload correctEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Create activation
@@ -371,7 +367,6 @@ public class ActivationServiceBehaviorTest {
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
-        final String userId = UUID.randomUUID().toString();
         return tested.initActivation(
                 applicationId, userId,
                 null, null, null,null,null,
