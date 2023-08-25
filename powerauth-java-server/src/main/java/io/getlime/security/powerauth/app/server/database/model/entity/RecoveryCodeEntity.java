@@ -72,7 +72,7 @@ public class RecoveryCodeEntity implements Serializable {
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
-    @Column(name = "timestamp_last_used", nullable = false)
+    @Column(name = "timestamp_last_used")
     private Date timestampLastUsed;
 
     @Column(name = "timestamp_last_change")
