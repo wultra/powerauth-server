@@ -158,6 +158,12 @@
             <artifactId>postgresql</artifactId>
         </dependency>
 
+        <!-- Logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+
         <!-- Monitoring -->
         <dependency>
             <groupId>io.micrometer</groupId>

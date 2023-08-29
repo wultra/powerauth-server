@@ -100,7 +100,7 @@
 
         <!-- Other Dependencies -->
         <commons-text.version>1.10.0</commons-text.version>
-
+        <logstash.version>7.4</logstash.version>
     </properties>
 
     <dependencyManagement>
@@ -141,6 +141,13 @@
                 <groupId>io.swagger.core.v3</groupId>
                 <artifactId>swagger-annotations-jakarta</artifactId>
                 <version>${swagger-annotations-jakarta.version}</version>
+            </dependency>
+
+            <!-- Logging -->
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

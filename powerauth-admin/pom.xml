@@ -93,6 +93,12 @@
             <version>3.5.0</version>
         </dependency>
 
+        <!-- Logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+
         <!-- For run at Apple M1 architecture -->
         <dependency>
             <groupId>io.netty</groupId>
