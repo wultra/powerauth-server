@@ -25,6 +25,7 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -45,6 +46,7 @@ public class SignatureMetadataConverter implements AttributeConverter<SignatureM
      * Converter constructor.
      * @param objectMapper Object mapper.
      */
+    @Autowired
     public SignatureMetadataConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
