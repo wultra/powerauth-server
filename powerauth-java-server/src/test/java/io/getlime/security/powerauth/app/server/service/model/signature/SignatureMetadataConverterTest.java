@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Test class for SignatureMetadataConverter.
  * This class tests various aspects of converting SignatureMetadata to and from its serialized JSON form.
  *
- * @author Your Name
+ * @author Jan Dusil
  */
 public class SignatureMetadataConverterTest {
 
