@@ -19,6 +19,7 @@
 package io.getlime.security.powerauth.app.server.database.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.app.server.database.model.SignatureMetadata;
 import jakarta.persistence.AttributeConverter;
@@ -32,49 +33,45 @@ import org.springframework.stereotype.Component;
  * Converts between SignatureMetadata object and JSON serialized
  * storage in database column.
  *
- * @author Your Name
+ * @author Jan Dusil
  */
 @Converter
 @Component
-public class SignatureMetadataConverter implements AttributeConverter<SignatureMetadata, String> {
+public class SignatureMetadataConverter<T extends SignatureMetadata<?, ?>> implements AttributeConverter<T, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(SignatureMetadataConverter.class);
 
     private final ObjectMapper objectMapper;
 
-    /**
-     * Converter constructor.
-     * @param objectMapper Object mapper.
-     */
     @Autowired
     public SignatureMetadataConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
     @Override
-    public String convertToDatabaseColumn(SignatureMetadata signatureMetadata) {
-        if (signatureMetadata == null) {
+    public String convertToDatabaseColumn(T attribute) {
+        if (attribute == null) {
             return "{}";
         }
         try {
-            return objectMapper.writeValueAsString(signatureMetadata);
+            return objectMapper.writeValueAsString(attribute);
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for SignatureMetadata, error: " + ex.getMessage(), ex);
+            logger.warn("JSON writing error", ex);
             return "{}";
         }
     }
 
     @Override
-    public SignatureMetadata convertToEntityAttribute(String s) {
+    public T convertToEntityAttribute(String s) {
         if (s == null || s.isEmpty()) {
-            return new SignatureMetadata();
+            return null;
         }
         try {
-            return objectMapper.readValue(s, SignatureMetadata.class);
+            return objectMapper.readValue(s, new TypeReference<>() {
+            });
         } catch (JsonProcessingException ex) {
             logger.warn("Conversion failed for SignatureMetadata, error: " + ex.getMessage(), ex);
-            return new SignatureMetadata();
+            return null;
         }
     }
-
 }

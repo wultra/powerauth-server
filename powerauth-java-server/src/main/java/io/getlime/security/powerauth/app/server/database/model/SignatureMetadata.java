@@ -1,15 +1,14 @@
 package io.getlime.security.powerauth.app.server.database.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class SignatureMetadata {
+public interface SignatureMetadata<T1, T2> {
 
-    private String signatureDataMethod;
+    T1 getMetadataParam1();
 
-    private String signatureDataUriId;
+    void setMetadataParam1(T1 metadataParam1);
+
+    T2 getMetadataParam2();
+
+    void setMetadataParam2(T2 metadataParam2);
+
 }

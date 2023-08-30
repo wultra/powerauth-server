@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.SignatureMetadata;
+import io.getlime.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -77,7 +77,7 @@ public class SignatureEntity implements Serializable {
 
     @Column(name = "signature_metadata")
     @Convert(converter = SignatureMetadataConverter.class)
-    private SignatureMetadata signatureMetadata;
+    private PowerAuthSignatureMetadata signatureMetadata;
 
     @Column(name = "signature_data_body", updatable = false)
     private String signatureDataBody;
@@ -130,7 +130,7 @@ public class SignatureEntity implements Serializable {
             String signatureVersion,
             String signatureType,
             String signature,
-            SignatureMetadata signatureMetadata,
+            PowerAuthSignatureMetadata signatureMetadata,
             String signatureDataBody,
             String additionalInfo,
             String note,
@@ -339,7 +339,7 @@ public class SignatureEntity implements Serializable {
      *
      * @return Signature metadata.
      */
-    public SignatureMetadata getSignatureMetadata() {
+    public PowerAuthSignatureMetadata getSignatureMetadata() {
         return signatureMetadata;
     }
 
@@ -348,7 +348,7 @@ public class SignatureEntity implements Serializable {
      *
      * @param signatureMetadata Metadata related to the signature.
      */
-    public void setSignatureMetadata(SignatureMetadata signatureMetadata) {
+    public void setSignatureMetadata(PowerAuthSignatureMetadata signatureMetadata) {
         this.signatureMetadata = signatureMetadata;
     }
 
