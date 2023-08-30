@@ -30,26 +30,37 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Converts between SignatureMetadata object and JSON serialized
- * storage in database column.
+ * A JPA attribute converter for converting SignatureMetadata objects to and from JSON representations.
+ * This class enables storing SignatureMetadata in the database as a JSON column.
  *
  * @author Jan Dusil
  */
 @Converter
 @Component
-public class SignatureMetadataConverter<T extends SignatureMetadata<?, ?>> implements AttributeConverter<T, String> {
+public class SignatureMetadataConverter implements AttributeConverter<SignatureMetadata<?, ?>, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(SignatureMetadataConverter.class);
 
     private final ObjectMapper objectMapper;
 
+    /**
+     * Constructor that initializes the ObjectMapper.
+     *
+     * @param objectMapper The Jackson ObjectMapper.
+     */
     @Autowired
     public SignatureMetadataConverter(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
+    /**
+     * Converts a SignatureMetadata object to its JSON string representation.
+     *
+     * @param attribute The SignatureMetadata object to convert.
+     * @return The JSON string representation of the object.
+     */
     @Override
-    public String convertToDatabaseColumn(T attribute) {
+    public String convertToDatabaseColumn(SignatureMetadata<?, ?> attribute) {
         if (attribute == null) {
             return "{}";
         }
@@ -61,8 +72,14 @@ public class SignatureMetadataConverter<T extends SignatureMetadata<?, ?>> imple
         }
     }
 
+    /**
+     * Converts a JSON string representation to a SignatureMetadata object.
+     *
+     * @param s The JSON string to convert.
+     * @return The converted SignatureMetadata object.
+     */
     @Override
-    public T convertToEntityAttribute(String s) {
+    public SignatureMetadata<?, ?> convertToEntityAttribute(String s) {
         if (s == null || s.isEmpty()) {
             return null;
         }
