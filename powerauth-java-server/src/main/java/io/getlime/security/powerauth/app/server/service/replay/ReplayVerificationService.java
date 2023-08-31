@@ -100,12 +100,12 @@ public class ReplayVerificationService {
 
         final String uniqueValue = Base64.getEncoder().encodeToString(uniqueValBuffer.array());
         if (replayPersistenceService.uniqueValueExists(uniqueValue)) {
-            logger.warn("Duplicate request not allowed to prevent replay attacks");
+            logger.warn("Duplicate request not allowed to prevent replay attacks, request type: {}, identifier: {}", type, identifier);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         if (!replayPersistenceService.persistUniqueValue(type, uniqueValue)) {
-            logger.warn("Unique value could not be persisted");
+            logger.warn("Unique value could not be persisted, request type: {}, identifier: {}", type, identifier);
             // The whole transaction is rolled back in case of this unexpected state
             throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
