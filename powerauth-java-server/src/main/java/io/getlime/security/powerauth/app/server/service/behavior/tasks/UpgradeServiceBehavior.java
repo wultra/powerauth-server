@@ -188,8 +188,8 @@ public class UpgradeServiceBehavior {
                     new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
 
-            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
-            final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
+            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
+            serverEncryptor.decryptRequest(encryptedRequest);
 
             // Request is valid, generate hash based counter if it does not exist yet
             final String ctrDataBase64;

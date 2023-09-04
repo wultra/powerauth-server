@@ -31,18 +31,18 @@ import io.getlime.security.powerauth.app.server.converter.ActivationStatusConver
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TokenEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.TokenInfo;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
@@ -64,11 +64,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Calendar;
@@ -213,8 +211,8 @@ public class TokenBehavior {
                     new EncryptorParameters(version, applicationKey, activationId),
                     new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
-            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
-            final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
+            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
+            serverEncryptor.decryptRequest(encryptedRequest);
 
             // Generate unique token ID.
             String tokenId = null;
