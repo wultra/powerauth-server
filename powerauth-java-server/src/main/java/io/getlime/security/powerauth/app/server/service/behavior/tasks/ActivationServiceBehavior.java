@@ -188,7 +188,6 @@ public class ActivationServiceBehavior {
         activation.setActivationStatus(ActivationStatus.REMOVED);
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
         callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-        logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
     }
@@ -938,6 +937,8 @@ public class ActivationServiceBehavior {
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
+                logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), ex);
                 handleInvalidPublicKey(activation);
             }
 
