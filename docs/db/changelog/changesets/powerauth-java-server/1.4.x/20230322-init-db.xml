@@ -10,7 +10,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_application_seq</comment>
-        <createSequence sequenceName="pa_application_seq" startValue="1" incrementBy="1" cacheSize="20" type="bigint"/>
+        <createSequence sequenceName="pa_application_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="2" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -20,8 +20,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_application_version_seq</comment>
-        <createSequence sequenceName="pa_application_version_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_application_version_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="3" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -31,8 +30,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_master_keypair_seq</comment>
-        <createSequence sequenceName="pa_master_keypair_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_master_keypair_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="4" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -42,8 +40,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_signature_audit_seq</comment>
-        <createSequence sequenceName="pa_signature_audit_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_signature_audit_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="5" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -64,8 +61,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_recovery_code_seq</comment>
-        <createSequence sequenceName="pa_recovery_code_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_recovery_code_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="7" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -75,7 +71,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_recovery_puk_seq</comment>
-        <createSequence sequenceName="pa_recovery_puk_seq" startValue="1" incrementBy="1" cacheSize="20" type="bigint"/>
+        <createSequence sequenceName="pa_recovery_puk_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="8" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -96,8 +92,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_operation_template_seq</comment>
-        <createSequence sequenceName="pa_operation_template_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_operation_template_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="10" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
