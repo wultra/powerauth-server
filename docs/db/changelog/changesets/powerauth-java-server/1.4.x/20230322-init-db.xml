@@ -584,11 +584,11 @@
     <changeSet id="26" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_application_id_idx"/>
+                <indexExists indexName="pa_activation_application"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation(application_id)</comment>
-        <createIndex tableName="pa_activation" indexName="pa_activation_application_id_idx">
+        <createIndex tableName="pa_activation" indexName="pa_activation_application">
             <column name="application_id" />
         </createIndex>
     </changeSet>
@@ -596,11 +596,11 @@
     <changeSet id="27" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_master_keypair_id_idx"/>
+                <indexExists indexName="pa_activation_keypair"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation(master_keypair_id)</comment>
-        <createIndex tableName="pa_activation" indexName="pa_activation_master_keypair_id_idx">
+        <createIndex tableName="pa_activation" indexName="pa_activation_keypair">
             <column name="master_keypair_id" />
         </createIndex>
     </changeSet>
@@ -608,11 +608,11 @@
     <changeSet id="28" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_activation_code_idx"/>
+                <indexExists indexName="pa_activation_code"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation(activation_code)</comment>
-        <createIndex tableName="pa_activation" indexName="pa_activation_activation_code_idx">
+        <createIndex tableName="pa_activation" indexName="pa_activation_code">
             <column name="activation_code" />
         </createIndex>
     </changeSet>
@@ -620,11 +620,11 @@
     <changeSet id="29" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_user_id_idx"/>
+                <indexExists indexName="pa_activation_user_id"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation(user_id)</comment>
-        <createIndex tableName="pa_activation" indexName="pa_activation_user_id_idx">
+        <createIndex tableName="pa_activation" indexName="pa_activation_user_id">
             <column name="user_id" />
         </createIndex>
     </changeSet>
@@ -632,11 +632,11 @@
     <changeSet id="30" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_activation_status_timestamp_activation_expire_idx"/>
+                <indexExists indexName="pa_activation_expiration"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation(activation_status, timestamp_activation_expire)</comment>
-        <createIndex tableName="pa_activation" indexName="pa_activation_activation_status_timestamp_activation_expire_idx">
+        <createIndex tableName="pa_activation" indexName="pa_activation_expiration">
             <column name="activation_status" />
             <column name="timestamp_activation_expire" />
         </createIndex>
@@ -645,11 +645,11 @@
     <changeSet id="31" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_history_activation_id_idx"/>
+                <indexExists indexName="pa_activation_history_act"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation_history(activation_id)</comment>
-        <createIndex tableName="pa_activation_history" indexName="pa_activation_history_activation_id_idx">
+        <createIndex tableName="pa_activation_history" indexName="pa_activation_history_act">
             <column name="activation_id" />
         </createIndex>
     </changeSet>
@@ -657,11 +657,11 @@
     <changeSet id="32" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_activation_history_timestamp_created_idx"/>
+                <indexExists indexName="pa_activation_history_created"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_activation_history(timestamp_created)</comment>
-        <createIndex tableName="pa_activation_history" indexName="pa_activation_history_timestamp_created_idx">
+        <createIndex tableName="pa_activation_history" indexName="pa_activation_history_created">
             <column name="timestamp_created" />
         </createIndex>
     </changeSet>
@@ -681,11 +681,11 @@
     <changeSet id="34" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_master_keypair_application_id_idx"/>
+                <indexExists indexName="pa_master_keypair_application"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_master_keypair(application_id)</comment>
-        <createIndex tableName="pa_master_keypair" indexName="pa_master_keypair_application_id_idx">
+        <createIndex tableName="pa_master_keypair" indexName="pa_master_keypair_application">
             <column name="application_id" />
         </createIndex>
     </changeSet>
@@ -693,11 +693,11 @@
     <changeSet id="35" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_application_version_application_key_idx"/>
+                <indexExists indexName="pa_app_version_app_key"/>
             </not>
         </preConditions>
         <comment>Create a new unique index on pa_application_version(application_key)</comment>
-        <createIndex tableName="pa_application_version" indexName="pa_application_version_application_key_idx" unique="true">
+        <createIndex tableName="pa_application_version" indexName="pa_app_version_app_key" unique="true">
             <column name="application_key" />
         </createIndex>
     </changeSet>
@@ -705,11 +705,11 @@
     <changeSet id="36" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_application_callback_application_id_idx"/>
+                <indexExists indexName="pa_app_callback_app"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_application_callback(application_id)</comment>
-        <createIndex tableName="pa_application_callback" indexName="pa_application_callback_application_id_idx">
+        <createIndex tableName="pa_application_callback" indexName="pa_app_callback_app">
             <column name="application_id" />
         </createIndex>
     </changeSet>
@@ -717,11 +717,11 @@
     <changeSet id="37" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_integration_client_token_idx"/>
+                <indexExists indexName="pa_integration_token"/>
             </not>
         </preConditions>
         <comment>Create a new unique index on pa_integration(client_token)</comment>
-        <createIndex tableName="pa_integration" indexName="pa_integration_client_token_idx" unique="true">
+        <createIndex tableName="pa_integration" indexName="pa_integration_token" unique="true">
             <column name="client_token" />
         </createIndex>
     </changeSet>
@@ -729,11 +729,11 @@
     <changeSet id="38" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_signature_audit_activation_id_idx"/>
+                <indexExists indexName="pa_signature_audit_activation"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_signature_audit(activation_id)</comment>
-        <createIndex tableName="pa_signature_audit" indexName="pa_signature_audit_activation_id_idx">
+        <createIndex tableName="pa_signature_audit" indexName="pa_signature_audit_activation">
             <column name="activation_id" />
         </createIndex>
     </changeSet>
@@ -741,11 +741,11 @@
     <changeSet id="39" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_signature_audit_timestamp_created_idx"/>
+                <indexExists indexName="pa_signature_audit_created"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_signature_audit(timestamp_created)</comment>
-        <createIndex tableName="pa_signature_audit" indexName="pa_signature_audit_timestamp_created_idx">
+        <createIndex tableName="pa_signature_audit" indexName="pa_signature_audit_created">
             <column name="timestamp_created" />
         </createIndex>
     </changeSet>
@@ -753,11 +753,11 @@
     <changeSet id="40" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_token_activation_id_idx"/>
+                <indexExists indexName="pa_token_activation"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_token(activation_id)</comment>
-        <createIndex tableName="pa_token" indexName="pa_token_activation_id_idx">
+        <createIndex tableName="pa_token" indexName="pa_token_activation">
             <column name="activation_id" />
         </createIndex>
     </changeSet>
@@ -765,11 +765,11 @@
     <changeSet id="41" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_code_recovery_code_idx"/>
+                <indexExists indexName="pa_recovery_code_code"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_recovery_code(recovery_code)</comment>
-        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_recovery_code_idx">
+        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_code">
             <column name="recovery_code" />
         </createIndex>
     </changeSet>
@@ -777,11 +777,11 @@
     <changeSet id="42" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_code_application_id_idx"/>
+                <indexExists indexName="pa_recovery_code_app"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_recovery_code(application_id)</comment>
-        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_application_id_idx">
+        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_app">
             <column name="application_id" />
         </createIndex>
     </changeSet>
@@ -789,11 +789,11 @@
     <changeSet id="43" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_code_user_id_idx"/>
+                <indexExists indexName="pa_recovery_code_user"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_recovery_code(user_id)</comment>
-        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_user_id_idx">
+        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_user">
             <column name="user_id" />
         </createIndex>
     </changeSet>
@@ -801,11 +801,11 @@
     <changeSet id="44" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_code_activation_id_idx"/>
+                <indexExists indexName="pa_recovery_code_act"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_recovery_code(activation_id)</comment>
-        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_activation_id_idx">
+        <createIndex tableName="pa_recovery_code" indexName="pa_recovery_code_act">
             <column name="activation_id" />
         </createIndex>
     </changeSet>
@@ -813,11 +813,11 @@
     <changeSet id="45" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_puk_recovery_code_id_puk_index_idx"/>
+                <indexExists indexName="pa_recovery_code_puk"/>
             </not>
         </preConditions>
         <comment>Create a new unique index on pa_recovery_puk(recovery_code_id, puk_index)</comment>
-        <createIndex tableName="pa_recovery_puk" indexName="pa_recovery_puk_recovery_code_id_puk_index_idx" unique="true">
+        <createIndex tableName="pa_recovery_puk" indexName="pa_recovery_code_puk" unique="true">
             <column name="recovery_code_id" />
             <column name="puk_index" />
         </createIndex>
@@ -826,11 +826,11 @@
     <changeSet id="46" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_puk_recovery_code_id_idx"/>
+                <indexExists indexName="pa_recovery_puk_code"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_recovery_puk(recovery_code_id)</comment>
-        <createIndex tableName="pa_recovery_puk" indexName="pa_recovery_puk_recovery_code_id_idx">
+        <createIndex tableName="pa_recovery_puk" indexName="pa_recovery_puk_code">
             <column name="recovery_code_id" />
         </createIndex>
     </changeSet>
@@ -838,11 +838,11 @@
     <changeSet id="47" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_recovery_config_application_id_idx"/>
+                <indexExists indexName="pa_recovery_config_app"/>
             </not>
         </preConditions>
         <comment>Create a new unique index on pa_recovery_config(application_id)</comment>
-        <createIndex tableName="pa_recovery_config" indexName="pa_recovery_config_application_id_idx" unique="true">
+        <createIndex tableName="pa_recovery_config" indexName="pa_recovery_config_app" unique="true">
             <column name="application_id" />
         </createIndex>
     </changeSet>
@@ -850,11 +850,11 @@
     <changeSet id="48" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_application_name_idx"/>
+                <indexExists indexName="pa_application_name"/>
             </not>
         </preConditions>
         <comment>Create a new unique index on pa_application(name)</comment>
-        <createIndex tableName="pa_application" indexName="pa_application_name_idx" unique="true">
+        <createIndex tableName="pa_application" indexName="pa_application_name" unique="true">
             <column name="name" />
         </createIndex>
     </changeSet>
@@ -862,11 +862,11 @@
     <changeSet id="49" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_operation_user_id_idx"/>
+                <indexExists indexName="pa_operation_user"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_operation(user_id)</comment>
-        <createIndex tableName="pa_operation" indexName="pa_operation_user_id_idx">
+        <createIndex tableName="pa_operation" indexName="pa_operation_user">
             <column name="user_id" />
         </createIndex>
     </changeSet>
@@ -874,11 +874,11 @@
     <changeSet id="50" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_operation_timestamp_created_idx"/>
+                <indexExists indexName="pa_operation_ts_created_idx"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_operation(timestamp_created)</comment>
-        <createIndex tableName="pa_operation" indexName="pa_operation_timestamp_created_idx">
+        <createIndex tableName="pa_operation" indexName="pa_operation_ts_created_idx">
             <column name="timestamp_created" />
         </createIndex>
     </changeSet>
@@ -886,11 +886,11 @@
     <changeSet id="51" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_operation_timestamp_expires_idx"/>
+                <indexExists indexName="pa_operation_ts_expires_idx"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_operation(timestamp_expires)</comment>
-        <createIndex tableName="pa_operation" indexName="pa_operation_timestamp_expires_idx">
+        <createIndex tableName="pa_operation" indexName="pa_operation_ts_expires_idx">
             <column name="timestamp_expires" />
         </createIndex>
     </changeSet>
@@ -898,11 +898,11 @@
     <changeSet id="52" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_operation_timestamp_expires_status_idx"/>
+                <indexExists indexName="pa_operation_status_exp"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_operation(timestamp_expires, status)</comment>
-        <createIndex tableName="pa_operation" indexName="pa_operation_timestamp_expires_status_idx">
+        <createIndex tableName="pa_operation" indexName="pa_operation_status_exp">
             <column name="timestamp_expires" />
             <column name="status" />
         </createIndex>
@@ -911,11 +911,11 @@
     <changeSet id="53" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists indexName="pa_operation_template_template_name_idx"/>
+                <indexExists indexName="pa_operation_template_name_idx"/>
             </not>
         </preConditions>
         <comment>Create a new index on pa_operation_template(template_name)</comment>
-        <createIndex tableName="pa_operation_template" indexName="pa_operation_template_template_name_idx">
+        <createIndex tableName="pa_operation_template" indexName="pa_operation_template_name_idx">
             <column name="template_name" />
         </createIndex>
     </changeSet>
