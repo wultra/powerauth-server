@@ -64,11 +64,11 @@
     <changeSet id="3" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_log" indexName="audit_log_timestamp_created_idx" />
+                <indexExists tableName="audit_log" indexName="audit_log_timestamp" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_log(timestamp_created)</comment>
-        <createIndex tableName="audit_log" indexName="audit_log_timestamp_created_idx">
+        <createIndex tableName="audit_log" indexName="audit_log_timestamp">
             <column name="timestamp_created" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -78,11 +78,11 @@
     <changeSet id="4" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_log" indexName="audit_log_application_name_idx" />
+                <indexExists tableName="audit_log" indexName="audit_log_application" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_log(application_name)</comment>
-        <createIndex tableName="audit_log" indexName="audit_log_application_name_idx">
+        <createIndex tableName="audit_log" indexName="audit_log_application">
             <column name="application_name" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -92,11 +92,11 @@
     <changeSet id="5" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_log" indexName="audit_log_audit_level_idx" />
+                <indexExists tableName="audit_log" indexName="audit_log_level" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_log(audit_level)</comment>
-        <createIndex tableName="audit_log" indexName="audit_log_audit_level_idx">
+        <createIndex tableName="audit_log" indexName="audit_log_level">
             <column name="audit_level" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -106,11 +106,11 @@
     <changeSet id="6" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_log" indexName="audit_log_audit_type_idx" />
+                <indexExists tableName="audit_log" indexName="audit_log_type" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_log(audit_type)</comment>
-        <createIndex tableName="audit_log" indexName="audit_log_audit_type_idx">
+        <createIndex tableName="audit_log" indexName="audit_log_type">
             <column name="audit_type" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -120,11 +120,11 @@
     <changeSet id="7" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_param" indexName="audit_param_audit_log_id_idx" />
+                <indexExists tableName="audit_param" indexName="audit_param_log" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_param(audit_log_id)</comment>
-        <createIndex tableName="audit_param" indexName="audit_param_audit_log_id_idx">
+        <createIndex tableName="audit_param" indexName="audit_param_log">
             <column name="audit_log_id" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -134,11 +134,11 @@
     <changeSet id="8" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_param" indexName="audit_param_timestamp_created_idx" />
+                <indexExists tableName="audit_param" indexName="audit_param_timestamp" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_param(timestamp_created)</comment>
-        <createIndex tableName="audit_param" indexName="audit_param_timestamp_created_idx">
+        <createIndex tableName="audit_param" indexName="audit_param_timestamp">
             <column name="timestamp_created" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -148,11 +148,11 @@
     <changeSet id="9" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_param" indexName="audit_param_param_key_idx" />
+                <indexExists tableName="audit_param" indexName="audit_param_key" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_log(param_key)</comment>
-        <createIndex tableName="audit_param" indexName="audit_param_param_key_idx">
+        <createIndex tableName="audit_param" indexName="audit_param_key">
             <column name="param_key" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
@@ -162,11 +162,11 @@
     <changeSet id="10" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>
-                <indexExists tableName="audit_param" indexName="audit_param_param_value_idx" />
+                <indexExists tableName="audit_param" indexName="audit_param_value" />
             </not>
         </preConditions>
         <comment>Create a new index on audit_log(param_value)</comment>
-        <createIndex tableName="audit_param" indexName="audit_param_param_value_idx">
+        <createIndex tableName="audit_param" indexName="audit_param_value">
             <column name="param_value" />
         </createIndex>
         <!-- no rollback on purpose, the audit tables may be shared across several components -->
