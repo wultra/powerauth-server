@@ -50,8 +50,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_activation_history_seq</comment>
-        <createSequence sequenceName="pa_activation_history_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_activation_history_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="6" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
@@ -81,8 +80,7 @@
             </not>
         </preConditions>
         <comment>Create a new sequence pa_recovery_config_seq</comment>
-        <createSequence sequenceName="pa_recovery_config_seq" startValue="1" incrementBy="1" cacheSize="20"
-                        type="bigint"/>
+        <createSequence sequenceName="pa_recovery_config_seq" startValue="1" incrementBy="1" cacheSize="20"/>
     </changeSet>
 
     <changeSet id="9" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
