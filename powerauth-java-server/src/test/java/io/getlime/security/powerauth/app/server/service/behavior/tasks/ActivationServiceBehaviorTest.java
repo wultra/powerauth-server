@@ -57,8 +57,10 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Jan Pesek, janpesek@outlook.com
  */
+/*
 @SpringBootTest
 @Transactional
+*/
 class ActivationServiceBehaviorTest {
 /*
     @Autowired
