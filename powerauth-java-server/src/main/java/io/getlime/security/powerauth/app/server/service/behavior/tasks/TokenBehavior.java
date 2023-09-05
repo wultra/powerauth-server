@@ -310,6 +310,7 @@ public class TokenBehavior {
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
+                        null,
                         request.getNonce(),
                         token.getTokenId());
                 // Validate MAC token
