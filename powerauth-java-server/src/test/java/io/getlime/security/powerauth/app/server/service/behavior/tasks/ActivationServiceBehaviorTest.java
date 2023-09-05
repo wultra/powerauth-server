@@ -114,7 +114,7 @@ class ActivationServiceBehaviorTest {
         final EciesPayload invalidEciesPayload = buildPrepareActivationPayload(requestL2, detailResponse);
 
         // Prepare activation with missing devicePublicKey
-        GenericServiceException exception = assertThrows(
+        final GenericServiceException exception = assertThrows(
                 GenericServiceException.class,
                 () -> tested.prepareActivation(initActivationResponse.getActivationCode(),
                         detailResponse.getVersions().get(0).getApplicationKey(),
