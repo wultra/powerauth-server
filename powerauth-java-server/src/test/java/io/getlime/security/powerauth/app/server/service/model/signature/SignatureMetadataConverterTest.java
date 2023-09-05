@@ -24,7 +24,9 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Signatu
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * Test class for SignatureMetadataConverter.
@@ -43,7 +45,7 @@ public class SignatureMetadataConverterTest {
      * Initializes the SignatureMetadataConverter object and any other necessary objects.
      */
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         ObjectMapper objectMapper = new ObjectMapper();
         converter = new SignatureMetadataConverter(objectMapper);
     }
@@ -52,7 +54,7 @@ public class SignatureMetadataConverterTest {
      * Tests the conversion of a PowerAuthSignatureMetadata object to its serialized JSON form.
      */
     @Test
-    public void convertToDatabaseColumnTest() {
+    void convertToDatabaseColumnTest() {
         PowerAuthSignatureMetadata metadata = new PowerAuthSignatureMetadata("POST", "123");
         String jsonStr = converter.convertToDatabaseColumn(metadata);
 
@@ -64,9 +66,9 @@ public class SignatureMetadataConverterTest {
      * Tests the conversion of a serialized JSON string back to a SignatureMetadata object.
      */
     @Test
-    public void convertToEntityAttributeTest() {
+    void convertToEntityAttributeTest() {
         String jsonStr = "{\"type\":\"PowerAuthSignatureMetadata\",\"signatureDataMethod\":\"POST\",\"signatureDataUriId\":\"123\"}";
-        SignatureMetadata<?, ?> metadata = converter.convertToEntityAttribute(jsonStr);
+        SignatureMetadata<String, String> metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(jsonStr);
 
         assertNotNull(metadata);
         assertEquals("POST", metadata.getMetadataParam1());
@@ -77,7 +79,7 @@ public class SignatureMetadataConverterTest {
      * Tests a round-trip conversion, from object to JSON string and back to object, to ensure consistency.
      */
     @Test
-    public void testRoundTripConversion() {
+    void testRoundTripConversion() {
         PowerAuthSignatureMetadata originalMetadata = new PowerAuthSignatureMetadata("POST", "123");
         String jsonStr = converter.convertToDatabaseColumn(originalMetadata);
         PowerAuthSignatureMetadata convertedMetadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(jsonStr);
@@ -91,9 +93,9 @@ public class SignatureMetadataConverterTest {
      * Tests the converter's behavior when provided with an invalid JSON string.
      */
     @Test
-    public void testInvalidJsonInput() {
+    void testInvalidJsonInput() {
         String invalidJson = "{\"invalidField\":\"someValue\"}";
-        SignatureMetadata<?, ?> metadata = converter.convertToEntityAttribute(invalidJson);
+        SignatureMetadata<String, String> metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(invalidJson);
         assertNull(metadata);
     }
 }

@@ -24,7 +24,7 @@ import lombok.NoArgsConstructor;
 
 
 /**
- * Concrete implementation of the SignatureMetadata interface for PowerAuth.
+ * Concrete implementation of the {@link SignatureMetadata} interface for PowerAuth.
  * Contains metadata parameters specific to PowerAuth Signature.
  *
  * @author Jan Dusil

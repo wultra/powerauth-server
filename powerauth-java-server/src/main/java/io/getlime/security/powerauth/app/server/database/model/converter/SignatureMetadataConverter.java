@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.app.server.database.model.SignatureMetadata;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +81,7 @@ public class SignatureMetadataConverter implements AttributeConverter<SignatureM
      */
     @Override
     public SignatureMetadata<?, ?> convertToEntityAttribute(String s) {
-        if (s == null || s.isEmpty()) {
+        if (StringUtils.isBlank(s)) {
             return null;
         }
         try {

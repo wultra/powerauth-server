@@ -9,9 +9,9 @@
                 <columnExists tableName="pa_signature_audit" columnName="signature_metadata"/>
             </not>
         </preConditions>
-        <comment>Add signature_metadata column of type JSONB</comment>
+        <comment>Add signature_metadata column of type Clob</comment>
         <addColumn tableName="pa_signature_audit">
-            <column name="signature_metadata" type="JSONB"/>
+            <column name="signature_metadata" type="clob"/>
         </addColumn>
     </changeSet>
 
