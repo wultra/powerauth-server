@@ -96,7 +96,7 @@
         <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <schedlock.version>5.1.0</schedlock.version>
+        <shedlock.version>5.7.0</shedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.10.0</commons-text.version>
@@ -148,6 +148,15 @@
                 <groupId>net.logstash.logback</groupId>
                 <artifactId>logstash-logback-encoder</artifactId>
                 <version>${logstash.version}</version>
+            </dependency>
+
+            <!-- Job Scheduling -->
+            <dependency>
+                <groupId>net.javacrumbs.shedlock</groupId>
+                <artifactId>shedlock-bom</artifactId>
+                <version>${shedlock.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
