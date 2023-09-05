@@ -35,7 +35,7 @@ import java.io.Serializable;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = PowerAuthSignatureMetadata.class,
-                name = SignatureMetadataType.POWER_AUTH)
+                name = SignatureMetadataType.POWERAUTH)
 })
 public interface SignatureMetadata<T1, T2> extends Serializable {
 

@@ -34,6 +34,6 @@ public class SignatureMetadataType {
      * Represents PowerAuth signature metadata.
      * This value is used for identifying the type of metadata in JSON serialization/deserialization.
      */
-    public static final String POWER_AUTH = "PowerAuthSignatureMetadata";
+    public static final String POWERAUTH = "PowerAuthSignatureMetadata";
 }
 
