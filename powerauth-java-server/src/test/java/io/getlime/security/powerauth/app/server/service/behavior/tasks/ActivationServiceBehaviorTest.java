@@ -56,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @Transactional
-public class ActivationServiceBehaviorTest {
+class ActivationServiceBehaviorTest {
 
     @Autowired
     private ActivationServiceBehavior tested;
