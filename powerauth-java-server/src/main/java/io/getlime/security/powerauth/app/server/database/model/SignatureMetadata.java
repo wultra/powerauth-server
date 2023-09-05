@@ -18,10 +18,11 @@
 
 package io.getlime.security.powerauth.app.server.database.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.SignatureMetadataType;
+
+import java.io.Serializable;
 
 /**
  * Represents a generic interface for metadata related to different types of signatures.
@@ -36,38 +37,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Signa
         @JsonSubTypes.Type(value = PowerAuthSignatureMetadata.class,
                 name = SignatureMetadataType.POWER_AUTH)
 })
-public interface SignatureMetadata<T1, T2> {
+public interface SignatureMetadata<T1, T2> extends Serializable {
 
-    /**
-     * Retrieves the first metadata parameter.
-     *
-     * @return The first metadata parameter.
-     */
-    @JsonIgnore
-    T1 getMetadataParam1();
-
-    /**
-     * Sets the value for the first metadata parameter.
-     *
-     * @param metadataParam1 The value to set.
-     */
-    @JsonIgnore
-    void setMetadataParam1(T1 metadataParam1);
-
-    /**
-     * Retrieves the second metadata parameter.
-     *
-     * @return The second metadata parameter.
-     */
-    @JsonIgnore
-    T2 getMetadataParam2();
-
-    /**
-     * Sets the value for the second metadata parameter.
-     *
-     * @param metadataParam2 The value to set.
-     */
-    @JsonIgnore
-    void setMetadataParam2(T2 metadataParam2);
 }
 

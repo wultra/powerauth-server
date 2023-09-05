@@ -68,11 +68,11 @@ public class SignatureMetadataConverterTest {
     @Test
     void convertToEntityAttributeTest() {
         String jsonStr = "{\"type\":\"PowerAuthSignatureMetadata\",\"signatureDataMethod\":\"POST\",\"signatureDataUriId\":\"123\"}";
-        SignatureMetadata<String, String> metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(jsonStr);
+        PowerAuthSignatureMetadata metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(jsonStr);
 
         assertNotNull(metadata);
-        assertEquals("POST", metadata.getMetadataParam1());
-        assertEquals("123", metadata.getMetadataParam2());
+        assertEquals("POST", metadata.getSignatureDataMethod());
+        assertEquals("123", metadata.getSignatureDataUriId());
     }
 
     /**
@@ -85,8 +85,8 @@ public class SignatureMetadataConverterTest {
         PowerAuthSignatureMetadata convertedMetadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(jsonStr);
 
         assertNotNull(convertedMetadata);
-        assertEquals(originalMetadata.getMetadataParam1(), convertedMetadata.getMetadataParam1());
-        assertEquals(originalMetadata.getMetadataParam2(), convertedMetadata.getMetadataParam2());
+        assertEquals(originalMetadata.getSignatureDataMethod(), convertedMetadata.getSignatureDataMethod());
+        assertEquals(originalMetadata.getSignatureDataUriId(), convertedMetadata.getSignatureDataUriId());
     }
 
     /**

@@ -20,7 +20,11 @@ package io.getlime.security.powerauth.app.server.database.model;
 
 import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 
 /**
@@ -31,50 +35,25 @@ import lombok.NoArgsConstructor;
  */
 @AllArgsConstructor
 @NoArgsConstructor
-public class PowerAuthSignatureMetadata implements SignatureMetadata<String, String> {
+@Data
+public class PowerAuthSignatureMetadata implements SignatureMetadata<String, String>, Serializable {
 
     @JsonProperty("signatureDataMethod")
     private String signatureDataMethod;
     @JsonProperty("signatureDataUriId")
     private String signatureDataUriId;
 
-    /**
-     * Retrieves the signature method.
-     *
-     * @return The signature method.
-     */
     @Override
-    public String getMetadataParam1() {
-        return signatureDataMethod;
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        PowerAuthSignatureMetadata that = (PowerAuthSignatureMetadata) o;
+        return Objects.equals(signatureDataMethod, that.signatureDataMethod) &&
+                Objects.equals(signatureDataUriId, that.signatureDataUriId);
     }
 
-    /**
-     * Sets the value for the signature method.
-     *
-     * @param metadataParam1 The value to set.
-     */
     @Override
-    public void setMetadataParam1(String metadataParam1) {
-        this.signatureDataMethod = metadataParam1;
-    }
-
-    /**
-     * Retrieves the URI ID related to the signature.
-     *
-     * @return The URI ID.
-     */
-    @Override
-    public String getMetadataParam2() {
-        return signatureDataUriId;
-    }
-
-    /**
-     * Sets the value for the URI ID related to the signature.
-     *
-     * @param metadataParam2 The value to set.
-     */
-    @Override
-    public void setMetadataParam2(String metadataParam2) {
-        this.signatureDataUriId = metadataParam2;
+    public int hashCode() {
+        return Objects.hash(signatureDataMethod, signatureDataUriId);
     }
 }

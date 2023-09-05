@@ -24,9 +24,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.app.server.database.model.SignatureMetadata;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,9 +37,8 @@ import org.springframework.stereotype.Component;
  */
 @Converter
 @Component
+@Slf4j
 public class SignatureMetadataConverter implements AttributeConverter<SignatureMetadata<?, ?>, String> {
-
-    private static final Logger logger = LoggerFactory.getLogger(SignatureMetadataConverter.class);
 
     private final ObjectMapper objectMapper;
 
