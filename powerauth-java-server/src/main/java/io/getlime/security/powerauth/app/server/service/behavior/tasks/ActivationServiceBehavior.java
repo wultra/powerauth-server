@@ -70,6 +70,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -910,6 +911,14 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
+            // Ensure presence of the devicePublicKey
+            final String retrievedDevicePublicKey = request.getDevicePublicKey();
+            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
+                logger.warn("Invalid activation request, activation code: {}", activationCode);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Fetch the current activation by activation code
             final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
@@ -932,7 +941,7 @@ public class ActivationServiceBehavior {
             validateActivationOtp(com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_KEY_EXCHANGE, request.getActivationOtp(), activation, null);
 
             // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey = null;
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -1149,8 +1158,16 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
+            // Ensure presence of the devicePublicKey
+            final String retrievedDevicePublicKey = request.getDevicePublicKey();
+            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
+                logger.warn("Invalid activation request, activation ID: {}", activationId);
+                // Activation failed due to invalid ECIES request, rollback transaction
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(request.getDevicePublicKey());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey;
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
@@ -1688,6 +1705,14 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
             }
 
+            // Ensure presence of the devicePublicKey
+            final String retrievedDevicePublicKey = layer2Request.getDevicePublicKey();
+            if (!StringUtils.hasText(retrievedDevicePublicKey)) {
+                logger.warn("Invalid activation request, recovery code: {}", recoveryCode);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Get recovery code entity
             final RecoveryCodeEntity recoveryCodeEntity = recoveryCodeRepository.findByApplicationIdAndRecoveryCode(applicationId, recoveryCode);
             if (recoveryCodeEntity == null) {
@@ -1806,7 +1831,7 @@ public class ActivationServiceBehavior {
             validateCreatedActivation(activation, application, true);
 
             // Extract the device public key from request
-            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(layer2Request.getDevicePublicKey());
+            final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(retrievedDevicePublicKey);
             PublicKey devicePublicKey;
             try {
                 devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
