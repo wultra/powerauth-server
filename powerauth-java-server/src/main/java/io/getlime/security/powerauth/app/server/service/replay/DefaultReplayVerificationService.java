@@ -44,7 +44,7 @@ import java.util.Date;
 @Service
 @Slf4j
 @AllArgsConstructor
-@ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "default")
+@ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "default", matchIfMissing = true)
 class DefaultReplayVerificationService implements ReplayVerificationService {
 
     private final ReplayPersistenceService replayPersistenceService;
