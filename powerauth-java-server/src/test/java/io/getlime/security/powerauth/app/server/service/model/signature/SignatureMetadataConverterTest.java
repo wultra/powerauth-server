@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
 import io.getlime.security.powerauth.app.server.database.model.SignatureMetadata;
 import io.getlime.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
@@ -94,7 +93,7 @@ public class SignatureMetadataConverterTest {
     @Test
     void testInvalidJsonInput() {
         String invalidJson = "{\"invalidField\":\"someValue\"}";
-        SignatureMetadata<String, Object> metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(invalidJson);
+        SignatureMetadata metadata = converter.convertToEntityAttribute(invalidJson);
         assertNull(metadata);
     }
 }

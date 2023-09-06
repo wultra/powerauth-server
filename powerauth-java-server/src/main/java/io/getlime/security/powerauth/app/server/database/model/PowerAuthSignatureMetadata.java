@@ -36,7 +36,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PowerAuthSignatureMetadata implements SignatureMetadata<String, Object>, Serializable {
+public class PowerAuthSignatureMetadata implements SignatureMetadata, Serializable {
 
     @JsonProperty("signatureDataMethod")
     private String signatureDataMethod;
