@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.app.server.converter.ActivationStatusConver
 import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -58,6 +59,8 @@ public class AuditingServiceBehavior {
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+
+    private final SignatureMetadataConverter signatureMetadataConverter = new SignatureMetadataConverter();
     private final KeyValueMapConverter keyValueMapConverter;
 
     // Generic auditing capability
@@ -188,8 +191,7 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
-                .param("signatureDataMethod", signatureData.getRequestMethod())
-                .param("signatureDataUriId", signatureData.getRequestUriId())
+                .param("signatureMetadata", signatureMetadataConverter.convertToDatabaseColumn(signatureMetadata))
                 .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())

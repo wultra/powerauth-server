@@ -25,11 +25,12 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Signa
 import java.io.Serializable;
 
 /**
- * Represents a generic interface for metadata related to different types of signatures.
- * The interface allows for defining various metadata attributes as type parameters T1 and T2.
+ * Represents an interface for metadata related to different types of signatures.
+ * The interface is designed to work specifically with metadata attributes of type
+ * String for the first parameter and Object for the second parameter. This allows
+ * the flexibility to capture various metadata details according to the specific
+ * requirements of different signature algorithms or methods.
  *
- * @param <T1> The type of the first metadata parameter.
- * @param <T2> The type of the second metadata parameter.
  * @author Jan Dusil
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
@@ -37,7 +38,8 @@ import java.io.Serializable;
         @JsonSubTypes.Type(value = PowerAuthSignatureMetadata.class,
                 name = SignatureMetadataType.POWERAUTH)
 })
-public interface SignatureMetadata<T1, T2> extends Serializable {
+public interface SignatureMetadata<String, Object> extends Serializable {
 
 }
+
 

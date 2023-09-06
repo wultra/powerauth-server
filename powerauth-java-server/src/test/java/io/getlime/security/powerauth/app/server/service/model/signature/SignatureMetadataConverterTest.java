@@ -46,8 +46,7 @@ public class SignatureMetadataConverterTest {
      */
     @BeforeEach
     void setUp() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        converter = new SignatureMetadataConverter(objectMapper);
+        converter = new SignatureMetadataConverter();
     }
 
     /**
@@ -59,7 +58,7 @@ public class SignatureMetadataConverterTest {
         String jsonStr = converter.convertToDatabaseColumn(metadata);
 
         assertNotNull(jsonStr);
-        assertEquals("{\"type\":\"PowerAuthSignatureMetadata\",\"signatureDataMethod\":\"POST\",\"signatureDataUriId\":\"123\"}", jsonStr);
+        assertEquals("{\"type\":\"POWERAUTH\",\"signatureDataMethod\":\"POST\",\"signatureDataUriId\":\"123\"}", jsonStr);
     }
 
     /**
@@ -67,7 +66,7 @@ public class SignatureMetadataConverterTest {
      */
     @Test
     void convertToEntityAttributeTest() {
-        String jsonStr = "{\"type\":\"PowerAuthSignatureMetadata\",\"signatureDataMethod\":\"POST\",\"signatureDataUriId\":\"123\"}";
+        String jsonStr = "{\"type\":\"POWERAUTH\",\"signatureDataMethod\":\"POST\",\"signatureDataUriId\":\"123\"}";
         PowerAuthSignatureMetadata metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(jsonStr);
 
         assertNotNull(metadata);
@@ -95,7 +94,7 @@ public class SignatureMetadataConverterTest {
     @Test
     void testInvalidJsonInput() {
         String invalidJson = "{\"invalidField\":\"someValue\"}";
-        SignatureMetadata<String, String> metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(invalidJson);
+        SignatureMetadata<String, Object> metadata = (PowerAuthSignatureMetadata) converter.convertToEntityAttribute(invalidJson);
         assertNull(metadata);
     }
 }

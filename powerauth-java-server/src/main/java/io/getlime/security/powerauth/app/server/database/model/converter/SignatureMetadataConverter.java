@@ -38,9 +38,16 @@ import org.springframework.stereotype.Component;
 @Converter
 @Component
 @Slf4j
-public class SignatureMetadataConverter implements AttributeConverter<SignatureMetadata<?, ?>, String> {
+public class SignatureMetadataConverter implements AttributeConverter<SignatureMetadata<String, Object>, String> {
 
     private final ObjectMapper objectMapper;
+
+    /**
+     * Default constructor that initializes a default ObjectMapper.
+     */
+    public SignatureMetadataConverter() {
+        this.objectMapper = new ObjectMapper();
+    }
 
     /**
      * Constructor that initializes the ObjectMapper.
@@ -59,7 +66,7 @@ public class SignatureMetadataConverter implements AttributeConverter<SignatureM
      * @return The JSON string representation of the object.
      */
     @Override
-    public String convertToDatabaseColumn(SignatureMetadata<?, ?> attribute) {
+    public String convertToDatabaseColumn(SignatureMetadata<String, Object> attribute) {
         if (attribute == null) {
             return "{}";
         }
@@ -78,7 +85,7 @@ public class SignatureMetadataConverter implements AttributeConverter<SignatureM
      * @return The converted SignatureMetadata object.
      */
     @Override
-    public SignatureMetadata<?, ?> convertToEntityAttribute(String s) {
+    public SignatureMetadata<String, Object> convertToEntityAttribute(String s) {
         if (StringUtils.isBlank(s)) {
             return null;
         }
