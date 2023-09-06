@@ -24,8 +24,8 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Uniqu
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -43,28 +43,17 @@ import java.util.Date;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 @ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "default")
-public class DefaultReplayVerificationService implements ReplayVerificationService {
+class DefaultReplayVerificationService implements ReplayVerificationService {
 
     private final ReplayPersistenceService replayPersistenceService;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration config;
 
-    /**
-     * Service constructor.
-     * @param replayPersistenceService Replay persistence service.
-     * @param localizationProvider Localization provider.
-     * @param powerAuthServiceConfiguration PowerAuth service configuration.
-     */
-    @Autowired
-    public DefaultReplayVerificationService(ReplayPersistenceService replayPersistenceService, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
-        this.replayPersistenceService = replayPersistenceService;
-        this.localizationProvider = localizationProvider;
-        this.config = powerAuthServiceConfiguration;
-    }
-
     @Override
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) throws GenericServiceException {
+        logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
         final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database

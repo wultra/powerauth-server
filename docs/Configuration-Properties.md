@@ -30,6 +30,7 @@ The PowerAuth Server uses the following public configuration properties:
 |---------------------------------------------------------------|-----------|-----------------------------------------------------------------------------------------|
 | `powerauth.service.crypto.activationValidityInMilliseconds`   | `120000`  | Default activation validity period in miliseconds                                       |
 | `powerauth.service.crypto.signatureMaxFailedAttempts`         | `5`       | Maximum failed attempts for signature verification                                      |
+| `powerauth.service.crypto.replayVerificationService`          | `default` | Request replay verification service, options: `default`, `none`                         |
 | `powerauth.service.token.timestamp.validity`                  | `7200000` | PowerAuth MAC token timestamp validity in miliseconds                                   |
 | `powerauth.service.recovery.maxFailedAttempts`                | `5`       | Maximum failed attempts for activation recovery                                         |
 | `powerauth.service.secureVault.enableBiometricAuthentication` | `false`   | Whether biometric authentication is enabled when accessing Secure Vault                 |

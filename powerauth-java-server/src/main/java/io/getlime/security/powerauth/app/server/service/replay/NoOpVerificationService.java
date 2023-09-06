@@ -20,6 +20,7 @@
 package io.getlime.security.powerauth.app.server.service.replay;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
@@ -31,12 +32,14 @@ import java.util.Date;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
+@Slf4j
 @ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "none")
 public class NoOpVerificationService implements ReplayVerificationService {
 
     @Override
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) {
         // No-op implementation is empty
+        logger.debug("Checking and persisting unique value skipped, request type: {}, identifier: {}", type, identifier);
     }
 
 }
