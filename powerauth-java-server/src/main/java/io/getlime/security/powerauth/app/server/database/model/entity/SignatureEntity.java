@@ -17,7 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
 
@@ -73,11 +75,9 @@ public class SignatureEntity implements Serializable {
     @Column(name = "signature", nullable = false, updatable = false)
     private String signature;
 
-    @Column(name = "signature_data_method", updatable = false)
-    private String signatureDataMethod;
-
-    @Column(name = "signature_data_uri_id", updatable = false)
-    private String signatureDataUriId;
+    @Column(name = "signature_metadata")
+    @Convert(converter = SignatureMetadataConverter.class)
+    private PowerAuthSignatureMetadata signatureMetadata;
 
     @Column(name = "signature_data_body", updatable = false)
     private String signatureDataBody;
@@ -104,7 +104,7 @@ public class SignatureEntity implements Serializable {
      * Constructor with all properties.
      *
      * @param id                      Signature audit item record ID.
-     * @param activation              Associated activation, or null of no related activation was found.
+     * @param activation              Associated activation, or null if no related activation was found.
      * @param activationCounter       Activation counter at the time of signature computation attempt, or 0 if activation is null.
      * @param activationCtrDataBase64 Activation counter data at the time of signature computation attempt, or null if only numeric counter is used.
      * @param activationStatus        Activation status at the time of signature computation attempt.
@@ -112,13 +112,13 @@ public class SignatureEntity implements Serializable {
      * @param signatureVersion        Requested signature version.
      * @param signatureType           Requested signature type.
      * @param signature               Signature value.
-     * @param signatureDataMethod     Signature data method.
-     * @param signatureDataUriId      Signature data URI identifier.
+     * @param signatureMetadata       Metadata related to the signature.
      * @param signatureDataBody       Signature data body.
      * @param additionalInfo          Additional information related to this signature.
      * @param note                    Signature audit log note, with more information about the log reason.
      * @param valid                   True if the signature was valid, false otherwise.
-     * @param timestampCreated        Created timestapm.
+     * @param timestampCreated        Created timestamp.
+     * @param version                 Version of the signature entity.
      */
     public SignatureEntity(
             Long id,
@@ -130,8 +130,7 @@ public class SignatureEntity implements Serializable {
             String signatureVersion,
             String signatureType,
             String signature,
-            String signatureDataMethod,
-            String signatureDataUriId,
+            PowerAuthSignatureMetadata signatureMetadata,
             String signatureDataBody,
             String additionalInfo,
             String note,
@@ -148,8 +147,7 @@ public class SignatureEntity implements Serializable {
         this.signatureVersion = signatureVersion;
         this.signatureType = signatureType;
         this.signature = signature;
-        this.signatureDataMethod = signatureDataMethod;
-        this.signatureDataUriId = signatureDataUriId;
+        this.signatureMetadata = signatureMetadata;
         this.signatureDataBody = signatureDataBody;
         this.additionalInfo = additionalInfo;
         this.note = note;
@@ -337,39 +335,21 @@ public class SignatureEntity implements Serializable {
     }
 
     /**
-     * Get signature data HTTP method.
+     * Get the signature metadata associated with this signature.
      *
-     * @return Signature data HTTP method.
+     * @return Signature metadata.
      */
-    public String getSignatureDataMethod() {
-        return signatureDataMethod;
+    public PowerAuthSignatureMetadata getSignatureMetadata() {
+        return signatureMetadata;
     }
 
     /**
-     * Set signature data HTTP method.
+     * Set the signature metadata associated with this signature.
      *
-     * @param signatureDataMethod Signature data HTTP method.
+     * @param signatureMetadata Metadata related to the signature.
      */
-    public void setSignatureDataMethod(String signatureDataMethod) {
-        this.signatureDataMethod = signatureDataMethod;
-    }
-
-    /**
-     * Get signature data resource URI identifier.
-     *
-     * @return Signature data resource URI identifier.
-     */
-    public String getSignatureDataUriId() {
-        return signatureDataUriId;
-    }
-
-    /**
-     * Set signature data resource URI identifier.
-     *
-     * @param signatureDataUriId Signature data URI identifier.
-     */
-    public void setSignatureDataUriId(String signatureDataUriId) {
-        this.signatureDataUriId = signatureDataUriId;
+    public void setSignatureMetadata(PowerAuthSignatureMetadata signatureMetadata) {
+        this.signatureMetadata = signatureMetadata;
     }
 
     /**
@@ -468,8 +448,7 @@ public class SignatureEntity implements Serializable {
         hash = 23 * hash + Objects.hashCode(this.dataBase64);
         hash = 23 * hash + Objects.hashCode(this.signatureType);
         hash = 23 * hash + Objects.hashCode(this.signature);
-        hash = 23 * hash + Objects.hashCode(this.signatureDataMethod);
-        hash = 23 * hash + Objects.hashCode(this.signatureDataUriId);
+        hash = 23 * hash + Objects.hashCode(this.signatureMetadata);
         hash = 23 * hash + Objects.hashCode(this.signatureDataBody);
         hash = 23 * hash + Objects.hashCode(this.additionalInfo);
         hash = 23 * hash + Objects.hashCode(this.note);
@@ -500,10 +479,7 @@ public class SignatureEntity implements Serializable {
         if (!Objects.equals(this.signature, other.signature)) {
             return false;
         }
-        if (!Objects.equals(this.signatureDataMethod, other.signatureDataMethod)) {
-            return false;
-        }
-        if (!Objects.equals(this.signatureDataUriId, other.signatureDataUriId)) {
+        if (!Objects.equals(this.signatureMetadata, other.signatureMetadata)) {
             return false;
         }
         if (!Objects.equals(this.signatureDataBody, other.signatureDataBody)) {
