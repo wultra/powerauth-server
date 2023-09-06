@@ -23,7 +23,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.Objects;
 
 
@@ -36,7 +35,7 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-public class PowerAuthSignatureMetadata implements SignatureMetadata, Serializable {
+public class PowerAuthSignatureMetadata implements SignatureMetadata {
 
     @JsonProperty("signatureDataMethod")
     private String signatureDataMethod;
