@@ -67,7 +67,7 @@ class ActivationServiceBehaviorTest {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final String version = "3.1";
+    private final String version = "3.2";
     private final String userId = UUID.randomUUID().toString();
 
     @Test
