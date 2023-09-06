@@ -185,7 +185,8 @@ public class TokenBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId);
+                        activationId,
+                        version);
             }
 
             // Get the server private key, decrypt it if required
@@ -312,7 +313,8 @@ public class TokenBehavior {
                         new Date(request.getTimestamp()),
                         null,
                         request.getNonce(),
-                        token.getTokenId());
+                        token.getTokenId(),
+                        activation.getVersion().toString());
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
             }

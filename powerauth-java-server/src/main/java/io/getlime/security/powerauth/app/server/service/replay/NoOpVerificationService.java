@@ -37,7 +37,7 @@ import java.util.Date;
 public class NoOpVerificationService implements ReplayVerificationService {
 
     @Override
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) {
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) {
         // No-op implementation is empty
         logger.debug("Checking and persisting unique value skipped, request type: {}, identifier: {}", type, identifier);
     }

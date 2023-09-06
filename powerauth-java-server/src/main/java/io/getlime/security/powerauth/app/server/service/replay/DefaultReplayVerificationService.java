@@ -52,9 +52,15 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     private final PowerAuthServiceConfiguration config;
 
     @Override
-    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) throws GenericServiceException {
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
-        final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
+        final int requestExpiration;
+        if ("3.2".equals(version)) {
+            requestExpiration = config.getRequestExpirationInMilliseconds();
+        } else {
+            requestExpiration = config.getRequestExpirationInMillisecondsBeforeV32();
+        }
+        final Date expiration = Date.from(Instant.now().plus(requestExpiration, ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
