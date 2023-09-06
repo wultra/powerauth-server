@@ -67,7 +67,7 @@ public class RecoveryPukConverter {
     }
 
     /**
-     * Convert recovery PUK hash from composite database value to value to string value.
+     * Convert recovery PUK hash from composite database value to string value.
      * The method should be called before writing to the database because the GenericServiceException can be thrown. This could lead to a database inconsistency because
      * the transaction is not rolled back.
      * @param pukHash Recovery PUK hash composite database value including PUK hash and encryption mode.
