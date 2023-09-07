@@ -142,7 +142,8 @@ public class EciesEncryptionBehavior {
                         new Date(request.getTimestamp()),
                         request.getEphemeralPublicKey(),
                         request.getNonce(),
-                        null);
+                        null,
+                        request.getProtocolVersion());
             }
 
             // Get master private key
@@ -223,7 +224,8 @@ public class EciesEncryptionBehavior {
                         new Date(request.getTimestamp()),
                         request.getEphemeralPublicKey(),
                         request.getNonce(),
-                        activation.getActivationId());
+                        activation.getActivationId(),
+                        request.getProtocolVersion());
             }
 
             // Check if the activation is in correct state

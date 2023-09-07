@@ -33,8 +33,9 @@ public interface ReplayVerificationService {
      * @param ephemeralPublicKey Ephemeral public key bytes encoded in Base64.
      * @param nonce Nonce bytes encoded in Base64.
      * @param identifier Identifier for the record.
+     * @param version Protocol version.
      * @throws GenericServiceException Thrown in case unique value exists.
      */
-    void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) throws GenericServiceException;
+    void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException;
 
 }

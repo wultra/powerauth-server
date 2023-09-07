@@ -342,7 +342,8 @@ public class RecoveryServiceBehavior {
                         new Date(request.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId);
+                        activationId,
+                        request.getProtocolVersion());
             }
 
             // Get server decryptor
