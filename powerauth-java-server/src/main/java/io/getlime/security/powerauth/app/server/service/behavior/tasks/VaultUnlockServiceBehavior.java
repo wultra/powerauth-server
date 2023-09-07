@@ -168,7 +168,8 @@ public class VaultUnlockServiceBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId);
+                        activationId,
+                        signatureVersion);
             }
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES

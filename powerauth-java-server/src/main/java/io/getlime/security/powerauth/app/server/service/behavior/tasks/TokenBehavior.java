@@ -182,7 +182,8 @@ public class TokenBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId);
+                        activationId,
+                        version);
             }
 
             // Get the server private key, decrypt it if required
@@ -304,14 +305,14 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
+                // TODO Roman - just make to compile, will be fixed later
+                final String version = "3.2";
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
                         null,
                         request.getNonce(),
-                        token.getTokenId());
-                // TODO Roman - just make to compile, but activation#version contains only the major version
-                final String version = Objects.toString(activation.getVersion());
+                        version);
                 // Validate MAC token
                 isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, version, tokenSecret, tokenDigest);
             }

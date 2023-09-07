@@ -885,7 +885,8 @@ public class ActivationServiceBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        null);
+                        null,
+                        version);
             }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
@@ -1132,7 +1133,8 @@ public class ActivationServiceBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        null);
+                        null,
+                        version);
             }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
@@ -1679,7 +1681,8 @@ public class ActivationServiceBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        null);
+                        null,
+                        version);
             }
 
             final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();

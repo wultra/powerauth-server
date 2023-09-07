@@ -162,11 +162,18 @@ public class PowerAuthServiceConfiguration {
     private int offlineSignatureComponentLength;
 
     /**
-     * Expiration of timestamps for ECIES and MAC token requests.
+     * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.2+.
      */
     @Value("${powerauth.service.crypto.requestExpirationInMilliseconds}")
     @Min(0)
     private int requestExpirationInMilliseconds;
+
+    /**
+     * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.1 or older.
+     */
+    @Value("${powerauth.service.crypto.requestExpirationInMillisecondsExtended}")
+    @Min(0)
+    private int requestExpirationInMillisecondsExtended;
 
     /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
@@ -510,19 +517,35 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get ECIES request expiration in milliseconds.
-     * @return ECIES request expiration in milliseconds.
+     * Get expiration for ECIES and MAC token requests in milliseconds.
+     * @return Expiration for ECIES and MAC token requests in milliseconds.
      */
     public int getRequestExpirationInMilliseconds() {
         return requestExpirationInMilliseconds;
     }
 
     /**
-     * Set ECIES request expiration in milliseconds.
-     * @param requestExpirationInMilliseconds ECIES request expiration in milliseconds.
+     * Set expiration for ECIES and MAC token requests in milliseconds.
+     * @param requestExpirationInMilliseconds Expiration for ECIES and MAC token requests in milliseconds.
      */
     public void setRequestExpirationInMilliseconds(int requestExpirationInMilliseconds) {
         this.requestExpirationInMilliseconds = requestExpirationInMilliseconds;
+    }
+
+    /**
+     * Get expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * @return Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     */
+    public int getRequestExpirationInMillisecondsExtended() {
+        return requestExpirationInMillisecondsExtended;
+    }
+
+    /**
+     * Set expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * @param requestExpirationInMillisecondsExtended Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     */
+    public void setRequestExpirationInMillisecondsExtended(int requestExpirationInMillisecondsExtended) {
+        this.requestExpirationInMillisecondsExtended = requestExpirationInMillisecondsExtended;
     }
 
     /**

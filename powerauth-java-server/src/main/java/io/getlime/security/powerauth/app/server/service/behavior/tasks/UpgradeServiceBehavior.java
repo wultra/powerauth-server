@@ -137,7 +137,8 @@ public class UpgradeServiceBehavior {
                         new Date(encryptedRequest.getTimestamp()),
                         encryptedRequest.getEphemeralPublicKey(),
                         encryptedRequest.getNonce(),
-                        activationId);
+                        activationId,
+                        request.getProtocolVersion());
             }
 
             // Lookup the activation
