@@ -30,16 +30,14 @@ import io.getlime.security.powerauth.app.server.converter.ActivationStatusConver
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.VerifyOfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesParameters;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesPayload;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesScope;
-import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +49,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -310,27 +309,21 @@ public class PowerAuthService {
 
     @Transactional
     public PrepareActivationResponse prepareActivation(PrepareActivationRequest request) throws GenericServiceException {
-        if (request.getActivationCode() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
-            logger.warn("Invalid request parameters in prepareActivation method");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
         try {
             final String activationCode = request.getActivationCode();
             final String applicationKey = request.getApplicationKey();
             final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
-            final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-            final byte[] mac = Base64.getDecoder().decode(request.getMac());
-            final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-            final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final String version = request.getProtocolVersion();
-            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
-            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+            final String protocolVersion = request.getProtocolVersion();
+            // Build encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
             logger.info("PrepareActivationRequest received, activation code: {}", activationCode);
-            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, eciesPayload, version, keyConvertor);
+            final PrepareActivationResponse response = behavior.getActivationServiceBehavior().prepareActivation(activationCode, applicationKey, shouldGenerateRecoveryCodes, encryptedRequest, protocolVersion, keyConvertor);
             logger.info("PrepareActivationRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -347,11 +340,6 @@ public class PowerAuthService {
 
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws GenericServiceException {
-        if (request.getUserId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getMac() == null || request.getEncryptedData() == null) {
-            logger.warn("Invalid request parameters in createActivation method");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
         try {
             // Get request parameters
             final String userId = request.getUserId();
@@ -360,16 +348,14 @@ public class PowerAuthService {
             final Long maxFailedCount = request.getMaxFailureCount();
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
-            final byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-            final byte[] mac = Base64.getDecoder().decode(request.getMac());
-            final byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-            final byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-            final String version = request.getProtocolVersion();
-            final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
-            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
+            // Build encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
             logger.info("CreateActivationRequest received, user ID: {}", userId);
             final CreateActivationResponse response = behavior.getActivationServiceBehavior().createActivation(
                     userId,
@@ -377,7 +363,7 @@ public class PowerAuthService {
                     shouldGenerateRecoveryCodes,
                     maxFailedCount,
                     applicationKey,
-                    eciesPayload,
+                    encryptedRequest,
                     activationOtp,
                     request.getProtocolVersion(),
                     keyConvertor
@@ -445,10 +431,9 @@ public class PowerAuthService {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         try {
-            final String activationId = request.getActivationId();
-            final String data = request.getData();
-            logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", activationId);
-            final CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior().createPersonalizedOfflineSignaturePayload(activationId, data, keyConvertor);
+            logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received, activation ID: {}", request.getActivationId());
+            final CreatePersonalizedOfflineSignaturePayloadResponse response = behavior.getOfflineSignatureServiceBehavior()
+                    .createPersonalizedOfflineSignaturePayload(convert(request, keyConvertor));
             logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -461,6 +446,22 @@ public class PowerAuthService {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
+    }
+
+    private static OfflineSignatureParameter convert(final CreatePersonalizedOfflineSignaturePayloadRequest request, final KeyConvertor keyConvertor) {
+        final var builder = OfflineSignatureParameter.builder()
+                .activationId(request.getActivationId())
+                .data(request.getData())
+                .keyConversionUtilities(keyConvertor)
+                .nonce(request.getNonce());
+
+        if (request.getProximityCheck() != null) {
+            logger.debug("Proximity check enabled, activation ID: {}", request.getActivationId());
+            builder.proximityCheckSeed(request.getProximityCheck().getSeed());
+            builder.proximityCheckStepLength(Duration.ofSeconds(request.getProximityCheck().getStepLength()));
+        }
+
+        return builder.build();
     }
 
     @Transactional
@@ -498,8 +499,6 @@ public class PowerAuthService {
         }
         try {
             final String activationId = request.getActivationId();
-            final String data = request.getData();
-            final String signature = request.getSignature();
             final BigInteger componentLength = request.getComponentLength();
             final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
             // The order of signature types is important. PowerAuth server logs first found signature type
@@ -511,7 +510,8 @@ public class PowerAuthService {
             }
             final int expectedComponentLength = (componentLength != null) ? componentLength.intValue() : powerAuthServiceConfiguration.getOfflineSignatureComponentLength();
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
-            final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(activationId, allowedSignatureTypes, signature, new ArrayList<>(), data, expectedComponentLength, keyConvertor);
+            final VerifyOfflineSignatureParameter parameter = convert(request, expectedComponentLength, allowedSignatureTypes, keyConvertor);
+            final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(parameter);
             logger.info("VerifyOfflineSignatureRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -524,6 +524,32 @@ public class PowerAuthService {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
+    }
+
+    private static VerifyOfflineSignatureParameter convert(
+            final VerifyOfflineSignatureRequest request,
+            final int expectedComponentLength,
+            final List<SignatureType> allowedSignatureTypes,
+            final KeyConvertor keyConvertor) {
+
+         final var builder = VerifyOfflineSignatureParameter.builder()
+                .activationId(request.getActivationId())
+                .signatureTypes(allowedSignatureTypes)
+                .signature(request.getSignature())
+                .additionalInfo(new ArrayList<>())
+                .dataString(request.getData())
+                .expectedComponentLength(expectedComponentLength)
+                .keyConversionUtilities(keyConvertor);
+
+        final var proximityCheck = request.getProximityCheck();
+        if (proximityCheck != null) {
+            logger.debug("Proximity check enabled, activation ID: {}", request.getActivationId());
+            builder.proximityCheckSeed(proximityCheck.getSeed());
+            builder.proximityCheckStepLength(Duration.ofSeconds(proximityCheck.getStepLength()));
+            builder.proximityCheckStepCount(proximityCheck.getStepCount());
+        }
+
+        return builder.build();
     }
 
     @Transactional
@@ -664,8 +690,7 @@ public class PowerAuthService {
     @Transactional
     public VaultUnlockResponse vaultUnlock(VaultUnlockRequest request) throws GenericServiceException {
         if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
-                || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null
-                || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+                || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null) {
             logger.warn("Invalid request parameters in method vaultUnlock");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -678,11 +703,14 @@ public class PowerAuthService {
             final SignatureType signatureType = request.getSignatureType();
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
-            byte[] ephemeralPublicKey = Base64.getDecoder().decode(request.getEphemeralPublicKey());
-            byte[] encryptedData = Base64.getDecoder().decode(request.getEncryptedData());
-            byte[] mac = Base64.getDecoder().decode(request.getMac());
-            byte[] nonce = request.getNonce() != null ? Base64.getDecoder().decode(request.getNonce()) : null;
-
+            // Build encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
             logger.info("VaultUnlockRequest received, activation ID: {}", activationId);
 
             // The only allowed signature type is POSESSION_KNOWLEDGE to prevent attacks with weaker signature types
@@ -695,16 +723,8 @@ public class PowerAuthService {
                     throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
                 }
             }
-
-            // Convert received ECIES request data to cryptogram
-            final Long timestamp = "3.2".equals(signatureVersion) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, signatureVersion, applicationKey, activationId);
-
-            final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKey).mac(mac).encryptedData(encryptedData).build();
-            final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonce).associatedData(associatedData).timestamp(timestamp).build();
-            final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
             final VaultUnlockResponse response = behavior.getVaultUnlockServiceBehavior().unlockVault(activationId, applicationKey,
-                    signature, signatureType, signatureVersion, signedData, eciesPayload, keyConvertor);
+                    signature, signatureType, signatureVersion, signedData, encryptedRequest, keyConvertor);
             logger.info("VaultUnlockRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
@@ -1094,7 +1114,7 @@ public class PowerAuthService {
 
     @Transactional
     public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method createToken");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1125,12 +1145,12 @@ public class PowerAuthService {
         }
         // Verify the token timestamp validity
         final long currentTimeMillis = System.currentTimeMillis();
-        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
+        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
         }
-        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
+        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidityInMilliseconds()) {
             logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
@@ -1200,7 +1220,7 @@ public class PowerAuthService {
 
     @Transactional
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method startUpgrade");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1272,8 +1292,7 @@ public class PowerAuthService {
 
     @Transactional
     public ConfirmRecoveryCodeResponse confirmRecoveryCode(ConfirmRecoveryCodeRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null || request.getApplicationKey() == null || request.getEphemeralPublicKey() == null
-                || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getActivationId() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method confirmRecoveryCode");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
@@ -1345,8 +1364,7 @@ public class PowerAuthService {
 
     @Transactional(rollbackFor = {RuntimeException.class, RollbackingServiceException.class})
     public RecoveryCodeActivationResponse createActivationUsingRecoveryCode(RecoveryCodeActivationRequest request) throws GenericServiceException {
-        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null
-            || request.getEphemeralPublicKey() == null || request.getEncryptedData() == null || request.getMac() == null) {
+        if (request.getRecoveryCode() == null || request.getPuk() == null || request.getApplicationKey() == null) {
             logger.warn("Invalid request parameters in method createActivationUsingRecoveryCode");
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);

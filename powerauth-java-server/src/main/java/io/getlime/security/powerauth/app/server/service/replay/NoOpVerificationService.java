@@ -20,22 +20,26 @@
 package io.getlime.security.powerauth.app.server.service.replay;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Service;
 
 import java.util.Date;
 
-public interface ReplayVerificationService {
+/**
+ * Service for checking unique cryptography values to prevent replay attacks.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
+@Service
+@Slf4j
+@ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "none")
+public class NoOpVerificationService implements ReplayVerificationService {
 
-    /**
-     * Check whether unique cryptography value exists and persist this value.
-     * @param type Unique value type.
-     * @param requestTimestamp Request timestamp.
-     * @param ephemeralPublicKey Ephemeral public key bytes encoded in Base64.
-     * @param nonce Nonce bytes encoded in Base64.
-     * @param identifier Identifier for the record.
-     * @param version Protocol version.
-     * @throws GenericServiceException Thrown in case unique value exists.
-     */
-    void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException;
+    @Override
+    public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) {
+        // No-op implementation is empty
+        logger.debug("Checking and persisting unique value skipped, request type: {}, identifier: {}", type, identifier);
+    }
 
 }

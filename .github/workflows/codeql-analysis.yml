@@ -2,24 +2,20 @@ name: "CodeQL"
 
 on:
   workflow_dispatch:
-    branches:
-      - 'develop'
   push:
-    branches: [ develop, master ]
+    branches: [ 'develop', 'master', 'releases/**' ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ develop ]
+    branches: [ 'develop', 'master', 'releases/**' ]
   schedule:
     - cron: '0 2 * * 4'
 
 jobs:
   codeql-analysis:
     uses: wultra/wultra-infrastructure/.github/workflows/codeql-analysis.yml@develop
+    secrets: inherit
     with:
       languages: "['java', 'javascript']"
-      secrets: inherit
       # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
       # Use only 'java' to analyze code written in Java, Kotlin or both
       # Use only 'javascript' to analyze code written in JavaScript, TypeScript or both
-      # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
-      java-version: 17

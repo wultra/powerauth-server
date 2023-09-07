@@ -26,6 +26,8 @@ import com.wultra.security.powerauth.client.model.response.SignatureAuditRespons
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
 import io.getlime.security.powerauth.app.server.converter.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.PowerAuthSignatureMetadata;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.SignatureEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
@@ -57,6 +59,8 @@ public class AuditingServiceBehavior {
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
+
+    private final SignatureMetadataConverter signatureMetadataConverter = new SignatureMetadataConverter();
     private final KeyValueMapConverter keyValueMapConverter;
 
     // Generic auditing capability
@@ -157,6 +161,7 @@ public class AuditingServiceBehavior {
 
         // Audit the signature
         final SignatureEntity signatureAuditRecord = new SignatureEntity();
+        final PowerAuthSignatureMetadata signatureMetadata = new PowerAuthSignatureMetadata(signatureData.getRequestMethod(), signatureData.getRequestUriId());
         signatureAuditRecord.setActivation(activationRepository.getReferenceById(activation.getActivationId()));
         signatureAuditRecord.setActivationCounter(activation.getCounter());
         signatureAuditRecord.setActivationCtrDataBase64(activation.getCtrDataBase64());
@@ -164,8 +169,7 @@ public class AuditingServiceBehavior {
         signatureAuditRecord.setAdditionalInfo(additionalInfo);
         signatureAuditRecord.setDataBase64(data);
         signatureAuditRecord.setSignature(signatureData.getSignature());
-        signatureAuditRecord.setSignatureDataMethod(signatureData.getRequestMethod());
-        signatureAuditRecord.setSignatureDataUriId(signatureData.getRequestUriId());
+        signatureAuditRecord.setSignatureMetadata(signatureMetadata);
         signatureAuditRecord.setSignatureDataBody(signatureData.getRequestBody());
         signatureAuditRecord.setSignatureType(signatureType.name());
         signatureAuditRecord.setSignatureVersion(signatureData.getSignatureVersion());
@@ -187,8 +191,7 @@ public class AuditingServiceBehavior {
                 .param("additionalInfo", additionalInfo)
                 .param("data", data)
                 .param("signature", signatureData.getSignature())
-                .param("signatureDataMethod", signatureData.getRequestMethod())
-                .param("signatureDataUriId", signatureData.getRequestUriId())
+                .param("signatureMetadata", signatureMetadataConverter.convertToDatabaseColumn(signatureMetadata))
                 .param("signatureDataBody", signatureData.getRequestBody())
                 .param("signatureType", signatureType.name())
                 .param("signatureVersion", signatureData.getSignatureVersion())

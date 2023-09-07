@@ -32,18 +32,21 @@ import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -57,11 +60,9 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
@@ -83,10 +84,10 @@ public class VaultUnlockServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ServiceBehaviorCatalogue behavior;
-    private final ReplayVerificationService eciesreplayPersistenceService;
+    private final ReplayVerificationService replayVerificationService;
 
     // Helper classes
-    private final EciesFactory eciesFactory = new EciesFactory();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
     private final ObjectMapper objectMapper;
@@ -96,12 +97,12 @@ public class VaultUnlockServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ReplayVerificationService replayVerificationService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.behavior = behavior;
-        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
+        this.replayVerificationService = replayVerificationService;
         this.objectMapper = objectMapper;
     }
 
@@ -116,15 +117,20 @@ public class VaultUnlockServiceBehavior {
      * @param signature              PowerAuth signature.
      * @param signatureType          PowerAuth signature type.
      * @param signatureVersion       PowerAuth signature version.
-     * @param eciesPayload           ECIES payload.
+     * @param encryptedRequest       Encrypted request data.
      * @param keyConversion          Key conversion utilities.
      * @return Vault unlock response with a properly encrypted vault unlock key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
     public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType, String signatureVersion,
-                                           String signedData, EciesPayload eciesPayload, KeyConvertor keyConversion)
+                                           String signedData, EncryptedRequest encryptedRequest, KeyConvertor keyConversion)
             throws GenericServiceException {
         try {
+            if (!encryptorFactory.getRequestResponseValidator(signatureVersion).validateEncryptedRequest(encryptedRequest)) {
+                logger.warn("Invalid encrypted request parameters in method vaultUnlock");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
             // Lookup the activation
             final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
 
@@ -155,30 +161,31 @@ public class VaultUnlockServiceBehavior {
                 return response;
             }
 
-            if (eciesPayload.getParameters().getTimestamp() != null) {
+            if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
-                eciesreplayPersistenceService.checkAndPersistUniqueValue(
+                replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
-                        new Date(eciesPayload.getParameters().getTimestamp()),
-                        eciesPayload.getCryptogram().getEphemeralPublicKey(),
-                        eciesPayload.getParameters().getNonce(),
-                        activationId);
+                        new Date(encryptedRequest.getTimestamp()),
+                        encryptedRequest.getEphemeralPublicKey(),
+                        encryptedRequest.getNonce(),
+                        activationId,
+                        signatureVersion);
             }
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
-            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
-            // Get decryptor for the activation
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
-                    applicationSecret, transportKeyBytes, EciesSharedInfo1.VAULT_UNLOCK, eciesPayload.getParameters(),
-                    eciesPayload.getCryptogram().getEphemeralPublicKey());
-
+            // Get server encryptor
+            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+                    EncryptorId.VAULT_UNLOCK,
+                    new EncryptorParameters(signatureVersion, applicationKey, activationId),
+                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+            );
             // Decrypt request to obtain vault unlock reason
-            final byte[] decryptedData = decryptor.decrypt(eciesPayload);
+            final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
 
             // Convert JSON data to vault unlock request object
             VaultUnlockRequestPayload request;
@@ -225,22 +232,14 @@ public class VaultUnlockServiceBehavior {
             final byte[] reponsePayloadBytes = objectMapper.writeValueAsBytes(responsePayload);
 
             // Encrypt response payload
-            final byte[] nonceBytesResponse = "3.2".equals(signatureVersion) ? keyGenerator.generateRandomBytes(16) : eciesPayload.getParameters().getNonce();
-            final Long timestampResponse = "3.2".equals(signatureVersion) ? new Date().getTime() : null;
-            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
-            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
-                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
-
-            final EciesPayload responseEciesPayload = encryptorResponse.encrypt(reponsePayloadBytes, parametersResponse);
-            final String dataResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getEncryptedData());
-            final String macResponse = Base64.getEncoder().encodeToString(responseEciesPayload.getCryptogram().getMac());
+            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(reponsePayloadBytes);
 
             // Return vault unlock response, set signature validity
             final VaultUnlockResponse response = new VaultUnlockResponse();
-            response.setEncryptedData(dataResponse);
-            response.setMac(macResponse);
-            response.setNonce("3.2".equals(signatureVersion) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
-            response.setTimestamp(timestampResponse);
+            response.setEncryptedData(encryptedResponse.getEncryptedData());
+            response.setMac(encryptedResponse.getMac());
+            response.setNonce(encryptedResponse.getNonce());
+            response.setTimestamp(encryptedResponse.getTimestamp());
             response.setSignatureValid(signatureResponse.isSignatureValid());
             return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
@@ -249,7 +248,7 @@ public class VaultUnlockServiceBehavior {
             // The only possible error could occur while generating ECIES response after signature validation,
             // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (EciesException ex) {
+        } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database.
             // The only possible error could occur while generating ECIES response after signature validation,

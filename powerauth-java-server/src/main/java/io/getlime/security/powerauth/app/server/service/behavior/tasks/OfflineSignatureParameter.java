@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,22 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.request;
+package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import lombok.Data;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import lombok.Builder;
+import lombok.Getter;
 
-import java.util.Date;
+import java.time.Duration;
 
 /**
- * Model class representing request for activation history.
+ * Parameter object for {@link OfflineSignatureServiceBehavior#createPersonalizedOfflineSignaturePayload(OfflineSignatureParameter)}.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@Data
-public class ActivationHistoryRequest {
+@Builder
+@Getter
+public class OfflineSignatureParameter {
 
     private String activationId;
-    private Date timestampFrom;
-    private Date timestampTo;
-
+    private String data;
+    private KeyConvertor keyConversionUtilities;
+    private String nonce;
+    private String proximityCheckSeed;
+    private Duration proximityCheckStepLength;
 }

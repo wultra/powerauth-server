@@ -31,23 +31,25 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.*;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryCodeRepository;
 import io.getlime.security.powerauth.app.server.database.repository.RecoveryConfigRepository;
-import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ConfirmRecoveryRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.ConfirmRecoveryResponsePayload;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
@@ -63,7 +65,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
@@ -86,12 +87,12 @@ public class RecoveryServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
-    private final ReplayVerificationService eciesreplayPersistenceService;
+    private final ReplayVerificationService replayVerificationService;
 
     // Business logic implementation classes
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final KeyGenerator keyGenerator = new KeyGenerator();
-    private final EciesFactory eciesFactory = new EciesFactory();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
 
     // Helper classes
     private final ObjectMapper objectMapper;
@@ -105,13 +106,13 @@ public class RecoveryServiceBehavior {
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
-                                   ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
+                                   ReplayVerificationService replayVerificationService, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
-        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
+        this.replayVerificationService = replayVerificationService;
         this.objectMapper = objectMapper;
         this.recoveryPukConverter = recoveryPukConverter;
     }
@@ -278,11 +279,6 @@ public class RecoveryServiceBehavior {
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
-            final String ephemeralPublicKey = request.getEphemeralPublicKey();
-            final String encryptedData = request.getEncryptedData();
-            final String mac = request.getMac();
-            final String nonceRequest = request.getNonce();
-
             final RecoveryCodeRepository recoveryCodeRepository = repositoryCatalogue.getRecoveryCodeRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
@@ -292,6 +288,20 @@ public class RecoveryServiceBehavior {
                 logger.warn("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            // Build and validate encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
+            if (!encryptorFactory.getRequestResponseValidator(request.getProtocolVersion()).validateEncryptedRequest(encryptedRequest)) {
+                logger.warn("Invalid encrypted request: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             // Check whether activation recovery is enabled
@@ -319,38 +329,31 @@ public class RecoveryServiceBehavior {
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
-            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
+
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
 
-            // Get decryptor for the activation
-            final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKey);
-            final byte[] nonceBytesRequest = nonceRequest != null ? Base64.getDecoder().decode(nonceRequest) : null;
-            final String version = request.getProtocolVersion();
-            final Long timestampRequest = "3.2".equals(version) ? request.getTimestamp() : null;
-            final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
-            // Decrypt request data
-            final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
-            final byte[] macBytes = Base64.getDecoder().decode(mac);
-            final EciesCryptogram cryptogramRequest = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
-            final EciesParameters parametersRequest = EciesParameters.builder().nonce(nonceBytesRequest).associatedData(associatedData).timestamp(timestampRequest).build();
-            final EciesPayload payloadRequest = new EciesPayload(cryptogramRequest, parametersRequest);
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation((ECPrivateKey) serverPrivateKey,
-                    applicationSecret, transportKeyBytes, EciesSharedInfo1.CONFIRM_RECOVERY_CODE, parametersRequest, ephemeralPublicKeyBytes);
-
             // Check ECIES request for replay attacks and persist unique value from request
-            if (request.getTimestamp() != null) {
-                eciesreplayPersistenceService.checkAndPersistUniqueValue(
+            if (encryptedRequest.getTimestamp() != null) {
+                replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.ECIES_ACTIVATION_SCOPE,
                         new Date(request.getTimestamp()),
-                        ephemeralPublicKeyBytes,
-                        nonceBytesRequest,
-                        activationId);
+                        encryptedRequest.getEphemeralPublicKey(),
+                        encryptedRequest.getNonce(),
+                        activationId,
+                        request.getProtocolVersion());
             }
 
-            final byte[] decryptedData = decryptor.decrypt(payloadRequest);
+            // Get server decryptor
+            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+                    EncryptorId.CONFIRM_RECOVERY_CODE,
+                    new EncryptorParameters(request.getProtocolVersion(), applicationKey, activationId),
+                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+            );
+            // Decrypt request data
+            final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
 
             // Convert JSON data to confirm recovery request object
             final ConfirmRecoveryRequestPayload requestPayload = objectMapper.readValue(decryptedData, ConfirmRecoveryRequestPayload.class);
@@ -399,26 +402,17 @@ public class RecoveryServiceBehavior {
             // Convert response payload
             final byte[] responseBytes = objectMapper.writeValueAsBytes(responsePayload);
 
-            // Encrypt response using ECIES encryptor
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : nonceBytesRequest;
-            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
-
-            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(associatedData).timestamp(timestampResponse).build();
-            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
-                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
-
-            final EciesPayload eciesResponse = encryptorResponse.encrypt(responseBytes, parametersResponse);
-            final String encryptedDataResponse = Base64.getEncoder().encodeToString(eciesResponse.getCryptogram().getEncryptedData());
-            final String macResponse = Base64.getEncoder().encodeToString(eciesResponse.getCryptogram().getMac());
+            // Encrypt response using server encryptor
+            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(responseBytes);
 
             // Return response
             final ConfirmRecoveryCodeResponse response = new ConfirmRecoveryCodeResponse();
             response.setActivationId(activationId);
             response.setUserId(recoveryCodeEntity.getUserId());
-            response.setEncryptedData(encryptedDataResponse);
-            response.setMac(macResponse);
-            response.setNonce("3.2".equals(version) ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
-            response.setTimestamp(timestampResponse);
+            response.setEncryptedData(encryptedResponse.getEncryptedData());
+            response.setMac(encryptedResponse.getMac());
+            response.setNonce(encryptedResponse.getNonce());
+            response.setTimestamp(encryptedResponse.getTimestamp());
 
             // Confirm recovery code and persist it
             if (inCreatedState) {
@@ -433,7 +427,7 @@ public class RecoveryServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (EciesException | IOException ex) {
+        } catch (EncryptorException | IOException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);

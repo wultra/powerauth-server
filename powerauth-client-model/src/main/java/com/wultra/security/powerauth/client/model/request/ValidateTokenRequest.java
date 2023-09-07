@@ -34,6 +34,7 @@ public class ValidateTokenRequest {
     private String tokenDigest;
     @ToString.Exclude
     private String nonce;
+    private String protocolVersion;
     private long timestamp;
 
 }

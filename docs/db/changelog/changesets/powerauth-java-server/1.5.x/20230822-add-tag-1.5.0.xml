@@ -3,8 +3,8 @@
                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="1" logicalFilePath="powerauth-java-server/1.4.x/20230323-add-tag-1.4.0.xml" author="Lubos Racansky">
-        <tagDatabase tag="powerauth-java-server/1.4.0"/>
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230822-add-tag-1.5.0.xml" author="Lubos Racansky">
+        <tagDatabase tag="powerauth-server/1.5.0"/>
     </changeSet>
 
 </databaseChangeLog>

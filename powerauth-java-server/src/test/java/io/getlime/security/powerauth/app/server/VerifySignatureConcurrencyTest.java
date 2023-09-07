@@ -3,14 +3,19 @@ package io.getlime.security.powerauth.app.server;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.*;
-import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import com.wultra.security.powerauth.client.model.response.CreateActivationResponse;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse;
+import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
-import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -20,10 +25,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.security.interfaces.ECPublicKey;
 import java.util.*;
 
 @SpringBootTest
@@ -34,6 +37,7 @@ public class VerifySignatureConcurrencyTest {
     private PowerAuthService powerAuthService;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
 
     @Autowired
     public void setPowerAuthService(PowerAuthService powerAuthService) {
@@ -73,21 +77,19 @@ public class VerifySignatureConcurrencyTest {
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
 
-        ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
+        PublicKey masterPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
 
         final String version = "3.2";
         final String applicationKey = createApplicationVersionResponse.getApplicationKey();
-        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.APPLICATION_SCOPE, version, applicationKey, null);
-        final Long timestamp = new Date().getTime();
-        final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
-        final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
+        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+                EncryptorId.ACTIVATION_LAYER_2,
+                new EncryptorParameters(version, applicationKey, null),
+                new ClientEncryptorSecrets(masterPublicKey, createApplicationVersionResponse.getApplicationSecret())
+        );
 
-        EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey,
-                createApplicationVersionResponse.getApplicationSecret().getBytes(StandardCharsets.UTF_8),
-                EciesSharedInfo1.ACTIVATION_LAYER_2, eciesParameters);
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         new ObjectMapper().writeValue(baos, requestL2);
-        EciesPayload eciesPayload = eciesEncryptor.encrypt(baos.toByteArray(), eciesParameters);
+        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(baos.toByteArray());
 
         // Create activation
         CreateActivationRequest createActivationRequest = new CreateActivationRequest();
@@ -95,12 +97,12 @@ public class VerifySignatureConcurrencyTest {
         createActivationRequest.setTimestampActivationExpire(expiration.getTime());
         createActivationRequest.setMaxFailureCount(5L);
         createActivationRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
-        createActivationRequest.setEncryptedData(Base64.getEncoder().encodeToString(eciesPayload.getCryptogram().getEncryptedData()));
-        createActivationRequest.setMac(Base64.getEncoder().encodeToString(eciesPayload.getCryptogram().getMac()));
-        createActivationRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesPayload.getCryptogram().getEphemeralPublicKey()));
-        createActivationRequest.setNonce(Base64.getEncoder().encodeToString(eciesPayload.getParameters().getNonce()));
-        createActivationRequest.setTimestamp(timestamp);
-        createActivationRequest.setProtocolVersion("3.2");
+        createActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        createActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        createActivationRequest.setMac(encryptedRequest.getMac());
+        createActivationRequest.setNonce(encryptedRequest.getNonce());
+        createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        createActivationRequest.setProtocolVersion(version);
         CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
 
         // Commit activation

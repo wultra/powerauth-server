@@ -18,6 +18,9 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 
@@ -37,5 +40,24 @@ public class VerifyOfflineSignatureRequest {
     private String signature;
     private BigInteger componentLength;
     private boolean allowBiometry;
+
+    @Schema(description = "Optional proximity check configuration of TOTP.")
+    private ProximityCheck proximityCheck;
+
+    @Data
+    public static class ProximityCheck {
+        @NotNull
+        @ToString.Exclude
+        @Schema(description = "Seed for TOTP, base64 encoded.")
+        private String seed;
+
+        @Min(1)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "Length of the TOTP step in seconds.")
+        private int stepLength;
+
+        @Min(0)
+        @Schema(requiredMode = Schema.RequiredMode.REQUIRED, description = "How many backward steps should be validated. Zero means current one only.")
+        private int stepCount;
+    }
 
 }

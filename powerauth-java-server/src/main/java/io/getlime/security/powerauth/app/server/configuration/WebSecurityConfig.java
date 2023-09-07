@@ -48,22 +48,22 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 @Slf4j
 public class WebSecurityConfig {
 
-    private final PowerAuthServiceConfiguration configuration;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ObjectMapper objectMapper;
 
     /**
      * Configuration constructor.
-     * @param configuration PowerAuth service configuration.
+     * @param powerAuthServiceConfiguration PowerAuth service configuration.
      * @param objectMapper Object mapper.
      */
-    public WebSecurityConfig(PowerAuthServiceConfiguration configuration, ObjectMapper objectMapper) {
-        this.configuration = configuration;
+    public WebSecurityConfig(PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper) {
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.objectMapper = objectMapper;
     }
 
     @Bean
     public SecurityFilterChain filterChain(final HttpSecurity http) throws Exception {
-        if (configuration.getRestrictAccess()) {
+        if (powerAuthServiceConfiguration.getRestrictAccess()) {
             logger.info("Initializing basic http authentication");
             return http
                     .authorizeHttpRequests(authorize -> authorize

@@ -32,21 +32,22 @@ import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.response.UpgradeResponsePayload;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesDecryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.exception.EciesException;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.*;
+import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
-import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import io.getlime.security.powerauth.crypto.lib.util.EciesUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import org.slf4j.Logger;
@@ -55,11 +56,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.interfaces.ECPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Date;
@@ -75,15 +74,14 @@ public class UpgradeServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ReplayVerificationService eciesreplayPersistenceService;
+    private final ReplayVerificationService replayVerificationService;
 
     // Helper classes
-    private final EciesFactory eciesFactory = new EciesFactory();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-    private final KeyGenerator keyGenerator = new KeyGenerator();
 
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
@@ -93,14 +91,14 @@ public class UpgradeServiceBehavior {
             final RepositoryCatalogue repositoryCatalogue,
             final LocalizationProvider localizationProvider,
             final ServerPrivateKeyConverter serverPrivateKeyConverter,
-            final ReplayVerificationService eciesreplayPersistenceService,
+            final ReplayVerificationService replayVerificationService,
             final ObjectMapper objectMapper,
             final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
 
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.eciesreplayPersistenceService = eciesreplayPersistenceService;
+        this.replayVerificationService = replayVerificationService;
         this.objectMapper = objectMapper;
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
@@ -112,66 +110,62 @@ public class UpgradeServiceBehavior {
      * @throws GenericServiceException In case upgrade fails.
      */
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException{
-        final String activationId = request.getActivationId();
-        final String applicationKey = request.getApplicationKey();
-        final String ephemeralPublicKey = request.getEphemeralPublicKey();
-        final String encryptedData = request.getEncryptedData();
-        final String mac = request.getMac();
-        final String nonce = request.getNonce();
-        // Verify input data
-        if (activationId == null || applicationKey == null || ephemeralPublicKey == null || encryptedData == null || mac == null) {
-            logger.warn("Invalid start upgrade request");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
-        }
-
-        final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(ephemeralPublicKey);
-        final byte[] encryptedDataBytes = Base64.getDecoder().decode(encryptedData);
-        final byte[] macBytes = Base64.getDecoder().decode(mac);
-        final byte[] nonceBytes = nonce != null ? Base64.getDecoder().decode(nonce) : null;
-        final String version = request.getProtocolVersion();
-        final Long timestamp = "3.2".equals(version) ? request.getTimestamp() : null;
-        final byte[] associatedData = EciesUtils.deriveAssociatedData(EciesScope.ACTIVATION_SCOPE, version, applicationKey, activationId);
-        final EciesCryptogram eciesCryptogram = EciesCryptogram.builder().ephemeralPublicKey(ephemeralPublicKeyBytes).mac(macBytes).encryptedData(encryptedDataBytes).build();
-        final EciesParameters eciesParameters = EciesParameters.builder().nonce(nonceBytes).associatedData(associatedData).timestamp(timestamp).build();
-        final EciesPayload eciesPayload = new EciesPayload(eciesCryptogram, eciesParameters);
-
-        if (eciesPayload.getParameters().getTimestamp() != null) {
-            // Check ECIES request for replay attacks and persist unique value from request
-            eciesreplayPersistenceService.checkAndPersistUniqueValue(
-                    UniqueValueType.ECIES_ACTIVATION_SCOPE,
-                    new Date(eciesPayload.getParameters().getTimestamp()),
-                    ephemeralPublicKeyBytes,
-                    nonceBytes,
-                    activationId);
-        }
-
-        // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-        if (activation == null) {
-            logger.info("Activation not found, activation ID: {}", activationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
-
-        // Check if the activation is in correct state and version is 2
-        if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
-            logger.info("Activation state is invalid, activation ID: {}", activationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-        }
-
-        // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
-
-        // Lookup the application version and check that it is supported
-        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
-        if (applicationVersion == null || !applicationVersion.getSupported()) {
-            logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-
         try {
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
+            final String protocolVersion = request.getProtocolVersion();
+
+            // Build and validate encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
+            if (activationId == null || applicationKey == null ||
+                    !encryptorFactory.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
+                logger.warn("Invalid start upgrade request");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+            }
+
+            if (encryptedRequest.getTimestamp() != null) {
+                // Check ECIES request for replay attacks and persist unique value from request
+                replayVerificationService.checkAndPersistUniqueValue(
+                        UniqueValueType.ECIES_ACTIVATION_SCOPE,
+                        new Date(encryptedRequest.getTimestamp()),
+                        encryptedRequest.getEphemeralPublicKey(),
+                        encryptedRequest.getNonce(),
+                        activationId,
+                        request.getProtocolVersion());
+            }
+
+            // Lookup the activation
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+            if (activation == null) {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            // Check if the activation is in correct state and version is 2
+            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
+                logger.info("Activation state is invalid, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
+
+            // Lookup the application version and check that it is supported
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
             final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
@@ -183,24 +177,20 @@ public class UpgradeServiceBehavior {
             final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get ECIES parameters
-            final byte[] applicationSecret = applicationVersion.getApplicationSecret().getBytes(StandardCharsets.UTF_8);
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
-            // Get decryptor for the application
-            final EciesDecryptor decryptor = eciesFactory.getEciesDecryptorForActivation(
-                    (ECPrivateKey) serverPrivateKey, applicationSecret, transportKeyBytes, EciesSharedInfo1.UPGRADE,
-                    eciesParameters, ephemeralPublicKeyBytes);
+            // Get server encryptor
+            final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+                    EncryptorId.UPGRADE,
+                    new EncryptorParameters(protocolVersion, applicationKey, activationId),
+                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+            );
 
-            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data.
-            final byte[] decryptedData = decryptor.decrypt(eciesPayload);
-            if (decryptedData.length == 0) {
-                logger.warn("Invalid decrypted request data");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_INPUT_FORMAT);
-            }
+            // Try to decrypt request data, the data must not be empty. Currently only '{}' is sent in request data. Ignore result of decryption.
+            serverEncryptor.decryptRequest(encryptedRequest);
 
             // Request is valid, generate hash based counter if it does not exist yet
             final String ctrDataBase64;
@@ -226,18 +216,13 @@ public class UpgradeServiceBehavior {
             // Encrypt response payload and return it
             final byte[] payloadBytes = objectMapper.writeValueAsBytes(payload);
 
-            final byte[] nonceBytesResponse = "3.2".equals(version) ? keyGenerator.generateRandomBytes(16) : nonceBytes;
-            final Long timestampResponse = "3.2".equals(version) ? new Date().getTime() : null;
-            final EciesParameters parametersResponse = EciesParameters.builder().nonce(nonceBytesResponse).associatedData(eciesPayload.getParameters().getAssociatedData()).timestamp(timestampResponse).build();
-            final EciesEncryptor encryptorResponse = eciesFactory.getEciesEncryptor(EciesScope.ACTIVATION_SCOPE,
-                    decryptor.getEnvelopeKey(), applicationSecret, transportKeyBytes, parametersResponse);
+            final EncryptedResponse encryptedResponse = serverEncryptor.encryptResponse(payloadBytes);
 
-            final EciesPayload payloadResponse = encryptorResponse.encrypt(payloadBytes, parametersResponse);
             final StartUpgradeResponse response = new StartUpgradeResponse();
-            response.setEncryptedData(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getEncryptedData()));
-            response.setMac(Base64.getEncoder().encodeToString(payloadResponse.getCryptogram().getMac()));
-            response.setNonce("3.2".equals(version) && nonceBytesResponse != null ? Base64.getEncoder().encodeToString(nonceBytesResponse) : null);
-            response.setTimestamp(timestampResponse);
+            response.setEncryptedData(encryptedResponse.getEncryptedData());
+            response.setMac(encryptedResponse.getMac());
+            response.setNonce(encryptedResponse.getNonce());
+            response.setTimestamp(encryptedResponse.getTimestamp());
 
             // Save activation as last step to avoid rollbacks
             if (activationShouldBeSaved) {
@@ -249,7 +234,7 @@ public class UpgradeServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
-        } catch (EciesException ex) {
+        } catch (EncryptorException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
