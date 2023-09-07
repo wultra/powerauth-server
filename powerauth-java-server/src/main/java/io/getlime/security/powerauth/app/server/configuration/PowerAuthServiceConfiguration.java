@@ -171,9 +171,9 @@ public class PowerAuthServiceConfiguration {
     /**
      * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.1 or older.
      */
-    @Value("${powerauth.service.crypto.requestExpirationInMillisecondsBeforeV32}")
+    @Value("${powerauth.service.crypto.requestExpirationInMillisecondsExtended}")
     @Min(0)
-    private int requestExpirationInMillisecondsBeforeV32;
+    private int requestExpirationInMillisecondsExtended;
 
     /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
@@ -536,16 +536,16 @@ public class PowerAuthServiceConfiguration {
      * Get expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
      * @return Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
      */
-    public int getRequestExpirationInMillisecondsBeforeV32() {
-        return requestExpirationInMillisecondsBeforeV32;
+    public int getRequestExpirationInMillisecondsExtended() {
+        return requestExpirationInMillisecondsExtended;
     }
 
     /**
      * Set expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
-     * @param requestExpirationInMillisecondsBeforeV32 Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * @param requestExpirationInMillisecondsExtended Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
      */
-    public void setRequestExpirationInMillisecondsBeforeV32(int requestExpirationInMillisecondsBeforeV32) {
-        this.requestExpirationInMillisecondsBeforeV32 = requestExpirationInMillisecondsBeforeV32;
+    public void setRequestExpirationInMillisecondsExtended(int requestExpirationInMillisecondsExtended) {
+        this.requestExpirationInMillisecondsExtended = requestExpirationInMillisecondsExtended;
     }
 
     /**

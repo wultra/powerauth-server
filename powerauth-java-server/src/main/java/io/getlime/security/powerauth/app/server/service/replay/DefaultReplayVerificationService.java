@@ -55,10 +55,10 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
         final int requestExpiration;
-        if ("3.2".equals(version)) {
-            requestExpiration = config.getRequestExpirationInMilliseconds();
+        if (!"3.2".equals(version)) {
+            requestExpiration = config.getRequestExpirationInMillisecondsExtended();
         } else {
-            requestExpiration = config.getRequestExpirationInMillisecondsBeforeV32();
+            requestExpiration = config.getRequestExpirationInMilliseconds();
         }
         final Date expiration = Date.from(Instant.now().plus(requestExpiration, ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
