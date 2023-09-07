@@ -1273,14 +1273,15 @@ public interface PowerAuthClient {
     /**
      * Validate credentials used for basic token-based authentication.
      *
-     * @param tokenId     Token ID.
-     * @param nonce       Random token nonce.
-     * @param timestamp   Token timestamp.
-     * @param tokenDigest Token digest.
+     * @param tokenId         Token ID.
+     * @param nonce           Random token nonce.
+     * @param protocolVersion Cryptography protocol version.
+     * @param timestamp       Token timestamp.
+     * @param tokenDigest     Token digest.
      * @return Response with the credentials validation status.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException;
+    ValidateTokenResponse validateToken(String tokenId, String nonce, String protocolVersion, long timestamp, String tokenDigest) throws PowerAuthClientException;
 
     /**
      * Remove token with given token ID.
