@@ -305,16 +305,15 @@ public class TokenBehavior {
                 isTokenValid = false;
             } else {
                 // Check MAC token verification request for replay attacks and persist unique value from request
-                // TODO Roman - just make to compile, will be fixed later
-                final String version = "3.2";
                 replayVerificationService.checkAndPersistUniqueValue(
                         UniqueValueType.MAC_TOKEN,
                         new Date(request.getTimestamp()),
                         null,
                         request.getNonce(),
-                        version);
+                        tokenId,
+                        request.getProtocolVersion());
                 // Validate MAC token
-                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, version, tokenSecret, tokenDigest);
+                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
             }
 
             final ValidateTokenResponse response = new ValidateTokenResponse();

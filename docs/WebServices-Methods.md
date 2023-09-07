@@ -419,6 +419,8 @@ REST endpoint: `POST /rest/v3/activation/prepare`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -473,6 +475,8 @@ REST endpoint: `POST /rest/v3/activation/create`
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `String` | `activationOtp` | Optional activation OTP |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -956,6 +960,8 @@ REST endpoint: `POST /rest/v3/token/create`
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (an empty JSON object):
 ```json
@@ -995,6 +1001,8 @@ REST endpoint: `POST /rest/v3/token/validate`
 | `String` | `tokenDigest` | Digest computed during the token based authentication. |
 | `String` | `nonce` | Cryptographic nonce. Random 16B, Base64 encoded. |
 | `Long` | `timestamp` | Token digest timestamp, Unix timestamp format. |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 #### Response
 
@@ -1055,6 +1063,7 @@ REST endpoint: `POST /rest/v3/vault/unlock`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data:
 ```json
@@ -1460,6 +1469,9 @@ REST endpoint: `POST /rest/v3/ecies/decryptor`
 | `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 #### Response
 
@@ -1492,6 +1504,8 @@ REST endpoint: `POST /rest/v3/upgrade/start`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 #### Response
 
@@ -1566,7 +1580,7 @@ REST endpoint: `POST /rest/v3/recovery/create`
 
 ### Method `confirmRecoveryCode`
 
-Confirm a recovery code recieved using recovery postcard.
+Confirm a recovery code received using recovery postcard.
 
 #### Request
 
@@ -1582,6 +1596,8 @@ REST endpoint: `POST /rest/v3/recovery/confirm`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
 
 ECIES request should contain following data (as JSON):
  - `recoveryCode` - Recovery code which should be confirmed in this request.
@@ -1684,6 +1700,8 @@ REST endpoint: `POST /rest/v3/activation/recovery/create`
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `String` | `activationOtp` | Optional activation OTP |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
