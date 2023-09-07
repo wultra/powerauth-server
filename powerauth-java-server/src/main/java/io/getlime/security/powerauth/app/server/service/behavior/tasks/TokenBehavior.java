@@ -68,10 +68,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Behavior that contains methods related to simple token-based authentication.
@@ -313,8 +310,10 @@ public class TokenBehavior {
                         null,
                         request.getNonce(),
                         token.getTokenId());
+                // TODO Roman - just make to compile, but activation#version contains only the major version
+                final String version = Objects.toString(activation.getVersion());
                 // Validate MAC token
-                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, tokenSecret, tokenDigest);
+                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, version, tokenSecret, tokenDigest);
             }
 
             final ValidateTokenResponse response = new ValidateTokenResponse();
