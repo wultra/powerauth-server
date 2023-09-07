@@ -34,7 +34,7 @@ import java.util.Arrays;
 public class SdkDataReader implements DataReader {
 
     private final byte[] data;
-    int offset = 0;
+    private int offset = 0;
 
     /**
      * SDK reader constructor.
