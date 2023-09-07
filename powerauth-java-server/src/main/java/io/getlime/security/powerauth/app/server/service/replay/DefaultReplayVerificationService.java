@@ -56,9 +56,9 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
         logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
         final int requestExpiration;
         if ("3.0".equals(version) || "3.1".equals(version)) {
-            requestExpiration = config.getRequestExpirationInMillisecondsExtended();
+            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationInMillisecondsExtended();
         } else {
-            requestExpiration = config.getRequestExpirationInMilliseconds();
+            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationInMilliseconds();
         }
         final Date expiration = Date.from(Instant.now().plus(requestExpiration, ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {

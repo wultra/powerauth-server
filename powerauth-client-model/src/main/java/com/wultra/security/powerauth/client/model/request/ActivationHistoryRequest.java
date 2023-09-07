@@ -29,6 +29,7 @@ import java.util.Date;
  */
 @Data
 public class ActivationHistoryRequest {
+
     private String activationId;
     private Date timestampFrom;
     private Date timestampTo;
