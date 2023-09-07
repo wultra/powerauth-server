@@ -44,12 +44,12 @@ import java.util.Date;
 @Service
 @Slf4j
 @AllArgsConstructor
-@ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "default")
+@ConditionalOnProperty(prefix = "powerauth.service.crypto", name = "replayVerificationService", havingValue = "default", matchIfMissing = true)
 class DefaultReplayVerificationService implements ReplayVerificationService {
 
     private final ReplayPersistenceService replayPersistenceService;
     private final LocalizationProvider localizationProvider;
-    private final PowerAuthServiceConfiguration config;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     @Override
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
