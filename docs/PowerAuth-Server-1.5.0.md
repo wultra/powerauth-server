@@ -44,23 +44,20 @@ In 1.5.x, we definitely removed the legacy V2 protocol support and only support 
 ### Add Signature Data in an Easy to Parse Structure
 
 Add following columns:
- - `signature_data_method` - HTTP method used for the signature verification
- - `signature_data_uri_id` - identifier of given URI of the resource used for the signature verification
+ - `signature_metadata` - metadata related to the signature calculation
  - `signature_data_body` - data used for the signature verification
 
 #### PostgreSQL
 
 ```sql
-ALTER TABLE pa_signature_audit ADD COLUMN signature_data_method VARCHAR(32);
-ALTER TABLE pa_signature_audit ADD COLUMN signature_data_uri_id VARCHAR(255);
+ALTER TABLE pa_signature_audit ADD COLUMN signature_metadata TEXT;
 ALTER TABLE pa_signature_audit ADD COLUMN signature_data_body TEXT;
 ```
 
 #### Oracle
 
 ```sql
-ALTER TABLE PA_SIGNATURE_AUDIT ADD COLUMN SIGNATURE_DATA_METHOD VARCHAR2(32 CHAR);
-ALTER TABLE PA_SIGNATURE_AUDIT ADD COLUMN SIGNATURE_DATA_URI_ID VARCHAR2(255 CHAR);
+ALTER TABLE PA_SIGNATURE_AUDIT ADD COLUMN SIGNATURE_METADATA CLOB;
 ALTER TABLE PA_SIGNATURE_AUDIT ADD COLUMN SIGNATURE_DATA_BODY CLOB;
 ```
 

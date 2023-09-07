@@ -9,7 +9,7 @@
                 <columnExists tableName="pa_operation" columnName="totp_seed"/>
             </not>
         </preConditions>
-        <comment>Add signature_data_method column</comment>
+        <comment>Add totp_seed column</comment>
         <addColumn tableName="pa_operation">
             <column name="totp_seed" type="varchar(24)" />
         </addColumn>
@@ -21,7 +21,7 @@
                 <columnExists tableName="pa_operation_template" columnName="proximity_check_enabled"/>
             </not>
         </preConditions>
-        <comment>Add signature_data_method column</comment>
+        <comment>Add proximity_check_enabled column</comment>
         <addColumn tableName="pa_operation_template">
             <column name="proximity_check_enabled" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false" />
