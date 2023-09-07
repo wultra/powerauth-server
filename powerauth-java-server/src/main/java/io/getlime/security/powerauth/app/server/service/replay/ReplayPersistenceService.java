@@ -41,17 +41,17 @@ import java.util.Date;
 public class ReplayPersistenceService {
 
     private final UniqueValueRepository uniqueValueRepository;
-    private final PowerAuthServiceConfiguration config;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     /**
      * Service constructor.
      * @param uniqueValueRepository Unique value repository.
-     * @param config PowerAuth service configuration.
+     * @param powerAuthServiceConfiguration PowerAuth service configuration.
      */
     @Autowired
-    public ReplayPersistenceService(UniqueValueRepository uniqueValueRepository, PowerAuthServiceConfiguration config) {
+    public ReplayPersistenceService(UniqueValueRepository uniqueValueRepository, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.uniqueValueRepository = uniqueValueRepository;
-        this.config = config;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     /**
@@ -70,7 +70,7 @@ public class ReplayPersistenceService {
      * @return Whether unique value was added successfully.
      */
     public boolean persistUniqueValue(final UniqueValueType type, final String uniqueValue) {
-        final Instant expiration = Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS);
+        final Instant expiration = Instant.now().plus(powerAuthServiceConfiguration.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS);
         final UniqueValueEntity uniqueVal = new UniqueValueEntity();
         uniqueVal.setType(type);
         uniqueVal.setUniqueValue(uniqueValue);

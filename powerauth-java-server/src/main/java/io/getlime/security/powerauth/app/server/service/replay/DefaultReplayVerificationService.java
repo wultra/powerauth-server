@@ -49,12 +49,12 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
 
     private final ReplayPersistenceService replayPersistenceService;
     private final LocalizationProvider localizationProvider;
-    private final PowerAuthServiceConfiguration config;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     @Override
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
-        final Date expiration = Date.from(Instant.now().plus(config.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
+        final Date expiration = Date.from(Instant.now().plus(powerAuthServiceConfiguration.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);
