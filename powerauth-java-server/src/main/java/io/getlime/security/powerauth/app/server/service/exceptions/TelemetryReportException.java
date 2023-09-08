@@ -25,7 +25,7 @@ import java.io.Serial;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class TelemetryReportException extends Throwable {
+public class TelemetryReportException extends Exception {
     @Serial
     private static final long serialVersionUID = 8770243960531807727L;
 
