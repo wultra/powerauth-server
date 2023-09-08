@@ -944,10 +944,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public ValidateTokenResponse validateToken(String tokenId, String nonce, long timestamp, String tokenDigest) throws PowerAuthClientException {
+    public ValidateTokenResponse validateToken(String tokenId, String nonce, String protocolVersion, long timestamp, String tokenDigest) throws PowerAuthClientException {
         final ValidateTokenRequest request = new ValidateTokenRequest();
         request.setTokenId(tokenId);
         request.setNonce(nonce);
+        request.setProtocolVersion(protocolVersion);
         request.setTimestamp(timestamp);
         request.setTokenDigest(tokenDigest);
         return validateToken(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
