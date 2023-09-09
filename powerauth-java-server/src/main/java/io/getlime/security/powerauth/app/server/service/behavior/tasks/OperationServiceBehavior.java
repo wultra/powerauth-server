@@ -385,7 +385,7 @@ public class OperationServiceBehavior {
         }
 
         final String expectedUserId = operationEntity.getUserId();
-        if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user approved the operation, or no prior user was set
+        if ((expectedUserId == null || expectedUserId.equals(userId)) // correct user rejected the operation, or no prior user was set
                 && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
             // Reject the operation
@@ -567,7 +567,12 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
 
-        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        final String userId = request.getUserId();
+
+        final OperationEntity operationEntity = expireOperation(
+                claimOperation(operationOptional.get(), userId, currentTimestamp),
+                currentTimestamp
+        );
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
         generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
@@ -685,6 +690,27 @@ public class OperationServiceBehavior {
             case FAILED -> destination.setStatus(OperationStatus.FAILED);
         }
         return destination;
+    }
+
+    private OperationEntity claimOperation(OperationEntity source, String userId, Date currentTimestamp) throws GenericServiceException {
+        // If a user accessing the operation is specified in the query, either claim the operation to that user,
+        // or check if the user is already granted to be able to access the operation.
+        if (userId != null) {
+            if (OperationStatusDo.PENDING.equals(source.getStatus())
+                    && source.getTimestampExpires().before(currentTimestamp)) {
+                final String operationId = source.getId();
+                final String expectedUserId = source.getUserId();
+                if (expectedUserId == null) {
+                    logger.info("Operation {} will be assigned to the user {}.", operationId, userId);
+                    source.setUserId(userId);
+                    return operationRepository.save(source);
+                } else if (!expectedUserId.equals(userId)) {
+                    logger.warn("Operation with ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+                }
+            }
+        }
+        return source;
     }
 
     private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {
