@@ -24,7 +24,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serial;
-import java.util.Objects;
 
 
 /**
@@ -40,23 +39,10 @@ public class PowerAuthSignatureMetadata implements SignatureMetadata {
 
     @Serial
     private static final long serialVersionUID = -5167321997819747483L;
-    
+
     @JsonProperty("signatureDataMethod")
     private String signatureDataMethod;
     @JsonProperty("signatureDataUriId")
     private String signatureDataUriId;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PowerAuthSignatureMetadata that = (PowerAuthSignatureMetadata) o;
-        return Objects.equals(signatureDataMethod, that.signatureDataMethod) &&
-                Objects.equals(signatureDataUriId, that.signatureDataUriId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(signatureDataMethod, signatureDataUriId);
-    }
 }
