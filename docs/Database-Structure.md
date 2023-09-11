@@ -214,6 +214,7 @@ CREATE TABLE pa_signature_audit
     signature_type      VARCHAR(255) NOT NULL,
     signature           VARCHAR(255) NOT NULL,
     signature_metadata  TEXT,
+    signature_data_body TEXT,
     timestamp_created   TIMESTAMP (6) NOT NULL,
     valid               BOOLEAN,
     version             INTEGER DEFAULT 2,
