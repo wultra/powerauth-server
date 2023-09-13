@@ -47,5 +47,7 @@ PowerAuth Server may return following errors:
 | ERR0040    | Activation cannot be created with the specified properties. |
 | ERR0041    | Operation related error occurred. |
 | ERR0042    | Operation template related error occurred. |
+| ERR0043    | Application or application version is duplicate. |
+| ERR0044    | Token timestamp is too much in the future. |
 
 For each of these issues, more details about the specific nature and cause can be found in the server log.

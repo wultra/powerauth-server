@@ -213,6 +213,8 @@ CREATE TABLE pa_signature_audit
     note                VARCHAR(255),
     signature_type      VARCHAR(255) NOT NULL,
     signature           VARCHAR(255) NOT NULL,
+    signature_metadata  TEXT,
+    signature_data_body TEXT,
     timestamp_created   TIMESTAMP (6) NOT NULL,
     valid               BOOLEAN,
     version             INTEGER DEFAULT 2,
@@ -222,21 +224,23 @@ CREATE TABLE pa_signature_audit
 
 #### Columns
 
-| Name | Type | Info | Note |
-|------|------|---------|------|
-| id | BIGINT(20) | primary key, autoincrement | Unique record ID. |
-| activation_id | BIGINT(20) | foreign key: pa\_activation.activation\_id | Associated activation ID. |
-| activation_counter | BIGINT(20) | - | Activation counter at the moment of signature validation. |
-| activation_ctr_data | BIGINT(2) | - | Activation hash based counter data at the moment of signature validation. |
-| activation_status | INT(11) | - | Activation status at the moment of signature validation. |
-| additional_info | VARCHAR(255) | - | Additional information related to the signature request in JSON format. |
-| data_base64 | TEXT | - | Data passed as the base for the signature, encoded as Base64. |
-| signature_type | VARCHAR(255) | - | Requested type of the signature. |
-| signature | VARCHAR(255) | - | Provided value of the signature. |
-| valid | INT(11) | - | Flag indicating if the provided signature was valid. |
-| note | TEXT | - | Additional information about the validation result. |
-| timestamp_created | DATETIME | index | A timestamp of the validation attempt. |
-| version | BIGINT(2) | - | PowerAuth protocol version. |
+| Name                | Type         | Info                                       | Note                                                                      |
+|---------------------|--------------|--------------------------------------------|---------------------------------------------------------------------------|
+| id                  | BIGINT(20)   | primary key, autoincrement                 | Unique record ID.                                                         |
+| activation_id       | BIGINT(20)   | foreign key: pa\_activation.activation\_id | Associated activation ID.                                                 |
+| activation_counter  | BIGINT(20)   | -                                          | Activation counter at the moment of signature validation.                 |
+| activation_ctr_data | BIGINT(2)    | -                                          | Activation hash based counter data at the moment of signature validation. |
+| activation_status   | INT(11)      | -                                          | Activation status at the moment of signature validation.                  |
+| additional_info     | VARCHAR(255) | -                                          | Additional information related to the signature request in JSON format.   |
+| data_base64         | TEXT         | -                                          | Data passed as the base for the signature, encoded as Base64.             |
+| signature_type      | VARCHAR(255) | -                                          | Requested type of the signature.                                          |
+| signature           | VARCHAR(255) | -                                          | Provided value of the signature.                                          |
+| signature_metadata  | TEXT         | -                                          | JSON with signature metadata related to the signature calculation.        |
+| signature_data_body | TEXT         | -                                          | Data used for the signature verification.                                 |
+| valid               | INT(11)      | -                                          | Flag indicating if the provided signature was valid.                      |
+| note                | TEXT         | -                                          | Additional information about the validation result.                       |
+| timestamp_created   | DATETIME     | index                                      | A timestamp of the validation attempt.                                    |
+| version             | BIGINT(2)    | -                                          | PowerAuth protocol version.                                               |
 <!-- end -->
 
 <!-- begin database table pa_integration -->
