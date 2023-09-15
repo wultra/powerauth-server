@@ -84,7 +84,7 @@
         <spring-cloud-vault.version>4.0.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
-        <powerauth-java-crypto.version>1.5.1-SNAPSHOT</powerauth-java-crypto.version>
+        <powerauth-java-crypto.version>1.5.1</powerauth-java-crypto.version>
         <wultra-core.version>1.7.0</wultra-core.version>
 
         <bcprov-jdk18on.version>1.76</bcprov-jdk18on.version>
