@@ -21,9 +21,7 @@
             <column name="audit_level" type="varchar(32)">
                 <constraints nullable="false" />
             </column>
-            <column name="audit_type" type="varchar(256)">
-                <constraints nullable="false" />
-            </column>
+            <column name="audit_type" type="varchar(256)"/>
             <column name="timestamp_created" type="timestamp" defaultValueDate="${now}" />
             <column name="message" type="text">
                 <constraints nullable="false" />
