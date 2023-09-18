@@ -17,9 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server;
 
-import com.google.common.io.BaseEncoding;
-import io.getlime.security.powerauth.app.server.converter.v3.RecoveryPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.converter.RecoveryPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
@@ -27,6 +26,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import java.util.Base64;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -58,7 +59,7 @@ public class RecoveryPrivateKeyConverterTest {
 
     @Test
     public void testEncryptionAndDecryptionSuccess() throws Exception {
-        byte[] recoveryPrivateKeyBytes = BaseEncoding.base64().decode(RECOVERY_PRIVATE_KEY_PLAIN);
+        byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(RECOVERY_PRIVATE_KEY_PLAIN);
         RecoveryPrivateKey recoveryPrivateKeyEncrypted = recoveryPrivateKeyConverter.toDBValue(recoveryPrivateKeyBytes,1);
         String recoveryPrivateKeyActual = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 1);
         assertEquals(RECOVERY_PRIVATE_KEY_PLAIN, recoveryPrivateKeyActual);
@@ -67,7 +68,7 @@ public class RecoveryPrivateKeyConverterTest {
     @Test
     public void testEncryptionAndDecryptionDifferentApplicationFail() {
         assertThrows(GenericServiceException.class, ()-> {
-            byte[] recoveryPrivateKeyBytes = BaseEncoding.base64().decode(RECOVERY_PRIVATE_KEY_PLAIN);
+            byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(RECOVERY_PRIVATE_KEY_PLAIN);
             RecoveryPrivateKey recoveryPrivateKeyEncrypted = recoveryPrivateKeyConverter.toDBValue(recoveryPrivateKeyBytes, 1);
             recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 2);
         });

@@ -16,11 +16,10 @@
 
 package io.getlime.security.app.admin.converter;
 
-import com.google.common.io.BaseEncoding;
-import com.wultra.security.powerauth.client.v3.SignatureAuditResponse;
 import io.getlime.security.app.admin.model.SignatureAuditItem;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Converter for signature audit items.
@@ -36,7 +35,7 @@ public class SignatureAuditItemConverter {
      * @param signatureAuditItem Signature audit item generated from XSD model.
      * @return Converted signature audit item.
      */
-    public SignatureAuditItem fromSignatureAuditResponseItem(SignatureAuditResponse.Items signatureAuditItem) {
+    public SignatureAuditItem fromSignatureAuditResponseItem(com.wultra.security.powerauth.client.model.entity.SignatureAuditItem signatureAuditItem) {
         if (signatureAuditItem == null) {
             return null;
         }
@@ -54,10 +53,10 @@ public class SignatureAuditItemConverter {
         result.setNote(signatureAuditItem.getNote());
         result.setValid(signatureAuditItem.isValid());
         result.setVersion((int) signatureAuditItem.getVersion());
-        result.setTimestampCreated(signatureAuditItem.getTimestampCreated().toGregorianCalendar().getTime());
+        result.setTimestampCreated(signatureAuditItem.getTimestampCreated());
 
         // Special handling for base-64 encoded signature data - data needs to be decoded.
-        result.setData(new String(BaseEncoding.base64().decode(signatureAuditItem.getDataBase64()), StandardCharsets.UTF_8));
+        result.setData(new String(Base64.getDecoder().decode(signatureAuditItem.getDataBase64()), StandardCharsets.UTF_8));
         // Unstructured signature data is decoded and set as structured signature data.
         result.setSignatureData(signatureDataConverter.fromSignatureDataBase64(result.getData()));
 

@@ -37,11 +37,11 @@ public class HomeController {
 
     private BuildProperties buildProperties;
 
-    private final PowerAuthServiceConfiguration configuration;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     @Autowired
-    public HomeController(PowerAuthServiceConfiguration configuration) {
-        this.configuration = configuration;
+    public HomeController(PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
     }
 
     @Autowired(required = false)
@@ -58,10 +58,11 @@ public class HomeController {
         }
 
         // Add info about restricted access mode
-        model.addAttribute("restrictAccess", configuration.getRestrictAccess());
+        model.addAttribute("restrictAccess", powerAuthServiceConfiguration.getRestrictAccess());
 
         // Add info about DB encryption
-        boolean dbEncryption = configuration.getMasterDbEncryptionKey() != null && !configuration.getMasterDbEncryptionKey().isEmpty();
+        final boolean dbEncryption = powerAuthServiceConfiguration.getMasterDbEncryptionKey() != null
+                && !powerAuthServiceConfiguration.getMasterDbEncryptionKey().isEmpty();
         model.addAttribute("dbEncryption", dbEncryption);
 
         return "home";

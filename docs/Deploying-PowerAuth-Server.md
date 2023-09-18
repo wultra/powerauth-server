@@ -8,7 +8,6 @@ Following databases are supported:
 
 - Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
-- MySQL 5.5 or newer
 
 Note that MSSQL database is not supported.
 
@@ -27,7 +26,6 @@ For example, when using Oracle with Tomcat, make sure to add `ojdbc-${VERSION}.j
 In order for the PowerAuth Server to work, you need to have a correct schema in the database. To create the correct database schema, execute these SQL scripts for your database engine:
 
 - [Oracle - Create Database Schema](./sql/oracle/create_schema.sql)
-- [MySQL - Create Database Schema](./sql/mysql/create_schema.sql)
 - [PostgreSQL - Create Database Schema](./sql/postgresql/create_schema.sql)
 
 You can read more about PowerAuth Server database schema in following guide:
@@ -46,7 +44,6 @@ spring.datasource.username=powerauth
 spring.datasource.password=
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.connection.characterEncoding=utf8
 spring.jpa.properties.hibernate.connection.useUnicode=true
@@ -64,7 +61,6 @@ spring.datasource.password=*********
 spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
 
 ### PostgreSQL Connectivity Parameters
@@ -77,7 +73,6 @@ spring.datasource.password=*********
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
-spring.jpa.properties.hibernate.temp.use_jdbc_metadata_defaults=false
 ```
 
 ### Specifying Database Connection Character Set
@@ -141,10 +136,10 @@ You can specify the individual properties directly in the server configuration. 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <Context>
-    <Parameter name="spring.datasource.url" value="jdbc:mysql://localhost:3306/powerauth"/>
+    <Parameter name="spring.datasource.url" value="jdbc:postgresql://localhost:5432"/>
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value=""/>
-    <Parameter name="spring.datasource.driver-class-name" value="com.mysql.jdbc.Driver"/>
+    <Parameter name="spring.datasource.driver-class-name" value="org.postgresql.Driver"/>
     <Parameter name="spring.jpa.database-platform" value="org.hibernate.dialect.PostgreSQLDialect"/>
 </Context>
 ```
@@ -232,7 +227,7 @@ For best traceability, the correlation headers should be enabled in the whole Po
 
 ### Issues With Database Connectivity
 
-Note that some database engines (for example MySQL) let you specify the default schema as a part of a URL. Other engines, for example **Oracle**, do not allow this. In order to specify the correct default schema, you need to use a following property:
+Note that some database engines let you specify the default schema as a part of a URL. Other engines, for example **Oracle**, do not allow this. In order to specify the correct default schema, you need to use a following property:
 
 ```sh
 spring.jpa.properties.hibernate.default_schema=powerauth

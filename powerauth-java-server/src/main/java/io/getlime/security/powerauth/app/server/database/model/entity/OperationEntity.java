@@ -18,10 +18,14 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.*;
+import io.getlime.security.powerauth.app.server.database.model.converter.MapToJsonConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.OperationStatusDoConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.*;
 
@@ -34,6 +38,7 @@ import java.util.*;
 @Table(name = "pa_operation")
 public class OperationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -5284589668386509303L;
 
     @Id
@@ -66,12 +71,10 @@ public class OperationEntity implements Serializable {
     @Column(name = "data", nullable = false)
     private String data;
 
-    @SuppressWarnings("JpaAttributeTypeInspection")
     @Column(name = "parameters")
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> parameters = new HashMap<>();
 
-    @SuppressWarnings("JpaAttributeTypeInspection")
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> additionalData = new HashMap<>();
@@ -101,6 +104,12 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "risk_flags")
     private String riskFlags;
+
+    /**
+     * Optional TOTP seed used for proximity check, base64 encoded.
+     */
+    @Column(name = "totp_seed")
+    private String totpSeed;
 
     /**
      * Get operation ID.
@@ -392,11 +401,28 @@ public class OperationEntity implements Serializable {
         this.riskFlags = riskFlags;
     }
 
+    /**
+     * Get TOTP seed, base64 encoded.
+     *
+     * @return TOTP seed.
+     */
+    public String getTotpSeed() {
+        return totpSeed;
+    }
+
+    /**
+     * Set TOTP sees, base64 encoded.
+     *
+     * @param totpSeed TOTP seed.
+     */
+    public void setTotpSeed(String totpSeed) {
+        this.totpSeed = totpSeed;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OperationEntity)) return false;
-        OperationEntity that = (OperationEntity) o;
+        if (!(o instanceof final OperationEntity that)) return false;
         return id.equals(that.id) // ID is generated on application level
                 && userId.equals(that.userId)
                 && applications.equals(that.applications)
@@ -406,13 +432,14 @@ public class OperationEntity implements Serializable {
                 && data.equals(that.data)
                 && Objects.equals(parameters, that.parameters)
                 && Objects.equals(additionalData, that.additionalData)
-                && Objects.equals(riskFlags, that.riskFlags);
+                && Objects.equals(riskFlags, that.riskFlags)
+                && Objects.equals(totpSeed, that.totpSeed);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(
-                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData, riskFlags
+                id, userId, applications, activationFlag, operationType, templateName, data, parameters, additionalData, riskFlags, totpSeed
         );
     }
 

@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--  Create audit log table - https://github.com/wultra/lime-java-core#wultra-auditing-library  -->
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="audit_log"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table audit_log</comment>
+        <createTable tableName="audit_log">
+            <column name="audit_log_id" type="varchar(36)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="application_name" type="varchar(256)">
+                <constraints nullable="false" />
+            </column>
+            <column name="audit_level" type="varchar(32)">
+                <constraints nullable="false" />
+            </column>
+            <column name="audit_type" type="varchar(256)"/>
+            <column name="timestamp_created" type="timestamp" defaultValueDate="${now}" />
+            <column name="message" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="exception_message" type="text" />
+            <column name="stack_trace" type="text" />
+            <column name="param" type="text" />
+            <column name="calling_class" type="varchar(256)">
+                <constraints nullable="false" />
+            </column>
+            <column name="thread_name" type="varchar(256)">
+                <constraints nullable="false" />
+            </column>
+            <column name="version" type="varchar(256)" />
+            <column name="build_time" type="timestamp" />
+        </createTable>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="audit_param"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table audit_log</comment>
+        <createTable tableName="audit_param">
+            <column name="audit_log_id" type="varchar(36)" />
+            <column name="timestamp_created" type="timestamp" defaultValueDate="${now}" />
+            <column name="param_key" type="varchar(256)" />
+            <column name="param_value" type="varchar(4000)" />
+        </createTable>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_log" indexName="audit_log_timestamp" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(timestamp_created)</comment>
+        <createIndex tableName="audit_log" indexName="audit_log_timestamp">
+            <column name="timestamp_created" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="4" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_log" indexName="audit_log_application" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(application_name)</comment>
+        <createIndex tableName="audit_log" indexName="audit_log_application">
+            <column name="application_name" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="5" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_log" indexName="audit_log_level" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(audit_level)</comment>
+        <createIndex tableName="audit_log" indexName="audit_log_level">
+            <column name="audit_level" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="6" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_log" indexName="audit_log_type" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(audit_type)</comment>
+        <createIndex tableName="audit_log" indexName="audit_log_type">
+            <column name="audit_type" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="7" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_param" indexName="audit_param_log" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_param(audit_log_id)</comment>
+        <createIndex tableName="audit_param" indexName="audit_param_log">
+            <column name="audit_log_id" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="8" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_param" indexName="audit_param_timestamp" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_param(timestamp_created)</comment>
+        <createIndex tableName="audit_param" indexName="audit_param_timestamp">
+            <column name="timestamp_created" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="9" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_param" indexName="audit_param_key" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(param_key)</comment>
+        <createIndex tableName="audit_param" indexName="audit_param_key">
+            <column name="param_key" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+
+    <changeSet id="10" logicalFilePath="powerauth-java-server/1.4.x/20230322-audit.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="audit_param" indexName="audit_param_value" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on audit_log(param_value)</comment>
+        <createIndex tableName="audit_param" indexName="audit_param_value">
+            <column name="param_value" />
+        </createIndex>
+        <!-- no rollback on purpose, the audit tables may be shared across several components -->
+        <rollback />
+    </changeSet>
+</databaseChangeLog>

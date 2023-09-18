@@ -17,39 +17,15 @@
  */
 package io.getlime.security.powerauth.app.server.database.model;
 
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+
 /**
  * Compound value of recovery postcard private key. Key can be stored encrypted or decrypted based on key encryption mode.
  *
+ * @param encryptionMode           Key encryption mode.
+ * @param recoveryPrivateKeyBase64 Base64-encoded recovery postcard private key.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class RecoveryPrivateKey {
+public record RecoveryPrivateKey(EncryptionMode encryptionMode, String recoveryPrivateKeyBase64) {
 
-    private final EncryptionMode encryptionMode;
-    private final String recoveryPrivateKeyBase64;
-
-    /**
-     * Constructor with key encryption mode and base64-encoded key.
-     * @param encryptionMode Key encryption mode.
-     * @param recoveryPrivateKeyBase64 Base64-encoded recovery postcard private key.
-     */
-    public RecoveryPrivateKey(EncryptionMode encryptionMode, String recoveryPrivateKeyBase64) {
-        this.encryptionMode = encryptionMode;
-        this.recoveryPrivateKeyBase64 = recoveryPrivateKeyBase64;
-    }
-
-    /**
-     * Get key encryption mode.
-     * @return Key encryption mode.
-     */
-    public EncryptionMode getEncryptionMode() {
-        return encryptionMode;
-    }
-
-    /**
-     * Get Base64-encoded recovery postcard key.
-     * @return Base64-encoded recovery postcardrecovery postcard key.
-     */
-    public String getRecoveryPrivateKeyBase64() {
-        return recoveryPrivateKeyBase64;
-    }
 }

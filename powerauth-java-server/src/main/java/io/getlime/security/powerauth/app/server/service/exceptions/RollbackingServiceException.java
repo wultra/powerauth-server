@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.exceptions;
 
+import java.io.Serial;
+
 /**
  * Exception used in case when database transaction needs to be rolled back. Do not use this exception in case
  * any data needs to be written to the database.
@@ -25,6 +27,7 @@ package io.getlime.security.powerauth.app.server.service.exceptions;
  */
 public class RollbackingServiceException extends GenericServiceException {
 
+    @Serial
     private static final long serialVersionUID = -7531176695609348598L;
 
     /**

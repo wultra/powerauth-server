@@ -22,14 +22,19 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
+import java.time.Duration;
 
 /**
  * Class holding the configuration data of this PowerAuth Server
@@ -40,7 +45,14 @@ import javax.validation.constraints.Min;
 @Configuration
 @ConfigurationProperties("ext")
 @Validated
+@Getter
+@Setter
 public class PowerAuthServiceConfiguration {
+
+    /**
+     * Minimal value for {@link #proximityCheckOtpLength}.
+     */
+    private static final int MINIMAL_PROXIMITY_CHECK_OTP_LENGTH = 6;
 
     /**
      * When asking for server status, this variable will be returned as application
@@ -142,6 +154,28 @@ public class PowerAuthServiceConfiguration {
     private long signatureValidationLookahead;
 
     /**
+     * When validating the offline (or decimalized) signature, how many digits should a factor-related component have.
+     */
+    @Value("${powerauth.service.crypto.offlineSignatureComponentLength}")
+    @Min(4)
+    @Max(8)
+    private int offlineSignatureComponentLength;
+
+    /**
+     * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.2+.
+     */
+    @Value("${powerauth.service.crypto.requestExpirationInMilliseconds}")
+    @Min(0)
+    private int requestExpirationInMilliseconds;
+
+    /**
+     * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.1 or older.
+     */
+    @Value("${powerauth.service.crypto.requestExpirationInMillisecondsExtended}")
+    @Min(0)
+    private int requestExpirationInMillisecondsExtended;
+
+    /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
      */
     @Value("${powerauth.service.http.proxy.enabled}")
@@ -175,7 +209,19 @@ public class PowerAuthServiceConfiguration {
      * HTTP connection timeout.
      */
     @Value("${powerauth.service.http.connection.timeout}")
-    private Integer httpConnectionTimeout;
+    private Duration httpConnectionTimeout;
+
+    /**
+     * HTTP response timeout.
+     */
+    @Value("${powerauth.service.http.response.timeout}")
+    private Duration httpResponseTimeout;
+
+    /**
+     * HTTP connection max idle time.
+     */
+    @Value("${powerauth.service.http.connection.max-idle-time}")
+    private Duration httpMaxIdleTime;
 
     /**
      * Token timestamp validity in milliseconds, checked before validating the token.
@@ -183,6 +229,13 @@ public class PowerAuthServiceConfiguration {
     @Value("${powerauth.service.token.timestamp.validity}")
     @Min(1)
     private long tokenTimestampValidityInMilliseconds;
+
+    /**
+     * Token timestamp validity to future in milliseconds, checked before validating the token.
+     */
+    @Value("${powerauth.service.token.timestamp.forward.validity}")
+    @Min(0)
+    private long tokenTimestampForwardValidityInMilliseconds;
 
     /**
      * Master DB encryption key.
@@ -203,6 +256,12 @@ public class PowerAuthServiceConfiguration {
      */
     @Value("${powerauth.service.secureVault.enableBiometricAuthentication}")
     private boolean secureVaultBiometricAuthenticationEnabled;
+
+    /**
+     * Length of OTP generated for proximity check.
+     */
+    @Value("${powerauth.service.proximity-check.otp.length:8}")
+    private int proximityCheckOtpLength;
 
     /**
      * Prepare and configure object mapper.
@@ -442,6 +501,54 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
+     * Get offline signature factor-related component length.
+     * @return Factor-related component length.
+     */
+    public int getOfflineSignatureComponentLength() {
+        return offlineSignatureComponentLength;
+    }
+
+    /**
+     * Set offline signature factor-related component length.
+     * @param offlineSignatureComponentLength Factor-related component length.
+     */
+    public void setOfflineSignatureComponentLength(int offlineSignatureComponentLength) {
+        this.offlineSignatureComponentLength = offlineSignatureComponentLength;
+    }
+
+    /**
+     * Get expiration for ECIES and MAC token requests in milliseconds.
+     * @return Expiration for ECIES and MAC token requests in milliseconds.
+     */
+    public int getRequestExpirationInMilliseconds() {
+        return requestExpirationInMilliseconds;
+    }
+
+    /**
+     * Set expiration for ECIES and MAC token requests in milliseconds.
+     * @param requestExpirationInMilliseconds Expiration for ECIES and MAC token requests in milliseconds.
+     */
+    public void setRequestExpirationInMilliseconds(int requestExpirationInMilliseconds) {
+        this.requestExpirationInMilliseconds = requestExpirationInMilliseconds;
+    }
+
+    /**
+     * Get expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * @return Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     */
+    public int getRequestExpirationInMillisecondsExtended() {
+        return requestExpirationInMillisecondsExtended;
+    }
+
+    /**
+     * Set expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * @param requestExpirationInMillisecondsExtended Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     */
+    public void setRequestExpirationInMillisecondsExtended(int requestExpirationInMillisecondsExtended) {
+        this.requestExpirationInMillisecondsExtended = requestExpirationInMillisecondsExtended;
+    }
+
+    /**
      * Get whether HTTP proxy is enabled.
      * @return Whether HTTP proxy is enabled.
      */
@@ -522,22 +629,6 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get HTTP connection timeout.
-     * @return HTTP connection timeout.
-     */
-    public Integer getHttpConnectionTimeout() {
-        return httpConnectionTimeout;
-    }
-
-    /**
-     * Set HTTP connection timeout.
-     * @param httpConnectionTimeout HTTP connection timeout.
-     */
-    public void setHttpConnectionTimeout(Integer httpConnectionTimeout) {
-        this.httpConnectionTimeout = httpConnectionTimeout;
-    }
-
-    /**
      * Get the token timestamp validity in milliseconds.
      * @return Token timestamp validity in milliseconds.
      */
@@ -551,6 +642,22 @@ public class PowerAuthServiceConfiguration {
      */
     public void setTokenTimestampValidityInMilliseconds(long tokenTimestampValidityInMilliseconds) {
         this.tokenTimestampValidityInMilliseconds = tokenTimestampValidityInMilliseconds;
+    }
+
+    /**
+     * Get the token timestamp validity into future in milliseconds.
+     * @return Token timestamp validity into future in milliseconds
+     */
+    public long getTokenTimestampForwardValidityInMilliseconds() {
+        return tokenTimestampForwardValidityInMilliseconds;
+    }
+
+    /**
+     * Set the token timestamp validity into future in milliseconds.
+     * @param tokenTimestampForwardValidityInMilliseconds Token timestamp validity into future in milliseconds
+     */
+    public void setTokenTimestampForwardValidityInMilliseconds(long tokenTimestampForwardValidityInMilliseconds) {
+        this.tokenTimestampForwardValidityInMilliseconds = tokenTimestampForwardValidityInMilliseconds;
     }
 
     /**
@@ -600,5 +707,29 @@ public class PowerAuthServiceConfiguration {
      */
     public void setSecureVaultBiometricAuthenticationEnabled(boolean secureVaultBiometricAuthenticationEnabled) {
         this.secureVaultBiometricAuthenticationEnabled = secureVaultBiometricAuthenticationEnabled;
+    }
+
+    /**
+     * Get length of OTP generated for proximity check.
+     *
+     * @return length of OTP
+     */
+    public int getProximityCheckOtpLength() {
+        return proximityCheckOtpLength;
+    }
+
+    /**
+     * Set length of OTP generated for proximity check.
+     *
+     * @param proximityCheckOtpLength length of OTP
+     */
+    public void setProximityCheckOtpLength(int proximityCheckOtpLength) {
+        this.proximityCheckOtpLength = proximityCheckOtpLength;
+    }
+
+    @PostConstruct
+    void validate() {
+        Assert.state(proximityCheckOtpLength >= MINIMAL_PROXIMITY_CHECK_OTP_LENGTH,
+                "Proximity check OTP length %d is smaller then required minimal %d".formatted(proximityCheckOtpLength, MINIMAL_PROXIMITY_CHECK_OTP_LENGTH));
     }
 }

@@ -17,8 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import com.wultra.security.powerauth.client.v3.KeyValueMap;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
+import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
+
+import java.util.List;
 
 /**
  * Data related to both online and offline signatures.
@@ -28,10 +30,11 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 public class SignatureData {
 
     private byte[] data;
+    private SignatureRequestData requestData;
     private String signature;
     private String signatureVersion;
-    private PowerAuthSignatureFormat signatureFormat;
-    private KeyValueMap additionalInfo;
+    private SignatureConfiguration signatureConfiguration;
+    private List<KeyValue> additionalInfo;
     private Integer forcedSignatureVersion;
 
     /**
@@ -41,21 +44,22 @@ public class SignatureData {
     }
 
     /**
-     * Signature data constructur.
+     * Signature data constructor.
      * @param data Signed data.
      * @param signature Data signature.
-     * @param signatureFormat Format of signature
+     * @param signatureConfiguration Format of signature with associated parameters.
      * @param signatureVersion Version of requested signature
      * @param additionalInfo Additional information related to the signature.
      * @param forcedSignatureVersion Forced signature version during upgrade.
      */
-    public SignatureData(byte[] data, String signature, PowerAuthSignatureFormat signatureFormat, String signatureVersion, KeyValueMap additionalInfo, Integer forcedSignatureVersion) {
+    public SignatureData(byte[] data, String signature, SignatureConfiguration signatureConfiguration, String signatureVersion, List<KeyValue> additionalInfo, Integer forcedSignatureVersion) {
         this.data = data;
         this.signature = signature;
         this.signatureVersion = signatureVersion;
-        this.signatureFormat = signatureFormat;
+        this.signatureConfiguration = signatureConfiguration;
         this.additionalInfo = additionalInfo;
         this.forcedSignatureVersion = forcedSignatureVersion;
+        this.requestData = SignatureDataParser.parseRequestData(data);
     }
 
     /**
@@ -83,18 +87,18 @@ public class SignatureData {
     }
 
     /**
-     * Get signature format.
-     * @return Signature format.
+     * Get signature configuration.
+     * @return Signature configuration.
      */
-    public PowerAuthSignatureFormat getSignatureFormat() {
-        return signatureFormat;
+    public SignatureConfiguration getSignatureConfiguration() {
+        return signatureConfiguration;
     }
 
     /**
      * Get additional information related to the signature.
      * @return Additional information related to the signature.
      */
-    public KeyValueMap getAdditionalInfo() {
+    public List<KeyValue> getAdditionalInfo() {
         return additionalInfo;
     }
 
@@ -105,4 +109,38 @@ public class SignatureData {
     public Integer getForcedSignatureVersion() {
         return forcedSignatureVersion;
     }
+
+    /**
+     * Get parsed method from request data.
+     * @return Method from request data.
+     */
+    public String getRequestMethod() {
+        if (requestData == null) {
+            return null;
+        }
+        return requestData.getMethod();
+    }
+
+    /**
+     * Get parsed URI identifier from request data.
+     * @return URI identifier from request data.
+     */
+    public String getRequestUriId() {
+        if (requestData == null) {
+            return null;
+        }
+        return requestData.getUriIdentifier();
+    }
+
+    /**
+     * Get parsed request body from request data.
+     * @return Request body from request data.
+     */
+    public String getRequestBody() {
+        if (requestData == null) {
+            return null;
+        }
+        return requestData.getBody();
+    }
+
 }

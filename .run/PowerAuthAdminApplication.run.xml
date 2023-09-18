@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="PowerAuthAdminApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" />
+    <option name="ACTIVE_PROFILES" value="dev" />
     <option name="DEBUG_MODE" value="true" />
     <module name="powerauth-admin" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="io.getlime.security.app.admin.PowerAuthAdminApplication" />

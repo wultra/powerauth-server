@@ -26,24 +26,33 @@ The PowerAuth Server uses the following public configuration properties:
 
 ## Activation and Cryptography Configuration
 
-| Property | Default | Note |
-|---|---|---|
-| `powerauth.service.crypto.activationValidityInMilliseconds` | `120000` | Default activation validity period in miliseconds |
-| `powerauth.service.crypto.signatureMaxFailedAttempts` | `5` | Maximum failed attempts for signature verification |
-| `powerauth.service.token.timestamp.validity` | `7200000` |PowerAuth MAC token timestamp validity in miliseconds |
-| `powerauth.service.recovery.maxFailedAttempts` | `5` | Maximum failed attempts for activation recovery |
-| `powerauth.service.secureVault.enableBiometricAuthentication` | `false` | Whether biometric authentication is enabled when accessing Secure Vault |
-| `powerauth.server.db.master.encryption.key` | `_empty_` | Master DB encryption key for decryption of server private key in database |
+| Property                                                           | Default   | Note                                                                                    |
+|--------------------------------------------------------------------|-----------|-----------------------------------------------------------------------------------------|
+| `powerauth.service.crypto.activationValidityInMilliseconds`        | `120000`  | Default activation validity period in miliseconds                                       |
+| `powerauth.service.crypto.signatureMaxFailedAttempts`              | `5`       | Maximum failed attempts for signature verification                                      |
+| `powerauth.service.crypto.requestExpirationInMilliseconds`         | `60000`   | Expiration for ECIES and MAC token requests.                                            |
+| `powerauth.service.crypto.requestExpirationInMillisecondsExtended` | `7200000` | Expiration for ECIES and MAC token requests for protocol versions 3.1 and older.        |
+| `powerauth.service.crypto.replayVerificationService`               | `default` | Request replay verification service, options: `default`, `none`                         |
+| `powerauth.service.token.timestamp.validity`                       | `7200000` | PowerAuth MAC token timestamp validity in miliseconds                                   |
+| `powerauth.service.recovery.maxFailedAttempts`                     | `5`       | Maximum failed attempts for activation recovery                                         |
+| `powerauth.service.secureVault.enableBiometricAuthentication`      | `false`   | Whether biometric authentication is enabled when accessing Secure Vault                 |
+| `powerauth.server.db.master.encryption.key`                        | `_empty_` | Master DB encryption key for decryption of server private key in database               |
+| `powerauth.service.proximity-check.otp.length`                     | `8`       | Length of OTP generated for proximity check                                             |
+| `powerauth.service.pagination.default-page-size`                   | `100`     | The default number of records per page when paginated results are requested             |
+| `powerauth.service.pagination.default-page-number`                 | `0`       | The default page number when paginated results are requested. Page numbers start from 0 |
 
 ## HTTP Configuration
 
-| Property | Default | Note |
-|---|---|---|
-| `powerauth.service.http.proxy.enabled` | `false` | Whether proxy is enabled for outgoing HTTP requests |
-| `powerauth.service.http.proxy.host` | `127.0.0.1` | Proxy host for outgoing HTTP requests |
-| `powerauth.service.http.proxy.port` | `8080` | Proxy port for outgoing HTTP requests |
-| `powerauth.service.http.proxy.username` | `_emtpy_` | Proxy username for outgoing HTTP requests |
-| `powerauth.service.http.proxy.password` | `_empty_` | Proxy password for outgoing HTTP requests |
+| Property                                          | Default     | Note                                                |
+|---------------------------------------------------|-------------|-----------------------------------------------------|
+| `powerauth.service.http.proxy.enabled`            | `false`     | Whether proxy is enabled for outgoing HTTP requests |
+| `powerauth.service.http.proxy.host`               | `127.0.0.1` | Proxy host for outgoing HTTP requests               |
+| `powerauth.service.http.proxy.port`               | `8080`      | Proxy port for outgoing HTTP requests               |
+| `powerauth.service.http.proxy.username`           | `_emtpy_`   | Proxy username for outgoing HTTP requests           |
+| `powerauth.service.http.proxy.password`           | `_empty_`   | Proxy password for outgoing HTTP requests           |
+| `powerauth.service.http.connection.timeout`       | `5s`        | HTTP connection timeout                             |
+| `powerauth.service.http.response.timeout`         | `60s`       | HTTP response timeout                               |
+| `powerauth.service.http.connection.max-idle-time` | `200s`      | HTTP max idle time                                  |
 
 ## Spring Vault Configuration
 

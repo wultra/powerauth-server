@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--  Scheduler lock table - https://github.com/lukas-krecan/ShedLock#configure-lockprovider  -->
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.4.x/20230322-shedlock.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="shedlock"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table shedlock</comment>
+        <createTable tableName="shedlock">
+            <column name="name" type="varchar(64)">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="lock_until" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="locked_at" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="locked_by" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+        <!-- no rollback on purpose, the shedlock table may be shared across several components -->
+        <rollback />
+    </changeSet>
+</databaseChangeLog>

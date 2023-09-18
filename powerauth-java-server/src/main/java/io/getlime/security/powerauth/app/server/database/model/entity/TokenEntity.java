@@ -17,7 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -31,6 +33,7 @@ import java.util.Objects;
 @Table(name = "pa_token")
 public class TokenEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 4283363212931780053L;
 
     @Id

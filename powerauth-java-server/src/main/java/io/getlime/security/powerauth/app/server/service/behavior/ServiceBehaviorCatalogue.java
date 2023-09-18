@@ -17,8 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior;
 
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.EncryptionServiceBehavior;
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.v3.*;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -66,8 +65,6 @@ public class ServiceBehaviorCatalogue {
     private OperationServiceBehavior operationServiceBehavior;
 
     private OperationTemplateServiceBehavior operationTemplateServiceBehavior;
-
-    private ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2;
 
     @Autowired
     public void setActivationServiceBehavior(@Lazy ActivationServiceBehavior activationServiceBehavior) {
@@ -164,11 +161,6 @@ public class ServiceBehaviorCatalogue {
         this.operationTemplateServiceBehavior = operationTemplateServiceBehavior;
     }
 
-    @Autowired
-    public void setServiceBehaviorCatalogueV2(@Lazy ServiceBehaviorCatalogueV2 serviceBehaviorCatalogueV2) {
-        this.serviceBehaviorCatalogueV2 = serviceBehaviorCatalogueV2;
-    }
-
     public ActivationServiceBehavior getActivationServiceBehavior() {
         return activationServiceBehavior;
     }
@@ -241,55 +233,4 @@ public class ServiceBehaviorCatalogue {
         return operationTemplateServiceBehavior;
     }
 
-    public ServiceBehaviorCatalogueV2 v2() {
-        return serviceBehaviorCatalogueV2;
-    }
-
-    @Component
-    public static class ServiceBehaviorCatalogueV2 {
-
-        private io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.ActivationServiceBehavior activationServiceBehavior;
-
-        private io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.EncryptionServiceBehavior encryptionServiceBehavior;
-
-        private io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.VaultUnlockServiceBehavior vaultUnlockServiceBehavior;
-
-        private io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.TokenBehavior tokenBehavior;
-
-        @Autowired
-        public void setActivationServiceBehavior(io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.ActivationServiceBehavior activationServiceBehavior) {
-            this.activationServiceBehavior = activationServiceBehavior;
-        }
-
-        @Autowired
-        public void setEncryptionServiceBehavior(EncryptionServiceBehavior encryptionServiceBehavior) {
-            this.encryptionServiceBehavior = encryptionServiceBehavior;
-        }
-
-        @Autowired
-        public void setVaultUnlockServiceBehavior(io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.VaultUnlockServiceBehavior vaultUnlockServiceBehavior) {
-            this.vaultUnlockServiceBehavior = vaultUnlockServiceBehavior;
-        }
-
-        @Autowired
-        public void setTokenBehavior(io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.TokenBehavior tokenBehavior) {
-            this.tokenBehavior = tokenBehavior;
-        }
-
-        public io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.ActivationServiceBehavior getActivationServiceBehavior() {
-            return activationServiceBehavior;
-        }
-
-        public io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.EncryptionServiceBehavior getEncryptionServiceBehavior() {
-            return encryptionServiceBehavior;
-        }
-
-        public io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.TokenBehavior getTokenBehavior() {
-            return tokenBehavior;
-        }
-
-        public io.getlime.security.powerauth.app.server.service.behavior.tasks.v2.VaultUnlockServiceBehavior getVaultUnlockServiceBehavior() {
-            return vaultUnlockServiceBehavior;
-        }
-    }
 }

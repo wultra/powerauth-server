@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -27,6 +28,7 @@ import java.io.Serializable;
  */
 public class CallbackUrlAuthenticationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -8747094084020567435L;
 
     private Certificate certificate;
@@ -69,6 +71,7 @@ public class CallbackUrlAuthenticationEntity implements Serializable {
      */
     public static class Certificate implements Serializable {
 
+        @Serial
         private static final long serialVersionUID = -3123397103510377094L;
 
         protected boolean enabled;
@@ -159,6 +162,7 @@ public class CallbackUrlAuthenticationEntity implements Serializable {
      */
     public static class HttpBasic implements Serializable {
 
+        @Serial
         private static final long serialVersionUID = 4449327538548490513L;
 
         protected boolean enabled;

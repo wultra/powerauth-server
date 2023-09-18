@@ -17,9 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -32,16 +34,17 @@ import java.util.Objects;
 @Table(name = "pa_recovery_config")
 public class RecoveryConfigEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -6333795855186594869L;
 
     @Id
-    @SequenceGenerator(name = "pa_recovery_config", sequenceName = "pa_recovery_config_seq")
+    @SequenceGenerator(name = "pa_recovery_config", sequenceName = "pa_recovery_config_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_config")
     @Column(name = "id")
     private Long id;
 
     @Column(name = "activation_recovery_enabled", nullable = false)
-    private Boolean activationRecoveryEnabled;
+    private boolean activationRecoveryEnabled;
 
     @Column(name = "recovery_postcard_enabled", nullable = false)
     private Boolean recoveryPostcardEnabled;
@@ -82,7 +85,7 @@ public class RecoveryConfigEntity implements Serializable {
      * @param recoveryPostcardPublicKeyBase64 Base64 encoded local recovery postcard public key.
      * @param remotePostcardPublicKeyBase64 Base64 encoded remote recovery postcard public key.
      */
-    public RecoveryConfigEntity(Long id, Boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64, EncryptionMode recoveryPrivateKeyEncryptionBase64) {
+    public RecoveryConfigEntity(Long id, boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64, EncryptionMode recoveryPrivateKeyEncryptionBase64) {
         this.id = id;
         this.activationRecoveryEnabled = activationRecoveryEnabled;
         this.recoveryPostcardEnabled = recoveryPostcardEnabled;
@@ -112,10 +115,10 @@ public class RecoveryConfigEntity implements Serializable {
     }
 
     /**
-     * Get whether activation recovery is enabled.
+     * Return whether activation recovery is enabled.
      * @return Whether activation recovery is enabled.
      */
-    public Boolean getActivationRecoveryEnabled() {
+    public boolean isActivationRecoveryEnabled() {
         return activationRecoveryEnabled;
     }
 

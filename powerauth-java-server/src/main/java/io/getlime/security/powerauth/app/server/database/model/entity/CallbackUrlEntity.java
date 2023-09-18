@@ -17,13 +17,13 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.Application;
-import io.getlime.security.powerauth.app.server.converter.v3.CallbackAttributeConverter;
-import io.getlime.security.powerauth.app.server.converter.v3.CallbackAuthenticationConverter;
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlType;
-import io.getlime.security.powerauth.app.server.database.model.CallbackUrlTypeConverter;
+import io.getlime.security.powerauth.app.server.converter.CallbackAttributeConverter;
+import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +37,7 @@ import java.util.Objects;
 @Table(name = "pa_application_callback")
 public class CallbackUrlEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 3372029113954119581L;
 
     @Id
@@ -180,8 +181,7 @@ public class CallbackUrlEntity implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof CallbackUrlEntity)) return false;
-        CallbackUrlEntity that = (CallbackUrlEntity) o;
+        if (!(o instanceof final CallbackUrlEntity that)) return false;
         return application.equals(that.application) && name.equals(that.getName()) && type == that.type && callbackUrl.equals(that.callbackUrl);
     }
 

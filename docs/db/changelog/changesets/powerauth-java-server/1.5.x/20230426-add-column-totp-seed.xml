@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230426-add-column-totp-seed" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_operation" columnName="totp_seed"/>
+            </not>
+        </preConditions>
+        <comment>Add totp_seed column</comment>
+        <addColumn tableName="pa_operation">
+            <column name="totp_seed" type="varchar(24)" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.5.x/20230426-add-column-totp-seed" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_operation_template" columnName="proximity_check_enabled"/>
+            </not>
+        </preConditions>
+        <comment>Add proximity_check_enabled column</comment>
+        <addColumn tableName="pa_operation_template">
+            <column name="proximity_check_enabled" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false" />
+            </column>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

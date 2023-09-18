@@ -17,16 +17,19 @@
  */
 package io.getlime.security.powerauth.app.server.service.exceptions;
 
+import java.io.Serial;
+
 /**
- * Exception for any SOAP interface error. Note that this type of exception doesn't cause the transaction rollback.
+ * Exception for any service interface error. Note that this type of exception doesn't cause the transaction rollback.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 public class GenericServiceException extends Exception {
 
+    @Serial
     private static final long serialVersionUID = 7185138483623356230L;
 
-    private String code;
+    private final String code;
     private final String localizedMessage;
 
     /**
@@ -49,15 +52,6 @@ public class GenericServiceException extends Exception {
      */
     public String getCode() {
         return code;
-    }
-
-    /**
-     * Get the error message
-     *
-     * @param code Error message
-     */
-    public void setCode(String code) {
-        this.code = code;
     }
 
     @Override

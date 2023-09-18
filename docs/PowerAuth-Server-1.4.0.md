@@ -71,4 +71,11 @@ ALTER TABLE pa_operation_template
 
 ```sql
 CREATE INDEX pa_activation_expiration on pa_activation (activation_status, timestamp_activation_expire);
+CREATE INDEX pa_operation_status_exp ON pa_operation(timestamp_expires, status);
+```
+
+### Dropped Database Indexes
+
+```sql
+DROP INDEX audit_param_value;
 ```

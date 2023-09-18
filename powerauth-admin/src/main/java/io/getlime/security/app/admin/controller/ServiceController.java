@@ -41,16 +41,19 @@ public class ServiceController {
     private static final Logger logger = LoggerFactory.getLogger(ServiceController.class);
 
     private final ApplicationConfiguration applicationConfiguration;
-    private final BuildProperties buildProperties;
+    private BuildProperties buildProperties;
 
     /**
      * Service constructor.
      * @param applicationConfiguration PowerAuth admin configuration.
-     * @param buildProperties Build info.
      */
     @Autowired
-    public ServiceController(ApplicationConfiguration applicationConfiguration, BuildProperties buildProperties) {
+    public ServiceController(ApplicationConfiguration applicationConfiguration) {
         this.applicationConfiguration = applicationConfiguration;
+    }
+
+    @Autowired(required = false)
+    public void setBuildProperties(BuildProperties buildProperties) {
         this.buildProperties = buildProperties;
     }
 

@@ -17,7 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -31,10 +33,11 @@ import java.util.Objects;
 @Table(name = "pa_application_version")
 public class ApplicationVersionEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -5107229264389219556L;
 
     @Id
-    @SequenceGenerator(name = "pa_application_version", sequenceName = "pa_application_version_seq")
+    @SequenceGenerator(name = "pa_application_version", sequenceName = "pa_application_version_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_version")
     @Column(name = "id")
     private Long rid;

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <include file="20230316-add-column-signature-data-body.xml" relativeToChangelogFile="true" />
+    <include file="20230323-add-column-signature-metadata.xml" relativeToChangelogFile="true" />
+    <include file="20230426-add-column-totp-seed.xml" relativeToChangelogFile="true" />
+    <include file="20230723-add-table-unique-value.xml" relativeToChangelogFile="true" />
+    <include file="20230822-add-tag-1.5.0.xml" relativeToChangelogFile="true" />
+
+</databaseChangeLog>

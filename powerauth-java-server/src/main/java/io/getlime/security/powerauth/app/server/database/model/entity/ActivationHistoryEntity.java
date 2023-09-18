@@ -17,10 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.model.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
@@ -34,10 +35,11 @@ import java.util.Objects;
 @Table(name = "pa_activation_history")
 public class ActivationHistoryEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -8232192926562045920L;
 
     @Id
-    @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq")
+    @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_activation_history")
     @Column(name = "id")
     private Long id;

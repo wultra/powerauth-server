@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
 import java.util.List;
 
@@ -38,7 +38,7 @@ public class OfflineSignatureRequest {
     }
 
     /**
-     * Offline signature request constructur.
+     * Offline signature request constructor.
      * @param signatureData Data related to the signature.
      * @param signatureTypes Signature types to try to use during verification of signature.
      */

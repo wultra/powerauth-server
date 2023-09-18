@@ -18,10 +18,11 @@
 
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.SignatureTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Objects;
@@ -35,10 +36,11 @@ import java.util.Objects;
 @Table(name = "pa_operation_template")
 public class OperationTemplateEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -1534031615106111156L;
 
     @Id
-    @SequenceGenerator(name = "pa_operation_template", sequenceName = "pa_operation_template_seq")
+    @SequenceGenerator(name = "pa_operation_template", sequenceName = "pa_operation_template_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_operation_template")
     @Column(name = "id")
     private Long id;
@@ -65,11 +67,8 @@ public class OperationTemplateEntity implements Serializable {
     @Column(name = "risk_flags")
     private String riskFlags;
 
-    /**
-     * Default constructor.
-     */
-    public OperationTemplateEntity() {
-    }
+    @Column(name = "proximity_check_enabled")
+    private boolean proximityCheckEnabled;
 
     /**
      * Get template ID.
@@ -201,22 +200,40 @@ public class OperationTemplateEntity implements Serializable {
         this.riskFlags = riskFlags;
     }
 
+    /**
+     * Get whether proximity check enabled.
+     *
+     * @return Proximity check enabled.
+     */
+    public boolean isProximityCheckEnabled() {
+        return proximityCheckEnabled;
+    }
+
+    /**
+     * Set whether proximity check enabled.
+     *
+     * @param proximityCheckEnabled Proximity check enabled.
+     */
+    public void setProximityCheckEnabled(boolean proximityCheckEnabled) {
+        this.proximityCheckEnabled = proximityCheckEnabled;
+    }
+
     @Override public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof OperationTemplateEntity)) return false;
-        OperationTemplateEntity that = (OperationTemplateEntity) o;
+        if (!(o instanceof final OperationTemplateEntity that)) return false;
         return templateName.equals(that.templateName)
                 && operationType.equals(that.operationType)
                 && Objects.equals(dataTemplate, that.dataTemplate)
                 && Arrays.equals(signatureType, that.signatureType)
                 && Objects.equals(maxFailureCount, that.maxFailureCount)
                 && Objects.equals(expiration, that.expiration)
-                && Objects.equals(riskFlags, that.riskFlags);
+                && Objects.equals(riskFlags, that.riskFlags)
+                && Objects.equals(proximityCheckEnabled, that.proximityCheckEnabled);
     }
 
     @Override public int hashCode() {
         int result = Objects.hash(
-                templateName, operationType, dataTemplate, maxFailureCount, expiration, riskFlags
+                templateName, operationType, dataTemplate, maxFailureCount, expiration, riskFlags, proximityCheckEnabled
         );
         result = 31 * result + Arrays.hashCode(signatureType);
         return result;
@@ -232,6 +249,7 @@ public class OperationTemplateEntity implements Serializable {
                 ", maxFailureCount=" + maxFailureCount +
                 ", expiration=" + expiration +
                 ", riskFlags=" + riskFlags +
+                ", proximityCheckEnabled=" + proximityCheckEnabled +
                 '}';
     }
 }

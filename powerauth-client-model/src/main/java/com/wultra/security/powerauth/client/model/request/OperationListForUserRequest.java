@@ -18,38 +18,21 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
+import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Request model for operation list for user.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationListForUserRequest {
 
     private String userId;
-    private List<String> applications;
+    private List<String> applications = new ArrayList<>();
     private String activationFlag;
 
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public List<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplicationId(List<String> applications) {
-        this.applications = applications;
-    }
-
-    public String getActivationFlag() {
-        return activationFlag;
-    }
-
-    public void setActivationFlag(String activationFlag) {
-        this.activationFlag = activationFlag;
-    }
 }

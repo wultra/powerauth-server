@@ -18,8 +18,7 @@ Running PowerAuth server from console using the `java -jar` command is not suppo
 ## Supported Java Runtime Versions
 
 The following Java runtime versions are supported:
-- Java 8 (LTS release)
-- Java 11 (LTS release)
+
 - Java 17 (LTS release)
 
 Powerauth Server may run on other Java versions, however we do not perform extensive testing with non-LTS releases.
@@ -37,7 +36,6 @@ PowerAuth supports any JPA2 compatible database, and it is tested with:
 
 - Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
-- MySQL 5.5 or newer
 
 Note that MSSQL database is not supported due to unreliable row locking.
 

@@ -18,66 +18,25 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import lombok.Data;
+
+import java.util.*;
 
 /**
  * Request method for creating a new operation.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationCreateRequest {
 
     private String userId;
-    private List<String> applications;
+    private List<String> applications = new ArrayList<>();
     private String activationFlag;
     private String templateName;
+    private Date timestampExpires;
     private String externalId;
     private final Map<String, String> parameters = new LinkedHashMap<>();
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public List<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(List<String> applications) {
-        this.applications = applications;
-    }
-
-    public String getActivationFlag() {
-        return activationFlag;
-    }
-
-    public void setActivationFlag(String activationFlag) {
-        this.activationFlag = activationFlag;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
+    private Boolean proximityCheckEnabled;
 
 }

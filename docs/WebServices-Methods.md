@@ -1,17 +1,10 @@
 # Web Services - Methods
 
-This is a reference documentation of the methods published by the PowerAuth Server REST / SOAP services.
+This is a reference documentation of the methods published by the PowerAuth Server REST services.
 
 The REST service methods can be browsed using Swagger on deployed PowerAuth instance:
 
 - http://localhost:8080/powerauth-java-server/swagger-ui.html
-
-SOAP service methods are defined in the WSDL files (deprecated):
-
-- [serviceV3.wsdl](http://localhost:8080/powerauth-java-server/soap/serviceV3.wsdl)
-- [serviceV2.wsdl](http://localhost:8080/powerauth-java-server/soap/serviceV2.wsdl)
-
-The versioning of SOAP methods is described in chapter [Web Services - Method Compatibility](WebServices-Method-Compatibility.md).
 
 The following `v3` methods are published using the service:
 
@@ -240,6 +233,7 @@ REST endpoint: `POST /rest/v3/application/detail`
 | `String`  | `applicationVersionId` | An identifier of an application version |
 | `String`  | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String`  | `applicationSecret` | An application secret associated with this version |
+| `String`  | `mobileSdkConfig` | PowerAuth mobile SDK configuration which includes encoded master public key, application key and application secret |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
 
 ### Method 'lookupApplicationByAppKey'
@@ -425,6 +419,8 @@ REST endpoint: `POST /rest/v3/activation/prepare`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -479,6 +475,8 @@ REST endpoint: `POST /rest/v3/activation/create`
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `String` | `activationOtp` | Optional activation OTP |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -579,27 +577,30 @@ REST endpoint: `POST /rest/v3/activation/status`
 
 `GetActivationStatusResponse`
 
-| Type                      | Name | Description |
-|---------------------------|------|-------------|
-| `String`                  | `activationId` | An identifier of an activation |
-| `ActivationStatus`        | `activationStatus` | An activation status |
-| `ActivationOtpValidation` | `activationOtpValidation` | An activation OTP validation mode |
-| `String`                  | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `String`                  | `activationName` | An activation name |
-| `String`                  | `userId` | An identifier of a user |
-| `String`                  | `extras` | Any custom attributes |
-| `String`                  | `platform` | User device platform, e.g. `ios`, `android`, `hw` and `unknown` |
-| `String`                  | `deviceInfo` | Information about user device, e.g. `iPhone12,3` |
-| `String[]`                | `activationFlags` | Activation flags |
-| `String`                  | `applicationId` | An identifier fo an application |
-| `DateTime`                | `timestampCreated` | A timestamp when the activation was created |
-| `DateTime`                | `timestampLastUsed` | A timestamp when the activation was last used |
-| `DateTime`                | `timestampLastChange` | A timestamp of last activation status change |
-| `String`                  | `encryptedStatusBlob` | An encrypted blob with status information |
-| `String`                  | `activationCode` | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
-| `String`                  | `activationSignature` | A signature of the activation data using Master Server Private Key |
-| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification |
-| `Long`                    | `version` | Activation version |
+| Type                      | Name                         | Description                                                                               |
+|---------------------------|------------------------------|-------------------------------------------------------------------------------------------|
+| `String`                  | `activationId`               | An identifier of an activation                                                            |
+| `ActivationStatus`        | `activationStatus`           | An activation status                                                                      |
+| `ActivationOtpValidation` | `activationOtpValidation`    | An activation OTP validation mode                                                         |
+| `String`                  | `blockedReason`              | Reason why activation was blocked (default: NOT_SPECIFIED)                                |
+| `String`                  | `activationName`             | An activation name                                                                        |
+| `String`                  | `userId`                     | An identifier of a user                                                                   |
+| `String`                  | `extras`                     | Any custom attributes                                                                     |
+| `String`                  | `platform`                   | User device platform, e.g. `ios`, `android`, `hw` and `unknown`                           |
+| `String`                  | `deviceInfo`                 | Information about user device, e.g. `iPhone12,3`                                          |
+| `Long`                    | `failedAttempts`             | Information about number of failed attempts.                                              |
+| `Long`                    | `maxFailedAttempts`          | Information about maximum number of allowed failed attempts.                              |
+| `String[]`                | `activationFlags`            | Activation flags                                                                          |
+| `String`                  | `applicationId`              | An identifier fo an application                                                           |
+| `String[]`                | `applicationRoles`           | Application roles                                                                         |
+| `DateTime`                | `timestampCreated`           | A timestamp when the activation was created                                               |
+| `DateTime`                | `timestampLastUsed`          | A timestamp when the activation was last used                                             |
+| `DateTime`                | `timestampLastChange`        | A timestamp of last activation status change                                              |
+| `String`                  | `encryptedStatusBlob`        | An encrypted blob with status information                                                 |
+| `String`                  | `activationCode`             | Activation code which uses 4x5 characters in Base32 encoding separated by a "-" character |
+| `String`                  | `activationSignature`        | A signature of the activation data using Master Server Private Key                        |
+| `String`                  | `devicePublicKeyFingerprint` | Numeric fingerprint of device public key, used during activation for key verification     |
+| `Long`                    | `version`                    | Activation version                                                                        |
 
 ### Method 'removeActivation'
 
@@ -640,6 +641,8 @@ REST endpoint: `POST /rest/v3/activation/list`
 |----------|------|-------------|
 | `String` | `userId` | An identifier of a user |
 | `String` | `applicationId` | An identifier of an application |
+| `Integer` | `pageNumber` | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0. |
+| `Integer` | `pageSize` | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 100. |
 
 #### Response
 
@@ -858,10 +861,14 @@ REST endpoint: `POST /rest/v3/signature/offline/personalized/create`
 
 `CreatePersonalizedOfflineSignaturePayloadRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation |
+| Type      | Name                        | Description                                                                                                                                                                                   |
+|-----------|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `activationId`              | An identifier of an activation                                                                                                                                                                |
+| `String`  | `data`                      | Data for the signature, for normalized value see the [Offline Signatures QR code](https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md) documentation |
+| `String`  | `nonce`                     | Optional nonce, otherwise it will be generated by PowerAuth server. Needed to be set when proximity check is enabled.                                                                         |
+| `Object`  | `proximityCheck`            | Optional parameters for proximity TOTP.                                                                                                                                                       |
+| `String`  | `proximityCheck.seed`       | Seed for TOTP, base64 encoded.                                                                                                                                                                |
+| `Integer` | `proximityCheck.stepLength` | Length of the TOTP step in seconds.                                                                                                                                                           |
 
 #### Response
 
@@ -906,12 +913,16 @@ REST endpoint: `POST /rest/v3/signature/offline/verify`
 
 `VerifyOfflineSignatureRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `data` | Base64 encoded data for the signature, normalized data for signatures |
-| `String` | `signature` | Actual signature value |
-| `boolean` | `biometryAllowed` | Whether biometry is allowed in offline mode |
+| Type      | Name                        | Description                                                                     |
+|-----------|-----------------------------|---------------------------------------------------------------------------------|
+| `String`  | `activationId`              | An identifier of an activation                                                  |
+| `String`  | `data`                      | Base64 encoded data for the signature, normalized data for signatures           |
+| `String`  | `signature`                 | Actual signature value                                                          |
+| `boolean` | `biometryAllowed`           | Whether biometry is allowed in offline mode                                     |
+| `Object`  | `proximityCheck`            | Optional parameters for proximity TOTP.                                         |
+| `String`  | `proximityCheck.seed`       | Seed for TOTP, base64 encoded.                                                  |
+| `Integer` | `proximityCheck.stepLength` | Length of the TOTP step in seconds.                                             |
+| `Integer` | `proximityCheck.stepCount`  | Count how many backward steps should be validated. Zero means current one only. |
 
 #### Response
 
@@ -949,6 +960,8 @@ REST endpoint: `POST /rest/v3/token/create`
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (an empty JSON object):
 ```json
@@ -988,6 +1001,8 @@ REST endpoint: `POST /rest/v3/token/validate`
 | `String` | `tokenDigest` | Digest computed during the token based authentication. |
 | `String` | `nonce` | Cryptographic nonce. Random 16B, Base64 encoded. |
 | `Long` | `timestamp` | Token digest timestamp, Unix timestamp format. |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 #### Response
 
@@ -1048,6 +1063,7 @@ REST endpoint: `POST /rest/v3/vault/unlock`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data:
 ```json
@@ -1453,6 +1469,9 @@ REST endpoint: `POST /rest/v3/ecies/decryptor`
 | `String` | `activationId` | A UUID4 identifier of an activation (used only in activation scope, use null value in application scope) |
 | `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
 | `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
+| `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 #### Response
 
@@ -1485,6 +1504,8 @@ REST endpoint: `POST /rest/v3/upgrade/start`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` |  Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 #### Response
 
@@ -1559,7 +1580,7 @@ REST endpoint: `POST /rest/v3/recovery/create`
 
 ### Method `confirmRecoveryCode`
 
-Confirm a recovery code recieved using recovery postcard.
+Confirm a recovery code received using recovery postcard.
 
 #### Request
 
@@ -1575,6 +1596,8 @@ REST endpoint: `POST /rest/v3/recovery/confirm`
 | `String` | `encryptedData` | Base64 encoded encrypted data for ECIES |
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
+| `String` | `protocolVersion` | Cryptography protocol version |
 
 ECIES request should contain following data (as JSON):
  - `recoveryCode` - Recovery code which should be confirmed in this request.
@@ -1677,6 +1700,8 @@ REST endpoint: `POST /rest/v3/activation/recovery/create`
 | `String` | `mac` | Base64 encoded mac of key and data for ECIES |
 | `String` | `nonce` | Base64 encoded nonce for IV derivation for ECIES |
 | `String` | `activationOtp` | Optional activation OTP |
+| `String` | `protocolVersion` | Cryptography protocol version |
+| `Long` | `timestamp` | Unix timestamp in milliseconds for ECIES |
 
 ECIES request should contain following data (as JSON):
  - `activationName` - Visual representation of the device, for example "Johnny's iPhone" or "Samsung Galaxy S".
@@ -1966,13 +1991,15 @@ REST endpoint: `POST /rest/v3/operation/create`
 
 `OperationCreateRequest`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | An identifier of an application |
-| `String`              | `templateName` | Name of the template used for creating the operation |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
+| Type                  | Name                    | Description                                                                                      |
+|-----------------------|-------------------------|--------------------------------------------------------------------------------------------------|
+| `String`              | `userId`                | The identifier of the user                                                                       |
+| `String`              | `applicationId`         | An identifier of an application                                                                  |
+| `String`              | `templateName`          | Name of the template used for creating the operation                                             |
+| `Date`                | `timestampExpires`      | Timestamp of when the operation will expire, overrides expiration period from operation template |
+| `String`              | `externalId`            | External identifier of the operation, i.e., ID from transaction system                           |
+| `Map<String, String>` | `parameters`            | Parameters of the operation, will be filled to the operation data                                |
+| `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used. Overrides configuration from operation template.         |
 
 #### Response
 
@@ -2014,23 +2041,24 @@ REST endpoint: `POST /rest/v3/operation/detail`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
 
 ### Method 'findPendingOperationsForUser'
 
@@ -2054,23 +2082,24 @@ REST endpoint: `POST /rest/v3/operation/list/pending`
 
 A collection of records with the following structure:
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
 
 ### Method 'findAllOperationsForUser'
 
@@ -2198,13 +2227,14 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationApproveRequest`
 
-| Type            | Name | Description |
-|-----------------|------|-------------|
-| `String`        | `operationId` | The identifier of the operation |
-| `String`        | `userId` | The identifier of the user who attempts to approve the operation |
-| `String`        | `applicationId` | The identifier of the application |
-| `String`        | `data` | Operation data that the user attempts to approve |
-| `SignatureType` | `signatureType` | Signature type used when approving the operation |
+| Type                  | Name             | Description                                                      |
+|-----------------------|------------------|------------------------------------------------------------------|
+| `String`              | `operationId`    | The identifier of the operation                                  |
+| `String`              | `userId`         | The identifier of the user who attempts to approve the operation |
+| `String`              | `applicationId`  | The identifier of the application                                |
+| `String`              | `data`           | Operation data that the user attempts to approve                 |
+| `SignatureType`       | `signatureType`  | Signature type used when approving the operation                 |
+| `Map<String, String>` | `additionalData` | Operation context, such as the IP address of the caller          |
 
 #### Response
 
@@ -2338,30 +2368,32 @@ REST endpoint: `POST /rest/v3/operation/template/create`
 
 `OperationTemplateCreateRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `templateName` | The name of the operation template |
-| `String` | `operationType` | The type of the operation that is created based on the template |
-| `String` | `dataTemplate` | Template for the operation data |
-| `List<SignatureType>` | `signatureType` | Allowed signature types |
-| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
-| `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                      | Description                                                                      |
+|-----------------------|---------------------------|----------------------------------------------------------------------------------|
+| `String`              | `templateName`            | The name of the operation template                                               |
+| `String`              | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`            | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`           | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for the operation                     |
+| `Long`                | `expiration`              | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `proximity_check_enabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 #### Response
 
 `OperationTemplateDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `id` | Operation template ID |
-| `String` | `templateName` | The name of the operation template |
-| `String` | `operationType` | The type of the operation that is created based on the template |
-| `String` | `dataTemplate` | Template for the operation data |
-| `List<SignatureType>` | `signatureType` | Allowed signature types |
-| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
-| `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                      | Description                                                                      |
+|-----------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                | `id`                      | Operation template ID                                                            |
+| `String`              | `templateName`            | The name of the operation template                                               |
+| `String`              | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`            | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`           | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for th operation                      |
+| `Long`                | `expiration`              | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `proximity_check_enabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
   
 ### Method 'getAllTemplates'
 
@@ -2379,16 +2411,17 @@ _Empty request body_
 
 Collection of items with the following structure:
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `id` | Operation template ID |
-| `String` | `templateName` | The name of the operation template |
-| `String` | `operationType` | The type of the operation that is created based on the template |
-| `String` | `dataTemplate` | Template for the operation data |
-| `List<SignatureType>` | `signatureType` | Allowed signature types |
-| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
-| `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                   | Description                                                                      |
+|-----------------------|------------------------|----------------------------------------------------------------------------------|
+| `Long`                | `id`                   | Operation template ID                                                            |
+| `String`              | `templateName`         | The name of the operation template                                               |
+| `String`              | `operationType`        | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`         | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`        | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`      | How many failed attempts should be allowed for th operation                      |
+| `Long`                | `expiration`           | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`            | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `enableProximityCheck` | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 ### Method 'getTemplateDetail'
 
@@ -2408,16 +2441,17 @@ REST endpoint: `POST /rest/v3/operation/template/detail`
 
 `OperationTemplateDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `id` | Operation template ID |
-| `String` | `templateName` | The name of the operation template |
-| `String` | `operationType` | The type of the operation that is created based on the template |
-| `String` | `dataTemplate` | Template for the operation data |
-| `List<SignatureType>` | `signatureType` | Allowed signature types |
-| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
-| `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                      | Description                                                                      |
+|-----------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                | `id`                      | Operation template ID                                                            |
+| `String`              | `templateName`            | The name of the operation template                                               |
+| `String`              | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`            | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`           | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for th operation                      |
+| `Long`                | `expiration`              | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `proximity_check_enabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 ### Method 'updateOperationTemplate'
 
@@ -2429,15 +2463,16 @@ REST endpoint: `POST /rest/v3/operation/template/update`
 
 `OperationTemplateUpdateRequest`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `Long` | `id` | Operation template ID |
-| `String` | `operationType` | The type of the operation that is created based on the template |
-| `String` | `dataTemplate` | Template for the operation data |
-| `List<SignatureType>` | `signatureType` | Allowed signature types |
-| `Long` | `maxFailureCount` | How many failed attempts should be allowed for th operation |
-| `Long` | `expiration` | Operation expiration period in seconds |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                      | Description                                                                      |
+|-----------------------|---------------------------|----------------------------------------------------------------------------------|
+| `Long`                | `id`                      | Operation template ID                                                            |
+| `String`              | `operationType`           | The type of the operation that is created based on the template                  |
+| `String`              | `dataTemplate`            | Template for the operation data                                                  |
+| `List<SignatureType>` | `signatureType`           | Allowed signature types                                                          |
+| `Long`                | `maxFailureCount`         | How many failed attempts should be allowed for th operation                      |
+| `Long`                | `expiration`              | Operation expiration period in seconds                                           |
+| `String`              | `riskFlags`               | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `boolean`             | `proximity_check_enabled` | Whether proximity check is enabled and TOTP seed should be generated.            |
 
 #### Response
 
@@ -2471,197 +2506,6 @@ REST endpoint: `POST /rest/v3/operation/template/remove`
 #### Response
 
 _empty response_
-
-## Activation management (v2)
-
-### Method 'prepareActivation' (v2)
-
-Assure a key exchange between PowerAuth Client and PowerAuth Server and prepare the activation with given ID to be committed. Only activations in CREATED state can be prepared. After successfully calling this method, activation is in PENDING_COMMIT state.
-
-#### Request
-
-REST endpoint: `POST /rest/v2/activation/prepare`
-
-`PrepareActivationRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationIdShort` | A short (5+5 characters from Base32) identifier of an activation |
-| `String` | `activationName` | A visual identifier of the activation |
-| `String` | `extras` | Any extra parameter object |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedDevicePublicKey` | A base64 encoded encrypted device public key |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `applicationSignature` | An application signature |
-
-#### Response
-
-`PrepareActivationResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | A UUID4 identifier of an activation |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
-| `String` | `encryptedServerPublicKeySignature` | A base64 encoded signature of the activation data using Master Server Private Key |
-
-### Method 'createActivation' (v2)
-
-Create an activation for given user and application, with provided maximum number of failed attempts and expiration timestamp, including a key exchange between PowerAuth Client and PowerAuth Server. Prepare the activation to be committed later. After successfully calling this method, activation is in PENDING_COMMIT state.
-
-#### Request
-
-REST endpoint: `POST /rest/v2/activation/create`
-
-`CreateActivationRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | User ID |
-| `String` | `applicationId` | Application ID |
-| `DateTime` | `timestampActivationExpire` | Timestamp after when the activation cannot be completed anymore |
-| `Long` | `maxFailureCount` | How many failures are allowed for this activation |
-| `String` | `identity` | An identity identifier string for this activation |
-| `String` | `activationName` | A visual identifier of the activation |
-| `String` | `extras` | Any extra parameter object |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedDevicePublicKey` | A base64 encoded encrypted device public key |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `applicationSignature` | An application signature |
-
-#### Response
-
-`CreateActivationResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | A UUID4 identifier of an activation |
-| `String` | `activationNonce` | A base64 encoded activation nonce |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-| `String` | `encryptedServerPublicKey` | A base64 encoded encrypted server public key |
-| `String` | `encryptedServerPublicKeySignature` | A base64 encoded signature of the activation data using Master Server Private Key |
-
-## Token Based Authentication (v2)
-
-### Method 'createToken' (v2)
-
-Create a new token for the simple token-based authentication.
-
-#### Request
-
-REST endpoint: `POST /rest/v2/token/create`
-
-`CreateTokenRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation. |
-| `SignatureType` | `signatureType` | Type of the signature (factors) used for token creation. |
-| `String` | `ephemeralPublicKey` | A base64 encoded ephemeral public key for ECIES |
-
-#### Response
-
-`CreateTokenResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `mac` | Data MAC value, Base64 encoded. |
-| `String` | `encryptedData` | Encrypted data, Base64 encoded bytes. |
-
-## Vault unlocking (v2)
-
-### Method 'vaultUnlock' (v2)
-
-Get the encrypted vault unlock key upon successful authentication using PowerAuth Signature.
-
-#### Request
-
-REST endpoint: `POST /rest/v2/vault/unlock`
-
-`VaultUnlockRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `data` | Base64 encoded data for the signature |
-| `String` | `signature` | PowerAuth signature |
-| `SignatureType` | `signatureType` | PowerAuth signature type |
-| `String` | `reason` | Reason why vault is being unlocked (default: NOT_SPECIFIED) |
-
-#### Response
-
-`VaultUnlockResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | An identifier of an activation |
-| `String` | `userId` | An identifier of a user |
-| `ActivationStatus` | `activationStatus` | An activation status |
-| `String` | `blockedReason` | Reason why activation was blocked (default: NOT_SPECIFIED) |
-| `Integer` | `remainingAttempts` | How many attempts are left for authentication using this activation |
-| `Boolean` | `signatureValid` | Indicates if the signature was correctly validated or if it was invalid (incorrect) |
-| `String` | `encryptedVaultEncryptionKey` | Encrypted key for vault unlocking |
-
-## End-To-End Encryption (v2)
-
-Methods used for establishing a context for end-to-end encryption.
-
-### Method 'getNonPersonalizedEncryptionKey' (v2)
-
-Establishes a context required for performing a non-personalized (application specific) end-to-end encryption.
-
-#### Request
-
-REST endpoint: `POST /rest/v2/application/encryption/key/create`
-
-`GetNonPersonalizedEncryptionKeyRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `sessionIndex` | Random session index used to generate session based key, in case `null` is provided, `encryptionKeyIndex` will be autogenerated in response. |
-| `String` | `ephemeralPublicKey` | Ephemeral public key used for deriving a shared secret. |
-
-#### Response
-
-`GetNonPersonalizedEncryptionKeyResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `applicationKey` | A key (identifier) of an application, associated with given application version |
-| `String` | `applicationId` | Application ID associated with provided version  |
-| `String` | `encryptionKeyIndex` | Session index used to generate session based key. |
-| `String` | `encryptionKey` | Derived key used as a base for ad-hoc key derivation. |
-| `String` | `ephemeralPublicKey` | Ephemeral public key used for deriving a shared secret. |
-
-### Method 'getPersonalizedEncryptionKey' (v2)
-
-Establishes a context required for performing a personalized (activation specific) end-to-end encryption.
-
-#### Request
-
-REST endpoint: `POST /rest/v2/activation/encryption/key/create`
-
-`GetPersonalizedEncryptionKeyRequest`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | Activation ID  |
-| `String` | `sessionIndex` | Random session index used to generate session based key, in case `null` is provided, `encryptionKeyIndex` will be autogenerated in response. |
-
-#### Response
-
-`GetPersonalizedEncryptionKeyResponse`
-
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `activationId` | Activation ID  |
-| `String` | `encryptionKeyIndex` | Session index used to generate session based key. |
-| `String` | `encryptionKey` | Derived key used as a base for ad-hoc key derivation. |
 
 ## Used enums
 

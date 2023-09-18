@@ -17,39 +17,15 @@
  */
 package io.getlime.security.powerauth.app.server.database.model;
 
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+
 /**
  * Compound value of recovery PUK. PUK hash can be stored encrypted or decrypted based on key encryption mode.
  *
+ * @param encryptionMode Key encryption mode.
+ * @param pukHash        PUK hash, encrypted if speciefied by key encryption mode.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class RecoveryPuk {
+public record RecoveryPuk(EncryptionMode encryptionMode, String pukHash) {
 
-    private final EncryptionMode encryptionMode;
-    private final String pukHash;
-
-    /**
-     * Constructor with key encryption mode and PUK hash.
-     * @param encryptionMode Key encryption mode.
-     * @param pukHash PUK hash, encrypted if speciefied by key encryption mode.
-     */
-    public RecoveryPuk(EncryptionMode encryptionMode, String pukHash) {
-        this.encryptionMode = encryptionMode;
-        this.pukHash = pukHash;
-    }
-
-    /**
-     * Get key encryption mode.
-     * @return Key encryption mode.
-     */
-    public EncryptionMode getEncryptionMode() {
-        return encryptionMode;
-    }
-
-    /**
-     * Get PUK hash, encrypted if speciefied by key encryption mode.
-     * @return PUK hash, encrypted if speciefied by key encryption mode.
-     */
-    public String getPukHash() {
-        return pukHash;
-    }
 }

@@ -17,9 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import io.getlime.security.powerauth.app.server.database.model.ApplicationRoleConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.ApplicationRoleConverter;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,10 +35,11 @@ import java.util.Objects;
 @Table(name = "pa_application")
 public class ApplicationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1295434927785255417L;
 
     @Id
-    @SequenceGenerator(name = "pa_application", sequenceName = "pa_application_seq")
+    @SequenceGenerator(name = "pa_application", sequenceName = "pa_application_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application")
     @Column(name = "id")
     private Long rid;
@@ -52,7 +54,7 @@ public class ApplicationEntity implements Serializable {
     @OneToMany(mappedBy = "application")
     private final List<ApplicationVersionEntity> versions = new ArrayList<>();
 
-    @OneToMany(mappedBy = "callbackUrl")
+    @OneToMany(mappedBy = "application")
     private final List<CallbackUrlEntity> callbacks = new ArrayList<>();
 
     @OneToMany(mappedBy = "application")
@@ -138,6 +140,14 @@ public class ApplicationEntity implements Serializable {
      */
     public List<CallbackUrlEntity> getCallbacks() {
         return callbacks;
+    }
+
+    /**
+     * Get the list of recovery codes.
+     * @return List of recovery codes.
+     */
+    public List<RecoveryCodeEntity> getRecoveryCodes() {
+        return recoveryCodes;
     }
 
     @Override

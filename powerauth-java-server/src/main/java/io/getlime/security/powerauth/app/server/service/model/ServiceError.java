@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Class for representing a SOAP service errors. It has static string fields
+ * Class for representing service errors. It has static string fields
  * for all possible error codes and list that registers the error code.
  * The {@link io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider}
  * class is then used for looking up the displayable error message.
@@ -112,7 +112,7 @@ public class ServiceError {
 
     /**
      * Token with given token ID does not exist.
-     *
+     * <p>
      * The error code is obsolete, because the error is handled using regular response instead of an exception.
      */
     public static final String INVALID_TOKEN = "ERR0016";
@@ -252,9 +252,14 @@ public class ServiceError {
      */
     public static final String DUPLICATE_APPLICATION = "ERR0043";
 
+    /**
+     * Token timestamp is too much in the future.
+     */
+    public static final String TOKEN_TIMESTAMP_TOO_IN_FUTURE = "ERR0044";
+
 
     public static List<String> allCodes() {
-        List<String> list = new ArrayList<>(43);
+        List<String> list = new ArrayList<>(44);
         list.add(UNKNOWN_ERROR);
         list.add(NO_USER_ID);
         list.add(NO_APPLICATION_ID);
@@ -299,6 +304,7 @@ public class ServiceError {
         list.add(OPERATION_ERROR);
         list.add(OPERATION_TEMPLATE_ERROR);
         list.add(DUPLICATE_APPLICATION);
+        list.add(TOKEN_TIMESTAMP_TOO_IN_FUTURE);
         return list;
     }
 

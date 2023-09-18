@@ -17,8 +17,13 @@
 package io.getlime.security.app.admin.controller;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.app.admin.converter.SignatureAuditItemConverter;
 import io.getlime.security.app.admin.model.SignatureAuditItem;
 import io.getlime.security.app.admin.util.QRUtil;
@@ -26,7 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.security.Principal;
@@ -68,16 +76,16 @@ public class ActivationController {
                                  @RequestParam(value = "showAllRecoveryCodes", required = false) Boolean showAllRecoveryCodes, Map<String, Object> model) {
         try {
             if (userId != null) {
-                List<GetActivationListForUserResponse.Activations> activationList = client.getActivationListForUser(userId);
-                activationList.sort((o1, o2) -> o2.getTimestampLastUsed().compare(o1.getTimestampLastUsed()));
+                List<Activation> activationList = client.getActivationListForUser(userId);
+                activationList.sort((o1, o2) -> o2.getTimestampLastUsed().compareTo(o1.getTimestampLastUsed()));
 
                 model.put("activations", activationList);
                 model.put("userId", userId);
                 model.put("showAllActivations", showAllActivations);
                 model.put("showAllRecoveryCodes", showAllRecoveryCodes);
 
-                List<GetApplicationListResponse.Applications> applications = client.getApplicationList();
-                model.put("applications", applications);
+                final GetApplicationListResponse applications = client.getApplicationList();
+                model.put("applications", applications.getApplications());
 
                 LookupRecoveryCodesResponse response = client.lookupRecoveryCodes(userId, null, null, null, null);
                 model.put("recoveryCodes", response.getRecoveryCodes());
@@ -164,9 +172,9 @@ public class ActivationController {
             LookupRecoveryCodesResponse response = client.lookupRecoveryCodes(activation.getUserId(), activation.getActivationId(), activation.getApplicationId(), null, null);
             model.put("recoveryCodes", response.getRecoveryCodes());
 
-            List<SignatureAuditResponse.Items> auditItems = client.getSignatureAuditLog(activation.getUserId(), application.getApplicationId(), startingDate, endingDate);
+            final List<com.wultra.security.powerauth.client.model.entity.SignatureAuditItem> auditItems = client.getSignatureAuditLog(activation.getUserId(), application.getApplicationId(), startingDate, endingDate);
             List<SignatureAuditItem> auditItemsFixed = new ArrayList<>();
-            for (SignatureAuditResponse.Items item : auditItems) {
+            for (com.wultra.security.powerauth.client.model.entity.SignatureAuditItem item : auditItems) {
                 if (item.getActivationId().equals(activation.getActivationId())) {
                     auditItemsFixed.add(signatureAuditItemConverter.fromSignatureAuditResponseItem(item));
                 }
@@ -176,8 +184,8 @@ public class ActivationController {
             }
             model.put("signatures", auditItemsFixed);
 
-            List<ActivationHistoryResponse.Items> activationHistoryItems = client.getActivationHistory(activation.getActivationId(), startingDate, endingDate);
-            List<ActivationHistoryResponse.Items> trimmedActivationHistoryItems;
+            List<ActivationHistoryItem> activationHistoryItems = client.getActivationHistory(activation.getActivationId(), startingDate, endingDate);
+            List<ActivationHistoryItem> trimmedActivationHistoryItems;
             if (activationHistoryItems.size() > 100) {
                 trimmedActivationHistoryItems = activationHistoryItems.subList(0, 100);
             } else {
@@ -223,21 +231,16 @@ public class ActivationController {
                 return "redirect:/activation/list?userId=" + userId;
             }
             switch (activationOtpValidation) {
-                case "NONE":
-                    response = client.initActivation(userId, applicationId);
-                    break;
-
-                case "ON_KEY_EXCHANGE":
-                    response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_KEY_EXCHANGE, activationOtp);
-                    break;
-
-                case "ON_COMMIT":
-                    response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_COMMIT, activationOtp);
-                    break;
-
-                default:
+                case "NONE" ->
+                        response = client.initActivation(userId, applicationId);
+                case "ON_KEY_EXCHANGE" ->
+                        response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_KEY_EXCHANGE, activationOtp);
+                case "ON_COMMIT" ->
+                        response = client.initActivation(userId, applicationId, ActivationOtpValidation.ON_COMMIT, activationOtp);
+                default -> {
                     redirectAttributes.addFlashAttribute("error", "Invalid OTP validation mode.");
                     return "redirect:/activation/list?userId=" + userId;
+                }
             }
 
 

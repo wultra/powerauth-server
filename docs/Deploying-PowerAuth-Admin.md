@@ -2,7 +2,7 @@
 
 This chapter explains how to deploy PowerAuth Admin.
 
-PowerAuth Admin is a web administration console for the [PowerAuth Server](https://github.com/wultra/powerauth-server).
+PowerAuth Admin is a web administration console for the [PowerAuth Server](./Readme.md).
 It allows an easy application setup, an activation management and integration configurations.
 
 <!-- begin box warning -->
@@ -11,7 +11,7 @@ Important note: Since PowerAuth Admin is a very simple application with direct a
 
 ## Downloading PowerAuth Admin
 
-You can download the latest `powerauth-admin.war` at the [PowerAuth Admin releases page](https://github.com/wultra/powerauth-admin/releases).
+You can download the latest `powerauth-admin.war` at the [PowerAuth Server releases page](https://github.com/wultra/powerauth-server/releases).
 
 ## Configuring PowerAuth Admin
 
@@ -23,7 +23,7 @@ powerauth.service.url=http://localhost:8080/powerauth-java-server/rest
 
 ## Setting Up REST Service Credentials
 
-_(optional)_ In case PowerAuth Server uses a [restricted access flag in the server configuration](https://github.com/wultra/powerauth-server/blob/develop/docs/Deploying-PowerAuth-Server.md#enabling-powerauth-server-security), you need to configure credentials for the PowerAuth Admin so that it can connect to the REST service:
+_(optional)_ In case PowerAuth Server uses a [restricted access flag in the server configuration](./Deploying-PowerAuth-Server.md#enabling-powerauth-server-security), you need to configure credentials for the PowerAuth Admin so that it can connect to the REST service:
 
 ```sh
 powerauth.service.security.clientToken=

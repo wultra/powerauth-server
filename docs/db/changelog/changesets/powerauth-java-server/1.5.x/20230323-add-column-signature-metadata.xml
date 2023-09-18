@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-column-signature-metadata" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_signature_audit" columnName="signature_metadata"/>
+            </not>
+        </preConditions>
+        <comment>Add signature_metadata column of type Clob</comment>
+        <addColumn tableName="pa_signature_audit">
+            <column name="signature_metadata" type="clob"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

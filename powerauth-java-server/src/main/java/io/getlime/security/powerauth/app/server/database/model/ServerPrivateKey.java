@@ -17,39 +17,15 @@
  */
 package io.getlime.security.powerauth.app.server.database.model;
 
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+
 /**
  * Compound value of server private key. Key can be stored encrypted or decrypted based on key encryption mode.
  *
+ * @param encryptionMode         Key encryption mode.
+ * @param serverPrivateKeyBase64 Base64-encoded server private key.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class ServerPrivateKey {
+public record ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
 
-    private final EncryptionMode encryptionMode;
-    private final String serverPrivateKeyBase64;
-
-    /**
-     * Constructor with key encryption mode and base64-encoded key.
-     * @param encryptionMode Key encryption mode.
-     * @param serverPrivateKeyBase64 Base64-encoded server private key.
-     */
-    public ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
-        this.encryptionMode = encryptionMode;
-        this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
-    }
-
-    /**
-     * Get key encryption mode.
-     * @return Key encryption mode.
-     */
-    public EncryptionMode getEncryptionMode() {
-        return encryptionMode;
-    }
-
-    /**
-     * Get Base64-encoded server private key.
-     * @return Base64-encoded server private key.
-     */
-    public String getServerPrivateKeyBase64() {
-        return serverPrivateKeyBase64;
-    }
 }

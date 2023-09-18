@@ -17,7 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.model.signature;
 
-import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
 /**
  * Request to verify online signature.
@@ -36,7 +36,7 @@ public class OnlineSignatureRequest {
     }
 
     /**
-     * Online signature request constructur.
+     * Online signature request constructor.
      * @param signatureData Data related to the signature.
      * @param signatureType Signature type to use during verification of signature.
      */

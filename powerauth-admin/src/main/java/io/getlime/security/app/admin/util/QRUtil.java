@@ -16,25 +16,31 @@
 
 package io.getlime.security.app.admin.util;
 
-import com.google.common.io.BaseEncoding;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 /**
  * Utility class for generating QR codes.
  *
  * @author Petr Dvorak
  */
+@Slf4j
 public class QRUtil {
+
+    private QRUtil() {
+        throw new IllegalStateException("Should not be instantiated");
+    }
 
     /**
      * Encode the string data into a QR code of a given size (size = width = height)
@@ -55,9 +61,9 @@ public class QRUtil {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(image, "png", baos);
             byte[] bytes = baos.toByteArray();
-            return "data:image/png;base64," + BaseEncoding.base64().encode(bytes);
+            return "data:image/png;base64," + Base64.getEncoder().encodeToString(bytes);
         } catch (WriterException | IOException e) {
-            e.printStackTrace();
+            logger.warn("Problem to encode the string data into a QR code", e);
         }
         return null;
     }

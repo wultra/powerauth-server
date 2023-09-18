@@ -1,16 +1,20 @@
 package io.getlime.security.powerauth.app.server;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
-import com.wultra.security.powerauth.client.v3.*;
-import io.getlime.security.powerauth.app.server.converter.v3.XMLGregorianCalendarConverter;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.response.CreateActivationResponse;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse;
+import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
+import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
-import io.getlime.security.powerauth.app.server.service.v3.PowerAuthService;
-import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesCryptogram;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.model.EciesSharedInfo1;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Disabled;
@@ -21,23 +25,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.security.interfaces.ECPublicKey;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
-@Disabled("The test requires running MySQL database.")
+@Disabled("The test requires running database.")
 public class VerifySignatureConcurrencyTest {
 
     private PowerAuthService powerAuthService;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
 
     @Autowired
     public void setPowerAuthService(PowerAuthService powerAuthService) {
@@ -65,44 +65,50 @@ public class VerifySignatureConcurrencyTest {
         PublicKey publicKey = keyPair.getPublic();
         byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
 
-        // Compute application signature
-        PowerAuthClientActivation clientActivation = new PowerAuthClientActivation();
-
         // Generate expiration time
         Calendar expiration = Calendar.getInstance();
         expiration.add(Calendar.MINUTE, 5);
 
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName("test_activation");
-        requestL2.setDevicePublicKey(BaseEncoding.base64().encode(publicKeyBytes));
+        requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
 
         GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
         GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
 
-        ECPublicKey masterPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(detailResponse.getMasterPublicKey()));
+        PublicKey masterPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
 
-        EciesEncryptor eciesEncryptor = new EciesFactory().getEciesEncryptorForApplication(masterPublicKey, createApplicationVersionResponse.getApplicationSecret().getBytes(StandardCharsets.UTF_8), EciesSharedInfo1.ACTIVATION_LAYER_2);
+        final String version = "3.2";
+        final String applicationKey = createApplicationVersionResponse.getApplicationKey();
+        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+                EncryptorId.ACTIVATION_LAYER_2,
+                new EncryptorParameters(version, applicationKey, null),
+                new ClientEncryptorSecrets(masterPublicKey, createApplicationVersionResponse.getApplicationSecret())
+        );
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         new ObjectMapper().writeValue(baos, requestL2);
-        EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest(baos.toByteArray(), true);
+        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(baos.toByteArray());
 
         // Create activation
         CreateActivationRequest createActivationRequest = new CreateActivationRequest();
         createActivationRequest.setUserId("test");
-        createActivationRequest.setTimestampActivationExpire(XMLGregorianCalendarConverter.convertFrom(expiration.getTime()));
+        createActivationRequest.setTimestampActivationExpire(expiration.getTime());
         createActivationRequest.setMaxFailureCount(5L);
         createActivationRequest.setApplicationKey(createApplicationVersionResponse.getApplicationKey());
-        createActivationRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
-        createActivationRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        createActivationRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
-        createActivationRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
+        createActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        createActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        createActivationRequest.setMac(encryptedRequest.getMac());
+        createActivationRequest.setNonce(encryptedRequest.getNonce());
+        createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        createActivationRequest.setProtocolVersion(version);
         CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
 
         // Commit activation
         CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
         commitActivationRequest.setActivationId(createActivationResponse.getActivationId());
-        CommitActivationResponse commitActivationResponse = powerAuthService.commitActivation(commitActivationRequest);
+        powerAuthService.commitActivation(commitActivationRequest);
 
         // Finally here comes the test - create two threads and verify signatures in parallel
         Runnable verifySignatureRunnable = () -> {
@@ -113,7 +119,7 @@ public class VerifySignatureConcurrencyTest {
                 verifySignatureRequest.setSignatureType(SignatureType.KNOWLEDGE);
                 verifySignatureRequest.setData("data");
                 verifySignatureRequest.setSignature("bad signature");
-                VerifySignatureResponse response = powerAuthService.verifySignature(verifySignatureRequest);
+                powerAuthService.verifySignature(verifySignatureRequest);
             } catch (Exception e) {
                 e.printStackTrace();
             }

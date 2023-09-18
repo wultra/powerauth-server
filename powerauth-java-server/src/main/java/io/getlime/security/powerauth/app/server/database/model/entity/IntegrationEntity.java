@@ -17,10 +17,12 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -33,6 +35,7 @@ import java.io.Serializable;
 @Table(name = "pa_integration")
 public class IntegrationEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 3372029113954119581L;
 
     @Id
