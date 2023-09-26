@@ -126,7 +126,12 @@ PostgreSQL JDBC driver is already included in the WAR file.
 Oracle JDBC driver remains optional and must be added to your deployment if desired.
 
 
-## RESTful integration Changes
+## REST API Changes
+
+The endpoint for PowerAuth token verification ([see documentation](./WebServices-Methods.md#method-validatetoken)), has been updated. A new parameter `protocolVersion` has been added. In case you invoke this endpoint from your backends, use need to use the version from PowerAuth HTTP header `X-PowerAuth-Token` received from mobile application, which contains the version which needs to be set as the new `protocolVersion` parameter. 
+
+
+## RESTful Integration Changes
 
 PowerAuth restful integration libraries in version `1.5.0` have the following important changes:
 
