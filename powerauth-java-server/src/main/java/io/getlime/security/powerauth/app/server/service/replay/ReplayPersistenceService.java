@@ -89,6 +89,6 @@ public class ReplayPersistenceService {
      */
     public void deleteExpiredUniqueValues() {
         int expiredCount = uniqueValueRepository.deleteAllByTimestampExpiresBefore(Date.from(Instant.now()));
-        logger.info("Removed {} expired unique values", expiredCount);
+        logger.debug("Removed {} expired unique values", expiredCount);
     }
 }
