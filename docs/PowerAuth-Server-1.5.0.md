@@ -27,7 +27,7 @@ This release adds support for PowerAuth protocol version 3.2, which adds several
 
 ### Simplified Configuration of PowerAuth Mobile SDK. 
 
-You can use the `mobileSdkConfig` value from `POST /rest/v3/application/detail`, see [REST API documentation](https://github.com/wultra/powerauth-server/blob/develop/docs/WebServices-Methods.md#method-getapplicationdetail). This value contains encoded master public key, application key and application secret.
+You can use the `mobileSdkConfig` value from `POST /rest/v3/application/detail`, see [REST API documentation](WebServices-Methods.md#method-getapplicationdetail). This value contains encoded master public key, application key and application secret.
 
 Starting with version 1.5.x you can use this single configuration Base-64 encoded string for configuring the PowerAuth mobile SDK instead of using three separated configuration parameters.
 
