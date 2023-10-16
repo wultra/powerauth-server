@@ -162,6 +162,13 @@
             <artifactId>logstash-logback-encoder</artifactId>
         </dependency>
 
+        <!-- Standalone run -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-tomcat</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
         <!-- Monitoring -->
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -218,17 +225,6 @@
     </build>
 
     <profiles>
-        <profile>
-            <id>standalone</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-tomcat</artifactId>
-                    <scope>provided</scope>
-                </dependency>
-            </dependencies>
-        </profile>
-
         <profile>
             <id>liquibase</id>
             <dependencies>
