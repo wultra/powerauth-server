@@ -96,19 +96,8 @@ The following `v3` methods are published using the service:
     - [getAllTemplates](#method-getalltemplates)
     - [getTemplateDetail](#method-gettemplatedetail)
     - [updateOperationTemplate](#method-updateoperationtemplate)
-    - [removeOperationTemplate](#method-removeoperationtemplate) 
+    - [removeOperationTemplate](#method-removeoperationtemplate)
 
-The following `v2` methods are published using the service:
-- Activation Management
-    - [prepareActivation (v2)](#method-prepareactivation-v2)
-    - [createActivation (v2)](#method-createactivation-v2)
-- Token Based Authentication
-    - [createToken (v2)](#method-createtoken-v2)
-- Vault Unlocking
-    - [vaultUnlock (v2)](#method-vaultunlock-v2)
-- End-To-End Encryption
-    - [getNonPersonalizedEncryptionKey (v2)](#method-getnonpersonalizedencryptionkey-v2)
-    - [getPersonalizedEncryptionKey (v2)](#method-getpersonalizedencryptionkey-v2)
 
 ## System status
 
