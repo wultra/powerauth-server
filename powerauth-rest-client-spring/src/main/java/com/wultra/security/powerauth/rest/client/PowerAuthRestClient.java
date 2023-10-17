@@ -400,7 +400,8 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public List<Activation> getActivationListForUser(String userId) throws PowerAuthClientException {
-        final GetActivationListForUserRequest request = GetActivationListForUserRequest.builder().userId(userId).build();
+        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+        request.setUserId(userId);
         return getActivationListForUser(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP).getActivations();
     }
 
