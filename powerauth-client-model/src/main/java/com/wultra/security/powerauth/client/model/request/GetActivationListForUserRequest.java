@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
@@ -29,6 +30,7 @@ import lombok.Data;
  */
 @Data
 @Builder
+@AllArgsConstructor
 public class GetActivationListForUserRequest {
 
     private String userId;
