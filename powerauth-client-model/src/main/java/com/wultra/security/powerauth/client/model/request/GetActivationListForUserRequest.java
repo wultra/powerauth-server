@@ -19,7 +19,9 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import jakarta.validation.constraints.Min;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Model class representing request for activation list for a given user.
@@ -27,6 +29,8 @@ import lombok.Data;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class GetActivationListForUserRequest {
 
     private String userId;
