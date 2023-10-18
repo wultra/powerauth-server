@@ -45,7 +45,7 @@ public class OperationTemplateEntity implements Serializable {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "template_name", nullable=false)
+    @Column(name = "template_name", nullable=false, unique = true)
     private String templateName;
 
     @Column(name = "operation_type", nullable=false)

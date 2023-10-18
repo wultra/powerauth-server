@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1"  logicalFilePath="powerauth-java-server/1.5.x/20231018-add-constraint-operation-template-name.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="pa_operation_template" />
+            <columnExists tableName="pa_operation_template" columnName="template_name" />
+        </preConditions>
+        <comment>Add unique constraint to pa_operation_template.template_name</comment>
+        <addUniqueConstraint tableName="pa_operation_template" columnNames="template_name" />
+    </changeSet>
+</databaseChangeLog>
