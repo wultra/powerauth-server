@@ -159,6 +159,13 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- API -->
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <scope>provided</scope>
+            </dependency>
+
             <!-- Standalone run -->
             <dependency>
                 <groupId>org.apache.tomcat.embed</groupId>
