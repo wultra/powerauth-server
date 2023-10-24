@@ -42,7 +42,7 @@ class OperationTemplateServiceBehaviorTest {
     void testDuplicateOperationTemplateCreation() throws Exception {
         final String templateName = "login";
 
-        service.createOperationTemplate(createOperationTemplateCreateRequest("login"));
+        service.createOperationTemplate(createOperationTemplateCreateRequest(templateName));
         assertFalse(service.getAllTemplates().isEmpty());
 
         final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->

@@ -8,6 +8,5 @@
     <include file="20230426-add-column-totp-seed.xml" relativeToChangelogFile="true" />
     <include file="20230723-add-table-unique-value.xml" relativeToChangelogFile="true" />
     <include file="20230822-add-tag-1.5.0.xml" relativeToChangelogFile="true" />
-    <include file="20231018-add-constraint-operation-template-name.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
