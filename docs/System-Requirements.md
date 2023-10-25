@@ -27,10 +27,12 @@ Powerauth Server may run on other Java versions, however we do not perform exten
 
 PowerAuth Server primary installation method is running the WAR package in the Java VM environment. This chapter provides detailed system requirements.
 
-It is suggested to deploy PowerAuth in its own Java Servlet Container. PowerAuth Server is currently tested with following container technologies:
+It is suggested to deploy PowerAuth in its own Java Servlet Container.
+PowerAuth Server is currently tested with following container technologies supporting Jakarta EE 9:
 
-- Apache Tomcat 9.x, or
-- JBoss Wildfly 9 or newer
+- Apache Tomcat 10.x or newer
+- Wildfly 23 or newer
+- JBoss EAP 8 or newer
 
 PowerAuth supports any JPA2 compatible database, and it is tested with:
 
