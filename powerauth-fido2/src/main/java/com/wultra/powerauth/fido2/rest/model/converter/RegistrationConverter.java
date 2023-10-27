@@ -19,7 +19,6 @@
 package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.AaguidList;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
@@ -44,7 +43,6 @@ import java.util.Map;
 public class RegistrationConverter {
 
     private final AaguidList aaguidRegistry = new AaguidList();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public AuthenticatorDetail convert(RegistrationChallenge challenge, RegistrationRequest requestObject, byte[] aaguid, byte[] publicKey) {
         try {
@@ -70,7 +68,7 @@ public class RegistrationConverter {
         }
     }
 
-    private String convertExtras(RegistrationRequest requestObject) throws JsonProcessingException {
+    private Map<String, Object> convertExtras(RegistrationRequest requestObject) throws JsonProcessingException {
         final AuthenticatorParameters authenticatorParameters = requestObject.getAuthenticatorParameters();
         final Map<String, Object> params = new HashMap<>();
         params.put("relyingPartyId", authenticatorParameters.getRelyingPartyId());
@@ -83,7 +81,7 @@ public class RegistrationConverter {
         params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
         params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
         params.put("aaguid", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid());
-        return objectMapper.writeValueAsString(params);
+        return params;
     }
 
     public RegistrationResponse convertRegistrationResponse(AuthenticatorDetail source) {

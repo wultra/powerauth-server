@@ -24,6 +24,7 @@ import lombok.Data;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Petr Dvorak, petr@wultra.com
@@ -37,7 +38,7 @@ public class RegistrationResponse {
     private String externalId;
     private String activationName;
     private ActivationStatus activationStatus;
-    private String extras;
+    private Map<String, Object> extras;
     private String platform;
     private String deviceInfo;
     private String blockedReason;

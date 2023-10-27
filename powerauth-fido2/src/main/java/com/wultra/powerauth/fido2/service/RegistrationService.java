@@ -27,6 +27,9 @@ import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsRe
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
 import com.wultra.powerauth.fido2.rest.model.validator.RegistrationRequestValidator;
+import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
+import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -41,16 +44,16 @@ import org.springframework.stereotype.Service;
 public class RegistrationService {
 
     private final AuthenticatorProvider authenticatorProvider;
-    private final ChallengeProvider challengeProvider;
+    private final RegistrationProvider registrationProvider;
     private final RegistrationChallengeConverter registrationChallengeConverter;
     private final RegistrationConverter registrationConverter;
     private final RegistrationRequestValidator registrationRequestValidator;
     private final CryptographyService cryptographyService;
 
     @Autowired
-    public RegistrationService(AuthenticatorProvider authenticatorProvider, ChallengeProvider challengeProvider, RegistrationChallengeConverter registrationChallengeConverter, RegistrationConverter registrationConverter, RegistrationRequestValidator registrationRequestValidator, CryptographyService cryptographyService) {
+    public RegistrationService(AuthenticatorProvider authenticatorProvider, RegistrationProvider registrationProvider, RegistrationChallengeConverter registrationChallengeConverter, RegistrationConverter registrationConverter, RegistrationRequestValidator registrationRequestValidator, CryptographyService cryptographyService) {
         this.authenticatorProvider = authenticatorProvider;
-        this.challengeProvider = challengeProvider;
+        this.registrationProvider = registrationProvider;
         this.registrationChallengeConverter = registrationChallengeConverter;
         this.registrationConverter = registrationConverter;
         this.registrationRequestValidator = registrationRequestValidator;
@@ -64,7 +67,7 @@ public class RegistrationService {
     }
 
     public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws Exception {
-        final RegistrationChallenge challenge = challengeProvider.provideChallengeForRegistration(userId, applicationId);
+        final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistration(userId, applicationId);
         return registrationChallengeConverter.fromChallenge(challenge);
     }
 
@@ -93,14 +96,14 @@ public class RegistrationService {
             final boolean verifySignature = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, authData, signature, attestedCredentialData);
             if (!verifySignature) {
                 // Immediately revoke the challenge
-                challengeProvider.revokeChallengeForRegistrationChallengeValue(applicationId, challengeValue);
+                registrationProvider.revokeChallengeForRegistrationChallengeValue(applicationId, challengeValue);
                 throw new Fido2AuthenticationFailedException("Registration failed");
             }
         } else {
             logger.info("No signature verification on registration");
         }
 
-        final RegistrationChallenge challenge = challengeProvider.provideChallengeForRegistrationChallengeValue(applicationId, challengeValue);
+        final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistrationChallengeValue(applicationId, challengeValue);
         final AuthenticatorDetail authenticatorDetail = registrationConverter.convert(challenge, requestObject, attestedCredentialData.getAaguid(), cryptographyService.publicKeyToBytes(attestedCredentialData));
         final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorDetail);
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);

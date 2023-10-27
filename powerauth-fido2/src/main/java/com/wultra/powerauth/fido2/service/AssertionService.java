@@ -28,6 +28,9 @@ import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
+import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
+import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
+import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,18 +46,16 @@ import org.springframework.stereotype.Service;
 public class AssertionService {
 
     private final CryptographyService cryptographyService;
-    private final ChallengeProvider challengeProvider;
     private final AuthenticatorProvider authenticatorProvider;
-    private final AssertionVerificationProvider assertionVerificationProvider;
+    private final AssertionProvider assertionProvider;
     private final AssertionConverter assertionConverter;
     private final AssertionChallengeConverter assertionChallengeConverter;
 
     @Autowired
-    public AssertionService(CryptographyService cryptographyService, ChallengeProvider challengeProvider, AuthenticatorProvider authenticatorProvider, AssertionVerificationProvider assertionVerificationProvider, AssertionConverter assertionConverter, AssertionChallengeConverter assertionChallengeConverter) {
+    public AssertionService(CryptographyService cryptographyService, AuthenticatorProvider authenticatorProvider, AssertionProvider assertionProvider, AssertionConverter assertionConverter, AssertionChallengeConverter assertionChallengeConverter) {
         this.cryptographyService = cryptographyService;
-        this.challengeProvider = challengeProvider;
         this.authenticatorProvider = authenticatorProvider;
-        this.assertionVerificationProvider = assertionVerificationProvider;
+        this.assertionProvider = assertionProvider;
         this.assertionConverter = assertionConverter;
         this.assertionChallengeConverter = assertionChallengeConverter;
     }
@@ -66,7 +67,7 @@ public class AssertionService {
      * @return Assertion challenge information.
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
-        final AssertionChallenge assertionChallenge = assertionVerificationProvider.provideChallengeForAssertion(
+        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(
                 request.getApplicationIds(), request.getOperationType(), request.getParameters(), request.getExternalId()
         );
         if (assertionChallenge == null) {
@@ -91,14 +92,14 @@ public class AssertionService {
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, response.getClientDataJSON(), response.getAuthenticatorData(), response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
-                    assertionVerificationProvider.approveAssertion(challenge, authenticatorDetail);
+                    assertionProvider.approveAssertion(challenge, authenticatorDetail);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
                 } else {
-                    assertionVerificationProvider.failAssertion(challenge, authenticatorDetail);
+                    assertionProvider.failAssertion(challenge, authenticatorDetail);
                     throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect signature.");
                 }
             } else {
-                assertionVerificationProvider.failAssertion(challenge, authenticatorDetail);
+                assertionProvider.failAssertion(challenge, authenticatorDetail);
                 throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect authenticator state.");
             }
         } catch (Exception e) {

@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.service;
+package com.wultra.powerauth.fido2.service.provider;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
@@ -30,7 +30,7 @@ import java.util.Map;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface AssertionVerificationProvider {
+public interface AssertionProvider {
 
     /**
      * Obtain challenge for authentication.

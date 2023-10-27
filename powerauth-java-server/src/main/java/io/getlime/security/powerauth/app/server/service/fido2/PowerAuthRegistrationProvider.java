@@ -20,7 +20,7 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
-import com.wultra.powerauth.fido2.service.ChallengeProvider;
+import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
@@ -47,7 +47,7 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-public class PowerAuthChallengeProvider implements ChallengeProvider {
+public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
@@ -55,9 +55,22 @@ public class PowerAuthChallengeProvider implements ChallengeProvider {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public PowerAuthChallengeProvider(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue serviceBehaviorCatalogue) {
+    public PowerAuthRegistrationProvider(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue serviceBehaviorCatalogue) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
+    }
+
+    @Override
+    @Transactional
+    public RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws GenericServiceException {
+        final InitActivationResponse initActivationResponse = serviceBehaviorCatalogue.getActivationServiceBehavior()
+                .initActivation(Protocols.FIDO2, applicationId, userId, null, null, ActivationOtpValidation.NONE, null, null, keyConvertor);
+        final RegistrationChallenge registrationChallenge = new RegistrationChallenge();
+        registrationChallenge.setUserId(initActivationResponse.getUserId());
+        registrationChallenge.setApplicationId(initActivationResponse.getApplicationId());
+        registrationChallenge.setActivationId(initActivationResponse.getActivationId());
+        registrationChallenge.setChallenge(initActivationResponse.getActivationCode());
+        return registrationChallenge;
     }
 
     @Override
@@ -98,19 +111,6 @@ public class PowerAuthChallengeProvider implements ChallengeProvider {
 
     @Override
     @Transactional
-    public RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws GenericServiceException {
-        final InitActivationResponse initActivationResponse = serviceBehaviorCatalogue.getActivationServiceBehavior()
-                .initActivation(Protocols.FIDO2, applicationId, userId, null, null, ActivationOtpValidation.NONE, null, null, keyConvertor);
-        final RegistrationChallenge registrationChallenge = new RegistrationChallenge();
-        registrationChallenge.setUserId(initActivationResponse.getUserId());
-        registrationChallenge.setApplicationId(initActivationResponse.getApplicationId());
-        registrationChallenge.setActivationId(initActivationResponse.getActivationId());
-        registrationChallenge.setChallenge(initActivationResponse.getActivationCode());
-        return registrationChallenge;
-    }
-
-    @Override
-    @Transactional
     public void revokeChallengeForRegistrationChallengeValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
         final Date currentTimestamp = new Date();
 
@@ -130,7 +130,7 @@ public class PowerAuthChallengeProvider implements ChallengeProvider {
                 .findCreatedActivationWithoutLock(applicationId, activationCode, statuses, currentTimestamp);
 
         if (activationRecordEntity == null) {
-            throw new Fido2AuthenticationFailedException("With given value not found.");
+            throw new Fido2AuthenticationFailedException("Registration with given value not found.");
         }
 
         final String activationId = activationRecordEntity.getActivationId();

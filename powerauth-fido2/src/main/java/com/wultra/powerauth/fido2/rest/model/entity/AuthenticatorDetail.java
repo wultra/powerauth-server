@@ -21,9 +21,9 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.Data;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Information about a registered authenticator.
@@ -39,7 +39,7 @@ public class AuthenticatorDetail {
     private String activationName;
     private String externalId;
     private ActivationStatus activationStatus;
-    private String extras;
+    private Map<String, Object> extras;
     private String platform;
     private String deviceInfo;
     private String blockedReason;

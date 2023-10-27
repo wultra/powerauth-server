@@ -27,7 +27,7 @@
 	<parent>
 		<groupId>io.getlime.security</groupId>
 		<artifactId>powerauth-server-parent</artifactId>
-		<version>1.5.0-SNAPSHOT</version>
+		<version>1.6.0-SNAPSHOT</version>
 	</parent>
 
 	<dependencies>
@@ -75,7 +75,7 @@
 		<dependency>
 			<groupId>io.getlime.security</groupId>
 			<artifactId>powerauth-java-crypto</artifactId>
-			<version>1.5.0-SNAPSHOT</version>
+			<version>1.5.1</version>
 		</dependency>
 		<dependency>
 			<groupId>io.getlime.core</groupId>
@@ -85,7 +85,7 @@
 		<dependency>
 			<groupId>io.getlime.security</groupId>
 			<artifactId>powerauth-client-model</artifactId>
-			<version>1.5.0-SNAPSHOT</version>
+			<version>1.6.0-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>

@@ -21,7 +21,7 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
-import com.wultra.powerauth.fido2.service.AssertionVerificationProvider;
+import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
@@ -54,7 +54,7 @@ import java.util.Map;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
-public class PowerAuthAssertionProvider implements AssertionVerificationProvider {
+public class PowerAuthAssertionProvider implements AssertionProvider {
 
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;

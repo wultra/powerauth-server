@@ -16,33 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.service;
+package com.wultra.powerauth.fido2.service.provider;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * Interface for challenge providers.
+ * Interface for registration use-cases.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public interface ChallengeProvider {
+public interface RegistrationProvider {
 
     /**
-     * Obtain challenge information based on challenge value for registration.
-     *
-     * @param applicationId Application key.
-     * @param challenge Challenge value.
-     * @return Challenge Information.
-     * @throws Exception In case any issue occur during processing.
-     */
-    RegistrationChallenge provideChallengeForRegistrationChallengeValue(String applicationId, String challenge) throws Exception;
-
-    /**
-     * Obtain challenge for registration.
+     * Obtain a new challenge for registration.
      *
      * @param userId User ID.
      * @param applicationId Application ID.
@@ -52,7 +38,17 @@ public interface ChallengeProvider {
     RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws Exception;
 
     /**
-     * Revoke challenge based on the challenge value.
+     * Obtain an existing challenge information based on challenge value for registration.
+     *
+     * @param applicationId Application key.
+     * @param challenge Challenge value.
+     * @return Challenge Information.
+     * @throws Exception In case any issue occur during processing.
+     */
+    RegistrationChallenge provideChallengeForRegistrationChallengeValue(String applicationId, String challenge) throws Exception;
+
+    /**
+     * Revoke existing challenge based on the challenge value.
      *
      * @param applicationId Application ID.
      * @param challengeValue Challenge value.

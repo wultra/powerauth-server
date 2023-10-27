@@ -18,9 +18,12 @@
 
 package io.getlime.security.powerauth.app.server.service.fido2;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
-import com.wultra.powerauth.fido2.service.AuthenticatorProvider;
+import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
@@ -42,7 +45,6 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -66,6 +68,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private LocalizationProvider localizationProvider;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
@@ -201,7 +204,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(authenticatorDetail.getActivationName());
             activation.setExternalId(authenticatorDetail.getExternalId());
-            activation.setExtras(authenticatorDetail.getExtras());
+            activation.setExtras(objectMapper.writeValueAsString(authenticatorDetail.getExtras()));
             if (authenticatorDetail.getPlatform() != null) {
                 activation.setPlatform(authenticatorDetail.getPlatform().toLowerCase());
             } else {
@@ -248,6 +251,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw new Fido2AuthenticationFailedException("Invalid cryptography provider");
+        } catch (JsonProcessingException e) {
+            throw new Fido2AuthenticationFailedException("Unable to serialize extras");
         } catch (GenericServiceException e) {
             throw new Fido2AuthenticationFailedException("Generic service exception");
         }
@@ -263,7 +268,11 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         authenticatorDetail.setActivationStatus(activation.getActivationStatus());
         authenticatorDetail.setActivationName(activation.getActivationName());
         authenticatorDetail.setExternalId(activation.getExternalId());
-        authenticatorDetail.setExtras(activation.getExtras());
+        try {
+            authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String,Object>>() {}));
+        } catch (JsonProcessingException e) {
+            //
+        }
         authenticatorDetail.setActivationFlags(activation.getActivationFlags());
         authenticatorDetail.setDeviceInfo(activation.getDeviceInfo());
         authenticatorDetail.setPlatform(activation.getPlatform());

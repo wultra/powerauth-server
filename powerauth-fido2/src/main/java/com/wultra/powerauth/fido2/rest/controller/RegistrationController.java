@@ -54,7 +54,6 @@ public class RegistrationController {
     }
 
     @PostMapping("list")
-    @CrossOrigin(origins = "http://localhost:8081")
     public ObjectResponse<RegisteredAuthenticatorsResponse> registeredAuthenticators(@Valid @RequestBody ObjectRequest<RegisteredAuthenticatorsRequest> request) throws Exception {
         final RegisteredAuthenticatorsRequest requestObject = request.getRequestObject();
         final RegisteredAuthenticatorsResponse responseObject = registrationService.registrationsForUser(requestObject.getUserId(), requestObject.getApplicationId());
@@ -62,7 +61,6 @@ public class RegistrationController {
     }
 
     @PostMapping("challenge")
-    @CrossOrigin(origins = "http://localhost:8081")
     public ObjectResponse<RegistrationChallengeResponse> requestRegistrationChallenge(@Valid @RequestBody ObjectRequest<RegistrationChallengeRequest> request) throws Exception {
         final RegistrationChallengeRequest requestObject = request.getRequestObject();
         final RegistrationChallengeResponse responseObject = registrationService.requestRegistrationChallenge(requestObject.getUserId(), requestObject.getApplicationId());
@@ -70,7 +68,6 @@ public class RegistrationController {
     }
 
     @PostMapping
-    @CrossOrigin(origins = "http://localhost:8081")
     public ObjectResponse<RegistrationResponse> register(@Valid @RequestBody ObjectRequest<RegistrationRequest> request) throws Exception {
         final RegistrationRequest requestObject = request.getRequestObject();
         final RegistrationResponse responseObject = registrationService.register(requestObject);

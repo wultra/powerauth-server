@@ -55,7 +55,6 @@ public class AssertionController {
     }
 
     @PostMapping("challenge")
-    @CrossOrigin(origins = "http://localhost:8081")
     public ObjectResponse<AssertionChallengeResponse> requestAssertionChallenge(@Valid @RequestBody ObjectRequest<AssertionChallengeRequest> request) throws Exception {
         final AssertionChallengeRequest requestObject = request.getRequestObject();
         final AssertionChallengeResponse assertionChallengeResponse = assertionService.requestAssertionChallenge(requestObject);
@@ -63,7 +62,6 @@ public class AssertionController {
     }
 
     @PostMapping
-    @CrossOrigin(origins = "http://localhost:8081")
     public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionRequest> request) throws Fido2AuthenticationFailedException {
         final AssertionRequest requestObject = request.getRequestObject();
         final String error = assertionRequestValidator.validate(requestObject);

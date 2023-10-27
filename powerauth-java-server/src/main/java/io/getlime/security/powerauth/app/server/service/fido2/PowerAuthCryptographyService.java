@@ -19,7 +19,7 @@
 package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
-import com.wultra.powerauth.fido2.service.CryptographyService;
+import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
