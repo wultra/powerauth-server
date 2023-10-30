@@ -85,7 +85,7 @@
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.5.1</powerauth-java-crypto.version>
-        <wultra-core.version>1.7.0</wultra-core.version>
+        <wultra-core.version>1.8.0-SNAPSHOT</wultra-core.version>
 
         <bcprov-jdk18on.version>1.76</bcprov-jdk18on.version>
 
@@ -121,20 +121,10 @@
             <!--  Wultra Dependencies  -->
             <dependency>
                 <groupId>io.getlime.core</groupId>
-                <artifactId>audit-base</artifactId>
+                <artifactId>core-bom</artifactId>
                 <version>${wultra-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.getlime.core</groupId>
-                <artifactId>rest-client-base</artifactId>
-                <version>${wultra-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.getlime.core</groupId>
-                <artifactId>rest-model-base</artifactId>
-                <version>${wultra-core.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>
