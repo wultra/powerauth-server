@@ -99,7 +99,7 @@
         <shedlock.version>5.9.1</shedlock.version>
 
         <!-- Other Dependencies -->
-        <commons-text.version>1.10.0</commons-text.version>
+        <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
     </properties>
 
