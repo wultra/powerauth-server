@@ -153,8 +153,7 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        final Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
-        final CallbackUrlEntity entity = entityOptional
+        final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
                 .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
                 .orElseThrow(() -> {
                     // Rollback is not required, error occurs before writing to database

@@ -51,7 +51,7 @@ class CallbackUrlBehaviorTest {
 
     @Test
     void updateCallbackUrlTest() throws Exception {
-        CallbackUrlEntity callbackUrl = entityManager.find(CallbackUrlEntity.class, "cafec169-28a6-490c-a1d5-c012b9e3c044");
+        final CallbackUrlEntity callbackUrl = entityManager.find(CallbackUrlEntity.class, "cafec169-28a6-490c-a1d5-c012b9e3c044");
         assertEquals("PA_Tests", callbackUrl.getApplication().getId());
         assertEquals("test-callback", callbackUrl.getName());
 
@@ -63,9 +63,9 @@ class CallbackUrlBehaviorTest {
         request.setName("new-name");
         tested.updateCallbackUrl(request);
 
-        callbackUrl = entityManager.find(CallbackUrlEntity.class, "cafec169-28a6-490c-a1d5-c012b9e3c044");
-        assertEquals("PA_Tests", callbackUrl.getApplication().getId());
-        assertEquals("new-name", callbackUrl.getName());
+        final CallbackUrlEntity updated = entityManager.find(CallbackUrlEntity.class, "cafec169-28a6-490c-a1d5-c012b9e3c044");
+        assertEquals("PA_Tests", updated.getApplication().getId());
+        assertEquals("new-name", updated.getName());
     }
 
     @Test
