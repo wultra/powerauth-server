@@ -1270,7 +1270,7 @@ REST endpoint: `POST /rest/v3/application/callback/create`
 |----------------|------|-------------|
 | `String`       | `applicationId` | Associated application ID. |
 | `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `REGISTRATION_STATUS_CHANGE`. |
+| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
@@ -1382,7 +1382,7 @@ The `authentication` parameter contains a JSON-based configuration for client TL
 | `String`       | `id` | Callback URL identifier (UUID4). |
 | `String`       | `applicationId` | Associated application ID. |
 | `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `REGISTRATION_STATUS_CHANGE`. |
+| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
@@ -1416,7 +1416,7 @@ REST endpoint: `POST /rest/v3/application/callback/list`
 | `String`       | `id` | Callback URL identifier (UUID4). |
 | `String`       | `applicationId` | Associated application ID. |
 | `String`       | `name` | Callback URL name, for visual identification. |
-| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `REGISTRATION_STATUS_CHANGE`. |
+| `String`       | `type` | Type of the callback. Either `ACTIVATION_STATUS_CHANGE` or `OPERATION_STATUS_CHANGE`. |
 | `String`       | `callbackUrl` | Callback URL that should be notified about activation status updates. |
 | `List<String>` | `attributes` | Attributes which should be sent with the callback. |
 | `String`       | `authentication` | Callback HTTP request authentication configuration. |
