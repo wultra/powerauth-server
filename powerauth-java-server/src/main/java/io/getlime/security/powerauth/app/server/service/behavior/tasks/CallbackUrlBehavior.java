@@ -154,8 +154,8 @@ public class CallbackUrlBehavior {
         }
 
         final Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
-        if (entityOptional.isEmpty()) {
-            logger.warn("Invalid callback ID: "+request.getId());
+        if (entityOptional.isEmpty() || !request.getApplicationId().equals(entityOptional.get().getApplication().getId())) {
+            logger.warn("Invalid callback ID: {}", request.getId());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
@@ -164,7 +164,7 @@ public class CallbackUrlBehavior {
         try {
             new URL(request.getCallbackUrl());
         } catch (MalformedURLException e) {
-            logger.warn("Invalid callback URL: "+request.getCallbackUrl());
+            logger.warn("Invalid callback URL: {}", request.getCallbackUrl());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
