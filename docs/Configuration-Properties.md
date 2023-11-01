@@ -38,7 +38,7 @@ The PowerAuth Server uses the following public configuration properties:
 | `powerauth.service.secureVault.enableBiometricAuthentication`      | `false`   | Whether biometric authentication is enabled when accessing Secure Vault                 |
 | `powerauth.server.db.master.encryption.key`                        | `_empty_` | Master DB encryption key for decryption of server private key in database               |
 | `powerauth.service.proximity-check.otp.length`                     | `8`       | Length of OTP generated for proximity check                                             |
-| `powerauth.service.pagination.default-page-size`                   | `100`     | The default number of records per page when paginated results are requested             |
+| `powerauth.service.pagination.default-page-size`                   | `2000`    | The default number of records per page when paginated results are requested             |
 | `powerauth.service.pagination.default-page-number`                 | `0`       | The default page number when paginated results are requested. Page numbers start from 0 |
 
 ## HTTP Configuration
