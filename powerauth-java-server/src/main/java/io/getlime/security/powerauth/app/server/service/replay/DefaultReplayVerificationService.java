@@ -31,8 +31,8 @@ import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Date;
 
@@ -54,13 +54,13 @@ class DefaultReplayVerificationService implements ReplayVerificationService {
     @Override
     public void checkAndPersistUniqueValue(UniqueValueType type, Date requestTimestamp, String ephemeralPublicKey, String nonce, String identifier, String version) throws GenericServiceException {
         logger.debug("Checking and persisting unique value, request type: {}, identifier: {}", type, identifier);
-        final int requestExpiration;
+        final Duration requestExpiration;
         if ("3.0".equals(version) || "3.1".equals(version)) {
-            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationInMillisecondsExtended();
+            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationExtended();
         } else {
-            requestExpiration = powerAuthServiceConfiguration.getRequestExpirationInMilliseconds();
+            requestExpiration = powerAuthServiceConfiguration.getRequestExpiration();
         }
-        final Date expiration = Date.from(Instant.now().plus(requestExpiration, ChronoUnit.MILLIS));
+        final Date expiration = Date.from(Instant.now().plus(requestExpiration));
         if (requestTimestamp.after(expiration)) {
             // Rollback is not required, error occurs before writing to database
             logger.warn("Expired ECIES request received, timestamp: {}", requestTimestamp);

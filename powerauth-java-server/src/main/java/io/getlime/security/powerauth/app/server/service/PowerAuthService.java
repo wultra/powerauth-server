@@ -1141,12 +1141,12 @@ public class PowerAuthService {
         }
         // Verify the token timestamp validity
         final long currentTimeMillis = System.currentTimeMillis();
-        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
+        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
         }
-        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidityInMilliseconds()) {
+        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
