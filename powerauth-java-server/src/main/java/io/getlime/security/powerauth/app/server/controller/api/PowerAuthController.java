@@ -171,6 +171,17 @@ public class PowerAuthController {
         return new ObjectResponse<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
     }
 
+    /**
+     * Update the activation.
+     *
+     * @param request This is an {@link ObjectRequest} that contains a {@link UpdateActivationRequest}.
+     * @return This endpoint returns an {@link ObjectResponse} that contains a {@link UpdateActivationResponse}.
+     * @throws Exception In case the service throws an exception, it will be propagated and should be handled by the caller.
+     */
+    @PostMapping("/activation/update")
+    public ObjectResponse<UpdateActivationResponse> updateActivation(@RequestBody ObjectRequest<UpdateActivationRequest> request) throws Exception {
+        return new ObjectResponse<>(powerAuthService.updateActivation(request.getRequestObject()));
+    }
 
     /**
      * Call {@link PowerAuthService#lookupActivations(LookupActivationsRequest)} method and

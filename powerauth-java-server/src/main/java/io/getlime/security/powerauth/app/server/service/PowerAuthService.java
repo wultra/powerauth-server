@@ -46,6 +46,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -59,6 +60,7 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component("powerAuthServiceImplV3")
+@Validated
 public class PowerAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthService.class);
@@ -1974,6 +1976,24 @@ public class PowerAuthService {
             // already logged
             throw ex;
         } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Transactional
+    public UpdateActivationResponse updateActivation(final UpdateActivationRequest request) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+            logger.info("UpdateActivationRequest call received, activation ID: {}", activationId);
+            logger.debug("Updating activation: {}", request);
+            final UpdateActivationResponse response = behavior.getActivationServiceBehavior().updateActivation(request);
+            logger.info("UpdateActivationRequest succeeded, activation ID: {}", activationId);
+            return response;
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {

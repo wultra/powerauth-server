@@ -214,6 +214,26 @@ public interface PowerAuthClient {
     CreateActivationResponse createActivation(CreateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
+     * Update the activation directly, using the updateActivation method of the PowerAuth Server interface.
+     *
+     * @param request Update activation request.
+     * @return Update activation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    UpdateActivationResponse updateActivation(UpdateActivationRequest request) throws PowerAuthClientException;
+
+    /**
+     * Update the activation directly, using the updateActivation method of the PowerAuth Server interface.
+     *
+     * @param request Update activation request.
+     * @param queryParams HTTP query parameters.
+     * @param httpHeaders HTTP headers.
+     * @return Update activation response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    UpdateActivationResponse updateActivation(UpdateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
      * Call the createActivation method of the PowerAuth 3.0 Server interface.
      *
      * @param userId                    User ID.
