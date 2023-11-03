@@ -96,6 +96,8 @@ public class ActivationHistoryServiceBehavior {
         activationHistoryEntity.setExternalUserId(externalUserId);
         activationHistoryEntity.setTimestampCreated(changeTimestamp);
         activationHistoryEntity.setActivationVersion(activation.getVersion());
+        activationHistoryEntity.setActivationName(activation.getActivationName());
+
         activation.getActivationHistory().add(activationHistoryEntity);
         // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
         activationRepository.save(activation);
@@ -129,6 +131,7 @@ public class ActivationHistoryServiceBehavior {
                     item.setVersion(Long.valueOf(activationVersion));
                 }
                 item.setExternalUserId(activationHistoryEntity.getExternalUserId());
+                item.setActivationName(activationHistoryEntity.getActivationName());
                 item.setTimestampCreated(activationHistoryEntity.getTimestampCreated());
 
                 response.getItems().add(item);

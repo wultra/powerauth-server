@@ -1356,8 +1356,7 @@ public class ActivationServiceBehavior {
         activation.setActivationName(request.getActivationName());
         activation.setTimestampLastChange(timestamp);
 
-        // TODO Lubos log activation name?
-        // activationHistoryServiceBehavior.saveActivationAndLogChange(activation, request.getExternalUserId());
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, request.getExternalUserId(), AdditionalInformation.Reason.ACTIVATION_UPDATED);
 
         final UpdateActivationResponse response = new UpdateActivationResponse();
         response.setActivationId(activationId);
