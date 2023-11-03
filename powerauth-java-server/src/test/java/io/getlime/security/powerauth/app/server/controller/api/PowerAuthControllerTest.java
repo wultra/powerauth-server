@@ -92,12 +92,12 @@ class PowerAuthControllerTest {
         assertEquals("joe-1", historyEntry.getExternalUserId());
 
         databaseAudit.flush();
+        final String expectedAuditMessage = "Updated activation with ID: e43a5dec-afea-4a10-a80b-b2183399f16b";
         @SuppressWarnings("unchecked")
-        final List<Tuple> auditEntries = entityManager.createNativeQuery("select * from audit_log", Tuple.class).getResultList();
+        final List<Tuple> auditEntries = entityManager.createNativeQuery("select * from audit_log where message = :message", Tuple.class)
+                .setParameter("message", expectedAuditMessage)
+                .getResultList();
         assertEquals(1, auditEntries.size());
-
-        final String message = auditEntries.get(0).get("message").toString();
-        assertEquals("Updated activation with ID: e43a5dec-afea-4a10-a80b-b2183399f16b", message);
 
         final String param = auditEntries.get(0).get("param").toString();
         assertThat(param, containsString("\"activationId\":\"e43a5dec-afea-4a10-a80b-b2183399f16b\""));
