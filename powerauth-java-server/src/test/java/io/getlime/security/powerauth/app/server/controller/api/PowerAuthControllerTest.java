@@ -17,9 +17,11 @@
  */
 package io.getlime.security.powerauth.app.server.controller.api;
 
+import com.wultra.core.audit.base.database.DatabaseAudit;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Tuple;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -52,6 +56,9 @@ class PowerAuthControllerTest {
 
     @Autowired
     private EntityManager entityManager;
+
+    @Autowired
+    private DatabaseAudit databaseAudit;
 
     @Test
     void testUpdateActivation() throws Exception {
@@ -84,12 +91,23 @@ class PowerAuthControllerTest {
         assertEquals("ACTIVATION_UPDATED", historyEntry.getEventReason());
         assertEquals("joe-1", historyEntry.getExternalUserId());
 
-        // TODO Lubos test audit
+        databaseAudit.flush();
+        @SuppressWarnings("unchecked")
+        final List<Tuple> auditEntries = entityManager.createNativeQuery("select * from audit_log", Tuple.class).getResultList();
+        assertEquals(1, auditEntries.size());
+
+        final String message = auditEntries.get(0).get("message").toString();
+        assertEquals("Updated activation with ID: e43a5dec-afea-4a10-a80b-b2183399f16b", message);
+
+        final String param = auditEntries.get(0).get("param").toString();
+        assertThat(param, containsString("\"activationId\":\"e43a5dec-afea-4a10-a80b-b2183399f16b\""));
+        assertThat(param, containsString("\"activationName\":\"my iPhone\""));
+        assertThat(param, containsString("\"reason\":\"ACTIVATION_UPDATED\""));
     }
 
     @Test
     void testUpdateActivation_badRequest() throws Exception {
-        final String expectedErrorMessage = "requestObject.externalUserId - must not be blank, requestObject.activationName - must not be blank, requestObject.activationId - must not be blank";
+        final String expectedErrorMessage = "requestObject.activationId - must not be blank, requestObject.activationName - must not be blank, requestObject.externalUserId - must not be blank";
 
         mockMvc.perform(post("/rest/v3/activation/update")
                         .content("""

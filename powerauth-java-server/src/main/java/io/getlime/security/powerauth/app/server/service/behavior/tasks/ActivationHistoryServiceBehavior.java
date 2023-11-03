@@ -22,6 +22,7 @@ import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
 import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
+import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -172,15 +173,15 @@ public class ActivationHistoryServiceBehavior {
 
         // Build audit log message
         final AuditDetail auditDetail = auditDetailBuilder.build();
-        switch (activation.getActivationStatus()) {
-            case CREATED ->
-                audit.log(AuditLevel.INFO, "Created activation with ID: {}", auditDetail, activation.getActivationId());
-            case PENDING_COMMIT, BLOCKED, ACTIVE ->
-                audit.log(AuditLevel.INFO, "Activation ID: {} is now {}", auditDetail, activation.getActivationId(), activation.getActivationStatus());
-            default ->
-                audit.log(AuditLevel.INFO, "Removing activation with ID: {}", auditDetail, activation.getActivationId());
+        if (AdditionalInformation.Reason.ACTIVATION_UPDATED.equals(historyEventReason)) {
+            audit.log(AuditLevel.INFO, "Updated activation with ID: {}", auditDetail, activation.getActivationId());
+        } else {
+            switch (activation.getActivationStatus()) {
+                case CREATED -> audit.log(AuditLevel.INFO, "Created activation with ID: {}", auditDetail, activation.getActivationId());
+                case PENDING_COMMIT, BLOCKED, ACTIVE -> audit.log(AuditLevel.INFO, "Activation ID: {} is now {}", auditDetail, activation.getActivationId(), activation.getActivationStatus());
+                default -> audit.log(AuditLevel.INFO, "Removing activation with ID: {}", auditDetail, activation.getActivationId());
+            }
         }
-
     }
 
 }

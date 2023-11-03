@@ -28,12 +28,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.util.Comparator;
 import java.util.stream.Collectors;
 
 /**
@@ -112,6 +114,7 @@ public class RESTControllerAdvice {
         logger.debug("Exception details:", ex);
 
         final String message = ex.getBindingResult().getFieldErrors().stream()
+                .sorted(Comparator.comparing(FieldError::getField))
                 .map(it -> String.join(" - ", it.getField(), it.getDefaultMessage()))
                 .collect(Collectors.joining(", "));
 
