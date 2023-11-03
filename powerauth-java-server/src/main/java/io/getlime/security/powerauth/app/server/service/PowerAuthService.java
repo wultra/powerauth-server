@@ -46,7 +46,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 
 import java.math.BigInteger;
 import java.time.Duration;
@@ -60,7 +59,6 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component("powerAuthServiceImplV3")
-@Validated
 public class PowerAuthService {
 
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthService.class);

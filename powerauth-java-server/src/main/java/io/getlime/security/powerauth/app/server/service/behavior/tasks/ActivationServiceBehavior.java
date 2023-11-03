@@ -1338,7 +1338,7 @@ public class ActivationServiceBehavior {
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
         if (activation == null) {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
+            logger.info("Activation ID: {} does not exist.", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
