@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.5.x/20231106-add-foreign-keys.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="pa_operation_application"
+                                            foreignKeyName="pa_operation_application_application_id_fk" />
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                baseTableName="pa_operation_application" baseColumnNames="application_id"
+                constraintName="pa_operation_application_application_id_fk"
+                referencedTableName="pa_application" referencedColumnNames="id"/>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.5.x/20231106-add-foreign-keys.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="pa_operation_application"
+                                            foreignKeyName="pa_operation_application_operation_id_fk" />
+            </not>
+        </preConditions>
+        <addForeignKeyConstraint
+                baseTableName="pa_operation_application" baseColumnNames="operation_id"
+                constraintName="pa_operation_application_operation_id_fk"
+                referencedTableName="pa_operation" referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>
