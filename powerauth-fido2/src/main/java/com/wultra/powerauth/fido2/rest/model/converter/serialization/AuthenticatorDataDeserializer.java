@@ -80,7 +80,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
         flags.setBackupState(isFlagOn(flagByte, 4));
         flags.setReservedBit6(isFlagOn(flagByte, 5));
         flags.setAttestedCredentialsIncluded(isFlagOn(flagByte,6));
-        flags.setExtensionDataInlcuded(isFlagOn(flagByte,7));
+        flags.setExtensionDataIncluded(isFlagOn(flagByte,7));
 
         // Get Signature Counter
         final byte[] signCountBytes = new byte[4];
