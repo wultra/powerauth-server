@@ -173,7 +173,7 @@ public class ActivationHistoryServiceBehavior {
 
         // Build audit log message
         final AuditDetail auditDetail = auditDetailBuilder.build();
-        if (AdditionalInformation.Reason.ACTIVATION_UPDATED.equals(historyEventReason)) {
+        if (AdditionalInformation.Reason.ACTIVATION_NAME_UPDATED.equals(historyEventReason)) {
             audit.log(AuditLevel.INFO, "Updated activation with ID: {}", auditDetail, activation.getActivationId());
         } else {
             switch (activation.getActivationStatus()) {

@@ -81,9 +81,9 @@ public class AdditionalInformation {
         public static final String ACTIVATION_VERSION_CHANGED = "ACTIVATION_VERSION_CHANGED";
 
         /**
-         * Logged when the activation has been updated, e.g. updated activation name.
+         * Logged when the activation name has been updated.
          */
-        public static final String ACTIVATION_UPDATED = "ACTIVATION_UPDATED";
+        public static final String ACTIVATION_NAME_UPDATED = "ACTIVATION_NAME_UPDATED";
 
     }
 

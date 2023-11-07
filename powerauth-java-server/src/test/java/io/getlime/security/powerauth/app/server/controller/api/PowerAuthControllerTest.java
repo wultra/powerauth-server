@@ -88,7 +88,7 @@ class PowerAuthControllerTest {
 
         final ActivationHistoryEntity historyEntry = historyEntries.iterator().next();
         assertEquals("my iPhone", historyEntry.getActivationName());
-        assertEquals("ACTIVATION_UPDATED", historyEntry.getEventReason());
+        assertEquals("ACTIVATION_NAME_UPDATED", historyEntry.getEventReason());
         assertEquals("joe-1", historyEntry.getExternalUserId());
 
         databaseAudit.flush();
@@ -102,7 +102,7 @@ class PowerAuthControllerTest {
         final String param = auditEntries.get(0).get("param").toString();
         assertThat(param, containsString("\"activationId\":\"e43a5dec-afea-4a10-a80b-b2183399f16b\""));
         assertThat(param, containsString("\"activationName\":\"my iPhone\""));
-        assertThat(param, containsString("\"reason\":\"ACTIVATION_UPDATED\""));
+        assertThat(param, containsString("\"reason\":\"ACTIVATION_NAME_UPDATED\""));
     }
 
     @Test

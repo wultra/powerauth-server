@@ -1356,7 +1356,7 @@ public class ActivationServiceBehavior {
         activation.setActivationName(request.getActivationName());
         activation.setTimestampLastChange(timestamp);
 
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, request.getExternalUserId(), AdditionalInformation.Reason.ACTIVATION_UPDATED);
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, request.getExternalUserId(), AdditionalInformation.Reason.ACTIVATION_NAME_UPDATED);
 
         final UpdateActivationResponse response = new UpdateActivationResponse();
         response.setActivationId(activationId);
