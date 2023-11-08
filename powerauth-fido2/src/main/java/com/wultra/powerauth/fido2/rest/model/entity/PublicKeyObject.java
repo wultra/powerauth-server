@@ -30,6 +30,6 @@ public class PublicKeyObject {
 
     private SignatureAlgorithm algorithm;
     private CurveType curveType;
-    private EllipticCurvePoint point = new EllipticCurvePoint();
+    private EllipticCurvePoint point;
 
 }
