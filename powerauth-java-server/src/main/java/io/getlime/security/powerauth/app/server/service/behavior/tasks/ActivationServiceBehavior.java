@@ -237,7 +237,7 @@ public class ActivationServiceBehavior {
      * @param applicationId The Application ID for which to retrieve activations. If this is null, activations for all
      *                      applications associated with the provided user ID are retrieved.
      * @param userId The User ID for which to retrieve activations. This is required and cannot be null.
-     * @param protocols Set of protocols to be returned..
+     * @param protocols Set of protocols to be returned.
      * @param pageable An object that defines the pagination properties, including the page number and the size of each page.
      *                 It is used to retrieve the activations in a paginated format.
      * @return A {@link GetActivationListForUserResponse} object that includes the list of matching activations. Each
