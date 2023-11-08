@@ -21,7 +21,6 @@ package com.wultra.powerauth.fido2.rest.model.response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.Data;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
