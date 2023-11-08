@@ -138,7 +138,10 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
         return result;
     }
 
-    private boolean isFlagOn(byte flags, int position) {
+    private boolean isFlagOn(byte flags, int position) throws IOException {
+        if (position < 0 || position > 7) {
+            throw new IOException("Invalid position for flag: " + position);
+        }
         return ((flags >> position) & 1) == 1;
     }
 
