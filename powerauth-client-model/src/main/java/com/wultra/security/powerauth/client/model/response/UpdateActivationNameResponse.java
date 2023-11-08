@@ -29,7 +29,7 @@ import lombok.Data;
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
 @Data
-public class UpdateActivationResponse {
+public class UpdateActivationNameResponse {
 
     @NotBlank
     private String activationId;

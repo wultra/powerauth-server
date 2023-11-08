@@ -21,7 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateActivationRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateActivationNameRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
@@ -1327,13 +1327,13 @@ public class ActivationServiceBehavior {
     }
 
     /**
-     * Update the given activation.
+     * Update name of the given activation.
      *
      * @param request Update request.
      * @return Response with updated activation
      * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
      */
-    public UpdateActivationResponse updateActivation(final UpdateActivationRequest request) throws GenericServiceException {
+    public UpdateActivationNameResponse updateActivationName(final UpdateActivationNameRequest request) throws GenericServiceException {
         final String activationId = request.getActivationId();
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
@@ -1358,7 +1358,7 @@ public class ActivationServiceBehavior {
 
         activationHistoryServiceBehavior.saveActivationAndLogChange(activation, request.getExternalUserId(), AdditionalInformation.Reason.ACTIVATION_NAME_UPDATED);
 
-        final UpdateActivationResponse response = new UpdateActivationResponse();
+        final UpdateActivationNameResponse response = new UpdateActivationNameResponse();
         response.setActivationId(activationId);
         response.setActivationName(activation.getActivationName());
         response.setActivationStatus(activationStatusConverter.convert(activationStatus));

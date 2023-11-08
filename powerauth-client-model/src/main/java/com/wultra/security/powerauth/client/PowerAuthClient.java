@@ -214,24 +214,24 @@ public interface PowerAuthClient {
     CreateActivationResponse createActivation(CreateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
-     * Update the activation directly, using the updateActivation method of the PowerAuth Server interface.
+     * Update the activation name directly, using the updateActivationName method of the PowerAuth Server interface.
      *
-     * @param request Update activation request.
-     * @return Update activation response.
+     * @param request Update activation name request.
+     * @return Update activation name response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateActivationResponse updateActivation(UpdateActivationRequest request) throws PowerAuthClientException;
+    UpdateActivationNameResponse updateActivationName(UpdateActivationNameRequest request) throws PowerAuthClientException;
 
     /**
-     * Update the activation directly, using the updateActivation method of the PowerAuth Server interface.
+     * Update the activation name directly, using the updateActivationName method of the PowerAuth Server interface.
      *
      * @param request Update activation request.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
-     * @return Update activation response.
+     * @return Update activation name response.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    UpdateActivationResponse updateActivation(UpdateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+    UpdateActivationNameResponse updateActivationName(UpdateActivationNameRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Call the createActivation method of the PowerAuth 3.0 Server interface.

@@ -25,6 +25,7 @@ The following `v3` methods are published using the service:
     - [prepareActivation](#method-prepareactivation)
     - [createActivation](#method-createactivation)
     - [updateActivationOtp](#method-updateactivationotp)
+    - [updateActivationName](#method-updateactivationname)
     - [commitActivation](#method-commitactivation)
     - [getActivationStatus](#method-getactivationstatus)
     - [removeActivation](#method-removeactivation)
@@ -518,6 +519,35 @@ REST endpoint: `POST /rest/v3/activation/otp/update`
 |------|------|-------------|
 | `String` | `activationId` | An identifier of an activation |
 | `boolean` | `updated` | Flag indicating that OTP has been updated |
+
+### Method 'updateActivationName'
+
+Update activation name for activation with given ID.
+No allowed for activation in status `CREATED`, `REMOVED`, or `BLOCKED`.
+
+After successful, activation name is updated.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/activation/name/update`
+
+`UpdateActivationNameRequest`
+
+| Type     | Name             | Description                                                                                       |
+|----------|------------------|---------------------------------------------------------------------------------------------------|
+| `String` | `activationId`   | An identifier of an activation.                                                                   |
+| `String` | `externalUserId` | User ID of user who changes the activation. Use null value if activation owner caused the change. |
+| `String` | `activationName` | A new value of activation name.                                                                   |
+
+#### Response
+
+`UpdateActivationNameResponse`
+
+| Type               | Name               | Description                     |
+|--------------------|--------------------|---------------------------------|
+| `String`           | `activationId`     | An identifier of an activation  |
+| `String`           | `activationName`   | A new value of activation name. |
+| `ActivationStatus` | `activationStatus` | An activation status.           |
 
 ### Method 'commitActivation'
 

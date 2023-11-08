@@ -62,7 +62,7 @@ class PowerAuthControllerTest {
 
     @Test
     void testUpdateActivation() throws Exception {
-        mockMvc.perform(post("/rest/v3/activation/update")
+        mockMvc.perform(post("/rest/v3/activation/name/update")
                         .content("""
                                 {
                                   "requestObject": {
@@ -109,7 +109,7 @@ class PowerAuthControllerTest {
     void testUpdateActivation_badRequest() throws Exception {
         final String expectedErrorMessage = "requestObject.activationId - must not be blank, requestObject.activationName - must not be blank, requestObject.externalUserId - must not be blank";
 
-        mockMvc.perform(post("/rest/v3/activation/update")
+        mockMvc.perform(post("/rest/v3/activation/name/update")
                         .content("""
                                 {
                                   "requestObject": {}

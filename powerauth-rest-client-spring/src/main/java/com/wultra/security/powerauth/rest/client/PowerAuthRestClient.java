@@ -294,13 +294,13 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public UpdateActivationResponse updateActivation(UpdateActivationRequest request) throws PowerAuthClientException {
-        return updateActivation(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    public UpdateActivationNameResponse updateActivationName(UpdateActivationNameRequest request) throws PowerAuthClientException {
+        return updateActivationName(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 
     @Override
-    public UpdateActivationResponse updateActivation(UpdateActivationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
-        return callV3RestApi("/activation/update", request, queryParams, httpHeaders, UpdateActivationResponse.class);
+    public UpdateActivationNameResponse updateActivationName(UpdateActivationNameRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/activation/name/update", request, queryParams, httpHeaders, UpdateActivationNameResponse.class);
     }
 
     @Override

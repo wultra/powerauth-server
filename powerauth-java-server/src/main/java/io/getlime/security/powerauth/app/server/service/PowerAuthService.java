@@ -1983,12 +1983,12 @@ public class PowerAuthService {
     }
 
     @Transactional
-    public UpdateActivationResponse updateActivation(final UpdateActivationRequest request) throws GenericServiceException {
+    public UpdateActivationNameResponse updateActivationName(final UpdateActivationNameRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();
             logger.info("UpdateActivationRequest call received, activation ID: {}", activationId);
             logger.debug("Updating activation: {}", request);
-            final UpdateActivationResponse response = behavior.getActivationServiceBehavior().updateActivation(request);
+            final UpdateActivationNameResponse response = behavior.getActivationServiceBehavior().updateActivationName(request);
             logger.info("UpdateActivationRequest succeeded, activation ID: {}", activationId);
             return response;
         } catch (RuntimeException ex) {
