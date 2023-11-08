@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2021 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,28 +15,29 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.client.model.entity;
+
+package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-import java.util.Date;
-
 /**
- * Model class representing activation history item entity.
+ * Model class representing response with updated activation.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Lubos Racansky, lubos.racansky@wultra.com
  */
 @Data
-public class ActivationHistoryItem {
+public class UpdateActivationNameResponse {
 
-    private long id;
+    @NotBlank
     private String activationId;
-    private ActivationStatus activationStatus;
-    private String eventReason;
-    private String externalUserId;
+
+    @NotBlank
     private String activationName;
-    private Date timestampCreated;
-    private Long version;
+
+    @NotNull
+    private ActivationStatus activationStatus;
 
 }
