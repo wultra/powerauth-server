@@ -21,7 +21,6 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Activat
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
 import lombok.ToString;
-import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -202,22 +201,15 @@ public class ActivationHistoryEntity implements Serializable {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (!(o instanceof final ActivationHistoryEntity that)) return false;
+        return Objects.equals(activation, that.activation) && activationStatus == that.activationStatus && Objects.equals(eventReason, that.eventReason) && Objects.equals(externalUserId, that.externalUserId) && Objects.equals(timestampCreated, that.timestampCreated) && Objects.equals(activationVersion, that.activationVersion) && Objects.equals(activationName, that.activationName);
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (null == obj) {
-            return false;
-        } else if (this == obj) {
-            return true;
-        } else if (!this.getClass().equals(ProxyUtils.getUserClass(obj))) {
-            return false;
-        } else {
-            final ActivationHistoryEntity that = (ActivationHistoryEntity) obj;
-            return null != this.getId() && this.getId().equals(that.getId());
-        }
+    public int hashCode() {
+        return Objects.hash(activation, activationStatus, eventReason, externalUserId, timestampCreated, activationVersion, activationName);
     }
 
 }
