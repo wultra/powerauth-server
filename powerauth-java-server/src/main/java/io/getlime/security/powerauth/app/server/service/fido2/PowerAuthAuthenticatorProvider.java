@@ -107,7 +107,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
                 if (activation.getActivationStatus() == ActivationStatus.REMOVED && activation.getDevicePublicKeyBase64() == null) { // never finished removed activations
                     continue;
                 }
-                if (!Protocols.FIDO2.toString().equalsIgnoreCase(activation.getProtocol())) { // Check the protocol, just in case
+                if (!Protocols.FIDO2.toString().equals(activation.getProtocol())) { // Check the protocol, just in case
                     continue;
                 }
                 final AuthenticatorDetail authenticatorDetail = convert(activation, application.get());
