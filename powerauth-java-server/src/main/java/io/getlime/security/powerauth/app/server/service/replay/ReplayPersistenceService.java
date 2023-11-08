@@ -28,7 +28,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
 /**
@@ -70,7 +69,7 @@ public class ReplayPersistenceService {
      * @return Whether unique value was added successfully.
      */
     public boolean persistUniqueValue(final UniqueValueType type, final String uniqueValue) {
-        final Instant expiration = Instant.now().plus(powerAuthServiceConfiguration.getRequestExpirationInMilliseconds(), ChronoUnit.MILLIS);
+        final Instant expiration = Instant.now().plus(powerAuthServiceConfiguration.getRequestExpiration());
         final UniqueValueEntity uniqueVal = new UniqueValueEntity();
         uniqueVal.setType(type);
         uniqueVal.setUniqueValue(uniqueValue);
@@ -89,6 +88,6 @@ public class ReplayPersistenceService {
      */
     public void deleteExpiredUniqueValues() {
         int expiredCount = uniqueValueRepository.deleteAllByTimestampExpiresBefore(Date.from(Instant.now()));
-        logger.info("Removed {} expired unique values", expiredCount);
+        logger.debug("Removed {} expired unique values", expiredCount);
     }
 }

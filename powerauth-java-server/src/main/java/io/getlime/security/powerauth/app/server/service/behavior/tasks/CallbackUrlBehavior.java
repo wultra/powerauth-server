@@ -153,23 +153,23 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        final Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
-        if (entityOptional.isEmpty()) {
-            logger.warn("Invalid callback ID: "+request.getId());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+        final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
+                .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
+                .orElseThrow(() -> {
+                    // Rollback is not required, error occurs before writing to database
+                    logger.warn("Invalid callback ID: {}", request.getId());
+                    return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                });
 
         // Check the URL format
         try {
             new URL(request.getCallbackUrl());
         } catch (MalformedURLException e) {
-            logger.warn("Invalid callback URL: "+request.getCallbackUrl());
+            logger.warn("Invalid callback URL: {}", request.getCallbackUrl());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
-        final CallbackUrlEntity entity = entityOptional.get();
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
