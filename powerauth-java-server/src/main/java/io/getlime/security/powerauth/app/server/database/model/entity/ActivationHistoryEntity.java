@@ -21,6 +21,7 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Activat
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
 import lombok.ToString;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -202,14 +203,26 @@ public class ActivationHistoryEntity implements Serializable {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
-        if (!(o instanceof final ActivationHistoryEntity that)) return false;
-        return Objects.equals(activation, that.activation) && activationStatus == that.activationStatus && Objects.equals(eventReason, that.eventReason) && Objects.equals(externalUserId, that.externalUserId) && Objects.equals(timestampCreated, that.timestampCreated) && Objects.equals(activationVersion, that.activationVersion) && Objects.equals(activationName, that.activationName);
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final ActivationHistoryEntity that = (ActivationHistoryEntity) o;
+            return Objects.equals(nullSaveActivationId(activation), nullSaveActivationId(that.activation)) && Objects.equals(timestampCreated, that.timestampCreated);
+        }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(activation, activationStatus, eventReason, externalUserId, timestampCreated, activationVersion, activationName);
+        return Objects.hash(nullSaveActivationId(activation), timestampCreated);
+    }
+
+    // TODO (racansky, 2023-11-08) remove when activation equals and hashCode implemented correctly
+    private static String nullSaveActivationId(final ActivationRecordEntity activation) {
+        return activation == null ? null : activation.getActivationId();
     }
 
 }
