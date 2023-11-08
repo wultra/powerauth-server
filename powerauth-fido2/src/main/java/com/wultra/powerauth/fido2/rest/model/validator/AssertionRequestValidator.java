@@ -48,7 +48,7 @@ public class AssertionRequestValidator {
         final CollectedClientData clientDataJSON = request.getResponse().getClientDataJSON();
 
         if (!"webauthn.get".equals(clientDataJSON.getType())) {
-            return "Request does not contain webauthn.create type.";
+            return "Request does not contain webauthn.get type.";
         }
 
         final String expectedChallenge = request.getExpectedChallenge();
