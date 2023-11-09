@@ -23,14 +23,20 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.Comparator;
+import java.util.stream.Collectors;
 
 /**
  * Class used for handling RESTful service errors.
@@ -92,6 +98,30 @@ public class RESTControllerAdvice {
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
         error.setCurrentRecoveryPukIndex(ex.getCurrentRecoveryPukIndex());
+        return new ObjectResponse<>("ERROR", error);
+    }
+
+    /**
+     * Resolver for validation xception.
+     *
+     * @param ex Exception.
+     * @return Activation recovery error.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler
+    public @ResponseBody ObjectResponse<PowerAuthError> returnActivationRecoveryError(final MethodArgumentNotValidException ex) {
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+
+        final String message = ex.getBindingResult().getFieldErrors().stream()
+                .sorted(Comparator.comparing(FieldError::getField))
+                .map(it -> String.join(" - ", it.getField(), it.getDefaultMessage()))
+                .collect(Collectors.joining(", "));
+
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode(ServiceError.INVALID_REQUEST);
+        error.setMessage(message);
+        error.setLocalizedMessage(message);
         return new ObjectResponse<>("ERROR", error);
     }
 

@@ -28,7 +28,7 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class ServiceError {
+public final class ServiceError {
 
     /**
      * Unknown error occurred.
