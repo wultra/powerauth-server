@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import lombok.ToString;
 import org.springframework.data.util.ProxyUtils;
@@ -212,18 +211,18 @@ public class ActivationHistoryEntity implements Serializable {
             return false;
         } else {
             final ActivationHistoryEntity that = (ActivationHistoryEntity) o;
-            return Objects.equals(fetchActivationId(getActivation()), fetchActivationId(that.getActivation())) && Objects.equals(timestampCreated, that.timestampCreated);
+            return Objects.equals(getActivationId(), that.getActivationId()) && Objects.equals(timestampCreated, that.timestampCreated);
         }
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fetchActivationId(getActivation()), timestampCreated);
+        return Objects.hash(getActivationId(), timestampCreated);
     }
 
     // TODO (racansky, 2023-11-08) remove when activation equals and hashCode implemented correctly
-    private static String fetchActivationId(final @Nullable ActivationRecordEntity activation) {
-        return activation == null ? null : activation.getActivationId();
+    private String getActivationId() {
+        return getActivation() == null ? null : getActivation().getActivationId();
     }
 
 }
