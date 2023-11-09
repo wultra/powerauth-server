@@ -211,7 +211,7 @@ public class ActivationHistoryEntity implements Serializable {
             return false;
         } else {
             final ActivationHistoryEntity that = (ActivationHistoryEntity) o;
-            return Objects.equals(getActivationId(), that.getActivationId()) && Objects.equals(timestampCreated, that.timestampCreated);
+            return Objects.equals(getActivationId(), that.getActivationId()) && Objects.equals(getTimestampCreated(), that.getTimestampCreated());
         }
     }
 
