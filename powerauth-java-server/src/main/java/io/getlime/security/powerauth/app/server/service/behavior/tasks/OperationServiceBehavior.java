@@ -55,6 +55,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
@@ -223,7 +224,7 @@ public class OperationServiceBehavior {
         final String applicationId = request.getApplicationId();
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Serializable> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -357,7 +358,7 @@ public class OperationServiceBehavior {
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
         final String applicationId = request.getApplicationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Serializable> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -436,7 +437,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Serializable> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -513,7 +514,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Serializable> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -730,8 +731,8 @@ public class OperationServiceBehavior {
     }
 
     // Merge two maps into new one, replacing values in the first map when collision occurs
-    private Map<String, String> mapMerge(Map<String, String> m1, Map<String, String> m2) {
-        final Map<String, String> m3 = new HashMap<>();
+    private Map<String, Serializable> mapMerge(Map<String, Serializable> m1, Map<String, Serializable> m2) {
+        final Map<String, Serializable> m3 = new HashMap<>();
         if (m1 != null) {
             m3.putAll(m1);
         }
@@ -797,7 +798,7 @@ public class OperationServiceBehavior {
             return ProximityCheckResult.DISABLED;
         }
 
-        final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
+        final String otp = (String) request.getAdditionalData().get(PROXIMITY_OTP);
         if (otp == null) {
             logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;

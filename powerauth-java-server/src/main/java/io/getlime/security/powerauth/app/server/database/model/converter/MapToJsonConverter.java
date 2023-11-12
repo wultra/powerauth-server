@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ import java.util.Map;
  */
 @Converter
 @Component
-public class MapToJsonConverter implements AttributeConverter<Map<String, String>, String> {
+public class MapToJsonConverter implements AttributeConverter<Map<String, Serializable>, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapToJsonConverter.class);
 
@@ -55,7 +56,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, String
     }
 
     @Override
-    public String convertToDatabaseColumn(Map<String, String> parameters) {
+    public String convertToDatabaseColumn(Map<String, Serializable> parameters) {
         if (parameters == null) {
             return EMPTY_PARAMS;
         }
@@ -68,7 +69,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, String
     }
 
     @Override
-    public Map<String, String> convertToEntityAttribute(String s) {
+    public Map<String, Serializable> convertToEntityAttribute(String s) {
         if (s == null) {
             return new HashMap<>();
         }

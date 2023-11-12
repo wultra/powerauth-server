@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -34,6 +35,6 @@ public class OperationRejectRequest {
     private String operationId;
     private String userId;
     private String applicationId;
-    private final Map<String, String> additionalData = new LinkedHashMap<>();
+    private final Map<String, Serializable> additionalData = new LinkedHashMap<>();
 
 }

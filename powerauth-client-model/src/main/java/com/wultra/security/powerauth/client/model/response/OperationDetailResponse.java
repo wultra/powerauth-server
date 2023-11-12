@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
 import lombok.ToString;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class OperationDetailResponse {
     private String templateName;
     private String data;
     private Map<String, String> parameters;
-    private Map<String, String> additionalData;
+    private Map<String, Serializable> additionalData;
     private OperationStatus status;
     private List<SignatureType> signatureType;
     private long failureCount;

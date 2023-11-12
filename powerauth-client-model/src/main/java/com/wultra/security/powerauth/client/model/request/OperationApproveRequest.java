@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.client.model.request;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -37,6 +38,6 @@ public class OperationApproveRequest {
     private String applicationId;
     private String data;
     private SignatureType signatureType;
-    private final Map<String, String> additionalData = new LinkedHashMap<>();
+    private final Map<String, Serializable> additionalData = new LinkedHashMap<>();
 
 }
