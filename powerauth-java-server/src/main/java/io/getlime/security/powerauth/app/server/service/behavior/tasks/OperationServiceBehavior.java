@@ -804,9 +804,7 @@ public class OperationServiceBehavior {
     }
 
     private static boolean activationIdMatches(final OperationApproveRequest operationApproveRequest, String activationId) {
-        return activationId == null ||
-                (operationApproveRequest.getAdditionalData().get("activationId") != null &&
-                        operationApproveRequest.getAdditionalData().get("activationId").equals(activationId));
+        return activationId == null || activationId.equals(operationApproveRequest.getAdditionalData().get("activationId"));
     }
 
     private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {

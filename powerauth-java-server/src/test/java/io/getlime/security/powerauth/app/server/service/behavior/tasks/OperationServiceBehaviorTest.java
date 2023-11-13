@@ -60,7 +60,7 @@ class OperationServiceBehaviorTest {
     void testCreateOperationWithActivationId() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
-        request.setTemplateName("login");
+        request.setTemplateName("test-template");
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
@@ -76,7 +76,7 @@ class OperationServiceBehaviorTest {
     @Test
     void testCreateOperationWithout() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
-        request.setTemplateName("login");
+        request.setTemplateName("test-template");
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
@@ -93,7 +93,7 @@ class OperationServiceBehaviorTest {
     void testApproveOperationWithMatchingActivationIdSuccess() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
-        request.setTemplateName("login");
+        request.setTemplateName("test-template");
         request.setUserId("test-user");
         request.setApplications(Collections.singletonList("PA_Tests"));
 
@@ -122,7 +122,7 @@ class OperationServiceBehaviorTest {
     @Test
     void testApproveOperationEntityWithoutActivationIdIdSuccess() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
-        request.setTemplateName("login");
+        request.setTemplateName("test-template");
         request.setUserId("test-user");
         request.setApplications(Collections.singletonList("PA_Tests"));
 
@@ -152,7 +152,7 @@ class OperationServiceBehaviorTest {
     void testApproveOperationWithoutMatchingActivationIdFailure() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
-        request.setTemplateName("login");
+        request.setTemplateName("test-template");
         request.setUserId("test-user");
         request.setApplications(Collections.singletonList("PA_Tests"));
 
@@ -185,7 +185,7 @@ class OperationServiceBehaviorTest {
     void testApproveOperationWithoutMatchingActivationIdFailureMax() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
-        request.setTemplateName("login");
+        request.setTemplateName("test-template");
         request.setUserId("test-user");
         request.setApplications(Collections.singletonList("PA_Tests"));
 
