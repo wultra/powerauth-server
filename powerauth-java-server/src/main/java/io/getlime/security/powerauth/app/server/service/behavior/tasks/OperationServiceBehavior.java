@@ -798,12 +798,13 @@ public class OperationServiceBehavior {
             return ProximityCheckResult.DISABLED;
         }
 
-        final String otp = (String) request.getAdditionalData().get(PROXIMITY_OTP);
-        if (otp == null) {
+        final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
+        if (otpObject == null) {
             logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
+            final String otp = otpObject.toString();
             final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());

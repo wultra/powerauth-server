@@ -77,7 +77,7 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
-        private Map<String, Serializable> additionalData = new HashMap<>();
+    private Map<String, Serializable> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)

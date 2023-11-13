@@ -166,6 +166,11 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.getlime.core</groupId>
+            <artifactId>http-common</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
