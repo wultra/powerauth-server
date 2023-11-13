@@ -21,3 +21,10 @@ and `pa_application` or `pa_operation`. Make sure that `pa_operation_application
 existing `pa_application.id` and `pa_operation_application.operation_id` contains references to
 existing `pa_operation.id`. If necessary, manually remove orphaned records in `pa_operation_application`. Consider
 creating a backup before this operation.
+
+### Add application_id column
+
+Add new column `application_id` to `pa_operation` table. Storing `application_id` brings enhancements for developers:
+
+* Create a new operation on a specific mobile device (activation ID).
+* Approve the operation just on that specific mobile device (activation ID).

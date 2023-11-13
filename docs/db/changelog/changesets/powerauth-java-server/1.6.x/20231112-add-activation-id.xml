@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.6.x/20231112-add-activation-id.xml" author="Jan Dusil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_operation" columnName="activation_id" />
+            </not>
+        </preConditions>
+        <comment>Add activation_id column to pa_operation</comment>
+        <addColumn tableName="pa_operation">
+            <column name="activation_id" type="varchar(37)" />
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>

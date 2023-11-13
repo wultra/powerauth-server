@@ -2023,6 +2023,7 @@ REST endpoint: `POST /rest/v3/operation/create`
 | `String`              | `externalId`            | External identifier of the operation, i.e., ID from transaction system                           |
 | `Map<String, String>` | `parameters`            | Parameters of the operation, will be filled to the operation data                                |
 | `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used. Overrides configuration from operation template.         |
+| `String`              | `activationId`          | Activation Id of a specific device.                                                              |
 
 #### Response
 
