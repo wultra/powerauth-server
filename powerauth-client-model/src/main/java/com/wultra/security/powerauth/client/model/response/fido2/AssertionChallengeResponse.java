@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,22 +16,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.request;
+package com.wultra.security.powerauth.client.model.response.fido2;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.List;
 
 /**
- * Request for obtaining list of registered authenticators for given user.
+ * Response for obtaining assertion challenge.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsRequest {
+public class AssertionChallengeResponse {
 
-    @NotBlank
+    private List<String> applicationIds;
+    @ToString.Exclude
+    private String challenge;
     private String userId;
-    @NotBlank
-    private String applicationId;
+    private Long failedAttempts;
+    private Long maxFailedAttempts;
 
 }

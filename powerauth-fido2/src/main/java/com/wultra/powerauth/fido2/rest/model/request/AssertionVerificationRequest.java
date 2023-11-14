@@ -18,20 +18,33 @@
 
 package com.wultra.powerauth.fido2.rest.model.request;
 
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Request for obtaining list of registered authenticators for given user.
- *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsRequest {
+public class AssertionVerificationRequest {
 
     @NotBlank
-    private String userId;
+    private String id;
+    @NotBlank
+    private String type;
+    @NotBlank
+    private String authenticatorAttachment;
+    private AuthenticatorAssertionResponse response = new AuthenticatorAssertionResponse();
     @NotBlank
     private String applicationId;
+    @NotBlank
+    private String relyingPartyId;
+    private List<String> allowedOrigins = new ArrayList<>();
+    private List<String> allowedTopOrigins = new ArrayList<>();
+    private boolean requiresUserVerification;
+    private String expectedChallenge;
 
 }

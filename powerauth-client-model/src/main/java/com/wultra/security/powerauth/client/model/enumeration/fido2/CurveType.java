@@ -16,22 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.request;
-
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
+package com.wultra.security.powerauth.client.model.enumeration.fido2;
 
 /**
- * Request for obtaining list of registered authenticators for given user.
- *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
-public class RegisteredAuthenticatorsRequest {
+public enum CurveType {
 
-    @NotBlank
-    private String userId;
-    @NotBlank
-    private String applicationId;
+    P256,
+    UNKNOWN
 
 }

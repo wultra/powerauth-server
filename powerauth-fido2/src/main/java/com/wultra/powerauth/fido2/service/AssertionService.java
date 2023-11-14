@@ -25,7 +25,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionRequest;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
@@ -82,7 +82,7 @@ public class AssertionService {
      * @param request Request with assertion.
      * @throws Fido2AuthenticationFailedException In case authentication fails.
      */
-    public AssertionVerificationResponse authenticate(AssertionRequest request) throws Fido2AuthenticationFailedException {
+    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request) throws Fido2AuthenticationFailedException {
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();

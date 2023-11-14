@@ -16,22 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.request;
+package com.wultra.security.powerauth.client.model.request.fido2;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Request for obtaining list of registered authenticators for given user.
+ * Request for obtaining assertion challenge.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsRequest {
+public class AssertionChallengeRequest {
 
+    @NotEmpty
+    private List<@NotBlank String> applicationIds;
+    private String externalId;
     @NotBlank
-    private String userId;
-    @NotBlank
-    private String applicationId;
+    private String operationType;
+    private Map<String, String> parameters = new HashMap<>();
 
 }

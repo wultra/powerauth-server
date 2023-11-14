@@ -19,7 +19,7 @@ package com.wultra.powerauth.fido2.rest.controller;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionRequest;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
 import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
@@ -43,7 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Validated
 @RestController
-@RequestMapping("assertions")
+@RequestMapping("fido2/assertions")
 @Slf4j
 @Tag(name = "FIDO2 Assertions Controller")
 public class AssertionController {
@@ -65,8 +65,8 @@ public class AssertionController {
     }
 
     @PostMapping
-    public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionRequest> request) throws Fido2AuthenticationFailedException {
-        final AssertionRequest requestObject = request.getRequestObject();
+    public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException {
+        final AssertionVerificationRequest requestObject = request.getRequestObject();
         final String error = assertionRequestValidator.validate(requestObject);
         if (error != null) {
             throw new Fido2AuthenticationFailedException(error);

@@ -16,22 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.request;
+package com.wultra.security.powerauth.client.model.request.fido2;
 
+import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Request for obtaining list of registered authenticators for given user.
+ * Request for validating an assertion.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsRequest {
+public class AssertionVerificationRequest {
 
     @NotBlank
-    private String userId;
+    private String id;
+    @NotBlank
+    private String type;
+    @NotBlank
+    private String authenticatorAttachment;
+    private AuthenticatorAssertionResponse response = new AuthenticatorAssertionResponse();
     @NotBlank
     private String applicationId;
+    @NotBlank
+    private String relyingPartyId;
+    private List<String> allowedOrigins = new ArrayList<>();
+    private List<String> allowedTopOrigins = new ArrayList<>();
+    private boolean requiresUserVerification;
+    private String expectedChallenge;
 
 }
