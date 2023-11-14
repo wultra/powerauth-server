@@ -1145,12 +1145,12 @@ public class PowerAuthService {
         }
         // Verify the token timestamp validity
         final long currentTimeMillis = System.currentTimeMillis();
-        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
+        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
         }
-        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidityInMilliseconds()) {
+        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
@@ -1978,6 +1978,24 @@ public class PowerAuthService {
             // already logged
             throw ex;
         } catch (RuntimeException | Error ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    @Transactional
+    public UpdateActivationNameResponse updateActivationName(final UpdateActivationNameRequest request) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+            logger.info("UpdateActivationRequest call received, activation ID: {}", activationId);
+            logger.debug("Updating activation: {}", request);
+            final UpdateActivationNameResponse response = behavior.getActivationServiceBehavior().updateActivationName(request);
+            logger.info("UpdateActivationRequest succeeded, activation ID: {}", activationId);
+            return response;
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {

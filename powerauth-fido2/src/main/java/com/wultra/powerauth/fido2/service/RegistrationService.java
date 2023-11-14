@@ -19,8 +19,8 @@
 package com.wultra.powerauth.fido2.service;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.converter.RegistrationConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationChallengeConverter;
+import com.wultra.powerauth.fido2.rest.model.converter.RegistrationConverter;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsResponse;

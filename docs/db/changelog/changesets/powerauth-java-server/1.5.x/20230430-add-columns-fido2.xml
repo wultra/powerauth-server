@@ -46,7 +46,7 @@
     </changeSet>
 
     <changeSet id="3" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-fido2" author="Petr Dvorak">
-        <dropNotNullConstraint tableName="pa_operation"  columnName="user_id"/>
+        <dropNotNullConstraint tableName="pa_operation" columnName="user_id"/>
     </changeSet>
 
     <changeSet id="4" logicalFilePath="powerauth-java-server/1.5.x/20230323-add-columns-fido2" author="Petr Dvořák">

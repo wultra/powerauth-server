@@ -24,8 +24,12 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Class implementing the RESTful controller for PowerAuth service.
@@ -171,6 +175,17 @@ public class PowerAuthController {
         return new ObjectResponse<>("OK", powerAuthService.getActivationListForUser(request.getRequestObject()));
     }
 
+    /**
+     * Update the activation name.
+     *
+     * @param request This is an {@link ObjectRequest} that contains a {@link UpdateActivationNameRequest}.
+     * @return This endpoint returns an {@link ObjectResponse} that contains a {@link UpdateActivationNameResponse}.
+     * @throws Exception In case the service throws an exception, it will be propagated and should be handled by the caller.
+     */
+    @PostMapping("/activation/name/update")
+    public ObjectResponse<UpdateActivationNameResponse> updateActivation(@Valid @RequestBody ObjectRequest<UpdateActivationNameRequest> request) throws Exception {
+        return new ObjectResponse<>(powerAuthService.updateActivationName(request.getRequestObject()));
+    }
 
     /**
      * Call {@link PowerAuthService#lookupActivations(LookupActivationsRequest)} method and

@@ -80,6 +80,11 @@ public class AdditionalInformation {
          */
         public static final String ACTIVATION_VERSION_CHANGED = "ACTIVATION_VERSION_CHANGED";
 
+        /**
+         * Logged when the activation name has been updated.
+         */
+        public static final String ACTIVATION_NAME_UPDATED = "ACTIVATION_NAME_UPDATED";
+
     }
 
     private AdditionalInformation() {

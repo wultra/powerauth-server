@@ -33,6 +33,6 @@ public class Flags {
     private boolean backupState;
     private boolean reservedBit6;
     private boolean attestedCredentialsIncluded;
-    private boolean extensionDataInlcuded;
+    private boolean extensionDataIncluded;
 
 }

@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.EllipticCurvePoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
 import com.wultra.powerauth.fido2.rest.model.entity.PublicKeyObject;
 import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
@@ -80,7 +81,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
         flags.setBackupState(isFlagOn(flagByte, 4));
         flags.setReservedBit6(isFlagOn(flagByte, 5));
         flags.setAttestedCredentialsIncluded(isFlagOn(flagByte,6));
-        flags.setExtensionDataInlcuded(isFlagOn(flagByte,7));
+        flags.setExtensionDataIncluded(isFlagOn(flagByte,7));
 
         // Get Signature Counter
         final byte[] signCountBytes = new byte[4];
@@ -129,8 +130,10 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
 
             final byte[] xBytes = (byte[]) credentialPublicKeyMap.get("-2");
             final byte[] yBytes = (byte[]) credentialPublicKeyMap.get("-3");
-            publicKeyObject.getPoint().setX(xBytes);
-            publicKeyObject.getPoint().setY(yBytes);
+            final EllipticCurvePoint point = new EllipticCurvePoint();
+            point.setX(xBytes);
+            point.setY(yBytes);
+            publicKeyObject.setPoint(point);
 
             result.getAttestedCredentialData().setPublicKeyObject(publicKeyObject);
         }
@@ -138,7 +141,10 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
         return result;
     }
 
-    private boolean isFlagOn(byte flags, int position) {
+    private boolean isFlagOn(byte flags, int position) throws IOException {
+        if (position < 0 || position > 7) {
+            throw new IOException("Invalid position for flag: " + position);
+        }
         return ((flags >> position) & 1) == 1;
     }
 

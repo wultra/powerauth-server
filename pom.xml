@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.4</version>
+        <version>3.1.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -85,8 +85,8 @@
         <spring-cloud-vault.version>4.0.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
-        <powerauth-java-crypto.version>1.5.1</powerauth-java-crypto.version>
-        <wultra-core.version>1.7.0</wultra-core.version>
+        <powerauth-java-crypto.version>1.6.0-SNAPSHOT</powerauth-java-crypto.version>
+        <wultra-core.version>1.8.0-SNAPSHOT</wultra-core.version>
 
         <bcprov-jdk18on.version>1.76</bcprov-jdk18on.version>
 
@@ -97,10 +97,10 @@
         <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <shedlock.version>5.8.0</shedlock.version>
+        <shedlock.version>5.9.1</shedlock.version>
 
         <!-- Other Dependencies -->
-        <commons-text.version>1.10.0</commons-text.version>
+        <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
     </properties>
 
@@ -122,20 +122,10 @@
             <!--  Wultra Dependencies  -->
             <dependency>
                 <groupId>io.getlime.core</groupId>
-                <artifactId>audit-base</artifactId>
+                <artifactId>core-bom</artifactId>
                 <version>${wultra-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.getlime.core</groupId>
-                <artifactId>rest-client-base</artifactId>
-                <version>${wultra-core.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.getlime.core</groupId>
-                <artifactId>rest-model-base</artifactId>
-                <version>${wultra-core.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>
@@ -158,6 +148,26 @@
                 <version>${shedlock.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+
+            <!-- API -->
+            <dependency>
+                <groupId>jakarta.servlet</groupId>
+                <artifactId>jakarta.servlet-api</artifactId>
+                <scope>provided</scope>
+            </dependency>
+
+            <!-- Standalone run -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-tomcat</artifactId>
+                <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.tomcat.embed</groupId>
+                <artifactId>tomcat-embed-el</artifactId>
+                <scope>provided</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

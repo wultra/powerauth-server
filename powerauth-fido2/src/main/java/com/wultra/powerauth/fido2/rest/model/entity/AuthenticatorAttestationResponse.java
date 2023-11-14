@@ -20,7 +20,6 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.AttestationObjectDeserializer;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToByteArrayDeserializer;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.CollectedClientDataDeserializer;
 import lombok.Data;
 

@@ -43,7 +43,6 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
 spring.datasource.driver-class-name=org.postgresql.Driver
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.connection.characterEncoding=utf8
 spring.jpa.properties.hibernate.connection.useUnicode=true
@@ -59,7 +58,6 @@ spring.datasource.url=jdbc:oracle:thin:@//[HOST]:[PORT]/[SERVICENAME]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
 spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 ```
 
@@ -71,7 +69,6 @@ spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DATABASE]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
 spring.datasource.driver-class-name=org.postgresql.Driver
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 spring.jpa.hibernate.ddl-auto=none
 ```
 
@@ -140,7 +137,6 @@ You can specify the individual properties directly in the server configuration. 
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value=""/>
     <Parameter name="spring.datasource.driver-class-name" value="org.postgresql.Driver"/>
-    <Parameter name="spring.jpa.database-platform" value="org.hibernate.dialect.PostgreSQLDialect"/>
 </Context>
 ```
 
@@ -162,7 +158,6 @@ spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
 spring.datasource.driver-class-name=org.postgresql.Driver
-spring.jpa.database-platform=org.hibernate.dialect.PostgreSQLDialect
 ```
 
 ## Generating Your First Application

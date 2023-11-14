@@ -18,13 +18,9 @@
 
 package com.wultra.powerauth.fido2.rest.model.request;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAttestationResponse;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Petr Dvorak, petr@wultra.com
