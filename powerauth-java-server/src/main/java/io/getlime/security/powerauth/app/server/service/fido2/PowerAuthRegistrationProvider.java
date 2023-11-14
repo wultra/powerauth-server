@@ -87,7 +87,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final Date currentTimestamp = new Date();
 
         // Obtain just the activation code part, just in case there was a value with signature
-        final String[] split = challengeValue.split("&", 1);
+        final String[] split = challengeValue.split("#", 1);
         final String activationCode = split[0];
 
         // Only allow created activations to be finished
@@ -122,7 +122,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         }
 
         // Obtain just the activation code part, just in case there was a value with signature
-        final String[] split = challengeValue.split("&", 1);
+        final String[] split = challengeValue.split("#", 1);
         final String activationCode = split[0];
 
         final List<ActivationStatus> statuses = List.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT, ActivationStatus.ACTIVE, ActivationStatus.BLOCKED);
