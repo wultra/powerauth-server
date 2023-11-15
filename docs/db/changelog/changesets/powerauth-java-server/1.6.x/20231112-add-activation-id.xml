@@ -6,12 +6,32 @@
     <changeSet id="1" logicalFilePath="powerauth-java-server/1.6.x/20231112-add-activation-id.xml" author="Jan Dusil">
         <preConditions onFail="MARK_RAN">
             <not>
-                <columnExists tableName="pa_operation" columnName="activation_id" />
+                <columnExists tableName="pa_operation" columnName="activation_id"/>
             </not>
         </preConditions>
         <comment>Add activation_id column to pa_operation</comment>
         <addColumn tableName="pa_operation">
-            <column name="activation_id" type="varchar(37)" />
+            <column name="activation_id" type="varchar(37)"/>
         </addColumn>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.6.x/20231112-add-fk-to-activation-id.xml"
+               author="Jan Dusil">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="pa_activation"/>
+            <tableExists tableName="pa_operation"/>
+            <columnExists tableName="pa_activation" columnName="activation_id"/>
+            <columnExists tableName="pa_operation" columnName="activation_id"/>
+            <not>
+                <foreignKeyConstraintExists foreignKeyTableName="pa_operation"
+                                            foreignKeyName="pa_operation_activation_id_fk"/>
+            </not>
+        </preConditions>
+        <comment>Add foreign key constraint to activation_id in pa_operation</comment>
+        <addForeignKeyConstraint constraintName="pa_operation_activation_id_fk"
+                                 baseTableName="pa_operation"
+                                 baseColumnNames="activation_id"
+                                 referencedTableName="pa_activation"
+                                 referencedColumnNames="activation_id"/>
     </changeSet>
 </databaseChangeLog>

@@ -27,11 +27,13 @@ import com.wultra.security.powerauth.client.model.request.OperationCreateRequest
  */
 public class OperationCreateRequestValidator {
 
+    private static final int MAX_ACTIVATION_ID_LENGTH = 37;
+
     public static String validate(OperationCreateRequest source) {
         if (source == null) {
-            return "Operation create request must not be null";
+            return "Operation create request must not be null when creating operation";
         }
-        if (source.getApplications() == null || source.getApplications().size() == 0) {
+        if (source.getApplications() == null || source.getApplications().isEmpty()) {
             return "Application ID list must not be null or empty when creating operation";
         }
         if (source.getUserId() == null) {
@@ -45,6 +47,9 @@ public class OperationCreateRequestValidator {
         }
         if (source.getTemplateName().isEmpty()) {
             return "Template name must not be empty when creating operation";
+        }
+        if (source.getActivationId() != null && source.getActivationId().length() > MAX_ACTIVATION_ID_LENGTH) {
+            return "Activation ID must not exceed 37 characters when creating operation";
         }
         return null;
     }
