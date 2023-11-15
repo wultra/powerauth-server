@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.client.model.request;
 
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 

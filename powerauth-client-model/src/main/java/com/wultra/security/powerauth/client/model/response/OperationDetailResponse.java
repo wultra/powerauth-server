@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
 import lombok.ToString;
 
-import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;

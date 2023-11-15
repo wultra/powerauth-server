@@ -21,7 +21,6 @@ package com.wultra.security.powerauth.client.model.request;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
