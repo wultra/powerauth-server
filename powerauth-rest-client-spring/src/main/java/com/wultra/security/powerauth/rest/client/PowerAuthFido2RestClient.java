@@ -156,17 +156,17 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     }
 
     @Override
-    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request) throws Exception {
+    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request) throws PowerAuthClientException {
         return callFido2RestApi("/registrations/list", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, RegisteredAuthenticatorsResponse.class);
     }
 
     @Override
-    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws Exception {
+    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callFido2RestApi("/registrations/list", request, queryParams, httpHeaders, RegisteredAuthenticatorsResponse.class);
     }
 
     @Override
-    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(String userId, String applicationId) throws Exception {
+    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(String userId, String applicationId) throws PowerAuthClientException {
         final RegisteredAuthenticatorsRequest request = new RegisteredAuthenticatorsRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -174,17 +174,17 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     }
 
     @Override
-    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws Exception {
+    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws PowerAuthClientException {
         return callFido2RestApi("/registrations/challenge", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, RegistrationChallengeResponse.class);
     }
 
     @Override
-    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws Exception {
+    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callFido2RestApi("/registrations/challenge", request, queryParams, httpHeaders, RegistrationChallengeResponse.class);
     }
 
     @Override
-    public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws Exception {
+    public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws PowerAuthClientException {
         final RegistrationChallengeRequest request = new RegistrationChallengeRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -192,17 +192,17 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     }
 
     @Override
-    public RegistrationResponse register(RegistrationRequest request) throws Exception {
+    public RegistrationResponse register(RegistrationRequest request) throws PowerAuthClientException {
         return callFido2RestApi("/registrations", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, RegistrationResponse.class);
     }
 
     @Override
-    public RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws Exception {
+    public RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
         return callFido2RestApi("/registrations", request, queryParams, httpHeaders, RegistrationResponse.class);
     }
 
     @Override
-    public RegistrationResponse register(String applicationId, String activationName, String expectedChallenge, AuthenticatorParameters authenticatorParameters) throws Exception {
+    public RegistrationResponse register(String applicationId, String activationName, String expectedChallenge, AuthenticatorParameters authenticatorParameters) throws PowerAuthClientException {
         RegistrationRequest request = new RegistrationRequest();
         request.setApplicationId(applicationId);
         request.setActivationName(activationName);

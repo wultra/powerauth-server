@@ -40,9 +40,9 @@ public interface PowerAuthFido2Client {
      *
      * @param request Registered authenticator list request.
      * @return Registered authenticator list response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request) throws Exception;
+    RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request) throws PowerAuthClientException;
 
     /**
      * Get list of registered authenticators for a user.
@@ -51,9 +51,9 @@ public interface PowerAuthFido2Client {
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
      * @return Registered authenticator list response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws Exception;
+    RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Get list of registered authenticators for a user.
@@ -61,18 +61,18 @@ public interface PowerAuthFido2Client {
      * @param userId User identifier.
      * @param applicationId Application identifier.
      * @return Registered authenticator list response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(String userId, String applicationId) throws Exception;
+    RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(String userId, String applicationId) throws PowerAuthClientException;
 
     /**
      * Request a registration challenge.
      *
      * @param request Registration challenge request.
      * @return Registration challenge response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws Exception;
+    RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws PowerAuthClientException;
 
     /**
      * Request a registration challenge.
@@ -81,9 +81,9 @@ public interface PowerAuthFido2Client {
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
      * @return Registration challenge response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws Exception;
+    RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * Request a registration challenge.
@@ -91,25 +91,25 @@ public interface PowerAuthFido2Client {
      * @param userId User identifier.
      * @param applicationId Application identifier.
      * @return Registration challenge response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws Exception;
+    RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws PowerAuthClientException;
 
     /**
      * @param request Registration request.
      * @return Registration response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegistrationResponse register(RegistrationRequest request) throws Exception;
+    RegistrationResponse register(RegistrationRequest request) throws PowerAuthClientException;
 
     /**
      * @param request Registration request.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
      * @return Registration response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws Exception;
+    RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
      * @param applicationId Application identifier.
@@ -118,9 +118,9 @@ public interface PowerAuthFido2Client {
      * @param authenticatorParameters Authenticator parameters.
      *
      * @return Registration response.
-     * @throws Exception In case REST API call fails.
+     * @throws PowerAuthClientException In case REST API call fails.
      */
-    RegistrationResponse register(String applicationId, String activationName, String expectedChallenge, AuthenticatorParameters authenticatorParameters) throws Exception;
+    RegistrationResponse register(String applicationId, String activationName, String expectedChallenge, AuthenticatorParameters authenticatorParameters) throws PowerAuthClientException;
 
     /**
      * Call the assertion challenge endpoint of FIDO2 service.

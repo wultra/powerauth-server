@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.response.fido2;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -28,6 +29,7 @@ public class RegistrationChallengeResponse {
 
     private String activationId;
     private String applicationId;
+    @ToString.Exclude
     private String challenge;
     private String userId;
 
