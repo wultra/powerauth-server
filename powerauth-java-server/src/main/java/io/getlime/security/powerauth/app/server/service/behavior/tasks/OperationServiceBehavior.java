@@ -227,7 +227,7 @@ public class OperationServiceBehavior {
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseDeviceFromUserAgent(additionalData);
+        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -362,7 +362,7 @@ public class OperationServiceBehavior {
         final String userId = request.getUserId();
         final String applicationId = request.getApplicationId();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseDeviceFromUserAgent(additionalData);
+        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -442,7 +442,7 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseDeviceFromUserAgent(additionalData);
+        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -520,7 +520,7 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseDeviceFromUserAgent(additionalData);
+        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -821,7 +821,7 @@ public class OperationServiceBehavior {
         }
     }
 
-    private static void parseDeviceFromUserAgent(Map<String, Object> additionalData) {
+    private static void parseAndAddDeviceFromUserAgent(Map<String, Object> additionalData) {
         final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
         if (userAgentObject != null) {
             final UserAgent.Device device = UserAgent.parse(userAgentObject.toString());
