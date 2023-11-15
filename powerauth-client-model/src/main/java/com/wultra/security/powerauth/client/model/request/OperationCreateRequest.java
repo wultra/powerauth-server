@@ -36,7 +36,7 @@ public class OperationCreateRequest {
     private String templateName;
     private Date timestampExpires;
     private String externalId;
-    private final Map<String, String> parameters = new LinkedHashMap<>();
+    private Map<String, String> parameters = new LinkedHashMap<>();
     private Boolean proximityCheckEnabled;
 
 }

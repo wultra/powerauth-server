@@ -52,7 +52,7 @@ class MapToJsonConverterTest {
      */
     @Test
     void testConvertToDatabaseColumnSerializableObject() {
-        Map<String, Serializable> testMap = new HashMap<>();
+        Map<String, Object> testMap = new HashMap<>();
         testMap.put("key1", "value1");
         final String exampleRequestUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
         final UserAgent.Device device = UserAgent.parse(exampleRequestUserAgent);
@@ -81,7 +81,7 @@ class MapToJsonConverterTest {
      */
     @Test
     void testConvertToDatabaseColumn() {
-        Map<String, Serializable> testMap = new HashMap<>();
+        Map<String, Object> testMap = new HashMap<>();
         testMap.put("key1", "value1");
         testMap.put("key2", 42);
 
@@ -110,7 +110,7 @@ class MapToJsonConverterTest {
     @Test
     void testConvertToEntityAttribute() throws JsonProcessingException {
         final String jsonString = "{\"key1\":\"value1\",\"key2\":42}";
-        final Map<String, Serializable> resultMap = converter.convertToEntityAttribute(jsonString);
+        final Map<String, Object> resultMap = converter.convertToEntityAttribute(jsonString);
 
         assertNotNull(resultMap);
         assertFalse(resultMap.isEmpty());
@@ -124,7 +124,7 @@ class MapToJsonConverterTest {
      */
     @Test
     void testConvertToEntityAttributeWithNull() {
-        final Map<String, Serializable> resultMap = converter.convertToEntityAttribute(null);
+        final Map<String, Object> resultMap = converter.convertToEntityAttribute(null);
         assertNotNull(resultMap);
         assertTrue(resultMap.isEmpty());
     }
@@ -136,7 +136,7 @@ class MapToJsonConverterTest {
     @Test
     void testConvertToEntityAttributeWithInvalidJson() {
         final String invalidJsonString = "This is not a valid JSON";
-        final Map<String, Serializable> resultMap = converter.convertToEntityAttribute(invalidJsonString);
+        final Map<String, Object> resultMap = converter.convertToEntityAttribute(invalidJsonString);
 
         assertNotNull(resultMap);
         assertTrue(resultMap.isEmpty());

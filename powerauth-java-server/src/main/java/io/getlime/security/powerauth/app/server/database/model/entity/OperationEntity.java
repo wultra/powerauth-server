@@ -77,7 +77,7 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
-    private Map<String, Serializable> additionalData = new HashMap<>();
+    private Map<String, Object> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
@@ -259,7 +259,7 @@ public class OperationEntity implements Serializable {
      * Get operation additional data set on operation approval or reject.
      * @return Additional data.
      */
-    public Map<String, Serializable> getAdditionalData() {
+    public Map<String, Object> getAdditionalData() {
         return additionalData;
     }
 
@@ -267,7 +267,7 @@ public class OperationEntity implements Serializable {
      * Set operation additional data set on operation approval or reject.
      * @param additionalData Additional data.
      */
-    public void setAdditionalData(Map<String, Serializable> additionalData) {
+    public void setAdditionalData(Map<String, Object> additionalData) {
         this.additionalData = additionalData;
     }
 

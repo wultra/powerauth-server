@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
+import com.wultra.core.http.common.headers.UserAgent;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -55,7 +56,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
@@ -72,6 +72,8 @@ public class OperationServiceBehavior {
 
     private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
     private static final String PROXIMITY_OTP = "proximity_otp";
+    private static final String ATTR_USER_AGENT = "userAgent";
+    private static final String ATTR_DEVICE = "device";
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
@@ -224,7 +226,8 @@ public class OperationServiceBehavior {
         final String applicationId = request.getApplicationId();
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
-        final Map<String, Serializable> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
+        parseDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -358,7 +361,8 @@ public class OperationServiceBehavior {
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
         final String applicationId = request.getApplicationId();
-        final Map<String, Serializable> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
+        parseDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -437,7 +441,8 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, Serializable> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
+        parseDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -514,7 +519,8 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, Serializable> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
+        parseDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -731,8 +737,8 @@ public class OperationServiceBehavior {
     }
 
     // Merge two maps into new one, replacing values in the first map when collision occurs
-    private Map<String, Serializable> mapMerge(Map<String, Serializable> m1, Map<String, Serializable> m2) {
-        final Map<String, Serializable> m3 = new HashMap<>();
+    private Map<String, Object> mapMerge(Map<String, Object> m1, Map<String, Object> m2) {
+        final Map<String, Object> m3 = new HashMap<>();
         if (m1 != null) {
             m3.putAll(m1);
         }
@@ -812,6 +818,16 @@ public class OperationServiceBehavior {
         } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
+        }
+    }
+
+    private static void parseDeviceFromUserAgent(Map<String, Object> additionalData) {
+        final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
+        if (userAgentObject != null) {
+            final UserAgent.Device device = UserAgent.parse(userAgentObject.toString());
+            if (device != null) {
+                additionalData.put(ATTR_DEVICE, device);
+            }
         }
     }
 

@@ -33,6 +33,6 @@ import java.util.Map;
 public class OperationFailApprovalRequest {
 
     private String operationId;
-    private final Map<String, Serializable> additionalData = new LinkedHashMap<>();
+    private Map<String, Object> additionalData = new LinkedHashMap<>();
 
 }
