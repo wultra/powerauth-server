@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.entity.fido2;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -32,6 +33,7 @@ public class AuthenticatorAssertionResponse {
     private AuthenticatorData authenticatorData;
 
     @NotEmpty
+    @ToString.Exclude
     private byte[] signature;
 
     private String userHandle;

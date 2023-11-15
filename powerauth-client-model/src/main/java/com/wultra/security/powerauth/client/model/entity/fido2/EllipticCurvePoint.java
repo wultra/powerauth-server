@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.entity.fido2;
 
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -26,7 +27,9 @@ import lombok.Data;
 @Data
 public class EllipticCurvePoint {
 
+    @ToString.Exclude
     private byte[] x;
+    @ToString.Exclude
     private byte[] y;
 
 }

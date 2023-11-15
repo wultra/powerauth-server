@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.entity.fido2;
 
 import com.wultra.security.powerauth.client.model.enumeration.fido2.SignatureAlgorithm;
 import lombok.Data;
+import lombok.ToString;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -28,6 +29,7 @@ import lombok.Data;
 public class AttestationStatement {
 
     private SignatureAlgorithm algorithm;
+    @ToString.Exclude
     private byte[] signature;
 
 }

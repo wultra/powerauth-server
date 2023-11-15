@@ -96,6 +96,8 @@ public interface PowerAuthFido2Client {
     RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws PowerAuthClientException;
 
     /**
+     * Register a FIDO2 authenticator.
+     *
      * @param request Registration request.
      * @return Registration response.
      * @throws PowerAuthClientException In case REST API call fails.
@@ -103,6 +105,8 @@ public interface PowerAuthFido2Client {
     RegistrationResponse register(RegistrationRequest request) throws PowerAuthClientException;
 
     /**
+     * Register a FIDO2 authenticator.
+     *
      * @param request Registration request.
      * @param queryParams HTTP query parameters.
      * @param httpHeaders HTTP headers.
@@ -112,6 +116,8 @@ public interface PowerAuthFido2Client {
     RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
     /**
+     * Register a FIDO2 authenticator.
+     *
      * @param applicationId Application identifier.
      * @param activationName Activation name.
      * @param expectedChallenge Expected challenge.
