@@ -30,6 +30,7 @@ import io.getlime.security.powerauth.app.server.converter.ActivationStatusConver
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.VerifyOfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -1720,7 +1721,7 @@ public class PowerAuthService {
         }
         try {
             logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
-            final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(request);
+            final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1740,7 +1741,7 @@ public class PowerAuthService {
         }
         try {
             logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
-            final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(request);
+            final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1760,7 +1761,7 @@ public class PowerAuthService {
         }
         try {
             logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplications());
-            final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(request);
+            final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(convert(request));
             logger.info("findAllOperationsByExternalId succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1996,4 +1997,27 @@ public class PowerAuthService {
             throw ex;
         }
     }
+
+    private OperationServiceBehavior.OperationListRequest convert(final OperationListForUserRequest source) {
+        final int pageNumber = fetchPageNumberOrDefault(source.getPageNumber());
+        final int pageSize = fetchPageSizeOrDefault(source.getPageSize());
+        final Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return new OperationServiceBehavior.OperationListRequest(source.getUserId(), source.getApplications(), pageable);
+    }
+
+    private OperationServiceBehavior.OperationListRequestWithExternalId convert(final OperationExtIdRequest source) {
+        final int pageNumber = fetchPageNumberOrDefault(source.getPageNumber());
+        final int pageSize = fetchPageSizeOrDefault(source.getPageSize());
+        final Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return new OperationServiceBehavior.OperationListRequestWithExternalId(source.getExternalId(), source.getApplications(), pageable);
+    }
+
+    private int fetchPageNumberOrDefault(final Integer pageNumber) {
+        return pageNumber != null ? pageNumber : powerAuthPageableConfiguration.defaultPageNumber();
+    }
+
+    private int fetchPageSizeOrDefault(final Integer pageSize) {
+        return pageSize != null ? pageSize : powerAuthPageableConfiguration.defaultPageSize();
+    }
+
 }
