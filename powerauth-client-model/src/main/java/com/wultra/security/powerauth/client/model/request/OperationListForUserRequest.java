@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import jakarta.validation.constraints.Min;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -34,5 +35,9 @@ public class OperationListForUserRequest {
     private String userId;
     private List<String> applications = new ArrayList<>();
     private String activationFlag;
+    @Min(0)
+    private Integer pageNumber;
+    @Min(1)
+    private Integer pageSize;
 
 }
