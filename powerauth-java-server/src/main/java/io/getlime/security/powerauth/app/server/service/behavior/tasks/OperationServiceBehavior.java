@@ -51,6 +51,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -568,11 +569,11 @@ public class OperationServiceBehavior {
         return operationDetailResponse;
     }
 
-    public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
+    public OperationListResponse findAllOperationsForUser(final OperationListRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
-        final String userId = request.getUserId();
-        final List<String> applicationIds = request.getApplications();
+        final String userId = request.userId();
+        final List<String> applicationIds = request.applications();
 
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
@@ -582,7 +583,7 @@ public class OperationServiceBehavior {
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds)) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -591,11 +592,11 @@ public class OperationServiceBehavior {
         return result;
     }
 
-    public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
+    public OperationListResponse findPendingOperationsForUser(OperationListRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
-        final String userId = request.getUserId();
-        final List<String> applicationIds = request.getApplications();
+        final String userId = request.userId();
+        final List<String> applicationIds = request.applications();
 
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
@@ -605,7 +606,7 @@ public class OperationServiceBehavior {
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds)) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
@@ -624,11 +625,11 @@ public class OperationServiceBehavior {
      * @param request Request with the external ID.
      * @return List of operations that match.
      */
-    public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
+    public OperationListResponse findOperationsByExternalId(OperationListRequestWithExternalId request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
-        final String externalId = request.getExternalId();
-        final List<String> applicationIds = request.getApplications();
+        final String externalId = request.externalId();
+        final List<String> applicationIds = request.applications();
 
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
@@ -638,7 +639,7 @@ public class OperationServiceBehavior {
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationIds)) {
+        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationIds, request.pageable())) {
             operationsByExternalId.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -832,5 +833,11 @@ public class OperationServiceBehavior {
         FAILED,
         DISABLED,
         ERROR
+    }
+
+    public record OperationListRequest(String userId, List<String> applications, Pageable pageable) {
+    }
+
+    public record OperationListRequestWithExternalId(String externalId, List<String> applications, Pageable pageable) {
     }
 }
