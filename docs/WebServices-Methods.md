@@ -2093,10 +2093,12 @@ REST endpoint: `POST /rest/v3/operation/list/pending`
 
 `OperationListForUserRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `userId` | The identifier of the user |
-| `String` | `applicationId` | The identifier of the application |
+| Type      | Name            | Description                                                                                                                                                                     |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `userId`        | The identifier of the user                                                                                                                                                      |
+| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
+| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 100. |
 
 
 #### Response
@@ -2134,10 +2136,12 @@ REST endpoint: `POST /rest/v3/operation/list`
 
 `OperationListForUserRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `userId` | The identifier of the user |
-| `String` | `applicationId` | The identifier of the application |
+| Type      | Name            | Description                                                                                                                                                                     |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `userId`        | The identifier of the user                                                                                                                                                      |
+| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
+| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 100. |
 
 
 #### Response
@@ -2174,10 +2178,12 @@ REST endpoint: `POST /rest/v3/operation/list/external`
 
 `OperationExtIdRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `externalId` | The external identifier of the operation |
-| `String` | `applicationId` | The identifier of the application |
+| Type      | Name            | Description                                                                                                                                                                     |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `externalId`    | The external identifier of the operation                                                                                                                                        |
+| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
+| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 100. |
 
 
 #### Response

@@ -21,6 +21,7 @@ package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -47,15 +48,15 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Optional<OperationEntity> findOperation(String operationId);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a WHERE o.userId = :userId AND a.id in :applicationIds ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds);
+    Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, final Pageable pageable);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a " +
             "WHERE o.userId = :userId AND a.id IN :applicationIds AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING " +
             "ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds);
+    Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, final Pageable pageable);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a WHERE o.externalId = :externalId AND a.id IN :applicationIds ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds);
+    Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds, final Pageable pageable);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o " +
             "WHERE o.timestampExpires < :timestamp AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING " +
