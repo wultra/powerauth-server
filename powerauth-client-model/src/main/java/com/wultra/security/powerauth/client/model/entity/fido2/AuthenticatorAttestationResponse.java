@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.entity.fido2;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.List;
@@ -28,7 +29,9 @@ import java.util.List;
 @Data
 public class AuthenticatorAttestationResponse {
 
+    @NotBlank
     private String clientDataJSON;
+    @NotBlank
     private String attestationObject;
     private List<String> transports;
 
