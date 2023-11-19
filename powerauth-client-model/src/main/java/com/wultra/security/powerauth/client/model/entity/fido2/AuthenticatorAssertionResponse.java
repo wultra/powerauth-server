@@ -28,9 +28,9 @@ import lombok.ToString;
 @Data
 public class AuthenticatorAssertionResponse {
 
-    private CollectedClientData clientDataJSON;
+    private String clientDataJSON;
 
-    private AuthenticatorData authenticatorData;
+    private String authenticatorData;
 
     @NotEmpty
     @ToString.Exclude

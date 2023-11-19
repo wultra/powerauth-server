@@ -28,8 +28,8 @@ import java.util.List;
 @Data
 public class AuthenticatorAttestationResponse {
 
-    private CollectedClientData clientDataJSON;
-    private AttestationObject attestationObject;
+    private String clientDataJSON;
+    private String attestationObject;
     private List<String> transports;
 
 }
