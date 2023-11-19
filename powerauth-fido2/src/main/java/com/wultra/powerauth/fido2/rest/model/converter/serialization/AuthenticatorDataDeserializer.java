@@ -29,6 +29,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.EllipticCurvePoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
 import com.wultra.powerauth.fido2.rest.model.entity.PublicKeyObject;
 import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -126,6 +127,12 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 publicKeyObject.setCurveType(CurveType.P256);
             } else {
                 throw new RuntimeException("Unsupported curve type: " + curveType);
+            }
+            final Integer keyType = (Integer) credentialPublicKeyMap.get("1");
+            if (keyType != null && 2 == keyType) {
+                publicKeyObject.setKeyType(ECKeyType.UNCOMPRESSED);
+            } else {
+                throw new RuntimeException("Unsupported key type: " + keyType);
             }
 
             final byte[] xBytes = (byte[]) credentialPublicKeyMap.get("-2");

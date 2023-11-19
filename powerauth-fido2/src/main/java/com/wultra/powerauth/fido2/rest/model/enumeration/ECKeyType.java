@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.enumeration.fido2;
+package com.wultra.powerauth.fido2.rest.model.enumeration;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public enum CurveType {
+public enum ECKeyType {
 
-    P256,
-    UNKNOWN
+    COMPRESSED,
+    UNCOMPRESSED
 
 }

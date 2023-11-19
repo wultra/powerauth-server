@@ -19,6 +19,7 @@
 package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.Data;
 
@@ -30,6 +31,7 @@ public class PublicKeyObject {
 
     private SignatureAlgorithm algorithm;
     private CurveType curveType;
+    private ECKeyType keyType;
     private EllipticCurvePoint point;
 
 }
