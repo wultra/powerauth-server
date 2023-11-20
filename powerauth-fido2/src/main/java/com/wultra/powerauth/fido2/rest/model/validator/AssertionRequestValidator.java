@@ -20,7 +20,7 @@ package com.wultra.powerauth.fido2.rest.model.validator;
 
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionRequest;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -37,7 +37,7 @@ import java.util.List;
 @Slf4j
 public class AssertionRequestValidator {
 
-    public String validate(AssertionRequest request) {
+    public String validate(AssertionVerificationRequest request) {
 
         if (request == null || request.getResponse() == null
                 || request.getResponse().getClientDataJSON() == null

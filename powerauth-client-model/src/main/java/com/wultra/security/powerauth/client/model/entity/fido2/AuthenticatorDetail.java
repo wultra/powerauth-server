@@ -16,22 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.request;
+package com.wultra.security.powerauth.client.model.entity.fido2;
 
-import jakarta.validation.constraints.NotBlank;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 /**
- * Request for obtaining list of registered authenticators for given user.
+ * Information about a registered authenticator.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsRequest {
+public class AuthenticatorDetail {
 
-    @NotBlank
     private String userId;
-    @NotBlank
+    private String activationId;
     private String applicationId;
+    private String activationName;
+    private String externalId;
+    private ActivationStatus activationStatus;
+    private Map<String, Object> extras;
+    private String platform;
+    private String deviceInfo;
+    private String blockedReason;
+    private long failedAttempts;
+    private long maxFailedAttempts;
+    private List<String> applicationRoles = new ArrayList<>();
+    private List<String> activationFlags = new ArrayList<>();
+    private byte[] publicKeyBytes;
 
 }

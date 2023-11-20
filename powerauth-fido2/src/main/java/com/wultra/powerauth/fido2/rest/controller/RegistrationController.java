@@ -44,7 +44,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @Validated
 @RestController
-@RequestMapping("registrations")
+@RequestMapping("fido2/registrations")
 @Slf4j
 @Tag(name = "FIDO2 Registration Controller")
 public class RegistrationController {
