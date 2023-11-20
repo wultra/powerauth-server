@@ -72,11 +72,8 @@ public class RegistrationConverter {
         final AuthenticatorParameters authenticatorParameters = requestObject.getAuthenticatorParameters();
         final Map<String, Object> params = new HashMap<>();
         params.put("relyingPartyId", authenticatorParameters.getRelyingPartyId());
-        params.put("allowedOrigins", authenticatorParameters.getAllowedOrigins());
-        params.put("allowedTopOrigins", authenticatorParameters.getAllowedTopOrigins());
-        params.put("transports", authenticatorParameters.getResponse().getTransports());
         params.put("authenticatorAttachment", authenticatorParameters.getAuthenticatorAttachment());
-        params.put("attestationStatement", authenticatorParameters.getResponse().getAttestationObject());
+        params.put("credentialId", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getCredentialId());
         params.put("origin", authenticatorParameters.getResponse().getClientDataJSON().getOrigin());
         params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
         params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
