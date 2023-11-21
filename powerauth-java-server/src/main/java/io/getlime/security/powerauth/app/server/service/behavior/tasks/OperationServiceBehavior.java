@@ -227,7 +227,6 @@ public class OperationServiceBehavior {
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -277,7 +276,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
@@ -362,7 +361,6 @@ public class OperationServiceBehavior {
         final String userId = request.getUserId();
         final String applicationId = request.getApplicationId();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -406,7 +404,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -442,7 +440,6 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -478,7 +475,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
 
@@ -520,7 +517,6 @@ public class OperationServiceBehavior {
 
         final String operationId = request.getOperationId();
         final Map<String, Object> additionalData = request.getAdditionalData();
-        parseAndAddDeviceFromUserAgent(additionalData);
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -550,7 +546,7 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
-                .param("additionalData", operationEntity.getAdditionalData())
+                .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
 
@@ -821,13 +817,19 @@ public class OperationServiceBehavior {
         }
     }
 
-    private static void parseAndAddDeviceFromUserAgent(Map<String, Object> additionalData) {
+    private static Map<String, Object> extendAuditedAdditionalData(Map<String, Object> additionalData) {
+        final Map<String, Object> additionalDataAudited = new HashMap<>(additionalData);
+        parseDeviceFromUserAgent(additionalDataAudited).ifPresent(device ->
+                additionalDataAudited.put(ATTR_DEVICE, device));
+        return additionalDataAudited;
+    }
+
+    private static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
         final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
         if (userAgentObject != null) {
-            final UserAgent.Device device = UserAgent.parse(userAgentObject.toString());
-            if (device != null) {
-                additionalData.put(ATTR_DEVICE, device);
-            }
+            return Optional.of(UserAgent.parse(userAgentObject.toString()));
+        } else {
+            return Optional.empty();
         }
     }
 
