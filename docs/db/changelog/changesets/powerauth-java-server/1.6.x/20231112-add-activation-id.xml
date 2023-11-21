@@ -12,7 +12,7 @@
             <tableExists tableName="pa_activation"/>
             <columnExists tableName="pa_activation" columnName="activation_id"/>
         </preConditions>
-        <comment>Add activation_id column with foreign key constraint to pa_operation</comment>
+        <comment>Add activation_id column to pa_operation with foreign key constraint </comment>
         <addColumn tableName="pa_operation">
             <column name="activation_id" type="varchar(37)">
                 <constraints nullable="true" foreignKeyName="pa_operation_activation_id_fk"

@@ -58,14 +58,14 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testCreateOperationWithActivationId() throws GenericServiceException {
-        OperationCreateRequest request = new OperationCreateRequest();
+        final OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         assertEquals("testActivationId", savedEntity.getActivationId());
     }
 
@@ -75,7 +75,7 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testCreateOperationWithoutActivationId() throws GenericServiceException {
-        OperationCreateRequest request = new OperationCreateRequest();
+        final OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
         request.setUserId("test-user");
 
@@ -91,7 +91,7 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testApproveOperationWithMatchingActivationIdSuccess() throws GenericServiceException {
-        OperationCreateRequest request = new OperationCreateRequest();
+        final OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
@@ -121,7 +121,7 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testApproveOperationEntityWithoutActivationIdSuccess() throws GenericServiceException {
-        OperationCreateRequest request = new OperationCreateRequest();
+        final OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
         request.setUserId("test-user");
         request.setApplications(Collections.singletonList("PA_Tests"));
@@ -150,7 +150,7 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testApproveOperationWithoutMatchingActivationIdFailure() throws GenericServiceException {
-        OperationCreateRequest request = new OperationCreateRequest();
+        final OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
@@ -161,7 +161,7 @@ class OperationServiceBehaviorTest {
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertEquals("testActivationId", savedEntity.getActivationId());
 
-        OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
+        final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(savedEntity.getId());
         operationApproveRequest.getAdditionalData().put("activationId2", savedEntity.getActivationId());
         operationApproveRequest.setApplicationId("PA_Tests");
@@ -183,7 +183,7 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testApproveOperationWithoutMatchingActivationIdFailureMax() throws GenericServiceException {
-        OperationCreateRequest request = new OperationCreateRequest();
+        final OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
@@ -191,12 +191,12 @@ class OperationServiceBehaviorTest {
 
         final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        OperationEntity entity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        final OperationEntity entity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertEquals("testActivationId", entity.getActivationId());
         entity.setFailureCount(4L);
 
 
-        OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
+        final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(entity.getId());
         operationApproveRequest.getAdditionalData().put("activationId2", entity.getActivationId());
         operationApproveRequest.setApplicationId("PA_Tests");
