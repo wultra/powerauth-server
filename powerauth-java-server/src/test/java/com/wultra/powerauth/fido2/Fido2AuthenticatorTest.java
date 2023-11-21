@@ -76,7 +76,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootTest(classes = Application.class)
-public class Fido2AuthenticatorTest {
+class Fido2AuthenticatorTest {
 
     private final CBORMapper CBOR_MAPPER = new CBORMapper();
     private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
