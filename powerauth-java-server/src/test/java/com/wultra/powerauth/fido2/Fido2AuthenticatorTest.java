@@ -282,7 +282,7 @@ class Fido2AuthenticatorTest {
                 authenticatorCriteria, AttestationConveyancePreference.DIRECT, null
         );
 
-        // Prepare registrationr request
+        // Prepare registration request
         com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge);
 
         // Register credential
