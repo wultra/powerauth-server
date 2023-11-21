@@ -53,10 +53,10 @@ public class PowerAuthCryptographyService implements CryptographyService {
         return verifySignature(clientDataJSON, authData, signature, publicKey);
     }
 
-    public byte[] publicKeyToBytes(AttestedCredentialData attestedCredentialData) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
-        final ECPoint point = attestedCredentialData.getPublicKeyObject().getPoint();
-        final PublicKey publicKey = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
-        return keyConvertor.convertPublicKeyToBytes(publicKey);
+    public byte[] publicKeyToBytes(PublicKeyObject publicKey) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
+        final ECPoint point = publicKey.getPoint();
+        final PublicKey publicKeyConverted = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
+        return keyConvertor.convertPublicKeyToBytes(publicKeyConverted);
     }
 
     // private methods

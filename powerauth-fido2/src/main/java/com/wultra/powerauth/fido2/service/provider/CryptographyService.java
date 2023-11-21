@@ -18,10 +18,7 @@
 
 package com.wultra.powerauth.fido2.service.provider;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AttestedCredentialData;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
-import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
+import com.wultra.powerauth.fido2.rest.model.entity.*;
 
 /**
  * Interface representing FIDO2 verification service.
@@ -33,5 +30,5 @@ public interface CryptographyService {
 
     boolean verifySignatureForAssertion(String applicationId, String authenticatorId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws Exception;
 
-    byte[] publicKeyToBytes(AttestedCredentialData attestedCredentialData) throws Exception;
+    byte[] publicKeyToBytes(PublicKeyObject publicKey) throws Exception;
 }
