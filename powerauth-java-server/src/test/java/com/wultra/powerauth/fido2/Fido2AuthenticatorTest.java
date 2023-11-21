@@ -241,15 +241,10 @@ class Fido2AuthenticatorTest {
 
     private void createApplication() throws Exception {
         // Search if application for FIDO2 tests exists
-        final GetApplicationListResponse applicationList = powerAuthService.getApplicationList();
-        boolean appFound = false;
-        for (com.wultra.security.powerauth.client.model.entity.Application app: applicationList.getApplications()) {
-            if (APPLICATION_ID.equals(app.getApplicationId())) {
-                appFound = true;
-                break;
-            }
-        }
-        if (appFound) {
+        final boolean applicationFound = powerAuthService.getApplicationList().getApplications().stream()
+                .map(com.wultra.security.powerauth.client.model.entity.Application::getApplicationId)
+                .anyMatch(APPLICATION_ID::equals);
+        if (applicationFound) {
             return;
         }
         // Create application for FIDO2 tests
