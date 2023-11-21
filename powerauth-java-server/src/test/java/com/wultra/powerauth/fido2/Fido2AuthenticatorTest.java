@@ -328,14 +328,9 @@ class Fido2AuthenticatorTest {
     }
 
     private void createOperationTemplate() throws Exception {
-        final OperationTemplateListResponse templateList = powerAuthService.getAllTemplates();
-        boolean templateFound = false;
-        for (OperationTemplateDetailResponse template: templateList) {
-            if ("login".equals(template.getTemplateName())) {
-                templateFound = true;
-                break;
-            }
-        }
+        final boolean templateFound = powerAuthService.getAllTemplates().stream()
+                .map(OperationTemplateDetailResponse::getTemplateName)
+                .anyMatch("login"::equals);
         if (templateFound) {
             return;
         }
