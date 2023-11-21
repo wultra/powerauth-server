@@ -74,7 +74,7 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation is correctly created and stored without an activation ID.
      */
     @Test
-    void testCreateOperationWithout() throws GenericServiceException {
+    void testCreateOperationWithoutActivationId() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
         request.setUserId("test-user");
@@ -120,7 +120,7 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation is successfully approved even without an activation ID.
      */
     @Test
-    void testApproveOperationEntityWithoutActivationIdIdSuccess() throws GenericServiceException {
+    void testApproveOperationEntityWithoutActivationIdSuccess() throws GenericServiceException {
         OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
         request.setUserId("test-user");

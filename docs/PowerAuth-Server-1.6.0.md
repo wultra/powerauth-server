@@ -26,7 +26,7 @@ creating a backup before this operation.
 
 Add a new column `activation_id` to the `pa_operation` table. This column is a foreign key that references
 the `activation_id` column in the `pa_activation` table. Storing the `activation_id` in the `pa_operation` table
-provides several enhancements for developers:
+provides several enhancements:
 
 * It allows the creation of a new operation tied to a specific mobile device, identified by its activation ID.
 * It ensures that the operation can only be approved on that specific mobile device, again identified by its activation ID.
