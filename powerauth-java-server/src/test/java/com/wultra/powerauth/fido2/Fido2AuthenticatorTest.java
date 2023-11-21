@@ -106,7 +106,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorSuccessTest() throws Exception {
+   void packedAuthenticatorSuccessTest() throws Exception {
         registerCredential();
         authenticate();
     }
