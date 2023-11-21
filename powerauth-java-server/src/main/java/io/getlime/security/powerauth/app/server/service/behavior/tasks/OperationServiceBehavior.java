@@ -827,7 +827,7 @@ public class OperationServiceBehavior {
     private static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
         final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
         if (userAgentObject != null) {
-            return Optional.of(UserAgent.parse(userAgentObject.toString()));
+            return UserAgent.parse(userAgentObject.toString());
         } else {
             return Optional.empty();
         }

@@ -55,8 +55,7 @@ class MapToJsonConverterTest {
         Map<String, Object> testMap = new HashMap<>();
         testMap.put("key1", "value1");
         final String exampleRequestUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
-        final UserAgent.Device device = UserAgent.parse(exampleRequestUserAgent);
-        testMap.put("key2", device);
+        UserAgent.parse(exampleRequestUserAgent).ifPresent(device -> testMap.put("key2", device));
 
         final String jsonResult = converter.convertToDatabaseColumn(testMap);
         assertNotNull(jsonResult);
