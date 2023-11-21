@@ -21,3 +21,13 @@ and `pa_application` or `pa_operation`. Make sure that `pa_operation_application
 existing `pa_application.id` and `pa_operation_application.operation_id` contains references to
 existing `pa_operation.id`. If necessary, manually remove orphaned records in `pa_operation_application`. Consider
 creating a backup before this operation.
+
+### Add activation_id Column
+
+Add a new column `activation_id` to the `pa_operation` table. This column is a foreign key that references
+the `activation_id` column in the `pa_activation` table. Storing the `activation_id` in the `pa_operation` table
+provides several enhancements:
+
+* It allows the creation of a new operation tied to a specific mobile device, identified by its activation ID.
+* It ensures that the operation can only be approved on that specific mobile device, again identified by its activation ID.
+

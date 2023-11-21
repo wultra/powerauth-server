@@ -112,6 +112,12 @@ public class OperationEntity implements Serializable {
     private String totpSeed;
 
     /**
+     * Optional activationId of a device.
+     */
+    @Column(name = "activation_id")
+    private String activationId;
+
+    /**
      * Get operation ID.
      * @return Operation ID.
      */
@@ -417,6 +423,24 @@ public class OperationEntity implements Serializable {
      */
     public void setTotpSeed(String totpSeed) {
         this.totpSeed = totpSeed;
+    }
+
+    /**
+     * Get the activation ID.
+     *
+     * @return Activation ID.
+     */
+    public String getActivationId() {
+        return activationId;
+    }
+
+    /**
+     * Set the activation ID.
+     *
+     * @param activationId Activation ID to set.
+     */
+    public void setActivationId(String activationId) {
+        this.activationId = activationId;
     }
 
     @Override

@@ -118,6 +118,7 @@ public class OperationServiceBehavior {
         final Date timestampExpiresRequest = request.getTimestampExpires();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
+        final String activationId = request.getActivationId();
 
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
@@ -192,6 +193,7 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampFinalized(null); // empty initially
         operationEntity.setRiskFlags(templateEntity.getRiskFlags());
         operationEntity.setTotpSeed(generateTotpSeed(request, templateEntity));
+        operationEntity.setActivationId(activationId);
 
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AuditType.OPERATION.getCode())
@@ -209,6 +211,7 @@ public class OperationServiceBehavior {
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
                 .param("timestampExpires", timestampExpires)
                 .param("proximityCheckEnabled", operationEntity.getTotpSeed() != null)
+                .param("activationId", activationId)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
@@ -254,13 +257,15 @@ public class OperationServiceBehavior {
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
         final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
+        final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
 
         if (operationEntity.getUserId().equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
-            && proximityCheckPassed(proximityCheckResult)){
+            && proximityCheckPassed(proximityCheckResult)
+            && activationIdMatches){ // either Operation does not have assigned activationId or it has one, and it matches activationId from request
 
             // Approve the operation
             operationEntity.setStatus(OperationStatusDo.APPROVED);
@@ -281,6 +286,7 @@ public class OperationServiceBehavior {
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
+                    .param("activationIdOperation", operationEntity.getActivationId())
                     .build();
             audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
 
@@ -314,6 +320,9 @@ public class OperationServiceBehavior {
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
                         .param("currentTimestamp", currentTimestamp)
+                        .param("activationIdMatches", activationIdMatches)
+                        .param("activationIdOperation", operationEntity.getActivationId())
+                        .param("activationIdRequest", additionalData.get("activationId"))
                         .build();
                 audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
 
@@ -344,6 +353,9 @@ public class OperationServiceBehavior {
                         .param("maxFailureCount", operationEntity.getMaxFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
                         .param("currentTimestamp", currentTimestamp)
+                        .param("activationIdMatches", activationIdMatches)
+                        .param("activationIdOperation", operationEntity.getActivationId())
+                        .param("activationIdRequest", additionalData.get("activationId"))
                         .build();
                 audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
@@ -793,6 +805,10 @@ public class OperationServiceBehavior {
 
     private static boolean proximityCheckPassed(final ProximityCheckResult proximityCheckResult) {
         return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
+    }
+
+    private static boolean activationIdMatches(final OperationApproveRequest operationApproveRequest, String activationId) {
+        return activationId == null || activationId.equals(operationApproveRequest.getAdditionalData().get("activationId"));
     }
 
     private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
