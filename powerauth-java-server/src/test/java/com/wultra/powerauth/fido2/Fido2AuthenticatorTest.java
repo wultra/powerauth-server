@@ -124,7 +124,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge);
+        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_SELF_ATTESTED);
 
         // Register credential
         assertThrows(Fido2AuthenticationFailedException.class, () -> registrationService.register(registrationRequest));
@@ -132,8 +132,15 @@ class Fido2AuthenticatorTest {
 
     @Test
     public void packedAuthenticatorInvalidAttestationTest() throws Exception {
-        // Use invalid challenge
-        final Challenge challenge = new DefaultChallenge(BaseEncoding.base64().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
+        // Obtain challenge from PowerAuth server
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
+        assertEquals(USER_ID, challengeResponse.getUserId());
+        assertNotNull(challengeResponse.getChallenge());
+        assertNotNull(challengeResponse.getActivationId());
+
+        // Use obtained activation code as a challenge, prepare credential options
+        final Challenge challenge = new DefaultChallenge(challengeResponse.getChallenge().getBytes(StandardCharsets.UTF_8));
         final AuthenticatorSelectionCriteria authenticatorCriteria = new AuthenticatorSelectionCriteria(
                 AuthenticatorAttachment.PLATFORM, true, UserVerificationRequirement.REQUIRED);
         final PublicKeyCredentialParameters pkParam = new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256);
@@ -144,7 +151,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge);
+        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
 
         // Register credential
         assertThrows(Fido2AuthenticationFailedException.class, () -> registrationService.register(registrationRequest));
@@ -277,7 +284,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge);
+        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_SELF_ATTESTED);
 
         // Register credential
         final RegistrationResponse registrationResponse = registrationService.register(registrationRequest);
@@ -289,9 +296,9 @@ class Fido2AuthenticatorTest {
         assertEquals(ActivationStatus.ACTIVE, powerAuthService.getActivationStatus(activationStatusRequest2).getActivationStatus());
     }
 
-    private RegistrationRequest prepareRegistrationRequest(PublicKeyCredentialCreationOptions credentialCreationOptions, Challenge challenge) throws Exception {
+    private RegistrationRequest prepareRegistrationRequest(PublicKeyCredentialCreationOptions credentialCreationOptions, Challenge challenge, ClientPlatform clientPlatform) throws Exception {
         // Create credential on authenticator emulator
-        final PublicKeyCredential<AuthenticatorAttestationResponse, RegistrationExtensionClientOutput> credential = CLIENT_PLATFORM_SELF_ATTESTED.create(credentialCreationOptions);
+        final PublicKeyCredential<AuthenticatorAttestationResponse, RegistrationExtensionClientOutput> credential = clientPlatform.create(credentialCreationOptions);
         com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = new RegistrationRequest();
         registrationRequest.setApplicationId(APPLICATION_ID);
         registrationRequest.setActivationName(ACTIVATION_NAME);
