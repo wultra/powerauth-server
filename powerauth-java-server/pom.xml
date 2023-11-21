@@ -101,6 +101,10 @@
             <groupId>io.getlime.core</groupId>
             <artifactId>audit-base</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.getlime.core</groupId>
+            <artifactId>http-common</artifactId>
+        </dependency>
 
         <!-- Documentation -->
         <dependency>

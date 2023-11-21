@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
+import com.wultra.core.http.common.headers.UserAgent;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -72,6 +73,8 @@ public class OperationServiceBehavior {
 
     private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
     private static final String PROXIMITY_OTP = "proximity_otp";
+    private static final String ATTR_USER_AGENT = "userAgent";
+    private static final String ATTR_DEVICE = "device";
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
@@ -224,7 +227,7 @@ public class OperationServiceBehavior {
         final String applicationId = request.getApplicationId();
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -274,7 +277,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
@@ -358,7 +361,7 @@ public class OperationServiceBehavior {
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
         final String applicationId = request.getApplicationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -402,7 +405,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -437,7 +440,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -473,7 +476,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
 
@@ -514,7 +517,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -544,7 +547,7 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
-                .param("additionalData", operationEntity.getAdditionalData())
+                .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
 
@@ -731,8 +734,8 @@ public class OperationServiceBehavior {
     }
 
     // Merge two maps into new one, replacing values in the first map when collision occurs
-    private Map<String, String> mapMerge(Map<String, String> m1, Map<String, String> m2) {
-        final Map<String, String> m3 = new HashMap<>();
+    private Map<String, Object> mapMerge(Map<String, Object> m1, Map<String, Object> m2) {
+        final Map<String, Object> m3 = new HashMap<>();
         if (m1 != null) {
             m3.putAll(m1);
         }
@@ -798,12 +801,13 @@ public class OperationServiceBehavior {
             return ProximityCheckResult.DISABLED;
         }
 
-        final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
-        if (otp == null) {
+        final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
+        if (otpObject == null) {
             logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
+            final String otp = otpObject.toString();
             final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
@@ -811,6 +815,22 @@ public class OperationServiceBehavior {
         } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
+        }
+    }
+
+    private static Map<String, Object> extendAuditedAdditionalData(Map<String, Object> additionalData) {
+        final Map<String, Object> additionalDataAudited = new HashMap<>(additionalData);
+        parseDeviceFromUserAgent(additionalDataAudited).ifPresent(device ->
+                additionalDataAudited.put(ATTR_DEVICE, device));
+        return additionalDataAudited;
+    }
+
+    private static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
+        final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
+        if (userAgentObject != null) {
+            return UserAgent.parse(userAgentObject.toString());
+        } else {
+            return Optional.empty();
         }
     }
 
