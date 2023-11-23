@@ -697,7 +697,7 @@ public class OperationServiceBehavior {
         // or check if the user is already granted to be able to access the operation.
         if (userId != null) {
             if (OperationStatusDo.PENDING.equals(source.getStatus())
-                    && source.getTimestampExpires().before(currentTimestamp)) {
+                    && source.getTimestampExpires().after(currentTimestamp)) {
                 final String operationId = source.getId();
                 final String expectedUserId = source.getUserId();
                 if (expectedUserId == null) {
