@@ -6,7 +6,7 @@ This guide contains instructions for migration from PowerAuth Server version `1.
 
 ### Allow Non-personalized Operations
 
-The column `user_id` in table `pa_operation` is nullable.
+The column `user_id` in table `pa_operation` is nullable now.
 
 #### PostgreSQL
 
