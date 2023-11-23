@@ -17,7 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
@@ -56,6 +55,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class OperationServiceBehaviorTest {
 
     private static final String APP_ID = UUID.randomUUID().toString();
+    private static final String TEMPLATE_NAME = "login_" + UUID.randomUUID().toString();
 
     private final OperationServiceBehavior operationService;
     private final OperationTemplateServiceBehavior templateService;
@@ -251,7 +251,7 @@ class OperationServiceBehaviorTest {
     private String createLoginOperation() throws GenericServiceException {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
         operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
-        operationCreateRequest.setTemplateName("login");
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
         operationCreateRequest.setTimestampExpires(new Date(Instant.now()
                 .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
         return operationService.createOperation(operationCreateRequest).getId();
@@ -259,10 +259,10 @@ class OperationServiceBehaviorTest {
 
     private void createOperationTemplateForLogin() throws GenericServiceException {
         boolean templateExists = templateService.getAllTemplates().stream()
-                .anyMatch(t -> t.getTemplateName().equals("login"));
+                .anyMatch(t -> t.getTemplateName().equals(TEMPLATE_NAME));
         if (!templateExists) {
             final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
-            request.setTemplateName("login");
+            request.setTemplateName(TEMPLATE_NAME);
             request.setOperationType("login");
             request.setDataTemplate("A2");
             request.getSignatureType().add(SignatureType.POSSESSION_KNOWLEDGE);
