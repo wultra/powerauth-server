@@ -158,6 +158,34 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
+    public void packedAuthenticatorNoAttestationTest() throws Exception {
+        // Obtain challenge from PowerAuth server
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
+        assertEquals(USER_ID, challengeResponse.getUserId());
+        assertNotNull(challengeResponse.getChallenge());
+        assertNotNull(challengeResponse.getActivationId());
+
+        // Use obtained activation code as a challenge, prepare credential options
+        final Challenge challenge = new DefaultChallenge(challengeResponse.getChallenge().getBytes(StandardCharsets.UTF_8));
+        final AuthenticatorSelectionCriteria authenticatorCriteria = new AuthenticatorSelectionCriteria(
+                AuthenticatorAttachment.PLATFORM, true, UserVerificationRequirement.REQUIRED);
+        final PublicKeyCredentialParameters pkParam = new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256);
+        final PublicKeyCredentialUserEntity user = new PublicKeyCredentialUserEntity(USER_ID.getBytes(StandardCharsets.UTF_8), USER_ID, USER_ID);
+        final PublicKeyCredentialCreationOptions credentialCreationOptions = new PublicKeyCredentialCreationOptions(new PublicKeyCredentialRpEntity(RP_ID, RP_ID),
+                user, challenge, Collections.singletonList(pkParam), REQUEST_TIMEOUT, Collections.emptyList(),
+                authenticatorCriteria, AttestationConveyancePreference.NONE, null
+        );
+
+        // Prepare registration request
+        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
+
+        // Register credential
+        final RegistrationResponse registrationResponse = registrationService.register(registrationRequest);
+        assertEquals(challengeResponse.getActivationId(), registrationResponse.getActivationId());
+    }
+
+    @Test
     public void packedAuthenticatorInvalidAssertionChallengeTest() throws Exception {
         registerCredential();
 
