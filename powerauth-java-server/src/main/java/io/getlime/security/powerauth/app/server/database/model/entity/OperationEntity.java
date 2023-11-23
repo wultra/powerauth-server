@@ -45,7 +45,7 @@ public class OperationEntity implements Serializable {
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private String userId;
 
     @ManyToMany

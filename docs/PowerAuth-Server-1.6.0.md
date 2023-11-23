@@ -4,6 +4,23 @@ This guide contains instructions for migration from PowerAuth Server version `1.
 
 ## Database Changes
 
+### Allow Non-personalized Operations
+
+The column `user_id` in table `pa_operation` is nullable.
+
+#### PostgreSQL
+
+```sql
+ALTER TABLE pa_operation ALTER COLUMN user_id DROP NOT NULL;
+```
+
+#### Oracle
+
+```sql
+ALTER TABLE pa_operation MODIFY user_id NULL;
+```
+
+
 ### Forbid name duplication for operation templates.
 
 Add unique constraint to `templateName` column in `pa_operation_template` table.
