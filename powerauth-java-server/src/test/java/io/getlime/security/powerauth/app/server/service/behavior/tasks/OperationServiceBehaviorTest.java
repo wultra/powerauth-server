@@ -18,195 +18,82 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
-import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
-import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
+import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import jakarta.transaction.Transactional;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.jdbc.Sql;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Test for {@link OperationServiceBehavior}.
  *
- * @author Jan Dusil, jan.dusil@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootTest
-@Sql
-@Transactional
 class OperationServiceBehaviorTest {
 
-    @Autowired
-    private OperationServiceBehavior tested;
+    private static final String APP_ID = UUID.randomUUID().toString();
+
+    private final OperationServiceBehavior operationService;
+    private final OperationTemplateServiceBehavior templateService;
+    private final ApplicationServiceBehavior applicationService;
 
     @Autowired
-    private OperationRepository operationRepository;
-
-    /**
-     * Tests the creation of an operation with a specified activation ID.
-     * Verifies that the operation is correctly created and stored with the provided activation ID.
-     */
-    @Test
-    void testCreateOperationWithActivationId() throws GenericServiceException {
-        final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
-        request.setTemplateName("test-template");
-        request.setUserId("test-user");
-
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        assertEquals("testActivationId", savedEntity.getActivationId());
+    public OperationServiceBehaviorTest(OperationServiceBehavior operationService, OperationTemplateServiceBehavior templateService, ApplicationServiceBehavior applicationService) {
+        this.operationService = operationService;
+        this.templateService = templateService;
+        this.applicationService = applicationService;
     }
 
-    /**
-     * Tests the creation of an operation without specifying an activation ID.
-     * Verifies that the operation is correctly created and stored without an activation ID.
-     */
     @Test
-    void testCreateOperationWithoutActivationId() throws GenericServiceException {
-        final OperationCreateRequest request = new OperationCreateRequest();
-        request.setTemplateName("test-template");
-        request.setUserId("test-user");
+    @Transactional
+    void testOperationClaim() throws Exception {
+        createApplication();
+        createOperationTemplateForLogin();
+        final String operationId = createOperation();
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertNull(savedEntity.getActivationId());
+        final String userId = "user_" + UUID.randomUUID();
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationId);
+        detailRequest.setUserId(userId);
+        // Check operation claim
+        assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
     }
 
-    /**
-     * Tests the approval of an operation with a matching activation ID.
-     * Verifies that the operation is successfully approved when the provided activation ID matches the stored one.
-     */
-    @Test
-    void testApproveOperationWithMatchingActivationIdSuccess() throws GenericServiceException {
-        final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
-        request.setTemplateName("test-template");
-        request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
-
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", savedEntity.getActivationId());
-
-        OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
-        operationApproveRequest.setOperationId(savedEntity.getId());
-        operationApproveRequest.getAdditionalData().put("activationId", savedEntity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
-        operationApproveRequest.setUserId(savedEntity.getUserId());
-        operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
-        operationApproveRequest.setData("A2");
-
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
-        assertNotNull(operationUserActionResponse);
-        assertEquals(UserActionResult.APPROVED, operationUserActionResponse.getResult());
+    private String createOperation() throws GenericServiceException {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
+        operationCreateRequest.setTemplateName("login");
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        return operationService.createOperation(operationCreateRequest).getId();
     }
 
-    /**
-     * Tests the approval of an operation without an activation ID in the OperationEntity.
-     * Verifies that the operation is successfully approved even without an activation ID.
-     */
-    @Test
-    void testApproveOperationEntityWithoutActivationIdSuccess() throws GenericServiceException {
-        final OperationCreateRequest request = new OperationCreateRequest();
-        request.setTemplateName("test-template");
-        request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
-
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertNull(savedEntity.getActivationId());
-
-        OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
-        operationApproveRequest.setOperationId(savedEntity.getId());
-        operationApproveRequest.getAdditionalData().put("activationId", savedEntity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
-        operationApproveRequest.setUserId(savedEntity.getUserId());
-        operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
-        operationApproveRequest.setData("A2");
-
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
-        assertNotNull(operationUserActionResponse);
-        assertEquals(UserActionResult.APPROVED, operationUserActionResponse.getResult());
+    private void createApplication() throws GenericServiceException {
+        applicationService.createApplication(APP_ID, new KeyConvertor());
     }
 
-    /**
-     * Tests the failure of operation approval due to a non-matching activation ID.
-     * Verifies that the operation approval fails when the provided activation ID does not match the stored one.
-     */
-    @Test
-    void testApproveOperationWithoutMatchingActivationIdFailure() throws GenericServiceException {
-        final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
-        request.setTemplateName("test-template");
-        request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
-
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", savedEntity.getActivationId());
-
-        final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
-        operationApproveRequest.setOperationId(savedEntity.getId());
-        operationApproveRequest.getAdditionalData().put("activationId2", savedEntity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
-        operationApproveRequest.setUserId(savedEntity.getUserId());
-        operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
-        operationApproveRequest.setData("A2");
-
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
-        final OperationEntity updatedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", savedEntity.getActivationId());
-        assertNotNull(operationUserActionResponse);
-        assertEquals(UserActionResult.APPROVAL_FAILED, operationUserActionResponse.getResult());
-        assertEquals(1, updatedEntity.getFailureCount());
+    private void createOperationTemplateForLogin() throws GenericServiceException {
+        final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
+        request.setTemplateName("login");
+        request.setOperationType("login");
+        request.setDataTemplate("A2");
+        request.getSignatureType().add(SignatureType.POSSESSION_KNOWLEDGE);
+        request.setMaxFailureCount(5L);
+        request.setExpiration(300L);
+        templateService.createOperationTemplate(request);
     }
-
-    /**
-     * Tests the failure of operation approval due to a non-matching activation ID, with maximum failure count reached.
-     * Verifies that the operation fails completely when the provided activation ID does not match and maximum failure attempts are reached.
-     */
-    @Test
-    void testApproveOperationWithoutMatchingActivationIdFailureMax() throws GenericServiceException {
-        final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
-        request.setTemplateName("test-template");
-        request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
-
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity entity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", entity.getActivationId());
-        entity.setFailureCount(4L);
-
-
-        final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
-        operationApproveRequest.setOperationId(entity.getId());
-        operationApproveRequest.getAdditionalData().put("activationId2", entity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
-        operationApproveRequest.setUserId(entity.getUserId());
-        operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
-        operationApproveRequest.setData("A2");
-
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
-        assertNotNull(operationUserActionResponse);
-        assertEquals(UserActionResult.OPERATION_FAILED, operationUserActionResponse.getResult());
-    }
-
 }
