@@ -32,6 +32,6 @@ public class PublicKeyObject {
     private SignatureAlgorithm algorithm;
     private CurveType curveType;
     private ECKeyType keyType;
-    private EllipticCurvePoint point;
+    private ECPoint point;
 
 }

@@ -19,6 +19,8 @@
 package com.wultra.powerauth.fido2.rest.model.validator;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
@@ -114,6 +116,16 @@ public class RegistrationRequestValidator {
             return "Missing attestation data.";
         }
 
+        final byte[] credentialId = attestedCredentialData.getCredentialId();
+        if (credentialId == null) {
+            return "Missing credential identifier.";
+        }
+
+        final byte[] aaguid = attestedCredentialData.getAaguid();
+        if (aaguid == null) {
+            return "Missing aaguid.";
+        }
+
         final PublicKeyObject publicKeyObject = attestedCredentialData.getPublicKeyObject();
         if (publicKeyObject == null) {
             return "Missing public key inside attestation data";
@@ -122,6 +134,21 @@ public class RegistrationRequestValidator {
         final SignatureAlgorithm algorithm = publicKeyObject.getAlgorithm();
         if (SignatureAlgorithm.ES256 != algorithm) {
             return "The provided algorithm is not supported by the server.";
+        }
+
+        final CurveType curveType = publicKeyObject.getCurveType();
+        if (CurveType.P256 != curveType) {
+            return "The provided curve type is not supported by the server.";
+        }
+
+        final ECKeyType keyType = publicKeyObject.getKeyType();
+        if (ECKeyType.UNCOMPRESSED != keyType) {
+            return "The provided key type is not supported by the server.";
+        }
+
+        final ECPoint point = publicKeyObject.getPoint();
+        if (point == null) {
+            return "Missing EC point in public key object.";
         }
 
         if (fmt.equals(Fmt.FMT_PACKED.getValue())) {

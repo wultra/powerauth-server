@@ -25,7 +25,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
-import com.wultra.powerauth.fido2.rest.model.entity.EllipticCurvePoint;
+import com.wultra.powerauth.fido2.rest.model.entity.ECPoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
 import com.wultra.powerauth.fido2.rest.model.entity.PublicKeyObject;
 import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
@@ -59,7 +59,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
     }
 
     @Override
-    public AuthenticatorData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
+    public AuthenticatorData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         final AuthenticatorData result = new AuthenticatorData();
 
         // Serialize Auth Data
@@ -137,7 +137,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
 
             final byte[] xBytes = (byte[]) credentialPublicKeyMap.get("-2");
             final byte[] yBytes = (byte[]) credentialPublicKeyMap.get("-3");
-            final EllipticCurvePoint point = new EllipticCurvePoint();
+            final ECPoint point = new ECPoint();
             point.setX(xBytes);
             point.setY(yBytes);
             publicKeyObject.setPoint(point);

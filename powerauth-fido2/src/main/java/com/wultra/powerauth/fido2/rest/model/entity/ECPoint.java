@@ -24,7 +24,7 @@ import lombok.Data;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class EllipticCurvePoint {
+public class ECPoint {
     private byte[] x;
     private byte[] y;
 }

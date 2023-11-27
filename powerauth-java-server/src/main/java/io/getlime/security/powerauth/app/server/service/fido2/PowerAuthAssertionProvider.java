@@ -89,6 +89,9 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         try {
 
             final String[] split = challengeValue.split("&", 2);
+            if (split.length != 2) {
+                throw new Fido2AuthenticationFailedException("Invalid challenge");
+            }
             final String operationId = split[0];
             final String operationData = split[1];
 

@@ -102,6 +102,9 @@
         <!-- Other Dependencies -->
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
+
+        <!-- Test dependencies -->
+        <webauthn4j.version>0.21.8.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>
