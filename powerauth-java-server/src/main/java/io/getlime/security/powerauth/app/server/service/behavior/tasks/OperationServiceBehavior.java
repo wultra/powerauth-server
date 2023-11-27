@@ -696,8 +696,9 @@ public class OperationServiceBehavior {
         // If a user accessing the operation is specified in the query, either claim the operation to that user,
         // or check if the user is already granted to be able to access the operation.
         if (userId != null) {
+            // Only pending, non-expired operations should be claimable.
             if (OperationStatusDo.PENDING.equals(source.getStatus())
-                    && source.getTimestampExpires().before(currentTimestamp)) {
+                    && source.getTimestampExpires().after(currentTimestamp)) {
                 final String operationId = source.getId();
                 final String expectedUserId = source.getUserId();
                 if (expectedUserId == null) {
@@ -714,7 +715,7 @@ public class OperationServiceBehavior {
     }
 
     private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {
-        // Operation is still pending and timestamp is after the expiration.
+        // Pending operations expiring before current timestamp should be marked as expired.
         if (OperationStatusDo.PENDING.equals(source.getStatus())
                 && source.getTimestampExpires().before(currentTimestamp)) {
             logger.info("Operation {} expired.", source.getId());
