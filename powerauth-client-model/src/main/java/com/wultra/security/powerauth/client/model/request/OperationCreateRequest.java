@@ -31,7 +31,7 @@ import java.util.*;
 @Data
 public class OperationCreateRequest {
 
-    @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String userId;
 
     @Schema(description = "List of associated applications", requiredMode = Schema.RequiredMode.REQUIRED)

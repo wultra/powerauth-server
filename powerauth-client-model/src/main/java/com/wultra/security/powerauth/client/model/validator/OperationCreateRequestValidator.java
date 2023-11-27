@@ -36,10 +36,7 @@ public class OperationCreateRequestValidator {
         if (source.getApplications() == null || source.getApplications().isEmpty()) {
             return "Application ID list must not be null or empty when creating operation";
         }
-        if (source.getUserId() == null) {
-            return "User ID must not be null when creating operation";
-        }
-        if (source.getUserId().isEmpty()) {
+        if (source.getUserId() != null && source.getUserId().isEmpty()) {
             return "User ID must not be empty when creating operation";
         }
         if (source.getTemplateName() == null) {

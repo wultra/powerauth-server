@@ -21,36 +21,56 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test for {@link OperationServiceBehavior}.
  *
- * @author Jan Dusil, jan.dusil@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootTest
 @Sql
 @Transactional
 class OperationServiceBehaviorTest {
 
-    @Autowired
-    private OperationServiceBehavior tested;
+    private static final String APP_ID = UUID.randomUUID().toString();
+    private static final String TEMPLATE_NAME = "login_" + UUID.randomUUID().toString();
+
+    private final OperationServiceBehavior operationService;
+    private final OperationTemplateServiceBehavior templateService;
+    private final ApplicationServiceBehavior applicationService;
+    private final OperationRepository operationRepository;
 
     @Autowired
-    private OperationRepository operationRepository;
+    public OperationServiceBehaviorTest(OperationServiceBehavior operationService, OperationTemplateServiceBehavior templateService, ApplicationServiceBehavior applicationService, OperationRepository operationRepository) throws GenericServiceException {
+        this.operationService = operationService;
+        this.templateService = templateService;
+        this.applicationService = applicationService;
+        this.operationRepository = operationRepository;
+        createApplication();
+        createOperationTemplateForLogin();
+    }
 
     /**
      * Tests the creation of an operation with a specified activation ID.
@@ -63,7 +83,7 @@ class OperationServiceBehaviorTest {
         request.setTemplateName("test-template");
         request.setUserId("test-user");
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         assertEquals("testActivationId", savedEntity.getActivationId());
@@ -79,7 +99,7 @@ class OperationServiceBehaviorTest {
         request.setTemplateName("test-template");
         request.setUserId("test-user");
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
@@ -95,9 +115,9 @@ class OperationServiceBehaviorTest {
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
+        request.setApplications(Collections.singletonList(APP_ID));
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertEquals("testActivationId", savedEntity.getActivationId());
@@ -105,12 +125,12 @@ class OperationServiceBehaviorTest {
         OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(savedEntity.getId());
         operationApproveRequest.getAdditionalData().put("activationId", savedEntity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
+        operationApproveRequest.setApplicationId(APP_ID);
         operationApproveRequest.setUserId(savedEntity.getUserId());
         operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
         operationApproveRequest.setData("A2");
 
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
+        final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.APPROVED, operationUserActionResponse.getResult());
     }
@@ -124,9 +144,9 @@ class OperationServiceBehaviorTest {
         final OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
         request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
+        request.setApplications(Collections.singletonList(APP_ID));
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
@@ -134,12 +154,12 @@ class OperationServiceBehaviorTest {
         OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(savedEntity.getId());
         operationApproveRequest.getAdditionalData().put("activationId", savedEntity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
+        operationApproveRequest.setApplicationId(APP_ID);
         operationApproveRequest.setUserId(savedEntity.getUserId());
         operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
         operationApproveRequest.setData("A2");
 
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
+        final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.APPROVED, operationUserActionResponse.getResult());
     }
@@ -154,9 +174,9 @@ class OperationServiceBehaviorTest {
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
+        request.setApplications(Collections.singletonList(APP_ID));
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertEquals("testActivationId", savedEntity.getActivationId());
@@ -164,12 +184,12 @@ class OperationServiceBehaviorTest {
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(savedEntity.getId());
         operationApproveRequest.getAdditionalData().put("activationId2", savedEntity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
+        operationApproveRequest.setApplicationId(APP_ID);
         operationApproveRequest.setUserId(savedEntity.getUserId());
         operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
         operationApproveRequest.setData("A2");
 
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
+        final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
         final OperationEntity updatedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertEquals("testActivationId", savedEntity.getActivationId());
         assertNotNull(operationUserActionResponse);
@@ -187,26 +207,69 @@ class OperationServiceBehaviorTest {
         request.setActivationId("testActivationId");
         request.setTemplateName("test-template");
         request.setUserId("test-user");
-        request.setApplications(Collections.singletonList("PA_Tests"));
+        request.setApplications(Collections.singletonList(APP_ID));
 
-        final OperationDetailResponse operationDetailResponse = tested.createOperation(request);
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity entity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertEquals("testActivationId", entity.getActivationId());
         entity.setFailureCount(4L);
 
-
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(entity.getId());
         operationApproveRequest.getAdditionalData().put("activationId2", entity.getActivationId());
-        operationApproveRequest.setApplicationId("PA_Tests");
+        operationApproveRequest.setApplicationId(APP_ID);
         operationApproveRequest.setUserId(entity.getUserId());
         operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
         operationApproveRequest.setData("A2");
 
-        final OperationUserActionResponse operationUserActionResponse = tested.attemptApproveOperation(operationApproveRequest);
+        final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.OPERATION_FAILED, operationUserActionResponse.getResult());
+    }
+
+    @Test
+    void testOperationClaim() throws Exception {
+        final String operationId = createLoginOperation();
+
+        final String userId = "user_" + UUID.randomUUID();
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationId);
+        detailRequest.setUserId(userId);
+        // Check operation claim
+        assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
+    }
+
+    private void createApplication() throws GenericServiceException {
+        boolean appExists = applicationService.getApplicationList().getApplications().stream()
+                .anyMatch(app -> app.getApplicationId().equals(APP_ID));
+        if (!appExists) {
+            applicationService.createApplication(APP_ID, new KeyConvertor());
+        }
+    }
+
+    private String createLoginOperation() throws GenericServiceException {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setTimestampExpires(new Date(Instant.now()
+                .plusSeconds(TimeUnit.MINUTES.toSeconds(60)).toEpochMilli()));
+        return operationService.createOperation(operationCreateRequest).getId();
+    }
+
+    private void createOperationTemplateForLogin() throws GenericServiceException {
+        boolean templateExists = templateService.getAllTemplates().stream()
+                .anyMatch(t -> t.getTemplateName().equals(TEMPLATE_NAME));
+        if (!templateExists) {
+            final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
+            request.setTemplateName(TEMPLATE_NAME);
+            request.setOperationType("login");
+            request.setDataTemplate("A2");
+            request.getSignatureType().add(SignatureType.POSSESSION_KNOWLEDGE);
+            request.setMaxFailureCount(5L);
+            request.setExpiration(300L);
+            templateService.createOperationTemplate(request);
+        }
     }
 
 }

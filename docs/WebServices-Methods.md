@@ -2016,7 +2016,7 @@ REST endpoint: `POST /rest/v3/operation/create`
 
 | Type                  | Name                    | Description                                                                                      |
 |-----------------------|-------------------------|--------------------------------------------------------------------------------------------------|
-| `String`              | `userId`                | The identifier of the user                                                                       |
+| `String`              | `userId`                | The identifier of the user (optional for non-personalized operations)                     |
 | `List<String>`        | `applications`          | List of associated applications                                                                  |
 | `String`              | `activationFlag`        | Activation flag associated with the operation                                                    |
 | `String`              | `templateName`          | Name of the template used for creating the operation                                             |
@@ -2061,6 +2061,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `operationId` | The identifier of the operation |
+| `String` | `userId` | Optional user identifier of the user, used for operation claim. |
 
 #### Response
 

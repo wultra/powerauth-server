@@ -258,8 +258,8 @@ public class OperationServiceBehavior {
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
         final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
         final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
-
-        if (operationEntity.getUserId().equals(userId) // correct user approved the operation
+        final String expectedUserId = operationEntity.getUserId();
+        if (expectedUserId == null || expectedUserId.equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
@@ -268,6 +268,7 @@ public class OperationServiceBehavior {
             && activationIdMatches){ // either Operation does not have assigned activationId or it has one, and it matches activationId from request
 
             // Approve the operation
+            operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.APPROVED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -301,6 +302,7 @@ public class OperationServiceBehavior {
             final Long maxFailureCount = operationEntity.getMaxFailureCount();
 
             if (failureCount < maxFailureCount) {
+                operationEntity.setUserId(userId);
                 operationEntity.setFailureCount(failureCount);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
@@ -331,6 +333,7 @@ public class OperationServiceBehavior {
                 response.setOperation(operationDetailResponse);
                 return response;
             } else {
+                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.FAILED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
@@ -397,10 +400,12 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
         }
 
-        if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
+        final String expectedUserId = operationEntity.getUserId();
+        if (expectedUserId == null || expectedUserId.equals(userId) // correct user rejects the operation
                 && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
             // Reject the operation
+            operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.REJECTED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -578,7 +583,12 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
 
-        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        final String userId = request.getUserId();
+
+        final OperationEntity operationEntity = expireOperation(
+                claimOperation(operationOptional.get(), userId, currentTimestamp),
+                currentTimestamp
+        );
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
         generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
@@ -696,6 +706,27 @@ public class OperationServiceBehavior {
             case FAILED -> destination.setStatus(OperationStatus.FAILED);
         }
         return destination;
+    }
+
+    private OperationEntity claimOperation(OperationEntity source, String userId, Date currentTimestamp) throws GenericServiceException {
+        // If a user accessing the operation is specified in the query, either claim the operation to that user,
+        // or check if the user is already granted to be able to access the operation.
+        if (userId != null) {
+            if (OperationStatusDo.PENDING.equals(source.getStatus())
+                    && source.getTimestampExpires().after(currentTimestamp)) {
+                final String operationId = source.getId();
+                final String expectedUserId = source.getUserId();
+                if (expectedUserId == null) {
+                    logger.info("Operation {} will be assigned to the user {}.", operationId, userId);
+                    source.setUserId(userId);
+                    return operationRepository.save(source);
+                } else if (!expectedUserId.equals(userId)) {
+                    logger.warn("Operation with ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+                }
+            }
+        }
+        return source;
     }
 
     private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {
