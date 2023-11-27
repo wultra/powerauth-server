@@ -2061,6 +2061,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `operationId` | The identifier of the operation |
+| `String` | `userId` | Optional user identifier of the user, used for operation claim. |
 
 #### Response
 
