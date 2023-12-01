@@ -95,8 +95,8 @@
 
         <!-- PowerAuth Dependencies -->
         <powerauth-java-crypto.version>1.4.0</powerauth-java-crypto.version>
-        <powerauth-rest-base.version>1.6.2-SNAPSHOT</powerauth-rest-base.version>
-        <powerauth-audit-base.version>1.6.2-SNAPSHOT</powerauth-audit-base.version>
+        <powerauth-rest-base.version>1.6.0</powerauth-rest-base.version>
+        <powerauth-audit-base.version>1.6.0</powerauth-audit-base.version>
         <bcprov-jdk18on.version>1.72</bcprov-jdk18on.version>
 
         <!-- Java 11 Dependencies -->
