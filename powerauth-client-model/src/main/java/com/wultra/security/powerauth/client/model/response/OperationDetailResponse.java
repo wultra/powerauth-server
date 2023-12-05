@@ -20,6 +20,8 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import lombok.Data;
+import lombok.ToString;
 
 import java.util.Date;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.Map;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationDetailResponse {
 
     private String id;
@@ -51,147 +54,10 @@ public class OperationDetailResponse {
     private Date timestampFinalized;
     private String riskFlags;
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    /**
+     * TOTP for proximity check (if enabled) valid for the current time step.
+     */
+    @ToString.Exclude
+    private String proximityOtp;
 
-    public String getId() {
-        return id;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public List<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(List<String> applications) {
-        this.applications = applications;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public String getActivationFlag() {
-        return activationFlag;
-    }
-
-    public void setActivationFlag(String activationFlag) {
-        this.activationFlag = activationFlag;
-    }
-
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    public String getOperationType() {
-        return operationType;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    public String getData() {
-        return data;
-    }
-
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
-
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
-    public Map<String, String> getAdditionalData() {
-        return additionalData;
-    }
-
-    public void setAdditionalData(Map<String, String> additionalData) {
-        this.additionalData = additionalData;
-    }
-
-    public void setStatus(OperationStatus status) {
-        this.status = status;
-    }
-
-    public OperationStatus getStatus() {
-        return status;
-    }
-
-    public void setSignatureType(List<SignatureType> signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    public List<SignatureType> getSignatureType() {
-        return signatureType;
-    }
-
-    public void setFailureCount(long failureCount) {
-        this.failureCount = failureCount;
-    }
-
-    public long getFailureCount() {
-        return failureCount;
-    }
-
-    public void setMaxFailureCount(Long maxFailureCount) {
-        this.maxFailureCount = maxFailureCount;
-    }
-
-    public Long getMaxFailureCount() {
-        return maxFailureCount;
-    }
-
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
-
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    public void setTimestampExpires(Date timestampExpires) {
-        this.timestampExpires = timestampExpires;
-    }
-
-    public Date getTimestampExpires() {
-        return timestampExpires;
-    }
-
-    public void setTimestampFinalized(Date timestampFinalized) {
-        this.timestampFinalized = timestampFinalized;
-    }
-
-    public Date getTimestampFinalized() {
-        return timestampFinalized;
-    }
-
-    public String getRiskFlags() {
-        return riskFlags;
-    }
-
-    public void setRiskFlags(String riskFlags) {
-        this.riskFlags = riskFlags;
-    }
 }

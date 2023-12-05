@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import lombok.Data;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +29,7 @@ import java.util.Map;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Data
 public class OperationCreateRequest {
 
     private String userId;
@@ -35,49 +38,5 @@ public class OperationCreateRequest {
     private String templateName;
     private String externalId;
     private final Map<String, String> parameters = new LinkedHashMap<>();
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public List<String> getApplications() {
-        return applications;
-    }
-
-    public void setApplications(List<String> applications) {
-        this.applications = applications;
-    }
-
-    public String getActivationFlag() {
-        return activationFlag;
-    }
-
-    public void setActivationFlag(String activationFlag) {
-        this.activationFlag = activationFlag;
-    }
-
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public String getExternalId() {
-        return externalId;
-    }
-
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
+    private Boolean proximityCheckEnabled;
 }
