@@ -72,3 +72,24 @@ ALTER TABLE pa_operation_template
 ```sql
 CREATE INDEX pa_activation_expiration on pa_activation (activation_status, timestamp_activation_expire);
 ```
+### Add Proximity Check Support
+
+Add following columns:
+- `pa_operation.totp_seed` - Optional TOTP seed used for proximity check, base64 encoded.
+- `pa_operation_template.proximity_check_enabled` - Whether proximity check should be used.
+
+
+#### PostgreSQL
+
+```sql
+ALTER TABLE pa_operation ADD COLUMN totp_seed VARCHAR(24);
+ALTER TABLE pa_operation_template ADD COLUMN proximity_check_enabled BOOLEAN NOT NULL DEFAULT FALSE;
+```
+
+
+#### Oracle
+
+```sql
+ALTER TABLE PA_OPERATION ADD COLUMN TOTP_SEED VARCHAR2(24 CHAR);
+ALTER TABLE PA_OPERATION_TEMPLATE ADD COLUMN PROXIMITY_CHECK_ENABLED NUMBER(1, 0) DEFAULT 0 NOT NULL;
+```
