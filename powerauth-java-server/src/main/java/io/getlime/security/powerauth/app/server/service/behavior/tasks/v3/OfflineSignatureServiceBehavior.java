@@ -43,6 +43,8 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OfflineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.crypto.lib.config.DecimalSignatureConfiguration;
+import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;

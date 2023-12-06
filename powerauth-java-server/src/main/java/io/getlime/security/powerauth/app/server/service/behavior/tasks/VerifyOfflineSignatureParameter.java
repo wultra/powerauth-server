@@ -18,8 +18,8 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.entity.KeyValue;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.v3.SignatureType;
+import com.wultra.security.powerauth.client.v3.KeyValueMap;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,7 +39,7 @@ public class VerifyOfflineSignatureParameter {
     private String activationId;
     private List<SignatureType> signatureTypes;
     private String signature;
-    private List<KeyValue> additionalInfo;
+    private KeyValueMap additionalInfo;
     private String dataString;
     private Integer expectedComponentLength;
     private KeyConvertor keyConversionUtilities;

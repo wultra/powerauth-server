@@ -537,7 +537,7 @@ public class PowerAuthServiceImpl implements PowerAuthService {
                 .activationId(request.getActivationId())
                 .signatureTypes(allowedSignatureTypes)
                 .signature(request.getSignature())
-                .additionalInfo(new ArrayList<>())
+                .additionalInfo(new KeyValueMap())
                 .dataString(request.getData())
                 .expectedComponentLength(expectedComponentLength)
                 .keyConversionUtilities(keyConvertor);
