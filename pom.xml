@@ -110,7 +110,7 @@
 
         <!-- Documentation Dependencies -->
         <springdoc-openapi.version>1.6.9</springdoc-openapi.version>
-        <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
+
         <!-- Scheduled Job Dependencies -->
         <schedlock.version>4.43.0</schedlock.version>
 
@@ -136,12 +136,6 @@
                 <groupId>io.getlime.security</groupId>
                 <artifactId>powerauth-rest-client-spring</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-annotations-jakarta</artifactId>
-                <version>${swagger-annotations-jakarta.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

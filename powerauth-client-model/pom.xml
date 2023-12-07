@@ -55,11 +55,6 @@
             <artifactId>spring-core</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.swagger.core.v3</groupId>
-            <artifactId>swagger-annotations-jakarta</artifactId>
-        </dependency>
-
         <!--  Test Dependencies  -->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
