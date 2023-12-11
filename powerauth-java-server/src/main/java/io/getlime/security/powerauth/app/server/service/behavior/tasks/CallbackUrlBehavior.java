@@ -429,15 +429,28 @@ public class CallbackUrlBehavior {
      * @return Rest client.
      * @throws RestClientException Thrown when rest client initialization fails.
      */
-    private RestClient getRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
         synchronized (REST_CLIENT_CACHE_LOCK) {
-            RestClient restClient = restClientCache.get(callbackUrlEntity.getId());
+            final String callbackId = getRestClientCacheKey(callbackUrlEntity);
+            RestClient restClient = restClientCache.get(callbackId);
             if (restClient == null) {
+                logger.debug("REST client not found in cache, initializing new REST client, callback ID: {}", callbackId);
                 restClient = initializeRestClient(callbackUrlEntity);
-                restClientCache.put(callbackUrlEntity.getId(), restClient);
+                restClientCache.put(callbackId, restClient);
+            } else {
+                logger.debug("REST client found in cache, callback ID: {}", callbackId);
             }
             return restClient;
         }
+    }
+
+    /**
+     * Get a key for the REST client cache from a callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @return Cache key.
+     */
+    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
+        return callbackUrlEntity.getId();
     }
 
     /**
