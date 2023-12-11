@@ -49,6 +49,7 @@ import org.springframework.stereotype.Component;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -66,7 +67,9 @@ public class CallbackUrlBehavior {
     private PowerAuthServiceConfiguration configuration;
 
     // Store REST clients in cache with their callback ID as a key
-    private final Map<String, RestClient> restClientCache = new HashMap<>();
+    private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
+    private static final Object REST_CLIENT_CACHE_LOCK = new Object();
+
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 
     // Prepare logger
@@ -172,7 +175,9 @@ public class CallbackUrlBehavior {
         }
 
         // Remove this entity from REST client cache
-        restClientCache.remove(entity.getId());
+        synchronized (REST_CLIENT_CACHE_LOCK) {
+            restClientCache.remove(entity.getId());
+        }
 
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
@@ -250,7 +255,9 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntityOptional.isPresent()) {
             final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
             // Remove this entity from REST client cache
-            restClientCache.remove(callbackEntity.getId());
+            synchronized (REST_CLIENT_CACHE_LOCK) {
+                restClientCache.remove(callbackEntity.getId());
+            }
             callbackUrlRepository.delete(callbackEntity);
             response.setRemoved(true);
         } else {
@@ -422,13 +429,15 @@ public class CallbackUrlBehavior {
      * @return Rest client.
      * @throws RestClientException Thrown when rest client initialization fails.
      */
-    private synchronized RestClient getRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        RestClient restClient = restClientCache.get(callbackUrlEntity.getId());
-        if (restClient == null) {
-            restClient = initializeRestClient(callbackUrlEntity);
-            restClientCache.put(callbackUrlEntity.getId(), restClient);
+    private RestClient getRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+        synchronized (REST_CLIENT_CACHE_LOCK) {
+            RestClient restClient = restClientCache.get(callbackUrlEntity.getId());
+            if (restClient == null) {
+                restClient = initializeRestClient(callbackUrlEntity);
+                restClientCache.put(callbackUrlEntity.getId(), restClient);
+            }
+            return restClient;
         }
-        return restClient;
     }
 
     /**
