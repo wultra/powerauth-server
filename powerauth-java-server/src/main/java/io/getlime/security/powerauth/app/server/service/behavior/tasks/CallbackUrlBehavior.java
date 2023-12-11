@@ -174,10 +174,7 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
-        // Remove this entity from REST client cache
-        synchronized (REST_CLIENT_CACHE_LOCK) {
-            restClientCache.remove(getRestClientCacheKey(entity));
-        }
+        evictRestClientFromCache(entity);
 
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
@@ -434,10 +431,7 @@ public class CallbackUrlBehavior {
         RestClient restClient = restClientCache.get(cacheKey);
         if (restClient == null) {
             logger.debug("REST client not found in cache, initializing new REST client, callback ID: {}", cacheKey);
-            synchronized (REST_CLIENT_CACHE_LOCK) {
-                restClient = initializeRestClient(callbackUrlEntity);
-                restClientCache.put(cacheKey, restClient);
-            }
+            restClient = createRestClientAndStoreInCache(callbackUrlEntity);
         } else {
             logger.debug("REST client found in cache, callback ID: {}", cacheKey);
         }
@@ -451,6 +445,31 @@ public class CallbackUrlBehavior {
      */
     private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
         return callbackUrlEntity.getId();
+    }
+
+    /**
+     * Create a new REST client and store it in cache for given callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @return Rest client.
+     */
+    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
+        final RestClient restClient;
+        synchronized (REST_CLIENT_CACHE_LOCK) {
+            restClient = initializeRestClient(callbackUrlEntity);
+            restClientCache.put(cacheKey, restClient);
+        }
+        return restClient;
+    }
+
+    /**
+     * Evict an instance from REST client cache for given callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     */
+    private void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
+        synchronized (REST_CLIENT_CACHE_LOCK) {
+            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
+        }
     }
 
     /**
