@@ -430,10 +430,10 @@ public class CallbackUrlBehavior {
         final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
         RestClient restClient = restClientCache.get(cacheKey);
         if (restClient == null) {
-            logger.debug("REST client not found in cache, initializing new REST client, callback ID: {}", cacheKey);
+            logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
             restClient = createRestClientAndStoreInCache(callbackUrlEntity);
         } else {
-            logger.debug("REST client found in cache, callback ID: {}", cacheKey);
+            logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
         }
         return restClient;
     }
