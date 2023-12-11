@@ -68,7 +68,7 @@ public class CallbackUrlBehavior {
 
     // Store REST clients in cache with their callback ID as a key
     private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
-    private static final Object REST_CLIENT_CACHE_LOCK = new Object();
+    private final Object restClientCacheLock = new Object();
 
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 
@@ -452,7 +452,7 @@ public class CallbackUrlBehavior {
     public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
         final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
         final RestClient restClient;
-        synchronized (REST_CLIENT_CACHE_LOCK) {
+        synchronized (restClientCacheLock) {
             restClient = initializeRestClient(callbackUrlEntity);
             restClientCache.put(cacheKey, restClient);
         }
@@ -464,7 +464,7 @@ public class CallbackUrlBehavior {
      * @param callbackUrlEntity Callback URL entity.
      */
     private void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
-        synchronized (REST_CLIENT_CACHE_LOCK) {
+        synchronized (restClientCacheLock) {
             restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
         }
     }
