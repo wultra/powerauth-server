@@ -430,18 +430,18 @@ public class CallbackUrlBehavior {
      * @throws RestClientException Thrown when rest client initialization fails.
      */
     private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        synchronized (REST_CLIENT_CACHE_LOCK) {
-            final String callbackId = getRestClientCacheKey(callbackUrlEntity);
-            RestClient restClient = restClientCache.get(callbackId);
-            if (restClient == null) {
+        final String callbackId = getRestClientCacheKey(callbackUrlEntity);
+        RestClient restClient = restClientCache.get(callbackId);
+        if (restClient == null) {
+            synchronized (REST_CLIENT_CACHE_LOCK) {
                 logger.debug("REST client not found in cache, initializing new REST client, callback ID: {}", callbackId);
                 restClient = initializeRestClient(callbackUrlEntity);
                 restClientCache.put(callbackId, restClient);
-            } else {
-                logger.debug("REST client found in cache, callback ID: {}", callbackId);
             }
-            return restClient;
+        } else {
+            logger.debug("REST client found in cache, callback ID: {}", callbackId);
         }
+        return restClient;
     }
 
     /**
