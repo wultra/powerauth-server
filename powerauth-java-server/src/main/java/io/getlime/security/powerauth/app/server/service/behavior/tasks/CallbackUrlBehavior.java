@@ -176,7 +176,7 @@ public class CallbackUrlBehavior {
 
         // Remove this entity from REST client cache
         synchronized (REST_CLIENT_CACHE_LOCK) {
-            restClientCache.remove(entity.getId());
+            restClientCache.remove(getRestClientCacheKey(entity));
         }
 
         entity.setName(request.getName());
