@@ -65,7 +65,8 @@ public class CallbackUrlBehavior {
     private LocalizationProvider localizationProvider;
     private PowerAuthServiceConfiguration configuration;
 
-    private final Map<CallbackUrlEntity, RestClient> restClientCache = new HashMap<>();
+    // Store REST clients in cache with their callback ID as a key
+    private final Map<String, RestClient> restClientCache = new HashMap<>();
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 
     // Prepare logger
@@ -170,6 +171,9 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
+        // Remove this entity from REST client cache
+        restClientCache.remove(entity.getId());
+
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
@@ -244,7 +248,10 @@ public class CallbackUrlBehavior {
         response.setId(request.getId());
         final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
         if (callbackUrlEntityOptional.isPresent()) {
-            callbackUrlRepository.delete(callbackUrlEntityOptional.get());
+            final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
+            // Remove this entity from REST client cache
+            restClientCache.remove(callbackEntity.getId());
+            callbackUrlRepository.delete(callbackEntity);
             response.setRemoved(true);
         } else {
             response.setRemoved(false);
@@ -416,10 +423,10 @@ public class CallbackUrlBehavior {
      * @throws RestClientException Thrown when rest client initialization fails.
      */
     private synchronized RestClient getRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        RestClient restClient = restClientCache.get(callbackUrlEntity);
+        RestClient restClient = restClientCache.get(callbackUrlEntity.getId());
         if (restClient == null) {
             restClient = initializeRestClient(callbackUrlEntity);
-            restClientCache.put(callbackUrlEntity, restClient);
+            restClientCache.put(callbackUrlEntity.getId(), restClient);
         }
         return restClient;
     }
