@@ -251,10 +251,7 @@ public class CallbackUrlBehavior {
         final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
         if (callbackUrlEntityOptional.isPresent()) {
             final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-            // Remove this entity from REST client cache
-            synchronized (REST_CLIENT_CACHE_LOCK) {
-                restClientCache.remove(getRestClientCacheKey(callbackEntity));
-            }
+            evictRestClientFromCache(callbackEntity);
             callbackUrlRepository.delete(callbackEntity);
             response.setRemoved(true);
         } else {
