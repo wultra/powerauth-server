@@ -433,8 +433,8 @@ public class CallbackUrlBehavior {
         final String callbackId = getRestClientCacheKey(callbackUrlEntity);
         RestClient restClient = restClientCache.get(callbackId);
         if (restClient == null) {
+            logger.debug("REST client not found in cache, initializing new REST client, callback ID: {}", callbackId);
             synchronized (REST_CLIENT_CACHE_LOCK) {
-                logger.debug("REST client not found in cache, initializing new REST client, callback ID: {}", callbackId);
                 restClient = initializeRestClient(callbackUrlEntity);
                 restClientCache.put(callbackId, restClient);
             }
