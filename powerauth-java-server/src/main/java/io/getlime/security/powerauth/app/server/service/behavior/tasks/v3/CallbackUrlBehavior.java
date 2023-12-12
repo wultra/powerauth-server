@@ -416,12 +416,15 @@ public class CallbackUrlBehavior {
      */
     private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
         final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        RestClient restClient = restClientCache.get(cacheKey);
-        if (restClient == null) {
-            logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
-            restClient = createRestClientAndStoreInCache(callbackUrlEntity);
-        } else {
-            logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
+        RestClient restClient;
+        synchronized (restClientCacheLock) {
+            restClient = restClientCache.get(cacheKey);
+            if (restClient == null) {
+                logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
+                restClient = createRestClientAndStoreInCache(callbackUrlEntity);
+            } else {
+                logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
+            }
         }
         return restClient;
     }
@@ -442,11 +445,8 @@ public class CallbackUrlBehavior {
      */
     public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
         final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        final RestClient restClient;
-        synchronized (restClientCacheLock) {
-            restClient = initializeRestClient(callbackUrlEntity);
-            restClientCache.put(cacheKey, restClient);
-        }
+        final RestClient restClient = initializeRestClient(callbackUrlEntity);
+        restClientCache.put(cacheKey, restClient);
         return restClient;
     }
 
