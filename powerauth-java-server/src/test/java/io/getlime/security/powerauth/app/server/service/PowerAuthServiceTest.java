@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service;
 
 import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -39,13 +41,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @SpringBootTest
 @Transactional
 @ActiveProfiles("test")
+@Sql
 class PowerAuthServiceTest {
 
     @Autowired
     private PowerAuthService tested;
 
     @Test
-    @Sql
     void testGetActivationListForUser() throws Exception {
         final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
         request.setUserId("user1");
@@ -63,5 +65,20 @@ class PowerAuthServiceTest {
         final Date timestampCreated3 = result.get(2).getTimestampCreated();
         assertEquals(1, timestampCreated1.compareTo(timestampCreated2));
         assertEquals(1, timestampCreated2.compareTo(timestampCreated3));
+    }
+
+    @Test
+    void testGetActivationListForUser_filterStatus() throws Exception {
+        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+        request.setUserId("user1");
+        request.setActivationStatuses(Set.of(ActivationStatus.ACTIVE));
+
+        final List<Activation> resultList = tested.getActivationListForUser(request).getActivations();
+
+        assertEquals(1, resultList.size());
+        final Activation resultActivation = resultList.get(0);
+
+        assertEquals("e43a5dec-afea-4a10-a80b-b2183399f16b", resultActivation.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, resultActivation.getActivationStatus());
     }
 }

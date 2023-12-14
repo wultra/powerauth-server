@@ -239,11 +239,12 @@ public class ActivationServiceBehavior {
      * @param userId The User ID for which to retrieve activations. This is required and cannot be null.
      * @param pageable An object that defines the pagination properties, including the page number and the size of each page.
      *                 It is used to retrieve the activations in a paginated format.
+     * @param activationStatuses Statuses according to which activations should be filtered.
      * @return A {@link GetActivationListForUserResponse} object that includes the list of matching activations. Each
      *         activation is represented as an {@link Activation} object. The response also includes the user ID associated
      *         with the activations.
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Pageable pageable) {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Pageable pageable, Set<ActivationStatus> activationStatuses) {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -251,11 +252,11 @@ public class ActivationServiceBehavior {
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        List<ActivationRecordEntity> activationsList;
+        final List<ActivationRecordEntity> activationsList;
         if (applicationId == null) {
-            activationsList = activationRepository.findByUserId(userId, pageable);
+            activationsList = activationRepository.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
         } else {
-            activationsList = activationRepository.findByApplicationIdAndUserId(applicationId, userId, pageable);
+            activationsList = activationRepository.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
         }
 
         final GetActivationListForUserResponse response = new GetActivationListForUserResponse();

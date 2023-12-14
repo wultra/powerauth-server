@@ -48,10 +48,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of the PowerAuth 3.0 Server service.
@@ -160,8 +162,9 @@ public class PowerAuthService {
             final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
             final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
             final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("timestampCreated").descending());
+            final Set<ActivationStatus> activationStatuses = convert(request.getActivationStatuses());
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable, activationStatuses);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1996,6 +1999,16 @@ public class PowerAuthService {
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
+        }
+    }
+
+    private Set<ActivationStatus> convert(final Set<com.wultra.security.powerauth.client.model.enumeration.ActivationStatus> source) {
+        if (CollectionUtils.isEmpty(source)) {
+            return Set.of(ActivationStatus.values());
+        } else {
+            return source.stream()
+                    .map(activationStatusConverter::convert)
+                    .collect(Collectors.toSet());
         }
     }
 
