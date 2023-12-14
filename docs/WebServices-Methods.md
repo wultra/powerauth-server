@@ -656,12 +656,13 @@ REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserRequest`
 
-| Type      | Name            | Description                                                                                                                                                                     |
-|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `String`  | `userId`        | An identifier of a user                                                                                                                                                         |
-| `String`  | `applicationId` | An identifier of an application                                                                                                                                                 |
-| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
-| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
+| Type                 | Name                 | Description                                                                                                                                                                     |
+|----------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`             | `userId`             | An identifier of a user                                                                                                                                                         |
+| `String`             | `applicationId`      | An identifier of an application                                                                                                                                                 |
+| `ActivationStatus[]` | `activationStatuses` | Optional statuses according to which activations should be filtered. Return all activations if empty.                                                                           |
+| `Integer`            | `pageNumber`         | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer`            | `pageSize`           | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 
 #### Response
 
