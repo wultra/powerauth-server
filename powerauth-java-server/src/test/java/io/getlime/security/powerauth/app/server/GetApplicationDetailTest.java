@@ -22,13 +22,12 @@ import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRe
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Collections;
 
@@ -41,8 +40,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author Lukas Lukovsky, lukas.lukovsky@gmail.com
  */
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
-public class GetApplicationDetailTest {
+@ActiveProfiles("test")
+class GetApplicationDetailTest {
 
     private PowerAuthService powerAuthService;
 
