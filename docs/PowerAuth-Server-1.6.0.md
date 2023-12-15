@@ -4,22 +4,17 @@ This guide contains instructions for migration from PowerAuth Server version `1.
 
 ## Database Changes
 
+For convenience you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- PostgreSQL script
+- [Oracle script](./sql/oracle/migration_1.5.3_1.6.0.sql)
+- MSSQL script
+
 ### Allow Non-personalized Operations
 
 The column `user_id` in table `pa_operation` is nullable now.
-
-#### PostgreSQL
-
-```sql
-ALTER TABLE pa_operation ALTER COLUMN user_id DROP NOT NULL;
-```
-
-#### Oracle
-
-```sql
-ALTER TABLE pa_operation MODIFY user_id NULL;
-```
-
 
 ### Forbid name duplication for operation templates.
 
