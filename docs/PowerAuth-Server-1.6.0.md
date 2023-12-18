@@ -42,3 +42,8 @@ provides several enhancements:
 
 * It allows the creation of a new operation tied to a specific mobile device, identified by its activation ID.
 * It ensures that the operation can only be approved on that specific mobile device, again identified by its activation ID.
+
+### Add activation_name Column to pa_activation_history
+
+Add a new column `activation_name` to the `pa_activation_history` table.
+Since it is possible to change the activation name, it is recorded in the history.
