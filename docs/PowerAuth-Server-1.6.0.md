@@ -8,9 +8,9 @@ For convenience you can use liquibase for your database migration.
 
 For manual changes use SQL scripts:
 
-- PostgreSQL script
+- [PostgreSQL script](./sql/postgresql/migration_1.5.3_1.6.0.sql)
 - [Oracle script](./sql/oracle/migration_1.5.3_1.6.0.sql)
-- MSSQL script
+- [MSSQL script](./sql/mssql/migration_1.5.3_1.6.0.sql)
 
 ### Allow Non-personalized Operations
 
@@ -42,4 +42,3 @@ provides several enhancements:
 
 * It allows the creation of a new operation tied to a specific mobile device, identified by its activation ID.
 * It ensures that the operation can only be approved on that specific mobile device, again identified by its activation ID.
-
