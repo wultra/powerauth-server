@@ -4,22 +4,17 @@ This guide contains instructions for migration from PowerAuth Server version `1.
 
 ## Database Changes
 
+For convenience you can use liquibase for your database migration.
+
+For manual changes use SQL scripts:
+
+- [PostgreSQL script](./sql/postgresql/migration_1.5.3_1.6.0.sql)
+- [Oracle script](./sql/oracle/migration_1.5.3_1.6.0.sql)
+- [MSSQL script](./sql/mssql/migration_1.5.3_1.6.0.sql)
+
 ### Allow Non-personalized Operations
 
 The column `user_id` in table `pa_operation` is nullable now.
-
-#### PostgreSQL
-
-```sql
-ALTER TABLE pa_operation ALTER COLUMN user_id DROP NOT NULL;
-```
-
-#### Oracle
-
-```sql
-ALTER TABLE pa_operation MODIFY user_id NULL;
-```
-
 
 ### Forbid name duplication for operation templates.
 
@@ -48,3 +43,7 @@ provides several enhancements:
 * It allows the creation of a new operation tied to a specific mobile device, identified by its activation ID.
 * It ensures that the operation can only be approved on that specific mobile device, again identified by its activation ID.
 
+### Add activation_name Column to pa_activation_history
+
+Add a new column `activation_name` to the `pa_activation_history` table.
+Since it is possible to change the activation name, it is recorded in the history.
