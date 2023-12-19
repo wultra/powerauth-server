@@ -34,10 +34,10 @@ public class OperationListForUserRequest {
 
     private String userId;
     private List<String> applications = new ArrayList<>();
-    private String activationFlag;
     @Min(0)
     private Integer pageNumber;
     @Min(1)
     private Integer pageSize;
+    private String activationId;
 
 }

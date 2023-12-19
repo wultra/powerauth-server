@@ -608,7 +608,7 @@ public class OperationServiceBehavior {
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.activationId, request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -902,7 +902,7 @@ public class OperationServiceBehavior {
         ERROR
     }
 
-    public record OperationListRequest(String userId, List<String> applications, Pageable pageable) {
+    public record OperationListRequest(String userId, List<String> applications, Optional<String> activationId, Pageable pageable) {
     }
 
     public record OperationListRequestWithExternalId(String externalId, List<String> applications, Pageable pageable) {
