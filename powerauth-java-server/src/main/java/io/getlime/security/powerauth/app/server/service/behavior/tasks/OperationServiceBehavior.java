@@ -611,11 +611,11 @@ public class OperationServiceBehavior {
             logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-
-        final Optional<List<String>> activationFlags = fetchActivationFlags(request.activationId);
+        final String activationId = request.activationId.orElse(null);
+        final List<String> activationFlags = fetchActivationFlags(activationId);
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.activationId, activationFlags.orElse(null), request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -637,10 +637,11 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
-        final Optional<List<String>> activationFlags = fetchActivationFlags(request.activationId);
+        final String activationId = request.activationId.orElse(null);
+        final List<String> activationFlags = fetchActivationFlags(activationId);
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, request.activationId, activationFlags.orElse(null),  request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags,  request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
@@ -890,13 +891,13 @@ public class OperationServiceBehavior {
         }
     }
 
-    private Optional<List<String>> fetchActivationFlags(Optional<String> activationId) {
-        return activationId
-                .map(actId -> {
-                    logger.debug("Searching for operations with activationId: {}", activationId);
-                    return activationRepository.findActivationWithoutLock(actId).getFlags();
-                })
-                .filter(flags -> !flags.isEmpty());
+    private List<String> fetchActivationFlags(String activationId) {
+        if (activationId != null) {
+            logger.debug("Searching for operations with activationId: {}", activationId);
+            List<String> flags = activationRepository.findActivationWithoutLock(activationId).getFlags();
+            return flags != null ? flags : Collections.emptyList();
+        }
+        return Collections.emptyList();
     }
 
     // Scheduled tasks

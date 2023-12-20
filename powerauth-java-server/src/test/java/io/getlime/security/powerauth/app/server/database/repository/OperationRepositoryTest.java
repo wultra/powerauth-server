@@ -31,7 +31,6 @@ import org.springframework.test.context.jdbc.Sql;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,18 +61,18 @@ class OperationRepositoryTest {
     void testFindAllOperationsForUser() {
         final String userId = "testUser";
         final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
-        final Optional<String> activationId = Optional.of("e43a5dec-afea-4a10-a80b-b2183399f16b");
+        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
         final Pageable pageable = PageRequest.of(0, 10);
-        final List<String> activationFlags = activationRepository.findActivationWithoutLock(activationId.get()).getFlags();
+        final List<String> activationFlags = activationRepository.findActivationWithoutLock(activationId).getFlags();
 
         final List<OperationEntity> operations = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable).collect(Collectors.toList());
+                findAllOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable).toList();
 
         assertNotNull(operations);
         assertNotEquals(0, operations.size());
 
         operations.forEach(op -> {
-            assertEquals(op.getActivationId(), activationId.get());
+            assertEquals(op.getActivationId(), activationId);
             assertTrue(activationFlags.contains(op.getActivationFlag()));
         });
     }
@@ -85,7 +84,7 @@ class OperationRepositoryTest {
         final Pageable pageable = PageRequest.of(0, 10);
 
         final List<OperationEntity> operations = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, Optional.empty(), null, pageable).collect(Collectors.toList());
+                findAllOperationsForUser(userId, applicationIds, null, null, pageable).toList();
 
         assertNotNull(operations);
         assertEquals(3, operations.size());
@@ -96,18 +95,18 @@ class OperationRepositoryTest {
     void testFindAllOperationsForUserWithoutActivationFlagFilter() {
         final String userId = "testUser";
         final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
-        final Optional<String> activationId = Optional.of("e43a5dec-afea-4a10-a80b-b2183399f16b");
+        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
         final Pageable pageable = PageRequest.of(0, 10);
 
         final List<OperationEntity> operations = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId, null, pageable).collect(Collectors.toList());
+                findAllOperationsForUser(userId, applicationIds, activationId, null, pageable).toList();;
 
         assertNotNull(operations);
         assertEquals(2, operations.size());
         assertEquals("test-flag1", operations.get(0).getActivationFlag());
         assertNull(operations.get(1).getActivationFlag());
         operations.forEach(op -> {
-            assertEquals(op.getActivationId(), activationId.get());
+            assertEquals(op.getActivationId(), activationId);
         });
     }
 }
