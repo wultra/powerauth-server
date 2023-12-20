@@ -612,12 +612,7 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
-        final Optional<List<String>> activationFlags = request.activationId
-                .map(activationId -> {
-                    logger.debug("Searching for operations with activationId: {}", activationId);
-                    return activationRepository.findActivationWithoutLock(activationId).getFlags();
-                })
-                .filter(flags -> !flags.isEmpty());
+        final Optional<List<String>> activationFlags = fetchActivationFlags(request.activationId);
 
         final OperationListResponse result = new OperationListResponse();
         try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.activationId, activationFlags.orElse(null), request.pageable())) {
@@ -642,8 +637,10 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
+        final Optional<List<String>> activationFlags = fetchActivationFlags(request.activationId);
+
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, request.activationId, activationFlags.orElse(null),  request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
@@ -891,6 +888,15 @@ public class OperationServiceBehavior {
         } else {
             return Optional.empty();
         }
+    }
+
+    private Optional<List<String>> fetchActivationFlags(Optional<String> activationId) {
+        return activationId
+                .map(actId -> {
+                    logger.debug("Searching for operations with activationId: {}", activationId);
+                    return activationRepository.findActivationWithoutLock(actId).getFlags();
+                })
+                .filter(flags -> !flags.isEmpty());
     }
 
     // Scheduled tasks
