@@ -55,11 +55,6 @@ public class OperationEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "application_id")
     )
     private List<ApplicationEntity> applications;
-
-    @ManyToOne
-    @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
-    private ActivationRecordEntity activation;
-
     @Column(name = "external_id")
     private String externalId;
 
@@ -446,15 +441,6 @@ public class OperationEntity implements Serializable {
     public void setActivationId(String activationId) {
         this.activationId = activationId;
     }
-
-    public ActivationRecordEntity getActivation() {
-        return activation;
-    }
-
-    public void setActivation(ActivationRecordEntity activation) {
-        this.activation = activation;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

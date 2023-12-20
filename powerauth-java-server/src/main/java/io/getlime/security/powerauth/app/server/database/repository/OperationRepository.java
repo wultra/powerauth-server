@@ -47,13 +47,12 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperation(String operationId);
 
-    @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a INNER JOIN o.activation act " +
-            "INNER JOIN act.flags f " +
+    @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a " +
             "WHERE o.userId = :userId AND a.id in :applicationIds " +
-            "AND NVL(:activationId, o.activationId) " +
-            "AND o.activationFlag IN act.flags " +
+            "AND (:activationId IS NULL OR o.activationId = :activationId) " +
+            "AND (:activationFlags IS NULL OR o.activationFlag IN :activationFlags) " +
             "ORDER BY o.timestampCreated DESC")
-    Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, Optional<String> activationId, final Pageable pageable);
+    Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, Optional<String> activationId, List<String> activationFlags, final Pageable pageable);
 
     @Query("SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a " +
             "WHERE o.userId = :userId AND a.id IN :applicationIds AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING " +

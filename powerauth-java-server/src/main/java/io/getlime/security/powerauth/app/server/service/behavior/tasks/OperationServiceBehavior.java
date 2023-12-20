@@ -33,6 +33,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
@@ -79,6 +80,7 @@ public class OperationServiceBehavior {
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
     private final ApplicationRepository applicationRepository;
+    private final ActivationRepository activationRepository;
 
     private final ServiceBehaviorCatalogue behavior;
     private final AuditingServiceBehavior audit;
@@ -93,7 +95,9 @@ public class OperationServiceBehavior {
     public OperationServiceBehavior(
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
-            ApplicationRepository applicationRepository, ServiceBehaviorCatalogue behavior,
+            ApplicationRepository applicationRepository,
+            ActivationRepository activationRepository,
+            ServiceBehaviorCatalogue behavior,
             AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
@@ -102,6 +106,7 @@ public class OperationServiceBehavior {
         this.behavior = behavior;
         this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.activationRepository = activationRepository;
     }
 
     @Autowired
@@ -607,8 +612,15 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
+        final Optional<List<String>> activationFlags = request.activationId
+                .map(activationId -> {
+                    logger.debug("Searching for operations with activationId: {}", activationId);
+                    return activationRepository.findActivationWithoutLock(activationId).getFlags();
+                })
+                .filter(flags -> !flags.isEmpty());
+
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.activationId, request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.activationId, activationFlags.orElse(null), request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
