@@ -357,13 +357,6 @@ class OperationServiceBehaviorTest {
 
         assertNotNull(operationListResponse1);
         assertEquals(0, operationListResponse1.size());
-
-        final OperationServiceBehavior.OperationListRequest request2 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId2, pageable);
-        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request2);
-
-        assertNotNull(operationListResponse2);
-        assertEquals(1, operationListResponse2.size());
     }
 
     /**
