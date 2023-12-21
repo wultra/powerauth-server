@@ -51,7 +51,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
        SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a
        WHERE o.userId = :userId
        AND a.id in :applicationIds
-       AND (:activationId IS NULL OR o.activationId = :activationId OR o.activationId IS NULL)
+       AND (:activationId IS NULL OR o.activationId IS NULL OR o.activationId = :activationId)
        AND (:activationFlags IS NULL OR o.activationFlag IN :activationFlags OR o.activationFlag IS NULL)
        ORDER BY o.timestampCreated DESC
        """)
@@ -62,8 +62,8 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
        WHERE o.userId = :userId
        AND a.id IN :applicationIds
        AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING
-       AND (:activationId IS NULL OR o.activationId = :activationId OR o.activationId IS NULL)
-       AND (:activationFlags IS NULL OR o.activationFlag IN :activationFlags OR o.activationFlag IS NULL)
+       AND (:activationId IS NULL OR o.activationId IS NULL OR o.activationId = :activationId)
+       AND (:activationFlags IS NULL OR o.activationFlag IS NULL OR o.activationFlag IN :activationFlags)
        ORDER BY o.timestampCreated DESC
        """)
     Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);

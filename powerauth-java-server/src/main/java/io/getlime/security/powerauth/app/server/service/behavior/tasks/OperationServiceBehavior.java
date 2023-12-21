@@ -611,7 +611,7 @@ public class OperationServiceBehavior {
             logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
-        final String activationId = request.activationId.orElse(null);
+        final String activationId = request.activationId;
         final List<String> activationFlags = fetchActivationFlags(activationId);
 
         final OperationListResponse result = new OperationListResponse();
@@ -637,7 +637,7 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
-        final String activationId = request.activationId.orElse(null);
+        final String activationId = request.activationId;
         final List<String> activationFlags = fetchActivationFlags(activationId);
 
         final OperationListResponse result = new OperationListResponse();
@@ -894,7 +894,7 @@ public class OperationServiceBehavior {
     private List<String> fetchActivationFlags(String activationId) {
         if (activationId != null) {
             logger.debug("Searching for operations with activationId: {}", activationId);
-            List<String> flags = activationRepository.findActivationWithoutLock(activationId).getFlags();
+            final List<String> flags = activationRepository.findActivationWithoutLock(activationId).getFlags();
             return flags != null ? flags : Collections.emptyList();
         }
         return Collections.emptyList();
@@ -921,7 +921,7 @@ public class OperationServiceBehavior {
         ERROR
     }
 
-    public record OperationListRequest(String userId, List<String> applications, Optional<String> activationId, Pageable pageable) {
+    public record OperationListRequest(String userId, List<String> applications, String activationId, Pageable pageable) {
     }
 
     public record OperationListRequestWithExternalId(String externalId, List<String> applications, Pageable pageable) {
