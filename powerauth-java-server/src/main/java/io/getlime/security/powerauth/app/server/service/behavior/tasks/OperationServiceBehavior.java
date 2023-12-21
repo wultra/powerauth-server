@@ -696,6 +696,7 @@ public class OperationServiceBehavior {
         destination.setTimestampExpires(source.getTimestampExpires());
         destination.setTimestampFinalized(source.getTimestampFinalized());
         destination.setRiskFlags(source.getRiskFlags());
+        destination.setActivationId(source.getActivationId());
 
         switch (source.getStatus()) {
             case PENDING -> destination.setStatus(OperationStatus.PENDING);

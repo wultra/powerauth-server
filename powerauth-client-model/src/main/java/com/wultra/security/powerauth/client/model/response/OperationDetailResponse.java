@@ -59,5 +59,6 @@ public class OperationDetailResponse {
      */
     @ToString.Exclude
     private String proximityOtp;
+    private String activationId;
 
 }

@@ -2031,23 +2031,24 @@ REST endpoint: `POST /rest/v3/operation/create`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'operationDetail'
 
@@ -2086,6 +2087,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
 | `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
 | `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'findPendingOperationsForUser'
 
@@ -2232,23 +2234,24 @@ REST endpoint: `POST /rest/v3/operation/cancel`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'approveOperation'
 
@@ -2281,23 +2284,24 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'failApproveOperation'
 
@@ -2325,24 +2329,24 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 ### Method 'rejectOperation'
 
 Reject an operation.
@@ -2371,24 +2375,24 @@ REST endpoint: `POST /rest/v3/operation/reject`
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `String` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 ## Operation Templates
 
 ### Method 'createOperationTemplate'
