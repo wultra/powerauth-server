@@ -49,7 +49,8 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
 
     @Query("""
        SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a
-       WHERE o.userId = :userId AND a.id in :applicationIds
+       WHERE o.userId = :userId
+       AND a.id in :applicationIds
        AND (:activationId IS NULL OR o.activationId = :activationId OR o.activationId IS NULL)
        AND (:activationFlags IS NULL OR o.activationFlag IN :activationFlags OR o.activationFlag IS NULL)
        ORDER BY o.timestampCreated DESC
@@ -58,7 +59,8 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
 
     @Query("""
        SELECT DISTINCT o FROM OperationEntity o INNER JOIN o.applications a
-       WHERE o.userId = :userId AND a.id IN :applicationIds
+       WHERE o.userId = :userId
+       AND a.id IN :applicationIds
        AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING
        AND (:activationId IS NULL OR o.activationId = :activationId OR o.activationId IS NULL)
        AND (:activationFlags IS NULL OR o.activationFlag IN :activationFlags OR o.activationFlag IS NULL)
