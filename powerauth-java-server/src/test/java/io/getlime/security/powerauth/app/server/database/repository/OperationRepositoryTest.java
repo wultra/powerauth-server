@@ -45,17 +45,17 @@ import static org.junit.jupiter.api.Assertions.*;
 @Sql
 class OperationRepositoryTest {
 
-    @Autowired
-    private OperationRepository operationRepository;
-
-    @Autowired
-    private ActivationRepository activationRepository;
-
     private static final String userId = "testUser";
     private static final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
     private static final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
     private static final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
     private static final Pageable pageable = PageRequest.of(0, 10);
+
+    @Autowired
+    private OperationRepository operationRepository;
+
+    @Autowired
+    private ActivationRepository activationRepository;
 
     @Test
     void testFindOperationById() {
