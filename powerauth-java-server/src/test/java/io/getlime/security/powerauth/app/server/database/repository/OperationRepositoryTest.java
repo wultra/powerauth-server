@@ -57,12 +57,20 @@ class OperationRepositoryTest {
     @Autowired
     private ActivationRepository activationRepository;
 
+    /**
+     * Tests finding an operation by its ID.
+     * Asserts that the operation is present.
+     */
     @Test
     void testFindOperationById() {
         final Optional<OperationEntity> operation = operationRepository.findOperation("0f038bac-6c94-45eb-b3a9-f92e809e8ea4");
         assertTrue(operation.isPresent());
     }
 
+    /**
+     * Tests finding all operations for a user without any activation filters.
+     * Asserts that the list of operations is not null and checks the size.
+     */
     @Test
     void testFindOperationsWithoutActivationFilter() {
         final List<OperationEntity> operations = operationRepository.
@@ -72,6 +80,10 @@ class OperationRepositoryTest {
         assertEquals(6, operations.size());
     }
 
+    /**
+     * Tests finding operations for a user with specific activation ID filters.
+     * Asserts non-null operation lists and checks the size for different activation IDs.
+     */
     @Test
     void testFindOperationsWithActivationIdFilter() {
         final List<OperationEntity> operations1 = operationRepository.
@@ -87,6 +99,10 @@ class OperationRepositoryTest {
         assertEquals(4, operations2.size());
     }
 
+    /**
+     * Tests finding operations for a user with activation flag filters.
+     * Asserts non-null operation lists and checks the size for different sets of activation flags.
+     */
     @Test
     void testFindOperationsWithActivationFlagFilter() {
         final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(activationId1).getFlags();
@@ -111,6 +127,10 @@ class OperationRepositoryTest {
         assertEquals(2, operations3.size());
     }
 
+    /**
+     * Tests finding all operations for a user with both activation ID and activation flag filters.
+     * Asserts non-null operation lists and verifies the correct number of operations for different activation flags and IDs.
+     */
     @Test
     void testFindAllOperationsForUser() {
         final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(activationId1).getFlags();
