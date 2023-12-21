@@ -2346,8 +2346,7 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 | `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
 | `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
 | `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                                           |
-
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 ### Method 'rejectOperation'
 
 Reject an operation.
