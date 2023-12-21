@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.request.OperationCreateRequest
 import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
@@ -33,13 +34,13 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 
 import java.time.Instant;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -228,6 +229,235 @@ class OperationServiceBehaviorTest {
         final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.OPERATION_FAILED, operationUserActionResponse.getResult());
+    }
+
+    /**
+     * Tests finding all operations for a user with specified filters.
+     */
+    @Test
+    void testFindAllOperationsForUserWithFilters() throws Exception {
+        final String userId = "testUser";
+        final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+        final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request1 =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+        final OperationListResponse operationListResponse1 = operationService.findAllOperationsForUser(request1);
+
+        assertNotNull(operationListResponse1);
+        assertEquals(2, operationListResponse1.size());
+
+        final OperationServiceBehavior.OperationListRequest request2 =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId2, pageable);
+        final OperationListResponse operationListResponse2 = operationService.findAllOperationsForUser(request2);
+
+        assertNotNull(operationListResponse2);
+        assertEquals(4, operationListResponse2.size());
+    }
+
+    /**
+     * Tests finding all operations for a user without applying any filters.
+     */
+    @Test
+    void testFindAllOperationsForUserWithoutFilters() throws Exception {
+        final String userId = "testUser";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
+        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request);
+
+        assertNotNull(operationListResponse);
+        assertEquals(7, operationListResponse.size());
+    }
+
+    /**
+     * Tests the pagination functionality for finding all operations for a user.
+     */
+    @Test
+    void testFindAllOperationsForUserPageable() throws Exception {
+        final String userId = "testUser";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable1 = PageRequest.of(0, 2);
+
+        final OperationServiceBehavior.OperationListRequest request1 =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable1);
+        final OperationListResponse operationListResponse1 = operationService.findAllOperationsForUser(request1);
+
+        assertNotNull(operationListResponse1);
+        assertEquals(2, operationListResponse1.size());
+
+        final Pageable pageable2 = PageRequest.of(1, 2);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable2);
+        final OperationListResponse operationListResponse2 = operationService.findAllOperationsForUser(request);
+
+        assertNotNull(operationListResponse2);
+        assertEquals(2, operationListResponse2.size());
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(operationListResponse2.get(0).getTimestampCreated());
+        final int year = calendar.get(Calendar.YEAR);
+        assertEquals(2025, year);
+    }
+
+    /**
+     * Tests sorting functionality for finding all operations for a user.
+     */
+    @Test
+    void testFindAllOperationsForUserSorting() throws Exception {
+        final String userId = "testUser";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 2);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
+        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request);
+
+        assertTrue(operationListResponse.get(0).getTimestampCreated().after(operationListResponse.get(1).getTimestampCreated()));
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(operationListResponse.get(0).getTimestampCreated());
+        final int year = calendar.get(Calendar.YEAR);
+        assertEquals(2027, year);
+    }
+
+    /**
+     * Tests the scenario when an application does not exist in the database.
+     */
+    @Test
+    void testFindAllOperationsForUserApplicationNotExisting() throws Exception {
+        final String userId = "testUser";
+        final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+        final List<String> applicationIds = List.of("NOT_EXISTING");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+
+        assertThrows(GenericServiceException.class, () -> operationService.findAllOperationsForUser(request));
+    }
+
+    /**
+     * Tests finding pending operations for a user with specified filters.
+     */
+    @Test
+    void testFindAPendingOperationsForUserWithFilters() throws Exception {
+        final String userId = "testUser";
+        final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+        final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request1 =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+        final OperationListResponse operationListResponse1 = operationService.findPendingOperationsForUser(request1);
+
+        assertNotNull(operationListResponse1);
+        assertEquals(0, operationListResponse1.size());
+    }
+
+    /**
+     * Tests finding pending operations for a user without applying any filters.
+     */
+    @Test
+    void testFindPendingOperationsForUserWithoutFilters() throws Exception {
+        final String userId = "testUser";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request);
+
+        assertNotNull(operationListResponse);
+        assertEquals(2, operationListResponse.size());
+    }
+
+    /**
+     * Tests the pagination functionality for finding pending operations for a user.
+     */
+    @Test
+    void testFindPendingOperationsForUserPageable() throws Exception {
+        final String userId = "testUser";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable1 = PageRequest.of(0, 1);
+
+        final OperationServiceBehavior.OperationListRequest request1 =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable1);
+        final OperationListResponse operationListResponse1 = operationService.findPendingOperationsForUser(request1);
+
+        assertNotNull(operationListResponse1);
+        assertEquals(1, operationListResponse1.size());
+
+        final Pageable pageable2 = PageRequest.of(1, 1);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable2);
+        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request);
+
+        assertNotNull(operationListResponse2);
+        assertEquals(1, operationListResponse2.size());
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(operationListResponse2.get(0).getTimestampCreated());
+        final int year = calendar.get(Calendar.YEAR);
+        assertEquals(2021, year);
+    }
+
+    /**
+     * Tests sorting functionality for finding pending operations for a user.
+     */
+    @Test
+    void testFindPendingOperationsForUserSorting() throws Exception {
+        final String userId = "testUser";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 2);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request);
+
+        assertTrue(operationListResponse.get(0).getTimestampCreated().after(operationListResponse.get(1).getTimestampCreated()));
+        final Calendar calendar = Calendar.getInstance();
+        calendar.setTime(operationListResponse.get(0).getTimestampCreated());
+        final int year = calendar.get(Calendar.YEAR);
+        assertEquals(2023, year);
+    }
+    /**
+     * Tests the scenario when an application does not exist in the database for pending operations.
+     */
+    @Test
+    void testFindPendingOperationsForUserApplicationNotExisting() throws Exception {
+        final String userId = "testUser";
+        final String activationId1 = "68c5ca56-b419-4653-949f-49061a4be886";
+        final List<String> applicationIds = List.of("NOT_EXISTING");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+
+        assertThrows(GenericServiceException.class, () -> operationService.findPendingOperationsForUser(request));
+    }
+
+    /**
+     * Tests the functionality of skipping expired operations when finding pending operations for a user.
+     */
+    @Test
+    void testFindPendingOperationsForUserExpiredOperation() throws Exception {
+        final String userId = "testUser";
+        final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
+        final List<String> applicationIds = List.of("PA_Tests");
+        final Pageable pageable = PageRequest.of(0, 10);
+
+        final OperationServiceBehavior.OperationListRequest request =
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId2, pageable);
+
+        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request);
+
+        assertNotNull(operationListResponse2);
+        assertEquals(1, operationListResponse2.size());
     }
 
     @Test

@@ -2016,7 +2016,7 @@ public class PowerAuthService {
         final int pageNumber = fetchPageNumberOrDefault(source.getPageNumber());
         final int pageSize = fetchPageSizeOrDefault(source.getPageSize());
         final Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        return new OperationServiceBehavior.OperationListRequest(source.getUserId(), source.getApplications(), pageable);
+        return new OperationServiceBehavior.OperationListRequest(source.getUserId(), source.getApplications(), source.getActivationId(), pageable);
     }
 
     private OperationServiceBehavior.OperationListRequestWithExternalId convert(final OperationExtIdRequest source) {

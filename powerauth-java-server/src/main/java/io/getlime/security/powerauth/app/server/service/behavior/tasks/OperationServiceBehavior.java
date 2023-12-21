@@ -33,6 +33,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Applicatio
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
@@ -79,6 +80,7 @@ public class OperationServiceBehavior {
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
     private final ApplicationRepository applicationRepository;
+    private final ActivationRepository activationRepository;
 
     private final ServiceBehaviorCatalogue behavior;
     private final AuditingServiceBehavior audit;
@@ -93,7 +95,9 @@ public class OperationServiceBehavior {
     public OperationServiceBehavior(
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
-            ApplicationRepository applicationRepository, ServiceBehaviorCatalogue behavior,
+            ApplicationRepository applicationRepository,
+            ActivationRepository activationRepository,
+            ServiceBehaviorCatalogue behavior,
             AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
@@ -102,6 +106,7 @@ public class OperationServiceBehavior {
         this.behavior = behavior;
         this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.activationRepository = activationRepository;
     }
 
     @Autowired
@@ -606,9 +611,11 @@ public class OperationServiceBehavior {
             logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
+        final String activationId = request.activationId;
+        final List<String> activationFlags = fetchActivationFlags(activationId);
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -630,8 +637,11 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
+        final String activationId = request.activationId;
+        final List<String> activationFlags = fetchActivationFlags(activationId);
+
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, request.pageable())) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags,  request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
@@ -882,6 +892,15 @@ public class OperationServiceBehavior {
         }
     }
 
+    private List<String> fetchActivationFlags(String activationId) {
+        if (activationId != null) {
+            logger.debug("Searching for operations with activationId: {}", activationId);
+            final List<String> flags = activationRepository.findActivationWithoutLock(activationId).getFlags();
+            return flags != null ? flags : Collections.emptyList();
+        }
+        return Collections.emptyList();
+    }
+
     // Scheduled tasks
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup:5000}")
@@ -903,7 +922,7 @@ public class OperationServiceBehavior {
         ERROR
     }
 
-    public record OperationListRequest(String userId, List<String> applications, Pageable pageable) {
+    public record OperationListRequest(String userId, List<String> applications, String activationId, Pageable pageable) {
     }
 
     public record OperationListRequestWithExternalId(String externalId, List<String> applications, Pageable pageable) {
