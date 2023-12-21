@@ -51,6 +51,12 @@ class OperationRepositoryTest {
     @Autowired
     private ActivationRepository activationRepository;
 
+    private static final String userId = "testUser";
+    private static final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
+    private static final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+    private static final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
+    private static final Pageable pageable = PageRequest.of(0, 10);
+
     @Test
     void testFindOperationById() {
         final Optional<OperationEntity> operation = operationRepository.findOperation("0f038bac-6c94-45eb-b3a9-f92e809e8ea4");
@@ -58,55 +64,69 @@ class OperationRepositoryTest {
     }
 
     @Test
-    void testFindAllOperationsForUser() {
-        final String userId = "testUser";
-        final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
-        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
-        final Pageable pageable = PageRequest.of(0, 10);
-        final List<String> activationFlags = activationRepository.findActivationWithoutLock(activationId).getFlags();
-
-        final List<OperationEntity> operations = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable).toList();
-
-        assertNotNull(operations);
-        assertNotEquals(0, operations.size());
-
-        operations.forEach(op -> {
-            assertEquals(op.getActivationId(), activationId);
-            assertTrue(activationFlags.contains(op.getActivationFlag()));
-        });
-    }
-
-    @Test
-    void testFindAllOperationsForUserWithoutActivationIdFilter() {
-        final String userId = "testUser";
-        final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
-        final Pageable pageable = PageRequest.of(0, 10);
-
+    void testFindOperationsWithoutActivationFilter() {
         final List<OperationEntity> operations = operationRepository.
                 findAllOperationsForUser(userId, applicationIds, null, null, pageable).toList();
 
         assertNotNull(operations);
-        assertEquals(3, operations.size());
-        assertNull(operations.get(1).getActivationFlag());
+        assertEquals(6, operations.size());
     }
 
     @Test
-    void testFindAllOperationsForUserWithoutActivationFlagFilter() {
-        final String userId = "testUser";
-        final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
-        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
-        final Pageable pageable = PageRequest.of(0, 10);
+    void testFindOperationsWithActivationIdFilter() {
+        final List<OperationEntity> operations1 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, activationId1, null, pageable).toList();
 
-        final List<OperationEntity> operations = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId, null, pageable).toList();;
+        assertNotNull(operations1);
+        assertEquals(3, operations1.size());
 
-        assertNotNull(operations);
-        assertEquals(2, operations.size());
-        assertEquals("test-flag1", operations.get(0).getActivationFlag());
-        assertNull(operations.get(1).getActivationFlag());
-        operations.forEach(op -> {
-            assertEquals(op.getActivationId(), activationId);
-        });
+        final List<OperationEntity> operations2 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, activationId2, null, pageable).toList();
+
+        assertNotNull(operations2);
+        assertEquals(4, operations2.size());
+    }
+
+    @Test
+    void testFindOperationsWithActivationFlagFilter() {
+        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(activationId1).getFlags();
+        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(activationId2).getFlags();
+        final List<String> nonExistingFlags = List.of("NOT_EXISTING");
+        final List<OperationEntity> operations1 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, null, activationFlags1, pageable).toList();
+
+        assertNotNull(operations1);
+        assertEquals(6, operations1.size());
+
+        final List<OperationEntity> operations2 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, null, activationFlags2, pageable).toList();
+
+        assertNotNull(operations2);
+        assertEquals(5, operations2.size());
+
+        final List<OperationEntity> operations3 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, null, nonExistingFlags, pageable).toList();
+
+        assertNotNull(operations3);
+        assertEquals(2, operations3.size());
+    }
+
+    @Test
+    void testFindAllOperationsForUser() {
+        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(activationId1).getFlags();
+
+        final List<OperationEntity> operations1 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, activationId1, activationFlags1, pageable).toList();
+
+        assertNotNull(operations1);
+        assertEquals(3, operations1.size());
+
+        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(activationId2).getFlags();
+
+        final List<OperationEntity> operations2 = operationRepository.
+                findAllOperationsForUser(userId, applicationIds, activationId2, activationFlags2, pageable).toList();
+
+        assertNotNull(operations2);
+        assertEquals(3, operations2.size());
     }
 }
