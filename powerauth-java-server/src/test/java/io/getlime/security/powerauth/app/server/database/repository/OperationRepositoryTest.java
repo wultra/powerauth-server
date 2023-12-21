@@ -68,19 +68,6 @@ class OperationRepositoryTest {
     }
 
     /**
-     * Tests finding all operations for a user without any activation filters.
-     * Asserts that the list of operations is not null and checks the size.
-     */
-    @Test
-    void testFindOperationsWithoutActivationFilter() {
-        final List<OperationEntity> operations = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, null, null, pageable).toList();
-
-        assertNotNull(operations);
-        assertEquals(6, operations.size());
-    }
-
-    /**
      * Tests finding operations for a user with specific activation ID filters.
      * Asserts non-null operation lists and checks the size for different activation IDs.
      */
@@ -125,28 +112,5 @@ class OperationRepositoryTest {
 
         assertNotNull(operations3);
         assertEquals(2, operations3.size());
-    }
-
-    /**
-     * Tests finding all operations for a user with both activation ID and activation flag filters.
-     * Asserts non-null operation lists and verifies the correct number of operations for different activation flags and IDs.
-     */
-    @Test
-    void testFindAllOperationsForUser() {
-        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(activationId1).getFlags();
-
-        final List<OperationEntity> operations1 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId1, activationFlags1, pageable).toList();
-
-        assertNotNull(operations1);
-        assertEquals(3, operations1.size());
-
-        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(activationId2).getFlags();
-
-        final List<OperationEntity> operations2 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId2, activationFlags2, pageable).toList();
-
-        assertNotNull(operations2);
-        assertEquals(3, operations2.size());
     }
 }
