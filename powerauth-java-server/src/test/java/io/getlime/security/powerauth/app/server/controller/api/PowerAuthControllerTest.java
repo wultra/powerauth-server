@@ -19,8 +19,13 @@ package io.getlime.security.powerauth.app.server.controller.api;
 
 import com.jayway.jsonpath.JsonPath;
 import com.wultra.core.audit.base.database.DatabaseAudit;
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
@@ -41,9 +46,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.wultra.security.powerauth.client.model.enumeration.UserActionResult.APPROVED;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -59,6 +66,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @ActiveProfiles("test")
 class PowerAuthControllerTest {
+
+    private static final String APPLICATION_ID = "PA_Tests";
+    private static final String USER_ID = "test-user";
+    private static final String TEMPLATE_NAME = "test-template";
+    private static final String DATA = "A2";
 
     @Autowired
     private MockMvc mockMvc;
@@ -166,16 +178,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testOperationApprove() throws Exception {
-        final String applicationId = "PA_Tests";
-        final String userId = "test-user";
-        final String templateName = "test-template";
-        final String data = "A2";
-
-        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
-        operationCreateRequest.setApplications(List.of(applicationId));
-        operationCreateRequest.setTemplateName(templateName);
-        operationCreateRequest.setUserId(userId);
-        final String operationId = operationServiceBehavior.createOperation(operationCreateRequest).getId();
+        final String operationId = createOperation(false).getId();
 
         mockMvc.perform(post("/rest/v3/operation/approve")
                         .content("""
@@ -188,18 +191,18 @@ class PowerAuthControllerTest {
                                     "signatureType": "POSSESSION_KNOWLEDGE"
                                   }
                                 }
-                                """.formatted(operationId, userId, applicationId, data))
+                                """.formatted(operationId, USER_ID, APPLICATION_ID, DATA))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.responseObject.operation.status").value("APPROVED"))
-                .andExpect(jsonPath("$.responseObject.operation.data").value(data))
-                .andExpect(jsonPath("$.responseObject.operation.templateName").value(templateName))
+                .andExpect(jsonPath("$.responseObject.operation.data").value(DATA))
+                .andExpect(jsonPath("$.responseObject.operation.templateName").value(TEMPLATE_NAME))
                 .andExpect(jsonPath("$.responseObject.operation.id").value(operationId));
 
         final OperationEntity operation = entityManager.find(OperationEntity.class, operationId);
-        assertEquals(templateName, operation.getTemplateName());
-        assertEquals(data, operation.getData());
+        assertEquals(TEMPLATE_NAME, operation.getTemplateName());
+        assertEquals(DATA, operation.getData());
         assertEquals(OperationStatusDo.APPROVED, operation.getStatus());
     }
 
@@ -236,5 +239,50 @@ class PowerAuthControllerTest {
 
         final OperationEntity operation = entityManager.find(OperationEntity.class, operationId);
         assertEquals("test-template", operation.getTemplateName());
+    }
+
+    @Test
+    void testGetOperationDetail() throws Exception {
+        final OperationDetailResponse operation = createOperation(false);
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        final String operationId = operation.getId();
+        detailRequest.setOperationId(operationId);
+
+        MvcResult result = mockMvc.perform(post("/rest/v3/operation/detail")
+                        .content("""
+                                {
+                                  "requestObject": {
+                                    "operationId": "%s",
+                                    "userId": "%s"
+                                  }
+                                }
+                                """.formatted(operation.getId(), USER_ID))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.status").value("PENDING"))
+                .andExpect(jsonPath("$.responseObject.data").value(DATA))
+                .andExpect(jsonPath("$.responseObject.templateName").value(TEMPLATE_NAME))
+                .andExpect(jsonPath("$.responseObject.id").value(operationId)).andReturn();
+    }
+
+    private OperationDetailResponse createOperation(final boolean proximityOtp) throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(List.of(APPLICATION_ID));
+        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
+        operationCreateRequest.setUserId(USER_ID);
+        operationCreateRequest.setProximityCheckEnabled(proximityOtp);
+        return operationServiceBehavior.createOperation(operationCreateRequest);
+    }
+
+    private static OperationApproveRequest createOperationApproveRequest(final String operationId) {
+        final OperationApproveRequest approveRequest = new OperationApproveRequest();
+        approveRequest.setOperationId(operationId);
+        approveRequest.setUserId(USER_ID);
+        approveRequest.setApplicationId(APPLICATION_ID);
+        approveRequest.setData(DATA);
+        approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
+        return approveRequest;
     }
 }
