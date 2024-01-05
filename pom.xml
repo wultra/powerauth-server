@@ -32,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.6</version>
+        <version>3.2.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -81,7 +81,7 @@
 
     <properties>
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>4.0.1</spring-cloud-vault.version>
+        <spring-cloud-vault.version>4.1.0</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.7.0-SNAPSHOT</powerauth-java-crypto.version>
@@ -102,8 +102,6 @@
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
         <equalsverifier.version>3.15.5</equalsverifier.version>
-        <!--  TODO (racansky, 2023-12-08) temporarily override the version 1.4.11 from spring boot version because of CVE  -->
-        <logback.version>1.4.14</logback.version>
     </properties>
 
     <dependencyManagement>
