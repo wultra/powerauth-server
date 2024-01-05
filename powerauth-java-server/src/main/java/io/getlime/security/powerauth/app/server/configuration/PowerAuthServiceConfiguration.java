@@ -27,6 +27,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -165,15 +166,15 @@ public class PowerAuthServiceConfiguration {
      * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.2+.
      */
     @Value("${powerauth.service.crypto.requestExpirationInMilliseconds}")
-    @Min(0)
-    private int requestExpirationInMilliseconds;
+    @DurationMin(millis = 0)
+    private Duration requestExpiration;
 
     /**
      * Expiration of timestamps for ECIES and MAC token requests for protocol version 3.1 or older.
      */
     @Value("${powerauth.service.crypto.requestExpirationInMillisecondsExtended}")
-    @Min(0)
-    private int requestExpirationInMillisecondsExtended;
+    @DurationMin(millis = 0)
+    private Duration requestExpirationExtended;
 
     /**
      * Whether HTTP proxy is enabled for outgoing HTTP requests.
@@ -224,18 +225,18 @@ public class PowerAuthServiceConfiguration {
     private Duration httpMaxIdleTime;
 
     /**
-     * Token timestamp validity in milliseconds, checked before validating the token.
+     * Token timestamp validity, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.validity}")
-    @Min(1)
-    private long tokenTimestampValidityInMilliseconds;
+    @DurationMin(millis = 1)
+    private Duration tokenTimestampValidity;
 
     /**
-     * Token timestamp validity to future in milliseconds, checked before validating the token.
+     * Token timestamp validity to future, checked before validating the token.
      */
     @Value("${powerauth.service.token.timestamp.forward.validity}")
-    @Min(0)
-    private long tokenTimestampForwardValidityInMilliseconds;
+    @DurationMin(millis = 0)
+    private Duration tokenTimestampForwardValidity;
 
     /**
      * Master DB encryption key.
@@ -517,35 +518,35 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get expiration for ECIES and MAC token requests in milliseconds.
-     * @return Expiration for ECIES and MAC token requests in milliseconds.
+     * Get expiration for ECIES and MAC token requests.
+     * @return Expiration for ECIES and MAC token requests.
      */
-    public int getRequestExpirationInMilliseconds() {
-        return requestExpirationInMilliseconds;
+    public Duration getRequestExpiration() {
+        return requestExpiration;
     }
 
     /**
-     * Set expiration for ECIES and MAC token requests in milliseconds.
-     * @param requestExpirationInMilliseconds Expiration for ECIES and MAC token requests in milliseconds.
+     * Set expiration for ECIES and MAC token requests.
+     * @param requestExpiration Expiration for ECIES and MAC token requests.
      */
-    public void setRequestExpirationInMilliseconds(int requestExpirationInMilliseconds) {
-        this.requestExpirationInMilliseconds = requestExpirationInMilliseconds;
+    public void setRequestExpiration(Duration requestExpiration) {
+        this.requestExpiration = requestExpiration;
     }
 
     /**
-     * Get expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
-     * @return Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * Get expiration for ECIES and MAC token requests for protocol versions 3.1 and older.
+     * @return Expiration for ECIES and MAC token requests for protocol versions 3.1 and older.
      */
-    public int getRequestExpirationInMillisecondsExtended() {
-        return requestExpirationInMillisecondsExtended;
+    public Duration getRequestExpirationExtended() {
+        return requestExpirationExtended;
     }
 
     /**
-     * Set expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
-     * @param requestExpirationInMillisecondsExtended Expiration for ECIES and MAC token requests in milliseconds for protocol versions 3.1 and older.
+     * Set expiration for ECIES and MAC token requests for protocol versions 3.1 and older.
+     * @param requestExpirationExtended Expiration for ECIES and MAC token requests for protocol versions 3.1 and older.
      */
-    public void setRequestExpirationInMillisecondsExtended(int requestExpirationInMillisecondsExtended) {
-        this.requestExpirationInMillisecondsExtended = requestExpirationInMillisecondsExtended;
+    public void setRequestExpirationExtended(Duration requestExpirationExtended) {
+        this.requestExpirationExtended = requestExpirationExtended;
     }
 
     /**
@@ -629,35 +630,35 @@ public class PowerAuthServiceConfiguration {
     }
 
     /**
-     * Get the token timestamp validity in milliseconds.
-     * @return Token timestamp validity in milliseconds.
+     * Get the token timestamp validity.
+     * @return Token timestamp validity.
      */
-    public long getTokenTimestampValidityInMilliseconds() {
-        return tokenTimestampValidityInMilliseconds;
+    public Duration getTokenTimestampValidity() {
+        return tokenTimestampValidity;
     }
 
     /**
-     * Set the token timestamp validity in milliseconds.
-     * @param tokenTimestampValidityInMilliseconds Token timestamp validity in milliseconds.
+     * Set the token timestamp validity.
+     * @param tokenTimestampValidity Token timestamp validity.
      */
-    public void setTokenTimestampValidityInMilliseconds(long tokenTimestampValidityInMilliseconds) {
-        this.tokenTimestampValidityInMilliseconds = tokenTimestampValidityInMilliseconds;
+    public void setTokenTimestampValidity(Duration tokenTimestampValidity) {
+        this.tokenTimestampValidity = tokenTimestampValidity;
     }
 
     /**
-     * Get the token timestamp validity into future in milliseconds.
-     * @return Token timestamp validity into future in milliseconds
+     * Get the token timestamp validity into future.
+     * @return Token timestamp validity into future.
      */
-    public long getTokenTimestampForwardValidityInMilliseconds() {
-        return tokenTimestampForwardValidityInMilliseconds;
+    public Duration getTokenTimestampForwardValidity() {
+        return tokenTimestampForwardValidity;
     }
 
     /**
      * Set the token timestamp validity into future in milliseconds.
-     * @param tokenTimestampForwardValidityInMilliseconds Token timestamp validity into future in milliseconds
+     * @param tokenTimestampForwardValidity Token timestamp validity into future in milliseconds
      */
-    public void setTokenTimestampForwardValidityInMilliseconds(long tokenTimestampForwardValidityInMilliseconds) {
-        this.tokenTimestampForwardValidityInMilliseconds = tokenTimestampForwardValidityInMilliseconds;
+    public void setTokenTimestampForwardValidity(Duration tokenTimestampForwardValidity) {
+        this.tokenTimestampForwardValidity = tokenTimestampForwardValidity;
     }
 
     /**

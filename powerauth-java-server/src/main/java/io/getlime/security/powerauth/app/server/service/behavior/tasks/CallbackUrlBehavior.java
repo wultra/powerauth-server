@@ -49,6 +49,7 @@ import org.springframework.stereotype.Component;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -65,7 +66,10 @@ public class CallbackUrlBehavior {
     private LocalizationProvider localizationProvider;
     private PowerAuthServiceConfiguration configuration;
 
-    private final Map<CallbackUrlEntity, RestClient> restClientCache = new HashMap<>();
+    // Store REST clients in cache with their callback ID as a key
+    private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
+    private final Object restClientCacheLock = new Object();
+
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
 
     // Prepare logger
@@ -153,23 +157,25 @@ public class CallbackUrlBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        final Optional<CallbackUrlEntity> entityOptional = callbackUrlRepository.findById(request.getId());
-        if (entityOptional.isEmpty()) {
-            logger.warn("Invalid callback ID: "+request.getId());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+        final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
+                .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
+                .orElseThrow(() -> {
+                    // Rollback is not required, error occurs before writing to database
+                    logger.warn("Invalid callback ID: {}", request.getId());
+                    return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                });
 
         // Check the URL format
         try {
             new URL(request.getCallbackUrl());
         } catch (MalformedURLException e) {
-            logger.warn("Invalid callback URL: "+request.getCallbackUrl());
+            logger.warn("Invalid callback URL: {}", request.getCallbackUrl());
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
         }
 
-        final CallbackUrlEntity entity = entityOptional.get();
+        evictRestClientFromCache(entity);
+
         entity.setName(request.getName());
         entity.setCallbackUrl(request.getCallbackUrl());
         entity.setAttributes(request.getAttributes());
@@ -244,7 +250,9 @@ public class CallbackUrlBehavior {
         response.setId(request.getId());
         final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
         if (callbackUrlEntityOptional.isPresent()) {
-            callbackUrlRepository.delete(callbackUrlEntityOptional.get());
+            final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
+            evictRestClientFromCache(callbackEntity);
+            callbackUrlRepository.delete(callbackEntity);
             response.setRemoved(true);
         } else {
             response.setRemoved(false);
@@ -415,13 +423,50 @@ public class CallbackUrlBehavior {
      * @return Rest client.
      * @throws RestClientException Thrown when rest client initialization fails.
      */
-    private synchronized RestClient getRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        RestClient restClient = restClientCache.get(callbackUrlEntity);
-        if (restClient == null) {
-            restClient = initializeRestClient(callbackUrlEntity);
-            restClientCache.put(callbackUrlEntity, restClient);
+    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
+        RestClient restClient;
+        synchronized (restClientCacheLock) {
+            restClient = restClientCache.get(cacheKey);
+            if (restClient == null) {
+                logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
+                restClient = createRestClientAndStoreInCache(callbackUrlEntity);
+            } else {
+                logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
+            }
         }
         return restClient;
+    }
+
+    /**
+     * Get a key for the REST client cache from a callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @return Cache key.
+     */
+    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
+        return callbackUrlEntity.getId();
+    }
+
+    /**
+     * Create a new REST client and store it in cache for given callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     * @return Rest client.
+     */
+    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
+        final RestClient restClient = initializeRestClient(callbackUrlEntity);
+        restClientCache.put(cacheKey, restClient);
+        return restClient;
+    }
+
+    /**
+     * Evict an instance from REST client cache for given callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
+     */
+    private void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
+        synchronized (restClientCacheLock) {
+            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
+        }
     }
 
     /**

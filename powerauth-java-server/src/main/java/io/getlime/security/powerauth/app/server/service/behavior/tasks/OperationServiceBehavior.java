@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
+import com.wultra.core.http.common.headers.UserAgent;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
@@ -28,10 +29,12 @@ import com.wultra.security.powerauth.client.model.response.OperationDetailRespon
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
@@ -51,6 +54,7 @@ import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,10 +75,13 @@ public class OperationServiceBehavior {
 
     private static final int PROXIMITY_OTP_SEED_LENGTH = 16;
     private static final String PROXIMITY_OTP = "proximity_otp";
+    private static final String ATTR_USER_AGENT = "userAgent";
+    private static final String ATTR_DEVICE = "device";
 
     private final OperationRepository operationRepository;
     private final OperationTemplateRepository templateRepository;
     private final ApplicationRepository applicationRepository;
+    private final ActivationRepository activationRepository;
 
     private final ServiceBehaviorCatalogue behavior;
     private final AuditingServiceBehavior audit;
@@ -89,7 +96,9 @@ public class OperationServiceBehavior {
     public OperationServiceBehavior(
             OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
-            ApplicationRepository applicationRepository, ServiceBehaviorCatalogue behavior,
+            ApplicationRepository applicationRepository,
+            ActivationRepository activationRepository,
+            ServiceBehaviorCatalogue behavior,
             AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
         this.operationRepository = operationRepository;
@@ -98,6 +107,7 @@ public class OperationServiceBehavior {
         this.behavior = behavior;
         this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.activationRepository = activationRepository;
     }
 
     @Autowired
@@ -114,6 +124,7 @@ public class OperationServiceBehavior {
         final Date timestampExpiresRequest = request.getTimestampExpires();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
+        final String activationId = request.getActivationId();
 
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
@@ -188,6 +199,7 @@ public class OperationServiceBehavior {
         operationEntity.setTimestampFinalized(null); // empty initially
         operationEntity.setRiskFlags(templateEntity.getRiskFlags());
         operationEntity.setTotpSeed(generateTotpSeed(request, templateEntity));
+        operationEntity.setActivationId(activationId);
 
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AuditType.OPERATION.getCode())
@@ -205,6 +217,7 @@ public class OperationServiceBehavior {
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
                 .param("timestampExpires", timestampExpires)
                 .param("proximityCheckEnabled", operationEntity.getTotpSeed() != null)
+                .param("activationId", activationId)
                 .build();
         audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
@@ -223,7 +236,7 @@ public class OperationServiceBehavior {
         final String applicationId = request.getApplicationId();
         final String data = request.getData();
         final SignatureType signatureType = request.getSignatureType();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -250,15 +263,18 @@ public class OperationServiceBehavior {
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
         final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
-
-        if (operationEntity.getUserId().equals(userId) // correct user approved the operation
+        final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
+        final String expectedUserId = operationEntity.getUserId();
+        if (expectedUserId == null || expectedUserId.equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
-            && proximityCheckPassed(proximityCheckResult)){
+            && proximityCheckPassed(proximityCheckResult)
+            && activationIdMatches){ // either Operation does not have assigned activationId or it has one, and it matches activationId from request
 
             // Approve the operation
+            operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.APPROVED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -273,10 +289,11 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
+                    .param("activationIdOperation", operationEntity.getActivationId())
                     .build();
             audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
 
@@ -291,6 +308,7 @@ public class OperationServiceBehavior {
             final Long maxFailureCount = operationEntity.getMaxFailureCount();
 
             if (failureCount < maxFailureCount) {
+                operationEntity.setUserId(userId);
                 operationEntity.setFailureCount(failureCount);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
@@ -310,6 +328,9 @@ public class OperationServiceBehavior {
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
                         .param("currentTimestamp", currentTimestamp)
+                        .param("activationIdMatches", activationIdMatches)
+                        .param("activationIdOperation", operationEntity.getActivationId())
+                        .param("activationIdRequest", additionalData.get("activationId"))
                         .build();
                 audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
 
@@ -318,6 +339,7 @@ public class OperationServiceBehavior {
                 response.setOperation(operationDetailResponse);
                 return response;
             } else {
+                operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.FAILED);
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
@@ -340,6 +362,9 @@ public class OperationServiceBehavior {
                         .param("maxFailureCount", operationEntity.getMaxFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
                         .param("currentTimestamp", currentTimestamp)
+                        .param("activationIdMatches", activationIdMatches)
+                        .param("activationIdOperation", operationEntity.getActivationId())
+                        .param("activationIdRequest", additionalData.get("activationId"))
                         .build();
                 audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
@@ -357,7 +382,7 @@ public class OperationServiceBehavior {
         final String operationId = request.getOperationId();
         final String userId = request.getUserId();
         final String applicationId = request.getApplicationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -381,10 +406,12 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
         }
 
-        if (operationEntity.getUserId().equals(userId) // correct user rejects the operation
+        final String expectedUserId = operationEntity.getUserId();
+        if (expectedUserId == null || expectedUserId.equals(userId) // correct user rejects the operation
                 && operationEntity.getApplications().contains(application.get())) { // operation is rejected by the expected application
 
             // Reject the operation
+            operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.REJECTED);
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -401,7 +428,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -436,7 +463,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -472,7 +499,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
 
@@ -513,7 +540,7 @@ public class OperationServiceBehavior {
         final Date currentTimestamp = new Date();
 
         final String operationId = request.getOperationId();
-        final Map<String, String> additionalData = request.getAdditionalData();
+        final Map<String, Object> additionalData = request.getAdditionalData();
 
         // Check if the operation exists
         final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
@@ -543,7 +570,7 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
-                .param("additionalData", operationEntity.getAdditionalData())
+                .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
 
@@ -562,17 +589,22 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
         }
 
-        final OperationEntity operationEntity = expireOperation(operationOptional.get(), currentTimestamp);
+        final String userId = request.getUserId();
+
+        final OperationEntity operationEntity = expireOperation(
+                claimOperation(operationOptional.get(), userId, currentTimestamp),
+                currentTimestamp
+        );
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
         generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
     }
 
-    public OperationListResponse findAllOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
+    public OperationListResponse findAllOperationsForUser(final OperationListRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
-        final String userId = request.getUserId();
-        final List<String> applicationIds = request.getApplications();
+        final String userId = request.userId();
+        final List<String> applicationIds = request.applications();
 
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
@@ -580,9 +612,11 @@ public class OperationServiceBehavior {
             logger.error("Application was not found for ID: {} vs. {}.", applicationIds, applications.stream().map(ApplicationEntity::getId).collect(Collectors.toList()));
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
+        final String activationId = request.activationId;
+        final List<String> activationFlags = fetchActivationFlags(activationId);
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds)) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -591,11 +625,11 @@ public class OperationServiceBehavior {
         return result;
     }
 
-    public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
+    public OperationListResponse findPendingOperationsForUser(OperationListRequest request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
-        final String userId = request.getUserId();
-        final List<String> applicationIds = request.getApplications();
+        final String userId = request.userId();
+        final List<String> applicationIds = request.applications();
 
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
@@ -604,8 +638,11 @@ public class OperationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
         }
 
+        final String activationId = request.activationId;
+        final List<String> activationFlags = fetchActivationFlags(activationId);
+
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds)) {
+        try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags,  request.pageable())) {
             operationsForUser.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
@@ -624,11 +661,11 @@ public class OperationServiceBehavior {
      * @param request Request with the external ID.
      * @return List of operations that match.
      */
-    public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
+    public OperationListResponse findOperationsByExternalId(OperationListRequestWithExternalId request) throws GenericServiceException {
         final Date currentTimestamp = new Date();
 
-        final String externalId = request.getExternalId();
-        final List<String> applicationIds = request.getApplications();
+        final String externalId = request.externalId();
+        final List<String> applicationIds = request.applications();
 
         // Fetch application
         final List<ApplicationEntity> applications = applicationRepository.findAllByIdIn(applicationIds);
@@ -638,7 +675,7 @@ public class OperationServiceBehavior {
         }
 
         final OperationListResponse result = new OperationListResponse();
-        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationIds)) {
+        try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationIds, request.pageable())) {
             operationsByExternalId.forEach(op -> {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 result.add(convertFromEntity(operationEntity));
@@ -670,6 +707,7 @@ public class OperationServiceBehavior {
         destination.setTimestampExpires(source.getTimestampExpires());
         destination.setTimestampFinalized(source.getTimestampFinalized());
         destination.setRiskFlags(source.getRiskFlags());
+        destination.setActivationId(source.getActivationId());
 
         switch (source.getStatus()) {
             case PENDING -> destination.setStatus(OperationStatus.PENDING);
@@ -680,6 +718,27 @@ public class OperationServiceBehavior {
             case FAILED -> destination.setStatus(OperationStatus.FAILED);
         }
         return destination;
+    }
+
+    private OperationEntity claimOperation(OperationEntity source, String userId, Date currentTimestamp) throws GenericServiceException {
+        // If a user accessing the operation is specified in the query, either claim the operation to that user,
+        // or check if the user is already granted to be able to access the operation.
+        if (userId != null) {
+            if (OperationStatusDo.PENDING.equals(source.getStatus())
+                    && source.getTimestampExpires().after(currentTimestamp)) {
+                final String operationId = source.getId();
+                final String expectedUserId = source.getUserId();
+                if (expectedUserId == null) {
+                    logger.info("Operation {} will be assigned to the user {}.", operationId, userId);
+                    source.setUserId(userId);
+                    return operationRepository.save(source);
+                } else if (!expectedUserId.equals(userId)) {
+                    logger.warn("Operation with ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+                }
+            }
+        }
+        return source;
     }
 
     private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {
@@ -730,8 +789,8 @@ public class OperationServiceBehavior {
     }
 
     // Merge two maps into new one, replacing values in the first map when collision occurs
-    private Map<String, String> mapMerge(Map<String, String> m1, Map<String, String> m2) {
-        final Map<String, String> m3 = new HashMap<>();
+    private Map<String, Object> mapMerge(Map<String, Object> m1, Map<String, Object> m2) {
+        final Map<String, Object> m3 = new HashMap<>();
         if (m1 != null) {
             m3.putAll(m1);
         }
@@ -791,18 +850,23 @@ public class OperationServiceBehavior {
         return proximityCheckResult == ProximityCheckResult.SUCCESS || proximityCheckResult == ProximityCheckResult.DISABLED;
     }
 
+    private static boolean activationIdMatches(final OperationApproveRequest operationApproveRequest, String activationId) {
+        return activationId == null || activationId.equals(operationApproveRequest.getAdditionalData().get("activationId"));
+    }
+
     private ProximityCheckResult fetchProximityCheckResult(final OperationEntity operation, final OperationApproveRequest request, final Instant now) {
         final String seed = operation.getTotpSeed();
         if (seed == null) {
             return ProximityCheckResult.DISABLED;
         }
 
-        final String otp = request.getAdditionalData().get(PROXIMITY_OTP);
-        if (otp == null) {
+        final Object otpObject = request.getAdditionalData().get(PROXIMITY_OTP);
+        if (otpObject == null) {
             logger.warn("Proximity check enabled for operation ID: {} but proximity OTP not sent", operation.getId());
             return ProximityCheckResult.FAILED;
         }
         try {
+            final String otp = otpObject.toString();
             final int otpLength = powerAuthServiceConfiguration.getProximityCheckOtpLength();
             final boolean result = Totp.validateTotpSha256(otp.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(seed), now, otpLength);
             logger.debug("OTP validation result: {} for operation ID: {}", result, operation.getId());
@@ -811,6 +875,34 @@ public class OperationServiceBehavior {
             logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
         }
+    }
+
+    private static Map<String, Object> extendAuditedAdditionalData(Map<String, Object> additionalData) {
+        final Map<String, Object> additionalDataAudited = new HashMap<>(additionalData);
+        parseDeviceFromUserAgent(additionalDataAudited).ifPresent(device ->
+                additionalDataAudited.put(ATTR_DEVICE, device));
+        return additionalDataAudited;
+    }
+
+    private static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
+        final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
+        if (userAgentObject != null) {
+            return UserAgent.parse(userAgentObject.toString());
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    private List<String> fetchActivationFlags(String activationId) {
+        if (activationId != null) {
+            logger.debug("Searching for operations with activationId: {}", activationId);
+            final ActivationRecordEntity activationRecord = activationRepository.findActivationWithoutLock(activationId);
+            if (activationRecord != null) {
+                final List<String> flags = activationRecord.getFlags();
+                return flags != null ? flags : Collections.emptyList();
+            }
+        }
+        return Collections.emptyList();
     }
 
     // Scheduled tasks
@@ -832,5 +924,11 @@ public class OperationServiceBehavior {
         FAILED,
         DISABLED,
         ERROR
+    }
+
+    public record OperationListRequest(String userId, List<String> applications, String activationId, Pageable pageable) {
+    }
+
+    public record OperationListRequestWithExternalId(String externalId, List<String> applications, Pageable pageable) {
     }
 }

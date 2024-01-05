@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
+import lombok.ToString;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,6 +35,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_activation_history")
+@ToString
 public class ActivationHistoryEntity implements Serializable {
 
     @Serial
@@ -67,34 +70,8 @@ public class ActivationHistoryEntity implements Serializable {
     @Column(name = "activation_version")
     private Integer activationVersion;
 
-    /**
-     * No-arg constructor.
-     */
-    public ActivationHistoryEntity() {
-    }
-
-    /**
-     * Constructor with all properties.
-     *
-     * @param id                Signature audit item record ID.
-     * @param activation        Associated activation, or null of no related activation was found.
-     * @param activationStatus  Activation status at the time of signature computation attempt.
-     * @param timestampCreated  Created timestamp.
-     * @param activationVersion Activation version.
-     */
-    public ActivationHistoryEntity(
-            final Long id,
-            final ActivationRecordEntity activation,
-            final ActivationStatus activationStatus,
-            final Date timestampCreated,
-            final Integer activationVersion) {
-
-        this.id = id;
-        this.activation = activation;
-        this.activationStatus = activationStatus;
-        this.timestampCreated = timestampCreated;
-        this.activationVersion = activationVersion;
-    }
+    @Column(name = "activation_name")
+    private String activationName;
 
     /**
      * Get record ID.
@@ -216,54 +193,36 @@ public class ActivationHistoryEntity implements Serializable {
         this.activationVersion = version;
     }
 
+    public String getActivationName() {
+        return activationName;
+    }
+
+    public void setActivationName(final String activationName) {
+        this.activationName = activationName;
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (null == o) {
+            return false;
+        } else if (this == o) {
+            return true;
+        } else if (!this.getClass().equals(ProxyUtils.getUserClass(o))) {
+            return false;
+        } else {
+            final ActivationHistoryEntity that = (ActivationHistoryEntity) o;
+            return Objects.equals(getActivationId(), that.getActivationId()) && Objects.equals(getTimestampCreated(), that.getTimestampCreated());
+        }
+    }
+
     @Override
     public int hashCode() {
-        int hash = 7;
-        hash = 23 * hash + Objects.hashCode(this.activation);
-        hash = 23 * hash + Objects.hashCode(this.activationStatus);
-        hash = 23 * hash + Objects.hashCode(this.eventReason);
-        hash = 23 * hash + Objects.hashCode(this.externalUserId);
-        hash = 23 * hash + Objects.hashCode(this.timestampCreated);
-        hash = 23 * hash + Objects.hashCode(this.activationVersion);
-        return hash;
+        return Objects.hash(getActivationId(), timestampCreated);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final ActivationHistoryEntity other = (ActivationHistoryEntity) obj;
-        if (!Objects.equals(this.activation, other.activation)) {
-            return false;
-        }
-        if (!Objects.equals(this.activationStatus, other.activationStatus)) {
-            return false;
-        }
-        if (!Objects.equals(this.eventReason, other.eventReason)) {
-            return false;
-        }
-        if (!Objects.equals(this.externalUserId, other.externalUserId)) {
-            return false;
-        }
-        if (!Objects.equals(this.timestampCreated, other.timestampCreated)) {
-            return false;
-        }
-        return Objects.equals(this.activationVersion, other.activationVersion);
-    }
-
-    @Override
-    public String toString() {
-        return "ActivationHistoryEntity{" +
-                "id=" + id + ", activation=" + activation + ", activationStatus=" + activationStatus +
-                ", eventReason=" + eventReason + ", externalUserId=" + externalUserId + ", timestampCreated=" + timestampCreated +
-                ", version=" + activationVersion +'}';
+    // TODO (racansky, 2023-11-08) remove when activation equals and hashCode implemented correctly
+    private String getActivationId() {
+        return getActivation() == null ? null : getActivation().getActivationId();
     }
 
 }

@@ -35,6 +35,7 @@ public class ActivationHistoryItem {
     private ActivationStatus activationStatus;
     private String eventReason;
     private String externalUserId;
+    private String activationName;
     private Date timestampCreated;
     private Long version;
 

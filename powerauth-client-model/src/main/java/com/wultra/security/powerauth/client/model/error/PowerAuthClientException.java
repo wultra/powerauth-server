@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.client.model.error;
 
 import java.io.Serial;
+import java.util.Optional;
 
 /**
  * PowerAuth client exception.
@@ -29,12 +30,13 @@ public class PowerAuthClientException extends Exception {
     @Serial
     private static final long serialVersionUID = -4721271754602015511L;
 
-    private PowerAuthError powerAuthError;
+    private final PowerAuthError powerAuthError;
 
     /**
      * Default constructor.
      */
     public PowerAuthClientException() {
+        this.powerAuthError = null;
     }
 
     /**
@@ -43,6 +45,7 @@ public class PowerAuthClientException extends Exception {
      */
     public PowerAuthClientException(String message) {
         super(message);
+        this.powerAuthError = null;
     }
 
     /**
@@ -52,6 +55,7 @@ public class PowerAuthClientException extends Exception {
      */
     public PowerAuthClientException(String message, Throwable cause) {
         super(message, cause);
+        this.powerAuthError = null;
     }
 
     /**
@@ -69,8 +73,8 @@ public class PowerAuthClientException extends Exception {
      * Get the PowerAuth error object.
      * @return PowerAuth error object.
      */
-    public PowerAuthError getPowerAuthError() {
-        return powerAuthError;
+    public Optional<PowerAuthError> getPowerAuthError() {
+        return Optional.ofNullable(powerAuthError);
     }
 
 }

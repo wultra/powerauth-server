@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateActivationNameRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationOtpValidationConverter;
@@ -238,11 +239,12 @@ public class ActivationServiceBehavior {
      * @param userId The User ID for which to retrieve activations. This is required and cannot be null.
      * @param pageable An object that defines the pagination properties, including the page number and the size of each page.
      *                 It is used to retrieve the activations in a paginated format.
+     * @param activationStatuses Statuses according to which activations should be filtered.
      * @return A {@link GetActivationListForUserResponse} object that includes the list of matching activations. Each
      *         activation is represented as an {@link Activation} object. The response also includes the user ID associated
      *         with the activations.
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Pageable pageable) {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Pageable pageable, Set<ActivationStatus> activationStatuses) {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -250,11 +252,11 @@ public class ActivationServiceBehavior {
         // Get the repository
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
 
-        List<ActivationRecordEntity> activationsList;
+        final List<ActivationRecordEntity> activationsList;
         if (applicationId == null) {
-            activationsList = activationRepository.findByUserId(userId, pageable);
+            activationsList = activationRepository.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
         } else {
-            activationsList = activationRepository.findByApplicationIdAndUserId(applicationId, userId, pageable);
+            activationsList = activationRepository.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
         }
 
         final GetActivationListForUserResponse response = new GetActivationListForUserResponse();
@@ -1322,6 +1324,45 @@ public class ActivationServiceBehavior {
         final CommitActivationResponse response = new CommitActivationResponse();
         response.setActivationId(activationId);
         response.setActivated(true);
+        return response;
+    }
+
+    /**
+     * Update name of the given activation.
+     *
+     * @param request Update request.
+     * @return Response with updated activation
+     * @throws GenericServiceException In case invalid data is provided or activation is not found, in invalid state or already expired.
+     */
+    public UpdateActivationNameResponse updateActivationName(final UpdateActivationNameRequest request) throws GenericServiceException {
+        final String activationId = request.getActivationId();
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+        if (activation == null) {
+            logger.info("Activation ID: {} does not exist.", activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
+
+        final List<ActivationStatus> notAllowedStatuses = List.of(ActivationStatus.CREATED, ActivationStatus.REMOVED, ActivationStatus.BLOCKED);
+        final ActivationStatus activationStatus = activation.getActivationStatus();
+        if (notAllowedStatuses.contains(activationStatus)) {
+            logger.info("Activation is in not allowed status {} to update, activation ID: {}", activationStatus, activationId);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+        }
+
+        final Date timestamp = new Date();
+
+        activation.setActivationName(request.getActivationName());
+        activation.setTimestampLastChange(timestamp);
+
+        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, request.getExternalUserId(), AdditionalInformation.Reason.ACTIVATION_NAME_UPDATED);
+
+        final UpdateActivationNameResponse response = new UpdateActivationNameResponse();
+        response.setActivationId(activationId);
+        response.setActivationName(activation.getActivationName());
+        response.setActivationStatus(activationStatusConverter.convert(activationStatus));
         return response;
     }
 

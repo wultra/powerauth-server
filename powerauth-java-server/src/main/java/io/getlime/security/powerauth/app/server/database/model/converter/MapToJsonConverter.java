@@ -38,7 +38,7 @@ import java.util.Map;
  */
 @Converter
 @Component
-public class MapToJsonConverter implements AttributeConverter<Map<String, String>, String> {
+public class MapToJsonConverter implements AttributeConverter<Map<String, Object>, String> {
 
     private static final Logger logger = LoggerFactory.getLogger(MapToJsonConverter.class);
 
@@ -55,7 +55,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, String
     }
 
     @Override
-    public String convertToDatabaseColumn(Map<String, String> parameters) {
+    public String convertToDatabaseColumn(Map<String, Object> parameters) {
         if (parameters == null) {
             return EMPTY_PARAMS;
         }
@@ -68,7 +68,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, String
     }
 
     @Override
-    public Map<String, String> convertToEntityAttribute(String s) {
+    public Map<String, Object> convertToEntityAttribute(String s) {
         if (s == null) {
             return new HashMap<>();
         }

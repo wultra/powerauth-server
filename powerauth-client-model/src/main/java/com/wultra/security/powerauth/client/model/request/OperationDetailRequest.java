@@ -29,4 +29,9 @@ import lombok.Data;
 public class OperationDetailRequest {
 
     private String operationId;
+
+    /**
+     * Optional user identifier of the user who is requesting the operation.
+     */
+    private String userId;
 }

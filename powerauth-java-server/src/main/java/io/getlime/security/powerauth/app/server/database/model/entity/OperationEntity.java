@@ -45,7 +45,7 @@ public class OperationEntity implements Serializable {
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
-    @Column(name = "user_id", nullable = false)
+    @Column(name = "user_id")
     private String userId;
 
     @ManyToMany
@@ -77,7 +77,7 @@ public class OperationEntity implements Serializable {
 
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
-    private Map<String, String> additionalData = new HashMap<>();
+    private Map<String, Object> additionalData = new HashMap<>();
 
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
@@ -110,6 +110,12 @@ public class OperationEntity implements Serializable {
      */
     @Column(name = "totp_seed")
     private String totpSeed;
+
+    /**
+     * Optional activationId of a device.
+     */
+    @Column(name = "activation_id")
+    private String activationId;
 
     /**
      * Get operation ID.
@@ -259,7 +265,7 @@ public class OperationEntity implements Serializable {
      * Get operation additional data set on operation approval or reject.
      * @return Additional data.
      */
-    public Map<String, String> getAdditionalData() {
+    public Map<String, Object> getAdditionalData() {
         return additionalData;
     }
 
@@ -267,7 +273,7 @@ public class OperationEntity implements Serializable {
      * Set operation additional data set on operation approval or reject.
      * @param additionalData Additional data.
      */
-    public void setAdditionalData(Map<String, String> additionalData) {
+    public void setAdditionalData(Map<String, Object> additionalData) {
         this.additionalData = additionalData;
     }
 
@@ -417,6 +423,24 @@ public class OperationEntity implements Serializable {
      */
     public void setTotpSeed(String totpSeed) {
         this.totpSeed = totpSeed;
+    }
+
+    /**
+     * Get the activation ID.
+     *
+     * @return Activation ID.
+     */
+    public String getActivationId() {
+        return activationId;
+    }
+
+    /**
+     * Set the activation ID.
+     *
+     * @param activationId Activation ID to set.
+     */
+    public void setActivationId(String activationId) {
+        this.activationId = activationId;
     }
 
     @Override

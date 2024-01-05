@@ -32,6 +32,6 @@ import java.util.Map;
 public class OperationCancelRequest {
 
     private String operationId;
-    private final Map<String, String> additionalData = new LinkedHashMap<>();
+    private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
 }

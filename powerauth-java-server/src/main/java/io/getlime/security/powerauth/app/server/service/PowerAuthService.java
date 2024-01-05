@@ -30,6 +30,7 @@ import io.getlime.security.powerauth.app.server.converter.ActivationStatusConver
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.RecoveryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.VerifyOfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -44,12 +45,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigInteger;
 import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Default implementation of the PowerAuth 3.0 Server service.
@@ -157,9 +161,10 @@ public class PowerAuthService {
             final String applicationId = request.getApplicationId();
             final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
             final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
-            final Pageable pageable = PageRequest.of(pageNumber, pageSize);
+            final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("timestampCreated").descending());
+            final Set<ActivationStatus> activationStatuses = convert(request.getActivationStatuses());
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable, activationStatuses);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1141,12 +1146,12 @@ public class PowerAuthService {
         }
         // Verify the token timestamp validity
         final long currentTimeMillis = System.currentTimeMillis();
-        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidityInMilliseconds()) {
+        if (request.getTimestamp() < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is too old for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
         }
-        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidityInMilliseconds()) {
+        if (request.getTimestamp() > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
             logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}", request.getTokenId());
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
@@ -1720,7 +1725,7 @@ public class PowerAuthService {
         }
         try {
             logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
-            final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(request);
+            final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1740,7 +1745,7 @@ public class PowerAuthService {
         }
         try {
             logger.info("OperationListForUserRequest received, user ID: {}, appId: {}", request.getUserId(), request.getApplications());
-            final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(request);
+            final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1760,7 +1765,7 @@ public class PowerAuthService {
         }
         try {
             logger.info("findAllOperationsByExternalId received, external ID: {}, appId: {}", request.getExternalId(), request.getApplications());
-            final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(request);
+            final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(convert(request));
             logger.info("findAllOperationsByExternalId succeeded");
             return response;
         } catch (RuntimeException | Error ex) {
@@ -1981,4 +1986,52 @@ public class PowerAuthService {
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
+
+    @Transactional
+    public UpdateActivationNameResponse updateActivationName(final UpdateActivationNameRequest request) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+            logger.info("UpdateActivationRequest call received, activation ID: {}", activationId);
+            logger.debug("Updating activation: {}", request);
+            final UpdateActivationNameResponse response = behavior.getActivationServiceBehavior().updateActivationName(request);
+            logger.info("UpdateActivationRequest succeeded, activation ID: {}", activationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    private Set<ActivationStatus> convert(final Set<com.wultra.security.powerauth.client.model.enumeration.ActivationStatus> source) {
+        if (CollectionUtils.isEmpty(source)) {
+            return Set.of(ActivationStatus.values());
+        } else {
+            return source.stream()
+                    .map(activationStatusConverter::convert)
+                    .collect(Collectors.toSet());
+        }
+    }
+
+    private OperationServiceBehavior.OperationListRequest convert(final OperationListForUserRequest source) {
+        final int pageNumber = fetchPageNumberOrDefault(source.getPageNumber());
+        final int pageSize = fetchPageSizeOrDefault(source.getPageSize());
+        final Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return new OperationServiceBehavior.OperationListRequest(source.getUserId(), source.getApplications(), source.getActivationId(), pageable);
+    }
+
+    private OperationServiceBehavior.OperationListRequestWithExternalId convert(final OperationExtIdRequest source) {
+        final int pageNumber = fetchPageNumberOrDefault(source.getPageNumber());
+        final int pageSize = fetchPageSizeOrDefault(source.getPageSize());
+        final Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        return new OperationServiceBehavior.OperationListRequestWithExternalId(source.getExternalId(), source.getApplications(), pageable);
+    }
+
+    private int fetchPageNumberOrDefault(final Integer pageNumber) {
+        return pageNumber != null ? pageNumber : powerAuthPageableConfiguration.defaultPageNumber();
+    }
+
+    private int fetchPageSizeOrDefault(final Integer pageSize) {
+        return pageSize != null ? pageSize : powerAuthPageableConfiguration.defaultPageSize();
+    }
+
 }

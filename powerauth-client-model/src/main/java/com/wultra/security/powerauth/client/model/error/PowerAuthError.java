@@ -17,12 +17,18 @@
  */
 package com.wultra.security.powerauth.client.model.error;
 
+import java.io.Serial;
+import java.io.Serializable;
+
 /**
  * Class representing a PowerAuth error.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public class PowerAuthError {
+public class PowerAuthError implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 3172664961204150558L;
 
     private String code;
     private String message;
