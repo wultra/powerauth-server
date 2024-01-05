@@ -896,12 +896,12 @@ public class OperationServiceBehavior {
     private List<String> fetchActivationFlags(String activationId) {
         if (activationId != null) {
             logger.debug("Searching for operations with activationId: {}", activationId);
-            final ActivationRecordEntity activationRecord = activationRepository.findActivationWithoutLock(activationId);
-            final List<String> flags = new ArrayList<>();
-            if (activationRecord != null) {
-                flags.addAll(activationRecord.getFlags());
+            ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
+            if (activation != null) {
+                return activation.getFlags();
+            } else {
+                return Collections.emptyList();
             }
-            return flags;
         }
         return Collections.emptyList();
     }
