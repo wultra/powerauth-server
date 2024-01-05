@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.client.model.response.OperationDetailRespon
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
@@ -895,8 +896,12 @@ public class OperationServiceBehavior {
     private List<String> fetchActivationFlags(String activationId) {
         if (activationId != null) {
             logger.debug("Searching for operations with activationId: {}", activationId);
-            final List<String> flags = activationRepository.findActivationWithoutLock(activationId).getFlags();
-            return flags != null ? flags : Collections.emptyList();
+            final ActivationRecordEntity activationRecord = activationRepository.findActivationWithoutLock(activationId);
+            final List<String> flags = new ArrayList<>();
+            if (activationRecord != null) {
+                flags.addAll(activationRecord.getFlags());
+            }
+            return flags;
         }
         return Collections.emptyList();
     }
