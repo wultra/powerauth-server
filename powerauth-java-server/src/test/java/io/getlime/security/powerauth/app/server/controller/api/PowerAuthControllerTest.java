@@ -19,19 +19,17 @@ package io.getlime.security.powerauth.app.server.controller.api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jayway.jsonpath.JsonPath;
 import com.wultra.core.audit.base.database.DatabaseAudit;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
-import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResponse;
-import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
-import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
+import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import jakarta.persistence.EntityManager;
@@ -50,7 +48,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -89,6 +87,10 @@ class PowerAuthControllerTest {
 
     @Autowired
     private CallbackUrlBehavior callbackUrlBehavior;
+
+    @Autowired
+    private PowerAuthService powerAuthService;
+
 
     /**
      * Tests the update activation functionality.
@@ -388,6 +390,112 @@ class PowerAuthControllerTest {
             }
         }
         assertTrue(callbackFound2);
+    }
+
+    /**
+     * Tests the CRUD operations for application roles.
+     * This includes adding, getting, updating, and removing application roles.
+     *
+     * <p>The test follows these steps:</p>
+     * <ol>
+     *   <li>Adds application roles using the '/rest/v3/application/roles/create' endpoint.</li>
+     *   <li>Verifies the addition of roles by fetching application details using the '/rest/v3/application/detail' endpoint.</li>
+     *   <li>Fetches the list of application roles using the '/rest/v3/application/roles/list' endpoint to verify the current roles.</li>
+     *   <li>Updates the application roles using the '/rest/v3/application/roles/update' endpoint.</li>
+     *   <li>Verifies the update by comparing the expected and actual list of roles.</li>
+     *   <li>Removes one of the application roles using the '/rest/v3/application/roles/remove' endpoint.</li>
+     *   <li>Finally, verifies the removal by checking the remaining roles.</li>
+     * </ol>
+     *
+     * <p>Note: The test assumes the presence of two additional roles defined in the SQL script used for setting up the test environment.</p>
+     *
+     * @throws Exception if any error occurs during the execution of the test.
+     */
+    @Test
+    void testApplicationRolesCrud() throws Exception {
+        final List<String> addedRoles = List.of("ROLE1", "ROLE2");
+        final AddApplicationRolesRequest addApplicationRolesRequest = new AddApplicationRolesRequest();
+        addApplicationRolesRequest.setApplicationId(APPLICATION_ID);
+        addApplicationRolesRequest.setApplicationRoles(addedRoles);
+
+        /* Test add app roles */
+        mockMvc.perform(post("/rest/v3/application/roles/create")
+                        .content(wrapInRequestObjectJson(addApplicationRolesRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
+                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
+                /* Two more roles are defined in the SQL script for this test */
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(4)))
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles.toArray())));
+
+        /* Test get app detail */
+        final GetApplicationDetailRequest applicationDetailRequest = new GetApplicationDetailRequest();
+        applicationDetailRequest.setApplicationId(APPLICATION_ID);
+        mockMvc.perform(post("/rest/v3/application/detail")
+                        .content(wrapInRequestObjectJson(applicationDetailRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
+                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
+                /* Two more roles are defined in the SQL script for this test */
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(4)))
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles.toArray())));
+
+        /* Test get app roles list */
+        final ListApplicationRolesRequest applicationRolesRequest = new ListApplicationRolesRequest();
+        applicationRolesRequest.setApplicationId(APPLICATION_ID);
+        mockMvc.perform(post("/rest/v3/application/roles/list")
+                        .content(wrapInRequestObjectJson(applicationRolesRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
+                /* Two more roles are defined in the SQL script for this test */
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(4)))
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles.toArray())));
+
+        /* Test update app roles */
+        final UpdateApplicationRolesRequest updateApplicationRolesRequest = new UpdateApplicationRolesRequest();
+        final List<String> addedRoles2 = List.of("ROLE5", "ROLE6");
+        updateApplicationRolesRequest.setApplicationId(APPLICATION_ID);
+        updateApplicationRolesRequest.setApplicationRoles(addedRoles2);
+        mockMvc.perform(post("/rest/v3/application/roles/update")
+                        .content(wrapInRequestObjectJson(updateApplicationRolesRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
+                /* Two more roles are defined in the SQL script for this test */
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(2)))
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles2.toArray())));
+
+        /* Test new list of app roles */
+        final ListApplicationRolesResponse applicationRolesResponse = powerAuthService.
+                listApplicationRoles(applicationRolesRequest);
+        assertEquals(addedRoles2, applicationRolesResponse.getApplicationRoles());
+
+        /* Test remove one of app roles */
+        final RemoveApplicationRolesRequest removeApplicationRolesRequest = new RemoveApplicationRolesRequest();
+        removeApplicationRolesRequest.setApplicationId(APPLICATION_ID);
+        removeApplicationRolesRequest.setApplicationRoles(List.of("ROLE5"));
+        mockMvc.perform(post("/rest/v3/application/roles/remove")
+                        .content(wrapInRequestObjectJson(removeApplicationRolesRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
+                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
+                /* Two more roles are defined in the SQL script for this test */
+                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(1)))
+                .andExpect(jsonPath("$.responseObject.applicationRoles", contains("ROLE6")));
+
+        /* Test new list of app roles */
+        final ListApplicationRolesResponse applicationRolesResponse2 = powerAuthService.
+                listApplicationRoles(applicationRolesRequest);
+        assertEquals(Collections.singletonList("ROLE6"), applicationRolesResponse2.getApplicationRoles());
     }
 
     /**
