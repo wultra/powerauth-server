@@ -21,8 +21,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.database.DatabaseAudit;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
-import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
@@ -45,6 +44,10 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -72,6 +75,8 @@ class PowerAuthControllerTest {
     private static final String DATA = "A2";
     private static final String CALLBACK_NAME = UUID.randomUUID().toString();
     private static final String CALLBACK_URL = "http://test.test";
+    private static final String ACTIVATION_ID = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+    private static final String APPLICATION_VERSION_APPLICATION_KEY = "testKey";
 
     @Autowired
     private MockMvc mockMvc;
@@ -91,6 +96,287 @@ class PowerAuthControllerTest {
     @Autowired
     private PowerAuthService powerAuthService;
 
+    /**
+     * Tests the creation of a new activation.
+     * <p>
+     * This test sends a request to initialize a new activation and verifies the successful creation by checking
+     * various properties of the activation response. It further checks the activation status to ensure it is set to 'CREATED'.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testCreateActivation() throws Exception {
+        final InitActivationRequest initActivationRequest = new InitActivationRequest();
+        initActivationRequest.setUserId(USER_ID);
+        initActivationRequest.setApplicationId(APPLICATION_ID);
+        MvcResult result = mockMvc.perform(post("/rest/v3/activation/init")
+                        .content(wrapInRequestObjectJson(initActivationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activationId", notNullValue()))
+                .andExpect(jsonPath("$.responseObject.activationSignature", notNullValue()))
+                .andExpect(jsonPath("$.responseObject.activationCode", notNullValue()))
+                .andExpect(jsonPath("$.responseObject.userId").value(USER_ID))
+                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID)).andReturn();
+
+        final InitActivationResponse response = convertMvcResultToObject(result, InitActivationResponse.class);
+        final GetActivationStatusRequest getActivationStatusRequest = new GetActivationStatusRequest();
+        getActivationStatusRequest.setActivationId(response.getActivationId());
+
+        mockMvc.perform(post("/rest/v3/activation/status")
+                        .content(wrapInRequestObjectJson(getActivationStatusRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activationStatus").value("CREATED"));
+    }
+
+    /**
+     * Tests the removal of an activation.
+     * <p>
+     * This test sends a request to remove an existing activation and verifies the removal action by checking the response.
+     * It further confirms the removal by fetching the activation status and ensuring it is set to 'REMOVED'.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testRemoveActivation() throws Exception {
+        /* Activation created by the SQL script */
+        final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
+        removeActivationRequest.setActivationId(ACTIVATION_ID);
+        removeActivationRequest.setExternalUserId(null);
+
+        mockMvc.perform(post("/rest/v3/activation/remove")
+                        .content(wrapInRequestObjectJson(removeActivationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.removed").value(true));
+        final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
+        activationStatusRequest.setActivationId(ACTIVATION_ID);
+        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());
+    }
+
+    /**
+     * Tests the retrieval of the activation list for a specific user.
+     * <p>
+     * This test sends a request to list all activations for a given user and verifies the response by checking the number of activations.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testActivationListForUser() throws Exception {
+        final GetActivationListForUserRequest getActivationListForUserRequest = new GetActivationListForUserRequest();
+        /* Activation created by the SQL script */
+        getActivationListForUserRequest.setUserId("TestUserV3_d8c2e122-b12a-47f1-bca7-e04637bffd14");
+        mockMvc.perform(post("/rest/v3/activation/list")
+                        .content(wrapInRequestObjectJson(getActivationListForUserRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activations.length()").value(1));
+    }
+
+    /**
+     * Tests the pagination feature in the activation list retrieval for a user.
+     * <p>
+     * This test creates multiple activations for a user and then fetches them in paginated form, ensuring both pages contain the correct number of activations.
+     * It verifies that the activations on different pages are not the same, confirming proper pagination functionality.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testActivationListForUserPagination() throws Exception {
+        // Prepare the base GetActivationListForUserRequest
+        final GetActivationListForUserRequest baseRequest = new GetActivationListForUserRequest();
+        baseRequest.setUserId(USER_ID);
+        baseRequest.setApplicationId(APPLICATION_ID);
+
+        // Create a list to store the activation IDs
+        final List<String> activationIds = new ArrayList<>();
+
+        // Create multiple activations for the test user
+        for (int i = 0; i < 10; i++) {
+            final InitActivationRequest initActivationRequest = new InitActivationRequest();
+            initActivationRequest.setApplicationId(APPLICATION_ID);
+            initActivationRequest.setUserId(USER_ID);
+            final InitActivationResponse initResponse = powerAuthService.initActivation(initActivationRequest);
+            activationIds.add(initResponse.getActivationId());
+        }
+
+        // Prepare the request for the first page of activations
+        final GetActivationListForUserRequest requestPage1 = new GetActivationListForUserRequest();
+        requestPage1.setUserId(baseRequest.getUserId());
+        requestPage1.setApplicationId(baseRequest.getApplicationId());
+        requestPage1.setPageNumber(0);
+        requestPage1.setPageSize(5);
+
+        // Fetch the first page of activations
+        final MvcResult mvcResult1 = mockMvc.perform(post("/rest/v3/activation/list")
+                        .content(wrapInRequestObjectJson(requestPage1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activations.length()").value(5))
+                .andReturn();
+
+        // Prepare the request for the second page of activations
+        final GetActivationListForUserRequest requestPage2 = new GetActivationListForUserRequest();
+        requestPage2.setUserId(baseRequest.getUserId());
+        requestPage2.setApplicationId(baseRequest.getApplicationId());
+        requestPage2.setPageNumber(1);
+        requestPage2.setPageSize(5);
+
+        // Fetch the second page of activations
+        final MvcResult mvcResult2 = mockMvc.perform(post("/rest/v3/activation/list")
+                        .content(wrapInRequestObjectJson(requestPage2))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activations.length()").value(5))
+                .andReturn();
+
+        final GetActivationListForUserResponse responsePage1 = convertMvcResultToObject(mvcResult1,
+                GetActivationListForUserResponse.class);
+        final GetActivationListForUserResponse responsePage2 = convertMvcResultToObject(mvcResult2,
+                GetActivationListForUserResponse.class);
+        // Check that the activations on the different pages are not the same
+        assertNotEquals(responsePage1.getActivations(), responsePage2.getActivations());
+    }
+
+    /**
+     * Tests the lookup feature for activations based on specific criteria.
+     * <p>
+     * This test sends a request to look up activations based on user IDs, application IDs, activation status, and a timestamp.
+     * It verifies the lookup by checking the number of activations that match the given criteria.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testLookupActivations() throws Exception {
+        final LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
+        final LocalDateTime localDateTime = LocalDateTime.parse("2023-04-03 13:59:06.015", formatter);
+        final Date timestampCreated = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
+        /* Activation created by the SQL script */
+        lookupActivationsRequest.setUserIds(List.of("TestUserV3_d8c2e122-b12a-47f1-bca7-e04637bffd14"));
+        lookupActivationsRequest.setApplicationIds(List.of(APPLICATION_ID));
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        lookupActivationsRequest.setTimestampLastUsedAfter(timestampCreated);
+        mockMvc.perform(post("/rest/v3/activation/lookup")
+                        .content(wrapInRequestObjectJson(lookupActivationsRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activations.length()").value(1));
+    }
+
+    /**
+     * Tests the update of activation status for given activation IDs.
+     * <p>
+     * This test sends a request to update the status of specified activations and confirms the update action by checking the response.
+     * It further validates the new status of the activation by fetching its current status.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testUpdateActivationStatus() throws Exception {
+        final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
+        updateStatusForActivationsRequest.setActivationIds(List.of(ACTIVATION_ID));
+        updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.BLOCKED);
+        /* Activation created by the SQL script */
+        mockMvc.perform(post("/rest/v3/activation/status/update")
+                        .content(wrapInRequestObjectJson(updateStatusForActivationsRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.updated").value(true));
+
+        final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
+        activationStatusRequest.setActivationId(ACTIVATION_ID);
+        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        assertEquals(ActivationStatus.BLOCKED, statusResponse.getActivationStatus());
+    }
+
+    /**
+     * Tests the retrieval of activation history for a specific activation ID.
+     * <p>
+     * This test initializes a new activation, then sends a request to retrieve its history within a specified time range.
+     * It confirms the history retrieval by checking the presence of activation history items.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testActivationHistory() throws Exception {
+        final InitActivationRequest initActivationRequest = new InitActivationRequest();
+        initActivationRequest.setUserId(USER_ID);
+        initActivationRequest.setApplicationId(APPLICATION_ID);
+
+        final InitActivationResponse initResponse = powerAuthService.initActivation(initActivationRequest);
+        final String activationId = initResponse.getActivationId();
+        final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
+        activationStatusRequest.setActivationId(activationId);
+        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
+
+        final Date before = Date.from(statusResponse.getTimestampCreated().toInstant().minus(Duration.ofDays(1)));
+        final Date after = Date.from(before.toInstant().plus(Duration.ofDays(2)));
+        final ActivationHistoryRequest activationHistoryRequest = new ActivationHistoryRequest();
+        activationHistoryRequest.setActivationId(activationId);
+        activationHistoryRequest.setTimestampFrom(before);
+        activationHistoryRequest.setTimestampTo(after);
+
+        mockMvc.perform(post("/rest/v3/activation/history")
+                        .content(wrapInRequestObjectJson(activationHistoryRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.items.length()").value(1))
+                .andExpect(jsonPath("$.responseObject.items[0].activationId").value(activationId));
+
+    }
+
+    /**
+     * Tests the block and unblock functionality for an activation.
+     * <p>
+     * This test first sends a request to block an activation and verifies the block action. It then sends a request to unblock the same activation
+     * and verifies the unblock action, confirming the change in activation status after each operation.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testBlockAndUnblockActivation() throws Exception {
+        final BlockActivationRequest blockActivationRequest = new BlockActivationRequest();
+        blockActivationRequest.setActivationId(ACTIVATION_ID);
+        blockActivationRequest.setReason("Test");
+        /* Block the activation created by the SQL script */
+        mockMvc.perform(post("/rest/v3/activation/block")
+                        .content(wrapInRequestObjectJson(blockActivationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activationStatus").value("BLOCKED"));
+
+        final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
+        activationStatusRequest.setActivationId(ACTIVATION_ID);
+        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        assertEquals(ActivationStatus.BLOCKED, statusResponse.getActivationStatus());
+
+        final UnblockActivationRequest unblockActivationRequest = new UnblockActivationRequest();
+        unblockActivationRequest.setActivationId(ACTIVATION_ID);
+
+        mockMvc.perform(post("/rest/v3/activation/unblock")
+                        .content(wrapInRequestObjectJson(unblockActivationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.activationStatus").value("ACTIVE"));
+
+        final GetActivationStatusResponse statusResponse2 = powerAuthService.getActivationStatus(activationStatusRequest);
+        assertEquals(ActivationStatus.ACTIVE, statusResponse2.getActivationStatus());
+    }
 
     /**
      * Tests the update activation functionality.
@@ -468,7 +754,6 @@ class PowerAuthControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
-                /* Two more roles are defined in the SQL script for this test */
                 .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(2)))
                 .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles2.toArray())));
 
@@ -488,7 +773,6 @@ class PowerAuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
                 .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
-                /* Two more roles are defined in the SQL script for this test */
                 .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(1)))
                 .andExpect(jsonPath("$.responseObject.applicationRoles", contains("ROLE6")));
 
@@ -496,6 +780,332 @@ class PowerAuthControllerTest {
         final ListApplicationRolesResponse applicationRolesResponse2 = powerAuthService.
                 listApplicationRoles(applicationRolesRequest);
         assertEquals(Collections.singletonList("ROLE6"), applicationRolesResponse2.getApplicationRoles());
+    }
+
+    /**
+     * Tests the retrieval of the application list.
+     * <p>
+     * This test performs a mock HTTP POST request to retrieve the list of applications.
+     * It verifies if the response contains the expected application ID and checks the size of the application list.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testApplicationList() throws Exception {
+        mockMvc.perform(post("/rest/v3/application/list")
+                        .content(wrapInRequestObjectJson(new HashMap<>()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applications[0].applicationId").value(APPLICATION_ID))
+                .andExpect(jsonPath("$.responseObject.applications", hasSize(1)));
+    }
+
+    /**
+     * Tests the lookup of application version by application key.
+     * <p>
+     * This test sends a mock HTTP POST request to the application version detail endpoint with a specific application key.
+     * It checks if the response correctly identifies the application ID associated with the provided application key.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testApplicationVersionLookup() throws Exception {
+        final LookupApplicationByAppKeyRequest applicationByAppKeyRequest = new LookupApplicationByAppKeyRequest();
+        applicationByAppKeyRequest.setApplicationKey(APPLICATION_VERSION_APPLICATION_KEY);
+
+        /* Application version app key created by the SQL script */
+        mockMvc.perform(post("/rest/v3/application/detail/version")
+                        .content(wrapInRequestObjectJson(applicationByAppKeyRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID));
+    }
+
+    /**
+     * Tests the support and unsupport operations for application versions.
+     * <p>
+     * This test first marks an application version as unsupported, verifying the action, and then marks the same version as supported, again verifying the action.
+     * It ensures that the application version's support status is correctly updated and reflected in the system.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testApplicationSupport() throws Exception {
+        final String applicationVersionId = "default";
+        final UnsupportApplicationVersionRequest unsupportApplicationVersionRequest = new UnsupportApplicationVersionRequest();
+        unsupportApplicationVersionRequest.setApplicationId(APPLICATION_ID);
+        unsupportApplicationVersionRequest.setApplicationVersionId(applicationVersionId);
+
+        /* Application version app key created by the SQL script */
+        mockMvc.perform(post("/rest/v3/application/version/unsupport")
+                        .content(wrapInRequestObjectJson(unsupportApplicationVersionRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationVersionId").value(applicationVersionId))
+                .andExpect(jsonPath("$.responseObject.supported").value(false));
+
+
+        final SupportApplicationVersionRequest supportApplicationVersionRequest = new SupportApplicationVersionRequest();
+        supportApplicationVersionRequest.setApplicationId(APPLICATION_ID);
+        supportApplicationVersionRequest.setApplicationVersionId(applicationVersionId);
+
+        /* Application version app key created by the SQL script */
+        mockMvc.perform(post("/rest/v3/application/version/support")
+                        .content(wrapInRequestObjectJson(supportApplicationVersionRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.applicationVersionId").value(applicationVersionId))
+                .andExpect(jsonPath("$.responseObject.supported").value(true));
+
+    }
+
+    /**
+     * Tests the creation, listing, and removal of application integrations.
+     * <p>
+     * This test creates a new application integration, retrieves a list of integrations to verify its creation,
+     * and then removes the created integration, again retrieving the list to verify its removal.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testApplicationIntegration() throws Exception {
+        final String integrationName = UUID.randomUUID().toString();
+        final CreateIntegrationRequest createIntegrationRequest = new CreateIntegrationRequest();
+        createIntegrationRequest.setName(integrationName);
+
+        MvcResult result = mockMvc.perform(post("/rest/v3/integration/create")
+                        .content(wrapInRequestObjectJson(createIntegrationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.name").value(integrationName))
+                .andReturn();
+
+        final String integrationId = convertMvcResultToObject(result,
+                CreateIntegrationResponse.class).getId();
+
+        mockMvc.perform(post("/rest/v3/integration/list")
+                        .content(wrapInRequestObjectJson(new HashMap<>()))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.items").isNotEmpty())
+                .andExpect(jsonPath(String.format("$.responseObject.items[?(@.name == '%s')]", integrationName)).exists());
+
+        final RemoveIntegrationRequest removeIntegrationRequest = new RemoveIntegrationRequest();
+        removeIntegrationRequest.setId(integrationId);
+        mockMvc.perform(post("/rest/v3/integration/remove")
+                        .content(wrapInRequestObjectJson(removeIntegrationRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.removed").value(true))
+                .andExpect(jsonPath("$.responseObject.id").value(integrationId));
+    }
+
+    /**
+     * Tests the creation, lookup, and revocation of recovery codes.
+     * <p>
+     * This test creates recovery codes for a user, looks up the created codes, and then revokes them,
+     * ensuring each step is processed correctly and the expected responses are received.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testRecoveryCodeCreateLookupRevoke() throws Exception {
+        final CreateRecoveryCodeRequest createRecoveryCodeRequest = new CreateRecoveryCodeRequest();
+        createRecoveryCodeRequest.setApplicationId(APPLICATION_ID);
+        createRecoveryCodeRequest.setUserId(USER_ID);
+        createRecoveryCodeRequest.setPukCount(2L);
+
+        final MvcResult result = mockMvc.perform(post("/rest/v3/recovery/create")
+                        .content(wrapInRequestObjectJson(createRecoveryCodeRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.userId").value(USER_ID))
+                .andExpect(jsonPath("$.responseObject.userId").value(USER_ID))
+                .andExpect(jsonPath("$.responseObject.puks.length()").value(2))
+                .andReturn();
+
+        final long recoveryCodeId = convertMvcResultToObject(result, CreateRecoveryCodeResponse.class)
+                .getRecoveryCodeId();
+
+        final LookupRecoveryCodesRequest lookupRecoveryCodesRequest = new LookupRecoveryCodesRequest();
+        lookupRecoveryCodesRequest.setActivationId(ACTIVATION_ID);
+        lookupRecoveryCodesRequest.setUserId(USER_ID);
+        lookupRecoveryCodesRequest.setRecoveryCodeStatus(RecoveryCodeStatus.CREATED);
+        lookupRecoveryCodesRequest.setRecoveryPukStatus(RecoveryPukStatus.VALID);
+
+        mockMvc.perform(post("/rest/v3/recovery/lookup")
+                        .content(wrapInRequestObjectJson(lookupRecoveryCodesRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.recoveryCodes.length()", greaterThan(0)));
+
+        final RevokeRecoveryCodesRequest revokeRecoveryCodesRequest = new RevokeRecoveryCodesRequest();
+        revokeRecoveryCodesRequest.setRecoveryCodeIds(List.of(recoveryCodeId));
+
+        mockMvc.perform(post("/rest/v3/recovery/revoke")
+                        .content(wrapInRequestObjectJson(revokeRecoveryCodesRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.revoked").value(true));
+    }
+
+    /**
+     * Tests the retrieval and update of recovery configuration.
+     * <p>
+     * This test retrieves the current recovery configuration, updates it, and then retrieves it again to
+     * verify that the updates were successfully applied.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testRecoveryConfig() throws Exception {
+        final GetRecoveryConfigRequest getRecoveryConfigRequest = new GetRecoveryConfigRequest();
+        getRecoveryConfigRequest.setApplicationId(APPLICATION_ID);
+
+        mockMvc.perform(post("/rest/v3/recovery/config/detail")
+                        .content(wrapInRequestObjectJson(getRecoveryConfigRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.postcardPublicKey", notNullValue()))
+                .andExpect(jsonPath("$.responseObject.remotePostcardPublicKey", notNullValue()));
+
+        final UpdateRecoveryConfigRequest updateRecoveryConfigRequest = new UpdateRecoveryConfigRequest();
+        final String newTestKey = "newTestKey";
+        updateRecoveryConfigRequest.setApplicationId(APPLICATION_ID);
+        updateRecoveryConfigRequest.setRemotePostcardPublicKey(newTestKey);
+
+        mockMvc.perform(post("/rest/v3/recovery/config/update")
+                        .content(wrapInRequestObjectJson(updateRecoveryConfigRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.updated").value(true));
+
+        final GetRecoveryConfigResponse recoveryConfigResponse = powerAuthService.getRecoveryConfig(getRecoveryConfigRequest);
+        assertNotNull(recoveryConfigResponse.getPostcardPublicKey());
+        assertFalse(recoveryConfigResponse.isActivationRecoveryEnabled());
+        assertFalse(recoveryConfigResponse.isRecoveryPostcardEnabled());
+        assertFalse(recoveryConfigResponse.isAllowMultipleRecoveryCodes());
+        assertEquals(newTestKey, recoveryConfigResponse.getRemotePostcardPublicKey());
+    }
+
+    /**
+     * Tests the creation of a non-personalized offline signature payload.
+     * <p>
+     * This test sends a request to create a non-personalized offline signature payload and verifies
+     * that the response contains the expected offline data and nonce.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testNonPersonalizedOfflineSignaturePayload() throws Exception {
+        final CreateNonPersonalizedOfflineSignaturePayloadRequest nonPersonalizedOfflineSignaturePayloadRequest =
+                new CreateNonPersonalizedOfflineSignaturePayloadRequest();
+        nonPersonalizedOfflineSignaturePayloadRequest.setApplicationId(APPLICATION_ID);
+        nonPersonalizedOfflineSignaturePayloadRequest.setData(DATA);
+
+        mockMvc.perform(post("/rest/v3/signature/offline/non-personalized/create")
+                        .content(wrapInRequestObjectJson(nonPersonalizedOfflineSignaturePayloadRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.offlineData", notNullValue()))
+                .andExpect(jsonPath("$.responseObject.nonce", notNullValue()));
+    }
+
+    /**
+     * Tests the creation of a personalized offline signature payload.
+     * <p>
+     * This test sends a request to create a personalized offline signature payload for a specific activation
+     * and verifies that the response contains the expected offline data and nonce.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testPersonalizedOfflineSignaturePayload() throws Exception {
+        final CreatePersonalizedOfflineSignaturePayloadRequest personalizedOfflineSignaturePayloadRequest =
+                new CreatePersonalizedOfflineSignaturePayloadRequest();
+        personalizedOfflineSignaturePayloadRequest.setActivationId(ACTIVATION_ID);
+        personalizedOfflineSignaturePayloadRequest.setData(DATA);
+
+        mockMvc.perform(post("/rest/v3/signature/offline/personalized/create")
+                        .content(wrapInRequestObjectJson(personalizedOfflineSignaturePayloadRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.offlineData", notNullValue()))
+                .andExpect(jsonPath("$.responseObject.nonce", notNullValue()));
+    }
+
+    /**
+     * Tests the verification of an offline signature.
+     * <p>
+     * This test sends a signature verification request for an offline signature and checks
+     * if the signature is validated correctly, expecting a false result for the test data.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testVerifyOfflineSignature() throws Exception {
+        final VerifyOfflineSignatureRequest verifyOfflineSignatureRequest =
+                new VerifyOfflineSignatureRequest();
+        verifyOfflineSignatureRequest.setActivationId(ACTIVATION_ID);
+        verifyOfflineSignatureRequest.setData(DATA);
+        verifyOfflineSignatureRequest.setSignature("123456");
+        verifyOfflineSignatureRequest.setAllowBiometry(false);
+
+        mockMvc.perform(post("/rest/v3/signature/offline/verify")
+                        .content(wrapInRequestObjectJson(verifyOfflineSignatureRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.signatureValid").value(false))
+                .andExpect(jsonPath("$.responseObject.activationId").value(ACTIVATION_ID));
+    }
+
+    /**
+     * Tests the retrieval of system status.
+     * <p>
+     * This test checks if the system status can be successfully retrieved without any errors.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testSystemStatus() throws Exception {
+        mockMvc.perform(post("/rest/v3/status")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
+    }
+
+    /**
+     * Tests the retrieval of a list of error codes.
+     * <p>
+     * This test requests a list of error codes and verifies that the list is populated with a sufficient number of entries.
+     *
+     * @throws Exception if the mockMvc.perform operation fails.
+     */
+    @Test
+    void testErrorList() throws Exception {
+        final GetErrorCodeListRequest getErrorCodeListRequest = new GetErrorCodeListRequest();
+        getErrorCodeListRequest.setLanguage(Locale.ENGLISH.getLanguage());
+        mockMvc.perform(post("/rest/v3/error/list")
+                        .content(wrapInRequestObjectJson(getErrorCodeListRequest))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.responseObject.errors.length()", greaterThan(32)));
     }
 
     /**
