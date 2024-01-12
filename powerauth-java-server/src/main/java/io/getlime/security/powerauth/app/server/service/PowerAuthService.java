@@ -1728,6 +1728,8 @@ public class PowerAuthService {
             final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
+        } catch (GenericServiceException ex) {
+            throw ex;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
@@ -1748,6 +1750,8 @@ public class PowerAuthService {
             final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
+        } catch (GenericServiceException ex) {
+            throw ex;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
