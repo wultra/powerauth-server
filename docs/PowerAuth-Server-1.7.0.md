@@ -15,7 +15,7 @@ For manual changes use SQL scripts:
 ### Updated DB Schema for FIDO2 Support
 
 Following columns have been added to table `pa_activation` for FIDO2 support:
-- `external_id` - external identifier for the activation
-- `protocol` - protocol enumeration: `POWERAUTH` or `FIDO2`
+- `external_id` - external identifier of the activation
+- `protocol` - protocol enumeration: `powerauth` or `fido2`
 
-The data type for column `extras` in table `pa_activation` was changed to `TEXT`.
+The data type for column `extras` in table `pa_activation` was changed to `TEXT` / `CLOB` to support larger data.
