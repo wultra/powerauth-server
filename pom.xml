@@ -101,7 +101,7 @@
         <!-- Other Dependencies -->
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
-        <equalsverifier.version>3.15.5</equalsverifier.version>
+        <equalsverifier.version>3.15.6</equalsverifier.version>
     </properties>
 
     <dependencyManagement>
