@@ -29,7 +29,7 @@
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -102,10 +102,15 @@
             <artifactId>audit-base</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.getlime.core</groupId>
+            <artifactId>http-common</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-fido2</artifactId>
-            <version>1.6.0-SNAPSHOT</version>
+            <version>1.7.0-SNAPSHOT</version>
         </dependency>
+
 
         <!-- Documentation -->
         <dependency>
@@ -152,7 +157,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
-            <scope>runtime</scope>
         </dependency>
 
         <!-- Test Dependencies -->
@@ -176,6 +180,10 @@
             <artifactId>webauthn4j-test</artifactId>
             <version>${webauthn4j.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
         </dependency>
     </dependencies>
 

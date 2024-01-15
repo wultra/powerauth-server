@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.util.*;
@@ -30,13 +31,31 @@ import java.util.*;
 @Data
 public class OperationCreateRequest {
 
+    @Schema(description = "The identifier of the user", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String userId;
+
+    @Schema(description = "List of associated applications", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<String> applications = new ArrayList<>();
+
+    @Schema(description = "Activation flag associated with the operation", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String activationFlag;
+
+    @Schema(description = "Name of the template used for creating the operation", requiredMode = Schema.RequiredMode.REQUIRED)
     private String templateName;
+
+    @Schema(description = "Timestamp of when the operation will expire, overrides expiration period from operation template", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Date timestampExpires;
+
+    @Schema(description = "External identifier of the operation, i.e., ID from transaction system", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String externalId;
+
+    @Schema(description = "Parameters of the operation, will be filled to the operation data", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private final Map<String, String> parameters = new LinkedHashMap<>();
+
+    @Schema(description = "Whether proximity check should be used, overrides configuration from operation template", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean proximityCheckEnabled;
+
+    @Schema(description = "Activation Id of a specific device", requiredMode = Schema.RequiredMode.NOT_REQUIRED, maxLength = 37)
+    private String activationId;
 
 }

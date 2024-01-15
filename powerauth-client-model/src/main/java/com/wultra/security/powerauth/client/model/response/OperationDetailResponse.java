@@ -44,7 +44,7 @@ public class OperationDetailResponse {
     private String templateName;
     private String data;
     private Map<String, String> parameters;
-    private Map<String, String> additionalData;
+    private Map<String, Object> additionalData;
     private OperationStatus status;
     private List<SignatureType> signatureType;
     private long failureCount;
@@ -59,5 +59,6 @@ public class OperationDetailResponse {
      */
     @ToString.Exclude
     private String proximityOtp;
+    private String activationId;
 
 }

@@ -6,5 +6,8 @@
     <include file="20231018-add-constraint-operation-template-name.xml" relativeToChangelogFile="true" />
     <include file="20231103-add-activation-name-history.xml" relativeToChangelogFile="true" />
     <include file="20231106-add-foreign-keys.xml" relativeToChangelogFile="true" />
+    <include file="20231112-add-activation-id.xml" relativeToChangelogFile="true" />
+    <include file="20231123-operation-user-nullable.xml" relativeToChangelogFile="true" />
+    <include file="20231212-add-tag-1.6.0.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

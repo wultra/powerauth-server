@@ -18,14 +18,13 @@
 package io.getlime.security.powerauth.app.server;
 
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Base64;
 
@@ -38,8 +37,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootTest
-@ExtendWith(SpringExtension.class)
-public class ServerPrivateKeyConverterTest {
+@ActiveProfiles("test")
+class ServerPrivateKeyConverterTest {
 
     private static final String SERVER_PRIVATE_KEY_PLAIN = "YAJ1A/QtTTB33R3Xnx3q7+QFuth6cRagtCMGTytV9VE=";
 

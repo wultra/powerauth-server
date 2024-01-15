@@ -26,13 +26,13 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>1.6.0-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.5</version>
+        <version>3.2.1</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -82,26 +82,27 @@
 
     <properties>
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>4.0.1</spring-cloud-vault.version>
+        <spring-cloud-vault.version>4.1.0</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
-        <powerauth-java-crypto.version>1.6.0-SNAPSHOT</powerauth-java-crypto.version>
-        <wultra-core.version>1.8.0-SNAPSHOT</wultra-core.version>
+        <powerauth-java-crypto.version>1.7.0-SNAPSHOT</powerauth-java-crypto.version>
+        <wultra-core.version>1.9.0-SNAPSHOT</wultra-core.version>
 
-        <bcprov-jdk18on.version>1.76</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi-starter-webmvc-ui.version>2.2.0</springdoc-openapi-starter-webmvc-ui.version>
-        <swagger-annotations-jakarta.version>2.2.15</swagger-annotations-jakarta.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
+        <swagger-annotations-jakarta.version>2.2.20</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <shedlock.version>5.9.1</shedlock.version>
+        <shedlock.version>5.10.2</shedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
+        <equalsverifier.version>3.15.6</equalsverifier.version>
 
         <!-- Test dependencies -->
         <webauthn4j.version>0.21.8.RELEASE</webauthn4j.version>
@@ -171,6 +172,13 @@
                 <groupId>org.apache.tomcat.embed</groupId>
                 <artifactId>tomcat-embed-el</artifactId>
                 <scope>provided</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>nl.jqno.equalsverifier</groupId>
+                <artifactId>equalsverifier</artifactId>
+                <version>${equalsverifier.version}</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

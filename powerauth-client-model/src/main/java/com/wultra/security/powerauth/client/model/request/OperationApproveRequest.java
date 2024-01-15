@@ -37,6 +37,6 @@ public class OperationApproveRequest {
     private String applicationId;
     private String data;
     private SignatureType signatureType;
-    private final Map<String, String> additionalData = new LinkedHashMap<>();
+    private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
 }

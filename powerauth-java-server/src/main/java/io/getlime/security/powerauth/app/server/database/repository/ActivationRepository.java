@@ -29,6 +29,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -74,18 +75,22 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * Find all activations for given user ID
      *
      * @param userId User ID
+     * @param activationStatuses Statuses according to which activations should be filtered.
+     * @param pageable pageable context
      * @return List of activations for given user
      */
-    List<ActivationRecordEntity> findByUserId(String userId, Pageable pageable);
+    List<ActivationRecordEntity> findByUserIdAndActivationStatusIn(String userId, Set<ActivationStatus> activationStatuses, Pageable pageable);
 
     /**
      * Find all activations for given user ID and application ID
      *
      * @param applicationId Application ID
      * @param userId        User ID
+     * @param activationStatuses Statuses according to which activations should be filtered.
+     * @param pageable pageable context
      * @return List of activations for given user and application
      */
-    List<ActivationRecordEntity> findByApplicationIdAndUserId(String applicationId, String userId, Pageable pageable);
+    List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusIn(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable);
 
     /**
      * Find the first activation associated with given application by the activation code.
