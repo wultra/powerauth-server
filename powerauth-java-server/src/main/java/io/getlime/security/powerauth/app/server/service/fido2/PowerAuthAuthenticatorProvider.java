@@ -25,13 +25,13 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.client.model.entity.Activation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
@@ -98,15 +98,9 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         final List<AuthenticatorDetail> authenticatorDetailList = new ArrayList<>();
 
         int pageIndex = 0;
-        GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000));
+        GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
         while (!activationList.getActivations().isEmpty()) {
             for (Activation activation : activationList.getActivations()) {
-                if ((activation.getActivationStatus() == ActivationStatus.CREATED) || (activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT)) { // unfinished activations
-                    continue;
-                }
-                if (activation.getActivationStatus() == ActivationStatus.REMOVED && activation.getDevicePublicKeyBase64() == null) { // never finished removed activations
-                    continue;
-                }
                 if (!Protocols.FIDO2.toString().equals(activation.getProtocol())) { // Check the protocol, just in case
                     continue;
                 }
@@ -114,7 +108,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
                 authenticatorDetailList.add(authenticatorDetail);
             }
             pageIndex++;
-            activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000));
+            activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
         }
         return authenticatorDetailList;
     }

@@ -34,6 +34,6 @@ public class OperationRejectRequest {
     private String operationId;
     private String userId;
     private String applicationId;
-    private final Map<String, String> additionalData = new LinkedHashMap<>();
+    private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
 }

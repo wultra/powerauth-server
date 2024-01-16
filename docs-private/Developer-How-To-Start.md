@@ -21,7 +21,13 @@ Others (like URL, username, password) depend on your environment.
 
 ```shell
 liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --url=jdbc:postgresql://localhost:5432/powerauth --username=powerauth status
-``` 
+```
+
+To generate SQL script run this command.
+
+```shell
+liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --output-file=./docs/sql/oracle/generated-oracle-script.sql updateSQL --url=offline:oracle
+```
 
 
 ## PowerAuth Admin Server

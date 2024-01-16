@@ -656,21 +656,22 @@ REST endpoint: `POST /rest/v3/activation/list`
 
 `GetActivationListForUserRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `userId` | An identifier of a user |
-| `String` | `applicationId` | An identifier of an application |
-| `Integer` | `pageNumber` | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0. |
-| `Integer` | `pageSize` | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 100. |
+| Type                 | Name                 | Description                                                                                                                                                                     |
+|----------------------|----------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`             | `userId`             | An identifier of a user                                                                                                                                                         |
+| `String`             | `applicationId`      | An identifier of an application                                                                                                                                                 |
+| `ActivationStatus[]` | `activationStatuses` | Optional statuses according to which activations should be filtered. Return all activations if empty.                                                                           |
+| `Integer`            | `pageNumber`         | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer`            | `pageSize`           | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 
 #### Response
 
 `GetActivationListForUserResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `userId` | An identifier of a user |
-| `Activation[]` | `activations` | A collection of activations for given user |
+| Type           | Name          | Description                                                                              |
+|----------------|---------------|------------------------------------------------------------------------------------------|
+| `String`       | `userId`      | An identifier of a user                                                                  |
+| `Activation[]` | `activations` | A collection of activations for the given user ordered by `timestampCreated` descending. |
 
 `GetActivationListForUserResponse.Activation`
 
@@ -2016,35 +2017,38 @@ REST endpoint: `POST /rest/v3/operation/create`
 
 | Type                  | Name                    | Description                                                                                      |
 |-----------------------|-------------------------|--------------------------------------------------------------------------------------------------|
-| `String`              | `userId`                | The identifier of the user                                                                       |
-| `String`              | `applicationId`         | An identifier of an application                                                                  |
+| `String`              | `userId`                | The identifier of the user (optional for non-personalized operations)                     |
+| `List<String>`        | `applications`          | List of associated applications                                                                  |
+| `String`              | `activationFlag`        | Activation flag associated with the operation                                                    |
 | `String`              | `templateName`          | Name of the template used for creating the operation                                             |
 | `Date`                | `timestampExpires`      | Timestamp of when the operation will expire, overrides expiration period from operation template |
 | `String`              | `externalId`            | External identifier of the operation, i.e., ID from transaction system                           |
 | `Map<String, String>` | `parameters`            | Parameters of the operation, will be filled to the operation data                                |
-| `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used. Overrides configuration from operation template.         |
+| `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used, overrides configuration from operation template          |
+| `String`              | `activationId`          | Activation Id of a specific device                                                               |
 
 #### Response
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'operationDetail'
 
@@ -2059,6 +2063,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | Type | Name | Description |
 |------|------|-------------|
 | `String` | `operationId` | The identifier of the operation |
+| `String` | `userId` | Optional user identifier of the user, used for operation claim. |
 
 #### Response
 
@@ -2082,6 +2087,7 @@ REST endpoint: `POST /rest/v3/operation/detail`
 | `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
 | `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
 | `String`              | `proximityOtp`       | TOTP for proximity check (if enabled) valid for the current time step.           |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'findPendingOperationsForUser'
 
@@ -2093,10 +2099,13 @@ REST endpoint: `POST /rest/v3/operation/list/pending`
 
 `OperationListForUserRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `userId` | The identifier of the user |
-| `String` | `applicationId` | The identifier of the application |
+| Type      | Name            | Description                                                                                                                                                                     |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `userId`        | The identifier of the user                                                                                                                                                      |
+| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
+| `String`  | `activationId`  | Optional. An identifier of activation when the list is requested on a particular device                                                                                         |
+| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 
 
 #### Response
@@ -2134,10 +2143,13 @@ REST endpoint: `POST /rest/v3/operation/list`
 
 `OperationListForUserRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `userId` | The identifier of the user |
-| `String` | `applicationId` | The identifier of the application |
+| Type      | Name            | Description                                                                                                                                                                     |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `userId`        | The identifier of the user                                                                                                                                                      |
+| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
+| `String`  | `activationId`  | Optional. An identifier of activation when the list is requested on a particular device                                                                                         |
+| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 
 
 #### Response
@@ -2174,10 +2186,12 @@ REST endpoint: `POST /rest/v3/operation/list/external`
 
 `OperationExtIdRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `externalId` | The external identifier of the operation |
-| `String` | `applicationId` | The identifier of the application |
+| Type      | Name            | Description                                                                                                                                                                     |
+|-----------|-----------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `String`  | `externalId`    | The external identifier of the operation                                                                                                                                        |
+| `String`  | `applicationId` | The identifier of the application                                                                                                                                               |
+| `Integer` | `pageNumber`    | Optional. The number of the page to fetch in the paginated results. Starts from 0, where 0 refers to the first page. If not provided, defaults to 0.                            |
+| `Integer` | `pageSize`      | Optional. The number of records per page in the paginated results. This determines the total number of records shown in each page of results. If not provided, defaults to 500. |
 
 
 #### Response
@@ -2222,23 +2236,24 @@ REST endpoint: `POST /rest/v3/operation/cancel`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'approveOperation'
 
@@ -2271,23 +2286,24 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 
 ### Method 'failApproveOperation'
 
@@ -2315,24 +2331,24 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 
 `OperationDetailResponse`
 
-| Type                  | Name | Description |
-|-----------------------|------|-------------|
-| `String`              | `id` | The operation ID |
-| `String`              | `userId` | The identifier of the user |
-| `String`              | `applicationId` | The identifier of the application |
-| `String`              | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String`              | `operationType` | Type of the operation created based on the template |
-| `String`              | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus`     | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long`                | `failureCount` | The current number of the failed approval attempts |
-| `Long`                | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date`                | `timestampCreated` | Timestamp of when the operation was created |
-| `Date`                | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String`              | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 ### Method 'rejectOperation'
 
 Reject an operation.
@@ -2361,24 +2377,24 @@ REST endpoint: `POST /rest/v3/operation/reject`
 
 `OperationDetailResponse`
 
-| Type | Name | Description |
-|------|------|-------------|
-| `String` | `id` | The operation ID |
-| `String` | `userId` | The identifier of the user |
-| `String` | `applicationId` | The identifier of the application |
-| `String` | `externalId` | External identifier of the operation, i.e., ID from transaction system |
-| `String` | `operationType` | Type of the operation created based on the template |
-| `String` | `data` | Operation data |
-| `Map<String, String>` | `parameters` | Parameters of the operation, will be filled to the operation data |
-| `OperationStatus` | `status` | Status of the operation |
-| `List<SignatureType>` | `signatureType` | Allowed types of signature |
-| `Long` | `failureCount` | The current number of the failed approval attempts |
-| `Long` | `maxFailureCount` | The maximum allowed number of the failed approval attempts |
-| `Date` | `timestampCreated` | Timestamp of when the operation was created |
-| `Date` | `timestampExpires` | Timestamp of when the operation will expires / expired |
-| `Date` | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status |
-| `String` | `riskFlags` | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
-
+| Type                  | Name                 | Description                                                                      |
+|-----------------------|----------------------|----------------------------------------------------------------------------------|
+| `String`              | `id`                 | The operation ID                                                                 |
+| `String`              | `userId`             | The identifier of the user                                                       |
+| `String`              | `applicationId`      | The identifier of the application                                                |
+| `String`              | `externalId`         | External identifier of the operation, i.e., ID from transaction system           |
+| `String`              | `operationType`      | Type of the operation created based on the template                              |
+| `String`              | `data`               | Operation data                                                                   |
+| `Map<String, String>` | `parameters`         | Parameters of the operation, will be filled to the operation data                |
+| `OperationStatus`     | `status`             | Status of the operation                                                          |
+| `List<SignatureType>` | `signatureType`      | Allowed types of signature                                                       |
+| `Long`                | `failureCount`       | The current number of the failed approval attempts                               |
+| `Long`                | `maxFailureCount`    | The maximum allowed number of the failed approval attempts                       |
+| `Date`                | `timestampCreated`   | Timestamp of when the operation was created                                      |
+| `Date`                | `timestampExpires`   | Timestamp of when the operation will expires / expired                           |
+| `Date`                | `timestampFinalized` | Timestamp of when the operation was switched to a terminating status             |
+| `String`              | `riskFlags`          | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`. |
+| `String`              | `activationId`       | Activation Id of the activation scoped for the operation                         |
 ## Operation Templates
 
 ### Method 'createOperationTemplate'

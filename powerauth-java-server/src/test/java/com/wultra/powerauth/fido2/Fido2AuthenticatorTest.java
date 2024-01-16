@@ -21,7 +21,6 @@ package com.wultra.powerauth.fido2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.google.common.io.BaseEncoding;
 import com.webauthn4j.data.AuthenticatorAssertionResponse;
 import com.webauthn4j.data.AuthenticatorAttestationResponse;
 import com.webauthn4j.data.*;
@@ -61,10 +60,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -113,7 +109,7 @@ class Fido2AuthenticatorTest {
     @Test
     public void packedAuthenticatorInvalidRegistrationChallengeTest() throws Exception {
         // Use invalid challenge
-        final Challenge challenge = new DefaultChallenge(BaseEncoding.base64().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
+        final Challenge challenge = new DefaultChallenge(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
         final AuthenticatorSelectionCriteria authenticatorCriteria = new AuthenticatorSelectionCriteria(
                 AuthenticatorAttachment.PLATFORM, true, UserVerificationRequirement.REQUIRED);
         final PublicKeyCredentialParameters pkParam = new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256);
@@ -189,7 +185,7 @@ class Fido2AuthenticatorTest {
     public void packedAuthenticatorInvalidAssertionChallengeTest() throws Exception {
         registerCredential();
 
-        final Challenge challenge = new DefaultChallenge(BaseEncoding.base64().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
+        final Challenge challenge = new DefaultChallenge(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
         final PublicKeyCredentialRequestOptions getOptions = new PublicKeyCredentialRequestOptions(challenge, REQUEST_TIMEOUT,
                 RP_ID, null, UserVerificationRequirement.REQUIRED, null);
         final PublicKeyCredential<AuthenticatorAssertionResponse, AuthenticationExtensionClientOutput> credential = CLIENT_PLATFORM_SELF_ATTESTED.get(getOptions);
@@ -201,7 +197,7 @@ class Fido2AuthenticatorTest {
         authRequest.setRelyingPartyId(RP_ID);
         authRequest.setAllowedOrigins(Collections.singletonList(ORIGIN.toString()));
         authRequest.setRequiresUserVerification(true);
-        authRequest.setExpectedChallenge(BaseEncoding.base64().encode(challenge.getValue()));
+        authRequest.setExpectedChallenge(Base64.getEncoder().encodeToString(challenge.getValue()));
 
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
         final byte[] clientDataJSON = Objects.requireNonNull(credential.getAuthenticatorResponse()).getClientDataJSON();

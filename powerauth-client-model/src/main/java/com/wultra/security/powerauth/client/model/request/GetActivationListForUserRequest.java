@@ -19,7 +19,10 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.util.Set;
@@ -32,6 +35,7 @@ import java.util.Set;
 @Data
 public class GetActivationListForUserRequest {
 
+    @NotBlank
     private String userId;
     private String applicationId;
     private Set<Protocols> protocols = Set.of(Protocols.FIDO2, Protocols.POWERAUTH);
@@ -39,5 +43,8 @@ public class GetActivationListForUserRequest {
     private Integer pageNumber;
     @Min(1)
     private Integer pageSize;
+
+    @Schema(description = "Optional statuses according to which activations should be filtered. Return all activations if empty.")
+    private Set<ActivationStatus> activationStatuses;
 
 }
