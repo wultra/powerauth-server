@@ -6,6 +6,8 @@ This page contains PowerAuth Server migration instructions.
 When updating across multiple versions, you need to perform all migration steps additively.
 <!-- end -->
 
+- [PowerAuth Server 1.7.0](./PowerAuth-Server-1.7.0.md)
+- [PowerAuth Server 1.6.0](./PowerAuth-Server-1.6.0.md)
 - [PowerAuth Server 1.5.0](./PowerAuth-Server-1.5.0.md)
 - [PowerAuth Server 1.4.0](./PowerAuth-Server-1.4.0.md)
 - [PowerAuth Server 1.3.0](./PowerAuth-Server-1.3.0.md)
