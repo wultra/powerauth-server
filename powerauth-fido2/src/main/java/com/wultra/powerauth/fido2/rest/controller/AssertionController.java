@@ -26,6 +26,7 @@ import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator
 import com.wultra.powerauth.fido2.service.AssertionService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -45,7 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("fido2/assertions")
 @Slf4j
-@Tag(name = "FIDO2 Assertions Controller")
+@Tag(name = "FIDO2 Assertions Controller", description = "API for FIDO2 assertions")
 public class AssertionController {
 
     private final AssertionRequestValidator assertionRequestValidator;
@@ -57,6 +58,10 @@ public class AssertionController {
         this.assertionService = assertionService;
     }
 
+    @Operation(
+            summary = "Generate an assertion challenge",
+            description = "Generate a FIDO2 assertion challenge for an operation."
+    )
     @PostMapping("challenge")
     public ObjectResponse<AssertionChallengeResponse> requestAssertionChallenge(@Valid @RequestBody ObjectRequest<AssertionChallengeRequest> request) throws Exception {
         final AssertionChallengeRequest requestObject = request.getRequestObject();
@@ -64,6 +69,10 @@ public class AssertionController {
         return new ObjectResponse<>(assertionChallengeResponse);
     }
 
+    @Operation(
+            summary = "Verify an assertion",
+            description = "Verify a FIDO2 assertion for an operation based on an assertion verification request generated and signed by the authenticator."
+    )
     @PostMapping
     public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException {
         final AssertionVerificationRequest requestObject = request.getRequestObject();

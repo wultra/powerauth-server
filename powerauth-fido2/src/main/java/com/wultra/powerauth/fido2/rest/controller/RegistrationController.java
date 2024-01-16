@@ -27,6 +27,7 @@ import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
 import com.wultra.powerauth.fido2.service.RegistrationService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("fido2/registrations")
 @Slf4j
-@Tag(name = "FIDO2 Registration Controller")
+@Tag(name = "FIDO2 Registration Controller", description = "API for FIDO2 authenticator registrations")
 public class RegistrationController {
 
     private final RegistrationService registrationService;
@@ -56,6 +57,10 @@ public class RegistrationController {
         this.registrationService = registrationService;
     }
 
+    @Operation(
+            summary = "List registered authenticators",
+            description = "Obtain a list of registered FIDO2 authenticators for specified user."
+    )
     @PostMapping("list")
     public ObjectResponse<RegisteredAuthenticatorsResponse> registeredAuthenticators(@Valid @RequestBody ObjectRequest<RegisteredAuthenticatorsRequest> request) throws Exception {
         final RegisteredAuthenticatorsRequest requestObject = request.getRequestObject();
@@ -63,6 +68,10 @@ public class RegistrationController {
         return new ObjectResponse<>(responseObject);
     }
 
+    @Operation(
+            summary = "Generate a registration challenge",
+            description = "Generate a FIDO2 registration challenge for specified user."
+    )
     @PostMapping("challenge")
     public ObjectResponse<RegistrationChallengeResponse> requestRegistrationChallenge(@Valid @RequestBody ObjectRequest<RegistrationChallengeRequest> request) throws Exception {
         final RegistrationChallengeRequest requestObject = request.getRequestObject();
@@ -70,6 +79,10 @@ public class RegistrationController {
         return new ObjectResponse<>(responseObject);
     }
 
+    @Operation(
+            summary = "Register an authenticator",
+            description = "Register a FIDO2 authenticator based on a registration request generated and signed by the authenticator."
+    )
     @PostMapping
     public ObjectResponse<RegistrationResponse> register(@Valid @RequestBody ObjectRequest<RegistrationRequest> request) throws Exception {
         final RegistrationRequest requestObject = request.getRequestObject();
