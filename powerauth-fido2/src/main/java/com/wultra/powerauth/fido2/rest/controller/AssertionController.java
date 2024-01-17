@@ -27,6 +27,8 @@ import com.wultra.powerauth.fido2.service.AssertionService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
@@ -62,6 +64,11 @@ public class AssertionController {
             summary = "Generate an assertion challenge",
             description = "Generate a FIDO2 assertion challenge for an operation."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Assertion challenge was generated"),
+            @ApiResponse(responseCode = "400", description = "Invalid request"),
+            @ApiResponse(responseCode = "500", description = "Unexpected server error")
+    })
     @PostMapping("challenge")
     public ObjectResponse<AssertionChallengeResponse> requestAssertionChallenge(@Valid @RequestBody ObjectRequest<AssertionChallengeRequest> request) throws Exception {
         final AssertionChallengeRequest requestObject = request.getRequestObject();
@@ -73,6 +80,11 @@ public class AssertionController {
             summary = "Verify an assertion",
             description = "Verify a FIDO2 assertion for an operation based on an assertion verification request generated and signed by the authenticator."
     )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Assertion verification succeeded"),
+            @ApiResponse(responseCode = "400", description = "Invalid request or assertion  verification failed"),
+            @ApiResponse(responseCode = "500", description = "Unexpected server error")
+    })
     @PostMapping
     public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException {
         final AssertionVerificationRequest requestObject = request.getRequestObject();
