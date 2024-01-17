@@ -6,11 +6,7 @@ You can download DDL scripts for supported databases:
 
 - [Oracle - Create Database Schema](./sql/oracle/create_schema.sql)
 - [PostgreSQL - Create Database Schema](./sql/postgresql/create_schema.sql)
-
-The drop scripts are available for supported databases:
-
-- [Oracle - Drop Tables and Sequences](./sql/oracle/delete_schema.sql)
-- [PostgreSQL - Drop Tables and Sequences](./sql/postgresql/delete_schema.sql)
+- [MS SQL - Create Database Schema](./sql/mssql/create_schema.sql)
 
 See the overall database schema:
 
