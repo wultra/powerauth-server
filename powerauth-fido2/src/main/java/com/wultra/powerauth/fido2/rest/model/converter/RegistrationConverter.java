@@ -64,7 +64,8 @@ public class RegistrationConverter {
             authenticatorDetail.setMaxFailedAttempts(5L);
             return authenticatorDetail;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
+            logger.warn(e.getMessage(), e);
+            return null;
         }
     }
 

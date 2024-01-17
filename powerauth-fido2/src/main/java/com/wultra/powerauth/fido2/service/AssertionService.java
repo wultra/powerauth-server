@@ -89,6 +89,9 @@ public class AssertionService {
             final String authenticatorId = request.getId();
             final String challenge = request.getResponse().getClientDataJSON().getChallenge();
             final AuthenticatorDetail authenticatorDetail = authenticatorProvider.findByCredentialId(applicationId, authenticatorId);
+            if (authenticatorDetail == null) {
+                throw new Fido2AuthenticationFailedException("Invalid request");
+            }
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, response.getClientDataJSON(), response.getAuthenticatorData(), response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {

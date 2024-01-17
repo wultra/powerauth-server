@@ -265,7 +265,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         try {
             authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String,Object>>() {}));
         } catch (JsonProcessingException e) {
-            //
+            logger.warn(e.getMessage(), e);
+            return null;
         }
         authenticatorDetail.setActivationFlags(activation.getActivationFlags());
         authenticatorDetail.setDeviceInfo(activation.getDeviceInfo());

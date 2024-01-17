@@ -105,6 +105,9 @@ public class RegistrationService {
 
         final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistrationChallengeValue(applicationId, challengeValue);
         final AuthenticatorDetail authenticatorDetail = registrationConverter.convert(challenge, requestObject, attestedCredentialData.getAaguid(), cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()));
+        if (authenticatorDetail == null) {
+            throw new Fido2AuthenticationFailedException("Invalid request");
+        }
         final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorDetail);
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);
     }
