@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Converter class for registration related objects.
@@ -44,7 +45,7 @@ public class RegistrationConverter {
 
     private final AaguidList aaguidRegistry = new AaguidList();
 
-    public AuthenticatorDetail convert(RegistrationChallenge challenge, RegistrationRequest requestObject, byte[] aaguid, byte[] publicKey) {
+    public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, byte[] aaguid, byte[] publicKey) {
         try {
             final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
             authenticatorDetail.setUserId(challenge.getUserId());
@@ -62,10 +63,10 @@ public class RegistrationConverter {
             authenticatorDetail.setPublicKeyBytes(publicKey);
             authenticatorDetail.setFailedAttempts(0L);
             authenticatorDetail.setMaxFailedAttempts(5L);
-            return authenticatorDetail;
+            return Optional.of(authenticatorDetail);
         } catch (JsonProcessingException e) {
             logger.warn(e.getMessage(), e);
-            return null;
+            return Optional.empty();
         }
     }
 
