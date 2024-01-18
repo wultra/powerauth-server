@@ -36,7 +36,9 @@ public class Activation {
     private ActivationStatus activationStatus;
     private String blockedReason;
     private String activationName;
+    private String externalId;
     private String extras;
+    private String protocol;
     private String platform;
     private String deviceInfo;
     private List<String> activationFlags = new ArrayList<>();
@@ -46,6 +48,9 @@ public class Activation {
     private String userId;
     private String applicationId;
     private String applicationName;
+    private long failedAttempts;
+    private long maxFailedAttempts;
+    private String devicePublicKeyBase64;
     private long version;
 
 }

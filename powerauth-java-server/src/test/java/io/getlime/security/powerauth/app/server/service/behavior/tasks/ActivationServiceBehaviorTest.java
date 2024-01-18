@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -346,7 +347,7 @@ class ActivationServiceBehaviorTest {
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
-        return tested.initActivation(applicationId, userId, null, null, null, null, null, keyConvertor);
+        return tested.initActivation(Protocols.POWERAUTH, applicationId, userId, null, null, null, null, null, keyConvertor);
     }
 
     private GetApplicationDetailResponse createApplication() throws Exception {

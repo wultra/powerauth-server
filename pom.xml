@@ -75,6 +75,7 @@
     <modules>
         <module>powerauth-client-model</module>
         <module>powerauth-rest-client-spring</module>
+        <module>powerauth-fido2</module>
         <module>powerauth-java-server</module>
         <module>powerauth-admin</module>
     </modules>
@@ -102,6 +103,9 @@
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
         <equalsverifier.version>3.15.6</equalsverifier.version>
+
+        <!-- Test dependencies -->
+        <webauthn4j.version>0.21.8.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>

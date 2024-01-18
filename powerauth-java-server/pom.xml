@@ -105,6 +105,12 @@
             <groupId>io.getlime.core</groupId>
             <artifactId>http-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <!-- Documentation -->
         <dependency>
@@ -169,7 +175,12 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>com.webauthn4j</groupId>
+            <artifactId>webauthn4j-test</artifactId>
+            <version>${webauthn4j.version}</version>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>

@@ -28,6 +28,7 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableC
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
@@ -159,12 +160,13 @@ public class PowerAuthService {
         try {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
+            final Set<Protocols> protocols = request.getProtocols();
             final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
             final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
             final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("timestampCreated").descending());
             final Set<ActivationStatus> activationStatuses = convert(request.getActivationStatuses());
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable, activationStatuses);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, protocols, pageable, activationStatuses);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
         } catch (RuntimeException ex) {
@@ -278,6 +280,7 @@ public class PowerAuthService {
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
         try {
+            final Protocols protocol = request.getProtocol();
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             final Long maxFailedCount = request.getMaxFailureCount();
@@ -286,6 +289,7 @@ public class PowerAuthService {
             final String activationOtp = request.getActivationOtp();
             logger.info("InitActivationRequest received, user ID: {}, application ID: {}", userId, applicationId);
             final InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(
+                    protocol,
                     applicationId,
                     userId,
                     maxFailedCount,
