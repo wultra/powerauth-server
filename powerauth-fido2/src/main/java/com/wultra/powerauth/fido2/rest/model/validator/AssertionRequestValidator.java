@@ -47,10 +47,6 @@ public class AssertionRequestValidator {
 
         final CollectedClientData clientDataJSON = request.getResponse().getClientDataJSON();
 
-        if (clientDataJSON == null) {
-            return "Request deserialization failed.";
-        }
-
         if (!"webauthn.get".equals(clientDataJSON.getType())) {
             return "Request does not contain webauthn.get type.";
         }
