@@ -37,6 +37,4 @@ public class RegistrationRequest {
 
     // Authenticator parameters
     private AuthenticatorParameters authenticatorParameters;
-
-
 }
