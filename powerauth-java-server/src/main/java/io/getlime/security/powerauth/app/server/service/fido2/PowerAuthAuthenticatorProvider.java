@@ -237,9 +237,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
             // Generate authenticator detail
             final Optional<AuthenticatorDetail> authenticatorOptional = convert(activationResponse, applicationEntity);
-            if (authenticatorOptional.isEmpty()) {
-                throw new Fido2AuthenticationFailedException("Authenticator object deserialization failed");
-            }
+            authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Authenticator object deserialization failed"));
             return authenticatorOptional.get();
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
