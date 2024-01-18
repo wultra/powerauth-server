@@ -70,17 +70,15 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
-            <version>1.5.1</version>
+            <version>${powerauth-java-crypto.version}</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.core</groupId>
             <artifactId>rest-client-base</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
-            <version>1.7.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
