@@ -87,7 +87,6 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
-            <version>${powerauth-java-crypto.version}</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.core</groupId>
@@ -111,7 +110,6 @@
             <version>${project.version}</version>
         </dependency>
 
-
         <!-- Documentation -->
         <dependency>
             <groupId>org.springdoc</groupId>
@@ -128,7 +126,6 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>${bcprov-jdk18on.version}</version>
         </dependency>
 
         <!-- Job Scheduling -->
