@@ -22,6 +22,7 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Interface for handling authenticator handling logic.
@@ -31,6 +32,6 @@ import java.util.List;
 public interface AuthenticatorProvider {
     AuthenticatorDetail storeAuthenticator(String applicationId, String challenge, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException;
     List<AuthenticatorDetail> findByUserId(String userId, String applicationId) throws Fido2AuthenticationFailedException;
-    AuthenticatorDetail findByCredentialId(String credentialId, String applicationId) throws Fido2AuthenticationFailedException;
+    Optional<AuthenticatorDetail> findByCredentialId(String credentialId, String applicationId) throws Fido2AuthenticationFailedException;
 
 }

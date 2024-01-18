@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * Service related to handling registrations.
  *
@@ -104,8 +106,9 @@ public class RegistrationService {
         }
 
         final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistrationChallengeValue(applicationId, challengeValue);
-        final AuthenticatorDetail authenticatorDetail = registrationConverter.convert(challenge, requestObject, attestedCredentialData.getAaguid(), cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()));
-        final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorDetail);
+        final Optional<AuthenticatorDetail> authenticatorOptional = registrationConverter.convert(challenge, requestObject, attestedCredentialData.getAaguid(), cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()));
+        authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+        final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorOptional.get());
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);
     }
 

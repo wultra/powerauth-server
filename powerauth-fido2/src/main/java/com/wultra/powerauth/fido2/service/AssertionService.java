@@ -36,6 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 /**
  * Service related to handling assertions.
  *
@@ -88,7 +90,9 @@ public class AssertionService {
             final String applicationId = request.getApplicationId();
             final String authenticatorId = request.getId();
             final String challenge = request.getResponse().getClientDataJSON().getChallenge();
-            final AuthenticatorDetail authenticatorDetail = authenticatorProvider.findByCredentialId(applicationId, authenticatorId);
+            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(applicationId, authenticatorId);
+            authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+            final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, response.getClientDataJSON(), response.getAuthenticatorData(), response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {

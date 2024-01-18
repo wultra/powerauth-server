@@ -104,8 +104,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
                 if (!Protocols.FIDO2.toString().equals(activation.getProtocol())) { // Check the protocol, just in case
                     continue;
                 }
-                final AuthenticatorDetail authenticatorDetail = convert(activation, application.get());
-                authenticatorDetailList.add(authenticatorDetail);
+                final Optional<AuthenticatorDetail> authenticatorOptional = convert(activation, application.get());
+                authenticatorOptional.ifPresent(authenticatorDetailList::add);
             }
             pageIndex++;
             activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
@@ -115,7 +115,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
     @Override
     @Transactional
-    public AuthenticatorDetail findByCredentialId(String applicationId, String credentialId) throws Fido2AuthenticationFailedException {
+    public Optional<AuthenticatorDetail> findByCredentialId(String applicationId, String credentialId) throws Fido2AuthenticationFailedException {
 
         // Find application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
@@ -236,7 +236,9 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             activationResponse.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
 
             // Generate authenticator detail
-            return convert(activationResponse, applicationEntity);
+            final Optional<AuthenticatorDetail> authenticatorOptional = convert(activationResponse, applicationEntity);
+            authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Authenticator object deserialization failed"));
+            return authenticatorOptional.get();
         } catch (GenericCryptoException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
@@ -253,7 +255,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
     }
 
-    private AuthenticatorDetail convert(Activation activation, ApplicationEntity application) {
+    private Optional<AuthenticatorDetail> convert(Activation activation, ApplicationEntity application) {
         final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
 
         authenticatorDetail.setApplicationId(activation.getApplicationId());
@@ -265,7 +267,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         try {
             authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String,Object>>() {}));
         } catch (JsonProcessingException e) {
-            //
+            logger.warn(e.getMessage(), e);
+            return Optional.empty();
         }
         authenticatorDetail.setActivationFlags(activation.getActivationFlags());
         authenticatorDetail.setDeviceInfo(activation.getDeviceInfo());
@@ -279,7 +282,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
         authenticatorDetail.setApplicationRoles(application.getRoles());
 
-        return authenticatorDetail;
+        return Optional.of(authenticatorDetail);
     }
 
 

@@ -52,7 +52,7 @@ public class AttestationObjectDeserializer extends StdDeserializer<AttestationOb
     }
 
     @Override
-    public AttestationObject deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
+    public AttestationObject deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
         try {
             final String originalTextValue = jsonParser.getText();
             final byte[] decodedAttestationObject = Base64.getDecoder().decode(originalTextValue);
@@ -60,7 +60,8 @@ public class AttestationObjectDeserializer extends StdDeserializer<AttestationOb
             attestationObject.setEncoded(originalTextValue);
             return attestationObject;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.warn(e.getMessage(), e);
+            return null;
         }
     }
 

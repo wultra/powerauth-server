@@ -60,7 +60,8 @@ public class CollectedClientDataDeserializer extends StdDeserializer<CollectedCl
             collectedClientData.setEncoded(new String(decodedClientDataJSON));
             return collectedClientData;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.warn(e.getMessage(), e);
+            return null;
         }
     }
 }
