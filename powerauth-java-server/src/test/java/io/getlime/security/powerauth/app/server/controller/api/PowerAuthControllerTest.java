@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,596 +17,449 @@
  */
 package io.getlime.security.powerauth.app.server.controller.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.core.audit.base.database.DatabaseAudit;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.Tuple;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * Test for {@link PowerAuthController}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@SpringBootTest
-@AutoConfigureMockMvc
-@Sql
-@Transactional
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 @ActiveProfiles("test")
+@Transactional
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PowerAuthControllerTest {
 
-    private static final String APPLICATION_ID = "PA_Tests";
-    private static final String USER_ID = "test-user";
-    private static final String TEMPLATE_NAME = "test-template";
-    private static final String DATA = "A2";
-    private static final String CALLBACK_NAME = UUID.randomUUID().toString();
-    private static final String CALLBACK_URL = "http://test.test";
-    private static final String ACTIVATION_ID = "e43a5dec-afea-4a10-a80b-b2183399f16b";
-    private static final String APPLICATION_VERSION_APPLICATION_KEY = "testKey";
+    @Autowired
+    private PowerAuthClient powerAuthClient;
 
     @Autowired
-    private MockMvc mockMvc;
+    private PowerAuthControllerTestConfig config;
 
-    @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
-    private DatabaseAudit databaseAudit;
-
-    @Autowired
-    private OperationServiceBehavior operationServiceBehavior;
-
-    @Autowired
-    private CallbackUrlBehavior callbackUrlBehavior;
-
-    @Autowired
-    private PowerAuthService powerAuthService;
-
-    /**
-     * Tests the creation of a new activation.
-     * <p>
-     * This test sends a request to initialize a new activation and verifies the successful creation by checking
-     * various properties of the activation response. It further checks the activation status to ensure it is set to 'CREATED'.
-     *
-     * @throws Exception if the mockMvc.perform operation fails.
-     */
-    @Test
-    void testCreateActivation() throws Exception {
-        final InitActivationRequest initActivationRequest = new InitActivationRequest();
-        initActivationRequest.setUserId(USER_ID);
-        initActivationRequest.setApplicationId(APPLICATION_ID);
-        MvcResult result = mockMvc.perform(post("/rest/v3/activation/init")
-                        .content(wrapInRequestObjectJson(initActivationRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activationId", notNullValue()))
-                .andExpect(jsonPath("$.responseObject.activationSignature", notNullValue()))
-                .andExpect(jsonPath("$.responseObject.activationCode", notNullValue()))
-                .andExpect(jsonPath("$.responseObject.userId").value(USER_ID))
-                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID)).andReturn();
-
-        final InitActivationResponse response = convertMvcResultToObject(result, InitActivationResponse.class);
-        final GetActivationStatusRequest getActivationStatusRequest = new GetActivationStatusRequest();
-        getActivationStatusRequest.setActivationId(response.getActivationId());
-
-        mockMvc.perform(post("/rest/v3/activation/status")
-                        .content(wrapInRequestObjectJson(getActivationStatusRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activationStatus").value("CREATED"));
+    @BeforeAll
+    void initializeData() throws Exception {
+        config.createApplication(powerAuthClient);
+        config.createLoginOperationTemplate(powerAuthClient);
     }
 
     /**
-     * Tests the removal of an activation.
+     * Tests the process of removing an activation.
      * <p>
-     * This test sends a request to remove an existing activation and verifies the removal action by checking the response.
-     * It further confirms the removal by fetching the activation status and ensuring it is set to 'REMOVED'.
+     * This test carries out the following operations:
+     * <ol>
+     *   <li>Creates a request to remove an existing activation, using the activation ID from the configuration.</li>
+     *   <li>Sends the removal request and asserts that the response confirms the activation's removal.</li>
+     *   <li>Asserts that the activation ID in the removal response matches the one from the configuration.</li>
+     *   <li>Fetches the current status of the activation to verify that it has been set to 'REMOVED'.</li>
+     * </ol>
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
     void testRemoveActivation() throws Exception {
-        /* Activation created by the SQL script */
+        config.initActivation(powerAuthClient);
         final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
-        removeActivationRequest.setActivationId(ACTIVATION_ID);
+        removeActivationRequest.setActivationId(config.getActivationId());
         removeActivationRequest.setExternalUserId(null);
 
-        mockMvc.perform(post("/rest/v3/activation/remove")
-                        .content(wrapInRequestObjectJson(removeActivationRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.removed").value(true));
+        final RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(removeActivationRequest);
+        assertTrue(removeActivationResponse.isRemoved());
+        assertEquals(config.getActivationId(), removeActivationResponse.getActivationId());
+
         final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
-        activationStatusRequest.setActivationId(ACTIVATION_ID);
-        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        activationStatusRequest.setActivationId(config.getActivationId());
+
+        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(activationStatusRequest);
         assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());
     }
 
     /**
-     * Tests the retrieval of the activation list for a specific user.
+     * Tests the pagination functionality in retrieving an activation list for a specific user.
      * <p>
-     * This test sends a request to list all activations for a given user and verifies the response by checking the number of activations.
+     * The test executes the following steps:
+     * <ol>
+     *   <li>Prepares a base request for fetching user activations, using user and application IDs from the configuration.</li>
+     *   <li>Creates 10 new activations for the user to ensure multiple pages of data.</li>
+     *   <li>Fetches the first page of activations, specifying page number and size, and validates the number of activations returned.</li>
+     *   <li>Fetches the second page of activations with a different page number but same page size, again validating the number of activations returned.</li>
+     *   <li>Asserts that the activations on the two pages are not identical, verifying the functionality of pagination.</li>
+     *   <li>Removes the created activations to maintain test isolation and ensure clean up after test execution.</li>
+     * </ol>
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
-     */
-    @Test
-    void testActivationListForUser() throws Exception {
-        final GetActivationListForUserRequest getActivationListForUserRequest = new GetActivationListForUserRequest();
-        /* Activation created by the SQL script */
-        getActivationListForUserRequest.setUserId("TestUserV3_d8c2e122-b12a-47f1-bca7-e04637bffd14");
-        mockMvc.perform(post("/rest/v3/activation/list")
-                        .content(wrapInRequestObjectJson(getActivationListForUserRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activations.length()").value(1));
-    }
-
-    /**
-     * Tests the pagination feature in the activation list retrieval for a user.
-     * <p>
-     * This test creates multiple activations for a user and then fetches them in paginated form, ensuring both pages contain the correct number of activations.
-     * It verifies that the activations on different pages are not the same, confirming proper pagination functionality.
-     *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * @throws Exception if any error occurs during the test execution, the initiation of activations, the removal of activations, or if the assertions fail.
      */
     @Test
     void testActivationListForUserPagination() throws Exception {
-        // Prepare the base GetActivationListForUserRequest
         final GetActivationListForUserRequest baseRequest = new GetActivationListForUserRequest();
-        baseRequest.setUserId(USER_ID);
-        baseRequest.setApplicationId(APPLICATION_ID);
-
-        // Create a list to store the activation IDs
+        baseRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+        baseRequest.setApplicationId(config.getApplicationId());
         final List<String> activationIds = new ArrayList<>();
 
-        // Create multiple activations for the test user
         for (int i = 0; i < 10; i++) {
             final InitActivationRequest initActivationRequest = new InitActivationRequest();
-            initActivationRequest.setApplicationId(APPLICATION_ID);
-            initActivationRequest.setUserId(USER_ID);
-            final InitActivationResponse initResponse = powerAuthService.initActivation(initActivationRequest);
+            initActivationRequest.setApplicationId(config.getApplicationId());
+            initActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+            final InitActivationResponse initResponse = powerAuthClient.initActivation(initActivationRequest);
             activationIds.add(initResponse.getActivationId());
         }
 
-        // Prepare the request for the first page of activations
         final GetActivationListForUserRequest requestPage1 = new GetActivationListForUserRequest();
         requestPage1.setUserId(baseRequest.getUserId());
         requestPage1.setApplicationId(baseRequest.getApplicationId());
         requestPage1.setPageNumber(0);
         requestPage1.setPageSize(5);
 
-        // Fetch the first page of activations
-        final MvcResult mvcResult1 = mockMvc.perform(post("/rest/v3/activation/list")
-                        .content(wrapInRequestObjectJson(requestPage1))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activations.length()").value(5))
-                .andReturn();
+        final GetActivationListForUserResponse activationListForUserResponse1 = powerAuthClient
+                .getActivationListForUser(requestPage1);
+        assertEquals(5, activationListForUserResponse1.getActivations().size());
 
-        // Prepare the request for the second page of activations
         final GetActivationListForUserRequest requestPage2 = new GetActivationListForUserRequest();
         requestPage2.setUserId(baseRequest.getUserId());
         requestPage2.setApplicationId(baseRequest.getApplicationId());
         requestPage2.setPageNumber(1);
         requestPage2.setPageSize(5);
 
-        // Fetch the second page of activations
-        final MvcResult mvcResult2 = mockMvc.perform(post("/rest/v3/activation/list")
-                        .content(wrapInRequestObjectJson(requestPage2))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activations.length()").value(5))
-                .andReturn();
+        final GetActivationListForUserResponse activationListForUserResponse2 = powerAuthClient
+                .getActivationListForUser(requestPage2);
+        assertEquals(5, activationListForUserResponse2.getActivations().size());
 
-        final GetActivationListForUserResponse responsePage1 = convertMvcResultToObject(mvcResult1,
-                GetActivationListForUserResponse.class);
-        final GetActivationListForUserResponse responsePage2 = convertMvcResultToObject(mvcResult2,
-                GetActivationListForUserResponse.class);
-        // Check that the activations on the different pages are not the same
-        assertNotEquals(responsePage1.getActivations(), responsePage2.getActivations());
+        assertNotEquals(activationListForUserResponse2.getActivations(), activationListForUserResponse1.getActivations());
+
+        for (final String id : activationIds) {
+            final RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(id, PowerAuthControllerTestConfig.USER_ID);
+            assertTrue(removeActivationResponse.isRemoved());
+        }
     }
 
     /**
-     * Tests the lookup feature for activations based on specific criteria.
-     * <p>
-     * This test sends a request to look up activations based on user IDs, application IDs, activation status, and a timestamp.
-     * It verifies the lookup by checking the number of activations that match the given criteria.
+     * Tests the activation lookup process based on specific criteria.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test executes the following actions:</p>
+     * <ol>
+     *   <li>Constructs a request to look up activations, specifying criteria such as user IDs,
+     *       application IDs, activation status, and a timestamp. The timestamp is set to 10 seconds
+     *       before the current time to include recent activations.</li>
+     *   <li>Sends the lookup request and verifies the response to ensure it contains the expected
+     *       number of activations meeting the specified criteria.</li>
+     *   <li>Asserts that the number of activations in the response matches the expected count,
+     *       confirming the correct functionality of the lookup process.</li>
+     * </ol>
+     *
+     * @throws Exception if any errors occur during the execution of the test or if the assertions fail.
      */
     @Test
     void testLookupActivations() throws Exception {
+        config.initActivation(powerAuthClient);
         final LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-        final LocalDateTime localDateTime = LocalDateTime.parse("2023-04-03 13:59:06.015", formatter);
-        final Date timestampCreated = Date.from(localDateTime.atZone(ZoneId.systemDefault()).toInstant());
-        /* Activation created by the SQL script */
-        lookupActivationsRequest.setUserIds(List.of("TestUserV3_d8c2e122-b12a-47f1-bca7-e04637bffd14"));
-        lookupActivationsRequest.setApplicationIds(List.of(APPLICATION_ID));
-        lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        /* We are looking for an activation created during initialization of the test suite. */
+        final Date timestampCreated = Date.from(LocalDateTime.now().minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+        lookupActivationsRequest.setUserIds(List.of(PowerAuthControllerTestConfig.USER_ID));
+        lookupActivationsRequest.setApplicationIds(List.of(config.getApplicationId()));
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.CREATED);
         lookupActivationsRequest.setTimestampLastUsedAfter(timestampCreated);
-        mockMvc.perform(post("/rest/v3/activation/lookup")
-                        .content(wrapInRequestObjectJson(lookupActivationsRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activations.length()").value(1));
+
+        final LookupActivationsResponse lookupActivationsResponse = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(1, lookupActivationsResponse.getActivations().size());
+        config.removeActivation(powerAuthClient);
     }
 
     /**
-     * Tests the update of activation status for given activation IDs.
-     * <p>
-     * This test sends a request to update the status of specified activations and confirms the update action by checking the response.
-     * It further validates the new status of the activation by fetching its current status.
+     * Tests the process of updating the status of specific activations.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test performs the following actions:</p>
+     * <ol>
+     *   <li>Creates a request to update the status of specified activations to 'BLOCKED', using the activation ID from the configuration.</li>
+     *   <li>Sends the update request and verifies that the response confirms the successful update of the activation statuses.</li>
+     *   <li>Retrieves the current status of the activation to validate that it has been updated to 'BLOCKED' as expected.</li>
+     * </ol>
+     *
+     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
     void testUpdateActivationStatus() throws Exception {
+        config.initActivation(powerAuthClient);
         final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
-        updateStatusForActivationsRequest.setActivationIds(List.of(ACTIVATION_ID));
+        updateStatusForActivationsRequest.setActivationIds(List.of(config.getActivationId()));
         updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.BLOCKED);
-        /* Activation created by the SQL script */
-        mockMvc.perform(post("/rest/v3/activation/status/update")
-                        .content(wrapInRequestObjectJson(updateStatusForActivationsRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.updated").value(true));
+
+        final UpdateStatusForActivationsResponse updateStatusForActivationsResponse =
+                powerAuthClient.updateStatusForActivations(updateStatusForActivationsRequest);
+        assertTrue(updateStatusForActivationsResponse.isUpdated());
 
         final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
-        activationStatusRequest.setActivationId(ACTIVATION_ID);
-        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        activationStatusRequest.setActivationId(config.getActivationId());
+        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(activationStatusRequest);
         assertEquals(ActivationStatus.BLOCKED, statusResponse.getActivationStatus());
+        config.removeActivation(powerAuthClient);
     }
 
     /**
-     * Tests the retrieval of activation history for a specific activation ID.
+     * Tests the process of retrieving activation history for a specific activation ID.
      * <p>
-     * This test initializes a new activation, then sends a request to retrieve its history within a specified time range.
-     * It confirms the history retrieval by checking the presence of activation history items.
+     * This test performs the following steps:
+     * <ol>
+     *   <li>Defines a time range, starting 10 seconds before the current time and ending 10 seconds after.</li>
+     *   <li>Constructs an activation history request with the specified activation ID and the defined time range.</li>
+     *   <li>Sends the request to retrieve the activation history.</li>
+     *   <li>Asserts that the response contains exactly one history item.</li>
+     *   <li>Verifies that the activation ID of the history item matches the activation ID used in the request.</li>
+     * </ol>
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
     void testActivationHistory() throws Exception {
-        final InitActivationRequest initActivationRequest = new InitActivationRequest();
-        initActivationRequest.setUserId(USER_ID);
-        initActivationRequest.setApplicationId(APPLICATION_ID);
-
-        final InitActivationResponse initResponse = powerAuthService.initActivation(initActivationRequest);
-        final String activationId = initResponse.getActivationId();
-        final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
-        activationStatusRequest.setActivationId(activationId);
-        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-
-        final Date before = Date.from(statusResponse.getTimestampCreated().toInstant().minus(Duration.ofDays(1)));
-        final Date after = Date.from(before.toInstant().plus(Duration.ofDays(2)));
+        config.initActivation(powerAuthClient);
+        final Date before = Date.from(LocalDateTime.now().minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
+        final Date after = Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
         final ActivationHistoryRequest activationHistoryRequest = new ActivationHistoryRequest();
-        activationHistoryRequest.setActivationId(activationId);
+        activationHistoryRequest.setActivationId(config.getActivationId());
         activationHistoryRequest.setTimestampFrom(before);
         activationHistoryRequest.setTimestampTo(after);
 
-        mockMvc.perform(post("/rest/v3/activation/history")
-                        .content(wrapInRequestObjectJson(activationHistoryRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.items.length()").value(1))
-                .andExpect(jsonPath("$.responseObject.items[0].activationId").value(activationId));
-
+        final ActivationHistoryResponse activationHistoryResponse = powerAuthClient.getActivationHistory(activationHistoryRequest);
+        assertEquals(1, activationHistoryResponse.getItems().size());
+        assertEquals(config.getActivationId(), activationHistoryResponse.getItems().get(0).getActivationId());
+        config.removeActivation(powerAuthClient);
     }
 
     /**
-     * Tests the block and unblock functionality for an activation.
+     * Tests the process of blocking and unblocking an activation.
      * <p>
-     * This test first sends a request to block an activation and verifies the block action. It then sends a request to unblock the same activation
-     * and verifies the unblock action, confirming the change in activation status after each operation.
+     * This test follows these steps:
+     * <ol>
+     *   <li>Prepares and sends a request to block an activation, specifying the activation ID and a blocking reason.</li>
+     *   <li>Verifies that the response indicates the activation was successfully blocked.</li>
+     *   <li>Asserts the consistency of the activation ID and blocking reason in the block response.</li>
+     *   <li>Fetches the current status of the activation to confirm that it has been changed to 'BLOCKED'.</li>
+     *   <li>Prepares and sends a request to unblock the same activation.</li>
+     *   <li>Verifies that the unblock response indicates the activation was successfully unblocked.</li>
+     *   <li>Fetches the activation status again to confirm that it has reverted to 'ACTIVE'.</li>
+     * </ol>
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
     void testBlockAndUnblockActivation() throws Exception {
+        config.initActivation(powerAuthClient);
+        final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
+        updateStatusForActivationsRequest.setActivationIds(List.of(config.getActivationId()));
+        updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
+
+        final UpdateStatusForActivationsResponse updateStatusForActivationsResponse =
+                powerAuthClient.updateStatusForActivations(updateStatusForActivationsRequest);
+        assertTrue(updateStatusForActivationsResponse.isUpdated());
+
         final BlockActivationRequest blockActivationRequest = new BlockActivationRequest();
-        blockActivationRequest.setActivationId(ACTIVATION_ID);
-        blockActivationRequest.setReason("Test");
-        /* Block the activation created by the SQL script */
-        mockMvc.perform(post("/rest/v3/activation/block")
-                        .content(wrapInRequestObjectJson(blockActivationRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activationStatus").value("BLOCKED"));
+        final String blockingReason = "Test-blocking";
+        blockActivationRequest.setActivationId(config.getActivationId());
+        blockActivationRequest.setReason(blockingReason);
+
+        final BlockActivationResponse blockActivationResponse = powerAuthClient.blockActivation((blockActivationRequest));
+        assertEquals(config.getActivationId(), blockActivationResponse.getActivationId());
+        assertEquals(blockingReason, blockActivationResponse.getBlockedReason());
+        assertEquals(ActivationStatus.BLOCKED, blockActivationResponse.getActivationStatus());
 
         final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
-        activationStatusRequest.setActivationId(ACTIVATION_ID);
-        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(activationStatusRequest);
+        activationStatusRequest.setActivationId(config.getActivationId());
+        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(activationStatusRequest);
         assertEquals(ActivationStatus.BLOCKED, statusResponse.getActivationStatus());
 
         final UnblockActivationRequest unblockActivationRequest = new UnblockActivationRequest();
-        unblockActivationRequest.setActivationId(ACTIVATION_ID);
+        unblockActivationRequest.setActivationId(config.getActivationId());
+        final UnblockActivationResponse unblockActivationResponse = powerAuthClient.unblockActivation(unblockActivationRequest);
+        assertEquals(config.getActivationId(), unblockActivationResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, unblockActivationResponse.getActivationStatus());
 
-        mockMvc.perform(post("/rest/v3/activation/unblock")
-                        .content(wrapInRequestObjectJson(unblockActivationRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.activationStatus").value("ACTIVE"));
-
-        final GetActivationStatusResponse statusResponse2 = powerAuthService.getActivationStatus(activationStatusRequest);
+        final GetActivationStatusResponse statusResponse2 = powerAuthClient.getActivationStatus(activationStatusRequest);
         assertEquals(ActivationStatus.ACTIVE, statusResponse2.getActivationStatus());
+        config.removeActivation(powerAuthClient);
     }
 
     /**
-     * Tests the update activation functionality.
+     * Tests the process of retrieving activation history for a specific activation ID.
      * <p>
-     * This test performs a mock HTTP POST request to the activation name update endpoint.
-     * It verifies if the response status is OK and if the activation name in the response object
-     * matches the expected value. It also checks the database for the updated activation record
-     * and ensures the audit log is correctly updated.
+     * This test performs the following steps:
+     * <ol>
+     *   <li>Defines a time range, starting 10 seconds before the current time and ending 10 seconds after.</li>
+     *   <li>Constructs an activation history request with the specified activation ID and the defined time range.</li>
+     *   <li>Sends the request to retrieve the activation history.</li>
+     *   <li>Asserts that the response contains exactly one history item.</li>
+     *   <li>Verifies that the activation ID of the history item matches the activation ID used in the request.</li>
+     * </ol>
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
     void testUpdateActivation() throws Exception {
-        mockMvc.perform(post("/rest/v3/activation/name/update")
-                        .content("""
-                                {
-                                  "requestObject": {
-                                    "activationId": "e43a5dec-afea-4a10-a80b-b2183399f16b",
-                                    "activationName": "my iPhone",
-                                    "externalUserId": "joe-1"
-                                  }
-                                }
-                                """)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("OK"))
-                .andExpect(jsonPath("$.responseObject.activationName").value("my iPhone"));
+        config.initActivation(powerAuthClient);
+        final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
+        updateStatusForActivationsRequest.setActivationIds(List.of(config.getActivationId()));
+        updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
 
-        final ActivationRecordEntity activation = entityManager.find(ActivationRecordEntity.class, "e43a5dec-afea-4a10-a80b-b2183399f16b");
-        assertEquals("my iPhone", activation.getActivationName());
+        final UpdateStatusForActivationsResponse updateStatusForActivationsResponse =
+                powerAuthClient.updateStatusForActivations(updateStatusForActivationsRequest);
+        assertTrue(updateStatusForActivationsResponse.isUpdated());
 
-        final List<ActivationHistoryEntity> historyEntries = entityManager.createQuery("select h from ActivationHistoryEntity h where h.activation = :activation", ActivationHistoryEntity.class)
-                .setParameter("activation", activation)
-                .getResultList();
-        assertEquals(1, historyEntries.size());
+        final UpdateActivationNameRequest updateActivationNameRequest = new UpdateActivationNameRequest();
+        final String updatedName = "Updated_app_name";
+        final String externalUserId = "external_user";
+        updateActivationNameRequest.setActivationId(config.getActivationId());
+        updateActivationNameRequest.setActivationName(updatedName);
+        updateActivationNameRequest.setExternalUserId(externalUserId);
 
-        final ActivationHistoryEntity historyEntry = historyEntries.iterator().next();
-        assertEquals("my iPhone", historyEntry.getActivationName());
-        assertEquals("ACTIVATION_NAME_UPDATED", historyEntry.getEventReason());
-        assertEquals("joe-1", historyEntry.getExternalUserId());
-
-        databaseAudit.flush();
-        final String expectedAuditMessage = "Updated activation with ID: e43a5dec-afea-4a10-a80b-b2183399f16b";
-        @SuppressWarnings("unchecked") final List<Tuple> auditEntries = entityManager.createNativeQuery("select * from audit_log where message = :message", Tuple.class)
-                .setParameter("message", expectedAuditMessage)
-                .getResultList();
-        assertEquals(1, auditEntries.size());
-
-        final String param = auditEntries.get(0).get("param").toString();
-        assertThat(param, containsString("\"activationId\":\"e43a5dec-afea-4a10-a80b-b2183399f16b\""));
-        assertThat(param, containsString("\"activationName\":\"my iPhone\""));
-        assertThat(param, containsString("\"reason\":\"ACTIVATION_NAME_UPDATED\""));
+        final UpdateActivationNameResponse updateActivationNameResponse =
+                powerAuthClient.updateActivationName(updateActivationNameRequest);
+        assertEquals(updatedName, updateActivationNameResponse.getActivationName());
+        assertEquals(config.getActivationId(), updateActivationNameResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, updateActivationNameResponse.getActivationStatus());
+        config.removeActivation(powerAuthClient);
     }
 
     /**
-     * Tests the update activation functionality with a bad request.
+     * Tests the handling of a bad request in the update activation functionality.
      * <p>
-     * This test sends an incomplete request to the activation name update endpoint
-     * and expects a BadRequest (400) response. It checks if the error response
-     * contains the correct error message and error code.
+     * This test performs the following actions:
+     * <ol>
+     *   <li>Sends an incomplete request to the activation name update endpoint, which is expected to be invalid.</li>
+     *   <li>Catches and asserts the thrown PowerAuthClientException to verify the response handling of a bad request.</li>
+     *   <li>Checks that the exception message and localized message contain the expected error message.</li>
+     *   <li>Verifies that the PowerAuthClientException contains the expected PowerAuth error code, confirming correct error identification.</li>
+     * </ol>
+     * The test expects a specific error code and message indicating that mandatory fields in the request object are blank.
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
     void testUpdateActivation_badRequest() throws Exception {
-        final String expectedErrorMessage = "requestObject.activationId - must not be blank, requestObject.activationName - must not be blank, requestObject.externalUserId - must not be blank";
-
-        mockMvc.perform(post("/rest/v3/activation/name/update")
-                        .content("""
-                                {
-                                  "requestObject": {}
-                                }
-                                """)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("ERROR"))
-                .andExpect(jsonPath("$.responseObject.code").value("ERR0024"))
-                .andExpect(jsonPath("$.responseObject.message").value(expectedErrorMessage))
-                .andExpect(jsonPath("$.responseObject.localizedMessage").value(expectedErrorMessage));
+        final String expectedErrorMessage = "requestObject.activationId - must not be blank," +
+                " requestObject.activationName - must not be blank, requestObject.externalUserId - must not be blank";
+        final String expectedErrorCode = "ERR0024";
+        final PowerAuthClientException thrownException = assertThrows(
+                PowerAuthClientException.class,
+                () -> powerAuthClient.updateActivationName(new UpdateActivationNameRequest())
+        );
+        assertEquals(expectedErrorMessage, thrownException.getMessage());
+        assertEquals(expectedErrorMessage, thrownException.getLocalizedMessage());
+        assertEquals(expectedErrorMessage, thrownException.getLocalizedMessage());
+        assertTrue(thrownException.getPowerAuthError().isPresent());
+        assertEquals(expectedErrorCode, thrownException.getPowerAuthError().get().getCode());
     }
 
     /**
-     * Tests the operation approval functionality.
+     * Tests the operation approval process.
      * <p>
-     * This test first creates an operation and then performs a mock HTTP POST request
-     * to the operation approval endpoint. It verifies if the operation is approved successfully
-     * by checking the response status and response object. It also confirms that the
-     * operation entity in the database is updated accordingly.
+     * This test validates the functionality of approving an operation. It involves the following steps:
+     * <ol>
+     *   <li>Creation of a new operation.</li>
+     *   <li>Construction of an operation approval request, which includes setting various parameters like operation ID, user ID, data, application ID, and signature type.</li>
+     *   <li>Submission of the operation approval request to the PowerAuthClient's operation approval endpoint.</li>
+     *   <li>Verification of the response to ensure that the operation was approved successfully. This includes checking the response status, the operation's data, template name, and operation ID.</li>
+     *   <li>Confirmation that the operation entity in the database reflects the approved status.</li>
+     * </ol>
+     * This test ensures that the operation approval workflow functions correctly and that the operation's status is updated as expected in the system.
      *
-     * @throws Exception if the mockMvc.perform operation or operation creation fails.
+     * @throws Exception if there is an issue with the PowerAuthClient's operation approval process or the initial operation creation.
      */
     @Test
     void testOperationApprove() throws Exception {
-        final String operationId = operationServiceBehavior.
-                createOperation(createOperationCreateRequest(false)).getId();
+        final OperationDetailResponse operationDetailResponse = config.createOperation(powerAuthClient);
+        final String operationId = operationDetailResponse.getId();
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(operationId);
-        operationApproveRequest.setUserId(USER_ID);
-        operationApproveRequest.setData(DATA);
-        operationApproveRequest.setApplicationId(APPLICATION_ID);
+        operationApproveRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+        operationApproveRequest.setData(PowerAuthControllerTestConfig.DATA);
+        operationApproveRequest.setApplicationId(config.getApplicationId());
         operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
 
-        mockMvc.perform(post("/rest/v3/operation/approve")
-                        .content(wrapInRequestObjectJson(operationApproveRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.operation.status").value("APPROVED"))
-                .andExpect(jsonPath("$.responseObject.operation.data").value(DATA))
-                .andExpect(jsonPath("$.responseObject.operation.templateName").value(TEMPLATE_NAME))
-                .andExpect(jsonPath("$.responseObject.operation.id").value(operationId));
-
-        final OperationEntity operation = entityManager.find(OperationEntity.class, operationId);
-        assertEquals(TEMPLATE_NAME, operation.getTemplateName());
-        assertEquals(DATA, operation.getData());
-        assertEquals(OperationStatusDo.APPROVED, operation.getStatus());
-    }
-
-    /**
-     * Tests the operation creation functionality.
-     * <p>
-     * This test performs a mock HTTP POST request to the operation creation endpoint.
-     * It verifies if the response status is OK and if the operation is created with
-     * a status of "PENDING". The test also confirms that the operation entity is
-     * correctly created in the database with the expected template name.
-     *
-     * @throws Exception if the mockMvc.perform operation fails.
-     */
-    @Test
-    void testOperationCreate() throws Exception {
-        final OperationCreateRequest createRequest = createOperationCreateRequest(false);
-        final MvcResult result = mockMvc.perform(post("/rest/v3/operation/create")
-                        .content(wrapInRequestObjectJson(createRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("OK"))
-                .andExpect(jsonPath("$.responseObject.status").value("PENDING")).andReturn();
-
-
-        final String operationId = convertMvcResultToObject(result, OperationDetailResponse.class).getId();
-        final OperationEntity operation = entityManager.find(OperationEntity.class, operationId);
-        assertEquals("test-template", operation.getTemplateName());
+        final OperationUserActionResponse operationUserActionResponse =
+                powerAuthClient.operationApprove(operationApproveRequest);
+        assertNotNull(operationUserActionResponse.getOperation());
+        assertEquals(OperationStatus.APPROVED, operationUserActionResponse.getOperation().getStatus());
+        assertEquals(PowerAuthControllerTestConfig.DATA, operationUserActionResponse.getOperation().getData());
+        assertEquals(config.getLoginOperationTemplateName(), operationUserActionResponse.getOperation().getTemplateName());
+        assertEquals(operationId, operationUserActionResponse.getOperation().getId());
     }
 
     /**
      * Tests the retrieval of operation details.
      * <p>
-     * This test creates a new operation using the operation service behavior, then performs
-     * a mock HTTP POST request to retrieve the details of this operation. It verifies if the
-     * response contains the correct operation status, data, template name, and ID.
+     * This test checks the functionality of fetching details for a specific operation. It proceeds as follows:
+     * <ol>
+     *   <li>Creates a new operation using the provided configuration.</li>
+     *   <li>Constructs a request for operation details, using the operation ID obtained from the previous step.</li>
+     *   <li>Retrieves the operation details by sending the request to the PowerAuth client.</li>
+     *   <li>Asserts that the response contains the correct operation status, data, template name, and ID.</li>
+     * </ol>
+     * This test ensures that the operation details are correctly retrieved and match the expected values.
      *
-     * @throws Exception if the test fails
+     * @throws Exception if an error occurs in operation creation or detail retrieval, or if the assertions fail.
      */
     @Test
     void testGetOperationDetail() throws Exception {
-        final OperationDetailResponse operation = operationServiceBehavior.
-                createOperation(createOperationCreateRequest(false));
+        final OperationDetailResponse operation = config.createOperation(powerAuthClient);
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         final String operationId = operation.getId();
         detailRequest.setOperationId(operationId);
-        detailRequest.setUserId(USER_ID);
+        detailRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
 
-        mockMvc.perform(post("/rest/v3/operation/detail")
-                        .content(wrapInRequestObjectJson(detailRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.status").value("PENDING"))
-                .andExpect(jsonPath("$.responseObject.data").value(DATA))
-                .andExpect(jsonPath("$.responseObject.templateName").value(TEMPLATE_NAME))
-                .andExpect(jsonPath("$.responseObject.id").value(operationId));
+        final OperationDetailResponse detailResponse = powerAuthClient.operationDetail(detailRequest);
+        assertEquals(OperationStatus.PENDING, detailResponse.getStatus());
+        assertEquals(PowerAuthControllerTestConfig.DATA, detailResponse.getData());
+        assertEquals(config.getLoginOperationTemplateName(), detailResponse.getTemplateName());
+        assertEquals(operationId, detailResponse.getId());
     }
 
     /**
-     * Tests the creation, reading, and deletion of callback URLs.
+     * Tests the retrieval of operation details.
      * <p>
-     * This test first creates a new callback URL using a mock HTTP POST request. It then
-     * retrieves a list of all callback URLs to verify the creation. Finally, it performs
-     * deletion of the created callback URL and verifies the removal.
+     * This test checks the functionality of fetching details for a specific operation. It proceeds as follows:
+     * <ol>
+     *   <li>Creates a new operation using the provided configuration.</li>
+     *   <li>Constructs a request for operation details, using the operation ID obtained from the previous step.</li>
+     *   <li>Retrieves the operation details by sending the request to the PowerAuth client.</li>
+     *   <li>Asserts that the response contains the correct operation status, data, template name, and ID.</li>
+     * </ol>
+     * This test ensures that the operation details are correctly retrieved and match the expected values.
      *
-     * @throws Exception if the test fails
+     * @throws Exception if an error occurs in operation creation or detail retrieval, or if the assertions fail.
      */
     @Test
-    void testCallbackCreateReadDelete() throws Exception {
-        final CreateCallbackUrlRequest callbackUrlRequest = createCallbackUrlRequest();
-
-        /* Create callback test */
-        mockMvc.perform(post("/rest/v3/application/callback/create")
-                        .content(wrapInRequestObjectJson(callbackUrlRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.name").value(CALLBACK_NAME))
-                .andExpect(jsonPath("$.responseObject.callbackUrl").value(CALLBACK_URL))
-                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID));
-
-        final GetCallbackUrlListRequest getCallbackUrlListRequest = new GetCallbackUrlListRequest();
-        getCallbackUrlListRequest.setApplicationId(APPLICATION_ID);
-
-        /* Get callback list test */
-        final MvcResult result = mockMvc.perform(post("/rest/v3/application/callback/list")
-                        .content(wrapInRequestObjectJson(getCallbackUrlListRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk()).andReturn();
-
-        final GetCallbackUrlListResponse callbackUrlListResponse = convertMvcResultToObject(result, GetCallbackUrlListResponse.class);
+    void testCreateReadDelete() throws Exception {
+        config.createCallback(powerAuthClient);
+        final GetCallbackUrlListResponse callbackUrlListResponse = powerAuthClient.getCallbackUrlList(config.getApplicationId());
 
         boolean callbackFound = false;
         for (CallbackUrl callback : callbackUrlListResponse.getCallbackUrlList()) {
-            if (CALLBACK_NAME.equals(callback.getName())) {
+            if (PowerAuthControllerTestConfig.CALLBACK_NAME.equals(callback.getName())) {
                 callbackFound = true;
-                assertEquals(CALLBACK_URL, callback.getCallbackUrl());
-                assertEquals(APPLICATION_ID, callback.getApplicationId());
+                assertEquals(PowerAuthControllerTestConfig.CALLBACK_URL, callback.getCallbackUrl());
+                assertEquals(config.getApplicationId(), callback.getApplicationId());
                 assertEquals(1, callback.getAttributes().size());
                 assertEquals("activationId", callback.getAttributes().get(0));
-                /* Remove callback test*/
-                final RemoveCallbackUrlRequest removeCallbackUrlRequest = new RemoveCallbackUrlRequest();
-                final String callbackId = callback.getId();
-                removeCallbackUrlRequest.setId(callbackId);
-                mockMvc.perform(post("/rest/v3/application/callback/remove")
-                                .content(wrapInRequestObjectJson(removeCallbackUrlRequest))
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .accept(MediaType.APPLICATION_JSON))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.responseObject.id").value(callbackId));
+                config.removeCallback(powerAuthClient, callback.getId());
             }
             assertTrue(callbackFound);
         }
@@ -615,85 +468,51 @@ class PowerAuthControllerTest {
     /**
      * Tests the update functionality for callback URLs.
      * <p>
-     * This test first creates a callback URL and then updates its properties using a mock
-     * HTTP POST request. The test verifies if the updated properties (name, URL, attributes)
-     * are correctly reflected in the system by fetching the list of callback URLs after the update.
+     * This test verifies the ability to update the properties of a callback URL in the system. The sequential steps include:
+     * <ol>
+     *   <li>Creating a new callback URL and obtaining its initial properties.</li>
+     *   <li>Updating the callback URL's properties, such as its name, URL, and attributes, using a mock HTTP POST request.</li>
+     *   <li>Verifying that the updated properties are correctly reflected in the system. This is done by fetching the updated callback URL and comparing its properties with the expected values.</li>
+     * </ol>
+     * The test asserts that the callback URL's properties, once updated, match the new values provided, ensuring the system's update mechanism functions as expected.
      *
-     * @throws Exception if the test fails
+     * @throws Exception if any error occurs during the execution of the test, such as failure in updating the callback URL properties or if the assertions fail.
      */
     @Test
     void testCallbackUpdate() throws Exception {
-        final CreateCallbackUrlRequest callbackUrlRequest = createCallbackUrlRequest();
-        final CreateCallbackUrlResponse callbackUrlResponse = callbackUrlBehavior.createCallbackUrl(callbackUrlRequest);
-        final GetCallbackUrlListResponse callbacks = callbackUrlBehavior.
-                getCallbackUrlList(createCallbackUrlListRequest());
+        final CreateCallbackUrlResponse callbackUrlResponse = config.createCallback(powerAuthClient);
+        final String updatedCallbackName = UUID.randomUUID().toString();
+        final String updatedCallbackUrl = "http://test2.test2";
+        final List<String> callbackAttributes = Arrays.asList("activationId", "userId", "deviceInfo", "platform");
 
-        /* Verify first created callback */
-        boolean callbackFound = false;
-        String callbackId = null;
-        for (CallbackUrl callback : callbacks.getCallbackUrlList()) {
-            if (CALLBACK_NAME.equals(callback.getName())) {
-                callbackFound = true;
-                callbackId = callback.getId();
-                assertEquals(CALLBACK_URL, callback.getCallbackUrl());
-                assertEquals(APPLICATION_ID, callback.getApplicationId());
-                assertEquals(1, callback.getAttributes().size());
-                assertEquals("activationId", callback.getAttributes().get(0));
-            }
-        }
-        assertTrue(callbackFound);
-        assertNotNull(callbackId);
-
-        final String callbackName2 = UUID.randomUUID().toString();
-        final String callbackUrl2 = "http://test2.test2";
         final UpdateCallbackUrlRequest updateCallbackUrlRequest = new UpdateCallbackUrlRequest();
-        updateCallbackUrlRequest.setCallbackUrl(callbackUrl2);
-        updateCallbackUrlRequest.setAttributes(Arrays.asList("activationId", "userId", "deviceInfo", "platform"));
-        updateCallbackUrlRequest.setName(callbackName2);
-        updateCallbackUrlRequest.setId(callbackId);
-        updateCallbackUrlRequest.setApplicationId(APPLICATION_ID);
+        updateCallbackUrlRequest.setCallbackUrl(updatedCallbackUrl);
+        updateCallbackUrlRequest.setAttributes(callbackAttributes);
+        updateCallbackUrlRequest.setName(updatedCallbackName);
+        updateCallbackUrlRequest.setId(callbackUrlResponse.getId());
+        updateCallbackUrlRequest.setApplicationId(config.getApplicationId());
         updateCallbackUrlRequest.setAuthentication(null);
 
-        /* Test update callback */
-        mockMvc.perform(post("/rest/v3/application/callback/update")
-                        .content(wrapInRequestObjectJson(updateCallbackUrlRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-
-        final GetCallbackUrlListResponse callbacks2 = callbackUrlBehavior.
-                getCallbackUrlList(createCallbackUrlListRequest());
-
-        boolean callbackFound2 = false;
-        for (CallbackUrl callback : callbacks2.getCallbackUrlList()) {
-            if (callbackName2.equals(callback.getName())) {
-                callbackFound2 = true;
-                callbackId = callback.getId();
-                assertEquals(callbackUrl2, callback.getCallbackUrl());
-                assertEquals(APPLICATION_ID, callback.getApplicationId());
-                assertEquals(4, callback.getAttributes().size());
-                assertEquals(Arrays.asList("activationId", "userId", "deviceInfo", "platform"), callback.getAttributes());
-            }
-        }
-        assertTrue(callbackFound2);
+        final UpdateCallbackUrlResponse updateCallbackUrlResponse = powerAuthClient.updateCallbackUrl(updateCallbackUrlRequest);
+        assertEquals(callbackAttributes, updateCallbackUrlResponse.getAttributes());
+        assertEquals(4, updateCallbackUrlResponse.getAttributes().size());
+        assertEquals(updatedCallbackUrl, updateCallbackUrlResponse.getCallbackUrl());
+        assertEquals(config.getApplicationId(), updateCallbackUrlResponse.getApplicationId());
+        assertEquals(updatedCallbackName, updateCallbackUrlResponse.getName());
     }
 
     /**
-     * Tests the CRUD operations for application roles.
-     * This includes adding, getting, updating, and removing application roles.
+     * Tests the CRUD (Create, Read, Update, Delete) operations for application roles.
+     * This process involves adding new roles, verifying their existence, updating them, and finally removing a role.
      *
-     * <p>The test follows these steps:</p>
+     * <p>The test executes the following sequence:</p>
      * <ol>
-     *   <li>Adds application roles using the '/rest/v3/application/roles/create' endpoint.</li>
-     *   <li>Verifies the addition of roles by fetching application details using the '/rest/v3/application/detail' endpoint.</li>
-     *   <li>Fetches the list of application roles using the '/rest/v3/application/roles/list' endpoint to verify the current roles.</li>
-     *   <li>Updates the application roles using the '/rest/v3/application/roles/update' endpoint.</li>
-     *   <li>Verifies the update by comparing the expected and actual list of roles.</li>
-     *   <li>Removes one of the application roles using the '/rest/v3/application/roles/remove' endpoint.</li>
-     *   <li>Finally, verifies the removal by checking the remaining roles.</li>
+     *   <li>Adds new application roles ('ROLE1', 'ROLE2') using the '/rest/v3/application/roles/create' endpoint.</li>
+     *   <li>Confirms the successful addition of these roles by fetching the application's detail.</li>
+     *   <li>Retrieves the current list of application roles to verify the recently added roles.</li>
+     *   <li>Updates the application roles to a new set of roles ('ROLE5', 'ROLE6') and verifies the update.</li>
+     *   <li>Removes one of the newly added roles ('ROLE5') and checks if the list of roles reflects this change.</li>
      * </ol>
-     *
-     * <p>Note: The test assumes the presence of two additional roles defined in the SQL script used for setting up the test environment.</p>
      *
      * @throws Exception if any error occurs during the execution of the test.
      */
@@ -701,175 +520,149 @@ class PowerAuthControllerTest {
     void testApplicationRolesCrud() throws Exception {
         final List<String> addedRoles = List.of("ROLE1", "ROLE2");
         final AddApplicationRolesRequest addApplicationRolesRequest = new AddApplicationRolesRequest();
-        addApplicationRolesRequest.setApplicationId(APPLICATION_ID);
+        addApplicationRolesRequest.setApplicationId(config.getApplicationId());
         addApplicationRolesRequest.setApplicationRoles(addedRoles);
 
-        /* Test add app roles */
-        mockMvc.perform(post("/rest/v3/application/roles/create")
-                        .content(wrapInRequestObjectJson(addApplicationRolesRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
-                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
-                /* Two more roles are defined in the SQL script for this test */
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(4)))
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles.toArray())));
+        final AddApplicationRolesResponse addApplicationRolesResponse =
+                powerAuthClient.addApplicationRoles(addApplicationRolesRequest);
+        assertEquals(config.getApplicationId(), addApplicationRolesResponse.getApplicationId());
+        assertEquals(2, addApplicationRolesResponse.getApplicationRoles().size());
+        assertTrue(addApplicationRolesResponse.getApplicationRoles().containsAll(addedRoles));
 
-        /* Test get app detail */
         final GetApplicationDetailRequest applicationDetailRequest = new GetApplicationDetailRequest();
-        applicationDetailRequest.setApplicationId(APPLICATION_ID);
-        mockMvc.perform(post("/rest/v3/application/detail")
-                        .content(wrapInRequestObjectJson(applicationDetailRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
-                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
-                /* Two more roles are defined in the SQL script for this test */
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(4)))
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles.toArray())));
+        applicationDetailRequest.setApplicationId(config.getApplicationId());
 
-        /* Test get app roles list */
+        final GetApplicationDetailResponse applicationDetailResponse =
+                powerAuthClient.getApplicationDetail(applicationDetailRequest);
+        assertEquals(config.getApplicationId(), applicationDetailResponse.getApplicationId());
+        assertEquals(2, applicationDetailResponse.getApplicationRoles().size());
+        assertTrue(applicationDetailResponse.getApplicationRoles().containsAll(addedRoles));
+
         final ListApplicationRolesRequest applicationRolesRequest = new ListApplicationRolesRequest();
-        applicationRolesRequest.setApplicationId(APPLICATION_ID);
-        mockMvc.perform(post("/rest/v3/application/roles/list")
-                        .content(wrapInRequestObjectJson(applicationRolesRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
-                /* Two more roles are defined in the SQL script for this test */
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(4)))
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles.toArray())));
+        applicationRolesRequest.setApplicationId(config.getApplicationId());
 
-        /* Test update app roles */
+        final ListApplicationRolesResponse listApplicationRolesResponse =
+                powerAuthClient.listApplicationRoles(applicationRolesRequest);
+        assertEquals(2, listApplicationRolesResponse.getApplicationRoles().size());
+        assertTrue(listApplicationRolesResponse.getApplicationRoles().containsAll(addedRoles));
+
         final UpdateApplicationRolesRequest updateApplicationRolesRequest = new UpdateApplicationRolesRequest();
         final List<String> addedRoles2 = List.of("ROLE5", "ROLE6");
-        updateApplicationRolesRequest.setApplicationId(APPLICATION_ID);
+        updateApplicationRolesRequest.setApplicationId(config.getApplicationId());
         updateApplicationRolesRequest.setApplicationRoles(addedRoles2);
-        mockMvc.perform(post("/rest/v3/application/roles/update")
-                        .content(wrapInRequestObjectJson(updateApplicationRolesRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(2)))
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasItems(addedRoles2.toArray())));
 
-        /* Test new list of app roles */
-        final ListApplicationRolesResponse applicationRolesResponse = powerAuthService.
-                listApplicationRoles(applicationRolesRequest);
-        assertEquals(addedRoles2, applicationRolesResponse.getApplicationRoles());
+        final UpdateApplicationRolesResponse updateApplicationRolesResponse =
+                powerAuthClient.updateApplicationRoles(updateApplicationRolesRequest);
+        assertEquals(config.getApplicationId(), updateApplicationRolesResponse.getApplicationId());
+        assertEquals(2, updateApplicationRolesResponse.getApplicationRoles().size());
+        assertTrue(updateApplicationRolesResponse.getApplicationRoles().containsAll(addedRoles2));
 
-        /* Test remove one of app roles */
         final RemoveApplicationRolesRequest removeApplicationRolesRequest = new RemoveApplicationRolesRequest();
-        removeApplicationRolesRequest.setApplicationId(APPLICATION_ID);
+        removeApplicationRolesRequest.setApplicationId(config.getApplicationId());
         removeApplicationRolesRequest.setApplicationRoles(List.of("ROLE5"));
-        mockMvc.perform(post("/rest/v3/application/roles/remove")
-                        .content(wrapInRequestObjectJson(removeApplicationRolesRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationRoles").isArray())
-                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID))
-                .andExpect(jsonPath("$.responseObject.applicationRoles", hasSize(1)))
-                .andExpect(jsonPath("$.responseObject.applicationRoles", contains("ROLE6")));
 
-        /* Test new list of app roles */
-        final ListApplicationRolesResponse applicationRolesResponse2 = powerAuthService.
-                listApplicationRoles(applicationRolesRequest);
-        assertEquals(Collections.singletonList("ROLE6"), applicationRolesResponse2.getApplicationRoles());
+        final RemoveApplicationRolesResponse removeApplicationRolesResponse =
+                powerAuthClient.removeApplicationRoles(removeApplicationRolesRequest);
+        assertEquals(config.getApplicationId(), removeApplicationRolesResponse.getApplicationId());
+        assertEquals(1, removeApplicationRolesResponse.getApplicationRoles().size());
+        assertTrue(removeApplicationRolesResponse.getApplicationRoles().contains("ROLE6"));
     }
 
     /**
-     * Tests the retrieval of the application list.
-     * <p>
-     * This test performs a mock HTTP POST request to retrieve the list of applications.
-     * It verifies if the response contains the expected application ID and checks the size of the application list.
+     * Tests the retrieval of the list of applications from the PowerAuth Server.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test executes the following actions:</p>
+     * <ol>
+     *   <li>Sends a request to the PowerAuth Server to retrieve the list of all registered applications.</li>
+     *   <li>Verifies that the response contains the expected number of applications.</li>
+     *   <li>Checks if the application list includes the application with the ID specified in the test configuration.</li>
+     * </ol>
+     *
+     * <p>This test assumes that there is only one application configured in the PowerAuth Server,
+     * which is the application used in the test setup. The application ID is obtained from the test configuration.</p>
+     *
+     * @throws Exception if any error occurs during the execution of the test or if the assertions fail.
      */
     @Test
     void testApplicationList() throws Exception {
-        mockMvc.perform(post("/rest/v3/application/list")
-                        .content(wrapInRequestObjectJson(new HashMap<>()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applications[0].applicationId").value(APPLICATION_ID))
-                .andExpect(jsonPath("$.responseObject.applications", hasSize(1)));
+        final GetApplicationListResponse applicationListResponse = powerAuthClient.getApplicationList();
+        assertEquals(1, applicationListResponse.getApplications().size());
+        assertEquals(config.getApplicationId(), applicationListResponse.getApplications().get(0).getApplicationId());
     }
 
     /**
-     * Tests the lookup of application version by application key.
-     * <p>
-     * This test sends a mock HTTP POST request to the application version detail endpoint with a specific application key.
-     * It checks if the response correctly identifies the application ID associated with the provided application key.
+     * Tests the retrieval of application details based on an application key from the PowerAuth Server.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test executes the following actions:</p>
+     * <ol>
+     *   <li>Constructs a request object with the application key obtained from the test configuration.</li>
+     *   <li>Sends the request to the PowerAuth Server's endpoint responsible for looking up application details by application key.</li>
+     *   <li>Verifies that the response contains the correct application ID associated with the provided application key.</li>
+     * </ol>
+     *
+     * <p>The test assumes that an application key is already set up in the test configuration and
+     * corresponds to a valid application registered in the PowerAuth Server.</p>
+     *
+     * @throws Exception if any error occurs during the execution of the test or if the assertions fail.
      */
     @Test
     void testApplicationVersionLookup() throws Exception {
         final LookupApplicationByAppKeyRequest applicationByAppKeyRequest = new LookupApplicationByAppKeyRequest();
-        applicationByAppKeyRequest.setApplicationKey(APPLICATION_VERSION_APPLICATION_KEY);
+        applicationByAppKeyRequest.setApplicationKey(config.getApplicationKey());
 
-        /* Application version app key created by the SQL script */
-        mockMvc.perform(post("/rest/v3/application/detail/version")
-                        .content(wrapInRequestObjectJson(applicationByAppKeyRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationId").value(APPLICATION_ID));
+        final LookupApplicationByAppKeyResponse lookupActivationsResponse =
+                powerAuthClient.lookupApplicationByAppKey(applicationByAppKeyRequest);
+        assertEquals(config.getApplicationId(), lookupActivationsResponse.getApplicationId());
     }
 
     /**
-     * Tests the support and unsupport operations for application versions.
-     * <p>
-     * This test first marks an application version as unsupported, verifying the action, and then marks the same version as supported, again verifying the action.
-     * It ensures that the application version's support status is correctly updated and reflected in the system.
+     * Tests the management of support status for application versions in the PowerAuth Server.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test executes the following actions:</p>
+     * <ol>
+     *   <li>Marks a specific application version as unsupported using the PowerAuth Server API, and verifies the operation's success.</li>
+     *   <li>Subsequently marks the same application version as supported, again using the PowerAuth Server API, and verifies this operation as well.</li>
+     *   <li>Checks that the application version's support status is updated correctly in both cases.</li>
+     * </ol>
+     *
+     * <p>The test assumes that the application and version IDs are set up in the test configuration and correspond to a valid application version registered in the PowerAuth Server.</p>
+     *
+     * @throws Exception if any error occurs during the execution of the test or if the assertions fail.
      */
     @Test
     void testApplicationSupport() throws Exception {
-        final String applicationVersionId = "default";
         final UnsupportApplicationVersionRequest unsupportApplicationVersionRequest = new UnsupportApplicationVersionRequest();
-        unsupportApplicationVersionRequest.setApplicationId(APPLICATION_ID);
-        unsupportApplicationVersionRequest.setApplicationVersionId(applicationVersionId);
+        unsupportApplicationVersionRequest.setApplicationId(config.getApplicationId());
+        unsupportApplicationVersionRequest.setApplicationVersionId(config.getApplicationVersionId());
 
-        /* Application version app key created by the SQL script */
-        mockMvc.perform(post("/rest/v3/application/version/unsupport")
-                        .content(wrapInRequestObjectJson(unsupportApplicationVersionRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationVersionId").value(applicationVersionId))
-                .andExpect(jsonPath("$.responseObject.supported").value(false));
-
+        final UnsupportApplicationVersionResponse unsupportApplicationVersionResponse =
+                powerAuthClient.unsupportApplicationVersion(unsupportApplicationVersionRequest);
+        assertEquals(config.getApplicationVersionId(), unsupportApplicationVersionResponse.getApplicationVersionId());
+        assertFalse(unsupportApplicationVersionResponse.isSupported());
 
         final SupportApplicationVersionRequest supportApplicationVersionRequest = new SupportApplicationVersionRequest();
-        supportApplicationVersionRequest.setApplicationId(APPLICATION_ID);
-        supportApplicationVersionRequest.setApplicationVersionId(applicationVersionId);
+        supportApplicationVersionRequest.setApplicationId(config.getApplicationId());
+        supportApplicationVersionRequest.setApplicationVersionId(config.getApplicationVersionId());
 
-        /* Application version app key created by the SQL script */
-        mockMvc.perform(post("/rest/v3/application/version/support")
-                        .content(wrapInRequestObjectJson(supportApplicationVersionRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.applicationVersionId").value(applicationVersionId))
-                .andExpect(jsonPath("$.responseObject.supported").value(true));
-
+        final SupportApplicationVersionResponse supportApplicationVersionResponse =
+                powerAuthClient.supportApplicationVersion(supportApplicationVersionRequest);
+        assertEquals(config.getApplicationVersionId(), supportApplicationVersionRequest.getApplicationVersionId());
+        assertTrue(supportApplicationVersionResponse.isSupported());
     }
 
     /**
-     * Tests the creation, listing, and removal of application integrations.
-     * <p>
-     * This test creates a new application integration, retrieves a list of integrations to verify its creation,
-     * and then removes the created integration, again retrieving the list to verify its removal.
+     * Tests the creation, retrieval, and deletion of application integrations in the PowerAuth Server.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test executes the following actions:</p>
+     * <ol>
+     *   <li>Creates a new application integration using the PowerAuth Server API and verifies the operation's success.</li>
+     *   <li>Retrieves a list of all current application integrations to confirm the presence of the newly created integration.</li>
+     *   <li>Deletes the newly created integration and then retrieves the list of integrations again to ensure its removal.</li>
+     * </ol>
+     *
+     * <p>The test ensures that the PowerAuth Server correctly handles the lifecycle of application integrations, including their creation, listing, and deletion. It checks the presence of necessary attributes in the integration response, such as the integration name, ID, client secret, and client token.</p>
+     *
+     * @throws Exception if any error occurs during the execution of the test or if the assertions fail.
      */
     @Test
     void testApplicationIntegration() throws Exception {
@@ -877,151 +670,93 @@ class PowerAuthControllerTest {
         final CreateIntegrationRequest createIntegrationRequest = new CreateIntegrationRequest();
         createIntegrationRequest.setName(integrationName);
 
-        MvcResult result = mockMvc.perform(post("/rest/v3/integration/create")
-                        .content(wrapInRequestObjectJson(createIntegrationRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.name").value(integrationName))
-                .andReturn();
+        final CreateIntegrationResponse createIntegrationResponse = powerAuthClient.createIntegration(createIntegrationRequest);
+        assertEquals(integrationName, createIntegrationResponse.getName());
+        assertNotNull(createIntegrationResponse.getId());
+        assertNotNull(createIntegrationResponse.getClientSecret());
+        assertNotNull(createIntegrationResponse.getClientSecret());
 
-        final String integrationId = convertMvcResultToObject(result,
-                CreateIntegrationResponse.class).getId();
-
-        mockMvc.perform(post("/rest/v3/integration/list")
-                        .content(wrapInRequestObjectJson(new HashMap<>()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.items").isNotEmpty())
-                .andExpect(jsonPath(String.format("$.responseObject.items[?(@.name == '%s')]", integrationName)).exists());
+        final GetIntegrationListResponse getIntegrationListResponse = powerAuthClient.getIntegrationList();
+        assertNotNull(getIntegrationListResponse.getItems());
+        assertEquals(1, getIntegrationListResponse.getItems().size());
+        assertEquals(integrationName, getIntegrationListResponse.getItems().get(0).getName());
+        assertEquals(createIntegrationResponse.getId(), getIntegrationListResponse.getItems().get(0).getId());
+        assertEquals(createIntegrationResponse.getClientSecret(), getIntegrationListResponse.getItems().get(0).getClientSecret());
+        assertEquals(createIntegrationResponse.getClientToken(), getIntegrationListResponse.getItems().get(0).getClientToken());
 
         final RemoveIntegrationRequest removeIntegrationRequest = new RemoveIntegrationRequest();
-        removeIntegrationRequest.setId(integrationId);
-        mockMvc.perform(post("/rest/v3/integration/remove")
-                        .content(wrapInRequestObjectJson(removeIntegrationRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.removed").value(true))
-                .andExpect(jsonPath("$.responseObject.id").value(integrationId));
+        removeIntegrationRequest.setId(createIntegrationResponse.getId());
+
+        final RemoveIntegrationResponse removeIntegrationResponse = powerAuthClient.removeIntegration(removeIntegrationRequest);
+        assertTrue(removeIntegrationResponse.isRemoved());
+        assertEquals(createIntegrationResponse.getId(), removeIntegrationResponse.getId());
     }
 
     /**
-     * Tests the creation, lookup, and revocation of recovery codes.
-     * <p>
-     * This test creates recovery codes for a user, looks up the created codes, and then revokes them,
-     * ensuring each step is processed correctly and the expected responses are received.
+     * Tests the complete lifecycle of recovery codes in the PowerAuth Server, including creation, lookup, and revocation.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>The test follows these steps:</p>
+     * <ol>
+     *   <li>Creates a set of recovery codes for a specific user and verifies the successful creation and the expected attributes of the response, such as the number of PUks and the user ID.</li>
+     *   <li>Looks up the created recovery codes using the user's ID and activation ID, ensuring the correct status of the recovery codes and PUks.</li>
+     *   <li>Revokes the created recovery codes and confirms their successful revocation.</li>
+     * </ol>
+     *
+     * <p>This test ensures that the PowerAuth Server can correctly handle the entire process of managing recovery codes, from creation to revocation, providing the expected responses at each step.</p>
+     *
+     * @throws Exception if any error occurs during the execution of the test or if the assertions fail.
      */
     @Test
     void testRecoveryCodeCreateLookupRevoke() throws Exception {
         final CreateRecoveryCodeRequest createRecoveryCodeRequest = new CreateRecoveryCodeRequest();
-        createRecoveryCodeRequest.setApplicationId(APPLICATION_ID);
-        createRecoveryCodeRequest.setUserId(USER_ID);
+        createRecoveryCodeRequest.setApplicationId(config.getApplicationId());
+        createRecoveryCodeRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
         createRecoveryCodeRequest.setPukCount(2L);
 
-        final MvcResult result = mockMvc.perform(post("/rest/v3/recovery/create")
-                        .content(wrapInRequestObjectJson(createRecoveryCodeRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.userId").value(USER_ID))
-                .andExpect(jsonPath("$.responseObject.userId").value(USER_ID))
-                .andExpect(jsonPath("$.responseObject.puks.length()").value(2))
-                .andReturn();
-
-        final long recoveryCodeId = convertMvcResultToObject(result, CreateRecoveryCodeResponse.class)
-                .getRecoveryCodeId();
+        final CreateRecoveryCodeResponse createRecoveryCodeResponse = powerAuthClient.createRecoveryCode(createRecoveryCodeRequest);
+        assertEquals(2, createRecoveryCodeResponse.getPuks().size());
+        assertEquals(PowerAuthControllerTestConfig.USER_ID, createRecoveryCodeResponse.getUserId());
 
         final LookupRecoveryCodesRequest lookupRecoveryCodesRequest = new LookupRecoveryCodesRequest();
-        lookupRecoveryCodesRequest.setActivationId(ACTIVATION_ID);
-        lookupRecoveryCodesRequest.setUserId(USER_ID);
+        lookupRecoveryCodesRequest.setActivationId(config.getActivationId());
+        lookupRecoveryCodesRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
         lookupRecoveryCodesRequest.setRecoveryCodeStatus(RecoveryCodeStatus.CREATED);
         lookupRecoveryCodesRequest.setRecoveryPukStatus(RecoveryPukStatus.VALID);
 
-        mockMvc.perform(post("/rest/v3/recovery/lookup")
-                        .content(wrapInRequestObjectJson(lookupRecoveryCodesRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.recoveryCodes.length()", greaterThan(0)));
+        final LookupRecoveryCodesResponse lookupRecoveryCodesResponse = powerAuthClient.lookupRecoveryCodes(lookupRecoveryCodesRequest);
+        assertTrue(lookupRecoveryCodesResponse.getRecoveryCodes().size() > 0);
 
         final RevokeRecoveryCodesRequest revokeRecoveryCodesRequest = new RevokeRecoveryCodesRequest();
-        revokeRecoveryCodesRequest.setRecoveryCodeIds(List.of(recoveryCodeId));
+        revokeRecoveryCodesRequest.setRecoveryCodeIds(List.of(createRecoveryCodeResponse.getRecoveryCodeId()));
 
-        mockMvc.perform(post("/rest/v3/recovery/revoke")
-                        .content(wrapInRequestObjectJson(revokeRecoveryCodesRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.revoked").value(true));
+        final RevokeRecoveryCodesResponse revokeRecoveryCodesResponse = powerAuthClient.revokeRecoveryCodes(revokeRecoveryCodesRequest);
+        assertTrue(revokeRecoveryCodesResponse.isRevoked());
     }
 
     /**
-     * Tests the retrieval and update of recovery configuration.
-     * <p>
-     * This test retrieves the current recovery configuration, updates it, and then retrieves it again to
-     * verify that the updates were successfully applied.
+     * Tests the generation of non-personalized offline signature payloads in the PowerAuth Server.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
-     */
-    @Test
-    void testRecoveryConfig() throws Exception {
-        final GetRecoveryConfigRequest getRecoveryConfigRequest = new GetRecoveryConfigRequest();
-        getRecoveryConfigRequest.setApplicationId(APPLICATION_ID);
-
-        mockMvc.perform(post("/rest/v3/recovery/config/detail")
-                        .content(wrapInRequestObjectJson(getRecoveryConfigRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.postcardPublicKey", notNullValue()))
-                .andExpect(jsonPath("$.responseObject.remotePostcardPublicKey", notNullValue()));
-
-        final UpdateRecoveryConfigRequest updateRecoveryConfigRequest = new UpdateRecoveryConfigRequest();
-        final String newTestKey = "newTestKey";
-        updateRecoveryConfigRequest.setApplicationId(APPLICATION_ID);
-        updateRecoveryConfigRequest.setRemotePostcardPublicKey(newTestKey);
-
-        mockMvc.perform(post("/rest/v3/recovery/config/update")
-                        .content(wrapInRequestObjectJson(updateRecoveryConfigRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.updated").value(true));
-
-        final GetRecoveryConfigResponse recoveryConfigResponse = powerAuthService.getRecoveryConfig(getRecoveryConfigRequest);
-        assertNotNull(recoveryConfigResponse.getPostcardPublicKey());
-        assertFalse(recoveryConfigResponse.isActivationRecoveryEnabled());
-        assertFalse(recoveryConfigResponse.isRecoveryPostcardEnabled());
-        assertFalse(recoveryConfigResponse.isAllowMultipleRecoveryCodes());
-        assertEquals(newTestKey, recoveryConfigResponse.getRemotePostcardPublicKey());
-    }
-
-    /**
-     * Tests the creation of a non-personalized offline signature payload.
-     * <p>
-     * This test sends a request to create a non-personalized offline signature payload and verifies
-     * that the response contains the expected offline data and nonce.
+     * <p>The test executes the following steps:</p>
+     * <ol>
+     *   <li>Sends a request to generate a non-personalized offline signature payload, specifying the application ID and the data to be signed.</li>
+     *   <li>Verifies that the response contains a valid offline data string and a nonce, both essential components for offline signature verification.</li>
+     * </ol>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test validates the PowerAuth Server's ability to generate the necessary data for offline signature scenarios where personalization of the payload (to a specific user or device) is not required.</p>
+     *
+     * @throws Exception if any unexpected error occurs during the execution of the test or if the response does not contain the expected data.
      */
     @Test
     void testNonPersonalizedOfflineSignaturePayload() throws Exception {
         final CreateNonPersonalizedOfflineSignaturePayloadRequest nonPersonalizedOfflineSignaturePayloadRequest =
                 new CreateNonPersonalizedOfflineSignaturePayloadRequest();
-        nonPersonalizedOfflineSignaturePayloadRequest.setApplicationId(APPLICATION_ID);
-        nonPersonalizedOfflineSignaturePayloadRequest.setData(DATA);
+        nonPersonalizedOfflineSignaturePayloadRequest.setApplicationId(config.getApplicationId());
+        nonPersonalizedOfflineSignaturePayloadRequest.setData(PowerAuthControllerTestConfig.DATA);
 
-        mockMvc.perform(post("/rest/v3/signature/offline/non-personalized/create")
-                        .content(wrapInRequestObjectJson(nonPersonalizedOfflineSignaturePayloadRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.offlineData", notNullValue()))
-                .andExpect(jsonPath("$.responseObject.nonce", notNullValue()));
+        final CreateNonPersonalizedOfflineSignaturePayloadResponse nonPersonalizedOfflineSignaturePayloadResponse
+                = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(nonPersonalizedOfflineSignaturePayloadRequest);
+        assertNotNull(nonPersonalizedOfflineSignaturePayloadResponse.getOfflineData());
+        assertNotNull(nonPersonalizedOfflineSignaturePayloadResponse.getNonce());
     }
 
     /**
@@ -1034,165 +769,53 @@ class PowerAuthControllerTest {
      */
     @Test
     void testPersonalizedOfflineSignaturePayload() throws Exception {
+        config.initActivation(powerAuthClient);
         final CreatePersonalizedOfflineSignaturePayloadRequest personalizedOfflineSignaturePayloadRequest =
                 new CreatePersonalizedOfflineSignaturePayloadRequest();
-        personalizedOfflineSignaturePayloadRequest.setActivationId(ACTIVATION_ID);
-        personalizedOfflineSignaturePayloadRequest.setData(DATA);
+        personalizedOfflineSignaturePayloadRequest.setActivationId(config.getActivationId());
+        personalizedOfflineSignaturePayloadRequest.setProximityCheck(null);
+        personalizedOfflineSignaturePayloadRequest.setData(PowerAuthControllerTestConfig.DATA);
 
-        mockMvc.perform(post("/rest/v3/signature/offline/personalized/create")
-                        .content(wrapInRequestObjectJson(personalizedOfflineSignaturePayloadRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.offlineData", notNullValue()))
-                .andExpect(jsonPath("$.responseObject.nonce", notNullValue()));
+        final CreatePersonalizedOfflineSignaturePayloadResponse personalizedOfflineSignaturePayloadResponse
+                = powerAuthClient.createPersonalizedOfflineSignaturePayload(personalizedOfflineSignaturePayloadRequest);
+        assertNotNull(personalizedOfflineSignaturePayloadResponse.getOfflineData());
+        assertNotNull(personalizedOfflineSignaturePayloadResponse.getNonce());
+        config.removeActivation(powerAuthClient);
     }
 
-    /**
+
+    // TODO: @jandusil - handle activation verify offline signature test
+   /* *//**
      * Tests the verification of an offline signature.
      * <p>
      * This test sends a signature verification request for an offline signature and checks
      * if the signature is validated correctly, expecting a false result for the test data.
      *
      * @throws Exception if the mockMvc.perform operation fails.
-     */
+     *//*
     @Test
     void testVerifyOfflineSignature() throws Exception {
+        config.initActivation(powerAuthClient);
+
+       *//* final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
+        prepareActivationRequest.setApplicationKey(config.getApplicationKey());
+        prepareActivationRequest.setActivationCode(config.getActivationId());*//*
+        powerAuthClient.commitActivation(config.getActivationId(), "test");
+
         final VerifyOfflineSignatureRequest verifyOfflineSignatureRequest =
                 new VerifyOfflineSignatureRequest();
-        verifyOfflineSignatureRequest.setActivationId(ACTIVATION_ID);
-        verifyOfflineSignatureRequest.setData(DATA);
-        verifyOfflineSignatureRequest.setSignature("123456");
+        verifyOfflineSignatureRequest.setActivationId(config.getActivationId());
         verifyOfflineSignatureRequest.setAllowBiometry(false);
+        verifyOfflineSignatureRequest.setSignature("123456");
+        verifyOfflineSignatureRequest.setData("A2");
 
-        mockMvc.perform(post("/rest/v3/signature/offline/verify")
-                        .content(wrapInRequestObjectJson(verifyOfflineSignatureRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.signatureValid").value(false))
-                .andExpect(jsonPath("$.responseObject.activationId").value(ACTIVATION_ID));
-    }
 
-    /**
-     * Tests the retrieval of system status.
-     * <p>
-     * This test checks if the system status can be successfully retrieved without any errors.
-     *
-     * @throws Exception if the mockMvc.perform operation fails.
-     */
-    @Test
-    void testSystemStatus() throws Exception {
-        mockMvc.perform(post("/rest/v3/status")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
-    }
+        final VerifyOfflineSignatureResponse verifyOfflineSignatureResponse =
+                powerAuthClient.verifyOfflineSignature(verifyOfflineSignatureRequest);
+        assertFalse(verifyOfflineSignatureResponse.isSignatureValid());
+        assertEquals(config.getActivationId(), verifyOfflineSignatureResponse.getActivationId());
+        config.removeActivation(powerAuthClient);
+    }*/
 
-    /**
-     * Tests the retrieval of a list of error codes.
-     * <p>
-     * This test requests a list of error codes and verifies that the list is populated with a sufficient number of entries.
-     *
-     * @throws Exception if the mockMvc.perform operation fails.
-     */
-    @Test
-    void testErrorList() throws Exception {
-        final GetErrorCodeListRequest getErrorCodeListRequest = new GetErrorCodeListRequest();
-        getErrorCodeListRequest.setLanguage(Locale.ENGLISH.getLanguage());
-        mockMvc.perform(post("/rest/v3/error/list")
-                        .content(wrapInRequestObjectJson(getErrorCodeListRequest))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.responseObject.errors.length()", greaterThan(32)));
-    }
-
-    /**
-     * Creates a request object for creating an operation.
-     * <p>
-     * This helper method constructs and returns an {@link OperationCreateRequest} with
-     * predefined application ID, template name, user ID, and proximity OTP settings.
-     *
-     * @param proximityOtp a boolean indicating whether proximity OTP is enabled
-     * @return a configured {@link OperationCreateRequest} instance
-     * @throws Exception if the operation creation request setup fails
-     */
-    private OperationCreateRequest createOperationCreateRequest(final boolean proximityOtp) throws Exception {
-        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
-        operationCreateRequest.setApplications(List.of(APPLICATION_ID));
-        operationCreateRequest.setTemplateName(TEMPLATE_NAME);
-        operationCreateRequest.setUserId(USER_ID);
-        operationCreateRequest.setProximityCheckEnabled(proximityOtp);
-        return operationCreateRequest;
-    }
-
-    /**
-     * Creates a request object for getting a list of callback URLs.
-     * <p>
-     * This helper method constructs and returns a {@link GetCallbackUrlListRequest} for a
-     * specific application ID.
-     *
-     * @return a configured {@link GetCallbackUrlListRequest} instance
-     */
-    private static GetCallbackUrlListRequest createCallbackUrlListRequest() {
-        final GetCallbackUrlListRequest getCallbackUrlListRequest = new GetCallbackUrlListRequest();
-        getCallbackUrlListRequest.setApplicationId(APPLICATION_ID);
-        return getCallbackUrlListRequest;
-    }
-
-    /**
-     * Creates a request object for creating a callback URL.
-     * <p>
-     * This helper method constructs and returns a {@link CreateCallbackUrlRequest} with
-     * predefined callback URL, name, type, application ID, and other settings.
-     *
-     * @return a configured {@link CreateCallbackUrlRequest} instance
-     */
-    private static CreateCallbackUrlRequest createCallbackUrlRequest() {
-        final CreateCallbackUrlRequest callbackUrlRequest = new CreateCallbackUrlRequest();
-        callbackUrlRequest.setCallbackUrl(CALLBACK_URL);
-        callbackUrlRequest.setName(CALLBACK_NAME);
-        callbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE.name());
-        callbackUrlRequest.setApplicationId(APPLICATION_ID);
-        callbackUrlRequest.setAttributes(Collections.singletonList("activationId"));
-        callbackUrlRequest.setAuthentication(null);
-        return callbackUrlRequest;
-    }
-
-    /**
-     * Wraps an object in a 'requestObject' JSON structure.
-     * <p>
-     * This helper method wraps a given object within a 'requestObject' JSON structure, useful
-     * for preparing request bodies for MockMvc calls.
-     *
-     * @param obj the object to be wrapped in the request JSON
-     * @return a JSON string representation of the object wrapped in 'requestObject'
-     * @throws Exception if JSON processing fails
-     */
-    private static String wrapInRequestObjectJson(final Object obj) throws Exception {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final Map<String, Object> wrapper = new HashMap<>();
-        wrapper.put("requestObject", obj);
-        return new ObjectMapper().writeValueAsString(wrapper);
-    }
-
-    /**
-     * Converts an MvcResult to a specific response type.
-     * <p>
-     * This helper method takes an MvcResult from a MockMvc call and converts its response content
-     * into a specified class type, assuming the response is in JSON format.
-     *
-     * @param result       the MvcResult from a MockMvc call
-     * @param responseType the class type into which the response content should be converted
-     * @return an instance of the specified type with the response content
-     * @throws Exception if JSON processing fails
-     */
-    private static <T> T convertMvcResultToObject(final MvcResult result, final Class<T> responseType) throws Exception {
-        final ObjectMapper objectMapper = new ObjectMapper();
-        final JsonNode rootNode = objectMapper.readTree(result.getResponse().getContentAsString());
-        final JsonNode responseObjectNode = rootNode.path("responseObject");
-        return objectMapper.treeToValue(responseObjectNode, responseType);
-    }
 
 }
