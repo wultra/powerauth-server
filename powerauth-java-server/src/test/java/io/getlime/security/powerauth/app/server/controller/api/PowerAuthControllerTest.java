@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -40,12 +41,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -71,8 +78,8 @@ class PowerAuthControllerTest {
 
     @BeforeAll
     void initializeData() throws Exception {
-        config.createApplication(powerAuthClient);
-        config.createLoginOperationTemplate(powerAuthClient);
+        createApplication();
+        createLoginOperationTemplate();
     }
 
     /**
@@ -91,7 +98,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testRemoveActivation() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
         removeActivationRequest.setActivationId(config.getActivationId());
         removeActivationRequest.setExternalUserId(null);
@@ -157,6 +164,7 @@ class PowerAuthControllerTest {
         final GetActivationListForUserResponse activationListForUserResponse2 = powerAuthClient
                 .getActivationListForUser(requestPage2);
         assertEquals(5, activationListForUserResponse2.getActivations().size());
+        assertThat(activationListForUserResponse2.getActivations(), hasSize(5));
 
         assertNotEquals(activationListForUserResponse2.getActivations(), activationListForUserResponse1.getActivations());
 
@@ -184,7 +192,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testLookupActivations() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         /* We are looking for an activation created during initialization of the test suite. */
         final Date timestampCreated = Date.from(LocalDateTime.now().minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
@@ -194,8 +202,8 @@ class PowerAuthControllerTest {
         lookupActivationsRequest.setTimestampLastUsedAfter(timestampCreated);
 
         final LookupActivationsResponse lookupActivationsResponse = powerAuthClient.lookupActivations(lookupActivationsRequest);
-        assertEquals(1, lookupActivationsResponse.getActivations().size());
-        config.removeActivation(powerAuthClient);
+        assertThat(lookupActivationsResponse.getActivations(), hasSize(1));
+        removeActivation();
     }
 
     /**
@@ -212,7 +220,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testUpdateActivationStatus() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
         updateStatusForActivationsRequest.setActivationIds(List.of(config.getActivationId()));
         updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.BLOCKED);
@@ -225,7 +233,7 @@ class PowerAuthControllerTest {
         activationStatusRequest.setActivationId(config.getActivationId());
         final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(activationStatusRequest);
         assertEquals(ActivationStatus.BLOCKED, statusResponse.getActivationStatus());
-        config.removeActivation(powerAuthClient);
+        removeActivation();
     }
 
     /**
@@ -245,7 +253,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testActivationHistory() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final Date before = Date.from(LocalDateTime.now().minusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
         final Date after = Date.from(LocalDateTime.now().plusSeconds(1).atZone(ZoneId.systemDefault()).toInstant());
         final ActivationHistoryRequest activationHistoryRequest = new ActivationHistoryRequest();
@@ -254,9 +262,9 @@ class PowerAuthControllerTest {
         activationHistoryRequest.setTimestampTo(after);
 
         final ActivationHistoryResponse activationHistoryResponse = powerAuthClient.getActivationHistory(activationHistoryRequest);
-        assertEquals(1, activationHistoryResponse.getItems().size());
+        assertThat(activationHistoryResponse.getItems(), hasSize(1));
         assertEquals(config.getActivationId(), activationHistoryResponse.getItems().get(0).getActivationId());
-        config.removeActivation(powerAuthClient);
+        removeActivation();
     }
 
     /**
@@ -278,7 +286,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testBlockAndUnblockActivation() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
         updateStatusForActivationsRequest.setActivationIds(List.of(config.getActivationId()));
         updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
@@ -310,7 +318,7 @@ class PowerAuthControllerTest {
 
         final GetActivationStatusResponse statusResponse2 = powerAuthClient.getActivationStatus(activationStatusRequest);
         assertEquals(ActivationStatus.ACTIVE, statusResponse2.getActivationStatus());
-        config.removeActivation(powerAuthClient);
+        removeActivation();
     }
 
     /**
@@ -330,7 +338,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testUpdateActivation() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final UpdateStatusForActivationsRequest updateStatusForActivationsRequest = new UpdateStatusForActivationsRequest();
         updateStatusForActivationsRequest.setActivationIds(List.of(config.getActivationId()));
         updateStatusForActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
@@ -351,7 +359,7 @@ class PowerAuthControllerTest {
         assertEquals(updatedName, updateActivationNameResponse.getActivationName());
         assertEquals(config.getActivationId(), updateActivationNameResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, updateActivationNameResponse.getActivationStatus());
-        config.removeActivation(powerAuthClient);
+        removeActivation();
     }
 
     /**
@@ -378,7 +386,6 @@ class PowerAuthControllerTest {
         );
         assertEquals(expectedErrorMessage, thrownException.getMessage());
         assertEquals(expectedErrorMessage, thrownException.getLocalizedMessage());
-        assertEquals(expectedErrorMessage, thrownException.getLocalizedMessage());
         assertTrue(thrownException.getPowerAuthError().isPresent());
         assertEquals(expectedErrorCode, thrownException.getPowerAuthError().get().getCode());
     }
@@ -400,7 +407,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testOperationApprove() throws Exception {
-        final OperationDetailResponse operationDetailResponse = config.createOperation(powerAuthClient);
+        final OperationDetailResponse operationDetailResponse = createOperation();
         final String operationId = operationDetailResponse.getId();
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(operationId);
@@ -434,7 +441,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testGetOperationDetail() throws Exception {
-        final OperationDetailResponse operation = config.createOperation(powerAuthClient);
+        final OperationDetailResponse operation = createOperation();
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         final String operationId = operation.getId();
         detailRequest.setOperationId(operationId);
@@ -465,7 +472,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testCreateReadDelete() throws Exception {
-        config.createCallback(powerAuthClient);
+        createCallback();
         final GetCallbackUrlListResponse callbackUrlListResponse = powerAuthClient.getCallbackUrlList(config.getApplicationId());
 
         assertNotNull(callbackUrlListResponse.getCallbackUrlList());
@@ -476,9 +483,9 @@ class PowerAuthControllerTest {
 
         assertEquals(PowerAuthControllerTestConfig.CALLBACK_URL, foundCallback.getCallbackUrl());
         assertEquals(config.getApplicationId(), foundCallback.getApplicationId());
-        assertEquals(1, foundCallback.getAttributes().size());
+        assertThat(foundCallback.getAttributes(), hasSize(1));
         assertEquals("activationId", foundCallback.getAttributes().get(0));
-        config.removeCallback(powerAuthClient, foundCallback.getId());
+        removeCallback(foundCallback.getId());
     }
 
     /**
@@ -496,7 +503,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testCallbackUpdate() throws Exception {
-        final CreateCallbackUrlResponse callbackUrlResponse = config.createCallback(powerAuthClient);
+        final CreateCallbackUrlResponse callbackUrlResponse = createCallback();
         final String updatedCallbackName = UUID.randomUUID().toString();
         final String updatedCallbackUrl = "http://test2.test2";
         final List<String> callbackAttributes = Arrays.asList("activationId", "userId", "deviceInfo", "platform");
@@ -511,7 +518,7 @@ class PowerAuthControllerTest {
 
         final UpdateCallbackUrlResponse updateCallbackUrlResponse = powerAuthClient.updateCallbackUrl(updateCallbackUrlRequest);
         assertEquals(callbackAttributes, updateCallbackUrlResponse.getAttributes());
-        assertEquals(4, updateCallbackUrlResponse.getAttributes().size());
+        assertThat(updateCallbackUrlResponse.getAttributes(), hasSize(4));
         assertEquals(updatedCallbackUrl, updateCallbackUrlResponse.getCallbackUrl());
         assertEquals(config.getApplicationId(), updateCallbackUrlResponse.getApplicationId());
         assertEquals(updatedCallbackName, updateCallbackUrlResponse.getName());
@@ -542,7 +549,7 @@ class PowerAuthControllerTest {
         final AddApplicationRolesResponse addApplicationRolesResponse =
                 powerAuthClient.addApplicationRoles(addApplicationRolesRequest);
         assertEquals(config.getApplicationId(), addApplicationRolesResponse.getApplicationId());
-        assertEquals(2, addApplicationRolesResponse.getApplicationRoles().size());
+        assertThat(addApplicationRolesResponse.getApplicationRoles(), hasSize(2));
         assertTrue(addApplicationRolesResponse.getApplicationRoles().containsAll(addedRoles));
 
         final GetApplicationDetailRequest applicationDetailRequest = new GetApplicationDetailRequest();
@@ -551,7 +558,7 @@ class PowerAuthControllerTest {
         final GetApplicationDetailResponse applicationDetailResponse =
                 powerAuthClient.getApplicationDetail(applicationDetailRequest);
         assertEquals(config.getApplicationId(), applicationDetailResponse.getApplicationId());
-        assertEquals(2, applicationDetailResponse.getApplicationRoles().size());
+        assertThat(applicationDetailResponse.getApplicationRoles(), hasSize(2));
         assertTrue(applicationDetailResponse.getApplicationRoles().containsAll(addedRoles));
 
         final ListApplicationRolesRequest applicationRolesRequest = new ListApplicationRolesRequest();
@@ -559,7 +566,7 @@ class PowerAuthControllerTest {
 
         final ListApplicationRolesResponse listApplicationRolesResponse =
                 powerAuthClient.listApplicationRoles(applicationRolesRequest);
-        assertEquals(2, listApplicationRolesResponse.getApplicationRoles().size());
+        assertThat(listApplicationRolesResponse.getApplicationRoles(), hasSize(2));
         assertTrue(listApplicationRolesResponse.getApplicationRoles().containsAll(addedRoles));
 
         final UpdateApplicationRolesRequest updateApplicationRolesRequest = new UpdateApplicationRolesRequest();
@@ -570,7 +577,7 @@ class PowerAuthControllerTest {
         final UpdateApplicationRolesResponse updateApplicationRolesResponse =
                 powerAuthClient.updateApplicationRoles(updateApplicationRolesRequest);
         assertEquals(config.getApplicationId(), updateApplicationRolesResponse.getApplicationId());
-        assertEquals(2, updateApplicationRolesResponse.getApplicationRoles().size());
+        assertThat(updateApplicationRolesResponse.getApplicationRoles(), hasSize(2));
         assertTrue(updateApplicationRolesResponse.getApplicationRoles().containsAll(addedRoles2));
 
         final RemoveApplicationRolesRequest removeApplicationRolesRequest = new RemoveApplicationRolesRequest();
@@ -580,7 +587,7 @@ class PowerAuthControllerTest {
         final RemoveApplicationRolesResponse removeApplicationRolesResponse =
                 powerAuthClient.removeApplicationRoles(removeApplicationRolesRequest);
         assertEquals(config.getApplicationId(), removeApplicationRolesResponse.getApplicationId());
-        assertEquals(1, removeApplicationRolesResponse.getApplicationRoles().size());
+        assertThat(removeApplicationRolesResponse.getApplicationRoles(), hasSize(1));
         assertTrue(removeApplicationRolesResponse.getApplicationRoles().contains("ROLE6"));
     }
 
@@ -602,7 +609,7 @@ class PowerAuthControllerTest {
     @Test
     void testApplicationList() throws Exception {
         final GetApplicationListResponse applicationListResponse = powerAuthClient.getApplicationList();
-        assertEquals(1, applicationListResponse.getApplications().size());
+        assertThat(applicationListResponse.getApplications(), hasSize(1));
         assertEquals(config.getApplicationId(), applicationListResponse.getApplications().get(0).getApplicationId());
     }
 
@@ -694,7 +701,7 @@ class PowerAuthControllerTest {
 
         final GetIntegrationListResponse getIntegrationListResponse = powerAuthClient.getIntegrationList();
         assertNotNull(getIntegrationListResponse.getItems());
-        assertEquals(1, getIntegrationListResponse.getItems().size());
+        assertThat(getIntegrationListResponse.getItems(), hasSize(1));
         assertEquals(integrationName, getIntegrationListResponse.getItems().get(0).getName());
         assertEquals(createIntegrationResponse.getId(), getIntegrationListResponse.getItems().get(0).getId());
         assertEquals(createIntegrationResponse.getClientSecret(), getIntegrationListResponse.getItems().get(0).getClientSecret());
@@ -730,7 +737,7 @@ class PowerAuthControllerTest {
         createRecoveryCodeRequest.setPukCount(2L);
 
         final CreateRecoveryCodeResponse createRecoveryCodeResponse = powerAuthClient.createRecoveryCode(createRecoveryCodeRequest);
-        assertEquals(2, createRecoveryCodeResponse.getPuks().size());
+        assertThat(createRecoveryCodeResponse.getPuks(), hasSize(2));
         assertEquals(PowerAuthControllerTestConfig.USER_ID, createRecoveryCodeResponse.getUserId());
 
         final LookupRecoveryCodesRequest lookupRecoveryCodesRequest = new LookupRecoveryCodesRequest();
@@ -740,7 +747,7 @@ class PowerAuthControllerTest {
         lookupRecoveryCodesRequest.setRecoveryPukStatus(RecoveryPukStatus.VALID);
 
         final LookupRecoveryCodesResponse lookupRecoveryCodesResponse = powerAuthClient.lookupRecoveryCodes(lookupRecoveryCodesRequest);
-        assertTrue(lookupRecoveryCodesResponse.getRecoveryCodes().size() > 0);
+        assertThat(lookupRecoveryCodesResponse.getRecoveryCodes(), hasSize(greaterThan(0)));
 
         final RevokeRecoveryCodesRequest revokeRecoveryCodesRequest = new RevokeRecoveryCodesRequest();
         revokeRecoveryCodesRequest.setRecoveryCodeIds(List.of(createRecoveryCodeResponse.getRecoveryCodeId()));
@@ -792,7 +799,7 @@ class PowerAuthControllerTest {
      */
     @Test
     void testPersonalizedOfflineSignaturePayload() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final CreatePersonalizedOfflineSignaturePayloadRequest personalizedOfflineSignaturePayloadRequest =
                 new CreatePersonalizedOfflineSignaturePayloadRequest();
         personalizedOfflineSignaturePayloadRequest.setActivationId(config.getActivationId());
@@ -803,7 +810,7 @@ class PowerAuthControllerTest {
                 = powerAuthClient.createPersonalizedOfflineSignaturePayload(personalizedOfflineSignaturePayloadRequest);
         assertNotNull(personalizedOfflineSignaturePayloadResponse.getOfflineData());
         assertNotNull(personalizedOfflineSignaturePayloadResponse.getNonce());
-        config.removeActivation(powerAuthClient);
+        removeActivation();
     }
 
     /**
@@ -825,10 +832,9 @@ class PowerAuthControllerTest {
      */
     @Test
     void testVerifyOfflineSignature() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
 
-        final EncryptedRequest encryptedRequest = config.generateEncryptedRequestActivationLayer(keyGenerator, keyConvertor,
-                objectMapper, encryptorFactory, config.getActivationName());
+        final EncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
 
         final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
         prepareActivationRequest.setActivationCode(config.getActivationCode());
@@ -858,7 +864,7 @@ class PowerAuthControllerTest {
         assertFalse(verifyOfflineSignatureResponse.isSignatureValid());
         assertEquals(config.getActivationId(), verifyOfflineSignatureResponse.getActivationId());
 
-        config.removeActivation(powerAuthClient);
+        removeActivation();
     }
 
     /**
@@ -883,8 +889,7 @@ class PowerAuthControllerTest {
     void testCreateActivation() throws Exception {
         final Date expireDate = Date.from(LocalDateTime.now().plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
         final String activationName = "TEST_ACTIVATION";
-        final EncryptedRequest encryptedRequest = config.generateEncryptedRequestActivationLayer(keyGenerator, keyConvertor,
-                objectMapper, encryptorFactory, activationName);
+        final EncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(activationName);
 
         final CreateActivationRequest createActivationRequest = new CreateActivationRequest();
         createActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
@@ -932,10 +937,9 @@ class PowerAuthControllerTest {
      */
     @Test
     void testUpdateActivationOtpAndCommit() throws Exception {
-        config.initActivation(powerAuthClient);
+        initActivation();
         final String activationOtp = "12345678";
-        final EncryptedRequest encryptedRequest = config.generateEncryptedRequestActivationLayer(keyGenerator, keyConvertor,
-                objectMapper, encryptorFactory, config.getActivationName());
+        final EncryptedRequest encryptedRequest = generateEncryptedRequestActivationLayer(config.getActivationName());
 
         final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
         prepareActivationRequest.setActivationCode(config.getActivationCode());
@@ -991,7 +995,7 @@ class PowerAuthControllerTest {
         final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
                 new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
-                new ClientEncryptorSecrets(config.wrapPublicKeyString(keyConvertor), config.getApplicationSecret())
+                new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
         );
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
         final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
@@ -1057,7 +1061,282 @@ class PowerAuthControllerTest {
         getErrorCodeListRequest.setLanguage(Locale.ENGLISH.getLanguage());
 
         final GetErrorCodeListResponse errorCodeListResponse = powerAuthClient.getErrorList(getErrorCodeListRequest);
-        assertTrue(errorCodeListResponse.getErrors().size() > 32);
+        assertThat(errorCodeListResponse.getErrors(), hasSize(greaterThan(32)));
+    }
+
+    /* HELPER INITIALIZATION METHODS */
+
+    /**
+     * Creates a request object for creating an operation.
+     * <p>
+     * This helper method constructs and returns an {@link OperationCreateRequest} with
+     * predefined application ID, template name, user ID, and proximity OTP settings.
+     *
+     * @param proximityOtpEnabled a boolean indicating whether proximity OTP is enabled
+     * @return a configured {@link OperationCreateRequest} instance
+     */
+    private OperationCreateRequest createOperationCreateRequest(final boolean proximityOtpEnabled) {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(List.of(config.getApplicationId()));
+        operationCreateRequest.setTemplateName(config.getLoginOperationTemplateName());
+        operationCreateRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+        operationCreateRequest.setProximityCheckEnabled(proximityOtpEnabled);
+        return operationCreateRequest;
+    }
+
+    /**
+     * Creates a request object for creating a callback URL.
+     * <p>
+     * This helper method constructs and returns a {@link CreateCallbackUrlRequest} with
+     * predefined callback URL, name, type, application ID, and other settings.
+     *
+     * @return a configured {@link CreateCallbackUrlRequest} instance
+     */
+    private CreateCallbackUrlRequest createCallbackUrlRequest() {
+        final CreateCallbackUrlRequest callbackUrlRequest = new CreateCallbackUrlRequest();
+        callbackUrlRequest.setCallbackUrl(PowerAuthControllerTestConfig.CALLBACK_URL);
+        callbackUrlRequest.setName(PowerAuthControllerTestConfig.CALLBACK_NAME);
+        callbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE.name());
+        callbackUrlRequest.setApplicationId(config.getApplicationId());
+        callbackUrlRequest.setAttributes(Collections.singletonList("activationId"));
+        callbackUrlRequest.setAuthentication(null);
+        return callbackUrlRequest;
+    }
+
+    /**
+     * Initializes a new activation and verifies its status.
+     * <p>
+     * This method creates an activation for the provided user and application IDs and verifies
+     * the response to ensure the activation is successfully initialized. It sets the activation
+     * ID in the test configuration and asserts that the activation status is 'CREATED'.
+     *
+     * @throws Exception if any error occurs during activation initialization or verification
+     */
+    protected void initActivation() throws Exception {
+        final InitActivationRequest initActivationRequest = new InitActivationRequest();
+        initActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+        initActivationRequest.setApplicationId(config.getApplicationId());
+
+        final InitActivationResponse initActivationResponse = powerAuthClient.initActivation(initActivationRequest);
+        assertNotNull(initActivationResponse);
+        assertNotNull(initActivationResponse.getActivationId());
+        assertNotNull(initActivationResponse.getActivationSignature());
+        assertNotNull(initActivationResponse.getApplicationId());
+        assertEquals(PowerAuthControllerTestConfig.USER_ID, initActivationResponse.getUserId());
+        assertEquals(config.getApplicationId(), initActivationResponse.getApplicationId());
+
+        final GetActivationStatusResponse activationStatusResponse =
+                powerAuthClient.getActivationStatus(initActivationResponse.getActivationId());
+
+        assertEquals(ActivationStatus.CREATED, activationStatusResponse.getActivationStatus());
+        config.setActivationId(activationStatusResponse.getActivationId());
+        config.setActivationCode(activationStatusResponse.getActivationCode());
+        config.setActivationName(activationStatusResponse.getActivationName());
+    }
+
+    /**
+     * Creates an application in the PowerAuth Server if it does not already exist.
+     * <p>
+     * This method checks for the existence of an application and its version. If not present,
+     * it creates them and sets relevant fields in the test configuration. It also ensures the
+     * application version is supported and sets up activation recovery settings.
+     *
+     * @throws Exception if any error occurs during application creation or setup
+     */
+    protected void createApplication() throws Exception {
+        final GetApplicationListResponse applicationsListResponse = powerAuthClient.getApplicationList();
+        final var applicationOptional = applicationsListResponse.getApplications().stream()
+                .filter(app -> app.getApplicationId().equals(config.getApplicationName()))
+                .findFirst();
+
+        applicationOptional.ifPresent(app -> config.setApplicationId(app.getApplicationId()));
+        final boolean applicationExists = applicationOptional.isPresent();
+
+        if (!applicationExists) {
+            final CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
+            assertNotEquals("0", response.getApplicationId());
+            assertEquals(config.getApplicationName(), response.getApplicationId());
+            config.setApplicationId(response.getApplicationId());
+        }
+
+        final GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        final var versionOptional = detail.getVersions().stream()
+                .filter(appVersion -> appVersion.getApplicationVersionId().equals(config.getApplicationVersion()))
+                .findFirst();
+        versionOptional.ifPresent(
+                appVersion -> {
+                    config.setApplicationVersionId(appVersion.getApplicationVersionId());
+                    config.setApplicationKey(appVersion.getApplicationKey());
+                    config.setApplicationSecret(appVersion.getApplicationSecret());
+                });
+        final boolean versionExists = versionOptional.isPresent();
+
+        config.setMasterPublicKey(detail.getMasterPublicKey());
+        if (!versionExists) {
+            final CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
+            assertNotEquals("0", versionResponse.getApplicationVersionId());
+            assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionId());
+            config.setApplicationVersionId(versionResponse.getApplicationVersionId());
+            config.setApplicationKey(versionResponse.getApplicationKey());
+            config.setApplicationSecret(versionResponse.getApplicationSecret());
+        } else {
+            powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
+        }
+        final GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
+        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
+            final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+            request.setApplicationId(config.getApplicationId());
+            request.setActivationRecoveryEnabled(true);
+            request.setRecoveryPostcardEnabled(true);
+            request.setAllowMultipleRecoveryCodes(false);
+            request.setRemotePostcardPublicKey(PowerAuthControllerTestConfig.PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
+            powerAuthClient.updateRecoveryConfig(request);
+        }
+    }
+
+    /**
+     * Creates a new callback URL in the PowerAuth Server and verifies its creation.
+     * <p>
+     * This method creates a callback URL with predefined settings and asserts the response
+     * to ensure the callback URL is successfully created. It returns the response containing
+     * the callback URL details.
+     *
+     * @return the response containing the created callback URL details
+     * @throws Exception if any error occurs during callback URL creation
+     */
+    protected CreateCallbackUrlResponse createCallback() throws Exception {
+        final CreateCallbackUrlRequest callbackUrlRequest = createCallbackUrlRequest();
+        final CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(callbackUrlRequest);
+        assertEquals(PowerAuthControllerTestConfig.CALLBACK_NAME, response.getName());
+        assertEquals(PowerAuthControllerTestConfig.CALLBACK_URL, response.getCallbackUrl());
+        assertEquals(config.getApplicationId(), response.getApplicationId());
+
+        return response;
+    }
+
+    /**
+     * Removes a specified callback URL from the PowerAuth Server.
+     * <p>
+     * This method deletes a callback URL using its ID and verifies the removal by asserting
+     * the response.
+     *
+     * @param callbackId the ID of the callback URL to be removed
+     * @throws Exception if any error occurs during callback URL removal
+     */
+    protected void removeCallback(final String callbackId) throws Exception {
+        final RemoveCallbackUrlRequest removeCallbackUrlRequest = new RemoveCallbackUrlRequest();
+        removeCallbackUrlRequest.setId(callbackId);
+
+        final RemoveCallbackUrlResponse removeCallbackUrlResponse = powerAuthClient.removeCallbackUrl(removeCallbackUrlRequest);
+        assertEquals(callbackId, removeCallbackUrlResponse.getId());
+        assertTrue(removeCallbackUrlResponse.isRemoved());
+    }
+
+    /**
+     * Removes an activation from the PowerAuth Server.
+     * <p>
+     * This method deletes an activation using its ID and verifies the removal by asserting
+     * the response.
+     *
+     * @throws Exception if any error occurs during activation removal
+     */
+    protected void removeActivation() throws Exception {
+        final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
+        removeActivationRequest.setActivationId(config.getActivationId());
+        final RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(removeActivationRequest);
+        assertTrue(removeActivationResponse.isRemoved());
+    }
+
+    /**
+     * Creates a new operation in the PowerAuth Server.
+     * <p>
+     * This method creates an operation with predefined settings and asserts the response
+     * to ensure the operation is successfully created. It returns the response containing
+     * operation details.
+     *
+     * @return the response containing the created operation details
+     * @throws Exception if any error occurs during operation creation
+     */
+    protected OperationDetailResponse createOperation() throws Exception {
+        final OperationDetailResponse operationDetailResponse = powerAuthClient
+                .createOperation(createOperationCreateRequest(false));
+        assertNotNull(operationDetailResponse.getId());
+        assertEquals(OperationStatus.PENDING, operationDetailResponse.getStatus());
+        assertEquals(config.getLoginOperationTemplateName(), operationDetailResponse.getTemplateName());
+        return operationDetailResponse;
+    }
+
+    /**
+     * Creates a new login operation template in the PowerAuth Server.
+     * <p>
+     * This method creates a login operation template with predefined settings. It sets the
+     * template name and ID in the test configuration and asserts the response to ensure
+     * the template is successfully created.
+     *
+     * @throws Exception if any error occurs during operation template creation
+     */
+    protected void createLoginOperationTemplate() throws Exception {
+        final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
+        request.setTemplateName(UUID.randomUUID().toString());
+        request.setOperationType("login");
+        request.getSignatureType().addAll(Arrays.asList(SignatureType.values()));
+        request.setDataTemplate(PowerAuthControllerTestConfig.DATA);
+        request.setExpiration(300L);
+        request.setMaxFailureCount(5L);
+
+        final OperationTemplateDetailResponse operationTemplate = powerAuthClient.createOperationTemplate(request);
+        config.setLoginOperationTemplateName(operationTemplate.getTemplateName());
+        config.setLoginOperationTemplateId(operationTemplate.getId());
+    }
+
+    /**
+     * Converts a string representation of a master public key into its corresponding {@link PublicKey} object.
+     * <p>
+     * This method uses the {@link KeyConvertor} to decode the base64-encoded string representation of the master public key
+     * into a byte array, which is then converted to a {@link PublicKey} object.
+     *
+     * @return The {@link PublicKey} object corresponding to the decoded master public key.
+     * @throws Exception if there is an error during the conversion process.
+     */
+    protected PublicKey wrapPublicKeyString() throws Exception {
+        return keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(config.getMasterPublicKey()));
+    }
+
+    /**
+     * Generates an encrypted request for the Activation Layer 2 using ECIES (Elliptic Curve Integrated Encryption Scheme).
+     * <p>
+     * This method performs the following steps:
+     * <ol>
+     *   <li>Generates a new key pair and converts the public key to a byte array.</li>
+     *   <li>Creates an {@link ActivationLayer2Request} with the activation name and device public key.</li>
+     *   <li>Initializes a {@link ClientEncryptor} for Activation Layer 2 encryption.</li>
+     *   <li>Serializes the {@link ActivationLayer2Request} into a byte array.</li>
+     *   <li>Encrypts the serialized request data using the client encryptor.</li>
+     * </ol>
+     * </p>
+     * The method returns an {@link EncryptedRequest} containing the encrypted request data and additional encryption parameters.
+     *
+     * @param activationName The activation name for the request.
+     * @return The {@link EncryptedRequest} containing the encrypted request data.
+     * @throws Exception if there is an error during the encryption or serialization process.
+     */
+    protected EncryptedRequest generateEncryptedRequestActivationLayer(final String activationName) throws Exception {
+        final KeyPair keyPair = keyGenerator.generateKeyPair();
+        final PublicKey publicKey = keyPair.getPublic();
+        final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);
+        final ActivationLayer2Request requestL2 = new ActivationLayer2Request();
+        requestL2.setActivationName(activationName);
+        requestL2.setDevicePublicKey(Base64.getEncoder().encodeToString(publicKeyBytes));
+
+        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+                EncryptorId.ACTIVATION_LAYER_2,
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new ClientEncryptorSecrets(wrapPublicKeyString(), config.getApplicationSecret())
+        );
+
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        objectMapper.writeValue(baos, requestL2);
+        return clientEncryptor.encryptRequest(baos.toByteArray());
     }
 
 }
