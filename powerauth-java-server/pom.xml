@@ -156,6 +156,14 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+        <!-- To run on Apple M1 architecture -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <scope>runtime</scope>
+            <classifier>osx-aarch_64</classifier>
+        </dependency>
+
         <!-- Test Dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -178,6 +186,13 @@
             <version>${webauthn4j.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-rest-client-spring</artifactId>
+            <scope>test</scope>
+        </dependency>
+
         <dependency>
             <groupId>nl.jqno.equalsverifier</groupId>
             <artifactId>equalsverifier</artifactId>

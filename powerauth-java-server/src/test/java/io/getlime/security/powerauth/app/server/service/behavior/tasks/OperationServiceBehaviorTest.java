@@ -425,6 +425,7 @@ class OperationServiceBehaviorTest {
         final int year = calendar.get(Calendar.YEAR);
         assertEquals(2023, year);
     }
+
     /**
      * Tests the scenario when an application does not exist in the database for pending operations.
      */
@@ -472,6 +473,43 @@ class OperationServiceBehaviorTest {
         assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
     }
 
+    @Test
+    void testOperationApproveWithValidProximityOtp() throws Exception {
+        final OperationDetailResponse operation = createOperation(true);
+        final String operationId = operation.getId();
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationId);
+
+        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+        final String totp = detailResponse.getProximityOtp();
+        assertNotNull(totp);
+
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(operationId);
+        approveRequest.getAdditionalData().put("proximity_otp", totp);
+
+        final OperationUserActionResponse actionResponse = operationService.attemptApproveOperation(approveRequest);
+
+        assertEquals("APPROVED", actionResponse.getResult().toString());
+    }
+
+    @Test
+    void testOperationApproveWithInvalidProximityOtp() throws Exception {
+        final OperationDetailResponse operation = createOperation(true);
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operation.getId());
+
+        final String totp = operationService.getOperation(detailRequest).getProximityOtp();
+        assertNotNull(totp);
+
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
+        approveRequest.getAdditionalData().put("proximity_otp", "1111"); // invalid otp on purpose, it is too short
+
+        final OperationUserActionResponse result = operationService.attemptApproveOperation(approveRequest);
+
+        assertEquals("APPROVAL_FAILED", result.getResult().toString());
+    }
+
     private void createApplication() throws GenericServiceException {
         boolean appExists = applicationService.getApplicationList().getApplications().stream()
                 .anyMatch(app -> app.getApplicationId().equals(APP_ID));
@@ -502,6 +540,25 @@ class OperationServiceBehaviorTest {
             request.setExpiration(300L);
             templateService.createOperationTemplate(request);
         }
+    }
+
+    private OperationDetailResponse createOperation(final boolean proximityOtp) throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(List.of("PA_Tests"));
+        operationCreateRequest.setTemplateName("test-template");
+        operationCreateRequest.setUserId("test-user");
+        operationCreateRequest.setProximityCheckEnabled(proximityOtp);
+        return operationService.createOperation(operationCreateRequest);
+    }
+
+    private static OperationApproveRequest createOperationApproveRequest(final String operationId) {
+        final OperationApproveRequest approveRequest = new OperationApproveRequest();
+        approveRequest.setOperationId(operationId);
+        approveRequest.setUserId("test-user");
+        approveRequest.setApplicationId("PA_Tests");
+        approveRequest.setData("A2");
+        approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
+        return approveRequest;
     }
 
 }
