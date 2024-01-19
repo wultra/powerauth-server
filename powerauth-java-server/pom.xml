@@ -169,6 +169,7 @@
             <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
+
         <!-- For run at Apple M1 architecture -->
         <dependency>
             <groupId>io.netty</groupId>
@@ -178,13 +179,14 @@
         </dependency>
 
         <dependency>
-            <groupId>nl.jqno.equalsverifier</groupId>
-            <artifactId>equalsverifier</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-rest-client-spring</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
         </dependency>
     </dependencies>
 
