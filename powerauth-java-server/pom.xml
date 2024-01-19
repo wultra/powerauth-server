@@ -29,7 +29,7 @@
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.6.0-SNAPSHOT</version>
+        <version>1.7.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -87,7 +87,6 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
-            <version>${powerauth-java-crypto.version}</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.core</groupId>
@@ -104,6 +103,11 @@
         <dependency>
             <groupId>io.getlime.core</groupId>
             <artifactId>http-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- Documentation -->
@@ -122,7 +126,6 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>${bcprov-jdk18on.version}</version>
         </dependency>
 
         <!-- Job Scheduling -->
@@ -167,6 +170,12 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.webauthn4j</groupId>
+            <artifactId>webauthn4j-test</artifactId>
+            <version>${webauthn4j.version}</version>
             <scope>test</scope>
         </dependency>
 
