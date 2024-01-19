@@ -17,18 +17,31 @@
  */
 package io.getlime.security.powerauth.app.server.controller.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
@@ -51,6 +64,10 @@ class PowerAuthControllerTest {
 
     @Autowired
     private PowerAuthControllerTestConfig config;
+    private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final EncryptorFactory encryptorFactory = new EncryptorFactory();
+    private final KeyGenerator keyGenerator = new KeyGenerator();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeAll
     void initializeData() throws Exception {
@@ -349,11 +366,9 @@ class PowerAuthControllerTest {
      * </ol>
      * The test expects a specific error code and message indicating that mandatory fields in the request object are blank.
      * </p>
-     *
-     * @throws Exception if any error occurs during the test execution or if the assertions fail.
      */
     @Test
-    void testUpdateActivation_badRequest() throws Exception {
+    void testUpdateActivation_badRequest() {
         final String expectedErrorMessage = "requestObject.activationId - must not be blank," +
                 " requestObject.activationName - must not be blank, requestObject.externalUserId - must not be blank";
         final String expectedErrorCode = "ERR0024";
@@ -433,36 +448,37 @@ class PowerAuthControllerTest {
     }
 
     /**
-     * Tests the retrieval of operation details.
+     * Tests the creation, reading, and deletion of callback URLs.
      * <p>
-     * This test checks the functionality of fetching details for a specific operation. It proceeds as follows:
+     * This test covers the complete lifecycle of a callback URL within the system, including:
      * <ol>
-     *   <li>Creates a new operation using the provided configuration.</li>
-     *   <li>Constructs a request for operation details, using the operation ID obtained from the previous step.</li>
-     *   <li>Retrieves the operation details by sending the request to the PowerAuth client.</li>
-     *   <li>Asserts that the response contains the correct operation status, data, template name, and ID.</li>
+     *   <li>Creating a new callback URL using the provided configuration.</li>
+     *   <li>Retrieving a list of all callback URLs to confirm the successful creation of the new URL.</li>
+     *   <li>Identifying the created callback URL from the list and verifying its properties.</li>
+     *   <li>Deleting the newly created callback URL and verifying its removal by fetching the list again.</li>
      * </ol>
-     * This test ensures that the operation details are correctly retrieved and match the expected values.
+     * The test ensures that the callback URL is correctly created, listed, and deleted in the system,
+     * and that all associated details are accurately reflected.
      *
-     * @throws Exception if an error occurs in operation creation or detail retrieval, or if the assertions fail.
+     * @throws Exception if an error occurs during the creation, retrieval, or deletion of the callback URL,
+     *                   or if the assertions fail.
      */
     @Test
     void testCreateReadDelete() throws Exception {
         config.createCallback(powerAuthClient);
         final GetCallbackUrlListResponse callbackUrlListResponse = powerAuthClient.getCallbackUrlList(config.getApplicationId());
 
-        boolean callbackFound = false;
-        for (CallbackUrl callback : callbackUrlListResponse.getCallbackUrlList()) {
-            if (PowerAuthControllerTestConfig.CALLBACK_NAME.equals(callback.getName())) {
-                callbackFound = true;
-                assertEquals(PowerAuthControllerTestConfig.CALLBACK_URL, callback.getCallbackUrl());
-                assertEquals(config.getApplicationId(), callback.getApplicationId());
-                assertEquals(1, callback.getAttributes().size());
-                assertEquals("activationId", callback.getAttributes().get(0));
-                config.removeCallback(powerAuthClient, callback.getId());
-            }
-            assertTrue(callbackFound);
-        }
+        assertNotNull(callbackUrlListResponse.getCallbackUrlList());
+        final CallbackUrl foundCallback = callbackUrlListResponse.getCallbackUrlList().stream()
+                .filter(callback -> PowerAuthControllerTestConfig.CALLBACK_NAME.equals(callback.getName()))
+                .findAny()
+                .orElseThrow(() -> new AssertionError("Callback not found"));
+
+        assertEquals(PowerAuthControllerTestConfig.CALLBACK_URL, foundCallback.getCallbackUrl());
+        assertEquals(config.getApplicationId(), foundCallback.getApplicationId());
+        assertEquals(1, foundCallback.getAttributes().size());
+        assertEquals("activationId", foundCallback.getAttributes().get(0));
+        config.removeCallback(powerAuthClient, foundCallback.getId());
     }
 
     /**
@@ -760,12 +776,19 @@ class PowerAuthControllerTest {
     }
 
     /**
-     * Tests the creation of a personalized offline signature payload.
-     * <p>
-     * This test sends a request to create a personalized offline signature payload for a specific activation
-     * and verifies that the response contains the expected offline data and nonce.
+     * Tests the generation of personalized offline signature payloads in the PowerAuth Server.
      *
-     * @throws Exception if the mockMvc.perform operation fails.
+     * <p>This test comprises the following key steps:</p>
+     * <ol>
+     *   <li>Initializes an activation to generate a personalized context for the offline signature.</li>
+     *   <li>Sends a request to generate a personalized offline signature payload, specifying the activation ID and the data to be signed.</li>
+     *   <li>Verifies that the response includes a valid offline data string and a nonce, which are crucial for offline signature processes.</li>
+     *   <li>Ensures clean-up by removing the activation created for the test.</li>
+     * </ol>
+     *
+     * <p>This test is crucial to ensure the PowerAuth Server correctly handles the generation of offline signature payloads that are personalized to a specific activation, typically representing a user or device.</p>
+     *
+     * @throws Exception if any unexpected error occurs during the execution of the test or if the response fails to contain the expected personalized offline data.
      */
     @Test
     void testPersonalizedOfflineSignaturePayload() throws Exception {
@@ -783,39 +806,258 @@ class PowerAuthControllerTest {
         config.removeActivation(powerAuthClient);
     }
 
-
-    // TODO: @jandusil - handle activation verify offline signature test
-   /* *//**
+    /**
      * Tests the verification of an offline signature.
      * <p>
-     * This test sends a signature verification request for an offline signature and checks
-     * if the signature is validated correctly, expecting a false result for the test data.
+     * This method tests the verification process of an offline signature in the PowerAuth system.
+     * It involves several steps:
+     * <ul>
+     *   <li>Initializing activation with configuration settings.</li>
+     *   <li>Generating a public key pair and converting it to byte array.</li>
+     *   <li>Setting up encryption parameters and creating an encrypted activation request.</li>
+     *   <li>Preparing and committing activation using PowerAuth Client.</li>
+     *   <li>Sending a request to verify an offline signature with test data and checking the response.</li>
+     * </ul>
+     * The test expects the verification of the offline signature to be invalid (false) for the provided test data.
+     * </p>
      *
-     * @throws Exception if the mockMvc.perform operation fails.
-     *//*
+     * @throws Exception if there is an issue during the setup or execution of the test, such as failure in activation initialization, encryption, or if the PowerAuth Client encounters an error.
+     */
     @Test
     void testVerifyOfflineSignature() throws Exception {
         config.initActivation(powerAuthClient);
 
-       *//* final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
+        final EncryptedRequest encryptedRequest = config.generateEncryptedRequestActivationLayer(keyGenerator, keyConvertor,
+                objectMapper, encryptorFactory, config.getActivationName());
+
+        final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
+        prepareActivationRequest.setActivationCode(config.getActivationCode());
         prepareActivationRequest.setApplicationKey(config.getApplicationKey());
-        prepareActivationRequest.setActivationCode(config.getActivationId());*//*
-        powerAuthClient.commitActivation(config.getActivationId(), "test");
+        prepareActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        prepareActivationRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
+        prepareActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        prepareActivationRequest.setMac(encryptedRequest.getMac());
+        prepareActivationRequest.setNonce(encryptedRequest.getNonce());
+        prepareActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+
+        final PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(prepareActivationRequest);
+        assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
+
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(config.getActivationId(), null);
+        assertEquals(config.getActivationId(), commitResponse.getActivationId());
 
         final VerifyOfflineSignatureRequest verifyOfflineSignatureRequest =
                 new VerifyOfflineSignatureRequest();
         verifyOfflineSignatureRequest.setActivationId(config.getActivationId());
         verifyOfflineSignatureRequest.setAllowBiometry(false);
         verifyOfflineSignatureRequest.setSignature("123456");
-        verifyOfflineSignatureRequest.setData("A2");
-
+        verifyOfflineSignatureRequest.setData(PowerAuthControllerTestConfig.DATA);
 
         final VerifyOfflineSignatureResponse verifyOfflineSignatureResponse =
                 powerAuthClient.verifyOfflineSignature(verifyOfflineSignatureRequest);
         assertFalse(verifyOfflineSignatureResponse.isSignatureValid());
         assertEquals(config.getActivationId(), verifyOfflineSignatureResponse.getActivationId());
-        config.removeActivation(powerAuthClient);
-    }*/
 
+        config.removeActivation(powerAuthClient);
+    }
+
+    /**
+     * Tests the creation of an activation in the PowerAuth system.
+     * <p>
+     * This test method performs the following steps to verify the activation creation process:
+     * <ol>
+     *   <li>Generates a device key pair and converts the public key to a byte array.</li>
+     *   <li>Creates an activation layer 2 request with the generated public key and activation name.</li>
+     *   <li>Encrypts the activation request using client-side encryption.</li>
+     *   <li>Sends the create activation request to the PowerAuth server with the necessary parameters including the encrypted data and user ID.</li>
+     *   <li>Verifies the creation of the activation by checking the response from the server, ensuring the activation ID, user ID, application ID, and activation status are as expected.</li>
+     *   <li>Retrieves and checks the activation status to ensure it is pending for commit.</li>
+     *   <li>Commits the activation and verifies that the activation process is completed successfully.</li>
+     * </ol>
+     * </p>
+     * The test asserts that the activation is created and transitioned through the expected statuses, from pending commit to active.
+     *
+     * @throws Exception if an error occurs during any step of the activation creation and verification process.
+     */
+    @Test
+    void testCreateActivation() throws Exception {
+        final Date expireDate = Date.from(LocalDateTime.now().plusMinutes(5).atZone(ZoneId.systemDefault()).toInstant());
+        final String activationName = "TEST_ACTIVATION";
+        final EncryptedRequest encryptedRequest = config.generateEncryptedRequestActivationLayer(keyGenerator, keyConvertor,
+                objectMapper, encryptorFactory, activationName);
+
+        final CreateActivationRequest createActivationRequest = new CreateActivationRequest();
+        createActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
+        createActivationRequest.setMaxFailureCount(5L);
+        createActivationRequest.setMac(encryptedRequest.getMac());
+        createActivationRequest.setNonce(encryptedRequest.getNonce());
+        createActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        createActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        createActivationRequest.setTimestampActivationExpire(expireDate);
+        createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        createActivationRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
+        createActivationRequest.setApplicationKey(config.getApplicationKey());
+
+        final CreateActivationResponse createActivationResponse = powerAuthClient.createActivation(createActivationRequest);
+        assertNotNull(createActivationResponse.getActivationId());
+        assertEquals(PowerAuthControllerTestConfig.USER_ID, createActivationResponse.getUserId());
+        assertEquals(config.getApplicationId(), createActivationResponse.getApplicationId());
+        assertEquals(ActivationStatus.PENDING_COMMIT, createActivationResponse.getActivationStatus());
+
+        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(createActivationResponse.getActivationId());
+        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponse.getActivationStatus());
+        assertEquals(createActivationResponse.getActivationId(), statusResponse.getActivationId());
+
+        final CommitActivationResponse commitResponse = powerAuthClient
+                .commitActivation(createActivationResponse.getActivationId(), PowerAuthControllerTestConfig.USER_ID);
+        assertTrue(commitResponse.isActivated());
+        assertEquals(createActivationResponse.getActivationId(), commitResponse.getActivationId());
+    }
+
+    /**
+     * Tests the process of updating an activation OTP (One-Time Password) and committing the activation in PowerAuth system.
+     * <p>
+     * The method performs the following operations:
+     * <ol>
+     *   <li>Initializes an activation with a specific configuration using the PowerAuth client.</li>
+     *   <li>Generates an encrypted request for the activation including necessary parameters like activation name, code, application key, and others.</li>
+     *   <li>Sends a 'prepare activation' request and verifies that the activation status is 'PENDING_COMMIT'.</li>
+     *   <li>Updates the activation OTP by sending an 'update activation OTP' request and checks the response to ensure the OTP update is successful.</li>
+     *   <li>Sends a 'commit activation' request with the updated OTP and verifies that the activation is successfully activated.</li>
+     * </ol>
+     * </p>
+     * This test ensures that the activation can be updated with a new OTP and then successfully committed using this new OTP.
+     *
+     * @throws Exception if an error occurs during the preparation, OTP update, or activation commitment process.
+     */
+    @Test
+    void testUpdateActivationOtpAndCommit() throws Exception {
+        config.initActivation(powerAuthClient);
+        final String activationOtp = "12345678";
+        final EncryptedRequest encryptedRequest = config.generateEncryptedRequestActivationLayer(keyGenerator, keyConvertor,
+                objectMapper, encryptorFactory, config.getActivationName());
+
+        final PrepareActivationRequest prepareActivationRequest = new PrepareActivationRequest();
+        prepareActivationRequest.setActivationCode(config.getActivationCode());
+        prepareActivationRequest.setApplicationKey(config.getApplicationKey());
+        prepareActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
+        prepareActivationRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
+        prepareActivationRequest.setEncryptedData(encryptedRequest.getEncryptedData());
+        prepareActivationRequest.setMac(encryptedRequest.getMac());
+        prepareActivationRequest.setNonce(encryptedRequest.getNonce());
+        prepareActivationRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+
+        final PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(prepareActivationRequest);
+        assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
+
+        final UpdateActivationOtpRequest updateActivationOtpRequest = new UpdateActivationOtpRequest();
+        updateActivationOtpRequest.setActivationId(config.getActivationId());
+        updateActivationOtpRequest.setActivationOtp(activationOtp);
+        updateActivationOtpRequest.setExternalUserId(PowerAuthControllerTestConfig.USER_ID);
+
+        final UpdateActivationOtpResponse otpResponse = powerAuthClient.updateActivationOtp(updateActivationOtpRequest);
+        assertTrue(otpResponse.isUpdated());
+        assertEquals(config.getActivationId(), otpResponse.getActivationId());
+
+        final CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
+        commitActivationRequest.setActivationOtp(activationOtp);
+        commitActivationRequest.setActivationId(config.getActivationId());
+        commitActivationRequest.setExternalUserId(PowerAuthControllerTestConfig.USER_ID);
+
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitActivationRequest);
+        assertTrue(commitResponse.isActivated());
+        assertEquals(config.getActivationId(), commitResponse.getActivationId());
+    }
+
+    /**
+     * Tests the retrieval and utilization of the ECIES (Elliptic Curve Integrated Encryption Scheme) decryptor in the PowerAuth system.
+     * <p>
+     * This test performs the following operations:
+     * <ol>
+     *   <li>Generates test data and encrypts it using the client-side ECIES encryption process.</li>
+     *   <li>Constructs a request to retrieve the ECIES decryptor from the PowerAuth server, including necessary parameters like protocol version, application key, and encrypted data details.</li>
+     *   <li>Sends the request to the PowerAuth server and retrieves the ECIES decryptor response, including the secret key and shared information.</li>
+     *   <li>Decrypts the previously encrypted data using the server-side ECIES decryptor with the retrieved keys and verifies the correctness of the decryption.</li>
+     * </ol>
+     * </p>
+     * The test ensures that the ECIES decryptor can be correctly obtained from the PowerAuth server and used to decrypt data encrypted by the client, validating the integrity and functionality of the ECIES encryption/decryption process.
+     *
+     * @throws Exception if an error occurs during the encryption, decryption, or communication with the PowerAuth server.
+     */
+    @Test
+    void testGetEciesDecryptor() throws Exception {
+        final String requestData = "test_data";
+
+        final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
+                EncryptorId.APPLICATION_SCOPE_GENERIC,
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new ClientEncryptorSecrets(config.wrapPublicKeyString(keyConvertor), config.getApplicationSecret())
+        );
+        final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
+        final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
+        eciesDecryptorRequest.setProtocolVersion(PowerAuthControllerTestConfig.PROTOCOL_VERSION);
+        eciesDecryptorRequest.setActivationId(null);
+        eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
+        eciesDecryptorRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        eciesDecryptorRequest.setNonce(encryptedRequest.getNonce());
+        eciesDecryptorRequest.setTimestamp(encryptedRequest.getTimestamp());
+        final GetEciesDecryptorResponse decryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
+
+        final byte[] secretKey = Base64.getDecoder().decode(decryptorResponse.getSecretKey());
+        final byte[] sharedInfo2Base = Base64.getDecoder().decode(decryptorResponse.getSharedInfo2());
+        final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
+                EncryptorId.APPLICATION_SCOPE_GENERIC,
+                new EncryptorParameters(PowerAuthControllerTestConfig.PROTOCOL_VERSION, config.getApplicationKey(), null),
+                new ServerEncryptorSecrets(secretKey, sharedInfo2Base)
+        );
+        final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
+        assertArrayEquals(requestData.getBytes(StandardCharsets.UTF_8), decryptedData);
+    }
+
+    /**
+     * Tests the retrieval of system status.
+     * <p>
+     * This test verifies the response from the system status endpoint. It checks for expected values
+     * such as application name, status, and display name. Additionally, it ensures the timestamp
+     * returned by the system status is the current date (ignoring the time part).
+     * This is crucial for verifying the system's operational status and basic metadata.
+     * </p>
+     *
+     * @throws Exception if an error occurs during the retrieval of the system status or if any of the assertions fail.
+     */
+    @Test
+    void testSystemStatus() throws Exception {
+        final GetSystemStatusResponse systemStatusResponse = powerAuthClient.getSystemStatus();
+        assertEquals("OK", systemStatusResponse.getStatus());
+        assertEquals("powerauth-server", systemStatusResponse.getApplicationName());
+        assertEquals("PowerAuth Server", systemStatusResponse.getApplicationDisplayName());
+        assertNotNull(systemStatusResponse.getTimestamp());
+        final LocalDate localDateFromResponse = systemStatusResponse.getTimestamp().toInstant()
+                .atZone(ZoneId.systemDefault()).toLocalDate();
+        assertEquals(LocalDate.now(), localDateFromResponse);
+    }
+
+    /**
+     * Tests the retrieval of a list of error codes.
+     * <p>
+     * This test sends a request to obtain a comprehensive list of error codes available in the system.
+     * It verifies that the response contains a list with an expected minimum number of error entries,
+     * ensuring a broad range of error scenarios is covered. The test specifically requests the error
+     * codes in English language, but it can be adapted for other languages if needed.
+     * </p>
+     *
+     * <p>The assertion for the minimum number of entries (more than 32) is based on the current
+     * implementation and may need to be adjusted if the number of error codes changes in future versions.</p>
+     *
+     * @throws Exception if an error occurs during the retrieval of the error list or if the assertion for the minimum number of error entries fails.
+     */
+    @Test
+    void testErrorList() throws Exception {
+        final GetErrorCodeListRequest getErrorCodeListRequest = new GetErrorCodeListRequest();
+        getErrorCodeListRequest.setLanguage(Locale.ENGLISH.getLanguage());
+
+        final GetErrorCodeListResponse errorCodeListResponse = powerAuthClient.getErrorList(getErrorCodeListRequest);
+        assertTrue(errorCodeListResponse.getErrors().size() > 32);
+    }
 
 }
