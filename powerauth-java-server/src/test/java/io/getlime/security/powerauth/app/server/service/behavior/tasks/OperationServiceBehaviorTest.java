@@ -43,8 +43,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.wultra.security.powerauth.client.model.enumeration.UserActionResult.APPROVAL_FAILED;
-import static com.wultra.security.powerauth.client.model.enumeration.UserActionResult.APPROVED;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -491,7 +489,7 @@ class OperationServiceBehaviorTest {
 
         final OperationUserActionResponse actionResponse = operationService.attemptApproveOperation(approveRequest);
 
-        assertEquals(APPROVED, actionResponse.getResult());
+        assertEquals("APPROVED", actionResponse.getResult().toString());
     }
 
     @Test
@@ -509,7 +507,7 @@ class OperationServiceBehaviorTest {
 
         final OperationUserActionResponse result = operationService.attemptApproveOperation(approveRequest);
 
-        assertEquals(APPROVAL_FAILED, result.getResult());
+        assertEquals("APPROVAL_FAILED", result.getResult().toString());
     }
 
     private void createApplication() throws GenericServiceException {
