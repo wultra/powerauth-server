@@ -105,7 +105,7 @@
         <equalsverifier.version>3.15.6</equalsverifier.version>
 
         <!-- Test dependencies -->
-        <webauthn4j.version>0.21.8.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.22.0.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>
