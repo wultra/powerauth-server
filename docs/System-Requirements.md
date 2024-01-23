@@ -60,3 +60,22 @@ You need following software versions:
 Deployment is described in a separate documentation:
 
 - [Docker Images for PowerAuth](https://github.com/wultra/powerauth-docker)
+
+
+## Entropy
+
+The PowerAuth stack is heavy on entropy because of random number generators (RNG) used for cryptography.
+When not enough entropy is available, the whole system may dramatically slow down or even stuck.
+That may happen especially in virtualized environment.
+
+For Linux Kernel lower than 5.4, the minimal required entropy is 256, ideally more than 1024.
+For Linux Kernel 5.4 and higher: the minimal required entropy is 256 (it does not report more anyway).
+
+Command to get available entropy bits:
+
+```shell
+cat /proc/sys/kernel/random/entropy_avail
+```
+
+We recommend using Linux Kernel 5.4 and newer, where `/dev/random` does not block anymore.
+If you must run an older version, consider another source of entropy such as [haveged](https://github.com/jirka-h/haveged).
