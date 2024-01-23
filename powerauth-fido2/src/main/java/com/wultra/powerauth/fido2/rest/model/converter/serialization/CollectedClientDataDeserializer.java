@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -52,7 +53,7 @@ public class CollectedClientDataDeserializer extends StdDeserializer<CollectedCl
     }
 
     @Override
-    public CollectedClientData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) {
+    public CollectedClientData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {
             final String originalTextValue = jsonParser.getText();
             final byte[] decodedClientDataJSON = Base64.getDecoder().decode(originalTextValue);
@@ -60,8 +61,8 @@ public class CollectedClientDataDeserializer extends StdDeserializer<CollectedCl
             collectedClientData.setEncoded(new String(decodedClientDataJSON));
             return collectedClientData;
         } catch (IOException e) {
-            logger.warn(e.getMessage(), e);
-            return null;
+            logger.debug(e.getMessage(), e);
+            throw new Fido2DeserializationException(e.getMessage(), e);
         }
     }
 }

@@ -18,11 +18,11 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
+import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,7 @@ public class AttestationObjectDeserializer extends StdDeserializer<AttestationOb
     }
 
     @Override
-    public AttestationObject deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
+    public AttestationObject deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {
             final String originalTextValue = jsonParser.getText();
             final byte[] decodedAttestationObject = Base64.getDecoder().decode(originalTextValue);
@@ -60,8 +60,8 @@ public class AttestationObjectDeserializer extends StdDeserializer<AttestationOb
             attestationObject.setEncoded(originalTextValue);
             return attestationObject;
         } catch (IOException e) {
-            logger.warn(e.getMessage(), e);
-            return null;
+            logger.debug(e.getMessage(), e);
+            throw new Fido2DeserializationException(e.getMessage(), e);
         }
     }
 
