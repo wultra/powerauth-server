@@ -747,7 +747,6 @@ public class PowerAuthServiceConfiguration {
     /**
      * Sets the sampling probability for tracing.
      * This value determines the proportion of requests that are sampled for tracing purposes.
-     * A higher value increases the number of traced requests, which can provide more detailed insights at the cost of higher resource usage.
      *
      * @param tracingSamplingProbability The tracing sampling probability to be set.
      */

@@ -55,6 +55,12 @@ public class ApplicationConfiguration {
     @Value("${powerauth.admin.service.applicationEnvironment}")
     private String applicationEnvironment;
 
+    /**
+     * Specifies the proportion of requests that are sampled for tracing.
+     */
+    @Value("${management.tracing.sampling.probability}")
+    private double tracingSamplingProbability;
+
     // Getters and setters
 
     public String getPowerAuthServiceUrl() {
@@ -120,4 +126,25 @@ public class ApplicationConfiguration {
     public void setApplicationEnvironment(String applicationEnvironment) {
         this.applicationEnvironment = applicationEnvironment;
     }
+
+    /**
+     * Retrieves the sampling probability for tracing.
+     * This value determines the proportion of requests that are sampled for tracing purposes.
+     *
+     * @return The current tracing sampling probability.
+     */
+    public double getTracingSamplingProbability() {
+        return tracingSamplingProbability;
+    }
+
+    /**
+     * Sets the sampling probability for tracing.
+     * This value determines the proportion of requests that are sampled for tracing purposes.
+     *
+     * @param tracingSamplingProbability The tracing sampling probability to be set.
+     */
+    public void setTracingSamplingProbability(final double tracingSamplingProbability) {
+        this.tracingSamplingProbability = tracingSamplingProbability;
+    }
+
 }
