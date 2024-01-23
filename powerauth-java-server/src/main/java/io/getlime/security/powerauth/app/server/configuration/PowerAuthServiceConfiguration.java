@@ -265,6 +265,12 @@ public class PowerAuthServiceConfiguration {
     private int proximityCheckOtpLength;
 
     /**
+     * Specifies the proportion of requests that are sampled for tracing.
+     */
+    @Value("${management.tracing.sampling.probability}")
+    private double tracingSamplingProbability;
+
+    /**
      * Prepare and configure object mapper.
      * @return Object mapper.
      */
@@ -726,6 +732,27 @@ public class PowerAuthServiceConfiguration {
      */
     public void setProximityCheckOtpLength(int proximityCheckOtpLength) {
         this.proximityCheckOtpLength = proximityCheckOtpLength;
+    }
+
+    /**
+     * Retrieves the sampling probability for tracing.
+     * This value determines the proportion of requests that are sampled for tracing purposes.
+     *
+     * @return The current tracing sampling probability.
+     */
+    public double getTracingSamplingProbability() {
+        return tracingSamplingProbability;
+    }
+
+    /**
+     * Sets the sampling probability for tracing.
+     * This value determines the proportion of requests that are sampled for tracing purposes.
+     * A higher value increases the number of traced requests, which can provide more detailed insights at the cost of higher resource usage.
+     *
+     * @param tracingSamplingProbability The tracing sampling probability to be set.
+     */
+    public void setTracingSamplingProbability(final double tracingSamplingProbability) {
+        this.tracingSamplingProbability = tracingSamplingProbability;
     }
 
     @PostConstruct
