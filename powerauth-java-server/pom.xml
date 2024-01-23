@@ -156,6 +156,16 @@
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-core-micrometer</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+
         <!-- To run on Apple M1 architecture -->
         <dependency>
             <groupId>io.netty</groupId>
