@@ -144,7 +144,7 @@ public class ActivationRecordEntity implements Serializable {
     private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ActivationRecordEntity() {
     }

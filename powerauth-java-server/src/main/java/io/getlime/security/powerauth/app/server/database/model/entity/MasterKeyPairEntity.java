@@ -59,7 +59,7 @@ public class MasterKeyPairEntity implements Serializable {
     private ApplicationEntity application;
 
     /**
-     * Default constructor
+     * No-arg constructor
      */
     public MasterKeyPairEntity() {
     }

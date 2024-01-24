@@ -61,7 +61,7 @@ public class ApplicationEntity implements Serializable {
     private final List<RecoveryCodeEntity> recoveryCodes = new ArrayList<>();
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ApplicationEntity() {
     }

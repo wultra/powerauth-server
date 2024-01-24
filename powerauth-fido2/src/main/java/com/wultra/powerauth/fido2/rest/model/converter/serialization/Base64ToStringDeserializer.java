@@ -43,7 +43,7 @@ public class Base64ToStringDeserializer extends StdDeserializer<String> {
     private static final long serialVersionUID = 2540966716709142276L;
 
     /**
-     * Default deserializer constructor.
+     * No-arg deserializer constructor.
      */
     public Base64ToStringDeserializer() {
         this(null);

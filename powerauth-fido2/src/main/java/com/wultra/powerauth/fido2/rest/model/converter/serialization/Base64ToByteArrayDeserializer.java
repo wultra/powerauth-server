@@ -42,7 +42,7 @@ public class Base64ToByteArrayDeserializer extends StdDeserializer<byte[]> {
     private static final long serialVersionUID = 4519714786533202920L;
 
     /**
-     * Default deserializer constructor.
+     * No-arg deserializer constructor.
      */
     public Base64ToByteArrayDeserializer() {
         this(null);

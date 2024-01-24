@@ -46,7 +46,7 @@ public class AttestationObjectDeserializer extends StdDeserializer<AttestationOb
     private final CBORMapper cborMapper = new CBORMapper();
 
     /**
-     * Default deserializer constructor.
+     * No-arg deserializer constructor.
      */
     public AttestationObjectDeserializer() {
         this(null);

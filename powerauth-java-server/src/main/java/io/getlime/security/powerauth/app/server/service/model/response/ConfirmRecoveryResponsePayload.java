@@ -30,7 +30,7 @@ public class ConfirmRecoveryResponsePayload {
     private boolean alreadyConfirmed;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ConfirmRecoveryResponsePayload() {
     }

@@ -47,7 +47,7 @@ public class CollectedClientDataDeserializer extends StdDeserializer<CollectedCl
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /**
-     * Default deserializer constructor.
+     * No-arg deserializer constructor.
      */
     public CollectedClientDataDeserializer() {
         this(null);

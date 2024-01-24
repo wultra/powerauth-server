@@ -45,7 +45,7 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
     private static final long serialVersionUID = -3598363993363470844L;
 
     /**
-     * Default deserializer constructor.
+     * No-arg deserializer constructor.
      */
     public AttestationStatementDeserializer() {
         this(null);

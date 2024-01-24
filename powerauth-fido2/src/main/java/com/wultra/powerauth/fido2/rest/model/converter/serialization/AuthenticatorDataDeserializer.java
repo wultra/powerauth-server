@@ -54,7 +54,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
     private final CBORMapper cborMapper = new CBORMapper();
 
     /**
-     * Default deserializer constructor.
+     * No-arg deserializer constructor.
      */
     public AuthenticatorDataDeserializer() {
         this(null);
