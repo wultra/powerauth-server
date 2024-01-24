@@ -64,8 +64,8 @@ Deployment is described in a separate documentation:
 
 ## Entropy
 
-The PowerAuth stack is heavy on entropy because of random number generators (RNG) used for cryptography.
-When not enough entropy is available, the whole system may dramatically slow down or even stuck.
+The PowerAuth stack requires significant amount of entropy because of random number generators (RNG) used for cryptography.
+When not enough entropy is available, the whole system may dramatically slow down or even get stuck.
 That may happen especially in virtualized environment.
 
 For Linux Kernel lower than 5.4, the minimal required entropy is 256, ideally more than 1024.
