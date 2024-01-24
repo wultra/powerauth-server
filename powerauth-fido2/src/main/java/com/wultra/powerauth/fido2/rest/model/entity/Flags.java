@@ -21,6 +21,8 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 import lombok.Data;
 
 /**
+ * FIDO2 flags.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

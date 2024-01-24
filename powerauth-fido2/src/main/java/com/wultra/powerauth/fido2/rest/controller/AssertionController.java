@@ -54,12 +54,23 @@ public class AssertionController {
     private final AssertionRequestValidator assertionRequestValidator;
     private final AssertionService assertionService;
 
+    /**
+     * Assertion controller constructor.
+     * @param assertionRequestValidator Assertion request validator.
+     * @param assertionService Assertion service.
+     */
     @Autowired
     public AssertionController(AssertionRequestValidator assertionRequestValidator, AssertionService assertionService) {
         this.assertionRequestValidator = assertionRequestValidator;
         this.assertionService = assertionService;
     }
 
+    /**
+     * Request generating of an assertion challenge for an operation.
+     * @param request Assertion challenge request.
+     * @return Assertion challenge response.
+     * @throws Exception Thrown in case assertion challenge could not be generated.
+     */
     @Operation(
             summary = "Generate an assertion challenge",
             description = "Generate a FIDO2 assertion challenge for an operation."
@@ -76,13 +87,19 @@ public class AssertionController {
         return new ObjectResponse<>(assertionChallengeResponse);
     }
 
+    /**
+     * Verify a FIDO2 assertion for an operation.
+     * @param request Verify an assertion request.
+     * @return Verify an assertion response.
+     * @throws Fido2AuthenticationFailedException Thrown in case assertion validation fails.
+     */
     @Operation(
             summary = "Verify an assertion",
             description = "Verify a FIDO2 assertion for an operation based on an assertion verification request generated and signed by the authenticator."
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Assertion verification succeeded"),
-            @ApiResponse(responseCode = "400", description = "Invalid request or assertion  verification failed"),
+            @ApiResponse(responseCode = "400", description = "Invalid request or assertion verification failed"),
             @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     @PostMapping

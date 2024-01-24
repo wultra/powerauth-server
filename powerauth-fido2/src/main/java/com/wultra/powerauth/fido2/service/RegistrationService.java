@@ -52,6 +52,16 @@ public class RegistrationService {
     private final RegistrationRequestValidator registrationRequestValidator;
     private final CryptographyService cryptographyService;
 
+    /**
+     * Registration service.
+     *
+     * @param authenticatorProvider Authenticator provider.
+     * @param registrationProvider Registration provider.
+     * @param registrationChallengeConverter Registration challenge converter.
+     * @param registrationConverter Registration converter.
+     * @param registrationRequestValidator Registration request validator.
+     * @param cryptographyService Cryptography service.
+     */
     @Autowired
     public RegistrationService(AuthenticatorProvider authenticatorProvider, RegistrationProvider registrationProvider, RegistrationChallengeConverter registrationChallengeConverter, RegistrationConverter registrationConverter, RegistrationRequestValidator registrationRequestValidator, CryptographyService cryptographyService) {
         this.authenticatorProvider = authenticatorProvider;
@@ -62,17 +72,40 @@ public class RegistrationService {
         this.cryptographyService = cryptographyService;
     }
 
-    public RegisteredAuthenticatorsResponse registrationsForUser(String userId, String applicationId) throws Fido2AuthenticationFailedException {
+    /**
+     * List registrations for a user.
+     *
+     * @param userId User identifier.
+     * @param applicationId Application identifier.
+     * @return Registered authenticator list response.
+     * @throws Fido2AuthenticationFailedException In case list request fails.
+     */
+    public RegisteredAuthenticatorsResponse listRegistrationsForUser(String userId, String applicationId) throws Fido2AuthenticationFailedException {
         final RegisteredAuthenticatorsResponse responseObject = new RegisteredAuthenticatorsResponse();
         responseObject.getAuthenticators().addAll(authenticatorProvider.findByUserId(userId, applicationId));
         return responseObject;
     }
 
+    /**
+     * Request a registration challenge.
+     *
+     * @param userId User identifier.
+     * @param applicationId Application identifier.
+     * @return Registration challenge response.
+     * @throws Exception Thrown in case creating challenge fails.
+     */
     public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws Exception {
         final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistration(userId, applicationId);
         return registrationChallengeConverter.fromChallenge(challenge);
     }
 
+    /**
+     * Register an authenticator.
+     *
+     * @param requestObject Registration request.
+     * @return Registration response.
+     * @throws Exception Thrown in case registration fails.
+     */
     public RegistrationResponse register(RegistrationRequest requestObject) throws Exception {
         final String applicationId = requestObject.getApplicationId();
 

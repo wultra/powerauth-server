@@ -26,6 +26,8 @@ import lombok.Data;
 import java.util.List;
 
 /**
+ * Authenticator attestation response.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

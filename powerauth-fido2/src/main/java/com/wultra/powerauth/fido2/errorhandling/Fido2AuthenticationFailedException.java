@@ -30,10 +30,19 @@ public class Fido2AuthenticationFailedException extends Exception {
     @Serial
     private static final long serialVersionUID = -3214199555928548491L;
 
+    /**
+     * Exception constructor with message.
+     * @param message Exception message.
+     */
     public Fido2AuthenticationFailedException(String message) {
         super(message);
     }
 
+    /**
+     * Exception constructor with message and cause.
+     * @param message Exception message.
+     * @param cause Exception cause.
+     */
     public Fido2AuthenticationFailedException(String message, Throwable cause) {
         super(message, cause);
     }

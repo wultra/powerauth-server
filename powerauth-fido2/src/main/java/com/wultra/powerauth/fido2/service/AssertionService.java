@@ -53,6 +53,14 @@ public class AssertionService {
     private final AssertionConverter assertionConverter;
     private final AssertionChallengeConverter assertionChallengeConverter;
 
+    /**
+     * Assertion service constructor.
+     * @param cryptographyService Cryptography service.
+     * @param authenticatorProvider Authenticator provider.
+     * @param assertionProvider Assertion provider.
+     * @param assertionConverter Assertion converter.
+     * @param assertionChallengeConverter Assertion challenge converter.
+     */
     @Autowired
     public AssertionService(CryptographyService cryptographyService, AuthenticatorProvider authenticatorProvider, AssertionProvider assertionProvider, AssertionConverter assertionConverter, AssertionChallengeConverter assertionChallengeConverter) {
         this.cryptographyService = cryptographyService;

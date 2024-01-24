@@ -23,6 +23,8 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
+ * Registration request.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

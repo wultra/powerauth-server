@@ -37,6 +37,11 @@ import java.util.List;
 @Slf4j
 public class AssertionRequestValidator {
 
+    /**
+     * Validate an assertion verification request.
+     * @param request Assertion verification request.
+     * @return Validation result.
+     */
     public String validate(AssertionVerificationRequest request) {
 
         if (request == null || request.getResponse() == null

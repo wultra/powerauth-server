@@ -26,9 +26,40 @@ import com.wultra.powerauth.fido2.rest.model.entity.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 public interface CryptographyService {
+
+    /**
+     * Verify signature for registration.
+     *
+     * @param applicationId Application identifier.
+     * @param clientDataJSON Collected client data.
+     * @param authData Authenticator data.
+     * @param signature Signature bytes.
+     * @param attestedCredentialData Attested credential data.
+     * @return Whether signature verification succeeded.
+     * @throws Exception Thrown in case of a cryptography error.
+     */
     boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AttestedCredentialData attestedCredentialData) throws Exception;
 
+    /**
+     * Verify signature for an assertion.
+     *
+     * @param applicationId Application identifier.
+     * @param authenticatorId Authenticator identifier.
+     * @param clientDataJSON Collected client data.
+     * @param authData Authenticator data.
+     * @param signature Signature bytes.
+     * @param authenticatorDetail Authenticator detail.
+     * @return Whether signature verification succeeded.
+     * @throws Exception Thrown in case of a cryptography error.
+     */
     boolean verifySignatureForAssertion(String applicationId, String authenticatorId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws Exception;
 
+    /**
+     * Convert public key object to bytes.
+     *
+     * @param publicKey Public key object.
+     * @return Public key bytes.
+     * @throws Exception Thrown in case of a cryptography error.
+     */
     byte[] publicKeyToBytes(PublicKeyObject publicKey) throws Exception;
 }

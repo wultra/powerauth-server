@@ -32,6 +32,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class AssertionConverter {
 
+    /**
+     * Convert authenticator detail to assertion verification response.
+     * @param source Authenticator detail.
+     * @param assertionValid Whether assertion is valid.
+     * @return Converted assertion verification response.
+     */
     public AssertionVerificationResponse fromAuthenticatorDetail(AuthenticatorDetail source, boolean assertionValid) {
         if (source == null) {
             return null;

@@ -21,6 +21,8 @@ package com.wultra.powerauth.fido2.rest.model.enumeration;
 import java.util.List;
 
 /**
+ * Attestation format enumeration.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum Fmt {

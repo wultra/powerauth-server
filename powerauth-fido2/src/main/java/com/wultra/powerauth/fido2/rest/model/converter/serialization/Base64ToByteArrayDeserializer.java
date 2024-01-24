@@ -21,29 +21,55 @@ package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
 import java.util.Base64;
 
 /**
+ * Deserializer from Base64 to byte array.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Component
+@Slf4j
 public class Base64ToByteArrayDeserializer extends StdDeserializer<byte[]> {
 
     @Serial
     private static final long serialVersionUID = 4519714786533202920L;
 
+    /**
+     * Default deserializer constructor.
+     */
     public Base64ToByteArrayDeserializer() {
         this(null);
     }
 
+    /**
+     * Deserializer constructor with value class parameter.
+     * @param vc Value class.
+     */
     public Base64ToByteArrayDeserializer(Class<?> vc) {
         super(vc);
     }
 
+    /**
+     * Deserialize data from Base64 to byte array.
+     * @param jsonParser JSON parser.
+     * @param deserializationContext Deserialization context.
+     * @return Deserialized byte array.
+     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
+     */
     @Override
-    public byte[] deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        return Base64.getDecoder().decode(jsonParser.getText());
+    public byte[] deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
+        try {
+            return Base64.getDecoder().decode(jsonParser.getText());
+        }  catch (IOException e) {
+            logger.debug(e.getMessage(), e);
+            throw new Fido2DeserializationException(e.getMessage(), e);
+        }
     }
 }

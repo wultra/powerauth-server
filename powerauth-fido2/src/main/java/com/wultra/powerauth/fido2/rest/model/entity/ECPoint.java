@@ -21,6 +21,8 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 import lombok.Data;
 
 /**
+ * Elliptic curve point coordinates.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

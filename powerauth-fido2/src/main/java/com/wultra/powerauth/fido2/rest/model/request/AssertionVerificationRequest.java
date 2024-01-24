@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Assertion verification request.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

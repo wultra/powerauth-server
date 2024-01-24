@@ -23,6 +23,8 @@ import lombok.Data;
 import java.util.List;
 
 /**
+ * Assertion challenge.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

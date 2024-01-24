@@ -19,6 +19,8 @@
 package com.wultra.powerauth.fido2.rest.model.enumeration;
 
 /**
+ * Signature algorithm enumeration.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum SignatureAlgorithm {

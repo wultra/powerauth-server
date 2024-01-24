@@ -40,6 +40,11 @@ import java.util.List;
 @Slf4j
 public class RegistrationRequestValidator {
 
+    /**
+     * Validate a registration request.
+     * @param request Registration request.
+     * @return Validation result.
+     */
     public String validate(RegistrationRequest request) {
 
         if (request == null) {

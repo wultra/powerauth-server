@@ -19,6 +19,8 @@
 package com.wultra.powerauth.fido2.rest.model.enumeration;
 
 /**
+ * Elliptic curve type enumeration.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 public enum CurveType {

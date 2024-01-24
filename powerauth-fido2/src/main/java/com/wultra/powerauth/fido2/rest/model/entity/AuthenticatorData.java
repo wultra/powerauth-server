@@ -24,6 +24,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 /**
+ * Authenticator data.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

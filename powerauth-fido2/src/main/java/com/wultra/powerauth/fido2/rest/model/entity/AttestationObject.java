@@ -25,6 +25,8 @@ import com.wultra.powerauth.fido2.rest.model.converter.serialization.Authenticat
 import lombok.Data;
 
 /**
+ * Attestation object.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

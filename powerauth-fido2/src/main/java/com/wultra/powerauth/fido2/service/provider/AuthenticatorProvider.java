@@ -30,8 +30,36 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 public interface AuthenticatorProvider {
+
+    /**
+     * Store an authenticator.
+     *
+     * @param applicationId Application identifier.
+     * @param challenge Registration challenge.
+     * @param authenticatorDetail Authenticator detail.
+     * @return Authenticator detail.
+     * @throws Fido2AuthenticationFailedException Thrown in case storing authenticator fails.
+     */
     AuthenticatorDetail storeAuthenticator(String applicationId, String challenge, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException;
+
+    /**
+     * Find an authenticator by a user identifier.
+     *
+     * @param userId User identifier.
+     * @param applicationId Application identifier.
+     * @return Authenticator detail list.
+     * @throws Fido2AuthenticationFailedException Thrown in case lookup fails.
+     */
     List<AuthenticatorDetail> findByUserId(String userId, String applicationId) throws Fido2AuthenticationFailedException;
+
+    /**
+     * Find an authenticator by credential identifier.
+     *
+     * @param credentialId Credential identifier.
+     * @param applicationId Application identifier.
+     * @return Authenticator detail, if found.
+     * @throws Fido2AuthenticationFailedException Thrown in case lookup fails.
+     */
     Optional<AuthenticatorDetail> findByCredentialId(String credentialId, String applicationId) throws Fido2AuthenticationFailedException;
 
 }

@@ -31,10 +31,19 @@ public class Fido2DeserializationException extends IOException {
     @Serial
     private static final long serialVersionUID = 1835532378587759773L;
 
+    /**
+     * Exception constructor with message.
+     * @param message Exception message.
+     */
     public Fido2DeserializationException(String message) {
         super(message);
     }
 
+    /**
+     * Exception constructor with message and cause.
+     * @param message Exception message.
+     * @param cause Exception cause.
+     */
     public Fido2DeserializationException(String message, Throwable cause) {
         super(message, cause);
     }
