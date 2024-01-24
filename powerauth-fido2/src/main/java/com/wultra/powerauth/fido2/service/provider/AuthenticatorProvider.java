@@ -53,7 +53,7 @@ public interface AuthenticatorProvider {
     List<AuthenticatorDetail> findByUserId(String userId, String applicationId) throws Fido2AuthenticationFailedException;
 
     /**
-     * Find an authenticator by credential identifier.
+     * Find an authenticator by a credential identifier.
      *
      * @param credentialId Credential identifier.
      * @param applicationId Application identifier.

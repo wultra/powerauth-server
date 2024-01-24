@@ -28,7 +28,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.*;
 public interface CryptographyService {
 
     /**
-     * Verify signature for registration.
+     * Verify signature for a registration.
      *
      * @param applicationId Application identifier.
      * @param clientDataJSON Collected client data.
