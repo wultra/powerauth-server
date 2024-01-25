@@ -54,11 +54,21 @@ public class RegistrationController {
 
     private final RegistrationService registrationService;
 
+    /**
+     * Registration controller constructor.
+     * @param registrationService Registration service.
+     */
     @Autowired
     public RegistrationController(RegistrationService registrationService) {
         this.registrationService = registrationService;
     }
 
+    /**
+     * Obtain a list of registered FIDO2 authenticators.
+     * @param request Registered authenticators list request.
+     * @return Registered authenticators list response.
+     * @throws Exception Thrown in case registered authenticators list could not be obtained.
+     */
     @Operation(
             summary = "List registered authenticators",
             description = "Obtain a list of registered FIDO2 authenticators for specified user."
@@ -71,10 +81,16 @@ public class RegistrationController {
     @PostMapping("list")
     public ObjectResponse<RegisteredAuthenticatorsResponse> registeredAuthenticators(@Valid @RequestBody ObjectRequest<RegisteredAuthenticatorsRequest> request) throws Exception {
         final RegisteredAuthenticatorsRequest requestObject = request.getRequestObject();
-        final RegisteredAuthenticatorsResponse responseObject = registrationService.registrationsForUser(requestObject.getUserId(), requestObject.getApplicationId());
+        final RegisteredAuthenticatorsResponse responseObject = registrationService.listRegistrationsForUser(requestObject.getUserId(), requestObject.getApplicationId());
         return new ObjectResponse<>(responseObject);
     }
 
+    /**
+     * Request a registration challenge.
+     * @param request Registration challenge request.
+     * @return Registration challenge response.
+     * @throws Exception Thrown in case registration challenge could not be generated.
+     */
     @Operation(
             summary = "Generate a registration challenge",
             description = "Generate a FIDO2 registration challenge for specified user."
@@ -91,6 +107,12 @@ public class RegistrationController {
         return new ObjectResponse<>(responseObject);
     }
 
+    /**
+     * Register an authenticator.
+     * @param request Register an authenticator request.
+     * @return Register an authenticator response.
+     * @throws Exception Thrown in case registration fails.
+     */
     @Operation(
             summary = "Register an authenticator",
             description = "Register a FIDO2 authenticator based on a registration request generated and signed by the authenticator."

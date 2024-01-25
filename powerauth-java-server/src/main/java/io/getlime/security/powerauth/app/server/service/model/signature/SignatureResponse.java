@@ -33,7 +33,7 @@ public class SignatureResponse {
     private SignatureType usedSignatureType;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public SignatureResponse() {
     }

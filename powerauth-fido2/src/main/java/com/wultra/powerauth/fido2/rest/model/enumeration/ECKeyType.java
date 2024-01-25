@@ -19,6 +19,8 @@
 package com.wultra.powerauth.fido2.rest.model.enumeration;
 
 /**
+ * Elliptic key type enumeration.
+ *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public enum ECKeyType {

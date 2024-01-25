@@ -32,6 +32,8 @@ import java.io.Serial;
 import java.util.Base64;
 
 /**
+ * JSON deserializer for the attestation object.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
@@ -43,14 +45,28 @@ public class AttestationObjectDeserializer extends StdDeserializer<AttestationOb
 
     private final CBORMapper cborMapper = new CBORMapper();
 
+    /**
+     * No-arg deserializer constructor.
+     */
     public AttestationObjectDeserializer() {
         this(null);
     }
 
+    /**
+     * Deserializer constructor with value class parameter.
+     * @param vc Value class.
+     */
     public AttestationObjectDeserializer(Class<?> vc) {
         super(vc);
     }
 
+    /**
+     * Deserialize the FIDO2 attestation object from JSON request.
+     * @param jsonParser JSON parser.
+     * @param deserializationContext Deserialization context.
+     * @return Deserialized FIDO2 attestation object.
+     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
+     */
     @Override
     public AttestationObject deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {

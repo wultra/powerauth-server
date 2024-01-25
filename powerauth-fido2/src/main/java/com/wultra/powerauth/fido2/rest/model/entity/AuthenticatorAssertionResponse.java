@@ -27,6 +27,8 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
+ * Authenticator assertion response.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

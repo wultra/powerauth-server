@@ -21,6 +21,7 @@ package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
+ * Deserializer from Base64 to string.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
@@ -39,16 +42,35 @@ public class Base64ToStringDeserializer extends StdDeserializer<String> {
     @Serial
     private static final long serialVersionUID = 2540966716709142276L;
 
+    /**
+     * No-arg deserializer constructor.
+     */
     public Base64ToStringDeserializer() {
         this(null);
     }
 
+    /**
+     * Deserializer constructor with value class parameter.
+     * @param vc Value class.
+     */
     public Base64ToStringDeserializer(Class<?> vc) {
         super(vc);
     }
 
+    /**
+     * Deserialize data from Base64 to string.
+     * @param jsonParser JSON parser.
+     * @param deserializationContext Deserialization context.
+     * @return Deserialized string.
+     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
+     */
     @Override
-    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException {
-        return new String(Base64.getDecoder().decode(jsonParser.getText()), StandardCharsets.UTF_8);
+    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
+        try {
+            return new String(Base64.getDecoder().decode(jsonParser.getText()), StandardCharsets.UTF_8);
+        }  catch (IOException e) {
+            logger.debug(e.getMessage(), e);
+            throw new Fido2DeserializationException(e.getMessage(), e);
+        }
     }
 }

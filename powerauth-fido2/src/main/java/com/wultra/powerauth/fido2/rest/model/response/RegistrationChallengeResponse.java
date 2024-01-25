@@ -21,6 +21,8 @@ package com.wultra.powerauth.fido2.rest.model.response;
 import lombok.Data;
 
 /**
+ * Registration challenge response.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

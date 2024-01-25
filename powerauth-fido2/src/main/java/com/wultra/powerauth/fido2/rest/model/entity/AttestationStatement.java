@@ -22,6 +22,8 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.Data;
 
 /**
+ * Attestation statement.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * List of registered authenticators response.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

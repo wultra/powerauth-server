@@ -38,7 +38,7 @@ public class SignatureData {
     private Integer forcedSignatureVersion;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public SignatureData() {
     }

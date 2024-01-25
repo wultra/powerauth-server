@@ -24,6 +24,8 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.Data;
 
 /**
+ * Class representing a public key object.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

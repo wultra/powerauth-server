@@ -95,7 +95,7 @@ public class SignatureEntity implements Serializable {
     private Date timestampCreated;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public SignatureEntity() {
     }

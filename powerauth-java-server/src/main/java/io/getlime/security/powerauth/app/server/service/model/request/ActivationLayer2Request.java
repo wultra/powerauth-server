@@ -34,7 +34,7 @@ public class ActivationLayer2Request {
     private String deviceInfo;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ActivationLayer2Request() {
     }

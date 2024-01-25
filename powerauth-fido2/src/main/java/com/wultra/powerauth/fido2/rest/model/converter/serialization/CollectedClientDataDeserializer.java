@@ -33,6 +33,8 @@ import java.io.Serial;
 import java.util.Base64;
 
 /**
+ * Deserializer for FIDO2 collected client data.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
@@ -44,14 +46,28 @@ public class CollectedClientDataDeserializer extends StdDeserializer<CollectedCl
     private final ObjectMapper objectMapper = new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+    /**
+     * No-arg deserializer constructor.
+     */
     public CollectedClientDataDeserializer() {
         this(null);
     }
 
+    /**
+     * Deserializer constructor with value class parameter.
+     * @param vc Value class.
+     */
     public CollectedClientDataDeserializer(Class<?> vc) {
         super(vc);
     }
 
+    /**
+     * Deserialized the FIDO2 collected client data.
+     * @param jsonParser JSON parser.
+     * @param deserializationContext Deserialization context.
+     * @return Deserialized FIDO2 collected client data.
+     * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
+     */
     @Override
     public CollectedClientData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {

@@ -28,7 +28,7 @@ package io.getlime.security.powerauth.app.server.service.model.response;
 public class UpgradeResponsePayload {
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public UpgradeResponsePayload() {
     }

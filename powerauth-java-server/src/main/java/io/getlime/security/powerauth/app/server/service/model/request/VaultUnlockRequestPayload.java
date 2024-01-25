@@ -28,7 +28,7 @@ public class VaultUnlockRequestPayload {
     private String reason;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public VaultUnlockRequestPayload() {
     }

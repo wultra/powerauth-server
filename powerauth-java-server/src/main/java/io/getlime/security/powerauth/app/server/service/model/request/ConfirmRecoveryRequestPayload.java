@@ -30,7 +30,7 @@ public class ConfirmRecoveryRequestPayload {
     private String recoveryCode;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ConfirmRecoveryRequestPayload() {
     }

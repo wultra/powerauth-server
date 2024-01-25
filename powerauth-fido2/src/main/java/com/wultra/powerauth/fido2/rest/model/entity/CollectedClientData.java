@@ -26,6 +26,8 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
+ * Collected client data.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

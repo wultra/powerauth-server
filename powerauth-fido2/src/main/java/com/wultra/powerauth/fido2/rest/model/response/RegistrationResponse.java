@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Registration response.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data

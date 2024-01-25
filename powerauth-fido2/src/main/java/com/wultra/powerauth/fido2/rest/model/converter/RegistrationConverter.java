@@ -45,6 +45,14 @@ public class RegistrationConverter {
 
     private final AaguidList aaguidRegistry = new AaguidList();
 
+    /**
+     * Convert registration challenge to authenticator detail.
+     * @param challenge Registration challenge.
+     * @param requestObject Registration request.
+     * @param aaguid AAGUID bytes.
+     * @param publicKey Public key bytes.
+     * @return Authenticator detail, if present.
+     */
     public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, byte[] aaguid, byte[] publicKey) {
         try {
             final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
@@ -70,19 +78,11 @@ public class RegistrationConverter {
         }
     }
 
-    private Map<String, Object> convertExtras(RegistrationRequest requestObject) throws JsonProcessingException {
-        final AuthenticatorParameters authenticatorParameters = requestObject.getAuthenticatorParameters();
-        final Map<String, Object> params = new HashMap<>();
-        params.put("relyingPartyId", authenticatorParameters.getRelyingPartyId());
-        params.put("authenticatorAttachment", authenticatorParameters.getAuthenticatorAttachment());
-        params.put("credentialId", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getCredentialId());
-        params.put("origin", authenticatorParameters.getResponse().getClientDataJSON().getOrigin());
-        params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
-        params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
-        params.put("aaguid", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid());
-        return params;
-    }
-
+    /**
+     * Convert authenticator detail to registration response.
+     * @param source Authenticator detail.
+     * @return Registration response.
+     */
     public RegistrationResponse convertRegistrationResponse(AuthenticatorDetail source) {
         final RegistrationResponse result = new RegistrationResponse();
         result.setUserId(source.getUserId());
@@ -101,4 +101,18 @@ public class RegistrationConverter {
         result.setMaxFailedAttempts(source.getMaxFailedAttempts());
         return result;
     }
+
+    private Map<String, Object> convertExtras(RegistrationRequest requestObject) throws JsonProcessingException {
+        final AuthenticatorParameters authenticatorParameters = requestObject.getAuthenticatorParameters();
+        final Map<String, Object> params = new HashMap<>();
+        params.put("relyingPartyId", authenticatorParameters.getRelyingPartyId());
+        params.put("authenticatorAttachment", authenticatorParameters.getAuthenticatorAttachment());
+        params.put("credentialId", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getCredentialId());
+        params.put("origin", authenticatorParameters.getResponse().getClientDataJSON().getOrigin());
+        params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
+        params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
+        params.put("aaguid", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid());
+        return params;
+    }
+
 }
