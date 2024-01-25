@@ -517,7 +517,7 @@ public class PowerAuthService {
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
             final VerifyOfflineSignatureParameter parameter = convert(request, expectedComponentLength, allowedSignatureTypes, keyConvertor);
             final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(parameter);
-            logger.info("VerifyOfflineSignatureRequest succeeded");
+            logger.info("VerifyOfflineSignatureRequest succeeded, activation ID: {}, signature valid: {}", activationId, response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
