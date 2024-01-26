@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
 import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
 import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
@@ -149,6 +150,13 @@ public class UpgradeServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
+            // Check if protocol is POWERAUTH
+            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+                logger.warn("Invalid protocol in method startUpgrade");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Check if the activation is in correct state and version is 2
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
                 logger.info("Activation state is invalid, activation ID: {}", activationId);
@@ -277,6 +285,13 @@ public class UpgradeServiceBehavior {
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
+
+        // Check if protocol is POWERAUTH
+        if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+            logger.warn("Invalid protocol in method commitUpgrade");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
         // Check if the activation is in correct state and version is 2

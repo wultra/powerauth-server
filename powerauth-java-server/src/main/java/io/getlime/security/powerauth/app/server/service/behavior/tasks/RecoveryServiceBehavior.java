@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCode;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
@@ -308,6 +309,13 @@ public class RecoveryServiceBehavior {
             final RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(activation.getApplication().getId());
             if (recoveryConfigEntity == null || !recoveryConfigEntity.isActivationRecoveryEnabled()) {
                 logger.warn("Activation recovery is disabled");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Check if protocol is POWERAUTH
+            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+                logger.warn("Invalid protocol in method confirmRecoveryCode");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }

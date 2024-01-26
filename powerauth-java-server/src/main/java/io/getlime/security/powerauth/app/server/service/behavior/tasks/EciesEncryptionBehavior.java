@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
@@ -215,6 +216,13 @@ public class EciesEncryptionBehavior {
                 logger.info("Activation does not exist, activation ID: {}", request.getActivationId());
                 // Rollback is not required, database is not used for writing
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            // Check if protocol is POWERAUTH
+            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+                logger.warn("Invalid protocol in method getEciesDecryptorParametersForActivation");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             if (request.getTimestamp() != null) {

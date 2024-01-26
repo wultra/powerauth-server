@@ -2001,6 +2001,13 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
+            // Check if protocol is POWERAUTH
+            if (!Protocols.POWERAUTH.toString().equals(activationEntity.getProtocol())) {
+                logger.warn("Invalid protocol in method createRecoveryCodeForActivation");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Note: the code below expects that application version for given activation has been verified.
             // We want to avoid checking application version twice (once during activation and second time in this method).
             // It is also expected that the activation is a valid activation which has just been created.

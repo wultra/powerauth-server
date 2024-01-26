@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
@@ -266,6 +267,13 @@ public class SignatureSharedServiceBehavior {
      * @throws GenericCryptoException In case of any other cryptography error.
      */
     private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+        // Check if protocol is POWERAUTH
+        if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+            logger.warn("Invalid protocol in method verifySignature");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+
         // Get the server private and device public keys
 
         // Decrypt server private key (depending on encryption mode)

@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -74,6 +75,12 @@ public class AsymmetricSignatureServiceBehavior {
             if (activation == null) {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
                 return false;
+            }
+            // Check if protocol is POWERAUTH
+            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+                logger.warn("Invalid protocol in method verifyECDSASignature");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);

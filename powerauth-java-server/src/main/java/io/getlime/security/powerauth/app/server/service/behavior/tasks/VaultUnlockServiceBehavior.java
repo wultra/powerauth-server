@@ -20,6 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.response.VaultUnlockResponse;
 import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
@@ -140,6 +141,13 @@ public class VaultUnlockServiceBehavior {
                 VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
+            }
+
+            // Check if protocol is POWERAUTH
+            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+                logger.warn("Invalid protocol in method vaultUnlock");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
             // Get the server private key, decrypt it if required

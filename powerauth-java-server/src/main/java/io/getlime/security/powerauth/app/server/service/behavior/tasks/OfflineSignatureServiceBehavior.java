@@ -17,6 +17,7 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
@@ -129,6 +130,13 @@ public class OfflineSignatureServiceBehavior {
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        }
+
+        // Check if protocol is POWERAUTH
+        if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
+            logger.warn("Invalid protocol in method createPersonalizedOfflineSignaturePayload");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
         // Proceed and compute the results
