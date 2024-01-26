@@ -759,7 +759,7 @@ public class PowerAuthService {
             final boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConvertor);
             final VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
             response.setSignatureValid(matches);
-            logger.info("VerifyECDSASignatureRequest succeeded");
+            logger.info("VerifyECDSASignatureRequest succeeded, activation ID: {}, signature valid: {}", activationId, response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
