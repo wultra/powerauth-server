@@ -81,7 +81,9 @@ public class RegistrationController {
     @PostMapping("list")
     public ObjectResponse<RegisteredAuthenticatorsResponse> registeredAuthenticators(@Valid @RequestBody ObjectRequest<RegisteredAuthenticatorsRequest> request) throws Exception {
         final RegisteredAuthenticatorsRequest requestObject = request.getRequestObject();
+        logger.info("RegisteredAuthenticatorsRequest received, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
         final RegisteredAuthenticatorsResponse responseObject = registrationService.listRegistrationsForUser(requestObject.getUserId(), requestObject.getApplicationId());
+        logger.info("RegisteredAuthenticatorsRequest succeeded, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
         return new ObjectResponse<>(responseObject);
     }
 
@@ -103,7 +105,9 @@ public class RegistrationController {
     @PostMapping("challenge")
     public ObjectResponse<RegistrationChallengeResponse> requestRegistrationChallenge(@Valid @RequestBody ObjectRequest<RegistrationChallengeRequest> request) throws Exception {
         final RegistrationChallengeRequest requestObject = request.getRequestObject();
+        logger.info("RegistrationChallengeRequest received, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
         final RegistrationChallengeResponse responseObject = registrationService.requestRegistrationChallenge(requestObject.getUserId(), requestObject.getApplicationId());
+        logger.info("RegistrationChallengeRequest succeeded, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
         return new ObjectResponse<>(responseObject);
     }
 
@@ -125,7 +129,9 @@ public class RegistrationController {
     @PostMapping
     public ObjectResponse<RegistrationResponse> register(@Valid @RequestBody ObjectRequest<RegistrationRequest> request) throws Exception {
         final RegistrationRequest requestObject = request.getRequestObject();
+        logger.info("RegistrationRequest received, application ID: {}, activation name: {}", requestObject.getApplicationId(), requestObject.getActivationName());
         final RegistrationResponse responseObject = registrationService.register(requestObject);
+        logger.info("RegistrationRequest succeeded, application ID: {}, activation name: {}", requestObject.getApplicationId(), requestObject.getActivationName());
         return new ObjectResponse<>(responseObject);
     }
 
