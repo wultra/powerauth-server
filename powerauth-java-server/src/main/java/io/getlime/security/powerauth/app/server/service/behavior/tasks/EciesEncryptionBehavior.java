@@ -17,12 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
@@ -76,6 +74,7 @@ public class EciesEncryptionBehavior {
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
+    private final ActivationContextValidator activationValidator;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
@@ -86,11 +85,12 @@ public class EciesEncryptionBehavior {
     private static final Logger logger = LoggerFactory.getLogger(EciesEncryptionBehavior.class);
 
     @Autowired
-    public EciesEncryptionBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService) {
+    public EciesEncryptionBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
+        this.activationValidator = activationValidator;
     }
 
     /**
@@ -218,12 +218,7 @@ public class EciesEncryptionBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
-            // Check if protocol is POWERAUTH
-            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
-                logger.warn("Invalid protocol in method getEciesDecryptorParametersForActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
             if (request.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
@@ -236,12 +231,7 @@ public class EciesEncryptionBehavior {
                         request.getProtocolVersion());
             }
 
-            // Check if the activation is in correct state
-            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
-                logger.info("Activation is not ACTIVE, activation ID: {}", request.getActivationId());
-                // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
+            activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
             // Lookup the application version and check that it is supported
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());

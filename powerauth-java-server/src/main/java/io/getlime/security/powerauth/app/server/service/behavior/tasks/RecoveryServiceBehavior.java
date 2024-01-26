@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCode;
 import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
@@ -89,6 +88,7 @@ public class RecoveryServiceBehavior {
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
+    private final ActivationContextValidator activationValidator;
 
     // Business logic implementation classes
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
@@ -107,13 +107,14 @@ public class RecoveryServiceBehavior {
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
                                    PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
-                                   ReplayVerificationService replayVerificationService, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
+                                   ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
+        this.activationValidator = activationValidator;
         this.objectMapper = objectMapper;
         this.recoveryPukConverter = recoveryPukConverter;
     }
@@ -313,19 +314,9 @@ public class RecoveryServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            // Check if protocol is POWERAUTH
-            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
-                logger.warn("Invalid protocol in method confirmRecoveryCode");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            // Check if the activation is in ACTIVE state
-            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
-                logger.warn("Activation is not ACTIVE, activation ID: {}", activationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
+            activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();

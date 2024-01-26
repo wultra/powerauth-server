@@ -19,7 +19,6 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveTokenRequest;
@@ -84,6 +83,7 @@ public class TokenBehavior {
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
+    private final ActivationContextValidator activationValidator;
 
     // Business logic implementation classes
     private final ServerTokenGenerator tokenGenerator = new ServerTokenGenerator();
@@ -102,12 +102,13 @@ public class TokenBehavior {
     private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
-    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ObjectMapper objectMapper) {
+    public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
+        this.activationValidator = activationValidator;
         this.objectMapper = objectMapper;
     }
 
@@ -169,19 +170,9 @@ public class TokenBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
-            // Check if protocol is POWERAUTH
-            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
-                logger.warn("Invalid protocol in method createToken");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            // Check if the activation is in correct state
-            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
-                logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
+            activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
 
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
@@ -308,12 +299,7 @@ public class TokenBehavior {
             final ActivationRecordEntity activation = token.getActivation();
             final byte[] tokenSecret = Base64.getDecoder().decode(token.getTokenSecret());
             final boolean isTokenValid;
-            // Check if protocol is POWERAUTH
-            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
-                logger.warn("Invalid protocol in method validateToken");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
             if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
                 logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
                 isTokenValid = false;

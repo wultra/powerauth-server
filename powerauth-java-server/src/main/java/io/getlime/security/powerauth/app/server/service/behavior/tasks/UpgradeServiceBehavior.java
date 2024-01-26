@@ -19,14 +19,12 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.request.CommitUpgradeRequest;
 import com.wultra.security.powerauth.client.model.request.StartUpgradeRequest;
 import com.wultra.security.powerauth.client.model.response.CommitUpgradeResponse;
 import com.wultra.security.powerauth.client.model.response.StartUpgradeResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
@@ -76,6 +74,7 @@ public class UpgradeServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
+    private final ActivationContextValidator activationValidator;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
@@ -93,13 +92,14 @@ public class UpgradeServiceBehavior {
             final LocalizationProvider localizationProvider,
             final ServerPrivateKeyConverter serverPrivateKeyConverter,
             final ReplayVerificationService replayVerificationService,
-            final ObjectMapper objectMapper,
+            ActivationContextValidator activationValidator, final ObjectMapper objectMapper,
             final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
 
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
+        this.activationValidator = activationValidator;
         this.objectMapper = objectMapper;
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
     }
@@ -150,19 +150,11 @@ public class UpgradeServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
 
-            // Check if protocol is POWERAUTH
-            if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
-                logger.warn("Invalid protocol in method startUpgrade");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            // Check if the activation is in correct state and version is 2
-            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
-                logger.info("Activation state is invalid, activation ID: {}", activationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-            }
+            activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
+
+            activationValidator.validateVersion(activation.getVersion(), 2, activationId, localizationProvider);
 
             // Do not verify ctr_data, upgrade response may not be delivered to client, so the client may retry the upgrade
 
@@ -287,19 +279,11 @@ public class UpgradeServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
 
-        // Check if protocol is POWERAUTH
-        if (!Protocols.POWERAUTH.toString().equals(activation.getProtocol())) {
-            logger.warn("Invalid protocol in method commitUpgrade");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+        activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-        // Check if the activation is in correct state and version is 2
-        if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus()) || activation.getVersion() != 2) {
-            logger.info("Activation state is invalid, activation ID: {}", activationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-        }
+        activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
+
+        activationValidator.validateVersion(activation.getVersion(), 2, activationId, localizationProvider);
 
         // Check if the activation hash based counter was generated (upgrade has been started)
         if (activation.getCtrDataBase64() == null) {
