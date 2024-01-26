@@ -414,7 +414,7 @@ public class PowerAuthService {
         try {
             logger.info("VerifySignatureRequest received, activation ID: {}", request.getActivationId());
             final VerifySignatureResponse response = this.verifySignatureImplNonTransaction(request, new ArrayList<>());
-            logger.info("VerifySignatureRequest succeeded");
+            logger.info("VerifySignatureRequest succeeded, activation ID: {}, signature valid: {}", request.getActivationId(), response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -517,7 +517,7 @@ public class PowerAuthService {
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
             final VerifyOfflineSignatureParameter parameter = convert(request, expectedComponentLength, allowedSignatureTypes, keyConvertor);
             final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(parameter);
-            logger.info("VerifyOfflineSignatureRequest succeeded");
+            logger.info("VerifyOfflineSignatureRequest succeeded, activation ID: {}, signature valid: {}", activationId, response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -759,7 +759,7 @@ public class PowerAuthService {
             final boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConvertor);
             final VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
             response.setSignatureValid(matches);
-            logger.info("VerifyECDSASignatureRequest succeeded");
+            logger.info("VerifyECDSASignatureRequest succeeded, activation ID: {}, signature valid: {}", activationId, response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -1163,7 +1163,7 @@ public class PowerAuthService {
         try {
             logger.info("ValidateTokenRequest received, token ID: {}", request.getTokenId());
             final ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
-            logger.info("ValidateTokenRequest succeeded");
+            logger.info("ValidateTokenRequest succeeded, token ID: {}, token valid: {}", request.getTokenId(), response.isTokenValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
