@@ -111,6 +111,8 @@ public class ActivationServiceBehavior {
 
     private final ReplayVerificationService replayVerificationService;
 
+    private final ActivationContextValidator activationValidator;
+
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
@@ -127,10 +129,11 @@ public class ActivationServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ReplayVerificationService eciesreplayPersistenceService, ObjectMapper objectMapper) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ReplayVerificationService eciesreplayPersistenceService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.replayVerificationService = eciesreplayPersistenceService;
+        this.activationValidator = activationValidator;
         this.objectMapper = objectMapper;
     }
 
@@ -2001,12 +2004,7 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            // Check if protocol is POWERAUTH
-            if (!Protocols.POWERAUTH.toString().equals(activationEntity.getProtocol())) {
-                logger.warn("Invalid protocol in method createRecoveryCodeForActivation");
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+            activationValidator.validatePowerAuthProtocol(activationEntity.getProtocol(), localizationProvider);
 
             // Note: the code below expects that application version for given activation has been verified.
             // We want to avoid checking application version twice (once during activation and second time in this method).
