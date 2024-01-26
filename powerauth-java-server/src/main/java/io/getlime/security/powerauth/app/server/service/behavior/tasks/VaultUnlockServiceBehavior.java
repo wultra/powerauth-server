@@ -85,6 +85,7 @@ public class VaultUnlockServiceBehavior {
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ServiceBehaviorCatalogue behavior;
     private final ReplayVerificationService replayVerificationService;
+    private final ActivationContextValidator activationValidator;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
@@ -97,12 +98,13 @@ public class VaultUnlockServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ReplayVerificationService replayVerificationService, ObjectMapper objectMapper) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.behavior = behavior;
         this.replayVerificationService = replayVerificationService;
+        this.activationValidator = activationValidator;
         this.objectMapper = objectMapper;
     }
 
@@ -141,6 +143,8 @@ public class VaultUnlockServiceBehavior {
                 response.setSignatureValid(false);
                 return response;
             }
+
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
             // Get the server private key, decrypt it if required
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();

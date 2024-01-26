@@ -41,4 +41,13 @@ public enum Protocols {
     public String toString() {
         return protocol;
     }
+
+    public static boolean isPowerAuth(String protocol) {
+        return POWERAUTH.protocol.equals(protocol);
+    }
+
+    public static boolean isFido2(String protocol) {
+        return FIDO2.protocol.equals(protocol);
+    }
+
 }

@@ -47,6 +47,7 @@ public class AsymmetricSignatureServiceBehavior {
 
     private final ActivationRepository activationRepository;
     private final LocalizationProvider localizationProvider;
+    private final ActivationContextValidator activationValidator;
 
     private final SignatureUtils signatureUtils = new SignatureUtils();
 
@@ -54,9 +55,10 @@ public class AsymmetricSignatureServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);
 
     @Autowired
-    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider) {
+    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider, ActivationContextValidator activationValidator) {
         this.activationRepository = activationRepository;
         this.localizationProvider = localizationProvider;
+        this.activationValidator = activationValidator;
     }
 
     /**
@@ -75,6 +77,7 @@ public class AsymmetricSignatureServiceBehavior {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
                 return false;
             }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
             byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
             return signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
