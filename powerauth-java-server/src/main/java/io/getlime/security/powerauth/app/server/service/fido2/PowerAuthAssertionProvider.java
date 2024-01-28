@@ -18,6 +18,8 @@
 
 package io.getlime.security.powerauth.app.server.service.fido2;
 
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
@@ -56,13 +58,17 @@ import java.util.Map;
 @Service
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
+    private static final String AUDIT_TYPE_FIDO2 = "fido2";
+
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;
+    private final AuditingServiceBehavior audit;
 
     @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue) {
+    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit) {
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.repositoryCatalogue = repositoryCatalogue;
+        this.audit = audit;
     }
 
     @Override
@@ -105,6 +111,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest);
             final UserActionResult result = approveOperation.getResult();
             final OperationDetailResponse operation = approveOperation.getOperation();
+            auditAssertionResult(authenticatorDetail, result);
             if (result == UserActionResult.APPROVED) {
                 final AssertionChallenge assertionChallenge = new AssertionChallenge();
                 assertionChallenge.setChallenge(challengeValue);
@@ -141,6 +148,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
             final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().failApprovalOperation(operationFailApprovalRequest);
             final OperationDetailResponse operation = approveOperation.getOperation();
+            auditAssertionResult(authenticatorDetail, approveOperation.getResult());
             handleStatus(operation.getStatus());
             final AssertionChallenge assertionChallenge = new AssertionChallenge();
             assertionChallenge.setChallenge(challengeValue);
@@ -152,6 +160,22 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         } catch (GenericServiceException ex) {
             throw new Fido2AuthenticationFailedException(ex.getMessage(), ex);
         }
+    }
+
+    /**
+     * Audit result of an assertion verification result.
+     * @param authenticator Authenticator detail.
+     * @param result Assertion verification result.
+     */
+    private void auditAssertionResult(final AuthenticatorDetail authenticator, final UserActionResult result) {
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type(AUDIT_TYPE_FIDO2)
+                .param("userId", authenticator.getUserId())
+                .param("applicationId", authenticator.getApplicationId())
+                .param("activationId", authenticator.getActivationId())
+                .param("result", result)
+                .build();
+        audit.log(AuditLevel.INFO, "Assertion result for activation with ID: {}", auditDetail, authenticator.getActivationId());
     }
 
     /**
@@ -196,28 +220,6 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         if (notifyCallbackListeners) {
             serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
         }
-    }
-
-    /**
-     * Implementation of handle inactive activation during signature verification.
-     * @param activation Activation used for signature verification.
-     * @param signatureData Data related to the signature.
-     * @param signatureType Used signature type.
-     * @param currentTimestamp Signature verification timestamp.
-     */
-    private void handleInactiveActivationSignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, SignatureType signatureType, Date currentTimestamp) {
-        // Get ActivationRepository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
-        // Update the last used date
-        activation.setTimestampLastUsed(currentTimestamp);
-
-        // Save the activation
-        activationRepository.save(activation);
-
-        // Create the audit log record
-        final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);
-        serviceBehaviorCatalogue.getAuditingServiceBehavior().logSignatureAuditRecord(activationDto, signatureData, signatureType, false, activation.getVersion(), "activation_invalid_state", currentTimestamp);
     }
 
     /**
