@@ -45,7 +45,7 @@ public interface RegistrationProvider {
      * @return Challenge Information.
      * @throws Exception In case any issue occur during processing.
      */
-    RegistrationChallenge provideChallengeForRegistrationChallengeValue(String applicationId, String challenge) throws Exception;
+    RegistrationChallenge findRegistrationChallengeByValue(String applicationId, String challenge) throws Exception;
 
     /**
      * Revoke existing challenge based on the challenge value.
@@ -54,5 +54,6 @@ public interface RegistrationProvider {
      * @param challengeValue Challenge value.
      * @throws Exception In case any issue occur during processing.
      */
-    void revokeChallengeForRegistrationChallengeValue(String applicationId, String challengeValue) throws Exception;
+    void revokeRegistrationByChallengeValue(String applicationId, String challengeValue) throws Exception;
+
 }

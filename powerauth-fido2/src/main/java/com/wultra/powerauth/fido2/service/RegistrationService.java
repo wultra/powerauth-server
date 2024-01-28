@@ -131,14 +131,14 @@ public class RegistrationService {
             final boolean verifySignature = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, authData, signature, attestedCredentialData);
             if (!verifySignature) {
                 // Immediately revoke the challenge
-                registrationProvider.revokeChallengeForRegistrationChallengeValue(applicationId, challengeValue);
+                registrationProvider.revokeRegistrationByChallengeValue(applicationId, challengeValue);
                 throw new Fido2AuthenticationFailedException("Registration failed");
             }
         } else {
             logger.info("No signature verification on registration");
         }
 
-        final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistrationChallengeValue(applicationId, challengeValue);
+        final RegistrationChallenge challenge = registrationProvider.findRegistrationChallengeByValue(applicationId, challengeValue);
         final Optional<AuthenticatorDetail> authenticatorOptional = registrationConverter.convert(challenge, requestObject, attestedCredentialData.getAaguid(), cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()));
         authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
         final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorOptional.get());
