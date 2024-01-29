@@ -21,6 +21,8 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.core.audit.base.model.AuditDetail;
+import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
@@ -35,6 +37,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Activ
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -60,10 +63,14 @@ import java.util.*;
 @Service
 @Slf4j
 public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
+
+    private static final String AUDIT_TYPE_FIDO2 = "fido2";
+
     private final ApplicationRepository applicationRepository;
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
+    private final AuditingServiceBehavior audit;
 
     private LocalizationProvider localizationProvider;
 
@@ -73,10 +80,11 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
     @Autowired
     public PowerAuthAuthenticatorProvider(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue serviceBehaviorCatalogue,
-                                          ApplicationRepository applicationRepository) {
+                                          ApplicationRepository applicationRepository, AuditingServiceBehavior audit) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.applicationRepository = applicationRepository;
+        this.audit = audit;
     }
 
     @Autowired
@@ -235,6 +243,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             activationResponse.setMaxFailedAttempts(activation.getMaxFailedAttempts());
             activationResponse.setDevicePublicKeyBase64(activation.getDevicePublicKeyBase64());
 
+            auditStoredAuthenticator(activationResponse);
+
             // Generate authenticator detail
             final Optional<AuthenticatorDetail> authenticatorOptional = convert(activationResponse, applicationEntity);
             authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Authenticator object deserialization failed"));
@@ -252,7 +262,24 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         } catch (GenericServiceException e) {
             throw new Fido2AuthenticationFailedException("Generic service exception");
         }
+    }
 
+    /**
+     * Audit stored authenticator for an activation.
+     * @param activation Activation record.
+     */
+    private void auditStoredAuthenticator(Activation activation) {
+        final AuditDetail auditDetail = AuditDetail.builder()
+                .type(AUDIT_TYPE_FIDO2)
+                .param("userId", activation.getUserId())
+                .param("applicationId", activation.getApplicationId())
+                .param("activationId", activation.getActivationId())
+                .param("activationName", activation.getActivationName())
+                .param("externalId", activation.getExternalId())
+                .param("platform", activation.getPlatform())
+                .param("deviceInfo", activation.getDeviceInfo())
+                .build();
+        audit.log(AuditLevel.INFO, "Stored authenticator for activation with ID: {}", auditDetail, activation.getActivationId());
     }
 
     private Optional<AuthenticatorDetail> convert(Activation activation, ApplicationEntity application) {
