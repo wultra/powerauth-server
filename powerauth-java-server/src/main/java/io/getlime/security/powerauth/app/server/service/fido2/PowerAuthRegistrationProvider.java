@@ -74,7 +74,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public RegistrationChallenge findRegistrationChallengeByValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
 
         // Find application
