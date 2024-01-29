@@ -473,6 +473,7 @@ public class ActivationServiceBehavior {
                     response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignature));
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
+                    response.setProtocol(activation.getProtocol());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
                     response.getApplicationRoles().addAll(application.getRoles());
@@ -587,6 +588,7 @@ public class ActivationServiceBehavior {
                     response.setActivationSignature(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
+                    response.setProtocol(activation.getProtocol());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
                     response.getApplicationRoles().addAll(application.getRoles());
@@ -617,6 +619,7 @@ public class ActivationServiceBehavior {
                 response.setApplicationId(null);
                 response.setExtras(null);
                 response.setPlatform(null);
+                response.setProtocol(null);
                 response.setDeviceInfo(null);
                 response.setTimestampCreated(zeroDate);
                 response.setTimestampLastUsed(zeroDate);

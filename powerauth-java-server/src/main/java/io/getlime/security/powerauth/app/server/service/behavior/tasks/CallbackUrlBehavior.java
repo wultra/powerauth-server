@@ -301,6 +301,9 @@ public class CallbackUrlBehavior {
         if (callbackUrlEntity.getAttributes().contains("platform")) {
             callbackData.put("platform", activation.getPlatform());
         }
+        if (callbackUrlEntity.getAttributes().contains("protocol")) {
+            callbackData.put("protocol", activation.getProtocol());
+        }
         if (callbackUrlEntity.getAttributes().contains("activationFlags")) {
             callbackData.put("activationFlags", activation.getFlags());
         }
