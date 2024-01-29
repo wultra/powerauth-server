@@ -38,19 +38,6 @@ public interface AssertionProvider {
      * @param applicationIds List of application ID.
      * @param operationType Type of the operation this challenge is for.
      * @param parameters Operation parameters.
-     * @return Assertion challenge.
-     * @throws Exception In case any issue occur during processing.
-     */
-    default AssertionChallenge provideChallengeForAssertion(List<String> applicationIds, String operationType, Map<String, String> parameters) throws Exception {
-        return provideChallengeForAssertion(applicationIds, operationType, parameters, null);
-    };
-
-    /**
-     * Obtain challenge for authentication.
-     *
-     * @param applicationIds List of application ID.
-     * @param operationType Type of the operation this challenge is for.
-     * @param parameters Operation parameters.
      * @param externalAuthenticationId External ID of operation, i.e., transaction in transaction system.
      * @return Assertion challenge.
      * @throws Exception In case any issue occur during processing.
@@ -76,4 +63,5 @@ public interface AssertionProvider {
      * @throws Fido2AuthenticationFailedException In case assertion approval fails.
      */
     AssertionChallenge failAssertion(String challenge, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException;
+
 }

@@ -74,8 +74,8 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     }
 
     @Override
-    @Transactional
-    public RegistrationChallenge provideChallengeForRegistrationChallengeValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
+    @Transactional(readOnly = true)
+    public RegistrationChallenge findRegistrationChallengeByValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
 
         // Find application
         final Optional<ApplicationEntity> application = repositoryCatalogue.getApplicationRepository().findById(applicationId);
@@ -111,7 +111,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     @Override
     @Transactional
-    public void revokeChallengeForRegistrationChallengeValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
+    public void revokeRegistrationByChallengeValue(String applicationId, String challengeValue) throws Fido2AuthenticationFailedException {
         final Date currentTimestamp = new Date();
 
         // Find application

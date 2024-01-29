@@ -93,7 +93,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public List<AuthenticatorDetail> findByUserId(String userId, String applicationId) throws Fido2AuthenticationFailedException {
 
         // Find application
@@ -122,7 +122,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Optional<AuthenticatorDetail> findByCredentialId(String applicationId, String credentialId) throws Fido2AuthenticationFailedException {
 
         // Find application

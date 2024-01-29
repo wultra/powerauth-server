@@ -62,4 +62,5 @@ public interface CryptographyService {
      * @throws Exception Thrown in case of a cryptography error.
      */
     byte[] publicKeyToBytes(PublicKeyObject publicKey) throws Exception;
+
 }
