@@ -49,7 +49,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("fido2/registrations")
 @Slf4j
-@Tag(name = "FIDO2 Registration Controller", description = "API for FIDO2 authenticator registrations")
+@Tag(name = "FIDO2 Registrations Controller", description = "API for FIDO2 authenticator registrations")
 public class RegistrationController {
 
     private final RegistrationService registrationService;
@@ -81,9 +81,9 @@ public class RegistrationController {
     @PostMapping("list")
     public ObjectResponse<RegisteredAuthenticatorsResponse> registeredAuthenticators(@Valid @RequestBody ObjectRequest<RegisteredAuthenticatorsRequest> request) throws Exception {
         final RegisteredAuthenticatorsRequest requestObject = request.getRequestObject();
-        logger.info("RegisteredAuthenticatorsRequest received, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
+        logger.info("RegisteredAuthenticatorsRequest received, user ID: {}, application ID: {}", requestObject.getUserId(), requestObject.getApplicationId());
         final RegisteredAuthenticatorsResponse responseObject = registrationService.listRegistrationsForUser(requestObject.getUserId(), requestObject.getApplicationId());
-        logger.info("RegisteredAuthenticatorsRequest succeeded, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
+        logger.info("RegisteredAuthenticatorsRequest succeeded, user ID: {}, application ID: {}", requestObject.getUserId(), requestObject.getApplicationId());
         return new ObjectResponse<>(responseObject);
     }
 

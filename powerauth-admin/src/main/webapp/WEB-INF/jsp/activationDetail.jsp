@@ -151,35 +151,57 @@
                         <tr>
                             <c:if test="${platform != null}">
                             <td>
-                                Platform<br>
-                                <c:choose>
-                                    <c:when test="${platform == 'ios'}">
-                                        <span class="black">iOS</span>
-                                    </c:when>
-                                    <c:when test="${platform == 'android'}">
-                                        <span class="black">Android</span>
-                                    </c:when>
-                                    <c:when test="${platform == 'hw'}">
-                                        <span class="black">Hardware Token</span>
-                                    </c:when>
-                                    <c:when test="${platform == 'unknown'}">
-                                        <span class="black">Unknown</span>
-                                    </c:when>
-                                    <c:otherwise>
-                                        <span class="black">${platform}</span>
-                                    </c:otherwise>
-                                </c:choose>
+                                <p>
+                                    Platform<br>
+                                    <c:choose>
+                                        <c:when test="${platform == 'ios'}">
+                                            <span class="black">iOS</span>
+                                        </c:when>
+                                        <c:when test="${platform == 'android'}">
+                                            <span class="black">Android</span>
+                                        </c:when>
+                                        <c:when test="${platform == 'hw'}">
+                                            <span class="black">Hardware Token</span>
+                                        </c:when>
+                                        <c:when test="${platform == 'unknown'}">
+                                            <span class="black">Unknown</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="black">${platform}</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </p>
                             </td>
                             </c:if>
                             <c:if test="${deviceInfo != null}">
                             <td>
-                                User Device Information<br>
-                                <span class="black">
-                                    <c:out value="${deviceInfo}"/>
-                                </span>
+                                <p>
+                                    User Device Information<br>
+                                    <span class="black">
+                                        <c:out value="${deviceInfo}"/>
+                                    </span>
+                                </p>
                             </td>
                             </c:if>
                         </tr>
+                    <tr>
+                        <c:if test="${protocol != null}">
+                            <td>
+                                Protocol<br>
+                                <span class="black">
+                                    <c:out value="${protocol}"/>
+                                </span>
+                            </td>
+                        </c:if>
+                        <c:if test="${externalId != null}">
+                            <td>
+                                External ID<br>
+                                <span class="black">
+                                    <c:out value="${externalId}"/>
+                                </span>
+                            </td>
+                        </c:if>
+                    </tr>
                     <c:if test="${not empty blockedReason}">
                         <tr>
                             <td colspan="2">
