@@ -103,6 +103,7 @@
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
         <equalsverifier.version>3.15.6</equalsverifier.version>
+        <zxing.version>3.5.3</zxing.version>
 
         <!-- Test dependencies -->
         <webauthn4j.version>0.22.1.RELEASE</webauthn4j.version>
@@ -142,6 +143,15 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+
+            <!-- QR code support -->
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>zxing-parent</artifactId>
+                <version>${zxing.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
 
             <dependency>
