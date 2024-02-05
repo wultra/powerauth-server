@@ -71,9 +71,10 @@ The PowerAuth Server uses the following public configuration properties:
 
 
 ## Monitoring and Observability
-| Property                                  | Default | Note                                                              |
-|-------------------------------------------|---------|-------------------------------------------------------------------|
-| `management.tracing.sampling.probability` | `1.0`   | Specifies the proportion of requests that are sampled for tracing |
+| Property                                  | Default | Note                                                                                                                                                                                      |
+|-------------------------------------------|---------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `management.tracing.sampling.probability` | `1.0`   | Specifies the proportion of requests that are sampled for tracing backends (e.g., Zipkin), with a value range from 0.0 (0% of requests are sampled) to 1.0 (100% of requests are sampled) |
+| `management.tracing.enabled`              | `true`  | Enables or disables tracing for the component                                                                                                                                             |
 
 The WAR file includes the `micrometer-registry-prometheus` dependency.
 Discuss its configuration with the [Spring Boot documentation](https://docs.spring.io/spring-boot/docs/3.1.x/reference/html/actuator.html#actuator.metrics).
