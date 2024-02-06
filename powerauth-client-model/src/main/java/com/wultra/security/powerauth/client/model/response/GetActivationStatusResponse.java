@@ -43,6 +43,7 @@ public class GetActivationStatusResponse {
     private String userId;
     private String extras;
     private String protocol;
+    private String externalId;
     private String platform;
     private String deviceInfo;
     private String applicationId;
