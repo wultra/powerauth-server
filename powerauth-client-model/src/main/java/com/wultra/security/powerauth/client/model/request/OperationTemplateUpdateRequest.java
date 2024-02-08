@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
 
@@ -35,6 +37,8 @@ public class OperationTemplateUpdateRequest {
     private Long id;
     private String operationType;
     private String dataTemplate;
+
+    @JsonSetter(nulls = Nulls.SKIP)
     private final List<SignatureType> signatureType = new ArrayList<>();
     private Long maxFailureCount;
     private Long expiration;
