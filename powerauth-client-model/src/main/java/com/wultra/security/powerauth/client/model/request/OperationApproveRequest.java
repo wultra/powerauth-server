@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
 
@@ -37,6 +39,8 @@ public class OperationApproveRequest {
     private String applicationId;
     private String data;
     private SignatureType signatureType;
+
+    @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
 }
