@@ -442,7 +442,7 @@ public class PowerAuthController {
      */
     @PostMapping("/application/config/detail")
     public ObjectResponse<GetApplicationConfigResponse> getApplicationConfig(@RequestBody ObjectRequest<GetApplicationConfigRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.getApplicationConfig(request.getRequestObject()));
+        return new ObjectResponse<>(powerAuthService.getApplicationConfig(request.getRequestObject()));
     }
 
     /**
