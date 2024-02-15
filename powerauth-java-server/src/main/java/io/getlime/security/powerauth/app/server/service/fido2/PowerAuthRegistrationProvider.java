@@ -165,7 +165,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         if (configFmt.isPresent()) {
             List<String> allowedFmts = configFmt.get().getValues();
             if (!allowedFmts.contains(attestationFormat)) {
-                logger.warn("Rejected attestation format for FIDO2 registration: {}" + attestationFormat);
+                logger.warn("Rejected attestation format for FIDO2 registration: {}", attestationFormat);
                 return false;
             }
         }
