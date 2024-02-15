@@ -25,5 +25,5 @@ The data type for column `extras` in table `pa_activation` was changed to `TEXT`
 A new database table `pa_application_config` has been added: 
 - `id` - application configuration row identifier
 - `application_id` - application identifier
-- `key` - configuration key
-- `values` - list of configuration values
+- `config_key` - configuration key
+- `config_values` - list of configuration values
