@@ -45,7 +45,7 @@ import java.util.Optional;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("applicationConfigServiceBehavior")
+@Component
 public class ApplicationConfigServiceBehavior {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfigServiceBehavior.class);

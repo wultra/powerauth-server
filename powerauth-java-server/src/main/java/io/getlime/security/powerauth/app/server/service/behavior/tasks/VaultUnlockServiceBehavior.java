@@ -77,7 +77,7 @@ import java.util.*;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("vaultUnlockServiceBehavior")
+@Component
 public class VaultUnlockServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
