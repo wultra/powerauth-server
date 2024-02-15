@@ -22,6 +22,7 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationConverter;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsResponse;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
@@ -127,13 +128,18 @@ public class RegistrationService {
         final AttestedCredentialData attestedCredentialData = authData.getAttestedCredentialData();
 
         final String fmt = attestationObject.getFmt();
-        if ("packed".equals(fmt)) {
+        final byte[] aaguid = attestationObject.getAuthData().getAttestedCredentialData().getAaguid();
+
+        validateRegistrationRequest(applicationId, fmt, aaguid, challengeValue);
+
+        if (Fmt.FMT_PACKED.getValue().equals(fmt)) {
             final boolean verifySignature = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, authData, signature, attestedCredentialData);
             if (!verifySignature) {
                 // Immediately revoke the challenge
                 registrationProvider.revokeRegistrationByChallengeValue(applicationId, challengeValue);
                 throw new Fido2AuthenticationFailedException("Registration failed");
             }
+            logger.info("Signature verification on registration performed using packed attestation format");
         } else {
             logger.info("No signature verification on registration");
         }
@@ -143,6 +149,15 @@ public class RegistrationService {
         authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
         final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorOptional.get());
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);
+    }
+
+    private void validateRegistrationRequest(final String applicationId, final String attestationFormat, final byte[] aaguid, final String challengeValue) throws Exception {
+        if (!registrationProvider.registrationAllowed(applicationId, attestationFormat, aaguid)) {
+            logger.warn("Invalid request for FIDO2 registration");
+            // Immediately revoke the challenge
+            registrationProvider.revokeRegistrationByChallengeValue(applicationId, challengeValue);
+            throw new Fido2AuthenticationFailedException("Registration failed");
+        }
     }
 
 }

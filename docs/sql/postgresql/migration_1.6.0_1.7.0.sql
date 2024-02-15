@@ -11,7 +11,7 @@ ALTER TABLE pa_activation ALTER COLUMN extras TYPE TEXT USING (extras::TEXT);
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
 -- Create a new table pa_application_config
-CREATE TABLE pa_application_config (id INTEGER NOT NULL, application_id INTEGER NOT NULL, key VARCHAR(255) NOT NULL, values TEXT, CONSTRAINT pa_application_config_pkey PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
+CREATE TABLE pa_application_config (id INTEGER NOT NULL, application_id INTEGER NOT NULL, config_key VARCHAR(255) NOT NULL, config_values TEXT, CONSTRAINT pa_application_config_pkey PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::2::Roman Strobl
 -- Create a new index on pa_application_config(key)

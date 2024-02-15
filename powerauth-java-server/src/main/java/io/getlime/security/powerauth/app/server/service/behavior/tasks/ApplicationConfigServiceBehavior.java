@@ -78,11 +78,6 @@ public class ApplicationConfigServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final List<ApplicationConfigEntity> applicationConfigs = repositoryCatalogue.getApplicationConfigRepository().findByApplicationId(applicationId);
-        if (applicationConfigs.isEmpty()) {
-            logger.info("Application configuration not found, application ID: {}", applicationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
         final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
         response.setApplicationId(applicationId);
         final List<ApplicationConfigurationItem> responseConfigs = new ArrayList<>();

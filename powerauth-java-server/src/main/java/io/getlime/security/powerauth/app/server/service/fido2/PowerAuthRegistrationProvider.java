@@ -21,14 +21,18 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
+import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
+import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -48,6 +53,9 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class PowerAuthRegistrationProvider implements RegistrationProvider {
+
+    private static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
+    private static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
@@ -140,5 +148,40 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
             throw new Fido2AuthenticationFailedException("Activation could not have been removed.", e);
         }
 
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean registrationAllowed(String applicationId, String attestationFormat, byte[] aaguid) throws Exception {
+        final ApplicationConfigServiceBehavior configService = serviceBehaviorCatalogue.getApplicationConfigServiceBehavior();
+        final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
+        configRequest.setApplicationId(applicationId);
+        final GetApplicationConfigResponse configResponse = configService.getApplicationConfig(configRequest);
+        final String aaguidStr = new String(aaguid, StandardCharsets.UTF_8);
+        Optional<ApplicationConfigurationItem> configFmt = configResponse.getApplicationConfigs().stream()
+                .filter(cfg -> CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(cfg.getKey()))
+                .findFirst();
+
+        if (configFmt.isPresent()) {
+            List<String> allowedFmts = configFmt.get().getValues();
+            if (!allowedFmts.contains(attestationFormat)) {
+                logger.warn("Rejected attestation format for FIDO2 registration: {}" + attestationFormat);
+                return false;
+            }
+        }
+
+        Optional<ApplicationConfigurationItem> configAaguids = configResponse.getApplicationConfigs().stream()
+                .filter(cfg -> CONFIG_KEY_ALLOWED_AAGUIDS.equals(cfg.getKey()))
+                .findFirst();
+
+        if (configAaguids.isPresent()) {
+            List<String> allowedAaguids = configAaguids.get().getValues();
+            if (!allowedAaguids.contains(aaguidStr)) {
+                logger.warn("Rejected AAGUID value for FIDO2 registration: {}" + aaguidStr);
+                return false;
+            }
+        }
+
+        return true;
     }
 }

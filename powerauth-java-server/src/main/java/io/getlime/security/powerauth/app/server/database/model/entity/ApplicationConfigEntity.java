@@ -49,10 +49,10 @@ public class ApplicationConfigEntity implements Serializable {
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
 
-    @Column(name = "key", nullable = false)
+    @Column(name = "config_key", nullable = false)
     private String key;
 
-    @Column(name = "values")
+    @Column(name = "config_values")
     @Convert(converter = ListToJsonConverter.class)
     private List<String> values = new ArrayList<>();
 
@@ -164,7 +164,7 @@ public class ApplicationConfigEntity implements Serializable {
                 "rid=" + rid +
                 ", appId='" + application.getId() + '\'' +
                 ", key=" + key +
-                ", value=" + values +
+                ", values=" + values +
                 '}';
     }
 }
