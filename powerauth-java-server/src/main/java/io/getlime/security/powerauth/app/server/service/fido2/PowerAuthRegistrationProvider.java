@@ -177,7 +177,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         if (configAaguids.isPresent()) {
             List<String> allowedAaguids = configAaguids.get().getValues();
             if (!allowedAaguids.contains(aaguidStr)) {
-                logger.warn("Rejected AAGUID value for FIDO2 registration: {}" + aaguidStr);
+                logger.warn("Rejected AAGUID value for FIDO2 registration: {}", aaguidStr);
                 return false;
             }
         }
