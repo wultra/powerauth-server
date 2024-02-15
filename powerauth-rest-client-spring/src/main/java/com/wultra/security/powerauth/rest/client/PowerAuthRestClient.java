@@ -1477,4 +1477,58 @@ public class PowerAuthRestClient implements PowerAuthClient {
         return callV3RestApi("/telemetry/report", request, queryParams, httpHeaders, TelemetryReportResponse.class);
     }
 
+    @Override
+    public CreateApplicationConfigResponse createApplicationConfig(CreateApplicationConfigRequest request) throws PowerAuthClientException {
+        return createApplicationConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public CreateApplicationConfigResponse createApplicationConfig(CreateApplicationConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/application/config/create", request, queryParams, httpHeaders, CreateApplicationConfigResponse.class);
+    }
+
+    @Override
+    public CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<String> values) throws PowerAuthClientException {
+        final CreateApplicationConfigRequest request = new CreateApplicationConfigRequest();
+        request.setApplicationId(applicationId);
+        request.setKey(key);
+        request.setValues(values);
+        return createApplicationConfig(request);
+    }
+
+    @Override
+    public Response removeApplicationConfig(RemoveApplicationConfigRequest request) throws PowerAuthClientException {
+        return removeApplicationConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public Response removeApplicationConfig(RemoveApplicationConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/application/config/remove", request, queryParams, httpHeaders, Response.class);
+    }
+
+    @Override
+    public Response removeApplicationConfig(String applicationId, String key) throws PowerAuthClientException {
+        final RemoveApplicationConfigRequest request = new RemoveApplicationConfigRequest();
+        request.setApplicationId(applicationId);
+        request.setKey(key);
+        return removeApplicationConfig(request);
+    }
+
+    @Override
+    public GetApplicationConfigResponse getApplicationConfig(GetApplicationConfigRequest request) throws PowerAuthClientException {
+        return getApplicationConfig(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
+    }
+
+    @Override
+    public GetApplicationConfigResponse getApplicationConfig(GetApplicationConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/application/config/detail", request, queryParams, httpHeaders, GetApplicationConfigResponse.class);
+    }
+
+    @Override
+    public GetApplicationConfigResponse getApplicationConfig(String applicationId) throws PowerAuthClientException {
+        final GetApplicationConfigRequest request = new GetApplicationConfigRequest();
+        request.setApplicationId(applicationId);
+        return getApplicationConfig(request);
+    }
+
 }
