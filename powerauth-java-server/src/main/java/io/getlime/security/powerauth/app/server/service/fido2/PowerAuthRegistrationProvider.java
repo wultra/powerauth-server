@@ -165,7 +165,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         if (configFmt.isPresent()) {
             List<String> allowedFmts = configFmt.get().getValues();
             if (!allowedFmts.contains(attestationFormat)) {
-                logger.warn("Rejected attestation format for FIDO2 registration: {}" + attestationFormat);
+                logger.warn("Rejected attestation format for FIDO2 registration: {}", attestationFormat);
                 return false;
             }
         }
@@ -177,7 +177,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         if (configAaguids.isPresent()) {
             List<String> allowedAaguids = configAaguids.get().getValues();
             if (!allowedAaguids.contains(aaguidStr)) {
-                logger.warn("Rejected AAGUID value for FIDO2 registration: {}" + aaguidStr);
+                logger.warn("Rejected AAGUID value for FIDO2 registration: {}", aaguidStr);
                 return false;
             }
         }
