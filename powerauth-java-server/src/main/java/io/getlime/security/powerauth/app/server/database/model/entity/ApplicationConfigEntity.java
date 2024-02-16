@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.converter.ListToJsonConverter;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
@@ -33,6 +35,8 @@ import java.util.Objects;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Entity
+@Getter
+@Setter
 @Table(name = "pa_application_config")
 public class ApplicationConfigEntity implements Serializable {
 
@@ -73,72 +77,6 @@ public class ApplicationConfigEntity implements Serializable {
         super();
         this.application = application;
         this.key = key;
-        this.values = values;
-    }
-
-    /**
-     * Get application configuration RID.
-     *
-     * @return Application configuration RID.
-     */
-    public Long getRid() {
-        return rid;
-    }
-
-    /**
-     * Set application configuration RID.
-     *
-     * @param id Application configuration RID.
-     */
-    public void setRid(Long id) {
-        this.rid = id;
-    }
-
-    /**
-     * Get application entity.
-     * @return Application entity.
-     */
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    /**
-     * Set application entity.
-     * @param application Application entity.
-     */
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
-
-    /**
-     * Get application configuration key.
-     * @return Configuration key.
-     */
-    public String getKey() {
-        return key;
-    }
-
-    /**
-     * Set application configuration key.
-     * @param key Configuration key.
-     */
-    public void setKey(String key) {
-        this.key = key;
-    }
-
-    /**
-     * Get application configuration values.
-     * @return Configuration values.
-     */
-    public List<String> getValues() {
-        return values;
-    }
-
-    /**
-     * Set application configuration values.
-     * @param values Configuration values.
-     */
-    public void setValues(List<String> values) {
         this.values = values;
     }
 

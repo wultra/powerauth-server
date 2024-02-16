@@ -84,7 +84,7 @@ public class ApplicationConfigServiceBehavior {
         applicationConfigs.forEach(config -> {
             final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
             item.setKey(config.getKey());
-            item.setValues(List.copyOf(config.getValues()));
+            item.setValues(config.getValues());
             responseConfigs.add(item);
         });
         response.setApplicationConfigs(responseConfigs);
@@ -137,7 +137,7 @@ public class ApplicationConfigServiceBehavior {
         final CreateApplicationConfigResponse response = new CreateApplicationConfigResponse();
         response.setApplicationId(applicationId);
         response.setKey(key);
-        response.setValues(List.copyOf(values));
+        response.setValues(values);
         return response;
     }
 
