@@ -97,7 +97,7 @@
         <swagger-annotations-jakarta.version>2.2.20</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <shedlock.version>5.10.2</shedlock.version>
+        <shedlock.version>5.11.0</shedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.11.0</commons-text.version>
