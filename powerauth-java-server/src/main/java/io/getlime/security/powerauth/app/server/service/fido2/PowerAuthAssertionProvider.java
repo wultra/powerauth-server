@@ -73,10 +73,10 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
     @Override
     @Transactional
-    public AssertionChallenge provideChallengeForAssertion(List<String> applicationIds, String operationType, Map<String, String> parameters, String externalAuthenticationId) throws GenericServiceException {
+    public AssertionChallenge provideChallengeForAssertion(List<String> applicationIds, String templateName, Map<String, String> parameters, String externalAuthenticationId) throws GenericServiceException {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
         operationCreateRequest.setApplications(applicationIds);
-        operationCreateRequest.setTemplateName(operationType);
+        operationCreateRequest.setTemplateName(templateName);
         operationCreateRequest.getParameters().putAll(parameters);
 
         final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);

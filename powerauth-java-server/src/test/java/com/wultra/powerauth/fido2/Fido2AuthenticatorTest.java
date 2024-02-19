@@ -228,7 +228,7 @@ class Fido2AuthenticatorTest {
         // Obtain authentication challenge from PowerAuth server
         final AssertionChallengeRequest challengeRequest = new AssertionChallengeRequest();
         challengeRequest.setApplicationIds(Collections.singletonList(APPLICATION_ID));
-        challengeRequest.setOperationType("login");
+        challengeRequest.setTemplateName("login");
         challengeRequest.setExternalId(UUID.randomUUID().toString());
         final AssertionChallengeResponse challengeResponse = assertionService.requestAssertionChallenge(challengeRequest);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationIds().get(0));
@@ -375,7 +375,7 @@ class Fido2AuthenticatorTest {
         // Obtain authentication challenge from PowerAuth server
         final AssertionChallengeRequest challengeRequest = new AssertionChallengeRequest();
         challengeRequest.setApplicationIds(Collections.singletonList(APPLICATION_ID));
-        challengeRequest.setOperationType("login");
+        challengeRequest.setTemplateName("login");
         challengeRequest.setExternalId(UUID.randomUUID().toString());
         final AssertionChallengeResponse challengeResponse = assertionService.requestAssertionChallenge(challengeRequest);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationIds().get(0));

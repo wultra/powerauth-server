@@ -78,7 +78,7 @@ public class AssertionService {
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
         final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(
-                request.getApplicationIds(), request.getOperationType(), request.getParameters(), request.getExternalId()
+                request.getApplicationIds(), request.getTemplateName(), request.getParameters(), request.getExternalId()
         );
         if (assertionChallenge == null) {
             throw new Fido2AuthenticationFailedException("Unable to obtain challenge with provided parameters.");

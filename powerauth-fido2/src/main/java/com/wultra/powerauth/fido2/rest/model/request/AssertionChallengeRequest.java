@@ -33,11 +33,12 @@ import java.util.Map;
  */
 @Data
 public class AssertionChallengeRequest {
+
     @NotEmpty
     private List<@NotBlank String> applicationIds;
     private String externalId;
     @NotBlank
-    private String operationType;
+    private String templateName;
     private Map<String, String> parameters = new HashMap<>();
 
 }
