@@ -41,7 +41,7 @@ import java.util.*;
 @Data
 public class PowerAuthControllerTestConfig {
 
-    private static final String POWERAUTH_REST_URL = "http://localhost:8080/rest";
+    private static final String POWERAUTH_REST_URL = "http://localhost:9999/rest";
     protected static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
     protected static final String USER_ID = "test-user";
     protected static final String DATA = "A2";
