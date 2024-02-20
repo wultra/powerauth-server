@@ -40,6 +40,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
+
 /**
  * Behavior class implementing management of application configuration.
  *
@@ -106,11 +109,7 @@ public class ApplicationConfigServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (key == null) {
-            logger.warn("Invalid key in createApplicationConfig");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+        validateConfigKey(key);
         final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
         if (appOptional.isEmpty()) {
@@ -155,11 +154,7 @@ public class ApplicationConfigServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        if (key == null) {
-            logger.warn("Invalid key in createApplicationConfig");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
+        validateConfigKey(key);
         final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
         final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
         if (appOptional.isEmpty()) {
@@ -171,6 +166,25 @@ public class ApplicationConfigServiceBehavior {
         final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
         configs.stream().filter(config -> config.getKey().equals(key)).forEach(configRepository::delete);
         return new Response();
+    }
+
+    /**
+     * Validate that the configuration key is valid.
+     * @param key Configuration key.
+     * @throws GenericServiceException Thrown in case configuration key is invalid.
+     */
+    private void validateConfigKey(String key) throws GenericServiceException {
+        if (key == null) {
+            logger.warn("Missing configuration key in FIDO2 request");
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        if (!CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(key)
+                && !CONFIG_KEY_ALLOWED_AAGUIDS.equals(key)) {
+            logger.warn("Unknown configuration key in FIDO2 request: {}", key);
+            // Rollback is not required, error occurs before writing to database
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
     }
 
 }

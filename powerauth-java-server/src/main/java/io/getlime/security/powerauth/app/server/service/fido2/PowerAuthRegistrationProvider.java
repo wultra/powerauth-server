@@ -45,6 +45,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
+
 /**
  * Challenge provider based on the PowerAuth core implementations.
  *
@@ -53,9 +56,6 @@ import java.util.Optional;
 @Service
 @Slf4j
 public class PowerAuthRegistrationProvider implements RegistrationProvider {
-
-    private static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
-    private static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
