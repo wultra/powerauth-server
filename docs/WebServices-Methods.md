@@ -19,6 +19,9 @@ The following `v3` methods are published using the service:
     - [createApplicationVersion](#method-createapplicationversion)
     - [unsupportApplicationVersion](#method-unsupportapplicationversion)
     - [supportApplicationVersion](#method-supportapplicationversion)
+    - [getApplicationConfig](#method-getapplicationconfig)
+    - [createApplicationConfig](#method-createapplicationconfig)
+    - [removeApplicationConfig](#method-removeapplicationconfig)
 - Activation Management
     - [getActivationListForUser](#method-getactivationlistforuser)
     - [initActivation](#method-initactivation)
@@ -342,6 +345,82 @@ REST endpoint: `POST /rest/v3/application/version/support`
 |-----------|------|-------------|
 | `String`  | `applicationVersionId` | An identifier of an application version |
 | `Boolean` | `supported` | Flag indicating if this application is supported |
+
+### Method 'getApplicationConfig'
+
+Get application configuration detail.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/config/detail`
+
+`GetApplicationConfigRequest`
+
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+
+#### Response
+
+`GetApplicationConfigResponse`
+
+| Type      | Name | Description |
+|-----------|------|-------------|
+| `String`  | `applicationId` | An identifier of an application |
+| `List<ApplicationConfigurationItem>` | `applicationConfigs` | List of application configurations |
+
+The `ApplicationConfigurationItem` record contains following parameters: 
+  - `String key` - configuration key name
+  - `List<String> values` - configuration values 
+
+### Method 'createApplicationConfig'
+
+Create application configuration.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/config/create`
+
+`CreateApplicationConfigRequest`
+
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String` | `key` | Application configuration key name |
+| `List<String>` | `values` | Application configuration values |
+
+Following configuration keys are accepted:
+- `fido2_attestation_fmt_allowed` - allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
+- `fido2_aaguids_allowed` - allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
+
+#### Response
+
+`CreateApplicationConfigResponse`
+
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String` | `key` | Application configuration key name |
+| `List<String>` | `values` | Application configuration values |
+
+### Method 'removeApplicationConfig'
+
+Delete an application configuration.
+
+#### Request
+
+REST endpoint: `POST /rest/v3/application/config/remove`
+
+`RemoveApplicationConfigRequest`
+
+| Type     | Name | Description |
+|----------|------|-------------|
+| `String` | `applicationId` | An identifier of an application |
+| `String` | `key` | Application configuration key name |
+
+#### Response
+
+_empty response_
 
 ## Activation management
 

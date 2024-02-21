@@ -86,6 +86,33 @@ CREATE TABLE pa_application_version
 | supported | INT(11) | - | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported)                                               |
 <!-- end -->
 
+<!-- begin database table pa_application_config -->
+### Application Configuration Table
+
+Stores configurations for the applications stored in `pa_application` table.
+
+#### Schema
+
+```sql
+CREATE TABLE pa_application_config
+(
+    id                 INTEGER NOT NULL PRIMARY KEY,
+    application_id     INTEGER NOT NULL,
+    config_key         VARCHAR(255),
+    config_values      TEXT
+);
+```
+
+#### Columns
+
+| Name | Type | Info | Note                                                                                                                                    |
+|------|------|---------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| id | BIGINT(20)  | primary key, autoincrement | Unique application configuration identifier. |
+| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
+| config_key | VARCHAR(255) | index | Configuration key names such as `fido2_attestation_fmt_allowed` and `fido2_aaguids_allowed`. |
+| config_values | TEXT | - | Configuration values serialized in JSON format. |
+<!-- end -->
+
 <!-- begin database table pa_activation -->
 ### Activations Table
 

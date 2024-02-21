@@ -446,6 +446,18 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#createApplicationConfig(CreateApplicationConfigRequest)} method and
+     * return the response.
+     * @param request Create an application configuration.
+     * @return Create application configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PostMapping("/application/config/create")
+    public ObjectResponse<CreateApplicationConfigResponse> createApplicationConfig(@RequestBody ObjectRequest<CreateApplicationConfigRequest> request) throws Exception {
+        return new ObjectResponse<>("OK", powerAuthService.createApplicationConfig(request.getRequestObject()));
+    }
+
+    /**
      * Call {@link PowerAuthService#removeApplicationConfig(RemoveApplicationConfigRequest)} method and
      * return the response.
      * @param request Delete an application configuration.
@@ -456,18 +468,6 @@ public class PowerAuthController {
     public Response removeApplicationConfig(@RequestBody ObjectRequest<RemoveApplicationConfigRequest> request) throws Exception {
         powerAuthService.removeApplicationConfig(request.getRequestObject());
         return new Response();
-    }
-
-    /**
-     * Call {@link PowerAuthService#createApplicationConfig(CreateApplicationConfigRequest)} method and
-     * return the response.
-     * @param request Create an application configuration.
-     * @return Create application configuration response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PostMapping("/application/config/create")
-    public ObjectResponse<CreateApplicationConfigResponse> createApplicationConfig(@RequestBody ObjectRequest<CreateApplicationConfigRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", powerAuthService.createApplicationConfig(request.getRequestObject()));
     }
 
     /**
