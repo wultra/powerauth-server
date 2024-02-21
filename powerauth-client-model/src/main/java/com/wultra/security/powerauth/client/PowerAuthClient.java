@@ -2135,4 +2135,79 @@ public interface PowerAuthClient {
      */
     TelemetryReportResponse requestTelemetryReport(TelemetryReportRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
 
+    /**
+     * Create an application configuration.
+     * @param request Create application configuration request.
+     * @return Create application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    CreateApplicationConfigResponse createApplicationConfig(CreateApplicationConfigRequest request) throws PowerAuthClientException;
+
+    /**
+     * Create an application configuration.
+     * @param request Create application configuration request.
+     * @return Create application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    CreateApplicationConfigResponse createApplicationConfig(CreateApplicationConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Create an application configuration.
+     * @param applicationId Application identifier.
+     * @param key Configuration key.
+     * @param values Configuration values.
+     * @return Create application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    CreateApplicationConfigResponse createApplicationConfig(String applicationId, String key, List<String> values) throws PowerAuthClientException;
+
+    /**
+     * Remove an application configuration record.
+     * @param request Remove application configuration request.
+     * @return Remove application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeApplicationConfig(RemoveApplicationConfigRequest request) throws PowerAuthClientException;
+
+    /**
+     * Remove an application configuration record.
+     * @param request Remove application configuration request.
+     * @return Remove application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeApplicationConfig(RemoveApplicationConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Remove an application configuration record.
+     * @param applicationId Application identifier.
+     * @param key Configuration key.
+     * @return Response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    Response removeApplicationConfig(String applicationId, String key) throws PowerAuthClientException;
+
+    /**
+     * Get application configuration.
+     * @param request Get application configuration request.
+     * @return Application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    GetApplicationConfigResponse getApplicationConfig(GetApplicationConfigRequest request) throws PowerAuthClientException;
+
+    /**
+     * Get application configuration.
+     * @param request Get application configuration request.
+     * @return Application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    GetApplicationConfigResponse getApplicationConfig(GetApplicationConfigRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException;
+
+    /**
+     * Get application configuration.
+     * @param applicationId Application identifier.
+     * @return Application configuration response.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    GetApplicationConfigResponse getApplicationConfig(String applicationId) throws PowerAuthClientException;
+
 }

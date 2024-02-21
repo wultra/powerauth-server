@@ -19,3 +19,15 @@ Following columns have been added to table `pa_activation` for FIDO2 support:
 - `protocol` - protocol enumeration: `powerauth` or `fido2`
 
 The data type for column `extras` in table `pa_activation` was changed to `TEXT` / `CLOB` to support larger data.
+
+### New Database Table for Application Configuration
+
+A new database table `pa_application_config` has been added: 
+- `id` - application configuration row identifier
+- `application_id` - application identifier
+- `config_key` - configuration key
+- `config_values` - list of configuration values
+
+Following parameters can be configured:
+- `fido2_attestation_fmt_allowed` - allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
+- `fido2_aaguids_allowed` - allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed

@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.validator.*;
+import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
@@ -2003,6 +2004,51 @@ public class PowerAuthService {
             logger.debug("Updating activation: {}", request);
             final UpdateActivationNameResponse response = behavior.getActivationServiceBehavior().updateActivationName(request);
             logger.info("UpdateActivationRequest succeeded, activation ID: {}", activationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            logger.info("GetApplicationConfig call received, application ID: {}", applicationId);
+            logger.debug("Obtaining application config: {}", request);
+            final GetApplicationConfigResponse response = behavior.getApplicationConfigServiceBehavior().getApplicationConfig(request);
+            logger.info("GetApplicationConfig succeeded, application ID: {}", applicationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    @Transactional
+    public CreateApplicationConfigResponse createApplicationConfig(final CreateApplicationConfigRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            logger.info("CreateApplicationConfig call received, application ID: {}", applicationId);
+            logger.debug("Creating application config: {}", request);
+            final CreateApplicationConfigResponse response = behavior.getApplicationConfigServiceBehavior().createApplicationConfig(request);
+            logger.info("CreateApplicationConfig succeeded, application ID: {}", applicationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    @Transactional
+    public Response removeApplicationConfig(final RemoveApplicationConfigRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            logger.info("RemoveApplicationConfig call received, application ID: {}", applicationId);
+            logger.debug("Removing application config: {}", request);
+            final Response response = behavior.getApplicationConfigServiceBehavior().removeApplicationConfig(request);
+            logger.info("RemoveApplicationConfig succeeded, application ID: {}", applicationId);
             return response;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);

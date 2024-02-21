@@ -47,9 +47,7 @@ import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.powerauth.fido2.service.RegistrationService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
-import com.wultra.security.powerauth.client.model.request.GetActivationStatusRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import io.getlime.security.powerauth.app.server.Application;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
@@ -64,6 +62,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -103,7 +103,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-   void packedAuthenticatorSuccessTest() throws Exception {
+    void packedAuthenticatorSuccessTest() throws Exception {
         registerCredential();
         authenticate();
     }
@@ -269,6 +269,120 @@ class Fido2AuthenticatorTest {
 
         // Authenticate
         assertThrows(Fido2AuthenticationFailedException.class, () -> assertionService.authenticate(authRequest));
+    }
+
+    @Test
+    void packedAuthenticatorUnsupportedAaguidTest() throws Exception {
+        // Configure server not to allow any AAGUIDs
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
+        requestCreate.setValues(Collections.emptyList());
+        powerAuthService.createApplicationConfig(requestCreate);
+
+        // Registration should fail
+        assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
+
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
+        powerAuthService.removeApplicationConfig(requestRemove);
+    }
+
+    @Test
+    void packedAuthenticatorInvalidAaguidTest() throws Exception {
+        // Configure server not to allow only one AAGUID which differs from registreation request AAGUID
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
+        requestCreate.setValues(List.of("\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001"));
+        powerAuthService.createApplicationConfig(requestCreate);
+
+        // Registration should fail
+        assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
+
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
+        powerAuthService.removeApplicationConfig(requestRemove);
+    }
+
+    @Test
+    void packedAuthenticatorValidAaguidTest() throws Exception {
+        // Configure server not to allow valid AAGUID only
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
+        requestCreate.setValues(List.of("\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"));
+        powerAuthService.createApplicationConfig(requestCreate);
+
+        // Registration should succeed
+        registerCredential();
+
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
+        powerAuthService.removeApplicationConfig(requestRemove);
+    }
+
+    @Test
+    void packedAuthenticatorUnsupportedAttestationFormatTest() throws Exception {
+        // Configure server not to allow any attestation formats
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
+        requestCreate.setValues(Collections.emptyList());
+        powerAuthService.createApplicationConfig(requestCreate);
+
+        // Registration should fail
+        assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
+
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
+        powerAuthService.removeApplicationConfig(requestRemove);
+    }
+
+    @Test
+    void packedAuthenticatorInvalidAttestationFormatTest() throws Exception {
+        // Configure server not to allow only an attestation format which differs from request attestation format
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
+        requestCreate.setValues(List.of("none"));
+        powerAuthService.createApplicationConfig(requestCreate);
+
+        // Registration should fail
+        assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
+
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
+        powerAuthService.removeApplicationConfig(requestRemove);
+    }
+
+    @Test
+    void packedAuthenticatorValidAttestationFormatTest() throws Exception {
+        // Configure server not to allow only an attestation format which matches request attestation format
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
+        requestCreate.setValues(List.of("packed"));
+        powerAuthService.createApplicationConfig(requestCreate);
+
+        // Registration should succeed
+        registerCredential();
+
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
+        powerAuthService.removeApplicationConfig(requestRemove);
     }
 
     private void createApplication() throws Exception {
@@ -458,4 +572,5 @@ class Fido2AuthenticatorTest {
         }
         return ((flags >> position) & 1) == 1;
     }
+
 }

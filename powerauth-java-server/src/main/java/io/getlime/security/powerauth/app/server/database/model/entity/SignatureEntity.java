@@ -137,7 +137,6 @@ public class SignatureEntity implements Serializable {
             Boolean valid,
             Date timestampCreated,
             Integer version) {
-        super();
         this.id = id;
         this.activation = activation;
         this.activationCounter = activationCounter;

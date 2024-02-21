@@ -56,4 +56,14 @@ public interface RegistrationProvider {
      */
     void revokeRegistrationByChallengeValue(String applicationId, String challengeValue) throws Exception;
 
+    /**
+     * Verify registration parameters and determine whether registration is allowed.
+     * @param applicationId Application ID.
+     * @param attestationFormat FIDO2 registration attestation format.
+     * @param aaguid FIDO2 registration AAGUID value.
+     * @return Whether registration is allowed.
+     * @throws Exception In case any issue occur during processing.
+     */
+    boolean registrationAllowed(String applicationId, String attestationFormat, byte[] aaguid) throws Exception;
+
 }

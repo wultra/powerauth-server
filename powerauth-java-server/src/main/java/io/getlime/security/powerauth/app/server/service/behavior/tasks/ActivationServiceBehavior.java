@@ -91,7 +91,7 @@ import java.util.stream.Stream;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component("activationServiceBehavior")
+@Component
 public class ActivationServiceBehavior {
 
     /**

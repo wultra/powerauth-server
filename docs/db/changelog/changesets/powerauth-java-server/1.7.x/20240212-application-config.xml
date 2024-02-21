@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ PowerAuth Server and related software components
+  ~ Copyright (C) 2024 Wultra s.r.o.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published
+  ~ by the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!--  Create table pa_application_config -->
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.7.x/20240212-application-config.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_application_config"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_application_config</comment>
+        <createTable tableName="pa_application_config">
+            <column name="id" type="integer">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="application_id" type="integer">
+                <constraints nullable="false" foreignKeyName="pa_app_config_app_fk" referencedTableName="pa_application" referencedColumnNames="id" />
+            </column>
+            <column name="config_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="config_values" type="text"/>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.7.x/20240212-application-config.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists tableName="pa_application_config" indexName="pa_app_config_key_idx" />
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_application_config(key)</comment>
+        <createIndex tableName="pa_application_config" indexName="pa_app_config_key_idx">
+            <column name="key" />
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/1.7.x/20240212-application-config.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <sequenceExists sequenceName="pa_app_conf_seq"/>
+            </not>
+        </preConditions>
+        <comment>Create a new sequence pa_app_conf_seq</comment>
+        <createSequence sequenceName="pa_app_conf_seq" startValue="1" incrementBy="1" cacheSize="20"/>
+    </changeSet>
+
+</databaseChangeLog>
