@@ -21,6 +21,8 @@ package com.wultra.powerauth.fido2.rest.model.enumeration;
 
 /**
  * FIDO2 configuration key strings.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class Fido2ConfigKeys {
 
