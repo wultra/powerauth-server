@@ -112,6 +112,7 @@ public class RegistrationConverter {
         params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
         params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
         params.put("aaguid", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid());
+        params.put("transports", authenticatorParameters.getResponse().getTransports());
         return params;
     }
 
