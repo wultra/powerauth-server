@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
@@ -35,9 +36,12 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncrypt
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,13 +64,17 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 @Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class PowerAuthControllerTest {
 
-    @Autowired
+    private static final String POWERAUTH_REST_URL = "http://localhost:%d/rest";
+
+    @LocalServerPort
+    private int serverPort;
+
     private PowerAuthClient powerAuthClient;
 
     @Autowired
@@ -78,6 +86,7 @@ class PowerAuthControllerTest {
 
     @BeforeAll
     void initializeData() throws Exception {
+        powerAuthClient = new PowerAuthRestClient(POWERAUTH_REST_URL.formatted(serverPort));
         createApplication();
         createLoginOperationTemplate();
     }
@@ -1112,7 +1121,7 @@ class PowerAuthControllerTest {
      *
      * @throws Exception if any error occurs during activation initialization or verification
      */
-    protected void initActivation() throws Exception {
+    private void initActivation() throws Exception {
         final InitActivationRequest initActivationRequest = new InitActivationRequest();
         initActivationRequest.setUserId(PowerAuthControllerTestConfig.USER_ID);
         initActivationRequest.setApplicationId(config.getApplicationId());
@@ -1143,7 +1152,7 @@ class PowerAuthControllerTest {
      *
      * @throws Exception if any error occurs during application creation or setup
      */
-    protected void createApplication() throws Exception {
+    private void createApplication() throws Exception {
         final GetApplicationListResponse applicationsListResponse = powerAuthClient.getApplicationList();
         final var applicationOptional = applicationsListResponse.getApplications().stream()
                 .filter(app -> app.getApplicationId().equals(config.getApplicationName()))
@@ -1204,7 +1213,7 @@ class PowerAuthControllerTest {
      * @return the response containing the created callback URL details
      * @throws Exception if any error occurs during callback URL creation
      */
-    protected CreateCallbackUrlResponse createCallback() throws Exception {
+    private CreateCallbackUrlResponse createCallback() throws Exception {
         final CreateCallbackUrlRequest callbackUrlRequest = createCallbackUrlRequest();
         final CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(callbackUrlRequest);
         assertEquals(PowerAuthControllerTestConfig.CALLBACK_NAME, response.getName());
@@ -1223,7 +1232,7 @@ class PowerAuthControllerTest {
      * @param callbackId the ID of the callback URL to be removed
      * @throws Exception if any error occurs during callback URL removal
      */
-    protected void removeCallback(final String callbackId) throws Exception {
+    private void removeCallback(final String callbackId) throws Exception {
         final RemoveCallbackUrlRequest removeCallbackUrlRequest = new RemoveCallbackUrlRequest();
         removeCallbackUrlRequest.setId(callbackId);
 
@@ -1240,7 +1249,7 @@ class PowerAuthControllerTest {
      *
      * @throws Exception if any error occurs during activation removal
      */
-    protected void removeActivation() throws Exception {
+    private void removeActivation() throws Exception {
         final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
         removeActivationRequest.setActivationId(config.getActivationId());
         final RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(removeActivationRequest);
@@ -1257,7 +1266,7 @@ class PowerAuthControllerTest {
      * @return the response containing the created operation details
      * @throws Exception if any error occurs during operation creation
      */
-    protected OperationDetailResponse createOperation() throws Exception {
+    private OperationDetailResponse createOperation() throws Exception {
         final OperationDetailResponse operationDetailResponse = powerAuthClient
                 .createOperation(createOperationCreateRequest(false));
         assertNotNull(operationDetailResponse.getId());
@@ -1275,7 +1284,7 @@ class PowerAuthControllerTest {
      *
      * @throws Exception if any error occurs during operation template creation
      */
-    protected void createLoginOperationTemplate() throws Exception {
+    private void createLoginOperationTemplate() throws Exception {
         final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
         request.setTemplateName(UUID.randomUUID().toString());
         request.setOperationType("login");
@@ -1298,7 +1307,7 @@ class PowerAuthControllerTest {
      * @return The {@link PublicKey} object corresponding to the decoded master public key.
      * @throws Exception if there is an error during the conversion process.
      */
-    protected PublicKey wrapPublicKeyString() throws Exception {
+    private PublicKey wrapPublicKeyString() throws Exception {
         return keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(config.getMasterPublicKey()));
     }
 
@@ -1320,7 +1329,7 @@ class PowerAuthControllerTest {
      * @return The {@link EncryptedRequest} containing the encrypted request data.
      * @throws Exception if there is an error during the encryption or serialization process.
      */
-    protected EncryptedRequest generateEncryptedRequestActivationLayer(final String activationName) throws Exception {
+    private EncryptedRequest generateEncryptedRequestActivationLayer(final String activationName) throws Exception {
         final KeyPair keyPair = keyGenerator.generateKeyPair();
         final PublicKey publicKey = keyPair.getPublic();
         final byte[] publicKeyBytes = keyConvertor.convertPublicKeyToBytes(publicKey);

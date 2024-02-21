@@ -17,14 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.controller.api;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
-import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import lombok.Data;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.*;
+import java.util.UUID;
 
 /**
  * Configuration class for PowerAuth Controller tests.
@@ -41,7 +37,6 @@ import java.util.*;
 @Data
 public class PowerAuthControllerTestConfig {
 
-    private static final String POWERAUTH_REST_URL = "http://localhost:9999/rest";
     protected static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
     protected static final String USER_ID = "test-user";
     protected static final String DATA = "A2";
@@ -61,22 +56,5 @@ public class PowerAuthControllerTestConfig {
     private String activationId;
     private String activationCode;
     private String activationName;
-
-    /**
-     * Creates and configures a new {@link PowerAuthClient} bean.
-     * <p>
-     * The method configures and returns a PowerAuthClient instance for interacting with
-     * the PowerAuth Server. It sets up the client with the necessary configurations such as
-     * accepting invalid SSL certificates for testing purposes.
-     *
-     * @return A configured instance of PowerAuthClient
-     * @throws Exception if there is an issue creating the PowerAuthClient instance
-     */
-    @Bean
-    public PowerAuthClient powerAuthClient() throws Exception {
-        final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
-        config.setAcceptInvalidSslCertificate(true);
-        return new PowerAuthRestClient(POWERAUTH_REST_URL);
-    }
 
 }
