@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -59,6 +60,10 @@ import java.util.Map;
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
     private static final String AUDIT_TYPE_FIDO2 = "fido2";
+
+    private static final String ATTR_ACTIVATION_ID = "activationId";
+    private static final String ATTR_APPLICATION_ID = "applicationId";
+    private static final String ATTR_AUTH_FACTOR = "authFactor";
 
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;
@@ -107,7 +112,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationApproveRequest.setApplicationId(authenticatorDetail.getApplicationId());
             operationApproveRequest.setUserId(authenticatorDetail.getUserId());
             operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE); //TODO: Use correct type
-            //operationApproveRequest.getAdditionalData(); // TODO: Use context data from request
+            operationApproveRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, operationApproveRequest.getSignatureType()));
             final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest);
             final UserActionResult result = approveOperation.getResult();
             final OperationDetailResponse operation = approveOperation.getOperation();
@@ -140,7 +145,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
             final OperationFailApprovalRequest operationFailApprovalRequest = new OperationFailApprovalRequest();
             operationFailApprovalRequest.setOperationId(operationId);
-            //operationApproveRequest.getAdditionalData(); // TODO: Use context data from request
+            operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, SignatureType.POSSESSION_KNOWLEDGE));
 
             final ActivationRecordEntity activationWithLock = repositoryCatalogue.getActivationRepository().findActivationWithLock(authenticatorDetail.getActivationId());
 
@@ -220,6 +225,20 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         if (notifyCallbackListeners) {
             serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
         }
+    }
+
+    /**
+     * Prepare map with additional data stored with the operation.
+     * @param authenticatorDetail Authenticator detail.
+     * @param signatureType Used signature type.
+     * @return Additional data map.
+     */
+    private Map<String, Object> prepareAdditionalData(final AuthenticatorDetail authenticatorDetail, final SignatureType signatureType) {
+        final Map<String, Object> additionalData = new LinkedHashMap<>();
+        additionalData.put(ATTR_ACTIVATION_ID, authenticatorDetail.getActivationId());
+        additionalData.put(ATTR_APPLICATION_ID, authenticatorDetail.getApplicationId());
+        additionalData.put(ATTR_AUTH_FACTOR, signatureType);
+        return additionalData;
     }
 
     /**
