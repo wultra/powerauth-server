@@ -74,7 +74,6 @@ public class ApplicationConfigEntity implements Serializable {
      * @param values       Configuration values.
      */
     public ApplicationConfigEntity(ApplicationEntity application, String key, List<String> values) {
-        super();
         this.application = application;
         this.key = key;
         this.values = values;
