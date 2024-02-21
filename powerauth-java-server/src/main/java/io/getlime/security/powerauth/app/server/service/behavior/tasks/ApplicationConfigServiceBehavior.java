@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ApplicationR
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,9 +50,8 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
+@Slf4j
 public class ApplicationConfigServiceBehavior {
-
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationConfigServiceBehavior.class);
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
