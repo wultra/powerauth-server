@@ -74,7 +74,7 @@ public class ListToJsonConverter implements AttributeConverter<List<String>, Str
         try {
             return objectMapper.readValue(dbValue, new TypeReference<>() {});
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for attribute list, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for attribute list, error: {}", ex.getMessage(), ex);
             return Collections.emptyList();
         }
     }
