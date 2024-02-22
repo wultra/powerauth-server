@@ -45,11 +45,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @Sql
 class OperationRepositoryTest {
 
-    private static final String userId = "testUser";
-    private static final List<String> applicationIds = Arrays.asList("PA_Tests", "PA_Tests2");
-    private static final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
-    private static final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
-    private static final Pageable pageable = PageRequest.of(0, 10);
+    private static final String USER_ID = "testUser";
+    private static final List<String> APPLICATION_IDS = Arrays.asList("PA_Tests", "PA_Tests2", "PA_Tests3");
+    private static final String ACTIVATION_ID1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
+    private static final String ACTIVATION_ID2 = "68c5ca56-b419-4653-949f-49061a4be886";
+    private static final Pageable PAGEABLE = PageRequest.of(0, 10);
 
     @Autowired
     private OperationRepository operationRepository;
@@ -74,13 +74,13 @@ class OperationRepositoryTest {
     @Test
     void testFindOperationsWithActivationIdFilter() {
         final List<OperationEntity> operations1 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId1, null, pageable).toList();
+                findAllOperationsForUser(USER_ID, APPLICATION_IDS, ACTIVATION_ID1, null, PAGEABLE).toList();
 
         assertNotNull(operations1);
         assertEquals(3, operations1.size());
 
         final List<OperationEntity> operations2 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, activationId2, null, pageable).toList();
+                findAllOperationsForUser(USER_ID, APPLICATION_IDS, ACTIVATION_ID2, null, PAGEABLE).toList();
 
         assertNotNull(operations2);
         assertEquals(4, operations2.size());
@@ -92,23 +92,23 @@ class OperationRepositoryTest {
      */
     @Test
     void testFindOperationsWithActivationFlagFilter() {
-        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(activationId1).getFlags();
-        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(activationId2).getFlags();
+        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(ACTIVATION_ID1).getFlags();
+        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(ACTIVATION_ID2).getFlags();
         final List<String> nonExistingFlags = List.of("NOT_EXISTING");
         final List<OperationEntity> operations1 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, null, activationFlags1, pageable).toList();
+                findAllOperationsForUser(USER_ID, APPLICATION_IDS, null, activationFlags1, PAGEABLE).toList();
 
         assertNotNull(operations1);
         assertEquals(6, operations1.size());
 
         final List<OperationEntity> operations2 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, null, activationFlags2, pageable).toList();
+                findAllOperationsForUser(USER_ID, APPLICATION_IDS, null, activationFlags2, PAGEABLE).toList();
 
         assertNotNull(operations2);
         assertEquals(5, operations2.size());
 
         final List<OperationEntity> operations3 = operationRepository.
-                findAllOperationsForUser(userId, applicationIds, null, nonExistingFlags, pageable).toList();
+                findAllOperationsForUser(USER_ID, APPLICATION_IDS, null, nonExistingFlags, PAGEABLE).toList();
 
         assertNotNull(operations3);
         assertEquals(2, operations3.size());
