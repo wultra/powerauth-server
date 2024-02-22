@@ -78,9 +78,9 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds, final Pageable pageable);
 
     @Query("""
-            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT DISTINCT o.id FROM OperationEntity o 
+            SELECT o FROM OperationEntity o 
             WHERE o.timestampExpires < :timestamp
-            AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING)
+            AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING
             ORDER BY o.timestampCreated
             """)
     Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);
