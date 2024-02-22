@@ -49,7 +49,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Optional<OperationEntity> findOperation(String operationId);
 
     @Query("""
-            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT DISTINCT o.id FROM OperationEntity o INNER JOIN o.applications a
+            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT o.id FROM OperationEntity o INNER JOIN o.applications a
             WHERE o.userId = :userId
             AND a.id in :applicationIds
             AND (:activationId IS NULL OR o.activationId IS NULL OR o.activationId = :activationId)
@@ -59,7 +59,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
 
     @Query("""
-            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT DISTINCT o.id FROM OperationEntity o INNER JOIN o.applications a
+            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT o.id FROM OperationEntity o INNER JOIN o.applications a
             WHERE o.userId = :userId
             AND a.id IN :applicationIds
             AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING
@@ -70,7 +70,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
 
     @Query("""
-            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT DISTINCT o.id FROM OperationEntity o INNER JOIN o.applications a 
+            SELECT o FROM OperationEntity o WHERE o.id IN (SELECT o.id FROM OperationEntity o INNER JOIN o.applications a 
             WHERE o.externalId = :externalId
             AND a.id IN :applicationIds)
             ORDER BY o.timestampCreated DESC
