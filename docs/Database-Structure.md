@@ -98,7 +98,7 @@ CREATE TABLE pa_application_config
 (
     id                 INTEGER NOT NULL PRIMARY KEY,
     application_id     INTEGER NOT NULL,
-    config_key         VARCHAR(255),
+    config_key         VARCHAR(255) NOT NULL,
     config_values      TEXT
 );
 ```
