@@ -192,6 +192,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             try {
                 devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
             } catch (InvalidKeySpecException ex) {
+                logger.warn("Invalid public key, activation ID: {}, {}", activation.getActivationId(), ex.getMessage());
+                logger.debug("Invalid public key, activation ID: {}", activation.getActivationId(), ex);
                 handleInvalidPublicKey(activation);
             }
 
@@ -377,7 +379,6 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED);
         serviceBehaviorCatalogue.getActivationHistoryServiceBehavior().saveActivationAndLogChange(activation);
         serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
-        logger.warn("Invalid public key, activation ID: {}", activation.getActivationId());
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
     }
