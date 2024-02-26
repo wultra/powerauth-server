@@ -85,7 +85,7 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
             }
         }
         if (config.getPowerAuthClientToken() != null) {
-            builder.httpBasicAuth().username(config.getPowerAuthClientToken()).password(config.getPowerAuthClientSecret()).build();
+            builder.httpBasicAuth().username(config.getPowerAuthClientToken()).password(config.getPowerAuthClientSecret());
         }
         if (config.getDefaultHttpHeaders() != null) {
             builder.defaultHttpHeaders(config.getDefaultHttpHeaders());
