@@ -82,6 +82,9 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
 
             // Serialize Auth Data
             final byte[] authData = jsonParser.getBinaryValue();
+            if (authData == null) {
+                throw new Fido2DeserializationException("JSON binary value deserialized into null.");
+            }
             result.setEncoded(authData);
 
             // Get RP ID Hash
@@ -131,6 +134,9 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 final byte[] credentialPublicKey = new byte[remainingLength];
                 System.arraycopy(authData, 55 + credentialIdLengthValue, credentialPublicKey, 0, remainingLength);
                 final Map<String, Object> credentialPublicKeyMap = cborMapper.readValue(credentialPublicKey, new TypeReference<>() {});
+                if (credentialPublicKeyMap == null) {
+                    throw new Fido2DeserializationException("JSON credentialPublicKey deserialized into null.");
+                }
 
                 final PublicKeyObject publicKeyObject = new PublicKeyObject();
                 final Integer algorithm = (Integer) credentialPublicKeyMap.get("3");
