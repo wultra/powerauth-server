@@ -49,9 +49,9 @@
                 <indexExists tableName="pa_application_config" indexName="pa_app_config_key_idx" />
             </not>
         </preConditions>
-        <comment>Create a new index on pa_application_config(key)</comment>
+        <comment>Create a new index on pa_application_config(config_key)</comment>
         <createIndex tableName="pa_application_config" indexName="pa_app_config_key_idx">
-            <column name="key" />
+            <column name="config_key" />
         </createIndex>
     </changeSet>
 

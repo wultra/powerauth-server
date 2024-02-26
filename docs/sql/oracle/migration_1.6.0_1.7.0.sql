@@ -14,8 +14,8 @@ ALTER TABLE pa_activation MODIFY extras CLOB;
 CREATE TABLE pa_application_config (id INTEGER NOT NULL, application_id INTEGER NOT NULL, config_key VARCHAR2(255) NOT NULL, config_values CLOB, CONSTRAINT PK_PA_APPLICATION_CONFIG PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::2::Roman Strobl
--- Create a new index on pa_application_config(key)
-CREATE INDEX pa_app_config_key_idx ON pa_application_config(key);
+-- Create a new index on pa_application_config(config_key)
+CREATE INDEX pa_app_config_key_idx ON pa_application_config(config_key);
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::3::Lubos Racansky
 -- Create a new sequence pa_app_conf_seq
