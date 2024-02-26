@@ -86,7 +86,7 @@
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.7.0-SNAPSHOT</powerauth-java-crypto.version>
-        <wultra-core.version>1.9.0-SNAPSHOT</wultra-core.version>
+        <wultra-core.version>1.9.0</wultra-core.version>
 
         <bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
 
