@@ -43,8 +43,6 @@ import java.util.Optional;
 @Slf4j
 public class RegistrationConverter {
 
-    private final AaguidList aaguidRegistry = new AaguidList();
-
     /**
      * Convert registration challenge to authenticator detail.
      * @param challenge Registration challenge.
@@ -64,7 +62,7 @@ public class RegistrationConverter {
             authenticatorDetail.setExtras(convertExtras(requestObject));
             authenticatorDetail.setActivationName(requestObject.getActivationName());
             authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
-            authenticatorDetail.setDeviceInfo(aaguidRegistry.vendorName(aaguid));
+            authenticatorDetail.setDeviceInfo(AaguidList.vendorName(aaguid));
             authenticatorDetail.setActivationStatus(ActivationStatus.ACTIVE);
             authenticatorDetail.setActivationFlags(new ArrayList<>());
             authenticatorDetail.setApplicationRoles(new ArrayList<>());
