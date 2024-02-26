@@ -70,6 +70,10 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
     public AttestationStatement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {
             final Map<String, Object> map = jsonParser.readValueAs(new TypeReference<>() {});
+            if (map == null) {
+                throw new Fido2DeserializationException("JSON deserialized into null.");
+            }
+
             final AttestationStatement result = new AttestationStatement();
             final Integer alg = (Integer) map.get("alg");
             if (alg != null && -7 == alg) {
