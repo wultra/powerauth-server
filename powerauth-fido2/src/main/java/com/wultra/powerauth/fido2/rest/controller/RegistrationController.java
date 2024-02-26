@@ -40,8 +40,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.UUID;
-
 /**
  * Controller responsible for FIDO2 authenticator registration handling.
  *
@@ -111,12 +109,6 @@ public class RegistrationController {
         final RegistrationChallengeResponse responseObject = registrationService.requestRegistrationChallenge(requestObject.getUserId(), requestObject.getApplicationId());
         logger.info("RegistrationChallengeRequest succeeded, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
         return new ObjectResponse<>(responseObject);
-    }
-
-    public static void main(String[] args) {
-        System.out.println(UUID.nameUUIDFromBytes(new byte[16]));
-        System.out.println(UUID.nameUUIDFromBytes(new byte[16]));
-        System.out.println(UUID.nameUUIDFromBytes(new byte[16]));
     }
 
     /**
