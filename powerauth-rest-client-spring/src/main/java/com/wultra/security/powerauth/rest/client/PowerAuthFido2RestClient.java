@@ -30,7 +30,6 @@ import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorPara
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.request.fido2.*;
-import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.fido2.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -84,7 +83,6 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
             if (config.getProxyUsername() != null) {
                 proxyBuilder.username(config.getProxyUsername()).password(config.getProxyPassword());
             }
-            proxyBuilder.build();
         }
         if (config.getPowerAuthClientToken() != null) {
             builder.httpBasicAuth().username(config.getPowerAuthClientToken()).password(config.getPowerAuthClientSecret()).build();
