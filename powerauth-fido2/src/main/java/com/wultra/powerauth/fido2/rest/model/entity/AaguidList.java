@@ -57,8 +57,6 @@ public final class AaguidList {
 
             // eWBM
             Map.entry(UUID.fromString("61250591-b2bc-4456-b719-0b17be90bb30"), "eWBM eFPA FIDO2 Authenticator"),
-            Map.entry(UUID.fromString("87dbc5a1-4c94-4dc8-8a47-97d800fd1f3c"), "eWBM eFA320 FIDO2 Authenticator"),
-            Map.entry(UUID.fromString("95442b2e-f15e-4def-b270-efb106facb4e"), "eWBM eFA310 FIDO2 Authenticator"),
 
             // FEITIAN
             Map.entry(UUID.fromString("12ded745-4bed-47d4-abaa-e713f51d6393"), "AllinPass FIDO"),
