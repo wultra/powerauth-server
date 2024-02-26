@@ -30,6 +30,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
@@ -74,7 +75,7 @@ public class CollectedClientDataDeserializer extends StdDeserializer<CollectedCl
             final String originalTextValue = jsonParser.getText();
             final byte[] decodedClientDataJSON = Base64.getDecoder().decode(originalTextValue);
             final CollectedClientData collectedClientData = objectMapper.readValue(decodedClientDataJSON, CollectedClientData.class);
-            collectedClientData.setEncoded(new String(decodedClientDataJSON));
+            collectedClientData.setEncoded(new String(decodedClientDataJSON, StandardCharsets.UTF_8));
             return collectedClientData;
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
