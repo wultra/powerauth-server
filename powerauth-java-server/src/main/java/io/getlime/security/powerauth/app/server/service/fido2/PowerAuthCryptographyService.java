@@ -20,16 +20,20 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.List;
 
 /**
  * Service providing FIDO2 cryptographic functionality.
@@ -37,11 +41,20 @@ import java.security.spec.InvalidKeySpecException;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@Slf4j
 public class PowerAuthCryptographyService implements CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final ActivationRepository activationRepository;
+
+    public PowerAuthCryptographyService(ActivationRepository activationRepository) {
+        this.activationRepository = activationRepository;
+    }
 
     public boolean verifySignatureForAssertion(String applicationId, String authenticatorId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
+        if (!checkAndPersistCounter(applicationId, authenticatorId, authData.getSignCount())) {
+            return false;
+        }
         final byte[] publicKeyBytes = authenticatorDetail.getPublicKeyBytes();
         final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(publicKeyBytes);
         return verifySignature(clientDataJSON, authData, signature, publicKey);
@@ -66,6 +79,25 @@ public class PowerAuthCryptographyService implements CryptographyService {
         final byte[] clientDataJSONEncodedHash = concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
         final SignatureUtils signatureUtils = new SignatureUtils();
         return signatureUtils.validateECDSASignature(clientDataJSONEncodedHash, signature, publicKey);
+    }
+
+    private boolean checkAndPersistCounter(String applicationId, String authenticatorId, int signCount) {
+        final List<ActivationRecordEntity> activations = activationRepository.findByExternalId(applicationId, authenticatorId);
+        if (activations.size() != 1) {
+            logger.warn("Multiple activations with same external ID found, external ID: {}", authenticatorId);
+            return false;
+        }
+        final ActivationRecordEntity activation = activations.get(0);
+        if (signCount == 0 && activation.getCounter() == 0) {
+            return true;
+        }
+        if (activation.getCounter() >= signCount) {
+            logger.warn("Invalid counter value for activation, activation ID: {}, stored counter value: {}, received counter value: {}", activation.getActivationId(), activation.getCounter(), signCount);
+            return false;
+        }
+        activation.setCounter((long) signCount);
+        activationRepository.save(activation);
+        return true;
     }
 
     private byte[] concat(byte[] a, byte[] b) {
