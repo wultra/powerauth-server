@@ -83,7 +83,11 @@ public class PowerAuthCryptographyService implements CryptographyService {
 
     private boolean checkAndPersistCounter(String applicationId, String authenticatorId, int signCount) {
         final List<ActivationRecordEntity> activations = activationRepository.findByExternalId(applicationId, authenticatorId);
-        if (activations.size() != 1) {
+        if (activations.isEmpty()) {
+            logger.warn("Activation not found, external ID: {}", authenticatorId);
+            return false;
+        }
+        if (activations.size() > 1) {
             logger.warn("Multiple activations with same external ID found, external ID: {}", authenticatorId);
             return false;
         }
