@@ -18,8 +18,8 @@ CREATE TABLE pa_application_config (id int NOT NULL, application_id int NOT NULL
 GO
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::2::Roman Strobl
--- Create a new index on pa_application_config(key)
-CREATE NONCLUSTERED INDEX pa_app_config_key_idx ON pa_application_config([key]);
+-- Create a new index on pa_application_config(config_key)
+CREATE NONCLUSTERED INDEX pa_app_config_key_idx ON pa_application_config([config_key]);
 GO
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::3::Lubos Racansky
