@@ -43,4 +43,4 @@ The PowerAuth Admin application uses the following public configuration properti
 ## Monitoring and Observability
 
 The WAR file includes the `micrometer-registry-prometheus` dependency.
-Discuss its configuration with the [Spring Boot documentation](https://docs.spring.io/spring-boot/docs/3.1.x/reference/html/actuator.html#actuator.metrics).
+Discuss its configuration with the [Spring Boot documentation](https://docs.spring.io/spring-boot/docs/2.7.18/reference/html/actuator.html#actuator.metrics).
