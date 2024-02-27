@@ -38,3 +38,9 @@ The PowerAuth Admin application uses the following public configuration properti
 | `powerauth.admin.security.ldap.ldif`               | `_empty_` | Specifies an ldif to load at startup for an embedded LDAP server.                                                                                                                                                                                                                   |
 | `powerauth.admin.security.ldap.managerDN`          | `_empty_` | Username (DN) of the "manager" user identity (i.e. "uid=admin,ou=system") which will be used to authenticate to a (non-embedded) LDAP server. If omitted, anonymous access will be used.                                                                                            |
 | `powerauth.admin.security.ldap.managerPassword`    | `_empty_` | The password for the manager DN. This is required if the `managerDN` property is set.                                                                                                                                                                                               |
+
+
+## Monitoring and Observability
+
+The WAR file includes the `micrometer-registry-prometheus` dependency.
+Discuss its configuration with the [Spring Boot documentation](https://docs.spring.io/spring-boot/docs/2.7.18/reference/html/actuator.html#actuator.metrics).
