@@ -21,9 +21,7 @@ package com.wultra.powerauth.fido2.service;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionConverter;
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
@@ -101,17 +99,19 @@ public class AssertionService {
             final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(applicationId, authenticatorId);
             authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
             final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
+            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
+            final CollectedClientData clientDataJSON = response.getClientDataJSON();
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
-                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, response.getClientDataJSON(), response.getAuthenticatorData(), response.getSignature(), authenticatorDetail);
+                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
-                    assertionProvider.approveAssertion(challenge, authenticatorDetail);
+                    assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
                 } else {
-                    assertionProvider.failAssertion(challenge, authenticatorDetail);
+                    assertionProvider.failAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect signature.");
                 }
             } else {
-                assertionProvider.failAssertion(challenge, authenticatorDetail);
+                assertionProvider.failAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                 throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect authenticator state.");
             }
         } catch (Exception e) {

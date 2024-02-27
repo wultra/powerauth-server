@@ -20,7 +20,9 @@ package com.wultra.powerauth.fido2.service.provider;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 
 import java.util.List;
 import java.util.Map;
@@ -47,21 +49,25 @@ public interface AssertionProvider {
     /**
      * Approve assertion.
      *
-     * @param challengeValue Challenge value.
+     * @param challengeValue      Challenge value.
      * @param authenticatorDetail Authenticator information.
+     * @param authenticatorData   Authenticator data.
+     * @param clientDataJSON      Client data.
      * @return Assertion challenge.
      * @throws Fido2AuthenticationFailedException In case assertion approval fails.
      */
-    AssertionChallenge approveAssertion(String challengeValue, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException;
+    AssertionChallenge approveAssertion(String challengeValue, AuthenticatorDetail authenticatorDetail, AuthenticatorData authenticatorData, CollectedClientData clientDataJSON) throws Fido2AuthenticationFailedException;
 
     /**
      * Fail assertion approval.
      *
-     * @param challenge Challenge for assertion.
+     * @param challenge           Challenge for assertion.
      * @param authenticatorDetail Authenticator detail.
+     * @param authenticatorData   Authenticator data.
+     * @param clientDataJSON      Client data.
      * @return Info about the assertion.
      * @throws Fido2AuthenticationFailedException In case assertion approval fails.
      */
-    AssertionChallenge failAssertion(String challenge, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException;
+    AssertionChallenge failAssertion(String challenge, AuthenticatorDetail authenticatorDetail, AuthenticatorData authenticatorData, CollectedClientData clientDataJSON) throws Fido2AuthenticationFailedException;
 
 }

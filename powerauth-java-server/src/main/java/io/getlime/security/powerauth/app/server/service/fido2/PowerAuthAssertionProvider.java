@@ -21,8 +21,7 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
@@ -46,10 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Service responsible for assertion verification.
@@ -64,6 +60,8 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private static final String ATTR_ACTIVATION_ID = "activationId";
     private static final String ATTR_APPLICATION_ID = "applicationId";
     private static final String ATTR_AUTH_FACTOR = "authFactor";
+    private static final String ATTR_ORIGIN = "origin";
+    private static final String ATTR_TOP_ORIGIN = "topOrigin";
 
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;
@@ -96,7 +94,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
     @Override
     @Transactional
-    public AssertionChallenge approveAssertion(String challengeValue, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException {
+    public AssertionChallenge approveAssertion(String challengeValue, AuthenticatorDetail authenticatorDetail, AuthenticatorData authenticatorData, CollectedClientData clientDataJSON) throws Fido2AuthenticationFailedException {
         try {
 
             final String[] split = challengeValue.split("&", 2);
@@ -111,8 +109,8 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationApproveRequest.setData(operationData);
             operationApproveRequest.setApplicationId(authenticatorDetail.getApplicationId());
             operationApproveRequest.setUserId(authenticatorDetail.getUserId());
-            operationApproveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE); //TODO: Use correct type
-            operationApproveRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, operationApproveRequest.getSignatureType()));
+            operationApproveRequest.setSignatureType(supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
+            operationApproveRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
             final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest);
             final UserActionResult result = approveOperation.getResult();
             final OperationDetailResponse operation = approveOperation.getOperation();
@@ -136,7 +134,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
     @Override
     @Transactional
-    public AssertionChallenge failAssertion(String challengeValue, AuthenticatorDetail authenticatorDetail) throws Fido2AuthenticationFailedException {
+    public AssertionChallenge failAssertion(String challengeValue, AuthenticatorDetail authenticatorDetail, AuthenticatorData authenticatorData, CollectedClientData clientDataJSON) throws Fido2AuthenticationFailedException {
         try {
             final Date currentTimestamp = new Date();
 
@@ -145,7 +143,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
             final OperationFailApprovalRequest operationFailApprovalRequest = new OperationFailApprovalRequest();
             operationFailApprovalRequest.setOperationId(operationId);
-            operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, SignatureType.POSSESSION_KNOWLEDGE));
+            operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
 
             final ActivationRecordEntity activationWithLock = repositoryCatalogue.getActivationRepository().findActivationWithLock(authenticatorDetail.getActivationId());
 
@@ -229,15 +227,22 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
     /**
      * Prepare map with additional data stored with the operation.
+     *
      * @param authenticatorDetail Authenticator detail.
-     * @param signatureType Used signature type.
+     * @param authenticatorData   Authenticator data.
+     * @param clientDataJSON      Client data.
      * @return Additional data map.
      */
-    private Map<String, Object> prepareAdditionalData(final AuthenticatorDetail authenticatorDetail, final SignatureType signatureType) {
+    private Map<String, Object> prepareAdditionalData(
+            final AuthenticatorDetail authenticatorDetail,
+            final AuthenticatorData authenticatorData,
+            final CollectedClientData clientDataJSON) {
         final Map<String, Object> additionalData = new LinkedHashMap<>();
         additionalData.put(ATTR_ACTIVATION_ID, authenticatorDetail.getActivationId());
         additionalData.put(ATTR_APPLICATION_ID, authenticatorDetail.getApplicationId());
-        additionalData.put(ATTR_AUTH_FACTOR, signatureType);
+        additionalData.put(ATTR_AUTH_FACTOR, supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
+        additionalData.put(ATTR_ORIGIN, clientDataJSON.getOrigin());
+        additionalData.put(ATTR_TOP_ORIGIN, clientDataJSON.getTopOrigin());
         return additionalData;
     }
 
@@ -259,6 +264,16 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             case APPROVED, REJECTED -> throw new Fido2AuthenticationFailedException("OPERATION_ALREADY_FINISHED - Operation was already completed");
             case FAILED -> throw new Fido2AuthenticationFailedException("OPERATION_ALREADY_FAILED - Operation already failed");
             default -> throw new Fido2AuthenticationFailedException("OPERATION_EXPIRED - Operation already expired");
+        }
+    }
+
+    private SignatureType supportedSignatureType(AuthenticatorDetail authenticatorDetail, boolean userVerified) {
+        final String aaguidBase64 = (String) authenticatorDetail.getExtras().get("aaguid");
+        if (aaguidBase64 != null) {
+            final byte[] aaguid = Base64.getDecoder().decode(aaguidBase64);
+            return userVerified ? Fido2Authenticators.modelByAaguid(aaguid).getSignatureType() : SignatureType.POSSESSION;
+        } else {
+            return SignatureType.POSSESSION;
         }
     }
 
