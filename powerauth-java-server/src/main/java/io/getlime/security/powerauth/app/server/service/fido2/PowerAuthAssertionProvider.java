@@ -271,7 +271,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final String aaguidBase64 = (String) authenticatorDetail.getExtras().get("aaguid");
         if (aaguidBase64 != null) {
             final byte[] aaguid = Base64.getDecoder().decode(aaguidBase64);
-            return userVerified ? Fido2Authenticators.modelByAaguid(aaguid).getSignatureType() : SignatureType.POSSESSION;
+            return userVerified ? Fido2Authenticators.modelByAaguid(aaguid).signatureType() : SignatureType.POSSESSION;
         } else {
             return SignatureType.POSSESSION;
         }

@@ -20,35 +20,28 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Class containing map of all known FIDO2 AAGUID authenticator identifiers.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Slf4j
 public final class Fido2Authenticators {
 
     /**
-     * Model class representing an authenticator model. It associates the AAGUID value to a descriptive name
+     * Model record representing an authenticator model. It associates the AAGUID value to a descriptive name
      * and expected authentication factors available with a given authenticator. Most authenticators are set to
      * provide only the possession factor on approval. In case the authenticator has a biometric sensor, it will be
      * represented
      */
-    @Data
-    public static class Model {
-
-        private final UUID aaguid;
-        private final String description;
-        private SignatureType signatureType;
-
-        private Model(UUID aaguid, String description, SignatureType signatureType) {
-            this.aaguid = aaguid;
-            this.description = description;
-            this.signatureType = signatureType;
-        }
+    public record Model (UUID aaguid, String description, SignatureType signatureType) {
 
         public static Model of(String aaguid, String description) {
             return new Model(UUID.fromString(aaguid), description, SignatureType.POSSESSION);
@@ -60,6 +53,10 @@ public final class Fido2Authenticators {
 
         public static Model unknown(UUID aaguid) {
             return new Model(aaguid, "Unknown FIDO2 Authenticator", SignatureType.POSSESSION);
+        }
+
+        public static Model unknown() {
+            return new Model(null, "Unknown FIDO2 Authenticator", SignatureType.POSSESSION);
         }
 
     }
@@ -192,7 +189,7 @@ public final class Fido2Authenticators {
             Model.of("504d7149-4e4c-3841-4555-55445a677357", "WiSECURE AuthTron USB FIDO2 Authenticator"),
 
             // Wultra
-            Model.of("57415531-2e31-2020-3230-323430323237", "Wultra Authenticator 1.1", SignatureType.POSSESSION_KNOWLEDGE),
+            Model.of("57415531-2e31-4020-a020-323032343032", "Wultra Authenticator 1", SignatureType.POSSESSION_KNOWLEDGE),
 
             // Yubico
             Model.of("0bb43545-fd2c-4185-87dd-feb0b2916ace", "Security Key NFC by Yubico - Enterprise Edition"),
@@ -222,11 +219,7 @@ public final class Fido2Authenticators {
     private static final Map<UUID, Model> MODEL_MAP = initializeFromModels(); // prepare a quick to query map with models addressed by AAGUID
 
     private static Map<UUID, Model> initializeFromModels() {
-        final Map<UUID, Model> vendors = new HashMap<>();
-        for (Model model : MODELS) {
-            vendors.put(model.getAaguid(), model);
-        }
-        return vendors;
+        return MODELS.stream().collect(Collectors.toMap(Model::aaguid, Function.identity()));
     }
 
     private Fido2Authenticators() {
@@ -243,13 +236,14 @@ public final class Fido2Authenticators {
     public static Model modelByAaguid(final byte[] aaguid) {
         final UUID uuid = uuidFromBytes(aaguid);
         if (uuid == null) {
-            return Model.unknown(uuid);
+            return Model.unknown();
         }
         return Objects.requireNonNullElse(MODEL_MAP.get(uuid), Model.unknown(uuid));
     }
 
     private static UUID uuidFromBytes(byte[] bytes) {
         if (bytes == null || bytes.length != 16) { // strange byte array length, UUID requires 16 bytes
+            logger.debug("Invalid byte length provided for UUID: {}", bytes);
             return null;
         }
         final ByteBuffer bb = ByteBuffer.wrap(bytes);

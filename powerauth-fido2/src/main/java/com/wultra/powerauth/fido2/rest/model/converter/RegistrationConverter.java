@@ -64,7 +64,7 @@ public class RegistrationConverter {
             authenticatorDetail.setExtras(convertExtras(requestObject));
             authenticatorDetail.setActivationName(requestObject.getActivationName());
             authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
-            authenticatorDetail.setDeviceInfo(model.getDescription());
+            authenticatorDetail.setDeviceInfo(model.description());
             authenticatorDetail.setActivationStatus(ActivationStatus.ACTIVE);
             authenticatorDetail.setActivationFlags(new ArrayList<>());
             authenticatorDetail.setApplicationRoles(new ArrayList<>());
