@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -152,7 +153,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean registrationAllowed(String applicationId, String attestationFormat, byte[] aaguid) throws Exception {
+    public boolean registrationAllowed(String applicationId, String authenticatorId, String attestationFormat, byte[] aaguid) throws Exception {
         final ApplicationConfigServiceBehavior configService = serviceBehaviorCatalogue.getApplicationConfigServiceBehavior();
         final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
         configRequest.setApplicationId(applicationId);
@@ -175,12 +176,18 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
                 .findFirst();
 
         if (configAaguids.isPresent()) {
-            System.out.println(aaguidStr);
             List<String> allowedAaguids = configAaguids.get().getValues();
             if (!allowedAaguids.contains(aaguidStr)) {
                 logger.warn("Rejected AAGUID value for FIDO2 registration: {}", aaguidStr);
                 return false;
             }
+        }
+
+        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+        final List<ActivationRecordEntity> existingActivations = activationRepository.findByExternalId(applicationId, authenticatorId);
+        if (!existingActivations.isEmpty()) {
+            logger.warn("Rejected duplicate external ID for registration, application ID: {}, external ID: {}", applicationId, authenticatorId);
+            return false;
         }
 
         return true;

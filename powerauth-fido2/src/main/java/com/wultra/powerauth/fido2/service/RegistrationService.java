@@ -115,6 +115,7 @@ public class RegistrationService {
             throw new Fido2AuthenticationFailedException(error);
         }
 
+        final String authenticatorId = requestObject.getAuthenticatorParameters().getId();
         final AuthenticatorAttestationResponse response = requestObject.getAuthenticatorParameters().getResponse();
 
         final CollectedClientData clientDataJSON = response.getClientDataJSON();
@@ -130,7 +131,7 @@ public class RegistrationService {
         final String fmt = attestationObject.getFmt();
         final byte[] aaguid = attestationObject.getAuthData().getAttestedCredentialData().getAaguid();
 
-        validateRegistrationRequest(applicationId, fmt, aaguid, challengeValue);
+        validateRegistrationRequest(applicationId, authenticatorId, fmt, aaguid, challengeValue);
 
         if (Fmt.FMT_PACKED.getValue().equals(fmt)) {
             final boolean verifySignature = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, authData, signature, attestedCredentialData);
@@ -151,8 +152,8 @@ public class RegistrationService {
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);
     }
 
-    private void validateRegistrationRequest(final String applicationId, final String attestationFormat, final byte[] aaguid, final String challengeValue) throws Exception {
-        if (!registrationProvider.registrationAllowed(applicationId, attestationFormat, aaguid)) {
+    private void validateRegistrationRequest(final String applicationId, final String authenticatorId, final String attestationFormat, final byte[] aaguid, final String challengeValue) throws Exception {
+        if (!registrationProvider.registrationAllowed(applicationId, authenticatorId, attestationFormat, aaguid)) {
             logger.warn("Invalid request for FIDO2 registration");
             // Immediately revoke the challenge
             registrationProvider.revokeRegistrationByChallengeValue(applicationId, challengeValue);
