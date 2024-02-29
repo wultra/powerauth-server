@@ -73,12 +73,12 @@
     </issueManagement>
 
     <modules>
-        <module>powerauth-client-model</module>
-        <module>powerauth-rest-client-spring</module>
-        <module>powerauth-fido2</module>
-        <module>powerauth-java-server</module>
         <module>powerauth-admin</module>
+        <module>powerauth-client-model</module>
+        <module>powerauth-fido2</module>
         <module>powerauth-fido2-demo</module>
+        <module>powerauth-java-server</module>
+        <module>powerauth-rest-client-spring</module>
     </modules>
 
     <properties>
