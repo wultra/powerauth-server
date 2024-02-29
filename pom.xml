@@ -78,6 +78,7 @@
         <module>powerauth-fido2</module>
         <module>powerauth-java-server</module>
         <module>powerauth-admin</module>
+        <module>powerauth-fido2-demo</module>
     </modules>
 
     <properties>

@@ -38,3 +38,14 @@ liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/d
 - Enable maven profile `standalone`
 - Use IntelliJ Idea run configuration at `../.run/PowerAuthAdminApplication.run.xml`
 - Open [http://localhost:8082/powerauth-admin/actuator/health](http://localhost:8082/powerauth-admin/actuator/health) and you should get `{"status":"UP"}`
+
+
+## PowerAuth FIDO2 Demo
+
+
+### Standalone Run
+
+- Enable maven profile `standalone`
+- Use IntelliJ Idea run configuration at `../.run/PowerAuthFido2DemoApplication.run.xml`
+- Open [http://localhost:8083/powerauth-fido2-demo/actuator/health](http://localhost:8082/powerauth-fido2-demo/actuator/health) and you should get `{"status":"UP"}`
+
