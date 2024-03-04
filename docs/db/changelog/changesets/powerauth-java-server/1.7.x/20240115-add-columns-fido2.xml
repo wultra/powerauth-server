@@ -46,7 +46,7 @@
     </changeSet>
 
     <changeSet id="3" logicalFilePath="powerauth-java-server/1.7.x/20240115-add-columns-fido2" author="Roman Strobl">
-        <modifyDataType tableName="pa_activation" columnName="extras" newDataType="TEXT"/>
+        <modifyDataType tableName="pa_activation" columnName="extras" newDataType="varchar(4000)"/>
     </changeSet>
 
 </databaseChangeLog>
