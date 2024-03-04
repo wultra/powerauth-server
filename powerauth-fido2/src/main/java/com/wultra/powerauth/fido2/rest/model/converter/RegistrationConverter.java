@@ -19,7 +19,7 @@
 package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wultra.powerauth.fido2.rest.model.entity.AaguidList;
+import com.wultra.powerauth.fido2.rest.model.entity.Fido2Authenticators;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
@@ -58,11 +58,13 @@ public class RegistrationConverter {
             authenticatorDetail.setActivationId(challenge.getActivationId());
             authenticatorDetail.setApplicationId(challenge.getApplicationId());
 
+            final Fido2Authenticators.Model model = Fido2Authenticators.modelByAaguid(aaguid);
+
             authenticatorDetail.setExternalId(requestObject.getAuthenticatorParameters().getId());
             authenticatorDetail.setExtras(convertExtras(requestObject));
             authenticatorDetail.setActivationName(requestObject.getActivationName());
             authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
-            authenticatorDetail.setDeviceInfo(AaguidList.vendorName(aaguid));
+            authenticatorDetail.setDeviceInfo(model.description());
             authenticatorDetail.setActivationStatus(ActivationStatus.ACTIVE);
             authenticatorDetail.setActivationFlags(new ArrayList<>());
             authenticatorDetail.setApplicationRoles(new ArrayList<>());
