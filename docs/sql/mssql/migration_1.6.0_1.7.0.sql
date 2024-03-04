@@ -9,7 +9,7 @@ ALTER TABLE pa_activation ADD protocol varchar(32) CONSTRAINT DF_pa_activation_p
 GO
 
 -- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
-ALTER TABLE pa_activation ALTER COLUMN extras varchar (max);
+ALTER TABLE pa_activation ALTER COLUMN extras varchar (4000);
 GO
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
