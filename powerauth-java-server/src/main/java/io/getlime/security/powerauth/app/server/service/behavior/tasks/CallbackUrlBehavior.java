@@ -413,7 +413,7 @@ public class CallbackUrlBehavior {
      * @throws RestClientException Thrown when HTTP request fails.
      */
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
-        final Consumer<ResponseEntity<String>> onSuccess = response -> logger.debug("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
+        final Consumer<ResponseEntity<String>> onSuccess = response -> logger.info("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
         final Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
         final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
         final RestClient restClient = getRestClient(callbackUrlEntity);
