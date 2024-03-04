@@ -3,7 +3,7 @@
     <option name="ACTIVE_PROFILES" value="dev" />
     <option name="DEBUG_MODE" value="true" />
     <module name="powerauth-fido2-demo" />
-    <option name="SPRING_BOOT_MAIN_CLASS" value="com.wultra.app.powerauthfido2demo.PowerauthFido2DemoApplication" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.wultra.app.powerauth.fido2.demo.PowerauthFido2DemoApplication" />
     <option name="VM_PARAMETERS" value="-Dserver.servlet.context-path=/powerauth-fido2-demo -Dserver.port=8083" />
     <option name="WORKING_DIRECTORY" value="file://$MODULE_WORKING_DIR$" />
     <method v="2">
