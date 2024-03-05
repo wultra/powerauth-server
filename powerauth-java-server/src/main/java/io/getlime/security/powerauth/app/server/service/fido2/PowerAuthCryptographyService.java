@@ -154,7 +154,12 @@ public class PowerAuthCryptographyService implements CryptographyService {
                     result = Optional.empty();
                     break;
                 }
-                result = Optional.of(convertPoint(((ECPublicKey) cert.getPublicKey()).getW()));
+                if (!(cert.getPublicKey() instanceof ECPublicKey)) {
+                    logger.warn("Invalid cryptography algorithm used in Basic attestation, algorithm: {}", cert.getPublicKey().getAlgorithm());
+                    result = Optional.empty();
+                } else {
+                    result = Optional.of(convertPoint(((ECPublicKey) cert.getPublicKey()).getW()));
+                }
             }
             default -> result = Optional.empty();
         }
