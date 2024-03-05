@@ -18,7 +18,7 @@ Following columns have been added to table `pa_activation` for FIDO2 support:
 - `external_id` - external identifier of the activation
 - `protocol` - protocol enumeration: `powerauth` or `fido2`
 
-The data type for column `extras` in table `pa_activation` was changed to `TEXT` / `CLOB` to support larger data.
+The size of column `extras` in table `pa_activation` was increased to `4000` from `255` to support larger data.
 
 ### New Database Table for Application Configuration
 

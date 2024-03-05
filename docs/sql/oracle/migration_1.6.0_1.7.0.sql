@@ -7,7 +7,7 @@ ALTER TABLE pa_activation ADD external_id VARCHAR2(255);
 ALTER TABLE pa_activation ADD protocol VARCHAR2(32) DEFAULT 'powerauth';
 
 -- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
-ALTER TABLE pa_activation MODIFY extras CLOB;
+ALTER TABLE pa_activation MODIFY extras VARCHAR2(4000);
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
 -- Create a new table pa_application_config
