@@ -541,8 +541,6 @@
     </changeSet>
 
     <changeSet id="24" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
-        <validCheckSum>9:2e39673c03bcb1e72e12aeeaa54dc716</validCheckSum>
-        <validCheckSum>9:08e14a3059bf341524a549dc8bc9c1c3</validCheckSum>
         <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="pa_operation_application"/>
@@ -550,7 +548,7 @@
         </preConditions>
         <comment>Create a new table pa_operation_application</comment>
         <createTable tableName="pa_operation_application">
-            <column name="application_id" type="integer">
+            <column name="application_id" type="bigint">
                 <constraints primaryKey="true" />
             </column>
             <column name="operation_id" type="varchar(37)">
