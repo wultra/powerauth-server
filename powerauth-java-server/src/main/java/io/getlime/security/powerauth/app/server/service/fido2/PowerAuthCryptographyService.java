@@ -30,10 +30,16 @@ import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service providing FIDO2 cryptographic functionality.
@@ -60,10 +66,15 @@ public class PowerAuthCryptographyService implements CryptographyService {
         return verifySignature(clientDataJSON, authData, signature, publicKey);
     }
 
-    public boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AttestedCredentialData attestedCredentialData) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
-        final ECPoint point = attestedCredentialData.getPublicKeyObject().getPoint();
+    public boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AttestationObject attestationObject, byte[] signature) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
+        final Optional<ECPoint> pointOptional = resolveEcPoint(attestationObject);
+        if (pointOptional.isEmpty()) {
+            logger.warn("Signature could not be verified because public key point is missing");
+            return false;
+        }
+        final ECPoint point = pointOptional.get();
         final PublicKey publicKey = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
-        return verifySignature(clientDataJSON, authData, signature, publicKey);
+        return verifySignature(clientDataJSON, attestationObject.getAuthData(), signature, publicKey);
     }
 
     public byte[] publicKeyToBytes(PublicKeyObject publicKey) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
@@ -109,6 +120,57 @@ public class PowerAuthCryptographyService implements CryptographyService {
         System.arraycopy(a, 0, combined, 0, a.length);
         System.arraycopy(b, 0, combined, a.length, b.length);
         return combined;
+    }
+
+    /**
+     * Resolve EC point which is used for public key in attestation verification.
+     * @param attestationObject Attestation object.
+     * @return EC point (optional).
+     */
+    private Optional<ECPoint> resolveEcPoint(AttestationObject attestationObject) {
+        final AuthenticatorData authData = attestationObject.getAuthData();
+        final AttestedCredentialData attestedCredentialData = authData.getAttestedCredentialData();
+        final Optional<ECPoint> result;
+        switch (attestationObject.getAttStmt().getAttestationType()) {
+            case NONE -> {
+                logger.warn("Invalid attestation type NONE for attestation format: {}", attestationObject.getFmt());
+                result = Optional.empty();
+            }
+            case SELF -> {
+                logger.debug("Using public key from Self attestation");
+                result = Optional.of(attestedCredentialData.getPublicKeyObject().getPoint());
+            }
+            case BASIC -> {
+                logger.debug("Using public key from Basic attestation");
+                byte[] attestationCert = attestationObject.getAttStmt().getX509Cert().getAttestationCert();
+                final X509Certificate cert;
+                try {
+                    final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+                    final ByteArrayInputStream inputStream = new ByteArrayInputStream(attestationCert);
+                    cert = (X509Certificate) certificateFactory.generateCertificate(inputStream);
+                } catch (CertificateException e) {
+                    logger.debug(e.getMessage(), e);
+                    logger.warn("Invalid certificate received in Basic attestation, error: {}", e.getMessage());
+                    result = Optional.empty();
+                    break;
+                }
+                result = Optional.of(convertPoint(((ECPublicKey) cert.getPublicKey()).getW()));
+            }
+            default -> result = Optional.empty();
+        }
+        return result;
+    }
+
+    /**
+     * Convert {@link java.security.spec.ECPoint} from JavaSecurity to {@link com.wultra.powerauth.fido2.rest.model.entity.ECPoint}.
+     * @param p {@link java.security.spec.ECPoint} from Java Security.
+     * @return {@link com.wultra.powerauth.fido2.rest.model.entity.ECPoint}
+     */
+    private ECPoint convertPoint(java.security.spec.ECPoint p) {
+        final ECPoint result = new ECPoint();
+        result.setX(p.getAffineX().toByteArray());
+        result.setY(p.getAffineY().toByteArray());
+        return result;
     }
 
 }

@@ -139,7 +139,8 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
                 .findCreatedActivationWithoutLock(applicationId, activationCode, statuses, currentTimestamp);
 
         if (activationRecordEntity == null) {
-            throw new Fido2AuthenticationFailedException("Registration with given value not found.");
+            // Registration was not completed.
+            return;
         }
 
         final String activationId = activationRecordEntity.getActivationId();

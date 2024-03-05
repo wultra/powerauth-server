@@ -134,8 +134,8 @@ public class RegistrationService {
         validateRegistrationRequest(applicationId, authenticatorId, fmt, aaguid, challengeValue);
 
         if (Fmt.FMT_PACKED.getValue().equals(fmt)) {
-            final boolean verifySignature = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, authData, signature, attestedCredentialData);
-            if (!verifySignature) {
+            final boolean signatureVerified = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, attestationObject, signature);
+            if (!signatureVerified) {
                 // Immediately revoke the challenge
                 registrationProvider.revokeRegistrationByChallengeValue(applicationId, challengeValue);
                 throw new Fido2AuthenticationFailedException("Registration failed");

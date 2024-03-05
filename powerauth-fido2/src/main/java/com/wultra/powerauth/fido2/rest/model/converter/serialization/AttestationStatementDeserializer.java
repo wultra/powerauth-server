@@ -24,12 +24,16 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationStatement;
+import com.wultra.powerauth.fido2.rest.model.entity.X509Cert;
+import com.wultra.powerauth.fido2.rest.model.enumeration.AttestationType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -67,6 +71,7 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
      * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
     @Override
+    @SuppressWarnings("unchecked")
     public AttestationStatement deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {
             final Map<String, Object> map = jsonParser.readValueAs(new TypeReference<>() {});
@@ -81,7 +86,34 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
             } else {
                 result.setAlgorithm(SignatureAlgorithm.UNKNOWN);
             }
-            result.setSignature((byte[]) map.get("sig"));
+            final byte[] signature = (byte[]) map.get("sig");
+            result.setSignature(signature);
+            if (signature == null) {
+                result.setAttestationType(AttestationType.NONE);
+                return result;
+            }
+            Object x5cObj = map.get("x5c");
+            if (x5cObj == null) {
+                result.setAttestationType(AttestationType.SELF);
+                return result;
+            }
+            if (!(x5cObj instanceof List)) {
+                throw new Fido2DeserializationException("Invalid x5c certificate");
+            }
+            final List<byte[]> x5c = (List<byte[]>) x5cObj;
+            if (x5c.isEmpty()) {
+                result.setAttestationType(AttestationType.SELF);
+            } else {
+                final byte[] attestationCert = x5c.get(0);
+                final List<byte[]> caCert;
+                if (x5c.size() == 1) {
+                    caCert = Collections.emptyList();
+                } else {
+                    caCert = x5c.subList(1, x5c.size());
+                }
+                result.setX509Cert(new X509Cert(attestationCert, caCert));
+                result.setAttestationType(AttestationType.BASIC);
+            }
             return result;
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);

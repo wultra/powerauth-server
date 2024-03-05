@@ -87,6 +87,7 @@ class Fido2AuthenticatorTest {
 
     private final ClientPlatform CLIENT_PLATFORM_SELF_ATTESTED = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(new SelfAttestedPackedAuthenticator()));
     private final ClientPlatform CLIENT_PLATFORM_BASIC_ATTESTATION = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(EmulatorUtil.PACKED_AUTHENTICATOR));
+    private final ClientPlatform CLIENT_PLATFORM_ANDROID_SAFETY_NET_ATTESTATION = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(EmulatorUtil.ANDROID_SAFETY_NET_AUTHENTICATOR));
 
     private final PowerAuthService powerAuthService;
     private final RegistrationService registrationService;
@@ -149,7 +150,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
+        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_ANDROID_SAFETY_NET_ATTESTATION);
 
         // Register credential
         assertThrows(Fido2AuthenticationFailedException.class, () -> registrationService.register(registrationRequest));
@@ -383,6 +384,39 @@ class Fido2AuthenticatorTest {
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
         powerAuthService.removeApplicationConfig(requestRemove);
+    }
+
+    @Test
+    public void packedAuthenticatorBasicAttestationTest() throws Exception {
+        // Obtain challenge from PowerAuth server
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
+        assertEquals(USER_ID, challengeResponse.getUserId());
+        assertNotNull(challengeResponse.getChallenge());
+        assertNotNull(challengeResponse.getActivationId());
+
+        final Challenge challenge = new DefaultChallenge(challengeResponse.getChallenge().getBytes(StandardCharsets.UTF_8));
+        final AuthenticatorSelectionCriteria authenticatorCriteria = new AuthenticatorSelectionCriteria(
+                AuthenticatorAttachment.PLATFORM, true, UserVerificationRequirement.REQUIRED);
+        final PublicKeyCredentialParameters pkParam = new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256);
+        final PublicKeyCredentialUserEntity user = new PublicKeyCredentialUserEntity(USER_ID.getBytes(StandardCharsets.UTF_8), USER_ID, USER_ID);
+        final PublicKeyCredentialCreationOptions credentialCreationOptions = new PublicKeyCredentialCreationOptions(new PublicKeyCredentialRpEntity(RP_ID, RP_ID),
+                user, challenge, Collections.singletonList(pkParam), REQUEST_TIMEOUT, Collections.emptyList(),
+                authenticatorCriteria, AttestationConveyancePreference.DIRECT, null
+        );
+
+        // Prepare registration request
+        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
+
+        // Register credential
+        final RegistrationResponse registrationResponse = registrationService.register(registrationRequest);
+        assertEquals(APPLICATION_ID, registrationResponse.getApplicationId());
+
+        // Check that activation is in ACTIVE state
+        final GetActivationStatusRequest activationStatusRequest2 = new GetActivationStatusRequest();
+        activationStatusRequest2.setActivationId(challengeResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, powerAuthService.getActivationStatus(activationStatusRequest2).getActivationStatus());
+
     }
 
     private void createApplication() throws Exception {
