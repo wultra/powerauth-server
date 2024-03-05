@@ -31,8 +31,10 @@ Add foreign key constraints to relating table `pa_operation_application`.
 Applying this change may fail if there is an inconsistency between tables `pa_operation_application`
 and `pa_application` or `pa_operation`. Make sure that `pa_operation_application.application_id` contains references to
 existing `pa_application.id` and `pa_operation_application.operation_id` contains references to
-existing `pa_operation.id`. If necessary, manually remove orphaned records in `pa_operation_application`. Consider
-creating a backup before this operation.
+existing `pa_operation.id`.
+Also the column type of `pa_operation_application.application_id` must be the same as the type of `pa_operation.id`.
+If necessary, manually remove orphaned records in `pa_operation_application`.
+Consider creating a backup before this operation.
 
 ### Add activation_id Column
 
