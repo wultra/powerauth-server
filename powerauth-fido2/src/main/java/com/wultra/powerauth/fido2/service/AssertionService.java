@@ -96,7 +96,7 @@ public class AssertionService {
             final String applicationId = request.getApplicationId();
             final String authenticatorId = request.getId();
             final String challenge = request.getResponse().getClientDataJSON().getChallenge();
-            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(applicationId, authenticatorId);
+            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(authenticatorId, applicationId);
             authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
             final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
             final AuthenticatorData authenticatorData = response.getAuthenticatorData();

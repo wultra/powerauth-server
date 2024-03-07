@@ -123,7 +123,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<AuthenticatorDetail> findByCredentialId(String applicationId, String credentialId) throws Fido2AuthenticationFailedException {
+    public Optional<AuthenticatorDetail> findByCredentialId(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
 
         // Find application
         final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
