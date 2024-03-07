@@ -118,7 +118,6 @@ public class Fido2CertificateValidator {
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             final CertPath certPath = certificateFactory.generateCertPath(List.of(cert));
             final Set<TrustAnchor> trustAnchors = new HashSet<>();
-            System.out.println(caCerts.size());
             caCerts.forEach(caCert -> {
                 TrustAnchor trustAnchor = new TrustAnchor(caCert, null);
                 trustAnchors.add(trustAnchor);
