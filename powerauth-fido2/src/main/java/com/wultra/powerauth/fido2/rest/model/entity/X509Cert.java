@@ -35,6 +35,6 @@ import java.util.List;
 public class X509Cert {
 
     private byte[] attestationCert;
-    private List<byte[]> caCert;
+    private List<byte[]> caCerts;
 
 }

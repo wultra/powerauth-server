@@ -38,6 +38,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -144,12 +145,25 @@ public class PowerAuthCryptographyService implements CryptographyService {
             }
             case BASIC -> {
                 logger.debug("Using public key from Basic attestation");
-                byte[] attestationCert = attestationObject.getAttStmt().getX509Cert().getAttestationCert();
+                final byte[] attestationCert = attestationObject.getAttStmt().getX509Cert().getAttestationCert();
+                final List<byte[]> attestationCaCerts = attestationObject.getAttStmt().getX509Cert().getCaCerts();
                 final X509Certificate cert;
+                final List<X509Certificate> caCerts = new ArrayList<>();
                 try {
                     final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
                     final ByteArrayInputStream inputStream = new ByteArrayInputStream(attestationCert);
                     cert = (X509Certificate) certificateFactory.generateCertificate(inputStream);
+                    if (attestationCaCerts != null) {
+                        attestationCaCerts.forEach(caCert -> {
+                            final ByteArrayInputStream is = new ByteArrayInputStream(caCert);
+                            try {
+                                caCerts.add((X509Certificate) certificateFactory.generateCertificate(is));
+                            } catch (CertificateException e) {
+                                logger.debug(e.getMessage(), e);
+                                logger.warn("Invalid CA certificate received in Basic attestation, error: {}", e.getMessage());
+                            }
+                        });
+                    }
                 } catch (CertificateException e) {
                     logger.debug(e.getMessage(), e);
                     logger.warn("Invalid certificate received in Basic attestation, error: {}", e.getMessage());
@@ -161,7 +175,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
                     result = Optional.empty();
                     break;
                 }
-                if (!certificateValidator.isValid(cert)) {
+                if (!certificateValidator.isValid(cert, caCerts)) {
                     logger.warn("Certificate validation failed in Basic attestation, subject name: {}", cert.getSubjectX500Principal().getName());
                     result = Optional.empty();
                     break;

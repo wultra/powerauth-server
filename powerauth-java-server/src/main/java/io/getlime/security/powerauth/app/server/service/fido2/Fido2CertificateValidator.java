@@ -42,7 +42,7 @@ public class Fido2CertificateValidator {
      * @param cert FIDO2 certificate.
      * @return Validation result.
      */
-    public boolean isValid(X509Certificate cert) {
+    public boolean isValid(X509Certificate cert, List<X509Certificate> caCerts) {
         try {
             final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
@@ -50,7 +50,12 @@ public class Fido2CertificateValidator {
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             final CertPath certPath = certificateFactory.generateCertPath(List.of(cert));
             final Set<TrustAnchor> trustAnchors = new HashSet<>();
+            caCerts.forEach(caCert -> {
+                TrustAnchor trustAnchor = new TrustAnchor(caCert, null);
+                trustAnchors.add(trustAnchor);
+            });
             final PKIXParameters params = new PKIXParameters(trustAnchors);
+            params.setRevocationEnabled(false);
             final CertPathValidator validator = CertPathValidator.getInstance("PKIX");
             validator.validate(certPath, params);
             return true;
