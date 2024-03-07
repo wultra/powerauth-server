@@ -44,17 +44,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Fido2CertificateValidator {
 
+    private final String FIDO2_EXTENSION_ID_AAGUID = "1.3.6.1.4.1.45724.1.1.4";
+
     /**
      * Validate a FIDO2 certificate.
-     * @param cert FIDO2 certificate.
+     *
+     * @param cert    FIDO2 certificate.
+     * @param caCerts FIDO2 CA certificates.
+     * @param aaguid  AAGUID value.
      * @return Validation result.
      */
-    public boolean isValid(X509Certificate cert, List<X509Certificate> caCerts) {
-        return validateCertRequirements(cert) && validateTrustPath(cert, caCerts);
+    public boolean isValid(X509Certificate cert, List<X509Certificate> caCerts, byte[] aaguid) {
+        return validateCertRequirements(cert) && validateTrustPath(cert, caCerts) && validateAaguid(cert, aaguid);
     }
 
     /**
      * Validate certificate parameters based on "8.2.1. Packed Attestation Statement Certificate Requirements".
+     *
      * @param cert Attestation certificate.
      * @return Whether certificate is valid.
      */
@@ -99,7 +105,8 @@ public class Fido2CertificateValidator {
 
     /**
      * Validate certificate trust path.
-     * @param cert Attestation certificate.
+     *
+     * @param cert    Attestation certificate.
      * @param caCerts CA certificates including intermediate certificates if required.
      * @return Whether certificate trust path was successfully verified.
      */
@@ -127,6 +134,22 @@ public class Fido2CertificateValidator {
         }
     }
 
+    /**
+     * Validate AAGUID value for request against attestation certificate.
+     *
+     * @param cert   FIDO2 attestation certificate.
+     * @param aaguid AAGUID value.
+     * @return Whether AAGUID validation succeeded.
+     */
+    private boolean validateAaguid(X509Certificate cert, byte[] aaguid) {
+        // If attestnCert contains an extension with OID 1.3.6.1.4.1.45724.1.1.4 (id-fido-gen-ce-aaguid) verify that the value of this extension matches the aaguid in authenticatorData.
+        final String aaguidCert = extractAAGUIDFromCert(cert);
+        if (aaguidCert != null) {
+            return aaguidCert.equals(bytesToHex(aaguid));
+        }
+        return true;
+    }
+
     private String getValue(X509Certificate cert, String name) {
         try {
             LdapName subjectDN = new LdapName(cert.getSubjectX500Principal().getName());
@@ -150,6 +173,33 @@ public class Fido2CertificateValidator {
         } catch (NamingException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    private String extractAAGUIDFromCert(X509Certificate cert) {
+        final byte[] extensionValue = cert.getExtensionValue(FIDO2_EXTENSION_ID_AAGUID);
+        if (extensionValue == null) {
+            return null;
+        }
+        return extractAAGUID(extensionValue);
+    }
+
+    private static String extractAAGUID(byte[] extensionValue) {
+        if (extensionValue != null && extensionValue.length > 2) {
+            // Skip the first two bytes (tag and length) and extract the AAGUID value
+            final byte[] aaguidBytes = new byte[extensionValue.length - 2];
+            System.arraycopy(extensionValue, 2, aaguidBytes, 0, aaguidBytes.length);
+            // Convert bytes to hexadecimal string
+            return bytesToHex(aaguidBytes);
+        }
+        return null;
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        final StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b));
+        }
+        return sb.toString();
     }
 
 }

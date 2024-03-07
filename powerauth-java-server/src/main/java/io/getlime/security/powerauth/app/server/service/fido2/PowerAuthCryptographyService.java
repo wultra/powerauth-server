@@ -175,7 +175,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
                     result = Optional.empty();
                     break;
                 }
-                if (!certificateValidator.isValid(cert, caCerts)) {
+                if (!certificateValidator.isValid(cert, caCerts, authData.getAttestedCredentialData().getAaguid())) {
                     logger.warn("Certificate validation failed in Basic attestation, subject name: {}", cert.getSubjectX500Principal().getName());
                     result = Optional.empty();
                     break;
