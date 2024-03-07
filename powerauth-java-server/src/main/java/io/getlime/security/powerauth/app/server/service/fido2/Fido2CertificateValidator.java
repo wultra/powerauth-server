@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class Fido2CertificateValidator {
 
-    private final String FIDO2_EXTENSION_ID_AAGUID = "1.3.6.1.4.1.45724.1.1.4";
+    private static final String FIDO2_EXTENSION_ID_AAGUID = "1.3.6.1.4.1.45724.1.1.4";
 
     /**
      * Validate a FIDO2 certificate.
@@ -118,6 +118,7 @@ public class Fido2CertificateValidator {
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             final CertPath certPath = certificateFactory.generateCertPath(List.of(cert));
             final Set<TrustAnchor> trustAnchors = new HashSet<>();
+            System.out.println(caCerts.size());
             caCerts.forEach(caCert -> {
                 TrustAnchor trustAnchor = new TrustAnchor(caCert, null);
                 trustAnchors.add(trustAnchor);
