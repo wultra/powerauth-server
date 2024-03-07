@@ -18,10 +18,17 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
+import com.wultra.powerauth.fido2.rest.model.entity.AllowCredentials;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
+import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
 
 /**
  * Converter for assertion challenge values.
@@ -48,6 +55,65 @@ public class AssertionChallengeConverter {
         destination.setChallenge(source.getChallenge());
         destination.setFailedAttempts(source.getFailedAttempts());
         destination.setMaxFailedAttempts(source.getMaxFailedAttempts());
+        destination.setAllowCredentials(source.getAllowCredentials());
+        return destination;
+    }
+
+    /**
+     * Convert the assertion challenge request to a new operation create request. Optionally, store allowed
+     * authenticators with the operation.
+     *
+     * @param source Assertion challenge.
+     * @param authenticatorDetails Allowed authenticators. If null or empty, all are allowed.
+     * @return Request for creating a new operation.
+     */
+    public OperationCreateRequest convertAssertionRequestToOperationRequest(AssertionChallengeRequest source, List<AuthenticatorDetail> authenticatorDetails) {
+        final OperationCreateRequest destination = new OperationCreateRequest();
+        destination.setUserId(source.getUserId());
+        destination.setApplications(source.getApplicationIds());
+        destination.setTemplateName(source.getTemplateName());
+        destination.getParameters().putAll(source.getParameters());
+
+        if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
+            final Set<String> allowCredentials = new LinkedHashSet<>();
+            for (AuthenticatorDetail ad : authenticatorDetails) {
+                allowCredentials.add(ad.getExternalId());
+            }
+            destination.setAdditionalData(Map.of("allowCredentials", allowCredentials));
+        }
+        return destination;
+    }
+
+    /**
+     * Convert assertion challenge request from operation detail response.
+     *
+     * @param source Operation detail.
+     * @param authenticatorDetails Add authenticator details to be assigned with the challenge. If null or empty, all are allowed.
+     * @return Assertion challenge
+     */
+    public AssertionChallenge convertAssertionChallengeFromOperationDetail(OperationDetailResponse source, List<AuthenticatorDetail> authenticatorDetails) {
+        final AssertionChallenge destination = new AssertionChallenge();
+        destination.setUserId(source.getUserId());
+        destination.setApplicationIds(source.getApplications());
+        destination.setChallenge(source.getId() + "&" + source.getData());
+        destination.setFailedAttempts(source.getFailureCount());
+        destination.setMaxFailedAttempts(source.getMaxFailureCount());
+
+        if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
+            final List<AllowCredentials> allowCredentials = new ArrayList<>();
+            for (AuthenticatorDetail ad: authenticatorDetails) {
+
+                final byte[] credentialId = Base64.getDecoder().decode(ad.getExternalId());
+                @SuppressWarnings("unchecked")
+                final List<String> transports = (List<String>) ad.getExtras().get("transports");
+
+                final AllowCredentials ac = new AllowCredentials();
+                ac.setCredentialId(credentialId);
+                ac.setTransports(transports);
+                allowCredentials.add(ac);
+            }
+            destination.setAllowCredentials(allowCredentials);
+        }
         return destination;
     }
 

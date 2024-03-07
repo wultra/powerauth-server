@@ -34,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -75,12 +77,25 @@ public class AssertionService {
      * @return Assertion challenge information.
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
-        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(
-                request.getApplicationIds(), request.getTemplateName(), request.getParameters(), request.getExternalId()
-        );
+
+        final List<AuthenticatorDetail> authenticatorDetails = new ArrayList<>();
+
+        // If user ID is specified, fetch the user authenticators that should be allowed to respond the challenge
+        final String userId = request.getUserId();
+        if (userId != null) {
+            for (String applicationId: request.getApplicationIds()) { //TODO: Optimize
+                final List<AuthenticatorDetail> ad = authenticatorProvider.findByUserId(userId, applicationId);
+                authenticatorDetails.addAll(ad);
+            }
+        }
+
+        // Generate the challenge from given request, with optional assignment to provided authenticators
+        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(request, authenticatorDetails);
         if (assertionChallenge == null) {
             throw new Fido2AuthenticationFailedException("Unable to obtain challenge with provided parameters.");
         }
+
+        // Convert the response
         return assertionChallengeConverter.fromChallenge(assertionChallenge);
     }
 

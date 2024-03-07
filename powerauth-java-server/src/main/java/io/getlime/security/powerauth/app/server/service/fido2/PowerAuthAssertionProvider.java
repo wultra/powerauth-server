@@ -21,7 +21,9 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
+import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
@@ -35,12 +37,15 @@ import com.wultra.security.powerauth.client.model.response.OperationUserActionRe
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,11 +58,14 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@Slf4j
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
     private static final String AUDIT_TYPE_FIDO2 = "fido2";
 
     private static final String ATTR_ACTIVATION_ID = "activationId";
+    private static final String ATTR_CREDENTIAL_ID = "credentialId";
+    private static final String ATTR_ALLOW_CREDENTIALS = "allowCredentials";
     private static final String ATTR_APPLICATION_ID = "applicationId";
     private static final String ATTR_AUTH_FACTOR = "authFactor";
     private static final String ATTR_ORIGIN = "origin";
@@ -65,31 +73,23 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;
+    private final AssertionChallengeConverter assertionChallengeConverter;
     private final AuditingServiceBehavior audit;
 
     @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit) {
+    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AssertionChallengeConverter assertionChallengeConverter, AuditingServiceBehavior audit) {
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.repositoryCatalogue = repositoryCatalogue;
+        this.assertionChallengeConverter = assertionChallengeConverter;
         this.audit = audit;
     }
 
     @Override
     @Transactional
-    public AssertionChallenge provideChallengeForAssertion(List<String> applicationIds, String templateName, Map<String, String> parameters, String externalAuthenticationId) throws GenericServiceException {
-        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
-        operationCreateRequest.setApplications(applicationIds);
-        operationCreateRequest.setTemplateName(templateName);
-        operationCreateRequest.getParameters().putAll(parameters);
-
+    public AssertionChallenge provideChallengeForAssertion(AssertionChallengeRequest request, List<AuthenticatorDetail> authenticatorDetails) throws GenericServiceException {
+        final OperationCreateRequest operationCreateRequest = assertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
         final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
-        final AssertionChallenge assertionChallenge = new AssertionChallenge();
-        assertionChallenge.setUserId(operationDetailResponse.getUserId());
-        assertionChallenge.setApplicationIds(operationDetailResponse.getApplications());
-        assertionChallenge.setChallenge(operationDetailResponse.getId() + "&" + operationDetailResponse.getData());
-        assertionChallenge.setFailedAttempts(operationDetailResponse.getFailureCount());
-        assertionChallenge.setMaxFailedAttempts(operationDetailResponse.getMaxFailureCount());
-        return assertionChallenge;
+        return assertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
     }
 
     @Override
@@ -111,7 +111,12 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationApproveRequest.setUserId(authenticatorDetail.getUserId());
             operationApproveRequest.setSignatureType(supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
             operationApproveRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
-            final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest);
+            final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest, (operationEntity, request) -> {
+                @SuppressWarnings("unchecked")
+                final Set<String> allowCredentials = (Set<String>) operationEntity.getAdditionalData().get(ATTR_ALLOW_CREDENTIALS);
+                final String credentialId = (String) request.getAdditionalData().get(ATTR_CREDENTIAL_ID);
+                return allowCredentials == null || allowCredentials.isEmpty() || allowCredentials.contains(credentialId);
+            });
             final UserActionResult result = approveOperation.getResult();
             final OperationDetailResponse operation = approveOperation.getOperation();
             auditAssertionResult(authenticatorDetail, result);
@@ -240,6 +245,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final Map<String, Object> additionalData = new LinkedHashMap<>();
         additionalData.put(ATTR_ACTIVATION_ID, authenticatorDetail.getActivationId());
         additionalData.put(ATTR_APPLICATION_ID, authenticatorDetail.getApplicationId());
+        additionalData.put(ATTR_CREDENTIAL_ID, authenticatorData.getAttestedCredentialData().getCredentialId());
         additionalData.put(ATTR_AUTH_FACTOR, supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
         additionalData.put(ATTR_ORIGIN, clientDataJSON.getOrigin());
         additionalData.put(ATTR_TOP_ORIGIN, clientDataJSON.getTopOrigin());

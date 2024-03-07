@@ -1683,9 +1683,9 @@ public class PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplications());
+            logger.info("OperationCreateRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplications());
             final OperationDetailResponse response = behavior.getOperationBehavior().createOperation(request);
-            logger.info("CreateOperationRequest succeeded");
+            logger.info("OperationCreateRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged

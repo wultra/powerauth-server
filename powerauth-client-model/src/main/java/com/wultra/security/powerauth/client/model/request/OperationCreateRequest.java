@@ -55,6 +55,10 @@ public class OperationCreateRequest {
     @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, String> parameters = new LinkedHashMap<>();
 
+    @Schema(description = "Additional data associated with the operation to initialize the operation context", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonSetter(nulls = Nulls.SKIP)
+    private Map<String, Object> additionalData;
+
     @Schema(description = "Whether proximity check should be used, overrides configuration from operation template", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean proximityCheckEnabled;
 
