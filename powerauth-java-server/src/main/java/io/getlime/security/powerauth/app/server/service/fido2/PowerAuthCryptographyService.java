@@ -52,9 +52,11 @@ public class PowerAuthCryptographyService implements CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ActivationRepository activationRepository;
+    private final Fido2CertificateValidator certificateValidator;
 
-    public PowerAuthCryptographyService(ActivationRepository activationRepository) {
+    public PowerAuthCryptographyService(ActivationRepository activationRepository, Fido2CertificateValidator certificateValidator) {
         this.activationRepository = activationRepository;
+        this.certificateValidator = certificateValidator;
     }
 
     public boolean verifySignatureForAssertion(String applicationId, String authenticatorId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
@@ -157,9 +159,14 @@ public class PowerAuthCryptographyService implements CryptographyService {
                 if (!(cert.getPublicKey() instanceof ECPublicKey)) {
                     logger.warn("Invalid cryptography algorithm used in Basic attestation, algorithm: {}", cert.getPublicKey().getAlgorithm());
                     result = Optional.empty();
-                } else {
-                    result = Optional.of(convertPoint(((ECPublicKey) cert.getPublicKey()).getW()));
+                    break;
                 }
+                if (!certificateValidator.isValid(cert)) {
+                    logger.warn("Certificate validation failed in Basic attestation, subject name: {}", cert.getSubjectX500Principal().getName());
+                    result = Optional.empty();
+                    break;
+                }
+                result = Optional.of(convertPoint(((ECPublicKey) cert.getPublicKey()).getW()));
             }
             default -> result = Optional.empty();
         }
