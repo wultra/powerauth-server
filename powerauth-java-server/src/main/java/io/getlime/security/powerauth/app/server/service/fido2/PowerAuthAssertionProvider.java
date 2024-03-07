@@ -80,6 +80,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
         operationCreateRequest.setApplications(applicationIds);
         operationCreateRequest.setTemplateName(templateName);
+        operationCreateRequest.setExternalId(externalAuthenticationId);
         operationCreateRequest.getParameters().putAll(parameters);
 
         final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
