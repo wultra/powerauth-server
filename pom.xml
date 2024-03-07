@@ -26,7 +26,7 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>1.6.2</version>
+    <version>1.6.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <parent>
