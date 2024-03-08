@@ -17,17 +17,21 @@
  *
  */
 
-package com.wultra.powerauth.fido2.rest.model.enumeration;
+package com.wultra.powerauth.fido2;
+
+import io.getlime.security.powerauth.app.server.Application;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
- * FIDO2 configuration key strings.
+ * Test of FIDO2 certificate validator.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class Fido2ConfigKeys {
+@SpringBootTest(classes = Application.class)
+@ActiveProfiles("test")
+class Fido2CertificateValidatorTest {
 
-    public static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
-    public static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
-    public static final String CONFIG_KEY_ROOT_CA_CERTS = "fido2_root_ca_certs";
+    // TODO
 
 }

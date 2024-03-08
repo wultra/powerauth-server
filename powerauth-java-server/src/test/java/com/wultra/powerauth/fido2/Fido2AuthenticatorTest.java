@@ -62,8 +62,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -78,12 +77,25 @@ class Fido2AuthenticatorTest {
     private final CBORMapper CBOR_MAPPER = new CBORMapper();
     private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    private final static String RP_ID = "powerauth.com";
-    private final static Origin ORIGIN = new Origin("http://localhost");
-    private final static String USER_ID = "test_" + UUID.randomUUID();
-    private final static String APPLICATION_ID = "fido2_test_" + UUID.randomUUID();
-    private final static String ACTIVATION_NAME = "fido2_test_activation";
-    private final static long REQUEST_TIMEOUT = 100L;
+    private static final String RP_ID = "powerauth.com";
+    private static final Origin ORIGIN = new Origin("http://localhost");
+    private static final String USER_ID = "test_" + UUID.randomUUID();
+    private static final String APPLICATION_ID = "fido2_test_" + UUID.randomUUID();
+    private static final String ACTIVATION_NAME = "fido2_test_activation";
+    private static final long REQUEST_TIMEOUT = 100L;
+    
+    private static final String TEST_ROOT_CERT =
+            "-----BEGIN CERTIFICATE-----\n" +
+            "MIIBgTCCAScCEA0YfqmbKSw+gKpVgNSciIswCgYIKoZIzj0EAwIwRDESMBAGA1UE\n" +
+            "CgwJU2hhcnBMYWIuMS4wLAYDVQQDDCVzcHJpbmctc2VjdXJpdHktd2ViYXV0aG4g\n" +
+            "dGVzdCByb290IENBMCAXDTE3MDkyMjAzMTgyOVoYDzIxMTcwODI5MDMxODI5WjBE\n" +
+            "MRIwEAYDVQQKDAlTaGFycExhYi4xLjAsBgNVBAMMJXNwcmluZy1zZWN1cml0eS13\n" +
+            "ZWJhdXRobiB0ZXN0IHJvb3QgQ0EwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAATN\n" +
+            "dy65xbpUNeEzQcq1CgF6yGpGw8eUD3+Udlv5yjjraC26D+ZViUqYKPrBOnWNFxk5\n" +
+            "F7zpHlZlRowzQUCE3f8iMAoGCCqGSM49BAMCA0gAMEUCIDaeeaAE6oDfMoZNwgFL\n" +
+            "AcsJepkapCIreZrHLVnc8jWfAiEApZazduIuvFDp5k14YaiHJVZGsbuEbQ/qt/zz\n" +
+            "jt6KouI=\n" +
+            "-----END CERTIFICATE-----\n";
 
     private final ClientPlatform CLIENT_PLATFORM_SELF_ATTESTED = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(new SelfAttestedPackedAuthenticator()));
     private final ClientPlatform CLIENT_PLATFORM_BASIC_ATTESTATION = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(EmulatorUtil.PACKED_AUTHENTICATOR));
@@ -405,6 +417,13 @@ class Fido2AuthenticatorTest {
                 authenticatorCriteria, AttestationConveyancePreference.DIRECT, null
         );
 
+        // Configure root certificate on server
+        final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
+        requestCreate.setApplicationId(APPLICATION_ID);
+        requestCreate.setKey(CONFIG_KEY_ROOT_CA_CERTS);
+        requestCreate.setValues(List.of(TEST_ROOT_CERT));
+        powerAuthService.createApplicationConfig(requestCreate);
+
         // Prepare registration request
         com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
 
@@ -417,6 +436,11 @@ class Fido2AuthenticatorTest {
         activationStatusRequest2.setActivationId(challengeResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, powerAuthService.getActivationStatus(activationStatusRequest2).getActivationStatus());
 
+        // Remove configuration
+        final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
+        requestRemove.setApplicationId(APPLICATION_ID);
+        requestRemove.setKey(CONFIG_KEY_ROOT_CA_CERTS);
+        powerAuthService.removeApplicationConfig(requestRemove);
     }
 
     private void createApplication() throws Exception {

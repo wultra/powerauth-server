@@ -49,13 +49,14 @@ public class Fido2CertificateValidator {
     /**
      * Validate a FIDO2 certificate.
      *
-     * @param cert    FIDO2 certificate.
-     * @param caCerts FIDO2 CA certificates.
-     * @param aaguid  AAGUID value.
+     * @param cert         Attestation certificate.
+     * @param certChain    Intermediate certificate chain from request, if required.
+     * @param trustedCerts List of trusted root CA certificates.
+     * @param aaguid       AAGUID value.
      * @return Validation result.
      */
-    public boolean isValid(X509Certificate cert, List<X509Certificate> caCerts, byte[] aaguid) {
-        return validateCertRequirements(cert) && validateTrustPath(cert, caCerts) && validateAaguid(cert, aaguid);
+    public boolean isValid(X509Certificate cert, List<X509Certificate> certChain, List<X509Certificate> trustedCerts, byte[] aaguid) {
+        return validateCertRequirements(cert) && validateTrustPath(cert, certChain, trustedCerts) && validateAaguid(cert, aaguid);
     }
 
     /**
@@ -106,11 +107,12 @@ public class Fido2CertificateValidator {
     /**
      * Validate certificate trust path.
      *
-     * @param cert    Attestation certificate.
-     * @param caCerts CA certificates including intermediate certificates if required.
+     * @param cert         Attestation certificate.
+     * @param certChain    Intermediate certificate chain from request, if required.
+     * @param rootCerts    List of trusted root CA certificates.
      * @return Whether certificate trust path was successfully verified.
      */
-    private boolean validateTrustPath(X509Certificate cert, List<X509Certificate> caCerts) {
+    private boolean validateTrustPath(X509Certificate cert, List<X509Certificate> certChain, List<X509Certificate> rootCerts) {
         try {
             final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
             trustStore.load(null, null);
@@ -118,10 +120,8 @@ public class Fido2CertificateValidator {
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             final CertPath certPath = certificateFactory.generateCertPath(List.of(cert));
             final Set<TrustAnchor> trustAnchors = new HashSet<>();
-            caCerts.forEach(caCert -> {
-                TrustAnchor trustAnchor = new TrustAnchor(caCert, null);
-                trustAnchors.add(trustAnchor);
-            });
+            certChain.forEach(intermediateCert -> trustAnchors.add(new TrustAnchor(intermediateCert, null)));
+            rootCerts.forEach(rootCert -> trustAnchors.add(new TrustAnchor(rootCert, null)));
             final PKIXParameters params = new PKIXParameters(trustAnchors);
             params.setRevocationEnabled(false);
             final CertPathValidator validator = CertPathValidator.getInstance("PKIX");
