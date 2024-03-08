@@ -155,12 +155,12 @@ public class PowerAuthCryptographyService implements CryptographyService {
             case BASIC -> {
                 logger.debug("Using public key from Basic attestation");
                 final byte[] attestationCert = attestationObject.getAttStmt().getX509Cert().getAttestationCert();
-                final List<byte[]> attestationCertChain = attestationObject.getAttStmt().getX509Cert().getCaCerts();
-                final X509Certificate cert;
+                final List<byte[]> attestationCertChain = attestationObject.getAttStmt().getX509Cert().getCertChain();
+                final X509Certificate validatedCert;
                 final List<X509Certificate> intermediateCerts;
                 final List<X509Certificate> rootCerts;
                 try {
-                    cert = convertCert(attestationCert);
+                    validatedCert = convertCert(attestationCert);
                     intermediateCerts = convertCertChain(attestationCertChain);
                     rootCerts = getRootCaCerts(applicationId);
                 } catch (CertificateException e) {
@@ -169,17 +169,17 @@ public class PowerAuthCryptographyService implements CryptographyService {
                     result = Optional.empty();
                     break;
                 }
-                if (!(cert.getPublicKey() instanceof ECPublicKey)) {
-                    logger.warn("Invalid cryptography algorithm used in Basic attestation, algorithm: {}", cert.getPublicKey().getAlgorithm());
+                if (!(validatedCert.getPublicKey() instanceof ECPublicKey)) {
+                    logger.warn("Invalid cryptography algorithm used in Basic attestation, algorithm: {}", validatedCert.getPublicKey().getAlgorithm());
                     result = Optional.empty();
                     break;
                 }
-                if (!certificateValidator.isValid(cert, intermediateCerts, rootCerts, authData.getAttestedCredentialData().getAaguid())) {
-                    logger.warn("Certificate validation failed in Basic attestation, subject name: {}", cert.getSubjectX500Principal().getName());
+                if (!certificateValidator.isValid(validatedCert, intermediateCerts, rootCerts, authData.getAttestedCredentialData().getAaguid())) {
+                    logger.warn("Certificate validation failed in Basic attestation, subject name: {}", validatedCert.getSubjectX500Principal().getName());
                     result = Optional.empty();
                     break;
                 }
-                result = Optional.of(convertPoint(((ECPublicKey) cert.getPublicKey()).getW()));
+                result = Optional.of(convertPoint(((ECPublicKey) validatedCert.getPublicKey()).getW()));
             }
             default -> result = Optional.empty();
         }
@@ -190,7 +190,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
      * Convert certificate from byte array to an X.509 certificate.
      * @param cert Certificate as byte array.
      * @return X.509 certificate
-     * @throws CertificateException
+     * @throws CertificateException In case certificate conversion fails.
      */
     private X509Certificate convertCert(byte[] cert) throws CertificateException {
         final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");

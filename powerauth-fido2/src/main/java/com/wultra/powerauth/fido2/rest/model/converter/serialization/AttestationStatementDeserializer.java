@@ -105,13 +105,13 @@ public class AttestationStatementDeserializer extends StdDeserializer<Attestatio
                 result.setAttestationType(AttestationType.SELF);
             } else {
                 final byte[] attestationCert = x5c.get(0);
-                final List<byte[]> caCert;
+                final List<byte[]> certChain;
                 if (x5c.size() == 1) {
-                    caCert = Collections.emptyList();
+                    certChain = Collections.emptyList();
                 } else {
-                    caCert = x5c.subList(1, x5c.size());
+                    certChain = x5c.subList(1, x5c.size());
                 }
-                result.setX509Cert(new X509Cert(attestationCert, caCert));
+                result.setX509Cert(new X509Cert(attestationCert, certChain));
                 result.setAttestationType(AttestationType.BASIC);
             }
             return result;
