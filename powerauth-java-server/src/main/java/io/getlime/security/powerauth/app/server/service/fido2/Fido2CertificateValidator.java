@@ -118,9 +118,11 @@ public class Fido2CertificateValidator {
             trustStore.load(null, null);
 
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
-            final CertPath certPath = certificateFactory.generateCertPath(List.of(cert));
+            final List<X509Certificate> untrustedCerts = new ArrayList<>();
+            untrustedCerts.add(cert);
+            untrustedCerts.addAll(certChain);
+            final CertPath certPath = certificateFactory.generateCertPath(untrustedCerts);
             final Set<TrustAnchor> trustAnchors = new HashSet<>();
-            certChain.forEach(intermediateCert -> trustAnchors.add(new TrustAnchor(intermediateCert, null)));
             rootCerts.forEach(rootCert -> trustAnchors.add(new TrustAnchor(rootCert, null)));
             final PKIXParameters params = new PKIXParameters(trustAnchors);
             params.setRevocationEnabled(false);
