@@ -114,9 +114,6 @@ public class Fido2CertificateValidator {
      */
     private boolean validateTrustPath(X509Certificate cert, List<X509Certificate> certChain, List<X509Certificate> rootCerts) {
         try {
-            final KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-            trustStore.load(null, null);
-
             final CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
             final List<X509Certificate> untrustedCerts = new ArrayList<>();
             untrustedCerts.add(cert);
