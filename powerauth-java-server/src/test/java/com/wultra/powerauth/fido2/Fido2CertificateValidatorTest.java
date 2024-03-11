@@ -36,12 +36,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -55,26 +57,58 @@ class Fido2CertificateValidatorTest {
 
     private static final byte[] AAGUID_TEST = Base64.getDecoder().decode("YnNkZmRlNGNhM2Q5YWEyYQ==");
 
+    final SecureRandom secureRandom = new SecureRandom();
+
     @Autowired
     private Fido2CertificateValidator certValidator;
 
     @Test
-    void selfSignedCertificateTest() throws Exception {
+    void selfSignedCertificateValidTest() throws Exception {
+        final X509Certificate cert = generateCertificate("OU=Authenticator Attestation, CN=Test Authenticator, O=Wultra, C=CZ", AAGUID_TEST);
+        assertTrue(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), AAGUID_TEST));
+    }
+
+    @Test
+    void missingCountryTest() throws Exception {
+        final X509Certificate cert = generateCertificate("OU=Authenticator Attestation, CN=Test Authenticator, O=Wultra", AAGUID_TEST);
+        assertFalse(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), null));
+    }
+
+    @Test
+    void missingOrganizationTest() throws Exception {
+        final X509Certificate cert = generateCertificate("OU=Authenticator Attestation, CN=Test Authenticator, C=CZ", AAGUID_TEST);
+        assertFalse(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), null));
+    }
+
+    @Test
+    void invalidOrganizationalUnitTest() throws Exception {
+        final X509Certificate cert = generateCertificate("OU=Invalid, CN=Test Authenticator, O=Wultra, C=CZ", AAGUID_TEST);
+        assertFalse(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), null));
+    }
+
+    @Test
+    void invalidAaguidTest() throws Exception {
+        final byte[] randomBytes = new byte[16];
+        secureRandom.nextBytes(randomBytes);
+        final X509Certificate cert = generateCertificate("OU=Authenticator Attestation, CN=Test Authenticator, O=Wultra, C=CZ", randomBytes);
+        assertFalse(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), AAGUID_TEST));
+    }
+
+    private X509Certificate generateCertificate(String x500Name, byte[] aaguid) throws Exception {
         final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
         keyGen.initialize(256);
         final KeyPair keyPair = keyGen.generateKeyPair();
-        final X500Name subject = new X500Name("OU=Authenticator Attestation, CN=Test Authenticator, O=Wultra, C=Test");
+        final X500Name subject = new X500Name(x500Name);
         final BigInteger serial = BigInteger.valueOf(System.currentTimeMillis());
         final Date notBefore = new Date();
         final Date notAfter = new Date(notBefore.getTime() + 100 * 365L * 24 * 60 * 60 * 1000);
         final X509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(subject, serial, notBefore, notAfter, subject, keyPair.getPublic());
         final KeyUsage keyUsage = new KeyUsage(KeyUsage.keyCertSign | KeyUsage.digitalSignature | KeyUsage.keyEncipherment);
         certBuilder.addExtension(Extension.keyUsage, true, keyUsage);
-        certBuilder.addExtension(new ASN1ObjectIdentifier("1.3.6.1.4.1.45724.1.1.4"), false, new DEROctetString(AAGUID_TEST));
+        if (aaguid != null) {
+            certBuilder.addExtension(new ASN1ObjectIdentifier("1.3.6.1.4.1.45724.1.1.4"), false, new DEROctetString(aaguid));
+        }
         final ContentSigner signer = new JcaContentSignerBuilder("SHA256withECDSA").build(keyPair.getPrivate());
-        final X509Certificate cert = new JcaX509CertificateConverter().getCertificate(certBuilder.build(signer));
-        assertTrue(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), AAGUID_TEST));
+        return new JcaX509CertificateConverter().getCertificate(certBuilder.build(signer));
     }
-
-
 }
