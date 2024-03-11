@@ -122,7 +122,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorInvalidRegistrationChallengeTest() throws Exception {
+    void packedAuthenticatorInvalidRegistrationChallengeTest() throws Exception {
         // Use invalid challenge
         final Challenge challenge = new DefaultChallenge(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
         final AuthenticatorSelectionCriteria authenticatorCriteria = new AuthenticatorSelectionCriteria(
@@ -142,7 +142,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorInvalidAttestationTest() throws Exception {
+    void packedAuthenticatorInvalidAttestationTest() throws Exception {
         // Obtain challenge from PowerAuth server
         final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
@@ -169,7 +169,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorNoAttestationTest() throws Exception {
+    void packedAuthenticatorNoAttestationTest() throws Exception {
         // Obtain challenge from PowerAuth server
         final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
@@ -197,7 +197,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorInvalidAssertionChallengeTest() throws Exception {
+    void packedAuthenticatorInvalidAssertionChallengeTest() throws Exception {
         registerCredential();
 
         final Challenge challenge = new DefaultChallenge(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
@@ -235,7 +235,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorInvalidSignatureTest() throws Exception {
+    void packedAuthenticatorInvalidSignatureTest() throws Exception {
         registerCredential();
 
         // Obtain authentication challenge from PowerAuth server
@@ -399,7 +399,7 @@ class Fido2AuthenticatorTest {
     }
 
     @Test
-    public void packedAuthenticatorBasicAttestationTest() throws Exception {
+    void packedAuthenticatorBasicAttestationTest() throws Exception {
         // Obtain challenge from PowerAuth server
         final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());

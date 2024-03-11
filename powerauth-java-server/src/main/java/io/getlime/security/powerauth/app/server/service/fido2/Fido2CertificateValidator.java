@@ -30,7 +30,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.security.auth.x500.X500Principal;
-import java.security.KeyStore;
 import java.security.cert.*;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -183,10 +182,10 @@ public class Fido2CertificateValidator {
     }
 
     private static String extractAAGUID(byte[] extensionValue) {
-        if (extensionValue != null && extensionValue.length > 2) {
-            // Skip the first two bytes (tag and length) and extract the AAGUID value
-            final byte[] aaguidBytes = new byte[extensionValue.length - 2];
-            System.arraycopy(extensionValue, 2, aaguidBytes, 0, aaguidBytes.length);
+        if (extensionValue != null) {
+            // Skip the first four bytes and extract the AAGUID value
+            final byte[] aaguidBytes = new byte[extensionValue.length - 4];
+            System.arraycopy(extensionValue, 4, aaguidBytes, 0, aaguidBytes.length);
             // Convert bytes to hexadecimal string
             return bytesToHex(aaguidBytes);
         }
