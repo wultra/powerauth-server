@@ -94,7 +94,17 @@ class Fido2CertificateValidatorTest {
         assertFalse(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), AAGUID_TEST));
     }
 
+    @Test
+    void caExtensionEnabledTest() throws Exception {
+        final X509Certificate cert = generateCertificate("OU=Authenticator Attestation, CN=Test Authenticator, O=Wultra, C=CZ", AAGUID_TEST, true);
+        assertFalse(certValidator.isValid(cert, Collections.emptyList(), List.of(cert), AAGUID_TEST));
+    }
+
     private X509Certificate generateCertificate(String x500Name, byte[] aaguid) throws Exception {
+        return generateCertificate(x500Name, aaguid, false);
+    }
+
+    private X509Certificate generateCertificate(String x500Name, byte[] aaguid, boolean caExtension) throws Exception {
         final KeyPairGenerator keyGen = KeyPairGenerator.getInstance("EC");
         keyGen.initialize(256);
         final KeyPair keyPair = keyGen.generateKeyPair();
@@ -107,6 +117,10 @@ class Fido2CertificateValidatorTest {
         certBuilder.addExtension(Extension.keyUsage, true, keyUsage);
         if (aaguid != null) {
             certBuilder.addExtension(new ASN1ObjectIdentifier("1.3.6.1.4.1.45724.1.1.4"), false, new DEROctetString(aaguid));
+        }
+        if (caExtension) {
+            BasicConstraints basicConstraints = new BasicConstraints(true);
+            certBuilder.addExtension(Extension.basicConstraints, true, basicConstraints);
         }
         final ContentSigner signer = new JcaContentSignerBuilder("SHA256withECDSA").build(keyPair.getPrivate());
         return new JcaX509CertificateConverter().getCertificate(certBuilder.build(signer));
