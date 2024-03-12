@@ -24,6 +24,7 @@ import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.nio.ByteBuffer;
@@ -50,6 +51,7 @@ public class Fido2AuthenticatorService {
      * @param aaguid Authenticator identifier.
      * @return Fido2Authenticator with registered details.
      */
+    @Cacheable("fido2-authenticators")
     public Fido2Authenticator findByAaguid(final byte[] aaguid) {
         final UUID uuid = uuidFromBytes(aaguid);
         if (uuid == null) {
