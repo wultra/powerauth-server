@@ -6,5 +6,6 @@
     <include file="20240115-add-columns-fido2.xml" relativeToChangelogFile="true" />
     <include file="20240212-application-config.xml" relativeToChangelogFile="true" />
     <include file="20240222-add-tag-1.7.0.xml" relativeToChangelogFile="true" />
+    <include file="20240312-fido2-authenticator.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
