@@ -33,7 +33,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 public class CachingConfig {
 
     @CacheEvict(value = "fido2-authenticators-cache", allEntries = true)
-    @Scheduled(fixedDelay = 2*60*1000)
+    @Scheduled(fixedDelayString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
     public void evictFido2AuthenticatorCache() {
         logger.info("Flush FIDO2 Authenticators cache.");
     }
