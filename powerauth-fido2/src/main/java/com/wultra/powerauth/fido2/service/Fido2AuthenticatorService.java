@@ -51,7 +51,7 @@ public class Fido2AuthenticatorService {
      * @param aaguid Authenticator identifier.
      * @return Fido2Authenticator with registered details.
      */
-    @Cacheable("fido2-authenticators")
+    @Cacheable("fido2-authenticators-cache")
     public Fido2Authenticator findByAaguid(final byte[] aaguid) {
         final UUID uuid = uuidFromBytes(aaguid);
         if (uuid == null) {
