@@ -60,7 +60,7 @@ public class RegistrationConverter {
 
             final Fido2Authenticators.Model model = Fido2Authenticators.modelByAaguid(aaguid);
 
-            authenticatorDetail.setExternalId(requestObject.getAuthenticatorParameters().getId());
+            authenticatorDetail.setAuthenticatorId(requestObject.getAuthenticatorParameters().getId());
             authenticatorDetail.setExtras(convertExtras(requestObject));
             authenticatorDetail.setActivationName(requestObject.getActivationName());
             authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
@@ -88,7 +88,7 @@ public class RegistrationConverter {
         result.setUserId(source.getUserId());
         result.setActivationId(source.getActivationId());
         result.setApplicationId(source.getApplicationId());
-        result.setExternalId(source.getExternalId());
+        result.setAuthenticatorId(source.getAuthenticatorId());
         result.setExtras(source.getExtras());
         result.setActivationName(source.getActivationName());
         result.setPlatform(source.getPlatform());

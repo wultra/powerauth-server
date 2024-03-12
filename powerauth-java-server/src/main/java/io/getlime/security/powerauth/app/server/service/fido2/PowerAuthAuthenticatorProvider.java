@@ -207,7 +207,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // The device public key is converted back to bytes and base64 encoded so that the key is saved in normalized form
             activation.setDevicePublicKeyBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(devicePublicKey)));
             activation.setActivationName(authenticatorDetail.getActivationName());
-            activation.setExternalId(authenticatorDetail.getExternalId());
+            activation.setExternalId(authenticatorDetail.getAuthenticatorId());
             activation.setExtras(objectMapper.writeValueAsString(authenticatorDetail.getExtras()));
             if (authenticatorDetail.getPlatform() != null) {
                 activation.setPlatform(authenticatorDetail.getPlatform().toLowerCase());
@@ -292,7 +292,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         authenticatorDetail.setActivationId(activation.getActivationId());
         authenticatorDetail.setActivationStatus(activation.getActivationStatus());
         authenticatorDetail.setActivationName(activation.getActivationName());
-        authenticatorDetail.setExternalId(activation.getExternalId());
+        authenticatorDetail.setAuthenticatorId(activation.getExternalId());
         try {
             authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String,Object>>() {}));
         } catch (JsonProcessingException e) {
