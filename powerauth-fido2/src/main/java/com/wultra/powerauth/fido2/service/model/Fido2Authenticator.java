@@ -20,6 +20,7 @@ package com.wultra.powerauth.fido2.service.model;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -31,4 +32,19 @@ public record Fido2Authenticator(
         UUID aaguid,
         String description,
         SignatureType signatureType
-) {}
+) {
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Fido2Authenticator that = (Fido2Authenticator) o;
+        return Objects.equals(aaguid, that.aaguid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(aaguid);
+    }
+
+}

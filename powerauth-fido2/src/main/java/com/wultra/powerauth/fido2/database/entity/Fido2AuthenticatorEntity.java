@@ -20,10 +20,13 @@ package com.wultra.powerauth.fido2.database.entity;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * Entity representing a FIDO2 Authenticator details.
@@ -32,7 +35,7 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "pa_fido2_authenticator")
-@Data
+@Getter @Setter @ToString
 public class Fido2AuthenticatorEntity implements Serializable {
 
     @Serial
@@ -48,5 +51,18 @@ public class Fido2AuthenticatorEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "signature_type", nullable = false)
     private SignatureType signatureType;
+
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        final Fido2AuthenticatorEntity entity = (Fido2AuthenticatorEntity) o;
+        return Objects.equals(aaguid, entity.aaguid);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(aaguid);
+    }
 
 }
