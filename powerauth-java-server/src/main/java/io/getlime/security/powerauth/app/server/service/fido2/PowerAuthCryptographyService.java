@@ -51,8 +51,8 @@ public class PowerAuthCryptographyService implements CryptographyService {
         this.activationRepository = activationRepository;
     }
 
-    public boolean verifySignatureForAssertion(String applicationId, String authenticatorId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
-        if (!checkAndPersistCounter(applicationId, authenticatorId, authData.getSignCount())) {
+    public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
+        if (!checkAndPersistCounter(applicationId, credentialId, authData.getSignCount())) {
             return false;
         }
         final byte[] publicKeyBytes = authenticatorDetail.getPublicKeyBytes();
@@ -81,14 +81,14 @@ public class PowerAuthCryptographyService implements CryptographyService {
         return signatureUtils.validateECDSASignature(clientDataJSONEncodedHash, signature, publicKey);
     }
 
-    private boolean checkAndPersistCounter(String applicationId, String authenticatorId, int signCount) {
-        final List<ActivationRecordEntity> activations = activationRepository.findByExternalId(applicationId, authenticatorId);
+    private boolean checkAndPersistCounter(String applicationId, String credentialId, int signCount) {
+        final List<ActivationRecordEntity> activations = activationRepository.findByExternalId(applicationId, credentialId);
         if (activations.isEmpty()) {
-            logger.warn("Activation not found, external ID: {}", authenticatorId);
+            logger.warn("Activation not found, external ID: {}", credentialId);
             return false;
         }
         if (activations.size() > 1) {
-            logger.warn("Multiple activations with same external ID found, external ID: {}", authenticatorId);
+            logger.warn("Multiple activations with same external ID found, external ID: {}", credentialId);
             return false;
         }
         final ActivationRecordEntity activation = activations.get(0);

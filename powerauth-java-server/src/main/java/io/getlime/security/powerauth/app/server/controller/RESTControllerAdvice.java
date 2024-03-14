@@ -138,7 +138,7 @@ public class RESTControllerAdvice {
     }
 
     /**
-     * Resolver for validation xception.
+     * Resolver for validation exception.
      *
      * @param ex Exception.
      * @return Activation recovery error.

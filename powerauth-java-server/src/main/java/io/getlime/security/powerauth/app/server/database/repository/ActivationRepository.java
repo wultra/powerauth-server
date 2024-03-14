@@ -191,7 +191,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * Find all activations for given user ID
      *
      * @param applicationId Application ID.
-     * @param externalId External authenticatorId
+     * @param externalId External identifier.
      * @return List of activations for given user
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.externalId = :externalId")
