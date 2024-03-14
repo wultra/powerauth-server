@@ -34,7 +34,7 @@ public class RegistrationResponse {
     private String userId;
     private String activationId;
     private String applicationId;
-    private String authenticatorId;
+    private String credentialId;
     private String activationName;
     private ActivationStatus activationStatus;
     private Map<String, Object> extras;

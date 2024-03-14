@@ -94,15 +94,15 @@ public class AssertionService {
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
-            final String authenticatorId = request.getId();
+            final String credentialId = request.getId();
             final String challenge = request.getResponse().getClientDataJSON().getChallenge();
-            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(authenticatorId, applicationId);
+            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(credentialId, applicationId);
             authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
             final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
             final AuthenticatorData authenticatorData = response.getAuthenticatorData();
             final CollectedClientData clientDataJSON = response.getClientDataJSON();
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
-                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, authenticatorId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
+                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
