@@ -47,6 +47,6 @@ public class Fido2AuthenticatorEntity implements Serializable {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "signature_type", nullable = false)
-    SignatureType signatureType;
+    private SignatureType signatureType;
 
 }
