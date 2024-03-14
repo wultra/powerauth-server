@@ -44,7 +44,7 @@ public interface CryptographyService {
      * Verify signature for an assertion.
      *
      * @param applicationId Application identifier.
-     * @param authenticatorId Authenticator identifier.
+     * @param credentialId Credential identifier.
      * @param clientDataJSON Collected client data.
      * @param authData Authenticator data.
      * @param signature Signature bytes.
@@ -52,7 +52,7 @@ public interface CryptographyService {
      * @return Whether signature verification succeeded.
      * @throws Exception Thrown in case of a cryptography error.
      */
-    boolean verifySignatureForAssertion(String applicationId, String authenticatorId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws Exception;
+    boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws Exception;
 
     /**
      * Convert public key object to bytes.

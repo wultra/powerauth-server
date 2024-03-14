@@ -37,7 +37,7 @@ public class AuthenticatorDetail {
     private String activationId;
     private String applicationId;
     private String activationName;
-    private String externalId;
+    private String credentialId;
     private ActivationStatus activationStatus;
     private Map<String, Object> extras;
     private String platform;

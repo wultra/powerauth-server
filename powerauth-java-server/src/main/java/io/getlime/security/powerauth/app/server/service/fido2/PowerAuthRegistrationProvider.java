@@ -153,7 +153,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean registrationAllowed(String applicationId, String authenticatorId, String attestationFormat, byte[] aaguid) throws Exception {
+    public boolean registrationAllowed(String applicationId, String credentialId, String attestationFormat, byte[] aaguid) throws Exception {
         final ApplicationConfigServiceBehavior configService = serviceBehaviorCatalogue.getApplicationConfigServiceBehavior();
         final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
         configRequest.setApplicationId(applicationId);
@@ -184,9 +184,9 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         }
 
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final List<ActivationRecordEntity> existingActivations = activationRepository.findByExternalId(applicationId, authenticatorId);
+        final List<ActivationRecordEntity> existingActivations = activationRepository.findByExternalId(applicationId, credentialId);
         if (!existingActivations.isEmpty()) {
-            logger.warn("Rejected duplicate external ID for registration, application ID: {}, external ID: {}", applicationId, authenticatorId);
+            logger.warn("Rejected duplicate external ID for registration, application ID: {}, external ID: {}", applicationId, credentialId);
             return false;
         }
 
