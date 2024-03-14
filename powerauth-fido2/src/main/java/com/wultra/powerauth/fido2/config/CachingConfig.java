@@ -35,7 +35,7 @@ public class CachingConfig {
     @CacheEvict(value = "fido2-authenticators-cache", allEntries = true)
     @Scheduled(fixedDelayString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
     public void evictFido2AuthenticatorCache() {
-        logger.info("Flush FIDO2 Authenticators cache.");
+        logger.debug("Flush FIDO2 Authenticators cache.");
     }
 
 }
