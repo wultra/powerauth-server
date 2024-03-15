@@ -45,9 +45,9 @@
 
     <!-- Insert initial data to pa_fido2_authenticator table -->
     <changeSet id="2" logicalFilePath="powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml" author="Jan Pesek">
-        <loadUpdateData file="aaguids.csv" separator=";" relativeToChangelogFile="true"
-                        tableName="pa_fido2_authenticator" primaryKey="aaguid">
-        </loadUpdateData>
+        <loadData file="aaguids.csv" separator=";" relativeToChangelogFile="true"
+                        tableName="pa_fido2_authenticator">
+        </loadData>
     </changeSet>
 
 </databaseChangeLog>
