@@ -632,10 +632,10 @@ class OperationServiceBehaviorTest {
         final OperationCancelRequest cancelRequest = new OperationCancelRequest();
         cancelRequest.setOperationId(operation.getId());
         cancelRequest.getAdditionalData().put("userAgent", parseableUserAgent);
-        final OperationDetailResponse operationRejectDetailResponse = operationService.cancelOperation(cancelRequest);
+        final OperationDetailResponse operationCancelDetailResponse = operationService.cancelOperation(cancelRequest);
 
-        assertNotNull(operationRejectDetailResponse.getAdditionalData().get("device"));
-        assertEquals(expectedDevice, operationRejectDetailResponse.getAdditionalData().get("device"));
+        assertNotNull(operationCancelDetailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, operationCancelDetailResponse.getAdditionalData().get("device"));
 
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
