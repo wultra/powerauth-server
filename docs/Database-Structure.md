@@ -610,3 +610,28 @@ CREATE TABLE pa_operation_application (
 | application_id | bigint | part of primary key | Related application ID. |
 | operation_id | varchar(37)  | part of primary key | Related operation ID. |
 <!-- end -->
+
+<!-- begin database table pa_fido2_authenticator -->
+### FIDO2 Authenticators
+
+Table stores details about FIDO2 Authenticators.
+
+#### Schema
+
+```sql
+CREATE TABLE pa_fido2_authenticator (
+    aaguid          VARCHAR(255)    NOT NULL,
+    description     VARCHAR(255)    NOT NULL,
+    signature_type  VARCHAR(255)    NOT NULL,
+    CONSTRAINT pa_fido2_authenticator_pkey PRIMARY KEY (aaguid)
+);
+```
+
+#### Columns
+
+| Name           | Type         | Info        | Note                                                   |
+|----------------|--------------|-------------|--------------------------------------------------------|
+| aaguid         | varchar(255) | primary key | Identifier of the FIDO2 authenticator.                 |
+| description    | varchar(255) | -           | Human-readable description of the FIDO2 authenticator. |
+| signature_type | varchar(255) | -           | Signature type provided by the FIDO2 authenticator.    |
+<!-- end -->
