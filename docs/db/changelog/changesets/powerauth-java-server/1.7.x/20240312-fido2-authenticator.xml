@@ -29,7 +29,7 @@
                 <tableExists tableName="pa_fido2_authenticator"/>
             </not>
         </preConditions>
-        <comment>Create a new table pa_application_config</comment>
+        <comment>Create a new table pa_fido2_authenticator</comment>
         <createTable tableName="pa_fido2_authenticator">
             <column name="aaguid" type="varchar(255)">
                 <constraints primaryKey="true"/>
@@ -45,6 +45,7 @@
 
     <!-- Insert initial data to pa_fido2_authenticator table -->
     <changeSet id="2" logicalFilePath="powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml" author="Jan Pesek">
+        <comment>Insert initial data to pa_fido2_authenticator table</comment>
         <loadData file="aaguids.csv" separator=";" relativeToChangelogFile="true"
                         tableName="pa_fido2_authenticator">
         </loadData>
