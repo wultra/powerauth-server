@@ -32,3 +32,12 @@ Following parameters can be configured:
 - `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
 - `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
 - `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
+
+### New Database Table for FIDO2 Authenticators
+
+A new database table `pa_fido2_authenticator` has been added:
+- `aaguid` - identifier of the FIDO2 authenticator
+- `description` - human-readable description of the FIDO2 authenticator
+- `signature_type` - signature type provided by the FIDO2 authenticator
+
+There are initial data included in this change.
