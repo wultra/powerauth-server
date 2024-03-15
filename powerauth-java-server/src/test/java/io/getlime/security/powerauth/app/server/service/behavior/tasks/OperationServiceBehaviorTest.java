@@ -17,12 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.core.http.common.headers.UserAgent;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
-import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
-import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
@@ -508,6 +506,143 @@ class OperationServiceBehaviorTest {
         final OperationUserActionResponse result = operationService.attemptApproveOperation(approveRequest);
 
         assertEquals("APPROVAL_FAILED", result.getResult().toString());
+    }
+
+    /**
+     * Tests the parsing and addition of device information to the operation approval details.
+     * This test simulates an operation approval request with a specific user agent string, then
+     * verifies if the device information parsed from the user agent string is correctly added
+     * to the operation's additional data. The expected device information is predefined and
+     * compared against the actual device information found in the operation's additional data
+     * after the operation approval process.
+     *
+     * @throws Exception if any error occurs during the test execution.
+     */
+    @Test
+    void testParsingDeviceOperationApproveDetail() throws Exception {
+        final String parseableUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
+        final UserAgent.Device expectedDevice = new UserAgent.Device();
+        expectedDevice.setVersion("2.0.0");
+        expectedDevice.setNetworkVersion("1.1.7");
+        expectedDevice.setLanguage("en");
+        expectedDevice.setConnection("cellular");
+        expectedDevice.setProduct("com.wultra.app.MobileToken.wtest");
+        expectedDevice.setPlatform("Apple");
+        expectedDevice.setOs("iOS");
+        expectedDevice.setOsVersion("16.6.1");
+        expectedDevice.setModel("iphone12,3");
+
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setUserId("test-user");
+        request.setApplications(Collections.singletonList(APP_ID));
+        final OperationDetailResponse operation = createOperation(false);
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
+        approveRequest.getAdditionalData().put("userAgent", parseableUserAgent);
+        final OperationUserActionResponse result = operationService.attemptApproveOperation(approveRequest);
+
+        assertNotNull(result.getOperation().getAdditionalData().get("device"));
+        assertEquals(expectedDevice, result.getOperation().getAdditionalData().get("device"));
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operation.getId());
+        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+
+        assertNotNull(detailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, detailResponse.getAdditionalData().get("device"));
+    }
+
+    /**
+     * Tests the parsing and addition of device information to the operation rejection details.
+     * This test involves simulating an operation rejection request with a given user agent string.
+     * It verifies that the device information, parsed from the user agent, is accurately included
+     * in the operation's additional data. The test defines expected device information upfront
+     * and checks this against the device information stored n the operation's additional data
+     * following the operation rejection process.
+     *
+     * @throws Exception if any error occurs during the test execution.
+     */
+    @Test
+    void testParsingDeviceOperationRejectDetail() throws Exception {
+        final String parseableUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
+        final UserAgent.Device expectedDevice = new UserAgent.Device();
+        expectedDevice.setVersion("2.0.0");
+        expectedDevice.setNetworkVersion("1.1.7");
+        expectedDevice.setLanguage("en");
+        expectedDevice.setConnection("cellular");
+        expectedDevice.setProduct("com.wultra.app.MobileToken.wtest");
+        expectedDevice.setPlatform("Apple");
+        expectedDevice.setOs("iOS");
+        expectedDevice.setOsVersion("16.6.1");
+        expectedDevice.setModel("iphone12,3");
+
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setUserId("test-user");
+        request.setApplications(Collections.singletonList(APP_ID));
+        final OperationDetailResponse operation = createOperation(false);
+
+        final OperationRejectRequest rejectRequest = new OperationRejectRequest();
+        rejectRequest.setOperationId(operation.getId());
+        rejectRequest.setApplicationId("PA_Tests");
+        rejectRequest.getAdditionalData().put("userAgent", parseableUserAgent);
+        rejectRequest.setUserId("test-user");
+        final OperationUserActionResponse operationUserActionResponse = operationService.rejectOperation(rejectRequest);
+
+        assertNotNull(operationUserActionResponse.getOperation().getAdditionalData().get("device"));
+        assertEquals(expectedDevice, operationUserActionResponse.getOperation().getAdditionalData().get("device"));
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operation.getId());
+        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+
+        assertNotNull(detailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, detailResponse.getAdditionalData().get("device"));
+    }
+
+    /**
+     * Tests the parsing and addition of device information to the operation cancellation details.
+     * This test follows simulates an operation cancellation request with a specific user agent string.
+     * It checks that the device information extracted from the user agent is correctly appended
+     * to the operation's additional data. Predefined expected device information is used for comparison
+     * against the actual device information found in the operation's additional data after the cancellation process.
+     *
+     * @throws Exception if any error occurs during the test execution.
+     */
+    @Test
+    void testParsingDeviceOperationCancelDetail() throws Exception {
+        final String parseableUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
+        final UserAgent.Device expectedDevice = new UserAgent.Device();
+        expectedDevice.setVersion("2.0.0");
+        expectedDevice.setNetworkVersion("1.1.7");
+        expectedDevice.setLanguage("en");
+        expectedDevice.setConnection("cellular");
+        expectedDevice.setProduct("com.wultra.app.MobileToken.wtest");
+        expectedDevice.setPlatform("Apple");
+        expectedDevice.setOs("iOS");
+        expectedDevice.setOsVersion("16.6.1");
+        expectedDevice.setModel("iphone12,3");
+
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setUserId("test-user");
+        request.setApplications(Collections.singletonList(APP_ID));
+        final OperationDetailResponse operation = createOperation(false);
+
+        final OperationCancelRequest cancelRequest = new OperationCancelRequest();
+        cancelRequest.setOperationId(operation.getId());
+        cancelRequest.getAdditionalData().put("userAgent", parseableUserAgent);
+        final OperationDetailResponse operationRejectDetailResponse = operationService.cancelOperation(cancelRequest);
+
+        assertNotNull(operationRejectDetailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, operationRejectDetailResponse.getAdditionalData().get("device"));
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operation.getId());
+        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+
+        assertNotNull(detailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, detailResponse.getAdditionalData().get("device"));
     }
 
     private void createApplication() throws GenericServiceException {

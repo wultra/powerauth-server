@@ -289,7 +289,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
@@ -428,7 +428,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -499,7 +499,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
 
@@ -570,7 +570,7 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
-                .param("additionalData", extendAuditedAdditionalData(operationEntity.getAdditionalData()))
+                .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
 
@@ -695,7 +695,7 @@ public class OperationServiceBehavior {
         destination.setTemplateName(source.getTemplateName());
         destination.setData(source.getData());
         destination.setParameters(source.getParameters());
-        destination.setAdditionalData(source.getAdditionalData() != null ? source.getAdditionalData() : Collections.emptyMap());
+        destination.setAdditionalData(extendAdditionalDataWithDevice(source.getAdditionalData()));
         final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
                 .distinct()
                 .map(p -> SignatureType.enumFromString(p.toString()))
@@ -877,20 +877,23 @@ public class OperationServiceBehavior {
         }
     }
 
-    private static Map<String, Object> extendAuditedAdditionalData(Map<String, Object> additionalData) {
-        final Map<String, Object> additionalDataAudited = new HashMap<>(additionalData);
-        parseDeviceFromUserAgent(additionalDataAudited).ifPresent(device ->
-                additionalDataAudited.put(ATTR_DEVICE, device));
-        return additionalDataAudited;
+    public static Map<String, Object> extendAdditionalDataWithDevice(Map<String, Object> additionalData) {
+        if (additionalData != null) {
+            final Map<String, Object> additionalDataExtended = new HashMap<>(additionalData);
+            parseDeviceFromUserAgent(additionalDataExtended).ifPresent(device ->
+                    additionalDataExtended.put(ATTR_DEVICE, device));
+            return additionalDataExtended;
+        }
+        return Collections.emptyMap();
     }
 
-    private static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
+    public static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
         final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
         if (userAgentObject != null) {
             return UserAgent.parse(userAgentObject.toString());
-        } else {
-            return Optional.empty();
         }
+
+        return Optional.empty();
     }
 
     private List<String> fetchActivationFlags(String activationId) {
