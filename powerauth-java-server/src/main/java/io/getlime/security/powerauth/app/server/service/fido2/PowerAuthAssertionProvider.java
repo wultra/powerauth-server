@@ -37,12 +37,10 @@ import com.wultra.security.powerauth.client.model.response.OperationUserActionRe
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import lombok.extern.slf4j.Slf4j;
@@ -62,7 +60,6 @@ import java.util.*;
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
     private static final String AUDIT_TYPE_FIDO2 = "fido2";
-
     private static final String ATTR_ACTIVATION_ID = "activationId";
     private static final String ATTR_CREDENTIAL_ID = "credentialId";
     private static final String ATTR_ALLOW_CREDENTIALS = "allowCredentials";
@@ -75,18 +72,32 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final RepositoryCatalogue repositoryCatalogue;
     private final AssertionChallengeConverter assertionChallengeConverter;
     private final AuditingServiceBehavior audit;
+    private final PowerAuthAuthenticatorProvider authenticatorProvider;
 
     @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AssertionChallengeConverter assertionChallengeConverter, AuditingServiceBehavior audit) {
+    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AssertionChallengeConverter assertionChallengeConverter, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider) {
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.repositoryCatalogue = repositoryCatalogue;
         this.assertionChallengeConverter = assertionChallengeConverter;
         this.audit = audit;
+        this.authenticatorProvider = authenticatorProvider;
     }
 
     @Override
     @Transactional
-    public AssertionChallenge provideChallengeForAssertion(AssertionChallengeRequest request, List<AuthenticatorDetail> authenticatorDetails) throws GenericServiceException {
+    public AssertionChallenge provideChallengeForAssertion(AssertionChallengeRequest request) throws GenericServiceException, Fido2AuthenticationFailedException {
+        final List<AuthenticatorDetail> authenticatorDetails = new ArrayList<>();
+
+        // If user ID is specified, fetch the user authenticators that should be allowed to respond the challenge
+        final String userId = request.getUserId();
+        if (userId != null) {
+            //TODO: Optimize by fetching data for all applications
+            for (String applicationId: request.getApplicationIds()) {
+                final List<AuthenticatorDetail> ad = authenticatorProvider.findByUserId(userId, applicationId);
+                authenticatorDetails.addAll(ad);
+            }
+        }
+
         final OperationCreateRequest operationCreateRequest = assertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
         final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
         return assertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);

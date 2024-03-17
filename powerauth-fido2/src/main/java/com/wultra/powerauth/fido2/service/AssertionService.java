@@ -34,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -78,19 +76,8 @@ public class AssertionService {
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
 
-        final List<AuthenticatorDetail> authenticatorDetails = new ArrayList<>();
-
-        // If user ID is specified, fetch the user authenticators that should be allowed to respond the challenge
-        final String userId = request.getUserId();
-        if (userId != null) {
-            for (String applicationId: request.getApplicationIds()) { //TODO: Optimize
-                final List<AuthenticatorDetail> ad = authenticatorProvider.findByUserId(userId, applicationId);
-                authenticatorDetails.addAll(ad);
-            }
-        }
-
         // Generate the challenge from given request, with optional assignment to provided authenticators
-        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(request, authenticatorDetails);
+        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(request);
         if (assertionChallenge == null) {
             throw new Fido2AuthenticationFailedException("Unable to obtain challenge with provided parameters.");
         }
@@ -120,7 +107,7 @@ public class AssertionService {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
-                    return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
+                    return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, true);
                 } else {
                     assertionProvider.failAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect signature.");

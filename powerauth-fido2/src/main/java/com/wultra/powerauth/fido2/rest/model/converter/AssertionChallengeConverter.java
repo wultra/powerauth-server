@@ -39,6 +39,8 @@ import java.util.*;
 @Slf4j
 public class AssertionChallengeConverter {
 
+    private static final String ATTR_ALLOW_CREDENTIALS = "allowCredentials";
+
     /**
      * Convert a new assertion challenge response from a provided challenge.
      *
@@ -74,12 +76,13 @@ public class AssertionChallengeConverter {
         destination.setTemplateName(source.getTemplateName());
         destination.getParameters().putAll(source.getParameters());
 
+        //TODO: Use relation to activation ID instead of additional data
         if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
             final Set<String> allowCredentials = new LinkedHashSet<>();
             for (AuthenticatorDetail ad : authenticatorDetails) {
-                allowCredentials.add(ad.getExternalId());
+                allowCredentials.add(ad.getCredentialId());
             }
-            destination.setAdditionalData(Map.of("allowCredentials", allowCredentials));
+            destination.setAdditionalData(Map.of(ATTR_ALLOW_CREDENTIALS, allowCredentials));
         }
         return destination;
     }
@@ -103,7 +106,7 @@ public class AssertionChallengeConverter {
             final List<AllowCredentials> allowCredentials = new ArrayList<>();
             for (AuthenticatorDetail ad: authenticatorDetails) {
 
-                final byte[] credentialId = Base64.getDecoder().decode(ad.getExternalId());
+                final byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
                 @SuppressWarnings("unchecked")
                 final List<String> transports = (List<String>) ad.getExtras().get("transports");
 

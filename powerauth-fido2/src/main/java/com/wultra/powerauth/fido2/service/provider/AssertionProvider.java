@@ -25,8 +25,6 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 
-import java.util.List;
-
 /**
  * Interface with methods responsible for assertion verification.
  *
@@ -38,12 +36,10 @@ public interface AssertionProvider {
      * Obtain challenge for authentication.
      *
      * @param request              Assertion challenge request.
-     * @param authenticatorDetails Optional list of authenticators that should be allowed to respond to the challenge.
-     *                             If empty, any authenticator can respond.
      * @return Assertion challenge.
      * @throws Exception In case any issue occur during processing.
      */
-    AssertionChallenge provideChallengeForAssertion(AssertionChallengeRequest request, List<AuthenticatorDetail> authenticatorDetails) throws Exception;
+    AssertionChallenge provideChallengeForAssertion(AssertionChallengeRequest request) throws Exception;
 
     /**
      * Approve assertion.
