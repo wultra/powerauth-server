@@ -14,20 +14,27 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-package com.wultra.powerauth.fido2.rest.model.enumeration;
+package com.wultra.powerauth.fido2.rest.model.entity;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * FIDO2 configuration key strings.
+ * X509 Certificate used in Packed attestation.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class Fido2ConfigKeys {
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class X509Cert {
 
-    public static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
-    public static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
-    public static final String CONFIG_KEY_ROOT_CA_CERTS = "fido2_root_ca_certs";
+    private byte[] attestationCert;
+    private List<byte[]> certChain;
 
 }

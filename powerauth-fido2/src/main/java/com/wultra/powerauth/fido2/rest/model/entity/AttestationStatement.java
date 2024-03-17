@@ -18,6 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.entity;
 
+import com.wultra.powerauth.fido2.rest.model.enumeration.AttestationType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.Data;
 
@@ -28,6 +29,10 @@ import lombok.Data;
  */
 @Data
 public class AttestationStatement {
+
     private SignatureAlgorithm algorithm;
     private byte[] signature;
+    private X509Cert x509Cert;
+    private AttestationType attestationType;
+
 }

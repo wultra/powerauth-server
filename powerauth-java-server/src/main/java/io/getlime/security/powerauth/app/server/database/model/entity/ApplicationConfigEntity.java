@@ -56,7 +56,7 @@ public class ApplicationConfigEntity implements Serializable {
     @Column(name = "config_key", nullable = false)
     private String key;
 
-    @Column(name = "config_values")
+    @Column(name = "config_values", columnDefinition = "CLOB")
     @Convert(converter = ListToJsonConverter.class)
     private List<String> values = new ArrayList<>();
 

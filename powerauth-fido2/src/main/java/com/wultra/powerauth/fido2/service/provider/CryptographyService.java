@@ -32,13 +32,12 @@ public interface CryptographyService {
      *
      * @param applicationId Application identifier.
      * @param clientDataJSON Collected client data.
-     * @param authData Authenticator data.
+     * @param attestationObject Attestation object.
      * @param signature Signature bytes.
-     * @param attestedCredentialData Attested credential data.
      * @return Whether signature verification succeeded.
      * @throws Exception Thrown in case of a cryptography error.
      */
-    boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AttestedCredentialData attestedCredentialData) throws Exception;
+    boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AttestationObject attestationObject, byte[] signature) throws Exception;
 
     /**
      * Verify signature for an assertion.

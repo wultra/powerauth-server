@@ -20,14 +20,14 @@
 package com.wultra.powerauth.fido2.rest.model.enumeration;
 
 /**
- * FIDO2 configuration key strings.
+ * Attestation type.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class Fido2ConfigKeys {
+public enum AttestationType {
 
-    public static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
-    public static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
-    public static final String CONFIG_KEY_ROOT_CA_CERTS = "fido2_root_ca_certs";
+    BASIC,
+    SELF,
+    NONE
 
 }
