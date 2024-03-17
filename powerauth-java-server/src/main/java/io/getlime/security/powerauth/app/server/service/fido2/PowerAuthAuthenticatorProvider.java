@@ -294,7 +294,10 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         authenticatorDetail.setActivationName(activation.getActivationName());
         authenticatorDetail.setCredentialId(activation.getExternalId());
         try {
-            authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String,Object>>() {}));
+            if (activation.getExtras() != null) {
+                authenticatorDetail.setExtras(objectMapper.readValue(activation.getExtras(), new TypeReference<HashMap<String, Object>>() {
+                }));
+            }
         } catch (JsonProcessingException e) {
             logger.warn(e.getMessage(), e);
             return Optional.empty();
