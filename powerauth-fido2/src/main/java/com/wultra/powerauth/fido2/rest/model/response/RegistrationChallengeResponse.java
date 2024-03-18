@@ -27,9 +27,11 @@ import lombok.Data;
  */
 @Data
 public class RegistrationChallengeResponse {
+
     private String activationId;
     private String applicationId;
     private String challenge;
     private String userId;
+
 
 }

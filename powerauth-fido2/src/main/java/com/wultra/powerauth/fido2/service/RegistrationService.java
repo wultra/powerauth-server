@@ -115,7 +115,7 @@ public class RegistrationService {
             throw new Fido2AuthenticationFailedException(error);
         }
 
-        final String credentialId = requestObject.getAuthenticatorParameters().getId();
+        final String credentialId = requestObject.getAuthenticatorParameters().getCredentialId();
         final AuthenticatorAttestationResponse response = requestObject.getAuthenticatorParameters().getResponse();
 
         final CollectedClientData clientDataJSON = response.getClientDataJSON();
