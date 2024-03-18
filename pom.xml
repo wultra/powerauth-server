@@ -93,7 +93,7 @@
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi-starter-webmvc-ui.version>2.4.0</springdoc-openapi-starter-webmvc-ui.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
         <swagger-annotations-jakarta.version>2.2.20</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
