@@ -18,6 +18,8 @@
 
 package com.wultra.powerauth.fido2.rest.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -41,7 +43,9 @@ public class AuthenticatorParameters {
     private AuthenticatorAttestationResponse response = new AuthenticatorAttestationResponse();
     @NotBlank
     private String relyingPartyId;
+    @JsonSetter(nulls = Nulls.SKIP)
     private List<String> allowedOrigins = new ArrayList<>();
+    @JsonSetter(nulls = Nulls.SKIP)
     private List<String> allowedTopOrigins = new ArrayList<>();
     private boolean requiresUserVerification;
 
