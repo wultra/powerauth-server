@@ -208,7 +208,7 @@ FIDO2 assertions are backed by PowerAuth activations.
 
 | Attribute                                                                 | Type     | Description                                                                   |
 |---------------------------------------------------------------------------|----------|-------------------------------------------------------------------------------|
-| `id`<span class="required" title="Required">*</span>                      | `String` | Credential ID.                                                                |
+| `credentialId`<span class="required" title="Required">*</span>                      | `String` | Credential ID.                                                                |
 | `type`<span class="required" title="Required">*</span>                    | `String` | Credential type (`public-key`).                                               |
 | `authenticatorAttachment`<span class="required" title="Required">*</span> | `String` | Information about authenticator attachment.                                   |
 | `response`<span class="required" title="Required">*</span>                | `String` | Authenticator response (value provided by authenticator, encoded as Base64).  |
@@ -397,7 +397,7 @@ Verify a provided FIDO2 assertion.
 
 | Attribute                                                                 | Type     | Description                                                                       |
 |---------------------------------------------------------------------------|----------|-----------------------------------------------------------------------------------|
-| `id`<span class="required" title="Required">*</span>                      | `String` | Credential ID.                                                                    |
+| `credentialId`<span class="required" title="Required">*</span>                      | `String` | Credential ID.                                                                    |
 | `type`<span class="required" title="Required">*</span>                    | `String` | Credential type (`public-key`).                                                   |
 | `authenticatorAttachment`<span class="required" title="Required">*</span> | `String` | Information about authenticator attachment.                                       |
 | `response`<span class="required" title="Required">*</span>                | `String` | Authenticator response (value provided by authenticator, encoded as Base64).      |
