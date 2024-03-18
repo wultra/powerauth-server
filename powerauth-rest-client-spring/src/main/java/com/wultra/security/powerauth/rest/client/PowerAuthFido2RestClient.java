@@ -240,7 +240,7 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
                                                       String applicationId, String relyingPartyId, List<String> allowedOrigins, List<String> allowedTopOrigins,
                                                       boolean requiresUserVerification, String expectedChallenge) throws PowerAuthClientException {
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
-        request.setId(id);
+        request.setCredentialId(id);
         request.setType(type);
         request.setAuthenticatorAttachment(authenticatorAttachment);
         request.setResponse(response);
