@@ -23,6 +23,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -55,7 +56,7 @@ public class Fido2AuthenticatorEntity implements Serializable {
     @Override
     public boolean equals(final Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || !this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
         final Fido2AuthenticatorEntity entity = (Fido2AuthenticatorEntity) o;
         return Objects.equals(aaguid, entity.aaguid);
     }
