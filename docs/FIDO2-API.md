@@ -2,7 +2,7 @@
 
 <!-- TEMPLATE api -->
 
-Telemetry API allows querying various statistics about the PowerAuth system usage. Information obtained from the reports can be used for example for billing purposes, estimating performance requirements or measure user base growth.
+FIDO2 REST API enables integration of WebAuthN standard into PowerAuth for FIDO2 authenticators. Registration and authentication ceremonies are supported by this REST API.
 
 ## Possible Error Codes
 
