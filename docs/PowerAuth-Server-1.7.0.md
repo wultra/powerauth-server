@@ -26,8 +26,9 @@ A new database table `pa_application_config` has been added:
 - `id` - application configuration row identifier
 - `application_id` - application identifier
 - `config_key` - configuration key
-- `config_values` - list of configuration values
+- `config_values` - list of configuration values serialized as JSON array
 
 Following parameters can be configured:
-- `fido2_attestation_fmt_allowed` - allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
-- `fido2_aaguids_allowed` - allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
+- `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
+- `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
+- `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
