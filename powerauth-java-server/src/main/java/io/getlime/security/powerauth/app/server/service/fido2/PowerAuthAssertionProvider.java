@@ -124,7 +124,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationApproveRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
             final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest, (operationEntity, request) -> {
                 @SuppressWarnings("unchecked")
-                final Set<String> allowCredentials = (Set<String>) operationEntity.getAdditionalData().get(ATTR_ALLOW_CREDENTIALS);
+                final List<String> allowCredentials = (List<String>) operationEntity.getAdditionalData().get(ATTR_ALLOW_CREDENTIALS);
                 final String credentialId = (String) request.getAdditionalData().get(ATTR_CREDENTIAL_ID);
                 return allowCredentials == null || allowCredentials.isEmpty() || allowCredentials.contains(credentialId);
             });
