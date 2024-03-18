@@ -35,5 +35,6 @@ public class AssertionChallenge {
     private String userId;
     private Long failedAttempts;
     private Long maxFailedAttempts;
+    private List<AllowCredentials> allowCredentials;
 
 }

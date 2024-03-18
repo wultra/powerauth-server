@@ -75,12 +75,14 @@ public class AssertionService {
      * @return Assertion challenge information.
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
-        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(
-                request.getApplicationIds(), request.getTemplateName(), request.getParameters(), request.getExternalId()
-        );
+
+        // Generate the challenge from given request, with optional assignment to provided authenticators
+        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(request);
         if (assertionChallenge == null) {
             throw new Fido2AuthenticationFailedException("Unable to obtain challenge with provided parameters.");
         }
+
+        // Convert the response
         return assertionChallengeConverter.fromChallenge(assertionChallenge);
     }
 
@@ -105,7 +107,7 @@ public class AssertionService {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
-                    return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
+                    return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, true);
                 } else {
                     assertionProvider.failAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect signature.");
