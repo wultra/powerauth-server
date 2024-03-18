@@ -51,6 +51,7 @@ public class AssertionConverter {
             final AssertionVerificationResponse destination = new AssertionVerificationResponse();
             destination.setAssertionValid(assertionValid);
             destination.setUserId(source.getUserId());
+            destination.setActivationId(source.getActivationId());
             destination.setApplicationId(source.getApplicationId());
             destination.setActivationStatus(source.getActivationStatus());
             destination.setBlockedReason(source.getBlockedReason());

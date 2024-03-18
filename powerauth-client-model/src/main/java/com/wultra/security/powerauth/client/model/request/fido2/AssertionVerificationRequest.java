@@ -34,7 +34,7 @@ import java.util.List;
 public class AssertionVerificationRequest {
 
     @NotBlank
-    private String id;
+    private String credentialId;
     @NotBlank
     private String type;
     @NotBlank
