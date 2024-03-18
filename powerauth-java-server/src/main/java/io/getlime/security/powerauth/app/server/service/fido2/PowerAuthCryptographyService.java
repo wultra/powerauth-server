@@ -142,15 +142,14 @@ public class PowerAuthCryptographyService implements CryptographyService {
     private Optional<ECPoint> resolveEcPoint(AttestationObject attestationObject, String applicationId) {
         final AuthenticatorData authData = attestationObject.getAuthData();
         final AttestedCredentialData attestedCredentialData = authData.getAttestedCredentialData();
-        final Optional<ECPoint> result;
-        switch (attestationObject.getAttStmt().getAttestationType()) {
+        return switch (attestationObject.getAttStmt().getAttestationType()) {
             case NONE -> {
                 logger.warn("Invalid attestation type NONE for attestation format: {}", attestationObject.getFmt());
-                result = Optional.empty();
+                yield Optional.empty();
             }
             case SELF -> {
                 logger.debug("Using public key from Self attestation");
-                result = Optional.of(attestedCredentialData.getPublicKeyObject().getPoint());
+                yield Optional.of(attestedCredentialData.getPublicKeyObject().getPoint());
             }
             case BASIC -> {
                 logger.debug("Using public key from Basic attestation");
@@ -166,24 +165,19 @@ public class PowerAuthCryptographyService implements CryptographyService {
                 } catch (CertificateException e) {
                     logger.debug(e.getMessage(), e);
                     logger.warn("Invalid certificate received in Basic attestation, error: {}", e.getMessage());
-                    result = Optional.empty();
-                    break;
+                    yield Optional.empty();
                 }
                 if (!(validatedCert.getPublicKey() instanceof ECPublicKey)) {
                     logger.warn("Invalid cryptography algorithm used in Basic attestation, algorithm: {}", validatedCert.getPublicKey().getAlgorithm());
-                    result = Optional.empty();
-                    break;
+                    yield Optional.empty();
                 }
                 if (!certificateValidator.isValid(validatedCert, intermediateCerts, rootCerts, authData.getAttestedCredentialData().getAaguid())) {
                     logger.warn("Certificate validation failed in Basic attestation, subject name: {}", validatedCert.getSubjectX500Principal().getName());
-                    result = Optional.empty();
-                    break;
+                    yield Optional.empty();
                 }
-                result = Optional.of(convertPoint(((ECPublicKey) validatedCert.getPublicKey()).getW()));
+                yield Optional.of(convertPoint(((ECPublicKey) validatedCert.getPublicKey()).getW()));
             }
-            default -> result = Optional.empty();
-        }
-        return result;
+        };
     }
 
     /**
