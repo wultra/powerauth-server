@@ -205,7 +205,7 @@ class Fido2AuthenticatorTest {
                 RP_ID, null, UserVerificationRequirement.REQUIRED, null);
         final PublicKeyCredential<AuthenticatorAssertionResponse, AuthenticationExtensionClientOutput> credential = CLIENT_PLATFORM_SELF_ATTESTED.get(getOptions);
         final AssertionVerificationRequest authRequest = new AssertionVerificationRequest();
-        authRequest.setId(credential.getId());
+        authRequest.setCredentialId(credential.getId());
         authRequest.setType(credential.getType());
         authRequest.setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM.getValue());
         authRequest.setApplicationId(APPLICATION_ID);
@@ -256,7 +256,7 @@ class Fido2AuthenticatorTest {
                 RP_ID, null, UserVerificationRequirement.REQUIRED, null);
         final PublicKeyCredential<AuthenticatorAssertionResponse, AuthenticationExtensionClientOutput> credential = CLIENT_PLATFORM_SELF_ATTESTED.get(getOptions);
         final AssertionVerificationRequest authRequest = new AssertionVerificationRequest();
-        authRequest.setId(credential.getId());
+        authRequest.setCredentialId(credential.getId());
         authRequest.setType(credential.getType());
         authRequest.setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM.getValue());
         authRequest.setApplicationId(APPLICATION_ID);
@@ -502,7 +502,7 @@ class Fido2AuthenticatorTest {
         registrationRequest.setActivationName(ACTIVATION_NAME);
         registrationRequest.setExpectedChallenge(new String(challenge.getValue(), StandardCharsets.UTF_8));
         final AuthenticatorParameters authenticationParameters = new AuthenticatorParameters();
-        authenticationParameters.setId(credential.getId());
+        authenticationParameters.setCredentialId(credential.getId());
         authenticationParameters.setRelyingPartyId(RP_ID);
         authenticationParameters.setAllowedOrigins(Collections.singletonList(ORIGIN.toString()));
         authenticationParameters.setType(credential.getType());
@@ -562,7 +562,7 @@ class Fido2AuthenticatorTest {
                 RP_ID, null, UserVerificationRequirement.REQUIRED, null);
         final PublicKeyCredential<AuthenticatorAssertionResponse, AuthenticationExtensionClientOutput> credential = CLIENT_PLATFORM_SELF_ATTESTED.get(getOptions);
         final AssertionVerificationRequest authRequest = new AssertionVerificationRequest();
-        authRequest.setId(credential.getId());
+        authRequest.setCredentialId(credential.getId());
         authRequest.setType(credential.getType());
         authRequest.setAuthenticatorAttachment(AuthenticatorAttachment.PLATFORM.getValue());
         authRequest.setApplicationId(APPLICATION_ID);
