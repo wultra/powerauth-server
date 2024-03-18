@@ -109,7 +109,7 @@ CREATE TABLE pa_application_config
 |------|------|---------|-----------------------------------------------------------------------------------------------------------------------------------------|
 | id | BIGINT(20)  | primary key, autoincrement | Unique application configuration identifier. |
 | application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
-| config_key | VARCHAR(255) | index | Configuration key names such as `fido2_attestation_fmt_allowed` and `fido2_aaguids_allowed`. |
+| config_key | VARCHAR(255) | index | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, or `fido2_root_ca_certs`. |
 | config_values | TEXT | - | Configuration values serialized in JSON format. |
 <!-- end -->
 
@@ -135,10 +135,12 @@ CREATE TABLE pa_activation
     counter                       INTEGER NOT NULL,
     ctr_data                      VARCHAR(255),
     device_public_key_base64      VARCHAR(255),
-    extras                        VARCHAR(255),
+    extras                        VARCHAR(4000),
     platform                      VARCHAR(255),
     device_info                   VARCHAR(255),
     flags                         VARCHAR(255),
+    external_id                   VARCHAR(255),
+    protocol                      VARCHAR(32) DEFAULT 'powerauth',
     failed_attempts               INTEGER NOT NULL,
     max_failed_attempts           INTEGER DEFAULT 5 NOT NULL,
     server_private_key_base64     VARCHAR(255) NOT NULL,
@@ -166,10 +168,15 @@ CREATE TABLE pa_activation
 | activation_name  | VARCHAR(255 | - | Name of the activation, typically a name of the client device, for example "John's iPhone 6" |
 | application_id  | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
 | user_id  | VARCHAR(255) | index | Associated user ID. |
-| extras  | TEXT | - | Any application specific information. |
 | counter  | BIGINT(20) | - | Activation counter. |
 | ctr_data | VARCHAR(255) | - | Activation hash based counter data. |
 | device_public_key_base64  | TEXT | - | Device public key, encoded in Base64 encoding. |
+| extras  | VARCHAR(4000) | - | Any application specific information. |
+| platform | VARCHAR(255) | - | User device platform. |
+| device_info | VARCHAR(255) | - | User device information. |
+| flags | VARCHAR(255) | - | Activation flags. |
+| external_id | VARCHAR(255) | - | External identifier related to the activation. |
+| protocol | VARCHAR(32) | - | Security protocol: `powerauth` (default) or `fido2`. |
 | failed_attempts  | BIGINT(20) | - | Number of failed signature verification attempts. |
 | max_failed_attempts | BIGINT(20) | - | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
 | server_private_key_base64 | TEXT | - | Server private key, encoded as Base64 |
@@ -181,8 +188,6 @@ CREATE TABLE pa_activation
 | timestamp_last_used | DATETIME | - | Timestamp of the last signature verification attempt. |
 | timestamp_last_change | DATETIME | - | Timestamp of the last signature verification attempt. |
 | version | BIGINT(2) | - | Cryptography protocol version. |
-| platform | VARCHAR(255) | - | User device platform. |
-| device_info | VARCHAR(255) | - | User device information. |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
