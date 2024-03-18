@@ -107,13 +107,13 @@ public class AssertionController {
     @PostMapping
     public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException {
         final AssertionVerificationRequest requestObject = request.getRequestObject();
-        logger.info("AssertionVerificationRequest received, ID: {}", requestObject.getId());
+        logger.info("AssertionVerificationRequest received, credential ID: {}", requestObject.getCredentialId());
         final String error = assertionRequestValidator.validate(requestObject);
         if (error != null) {
             throw new Fido2AuthenticationFailedException(error);
         }
         final AssertionVerificationResponse signatureResponse = assertionService.authenticate(requestObject);
-        logger.info("AssertionVerificationRequest succeeded, ID: {}, valid: {}", requestObject.getId(), signatureResponse.isAssertionValid());
+        logger.info("AssertionVerificationRequest succeeded, credential ID: {}, valid: {}", requestObject.getCredentialId(), signatureResponse.isAssertionValid());
         return new ObjectResponse<>(signatureResponse);
     }
 

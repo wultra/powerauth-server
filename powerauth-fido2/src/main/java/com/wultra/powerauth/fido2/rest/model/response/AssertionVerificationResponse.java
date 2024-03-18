@@ -31,9 +31,9 @@ import java.util.List;
  */
 @Data
 public class AssertionVerificationResponse {
+
     private boolean assertionValid;
     private String userId;
-    private String activationId;
     private String applicationId;
     private ActivationStatus activationStatus;
     private String blockedReason;
