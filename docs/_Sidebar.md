@@ -18,6 +18,8 @@
 **Reference Manual**
 
 - [Web Services - Methods](WebServices-Methods.md)
+- [FIDO2 API](FIDO2-API.md)
+- [Telemetry API](Telemetry-API.md)
 - [Database Structure](./Database-Structure.md)
 - [Error Codes](./Server-Error-Codes.md)
 
