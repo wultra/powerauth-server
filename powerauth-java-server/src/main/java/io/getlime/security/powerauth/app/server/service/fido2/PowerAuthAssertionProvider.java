@@ -24,6 +24,7 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
+import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
@@ -73,14 +74,16 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final AssertionChallengeConverter assertionChallengeConverter;
     private final AuditingServiceBehavior audit;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
+    private final Fido2AuthenticatorService fido2AuthenticatorService;
 
     @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AssertionChallengeConverter assertionChallengeConverter, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider) {
+    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AssertionChallengeConverter assertionChallengeConverter, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService) {
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.repositoryCatalogue = repositoryCatalogue;
         this.assertionChallengeConverter = assertionChallengeConverter;
         this.audit = audit;
         this.authenticatorProvider = authenticatorProvider;
+        this.fido2AuthenticatorService = fido2AuthenticatorService;
     }
 
     @Override
@@ -288,7 +291,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final String aaguidBase64 = (String) authenticatorDetail.getExtras().get("aaguid");
         if (aaguidBase64 != null) {
             final byte[] aaguid = Base64.getDecoder().decode(aaguidBase64);
-            return userVerified ? Fido2Authenticators.modelByAaguid(aaguid).signatureType() : SignatureType.POSSESSION;
+            return userVerified ? fido2AuthenticatorService.findByAaguid(aaguid).signatureType() : SignatureType.POSSESSION;
         } else {
             return SignatureType.POSSESSION;
         }

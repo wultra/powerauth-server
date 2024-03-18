@@ -19,13 +19,15 @@
 package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wultra.powerauth.fido2.rest.model.entity.Fido2Authenticators;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
+import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
+import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -40,26 +42,26 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
+@AllArgsConstructor
 @Slf4j
 public class RegistrationConverter {
+
+    private final Fido2AuthenticatorService fido2AuthenticatorService;
 
     /**
      * Convert registration challenge to authenticator detail.
      * @param challenge Registration challenge.
      * @param requestObject Registration request.
-     * @param aaguid AAGUID bytes.
+     * @param model FIDO2 Authenticator details.
      * @param publicKey Public key bytes.
      * @return Authenticator detail, if present.
      */
-    public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, byte[] aaguid, byte[] publicKey) {
+    public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, Fido2Authenticator model, byte[] publicKey) {
         try {
             final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
             authenticatorDetail.setUserId(challenge.getUserId());
             authenticatorDetail.setActivationId(challenge.getActivationId());
             authenticatorDetail.setApplicationId(challenge.getApplicationId());
-
-            final Fido2Authenticators.Model model = Fido2Authenticators.modelByAaguid(aaguid);
-
             authenticatorDetail.setCredentialId(requestObject.getAuthenticatorParameters().getCredentialId());
             authenticatorDetail.setExtras(convertExtras(requestObject));
             authenticatorDetail.setActivationName(requestObject.getActivationName());
