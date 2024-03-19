@@ -41,10 +41,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
@@ -159,7 +161,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
         configRequest.setApplicationId(applicationId);
         final GetApplicationConfigResponse configResponse = configService.getApplicationConfig(configRequest);
-        final String aaguidStr = new String(aaguid, StandardCharsets.UTF_8);
+        final String aaguidStr = bytesToUUID(aaguid).toString();
         Optional<ApplicationConfigurationItem> configFmt = configResponse.getApplicationConfigs().stream()
                 .filter(cfg -> CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(cfg.getKey()))
                 .findFirst();
@@ -192,5 +194,15 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         }
 
         return true;
+    }
+
+    private UUID bytesToUUID(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        final ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        long mostSigBits = byteBuffer.getLong();
+        long leastSigBits = byteBuffer.getLong();
+        return new UUID(mostSigBits, leastSigBits);
     }
 }
