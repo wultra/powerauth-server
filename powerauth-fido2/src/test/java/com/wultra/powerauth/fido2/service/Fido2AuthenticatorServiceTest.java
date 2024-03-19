@@ -44,6 +44,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class Fido2AuthenticatorServiceTest {
 
+    private final static String WA1_AAGUID = "57415531-2e31-4020-a020-323032343032";
+
     @Mock
     private Fido2AuthenticatorRepository fido2AuthenticatorRepository;
 
@@ -51,8 +53,8 @@ class Fido2AuthenticatorServiceTest {
     private Fido2AuthenticatorService tested;
 
     @Test
-    void testFindByAaguid() {
-        final UUID aaguid = UUID.randomUUID();
+    void testFindByAaguid_fromDatabase() {
+        final UUID aaguid = UUID.fromString("00000000-0000-0000-0000-000000000000");
         final Fido2AuthenticatorEntity entity = new Fido2AuthenticatorEntity();
         entity.setAaguid(aaguid.toString());
         entity.setDescription("My FIDO2 Authenticator");
@@ -68,8 +70,20 @@ class Fido2AuthenticatorServiceTest {
     }
 
     @Test
+    void testFindByAaguid_fromDefaultSet() {
+        final UUID aaguid = UUID.fromString(WA1_AAGUID);
+        when(fido2AuthenticatorRepository.findById(aaguid.toString()))
+                .thenReturn(Optional.empty());
+
+        final Fido2Authenticator authenticator = tested.findByAaguid(aaguid);
+        assertEquals(aaguid, authenticator.aaguid());
+        assertEquals("Wultra Authenticator 1", authenticator.description());
+        assertEquals(SignatureType.POSSESSION_KNOWLEDGE, authenticator.signatureType());
+    }
+
+    @Test
     void testFindByAaguid_unknown() {
-        final UUID aaguid = UUID.randomUUID();
+        final UUID aaguid = UUID.fromString("00000000-0000-0000-0000-000000000000");
         when(fido2AuthenticatorRepository.findById(aaguid.toString()))
                 .thenReturn(Optional.empty());
 
