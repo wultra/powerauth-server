@@ -24,17 +24,14 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
-import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * Converter class for registration related objects.
@@ -45,8 +42,6 @@ import java.util.Optional;
 @AllArgsConstructor
 @Slf4j
 public class RegistrationConverter {
-
-    private final Fido2AuthenticatorService fido2AuthenticatorService;
 
     /**
      * Convert registration challenge to authenticator detail.
@@ -113,9 +108,21 @@ public class RegistrationConverter {
         params.put("origin", authenticatorParameters.getResponse().getClientDataJSON().getOrigin());
         params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
         params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
-        params.put("aaguid", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid());
+        final byte[] aaguidBytes = authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid();
+        params.put("aaguid", bytesToUUID(aaguidBytes));
+        System.out.println("AAGUID: " + params.get("aaguid"));
         params.put("transports", authenticatorParameters.getResponse().getTransports());
         return params;
+    }
+
+    public UUID bytesToUUID(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        final ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        long mostSigBits = byteBuffer.getLong();
+        long leastSigBits = byteBuffer.getLong();
+        return new UUID(mostSigBits, leastSigBits);
     }
 
 }

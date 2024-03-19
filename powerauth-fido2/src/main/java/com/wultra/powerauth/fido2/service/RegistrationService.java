@@ -147,7 +147,7 @@ public class RegistrationService {
             logger.info("No signature verification on registration");
         }
 
-        final Fido2Authenticator model = fido2AuthenticatorService.findByAaguid(aaguid);
+        final Fido2Authenticator model = fido2AuthenticatorService.findByAaguid(registrationConverter.bytesToUUID(aaguid));
         final RegistrationChallenge challenge = registrationProvider.findRegistrationChallengeByValue(applicationId, challengeValue);
         final AuthenticatorDetail authenticator = registrationConverter.convert(challenge, requestObject, model, cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()))
                 .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));

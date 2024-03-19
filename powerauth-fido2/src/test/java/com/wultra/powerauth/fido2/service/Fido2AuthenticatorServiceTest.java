@@ -61,7 +61,7 @@ class Fido2AuthenticatorServiceTest {
         when(fido2AuthenticatorRepository.findById(aaguid.toString()))
                 .thenReturn(Optional.of(entity));
 
-        final Fido2Authenticator authenticator = tested.findByAaguid(toBytes(aaguid));
+        final Fido2Authenticator authenticator = tested.findByAaguid(aaguid);
         assertEquals(aaguid, authenticator.aaguid());
         assertEquals("My FIDO2 Authenticator", authenticator.description());
         assertEquals(SignatureType.POSSESSION, authenticator.signatureType());
@@ -73,7 +73,7 @@ class Fido2AuthenticatorServiceTest {
         when(fido2AuthenticatorRepository.findById(aaguid.toString()))
                 .thenReturn(Optional.empty());
 
-        final Fido2Authenticator authenticator = tested.findByAaguid(toBytes(aaguid));
+        final Fido2Authenticator authenticator = tested.findByAaguid(aaguid);
         assertEquals(aaguid, authenticator.aaguid());
         assertEquals("Unknown FIDO2 Authenticator", authenticator.description());
         assertEquals(SignatureType.POSSESSION, authenticator.signatureType());
@@ -85,13 +85,6 @@ class Fido2AuthenticatorServiceTest {
         assertNull(authenticator.aaguid());
         assertEquals("Unknown FIDO2 Authenticator", authenticator.description());
         assertEquals(SignatureType.POSSESSION, authenticator.signatureType());
-    }
-
-    private static byte[] toBytes(final UUID aaguid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(aaguid.getMostSignificantBits());
-        bb.putLong(aaguid.getLeastSignificantBits());
-        return bb.array();
     }
 
 }

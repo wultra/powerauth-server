@@ -52,14 +52,13 @@ public class Fido2AuthenticatorService {
      * @return Fido2Authenticator with registered details.
      */
     @Cacheable("fido2-authenticators-cache")
-    public Fido2Authenticator findByAaguid(final byte[] aaguid) {
-        final UUID uuid = uuidFromBytes(aaguid);
-        if (uuid == null) {
+    public Fido2Authenticator findByAaguid(final UUID aaguid) {
+        if (aaguid == null) {
             return unknownAuthenticator();
         }
-        return fido2AuthenticatorRepository.findById(uuid.toString())
+        return fido2AuthenticatorRepository.findById(aaguid.toString())
                 .map(Fido2AuthenticatorService::convert)
-                .orElseGet(() -> unknownAuthenticator(uuid));
+                .orElseGet(() -> unknownAuthenticator(aaguid));
     }
 
     private static Fido2Authenticator convert(final Fido2AuthenticatorEntity entity) {
@@ -72,15 +71,6 @@ public class Fido2AuthenticatorService {
 
     private static Fido2Authenticator unknownAuthenticator(final UUID aaguid) {
         return new Fido2Authenticator(aaguid, UNKNOWN_AUTHENTICATOR_DESCRIPTION, UNKNOWN_AUTHENTICATOR_SIGNATURE_TYPE);
-    }
-
-    private static UUID uuidFromBytes(final byte[] bytes) {
-        if (bytes == null || bytes.length != 16) { // strange byte array length, UUID requires 16 bytes
-            logger.debug("Invalid byte length provided for UUID: {}", bytes);
-            return null;
-        }
-        final ByteBuffer bb = ByteBuffer.wrap(bytes);
-        return new UUID(bb.getLong(), bb.getLong());
     }
 
 }
