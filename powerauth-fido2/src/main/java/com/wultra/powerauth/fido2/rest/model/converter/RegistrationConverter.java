@@ -110,7 +110,6 @@ public class RegistrationConverter {
         params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
         final byte[] aaguidBytes = authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid();
         params.put("aaguid", bytesToUUID(aaguidBytes));
-        System.out.println("AAGUID: " + params.get("aaguid"));
         params.put("transports", authenticatorParameters.getResponse().getTransports());
         return params;
     }
