@@ -66,11 +66,13 @@ public class Fido2AuthenticatorService {
     }
 
     private Optional<Fido2Authenticator> findInDatabase(final UUID aaguid) {
+        logger.debug("Trying to find FIDO2 Authenticator model with AAGUID {} in database.", aaguid);
         return fido2AuthenticatorRepository.findById(aaguid.toString())
                 .map(Fido2AuthenticatorService::convert);
     }
 
     private static Optional<Fido2Authenticator> findDefault(final UUID aaguid) {
+        logger.debug("Trying to find FIDO2 Authenticator model with AAGUID {} in default set.", aaguid);
         return Fido2DefaultAuthenticators.findByAaguid(aaguid);
     }
 
