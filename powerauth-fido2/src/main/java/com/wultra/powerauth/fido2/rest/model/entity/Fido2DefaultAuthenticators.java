@@ -196,8 +196,7 @@ public class Fido2DefaultAuthenticators {
     }
 
     public static Optional<Fido2Authenticator> findByAaguid(final UUID aaguid) {
-        final Fido2Authenticator model = MODEL_MAP.get(aaguid);
-        return model == null ? Optional.empty() : Optional.of(model);
+        return Optional.ofNullable(MODEL_MAP.get(aaguid));
     }
 
 }
