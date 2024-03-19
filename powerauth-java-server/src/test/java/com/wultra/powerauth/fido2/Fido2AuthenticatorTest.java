@@ -309,7 +309,7 @@ class Fido2AuthenticatorTest {
         final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
-        requestCreate.setValues(List.of("\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0001"));
+        requestCreate.setValues(List.of("00000000-0000-0000-0000-000000000001"));
         powerAuthService.createApplicationConfig(requestCreate);
 
         // Registration should fail
@@ -328,7 +328,7 @@ class Fido2AuthenticatorTest {
         final CreateApplicationConfigRequest requestCreate = new CreateApplicationConfigRequest();
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
-        requestCreate.setValues(List.of("\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000"));
+        requestCreate.setValues(List.of("00000000-0000-0000-0000-000000000000"));
         powerAuthService.createApplicationConfig(requestCreate);
 
         // Registration should succeed
