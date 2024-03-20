@@ -51,7 +51,7 @@ public interface CryptographyService {
      * @return Whether signature verification succeeded.
      * @throws Exception Thrown in case of a cryptography error.
      */
-    boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws Exception;
+    boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, boolean isVisualSignature, byte[] signature, AuthenticatorDetail authenticatorDetail) throws Exception;
 
     /**
      * Convert public key object to bytes.

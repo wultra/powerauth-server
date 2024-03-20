@@ -97,14 +97,13 @@ public class AssertionService {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
             final String credentialId = request.getCredentialId();
-            final String challenge = response.getClientDataJSON().getChallenge();
-            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(credentialId, applicationId);
-            authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
-            final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
-            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
             final CollectedClientData clientDataJSON = response.getClientDataJSON();
+            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
+            final String challenge = clientDataJSON.getChallenge();
+            final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
-                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
+                final boolean visualSignature = request.isVisualSignature();
+                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, visualSignature, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, true);
@@ -119,6 +118,12 @@ public class AssertionService {
         } catch (Exception e) {
             throw new Fido2AuthenticationFailedException("Authentication failed.", e);
         }
+    }
+
+    private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
+        final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(credentialId, applicationId);
+        authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+        return authenticatorOptional.get();
     }
 
 }

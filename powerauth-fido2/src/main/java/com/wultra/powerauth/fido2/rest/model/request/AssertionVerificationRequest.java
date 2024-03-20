@@ -52,5 +52,6 @@ public class AssertionVerificationRequest {
     private List<String> allowedTopOrigins = new ArrayList<>();
     private boolean requiresUserVerification;
     private String expectedChallenge;
+    private boolean visualSignature;
 
 }

@@ -67,13 +67,20 @@ public class PowerAuthCryptographyService implements CryptographyService {
         this.certificateValidator = certificateValidator;
     }
 
-    public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
+    public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, boolean isVisualSignature, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
         if (!checkAndPersistCounter(applicationId, credentialId, authData.getSignCount())) {
             return false;
         }
+        byte[] dataSuffix = null;
+        if (isVisualSignature) {
+            dataSuffix = getOperationDataBytes(clientDataJSON.getChallenge());
+            if (dataSuffix == null) {
+                return false; // visual challenge expected, but no data found
+            }
+        }
         final byte[] publicKeyBytes = authenticatorDetail.getPublicKeyBytes();
         final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(publicKeyBytes);
-        return verifySignature(clientDataJSON, authData, signature, publicKey);
+        return verifySignature(clientDataJSON, authData, dataSuffix, signature, publicKey);
     }
 
     public boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AttestationObject attestationObject, byte[] signature) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
@@ -84,7 +91,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
         }
         final ECPoint point = pointOptional.get();
         final PublicKey publicKey = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
-        return verifySignature(clientDataJSON, attestationObject.getAuthData(), signature, publicKey);
+        return verifySignature(clientDataJSON, attestationObject.getAuthData(), null, signature, publicKey);
     }
 
     public byte[] publicKeyToBytes(PublicKeyObject publicKey) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
@@ -96,8 +103,11 @@ public class PowerAuthCryptographyService implements CryptographyService {
     // private methods
 
 
-    private boolean verifySignature(CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, PublicKey publicKey) throws GenericCryptoException, CryptoProviderException, InvalidKeyException {
-        final byte[] clientDataJSONEncodedHash = concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
+    private boolean verifySignature(CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] dataSuffix, byte[] signature, PublicKey publicKey) throws GenericCryptoException, CryptoProviderException, InvalidKeyException {
+        byte[] clientDataJSONEncodedHash = concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
+        if (dataSuffix != null) {
+            clientDataJSONEncodedHash = concat(clientDataJSONEncodedHash, dataSuffix);
+        }
         final SignatureUtils signatureUtils = new SignatureUtils();
         return signatureUtils.validateECDSASignature(clientDataJSONEncodedHash, signature, publicKey);
     }
@@ -125,11 +135,31 @@ public class PowerAuthCryptographyService implements CryptographyService {
         return true;
     }
 
+    /**
+     * Concatenate two byte arrays.
+     * @param a First array.
+     * @param b Second array.
+     * @return Concatenated result.
+     */
     private byte[] concat(byte[] a, byte[] b) {
         final byte[] combined = new byte[a.length + b.length];
         System.arraycopy(a, 0, combined, 0, a.length);
         System.arraycopy(b, 0, combined, a.length, b.length);
         return combined;
+    }
+
+    /**
+     * Parse challenge value to obtain operation data presented to the user via the visual challenge.
+     *
+     * @param challenge Challenge value in the expected format `operation_id&operation_data`.
+     * @return Value of operation data, as UTF-8 encoded bytes.
+     */
+    private static byte[] getOperationDataBytes(String challenge) {
+        final String[] split = challenge.split("&", 2);
+        if (split.length != 2) {
+            return null;
+        }
+        return split[1].getBytes(StandardCharsets.UTF_8);
     }
 
     /**
