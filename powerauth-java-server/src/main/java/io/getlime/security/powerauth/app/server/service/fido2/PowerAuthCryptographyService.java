@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ActivationRe
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -104,12 +105,14 @@ public class PowerAuthCryptographyService implements CryptographyService {
 
 
     private boolean verifySignature(CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] dataSuffix, byte[] signature, PublicKey publicKey) throws GenericCryptoException, CryptoProviderException, InvalidKeyException {
-        byte[] clientDataJSONEncodedHash = concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
+        final byte[] signableData;
         if (dataSuffix != null) {
-            clientDataJSONEncodedHash = concat(clientDataJSONEncodedHash, dataSuffix);
+            signableData = ByteUtils.concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()), dataSuffix);
+        } else {
+            signableData = ByteUtils.concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
         }
         final SignatureUtils signatureUtils = new SignatureUtils();
-        return signatureUtils.validateECDSASignature(clientDataJSONEncodedHash, signature, publicKey);
+        return signatureUtils.validateECDSASignature(signableData, signature, publicKey);
     }
 
     private boolean checkAndPersistCounter(String applicationId, String credentialId, int signCount) {
@@ -133,19 +136,6 @@ public class PowerAuthCryptographyService implements CryptographyService {
         activation.setCounter((long) signCount);
         activationRepository.save(activation);
         return true;
-    }
-
-    /**
-     * Concatenate two byte arrays.
-     * @param a First array.
-     * @param b Second array.
-     * @return Concatenated result.
-     */
-    private byte[] concat(byte[] a, byte[] b) {
-        final byte[] combined = new byte[a.length + b.length];
-        System.arraycopy(a, 0, combined, 0, a.length);
-        System.arraycopy(b, 0, combined, a.length, b.length);
-        return combined;
     }
 
     /**
