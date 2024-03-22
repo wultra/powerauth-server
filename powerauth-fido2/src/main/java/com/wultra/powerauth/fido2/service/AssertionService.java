@@ -121,9 +121,8 @@ public class AssertionService {
     }
 
     private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
-        final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(credentialId, applicationId);
-        authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
-        return authenticatorOptional.get();
+        return authenticatorProvider.findByCredentialId(credentialId, applicationId)
+                .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
     }
 
 }
