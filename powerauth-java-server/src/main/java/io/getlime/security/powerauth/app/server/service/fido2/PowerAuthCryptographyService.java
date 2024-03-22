@@ -76,7 +76,8 @@ public class PowerAuthCryptographyService implements CryptographyService {
         if (isVisualSignature) {
             dataSuffix = getOperationDataBytes(clientDataJSON.getChallenge());
             if (dataSuffix == null) {
-                return false; // visual challenge expected, but no data found
+                logger.debug("Visual challenge expected, but no data found to append.");
+                return false;
             }
         }
         final byte[] publicKeyBytes = authenticatorDetail.getPublicKeyBytes();
