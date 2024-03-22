@@ -24,7 +24,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * FIDO2 Authenticator details model.
+ * FIDO2 Authenticator details model. It associates the AAGUID value to a descriptive name
+ * and expected authentication factors available with a given authenticator.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
@@ -33,6 +34,14 @@ public record Fido2Authenticator(
         String description,
         SignatureType signatureType
 ) {
+
+    public static Fido2Authenticator create(String aaguid, String description) {
+        return new Fido2Authenticator(UUID.fromString(aaguid), description, SignatureType.POSSESSION);
+    }
+
+    public static Fido2Authenticator create(String aaguid, String description, SignatureType signatureType) {
+        return new Fido2Authenticator(UUID.fromString(aaguid), description, signatureType);
+    }
 
     @Override
     public boolean equals(final Object o) {
