@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class Fido2AuthenticatorServiceTest {
 
-    private final static String WA1_AAGUID = "57415531-2e31-4020-a020-323032343032";
+    private final static String WA1_AAGUID = "dca09ba7-4992-4be8-9283-ee98cd6fb529";
 
     @Mock
     private Fido2AuthenticatorRepository fido2AuthenticatorRepository;

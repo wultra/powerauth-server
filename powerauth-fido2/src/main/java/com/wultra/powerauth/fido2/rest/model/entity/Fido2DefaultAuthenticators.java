@@ -162,7 +162,7 @@ public class Fido2DefaultAuthenticators {
             Fido2Authenticator.create("504d7149-4e4c-3841-4555-55445a677357", "WiSECURE AuthTron USB FIDO2 Authenticator"),
 
             // Wultra
-            Fido2Authenticator.create("57415531-2e31-4020-a020-323032343032", "Wultra Authenticator 1", SignatureType.POSSESSION_KNOWLEDGE),
+            Fido2Authenticator.create("dca09ba7-4992-4be8-9283-ee98cd6fb529", "Wultra Authenticator 1", SignatureType.POSSESSION_KNOWLEDGE),
 
             // Yubico
             Fido2Authenticator.create("0bb43545-fd2c-4185-87dd-feb0b2916ace", "Security Key NFC by Yubico - Enterprise Edition"),
