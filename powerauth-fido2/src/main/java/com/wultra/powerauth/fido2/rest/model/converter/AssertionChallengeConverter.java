@@ -107,6 +107,7 @@ public class AssertionChallengeConverter {
 
         if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
             final List<AllowCredentials> allowCredentials = new ArrayList<>();
+            boolean hasWultraModel = false;
             for (AuthenticatorDetail ad: authenticatorDetails) {
 
                 @SuppressWarnings("unchecked")
@@ -116,13 +117,18 @@ public class AssertionChallengeConverter {
                 // Obtain credential ID, append data to credential ID if the authenticator is a Wultra authenticator that supports visual challenge.
                 byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
                 if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
-                    final byte[] operationDataBytes = source.getData().getBytes(StandardCharsets.UTF_8);
-                    credentialId = ByteUtils.concat(credentialId, operationDataBytes);
+                    hasWultraModel = true;
                 }
 
                 final AllowCredentials ac = new AllowCredentials();
                 ac.setCredentialId(credentialId);
                 ac.setTransports(transports);
+                allowCredentials.add(ac);
+            }
+            if (hasWultraModel) {
+                final byte[] credentialId = source.getData().getBytes(StandardCharsets.UTF_8);
+                final AllowCredentials ac = new AllowCredentials();
+                ac.setCredentialId(credentialId);
                 allowCredentials.add(ac);
             }
             destination.setAllowCredentials(allowCredentials);
