@@ -395,18 +395,18 @@ Verify a provided FIDO2 assertion.
 
 ##### Request Params
 
-| Attribute                                                                 | Type     | Description                                                                       |
-|---------------------------------------------------------------------------|----------|-----------------------------------------------------------------------------------|
-| `credentialId`<span class="required" title="Required">*</span>                      | `String` | Credential ID.                                                                    |
-| `type`<span class="required" title="Required">*</span>                    | `String` | Credential type (`public-key`).                                                   |
-| `authenticatorAttachment`<span class="required" title="Required">*</span> | `String` | Information about authenticator attachment.                                       |
-| `response`<span class="required" title="Required">*</span>                | `String` | Authenticator response (value provided by authenticator, encoded as Base64).      |
-| `applicationId`                                                           | `String` | Application identifier, to verify the challenge can be approved by given app.     |
-| `relyingPartyId`                                                          | `String` | Identification of relying party, typically the domain, i.e., `example.com`.       |
-| `allowedOrigins`                                                          | `String` | Collection of origins that should be allowed to provide the assertion.            |
-| `allowedTopOrigins`                                                       | `String` | Collection of top origins that should be allowed to provide the assertion.        |
-| `requiresUserVerification`                                                | `String` | Information if user verification flag must be present (if user was verified).     |
-| `expectedChallenge`                                                       | `String` | Expected challenge value. If present, it is checked against the actual challenge. |
+| Attribute                                                                 | Type       | Description                                                                       |
+|---------------------------------------------------------------------------|------------|-----------------------------------------------------------------------------------|
+| `credentialId`<span class="required" title="Required">*</span>            | `String`   | Credential ID.                                                                    |
+| `type`<span class="required" title="Required">*</span>                    | `String`   | Credential type (`public-key`).                                                   |
+| `authenticatorAttachment`<span class="required" title="Required">*</span> | `String`   | Information about authenticator attachment.                                       |
+| `response`<span class="required" title="Required">*</span>                | `String`   | Authenticator response (value provided by authenticator, encoded as Base64).      |
+| `applicationId`                                                           | `String`   | Application identifier, to verify the challenge can be approved by given app.     |
+| `relyingPartyId`                                                          | `String`   | Identification of relying party, typically the domain, i.e., `example.com`.       |
+| `allowedOrigins`                                                          | `String[]` | Collection of origins that should be allowed to provide the assertion.            |
+| `allowedTopOrigins`                                                       | `String[]` | Collection of top origins that should be allowed to provide the assertion.        |
+| `requiresUserVerification`                                                | `boolean`  | Information if user verification flag must be present (if user was verified).     |
+| `expectedChallenge`                                                       | `String`   | Expected challenge value. If present, it is checked against the actual challenge. |
 
 #### Response 200
 

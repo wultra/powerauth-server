@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ActivationRe
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -71,9 +72,18 @@ public class PowerAuthCryptographyService implements CryptographyService {
         if (!checkAndPersistCounter(applicationId, credentialId, authData.getSignCount())) {
             return false;
         }
+        byte[] dataSuffix = null;
+        final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
+        if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
+            dataSuffix = getOperationDataBytes(clientDataJSON.getChallenge());
+            if (dataSuffix == null) {
+                logger.debug("Visual challenge expected, but no data found to append.");
+                return false;
+            }
+        }
         final byte[] publicKeyBytes = authenticatorDetail.getPublicKeyBytes();
         final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(publicKeyBytes);
-        return verifySignature(clientDataJSON, authData, signature, publicKey);
+        return verifySignature(clientDataJSON, authData, dataSuffix, signature, publicKey);
     }
 
     public boolean verifySignatureForRegistration(String applicationId, CollectedClientData clientDataJSON, AttestationObject attestationObject, byte[] signature) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
@@ -84,7 +94,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
         }
         final ECPoint point = pointOptional.get();
         final PublicKey publicKey = keyConvertor.convertPointBytesToPublicKey(point.getX(), point.getY());
-        return verifySignature(clientDataJSON, attestationObject.getAuthData(), signature, publicKey);
+        return verifySignature(clientDataJSON, attestationObject.getAuthData(), null, signature, publicKey);
     }
 
     public byte[] publicKeyToBytes(PublicKeyObject publicKey) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException {
@@ -96,10 +106,15 @@ public class PowerAuthCryptographyService implements CryptographyService {
     // private methods
 
 
-    private boolean verifySignature(CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, PublicKey publicKey) throws GenericCryptoException, CryptoProviderException, InvalidKeyException {
-        final byte[] clientDataJSONEncodedHash = concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
+    private boolean verifySignature(CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] dataSuffix, byte[] signature, PublicKey publicKey) throws GenericCryptoException, CryptoProviderException, InvalidKeyException {
+        final byte[] signableData;
+        if (dataSuffix != null) {
+            signableData = ByteUtils.concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()), dataSuffix);
+        } else {
+            signableData = ByteUtils.concat(authData.getEncoded(), Hash.sha256(clientDataJSON.getEncoded()));
+        }
         final SignatureUtils signatureUtils = new SignatureUtils();
-        return signatureUtils.validateECDSASignature(clientDataJSONEncodedHash, signature, publicKey);
+        return signatureUtils.validateECDSASignature(signableData, signature, publicKey);
     }
 
     private boolean checkAndPersistCounter(String applicationId, String credentialId, int signCount) {
@@ -125,11 +140,18 @@ public class PowerAuthCryptographyService implements CryptographyService {
         return true;
     }
 
-    private byte[] concat(byte[] a, byte[] b) {
-        final byte[] combined = new byte[a.length + b.length];
-        System.arraycopy(a, 0, combined, 0, a.length);
-        System.arraycopy(b, 0, combined, a.length, b.length);
-        return combined;
+    /**
+     * Parse challenge value to obtain operation data presented to the user via the visual challenge.
+     *
+     * @param challenge Challenge value in the expected format `operation_id&operation_data`.
+     * @return Value of operation data, as UTF-8 encoded bytes.
+     */
+    private static byte[] getOperationDataBytes(String challenge) {
+        final String[] split = challenge.split("&", 2);
+        if (split.length != 2) {
+            return null;
+        }
+        return split[1].getBytes(StandardCharsets.UTF_8);
     }
 
     /**

@@ -34,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * Service related to handling assertions.
  *
@@ -97,12 +95,10 @@ public class AssertionService {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
             final String credentialId = request.getCredentialId();
-            final String challenge = response.getClientDataJSON().getChallenge();
-            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(credentialId, applicationId);
-            authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
-            final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
-            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
             final CollectedClientData clientDataJSON = response.getClientDataJSON();
+            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
+            final String challenge = clientDataJSON.getChallenge();
+            final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
@@ -119,6 +115,11 @@ public class AssertionService {
         } catch (Exception e) {
             throw new Fido2AuthenticationFailedException("Authentication failed.", e);
         }
+    }
+
+    private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
+        return authenticatorProvider.findByCredentialId(credentialId, applicationId)
+                .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
     }
 
 }
