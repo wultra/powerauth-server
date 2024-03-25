@@ -20,6 +20,7 @@ package com.wultra.powerauth.fido2.service;
 
 import com.wultra.powerauth.fido2.database.entity.Fido2AuthenticatorEntity;
 import com.wultra.powerauth.fido2.database.repository.Fido2AuthenticatorRepository;
+import com.wultra.powerauth.fido2.rest.model.entity.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.AllArgsConstructor;
@@ -27,7 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
-import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -46,8 +47,9 @@ public class Fido2AuthenticatorService {
     private final Fido2AuthenticatorRepository fido2AuthenticatorRepository;
 
     /**
-     * Retrieve FIDO2 Authenticator details from database by its aaguid.
-     * If it does not exist, return unknown Fido2Authenticator.
+     * Retrieve FIDO2 Authenticator model. If it exists in database, return the one stored in database.
+     * If it does not exist in database, try to find a default one in {@link Fido2DefaultAuthenticators}
+     * and return the default one if exists. Otherwise, return unknown Fido2Authenticator.
      * @param aaguid Authenticator identifier.
      * @return Fido2Authenticator with registered details.
      */
@@ -56,9 +58,21 @@ public class Fido2AuthenticatorService {
         if (aaguid == null) {
             return unknownAuthenticator();
         }
+
+        return findInDatabase(aaguid)
+                .orElseGet(() -> findDefault(aaguid)
+                        .orElseGet(() -> unknownAuthenticator(aaguid)));
+    }
+
+    private Optional<Fido2Authenticator> findInDatabase(final UUID aaguid) {
+        logger.debug("Trying to find FIDO2 Authenticator model with AAGUID {} in database.", aaguid);
         return fido2AuthenticatorRepository.findById(aaguid.toString())
-                .map(Fido2AuthenticatorService::convert)
-                .orElseGet(() -> unknownAuthenticator(aaguid));
+                .map(Fido2AuthenticatorService::convert);
+    }
+
+    private static Optional<Fido2Authenticator> findDefault(final UUID aaguid) {
+        logger.debug("Trying to find FIDO2 Authenticator model with AAGUID {} in default set.", aaguid);
+        return Fido2DefaultAuthenticators.findByAaguid(aaguid);
     }
 
     private static Fido2Authenticator convert(final Fido2AuthenticatorEntity entity) {

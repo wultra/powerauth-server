@@ -43,12 +43,4 @@
         </createTable>
     </changeSet>
 
-    <!-- Insert initial data to pa_fido2_authenticator table -->
-    <changeSet id="2" logicalFilePath="powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml" author="Jan Pesek">
-        <comment>Insert initial data to pa_fido2_authenticator table</comment>
-        <loadData file="aaguids.csv" separator=";" relativeToChangelogFile="true"
-                        tableName="pa_fido2_authenticator">
-        </loadData>
-    </changeSet>
-
 </databaseChangeLog>
