@@ -129,6 +129,7 @@ public class AssertionChallengeConverter {
                 final byte[] credentialId = source.getData().getBytes(StandardCharsets.UTF_8);
                 final AllowCredentials ac = new AllowCredentials();
                 ac.setCredentialId(credentialId);
+                ac.setTransports(Collections.emptyList());
                 allowCredentials.add(ac);
             }
             destination.setAllowCredentials(allowCredentials);
