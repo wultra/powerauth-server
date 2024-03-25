@@ -388,8 +388,7 @@ Verify a provided FIDO2 assertion.
       "string"
     ],
     "requiresUserVerification": true,
-    "expectedChallenge": "string",
-    "visualSignature": true
+    "expectedChallenge": "string"
   }
 }
 ```
@@ -408,7 +407,6 @@ Verify a provided FIDO2 assertion.
 | `allowedTopOrigins`                                                       | `String[]` | Collection of top origins that should be allowed to provide the assertion.        |
 | `requiresUserVerification`                                                | `boolean`  | Information if user verification flag must be present (if user was verified).     |
 | `expectedChallenge`                                                       | `String`   | Expected challenge value. If present, it is checked against the actual challenge. |
-| `visualSignature`                                                         | `boolean`  | If the assertion was computed with authenticator that supports visual challenge.  |
 
 #### Response 200
 
