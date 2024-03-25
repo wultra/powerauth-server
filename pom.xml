@@ -102,7 +102,7 @@
         <!-- Other Dependencies -->
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
-        <equalsverifier.version>3.15.8</equalsverifier.version>
+        <equalsverifier.version>3.16</equalsverifier.version>
         <zxing.version>3.5.3</zxing.version>
 
         <!-- Test dependencies -->
