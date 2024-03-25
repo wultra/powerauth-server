@@ -34,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * Service related to handling assertions.
  *
@@ -102,8 +100,7 @@ public class AssertionService {
             final String challenge = clientDataJSON.getChallenge();
             final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
-                final boolean visualSignature = request.isVisualSignature();
-                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, visualSignature, response.getSignature(), authenticatorDetail);
+                final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, true);

@@ -35,6 +35,10 @@ import java.util.stream.Collectors;
  */
 public class Fido2DefaultAuthenticators {
 
+    private static final Set<String> WULTRA_MODELS = Set.of(
+            "dca09ba7-4992-4be8-9283-ee98cd6fb529"
+    );
+
     private static final Set<Fido2Authenticator> MODELS = Set.of(
             Fido2Authenticator.create("b93fd961-f2e6-462f-b122-82002247de78", "Android Authenticator with SafetyNet Attestation"),
 
@@ -197,6 +201,10 @@ public class Fido2DefaultAuthenticators {
 
     public static Optional<Fido2Authenticator> findByAaguid(final UUID aaguid) {
         return Optional.ofNullable(MODEL_MAP.get(aaguid));
+    }
+
+    public static boolean isWultraModel(final String aaguid) {
+        return WULTRA_MODELS.contains(aaguid);
     }
 
 }

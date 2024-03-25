@@ -68,12 +68,13 @@ public class PowerAuthCryptographyService implements CryptographyService {
         this.certificateValidator = certificateValidator;
     }
 
-    public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, boolean isVisualSignature, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
+    public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
         if (!checkAndPersistCounter(applicationId, credentialId, authData.getSignCount())) {
             return false;
         }
         byte[] dataSuffix = null;
-        if (isVisualSignature) {
+        final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
+        if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
             dataSuffix = getOperationDataBytes(clientDataJSON.getChallenge());
             if (dataSuffix == null) {
                 logger.debug("Visual challenge expected, but no data found to append.");

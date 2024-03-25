@@ -21,13 +21,16 @@ package com.wultra.powerauth.fido2.rest.model.converter;
 import com.wultra.powerauth.fido2.rest.model.entity.AllowCredentials;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.entity.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -106,9 +109,16 @@ public class AssertionChallengeConverter {
             final List<AllowCredentials> allowCredentials = new ArrayList<>();
             for (AuthenticatorDetail ad: authenticatorDetails) {
 
-                final byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
                 @SuppressWarnings("unchecked")
                 final List<String> transports = (List<String>) ad.getExtras().get("transports");
+                final String aaguid = (String) ad.getExtras().get("aaguid");
+
+                // Obtain credential ID, append data to credential ID if the authenticator is a Wultra authenticator that supports visual challenge.
+                byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
+                if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
+                    final byte[] operationDataBytes = source.getData().getBytes(StandardCharsets.UTF_8);
+                    credentialId = ByteUtils.concat(credentialId, operationDataBytes);
+                }
 
                 final AllowCredentials ac = new AllowCredentials();
                 ac.setCredentialId(credentialId);
