@@ -887,7 +887,7 @@ public class OperationServiceBehavior {
         return Collections.emptyMap();
     }
 
-    public static Optional <UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
+    public static Optional<UserAgent.Device> parseDeviceFromUserAgent(Map<String, Object> additionalData) {
         final Object userAgentObject = additionalData.get(ATTR_USER_AGENT);
         if (userAgentObject != null) {
             return UserAgent.parse(userAgentObject.toString());
