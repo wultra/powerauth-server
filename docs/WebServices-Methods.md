@@ -387,11 +387,12 @@ REST endpoint: `POST /rest/v3/application/config/create`
 |----------|------|-------------|
 | `String` | `applicationId` | An identifier of an application |
 | `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values |
+| `List<String>` | `values` | Application configuration values serialized as JSON array |
 
 Following configuration keys are accepted:
-- `fido2_attestation_fmt_allowed` - allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
-- `fido2_aaguids_allowed` - allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
+- `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
+- `fido2_aaguids_allowed` - list of allowed AAGUIDs for FIDO2 registration, unset value means all AAGUIDs are allowed
+- `fido2_root_ca_certs` - list of trusted root CA certificates for certificate validation in PEM format
 
 #### Response
 

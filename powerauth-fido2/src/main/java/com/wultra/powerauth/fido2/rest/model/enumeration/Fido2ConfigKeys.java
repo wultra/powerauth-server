@@ -28,5 +28,6 @@ public class Fido2ConfigKeys {
 
     public static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
     public static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
+    public static final String CONFIG_KEY_ROOT_CA_CERTS = "fido2_root_ca_certs";
 
 }

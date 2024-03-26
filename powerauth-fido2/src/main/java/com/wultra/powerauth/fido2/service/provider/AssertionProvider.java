@@ -23,9 +23,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
-
-import java.util.List;
-import java.util.Map;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 
 /**
  * Interface with methods responsible for assertion verification.
@@ -37,14 +35,11 @@ public interface AssertionProvider {
     /**
      * Obtain challenge for authentication.
      *
-     * @param applicationIds List of application ID.
-     * @param operationType Type of the operation this challenge is for.
-     * @param parameters Operation parameters.
-     * @param externalAuthenticationId External ID of operation, i.e., transaction in transaction system.
+     * @param request              Assertion challenge request.
      * @return Assertion challenge.
      * @throws Exception In case any issue occur during processing.
      */
-    AssertionChallenge provideChallengeForAssertion(List<String> applicationIds, String operationType, Map<String, String> parameters, String externalAuthenticationId) throws Exception;
+    AssertionChallenge provideChallengeForAssertion(AssertionChallengeRequest request) throws Exception;
 
     /**
      * Approve assertion.

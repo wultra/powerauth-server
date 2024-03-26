@@ -19,20 +19,19 @@
 package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wultra.powerauth.fido2.rest.model.entity.Fido2Authenticators;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
+import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.nio.ByteBuffer;
+import java.util.*;
 
 /**
  * Converter class for registration related objects.
@@ -40,6 +39,7 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Component
+@AllArgsConstructor
 @Slf4j
 public class RegistrationConverter {
 
@@ -47,20 +47,17 @@ public class RegistrationConverter {
      * Convert registration challenge to authenticator detail.
      * @param challenge Registration challenge.
      * @param requestObject Registration request.
-     * @param aaguid AAGUID bytes.
+     * @param model FIDO2 Authenticator details.
      * @param publicKey Public key bytes.
      * @return Authenticator detail, if present.
      */
-    public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, byte[] aaguid, byte[] publicKey) {
+    public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, Fido2Authenticator model, byte[] publicKey) {
         try {
             final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
             authenticatorDetail.setUserId(challenge.getUserId());
             authenticatorDetail.setActivationId(challenge.getActivationId());
             authenticatorDetail.setApplicationId(challenge.getApplicationId());
-
-            final Fido2Authenticators.Model model = Fido2Authenticators.modelByAaguid(aaguid);
-
-            authenticatorDetail.setCredentialId(requestObject.getAuthenticatorParameters().getId());
+            authenticatorDetail.setCredentialId(requestObject.getAuthenticatorParameters().getCredentialId());
             authenticatorDetail.setExtras(convertExtras(requestObject));
             authenticatorDetail.setActivationName(requestObject.getActivationName());
             authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
@@ -111,9 +108,20 @@ public class RegistrationConverter {
         params.put("origin", authenticatorParameters.getResponse().getClientDataJSON().getOrigin());
         params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
         params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
-        params.put("aaguid", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid());
+        final byte[] aaguidBytes = authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid();
+        params.put("aaguid", bytesToUUID(aaguidBytes));
         params.put("transports", authenticatorParameters.getResponse().getTransports());
         return params;
+    }
+
+    public UUID bytesToUUID(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        final ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        long mostSigBits = byteBuffer.getLong();
+        long leastSigBits = byteBuffer.getLong();
+        return new UUID(mostSigBits, leastSigBits);
     }
 
 }

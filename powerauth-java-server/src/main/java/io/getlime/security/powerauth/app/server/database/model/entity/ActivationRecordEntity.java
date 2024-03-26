@@ -67,7 +67,7 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "activation_name")
     private String activationName;
 
-    @Column(name = "extras")
+    @Column(name = "extras", columnDefinition = "CLOB")
     private String extras;
 
     @Column(name = "protocol")

@@ -32,8 +32,6 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,8 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.*;
 
 /**
  * Behavior class implementing management of application configuration.
@@ -180,7 +177,8 @@ public class ApplicationConfigServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         if (!CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(key)
-                && !CONFIG_KEY_ALLOWED_AAGUIDS.equals(key)) {
+                && !CONFIG_KEY_ALLOWED_AAGUIDS.equals(key)
+                && !CONFIG_KEY_ROOT_CA_CERTS.equals(key)) {
             logger.warn("Unknown configuration key in FIDO2 request: {}", key);
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);

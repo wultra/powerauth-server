@@ -34,6 +34,7 @@ import java.util.Map;
 @Data
 public class AssertionChallengeRequest {
 
+    private String userId;
     @NotEmpty
     private List<@NotBlank String> applicationIds;
     private String externalId;

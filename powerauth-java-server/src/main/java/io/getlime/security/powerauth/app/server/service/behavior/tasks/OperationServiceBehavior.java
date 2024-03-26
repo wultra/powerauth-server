@@ -89,6 +89,21 @@ public class OperationServiceBehavior {
     private LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
+    /**
+     * Lambda interface that allows customizing the approval of operation.
+     */
+    public interface OperationApprovalCustomizer {
+        /**
+         * Method to proceed with approval or fail the operation. Mandatory checks have precedence over this call
+         * result, so it is not possible to force approve an operation that would otherwise be rejected.
+         *
+         * @param operationEntity Operation entity to be approved.
+         * @param request Request with approval attempt.
+         * @return True in case the operation can be approved, false to fail operation approval.
+         */
+        boolean operationShouldFail(OperationEntity operationEntity, OperationApproveRequest request);
+    }
+
     // Prepare logger
     private static final Logger logger = LoggerFactory.getLogger(OperationServiceBehavior.class);
 
@@ -123,6 +138,7 @@ public class OperationServiceBehavior {
         final String templateName = request.getTemplateName();
         final Date timestampExpiresRequest = request.getTimestampExpires();
         final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
+        final Map<String, Object> additionalData = request.getAdditionalData() != null ? request.getAdditionalData() : new LinkedHashMap<>();
         final String externalId = request.getExternalId();
         final String activationId = request.getActivationId();
 
@@ -189,7 +205,7 @@ public class OperationServiceBehavior {
         operationEntity.setTemplateName(templateEntity.getTemplateName());
         operationEntity.setData(operationData);
         operationEntity.setParameters(parameters);
-        operationEntity.setAdditionalData(null); // empty initially
+        operationEntity.setAdditionalData(additionalData);
         operationEntity.setStatus(OperationStatusDo.PENDING);
         operationEntity.setSignatureType(templateEntity.getSignatureType());
         operationEntity.setFailureCount(0L);
@@ -212,6 +228,7 @@ public class OperationServiceBehavior {
                 .param("template", templateEntity.getTemplateName())
                 .param("data", operationData)
                 .param("parameters", parameters)
+                .param("additionalData", additionalData)
                 .param("status", OperationStatusDo.PENDING.name())
                 .param("allowedSignatureType", templateEntity.getSignatureType())
                 .param("maxFailureCount", operationEntity.getMaxFailureCount())
@@ -228,6 +245,10 @@ public class OperationServiceBehavior {
     }
 
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request) throws GenericServiceException {
+        return attemptApproveOperation(request, (op, req) -> false);
+    }
+
+    public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request, OperationApprovalCustomizer operationApprovalCustomizer) throws GenericServiceException {
         final Instant currentInstant = Instant.now();
         final Date currentTimestamp = Date.from(currentInstant);
 
@@ -263,15 +284,17 @@ public class OperationServiceBehavior {
         // Check the operation properties match the request
         final PowerAuthSignatureTypes factorEnum = PowerAuthSignatureTypes.getEnumFromString(signatureType.toString());
         final ProximityCheckResult proximityCheckResult = fetchProximityCheckResult(operationEntity, request, currentInstant);
-        final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
         final String expectedUserId = operationEntity.getUserId();
+        final boolean activationIdMatches = activationIdMatches(request, operationEntity.getActivationId());
+        final boolean operationShouldFail = operationApprovalCustomizer.operationShouldFail(operationEntity, request);
         if (expectedUserId == null || expectedUserId.equals(userId) // correct user approved the operation
             && operationEntity.getApplications().contains(application.get()) // operation is approved by the expected application
             && isDataEqual(operationEntity, data) // operation data matched the expected value
             && factorsAcceptable(operationEntity, factorEnum) // auth factors are acceptable
             && operationEntity.getMaxFailureCount() > operationEntity.getFailureCount() // operation has sufficient attempts left (redundant check)
             && proximityCheckPassed(proximityCheckResult)
-            && activationIdMatches){ // either Operation does not have assigned activationId or it has one, and it matches activationId from request
+            && activationIdMatches // either Operation does not have assigned activationId or it has one, and it matches activationId from request
+            && !operationShouldFail) { // operation customizer can change the approval status by an external impulse
 
             // Approve the operation
             operationEntity.setUserId(userId);
@@ -288,12 +311,12 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("userId", userId)
                     .param("appId", applicationId)
-                    .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
-                    .param("failureCount", operationEntity.getFailureCount())
+                    .param("status", savedEntity.getStatus().name())
+                    .param("additionalData", extendAdditionalDataWithDevice(savedEntity.getAdditionalData()))
+                    .param("failureCount", savedEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
-                    .param("activationIdOperation", operationEntity.getActivationId())
+                    .param("activationIdOperation", savedEntity.getActivationId())
                     .build();
             audit.log(AuditLevel.INFO, "Operation approved with ID: {}", auditDetail, operationId);
 
@@ -331,6 +354,7 @@ public class OperationServiceBehavior {
                         .param("activationIdMatches", activationIdMatches)
                         .param("activationIdOperation", operationEntity.getActivationId())
                         .param("activationIdRequest", additionalData.get("activationId"))
+                        .param("operationShouldFail", operationShouldFail)
                         .build();
                 audit.log(AuditLevel.INFO, "Operation approval failed with ID: {}, failed attempts count: {}", auditDetail, operationId, operationEntity.getFailureCount());
 
@@ -365,6 +389,7 @@ public class OperationServiceBehavior {
                         .param("activationIdMatches", activationIdMatches)
                         .param("activationIdOperation", operationEntity.getActivationId())
                         .param("activationIdRequest", additionalData.get("activationId"))
+                        .param("operationShouldFail", operationShouldFail)
                         .build();
                 audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 

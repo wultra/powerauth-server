@@ -34,8 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * Service related to handling assertions.
  *
@@ -75,12 +73,14 @@ public class AssertionService {
      * @return Assertion challenge information.
      */
     public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws Exception {
-        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(
-                request.getApplicationIds(), request.getTemplateName(), request.getParameters(), request.getExternalId()
-        );
+
+        // Generate the challenge from given request, with optional assignment to provided authenticators
+        final AssertionChallenge assertionChallenge = assertionProvider.provideChallengeForAssertion(request);
         if (assertionChallenge == null) {
             throw new Fido2AuthenticationFailedException("Unable to obtain challenge with provided parameters.");
         }
+
+        // Convert the response
         return assertionChallengeConverter.fromChallenge(assertionChallenge);
     }
 
@@ -94,18 +94,16 @@ public class AssertionService {
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
-            final String credentialId = request.getId();
-            final String challenge = request.getResponse().getClientDataJSON().getChallenge();
-            final Optional<AuthenticatorDetail> authenticatorOptional = authenticatorProvider.findByCredentialId(credentialId, applicationId);
-            authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
-            final AuthenticatorDetail authenticatorDetail = authenticatorOptional.get();
-            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
+            final String credentialId = request.getCredentialId();
             final CollectedClientData clientDataJSON = response.getClientDataJSON();
+            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
+            final String challenge = clientDataJSON.getChallenge();
+            final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
                     assertionProvider.approveAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
-                    return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, signatureCorrect);
+                    return assertionConverter.fromAuthenticatorDetail(authenticatorDetail, true);
                 } else {
                     assertionProvider.failAssertion(challenge, authenticatorDetail, authenticatorData, clientDataJSON);
                     throw new Fido2AuthenticationFailedException("Authentication failed due to incorrect signature.");
@@ -117,6 +115,11 @@ public class AssertionService {
         } catch (Exception e) {
             throw new Fido2AuthenticationFailedException("Authentication failed.", e);
         }
+    }
+
+    private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
+        return authenticatorProvider.findByCredentialId(credentialId, applicationId)
+                .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
     }
 
 }

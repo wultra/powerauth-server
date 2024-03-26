@@ -26,3 +26,10 @@ GO
 -- Create a new sequence pa_app_conf_seq
 CREATE SEQUENCE pa_app_conf_seq START WITH 1 INCREMENT BY 1;
 GO
+
+-- Changeset powerauth-java-server/1.7.x/20240312-fido2-authenticator.xml::1::Jan Pesek
+-- Create a new table pa_fido2_authenticator
+CREATE TABLE pa_fido2_authenticator (aaguid varchar(255) NOT NULL, description varchar(255) NOT NULL, signature_type varchar(255) NOT NULL, CONSTRAINT PK_PA_FIDO2_AUTHENTICATOR PRIMARY KEY (aaguid));
+GO
+
+-- Changeset powerauth-java-server/1.7.x/20240222-add-tag-1.7.0.xml::1::Lubos Racansky

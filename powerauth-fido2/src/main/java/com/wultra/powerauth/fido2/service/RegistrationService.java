@@ -28,14 +28,13 @@ import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsRe
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
 import com.wultra.powerauth.fido2.rest.model.validator.RegistrationRequestValidator;
+import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * Service related to handling registrations.
@@ -52,6 +51,7 @@ public class RegistrationService {
     private final RegistrationConverter registrationConverter;
     private final RegistrationRequestValidator registrationRequestValidator;
     private final CryptographyService cryptographyService;
+    private final Fido2AuthenticatorService fido2AuthenticatorService;
 
     /**
      * Registration service.
@@ -62,15 +62,17 @@ public class RegistrationService {
      * @param registrationConverter Registration converter.
      * @param registrationRequestValidator Registration request validator.
      * @param cryptographyService Cryptography service.
+     * @param fido2AuthenticatorService FIDO2 Authenticator details service.
      */
     @Autowired
-    public RegistrationService(AuthenticatorProvider authenticatorProvider, RegistrationProvider registrationProvider, RegistrationChallengeConverter registrationChallengeConverter, RegistrationConverter registrationConverter, RegistrationRequestValidator registrationRequestValidator, CryptographyService cryptographyService) {
+    public RegistrationService(AuthenticatorProvider authenticatorProvider, RegistrationProvider registrationProvider, RegistrationChallengeConverter registrationChallengeConverter, RegistrationConverter registrationConverter, RegistrationRequestValidator registrationRequestValidator, CryptographyService cryptographyService, Fido2AuthenticatorService fido2AuthenticatorService) {
         this.authenticatorProvider = authenticatorProvider;
         this.registrationProvider = registrationProvider;
         this.registrationChallengeConverter = registrationChallengeConverter;
         this.registrationConverter = registrationConverter;
         this.registrationRequestValidator = registrationRequestValidator;
         this.cryptographyService = cryptographyService;
+        this.fido2AuthenticatorService = fido2AuthenticatorService;
     }
 
     /**
@@ -115,7 +117,7 @@ public class RegistrationService {
             throw new Fido2AuthenticationFailedException(error);
         }
 
-        final String credentialId = requestObject.getAuthenticatorParameters().getId();
+        final String credentialId = requestObject.getAuthenticatorParameters().getCredentialId();
         final AuthenticatorAttestationResponse response = requestObject.getAuthenticatorParameters().getResponse();
 
         final CollectedClientData clientDataJSON = response.getClientDataJSON();
@@ -134,8 +136,8 @@ public class RegistrationService {
         validateRegistrationRequest(applicationId, credentialId, fmt, aaguid, challengeValue);
 
         if (Fmt.FMT_PACKED.getValue().equals(fmt)) {
-            final boolean verifySignature = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, authData, signature, attestedCredentialData);
-            if (!verifySignature) {
+            final boolean signatureVerified = cryptographyService.verifySignatureForRegistration(applicationId, clientDataJSON, attestationObject, signature);
+            if (!signatureVerified) {
                 // Immediately revoke the challenge
                 registrationProvider.revokeRegistrationByChallengeValue(applicationId, challengeValue);
                 throw new Fido2AuthenticationFailedException("Registration failed");
@@ -145,10 +147,11 @@ public class RegistrationService {
             logger.info("No signature verification on registration");
         }
 
+        final Fido2Authenticator model = fido2AuthenticatorService.findByAaguid(registrationConverter.bytesToUUID(aaguid));
         final RegistrationChallenge challenge = registrationProvider.findRegistrationChallengeByValue(applicationId, challengeValue);
-        final Optional<AuthenticatorDetail> authenticatorOptional = registrationConverter.convert(challenge, requestObject, attestedCredentialData.getAaguid(), cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()));
-        authenticatorOptional.orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
-        final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticatorOptional.get());
+        final AuthenticatorDetail authenticator = registrationConverter.convert(challenge, requestObject, model, cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()))
+                .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+        final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticator);
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);
     }
 

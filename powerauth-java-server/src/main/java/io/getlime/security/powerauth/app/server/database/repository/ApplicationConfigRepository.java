@@ -18,11 +18,11 @@
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository for application configurations.
@@ -36,8 +36,16 @@ public interface ApplicationConfigRepository extends CrudRepository<ApplicationC
      * Find application configuration by application ID.
      *
      * @param applicationId Application ID.
-     * @return Optional application config entity.
+     * @return List of application config entities.
      */
     List<ApplicationConfigEntity> findByApplicationId(String applicationId);
+
+    /**
+     * Find application configuration by application ID and key.
+     * @param applicationId Application ID.
+     * @param key Configuration key name.
+     * @return Optional application config entity.
+     */
+    Optional<ApplicationConfigEntity> findByApplicationIdAndKey(String applicationId, String key);
 
 }

@@ -18,6 +18,8 @@
 
 package com.wultra.powerauth.fido2.rest.model.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -34,7 +36,7 @@ import java.util.List;
 public class AssertionVerificationRequest {
 
     @NotBlank
-    private String id;
+    private String credentialId;
     @NotBlank
     private String type;
     @NotBlank
@@ -44,7 +46,9 @@ public class AssertionVerificationRequest {
     private String applicationId;
     @NotBlank
     private String relyingPartyId;
+    @JsonSetter(nulls = Nulls.SKIP)
     private List<String> allowedOrigins = new ArrayList<>();
+    @JsonSetter(nulls = Nulls.SKIP)
     private List<String> allowedTopOrigins = new ArrayList<>();
     private boolean requiresUserVerification;
     private String expectedChallenge;
