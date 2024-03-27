@@ -37,14 +37,8 @@ public class AllowCredentials {
      *
      * @see <a href="https://www.w3.org/TR/webauthn-2/#enum-credentialType">W3C WebAuthn specification</a>
      */
-    private final String type;
+    private String type;
 
     private List<String> transports;
 
-    /**
-     * No-arg constructor setting a default type.
-     */
-    public AllowCredentials() {
-        type = "public-key";
-    }
 }
