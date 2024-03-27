@@ -36,6 +36,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Comparator;
 import java.util.stream.Collectors;
@@ -175,6 +176,23 @@ public class RESTControllerAdvice {
         error.setCode("ERROR_HTTP_REQUEST");
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
+        return new ObjectResponse<>("ERROR", error);
+    }
+
+    /**
+     * Exception handler for no resource found.
+     *
+     * @param e Exception.
+     * @return Response with error details.
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleNoResourceFoundException(final NoResourceFoundException e) {
+        logger.warn("Error occurred when calling an API: {}", e.getMessage());
+        logger.debug("Exception detail: ", e);
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode("ERROR_NOT_FOUND");
+        error.setMessage("Resource not found.");
         return new ObjectResponse<>("ERROR", error);
     }
 
