@@ -84,7 +84,7 @@ public class ApplicationConfigEntity implements Serializable {
         if (this == o) return true;
         if (o == null) return false;
         if (!this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
-        ApplicationConfigEntity that = (ApplicationConfigEntity) o;
+        final ApplicationConfigEntity that = (ApplicationConfigEntity) o;
         return Objects.equals(application, that.application) &&
                 Objects.equals(key, that.key) &&
                 Objects.equals(values, that.values);
