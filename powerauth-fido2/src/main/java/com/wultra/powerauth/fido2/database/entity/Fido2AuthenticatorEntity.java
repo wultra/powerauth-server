@@ -57,8 +57,8 @@ public class Fido2AuthenticatorEntity implements Serializable {
     public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || !this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
-        final Fido2AuthenticatorEntity entity = (Fido2AuthenticatorEntity) o;
-        return Objects.equals(aaguid, entity.aaguid);
+        if (!(o instanceof final Fido2AuthenticatorEntity that)) return false;
+        return Objects.equals(aaguid, that.aaguid);
     }
 
     @Override
