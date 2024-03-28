@@ -165,4 +165,54 @@ class AssertionChallengeConverterTest {
         assertEquals("public-key", operationDataCredential.getType());
     }
 
+    @Test
+    void testConvertAssertionChallengeFromOperationDetail_multipleWultraAuthenticatorDetails() {
+        final OperationDetailResponse operationDetailResponse = new OperationDetailResponse();
+        operationDetailResponse.setUserId("user");
+        operationDetailResponse.setApplications(List.of("app"));
+        operationDetailResponse.setId("operationID");
+        operationDetailResponse.setData("A1*A100CZK");
+        operationDetailResponse.setFailureCount(0L);
+        operationDetailResponse.setMaxFailureCount(5L);
+
+        final AuthenticatorDetail authenticatorDetail1 = new AuthenticatorDetail();
+        authenticatorDetail1.setCredentialId(Base64.getEncoder().encodeToString("credential-1".getBytes()));
+        authenticatorDetail1.setExtras(Map.of(
+                "transports", List.of("usb"),
+                "aaguid", "dca09ba7-4992-4be8-9283-ee98cd6fb529"));
+
+        final AuthenticatorDetail authenticatorDetail2 = new AuthenticatorDetail();
+        authenticatorDetail2.setCredentialId(Base64.getEncoder().encodeToString("credential-2".getBytes()));
+        authenticatorDetail2.setExtras(Map.of(
+                "transports", List.of("usb"),
+                "aaguid", "dca09ba7-4992-4be8-9283-ee98cd6fb529"));
+
+        final List<AuthenticatorDetail> authenticatorDetails = List.of(authenticatorDetail1, authenticatorDetail2);
+
+        final AssertionChallenge assertionChallenge = AssertionChallengeConverter
+                .convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
+        assertEquals("user", assertionChallenge.getUserId());
+        assertEquals("app", assertionChallenge.getApplicationIds().get(0));
+        assertEquals("operationID&A1*A100CZK", assertionChallenge.getChallenge());
+        assertEquals(0L, assertionChallenge.getFailedAttempts());
+        assertEquals(5L, assertionChallenge.getMaxFailedAttempts());
+
+        assertNotNull(assertionChallenge.getAllowCredentials());
+        assertEquals(3, assertionChallenge.getAllowCredentials().size());
+        final AllowCredentials allowCredential1 = assertionChallenge.getAllowCredentials().get(0);
+        assertArrayEquals("credential-1".getBytes(), allowCredential1.getCredentialId());
+        assertEquals("usb", allowCredential1.getTransports().get(0));
+        assertEquals("public-key", allowCredential1.getType());
+
+        final AllowCredentials allowCredential2 = assertionChallenge.getAllowCredentials().get(1);
+        assertArrayEquals("credential-2".getBytes(), allowCredential2.getCredentialId());
+        assertEquals("usb", allowCredential2.getTransports().get(0));
+        assertEquals("public-key", allowCredential2.getType());
+
+        final AllowCredentials operationDataCredential = assertionChallenge.getAllowCredentials().get(2);
+        assertArrayEquals("A1*A100CZK".getBytes(), operationDataCredential.getCredentialId());
+        assertTrue(operationDataCredential.getTransports().isEmpty());
+        assertEquals("public-key", operationDataCredential.getType());
+    }
+
 }
