@@ -29,7 +29,16 @@ import java.util.List;
  */
 @Data
 public class AllowCredentials {
+
     private byte[] credentialId;
-    private final String type = "public-key";
+
+    /**
+     * Currently one credential type is defined, namely {@code public-key}.
+     *
+     * @see <a href="https://www.w3.org/TR/webauthn-2/#enum-credentialType">W3C WebAuthn specification</a>
+     */
+    private String type;
+
     private List<String> transports;
+
 }

@@ -26,7 +26,6 @@ import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -120,16 +119,17 @@ public class AssertionChallengeConverter {
                     hasWultraModel = true;
                 }
 
-                final AllowCredentials ac = new AllowCredentials();
-                ac.setCredentialId(credentialId);
-                ac.setTransports(transports);
+                final AllowCredentials ac = AllowCredentials.builder()
+                        .credentialId(credentialId)
+                        .transports(transports)
+                        .build();
                 allowCredentials.add(ac);
             }
             if (hasWultraModel) {
                 final byte[] credentialId = source.getData().getBytes(StandardCharsets.UTF_8);
-                final AllowCredentials ac = new AllowCredentials();
-                ac.setCredentialId(credentialId);
-                ac.setTransports(Collections.emptyList());
+                final AllowCredentials ac = AllowCredentials.builder()
+                        .credentialId(credentialId)
+                        .build();
                 allowCredentials.add(ac);
             }
             destination.setAllowCredentials(allowCredentials);
