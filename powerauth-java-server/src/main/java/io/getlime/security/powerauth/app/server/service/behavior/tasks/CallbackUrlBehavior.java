@@ -53,6 +53,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior.extendAdditionalDataWithDevice;
+
 /**
  * Class that manages the service logic related to callback URL management.
  *
@@ -369,7 +371,7 @@ public class CallbackUrlBehavior {
             callbackData.put("parameters", operation.getParameters());
         }
         if (callbackUrlEntity.getAttributes().contains("additionalData")) {
-            callbackData.put("additionalData", operation.getAdditionalData());
+            callbackData.put("additionalData", extendAdditionalDataWithDevice(operation.getAdditionalData()));
         }
         if (callbackUrlEntity.getCallbackUrl().contains("activationFlag")) {
             callbackData.put("activationFlag", operation.getActivationFlag());
