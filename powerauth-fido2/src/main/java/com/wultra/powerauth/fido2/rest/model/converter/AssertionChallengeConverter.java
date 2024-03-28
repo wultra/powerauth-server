@@ -27,7 +27,6 @@ import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -37,11 +36,14 @@ import java.util.*;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
 @Slf4j
 public class AssertionChallengeConverter {
 
     private static final String ATTR_ALLOW_CREDENTIALS = "allowCredentials";
+
+    private AssertionChallengeConverter() {
+        throw new IllegalStateException("Should not be instantiated");
+    }
 
     /**
      * Convert a new assertion challenge response from a provided challenge.
@@ -49,7 +51,7 @@ public class AssertionChallengeConverter {
      * @param source Challenge.
      * @return Assertion challenge response.
      */
-    public AssertionChallengeResponse fromChallenge(AssertionChallenge source) {
+    public static AssertionChallengeResponse fromChallenge(AssertionChallenge source) {
         if (source == null) {
             return null;
         }
@@ -71,7 +73,7 @@ public class AssertionChallengeConverter {
      * @param authenticatorDetails Allowed authenticators. If null or empty, all are allowed.
      * @return Request for creating a new operation.
      */
-    public OperationCreateRequest convertAssertionRequestToOperationRequest(AssertionChallengeRequest source, List<AuthenticatorDetail> authenticatorDetails) {
+    public static OperationCreateRequest convertAssertionRequestToOperationRequest(AssertionChallengeRequest source, List<AuthenticatorDetail> authenticatorDetails) {
         final OperationCreateRequest destination = new OperationCreateRequest();
         destination.setUserId(source.getUserId());
         destination.setApplications(source.getApplicationIds());
@@ -96,7 +98,7 @@ public class AssertionChallengeConverter {
      * @param authenticatorDetails Add authenticator details to be assigned with the challenge. If null or empty, all are allowed.
      * @return Assertion challenge
      */
-    public AssertionChallenge convertAssertionChallengeFromOperationDetail(OperationDetailResponse source, List<AuthenticatorDetail> authenticatorDetails) {
+    public static AssertionChallenge convertAssertionChallengeFromOperationDetail(OperationDetailResponse source, List<AuthenticatorDetail> authenticatorDetails) {
         final AssertionChallenge destination = new AssertionChallenge();
         destination.setUserId(source.getUserId());
         destination.setApplicationIds(source.getApplications());
@@ -113,8 +115,7 @@ public class AssertionChallengeConverter {
                 final List<String> transports = (List<String>) ad.getExtras().get("transports");
                 final String aaguid = (String) ad.getExtras().get("aaguid");
 
-                // Obtain credential ID, append data to credential ID if the authenticator is a Wultra authenticator that supports visual challenge.
-                byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
+                final byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
                 if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
                     hasWultraModel = true;
                 }

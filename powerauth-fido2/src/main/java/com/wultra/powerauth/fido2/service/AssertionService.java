@@ -47,7 +47,6 @@ public class AssertionService {
     private final AuthenticatorProvider authenticatorProvider;
     private final AssertionProvider assertionProvider;
     private final AssertionConverter assertionConverter;
-    private final AssertionChallengeConverter assertionChallengeConverter;
 
     /**
      * Assertion service constructor.
@@ -55,15 +54,13 @@ public class AssertionService {
      * @param authenticatorProvider Authenticator provider.
      * @param assertionProvider Assertion provider.
      * @param assertionConverter Assertion converter.
-     * @param assertionChallengeConverter Assertion challenge converter.
      */
     @Autowired
-    public AssertionService(CryptographyService cryptographyService, AuthenticatorProvider authenticatorProvider, AssertionProvider assertionProvider, AssertionConverter assertionConverter, AssertionChallengeConverter assertionChallengeConverter) {
+    public AssertionService(CryptographyService cryptographyService, AuthenticatorProvider authenticatorProvider, AssertionProvider assertionProvider, AssertionConverter assertionConverter) {
         this.cryptographyService = cryptographyService;
         this.authenticatorProvider = authenticatorProvider;
         this.assertionProvider = assertionProvider;
         this.assertionConverter = assertionConverter;
-        this.assertionChallengeConverter = assertionChallengeConverter;
     }
 
     /**
@@ -81,7 +78,7 @@ public class AssertionService {
         }
 
         // Convert the response
-        return assertionChallengeConverter.fromChallenge(assertionChallenge);
+        return AssertionChallengeConverter.fromChallenge(assertionChallenge);
     }
 
     /**
