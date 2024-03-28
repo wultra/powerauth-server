@@ -71,16 +71,14 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;
-    private final AssertionChallengeConverter assertionChallengeConverter;
     private final AuditingServiceBehavior audit;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
 
     @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AssertionChallengeConverter assertionChallengeConverter, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService) {
+    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService) {
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.repositoryCatalogue = repositoryCatalogue;
-        this.assertionChallengeConverter = assertionChallengeConverter;
         this.audit = audit;
         this.authenticatorProvider = authenticatorProvider;
         this.fido2AuthenticatorService = fido2AuthenticatorService;
@@ -101,9 +99,9 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             }
         }
 
-        final OperationCreateRequest operationCreateRequest = assertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
+        final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
         final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
-        return assertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
+        return AssertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
     }
 
     @Override
