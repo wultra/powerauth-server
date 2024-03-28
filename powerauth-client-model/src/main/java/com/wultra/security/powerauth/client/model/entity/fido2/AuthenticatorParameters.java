@@ -36,7 +36,6 @@ public class AuthenticatorParameters {
     private String credentialId;
     @NotBlank
     private String type;
-    @NotBlank
     private String authenticatorAttachment;
     private AuthenticatorAttestationResponse response = new AuthenticatorAttestationResponse();
     @NotBlank
