@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.client.model.request.fido2;
 
 import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorParameters;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -36,6 +37,7 @@ public class RegistrationRequest {
     private String expectedChallenge;
 
     // Authenticator parameters
+    @Valid
     private AuthenticatorParameters authenticatorParameters;
 
 
