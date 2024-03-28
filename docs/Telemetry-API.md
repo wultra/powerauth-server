@@ -75,7 +75,7 @@ Request a telemetry report with provided attributes.
 
 #### Response 200
 
-If the report is successfully prepared, API returns the following reponse:
+If the report is successfully prepared, API returns the following response:
 
 ```json
 {

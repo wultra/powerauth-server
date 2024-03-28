@@ -43,7 +43,7 @@ public class SignatureMetadataConverter implements AttributeConverter<SignatureM
     private final ObjectMapper objectMapper;
 
     /**
-     * Default constructor that initializes a default ObjectMapper.
+     * No-arg constructor that initializes a default ObjectMapper.
      */
     public SignatureMetadataConverter() {
         this.objectMapper = new ObjectMapper();

@@ -33,7 +33,7 @@ public class PowerAuthClientException extends Exception {
     private final PowerAuthError powerAuthError;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public PowerAuthClientException() {
         this.powerAuthError = null;

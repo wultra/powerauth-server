@@ -159,6 +159,8 @@ public class ActivationController {
             model.put("version", activation.getVersion());
             model.put("platform", activation.getPlatform());
             model.put("deviceInfo", activation.getDeviceInfo());
+            model.put("protocol", activation.getProtocol());
+            model.put("externalId", activation.getExternalId());
             model.put("activationFlags", activation.getActivationFlags());
             if (activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT && activation.getActivationOtpValidation() == ActivationOtpValidation.ON_COMMIT) {
                 model.put("showOtpInput", true);

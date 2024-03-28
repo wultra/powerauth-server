@@ -30,7 +30,7 @@ public class OnlineSignatureRequest {
     private SignatureType signatureType;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public OnlineSignatureRequest() {
     }

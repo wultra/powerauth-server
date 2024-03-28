@@ -75,6 +75,7 @@ public class SignatureSharedServiceBehavior {
     private final CallbackUrlBehavior callbackUrlBehavior;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final ActivationContextValidator activationValidator;
 
     private ServerPrivateKeyConverter serverPrivateKeyConverter;
 
@@ -90,15 +91,17 @@ public class SignatureSharedServiceBehavior {
      * @param callbackUrlBehavior Callback URL behavior.
      * @param localizationProvider Localization provider for error handling.
      * @param powerAuthServiceConfiguration PowerAuth service configuration.
+     * @param activationValidator
      */
     @Autowired
-    public SignatureSharedServiceBehavior(RepositoryCatalogue repositoryCatalogue, ActivationHistoryServiceBehavior activationHistoryServiceBehavior, AuditingServiceBehavior auditingServiceBehavior, CallbackUrlBehavior callbackUrlBehavior, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration) {
+    public SignatureSharedServiceBehavior(RepositoryCatalogue repositoryCatalogue, ActivationHistoryServiceBehavior activationHistoryServiceBehavior, AuditingServiceBehavior auditingServiceBehavior, CallbackUrlBehavior callbackUrlBehavior, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ActivationContextValidator activationValidator) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.activationHistoryServiceBehavior = activationHistoryServiceBehavior;
         this.auditingServiceBehavior = auditingServiceBehavior;
         this.callbackUrlBehavior = callbackUrlBehavior;
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
+        this.activationValidator = activationValidator;
     }
 
     /**
@@ -266,6 +269,8 @@ public class SignatureSharedServiceBehavior {
      * @throws GenericCryptoException In case of any other cryptography error.
      */
     private SignatureResponse verifySignatureImpl(ActivationRecordEntity activation, SignatureData signatureData, List<SignatureType> signatureTypes, KeyConvertor keyConversionUtilities) throws InvalidKeyException, InvalidKeySpecException, GenericServiceException, CryptoProviderException, GenericCryptoException {
+        activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
+
         // Get the server private and device public keys
 
         // Decrypt server private key (depending on encryption mode)
@@ -342,19 +347,6 @@ public class SignatureSharedServiceBehavior {
             usedSignatureType = signatureTypes.iterator().next();
         }
         return new SignatureResponse(signatureValid, ctrNext, ctrDataNext, signatureVersion, usedSignatureType);
-    }
-
-    /**
-     * Validate activation version.
-     * @param activationVersion Version of activation.
-     * @throws GenericServiceException Thrown when activation version is invalid.
-     */
-    private void validateActivationVersion(Integer activationVersion) throws GenericServiceException {
-        if (activationVersion == null || activationVersion < 2 || activationVersion > 3) {
-            logger.warn("Invalid activation version: {}", activationVersion);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-        }
     }
 
     /**
@@ -596,7 +588,7 @@ public class SignatureSharedServiceBehavior {
      */
     private Integer resolveSignatureVersion(ActivationRecordEntity activation, Integer forcedSignatureVersion) throws GenericServiceException {
         // Validate activation version
-        validateActivationVersion(activation.getVersion());
+        activationValidator.validateVersionValid(activation.getVersion(), localizationProvider);
 
         // Set signature version based on activation version as default
         Integer signatureVersion = activation.getVersion();

@@ -95,7 +95,7 @@ public class SignatureEntity implements Serializable {
     private Date timestampCreated;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public SignatureEntity() {
     }
@@ -137,7 +137,6 @@ public class SignatureEntity implements Serializable {
             Boolean valid,
             Date timestampCreated,
             Integer version) {
-        super();
         this.id = id;
         this.activation = activation;
         this.activationCounter = activationCounter;

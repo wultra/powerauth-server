@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.controller;
 
+import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
+import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -84,6 +86,40 @@ public class RESTControllerAdvice {
     }
 
     /**
+     * Resolver for FIDO2 related errors.
+     * @param ex Exception for HTTP message not readable.
+     * @return Error for HTTP request.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = Fido2AuthenticationFailedException.class)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleFido2AuthenticationFailedException(Fido2AuthenticationFailedException ex) {
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode("ERROR_FIDO2_AUTH");
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
+        return new ObjectResponse<>("ERROR", error);
+    }
+
+    /**
+     * Resolver for FIDO2 related deserialization errors.
+     * @param ex Exception for HTTP message not readable.
+     * @return Error for HTTP request.
+     */
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(value = Fido2DeserializationException.class)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleFido2DeserializationFailedException(Fido2DeserializationException ex) {
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode("ERROR_FIDO2_REQUEST");
+        error.setMessage(ex.getMessage());
+        error.setLocalizedMessage(ex.getLocalizedMessage());
+        return new ObjectResponse<>("ERROR", error);
+    }
+
+    /**
      * Resolver for Activation Recovery Exception.
      * @param ex Activation Recovery Exception.
      * @return Activation recovery error.
@@ -102,7 +138,7 @@ public class RESTControllerAdvice {
     }
 
     /**
-     * Resolver for validation xception.
+     * Resolver for validation exception.
      *
      * @param ex Exception.
      * @return Activation recovery error.

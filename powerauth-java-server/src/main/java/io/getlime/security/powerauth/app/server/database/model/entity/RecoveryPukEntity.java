@@ -67,7 +67,7 @@ public class RecoveryPukEntity implements Serializable {
     private Date timestampLastChange;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public RecoveryPukEntity() {
     }

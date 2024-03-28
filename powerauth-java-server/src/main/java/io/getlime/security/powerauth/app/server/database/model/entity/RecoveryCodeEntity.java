@@ -83,7 +83,7 @@ public class RecoveryCodeEntity implements Serializable {
     private final List<RecoveryPukEntity> recoveryPuks = new ArrayList<>();
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public RecoveryCodeEntity() {
     }

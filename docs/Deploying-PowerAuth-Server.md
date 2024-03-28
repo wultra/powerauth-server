@@ -42,7 +42,6 @@ The default database connectivity parameters in `powerauth-java-server.war` are 
 spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
-spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=none
 spring.jpa.properties.hibernate.connection.characterEncoding=utf8
 spring.jpa.properties.hibernate.connection.useUnicode=true
@@ -57,7 +56,6 @@ For Oracle database use following connectivity parameters (example):
 spring.datasource.url=jdbc:oracle:thin:@//[HOST]:[PORT]/[SERVICENAME]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
-spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
 spring.jpa.hibernate.ddl-auto=none
 ```
 
@@ -68,7 +66,6 @@ For PostgreSQL use following connectivity parameters (example):
 spring.datasource.url=jdbc:postgresql://[HOST]:[PORT]/[DATABASE]
 spring.datasource.username=powerauth
 spring.datasource.password=*********
-spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=none
 ```
 
@@ -136,7 +133,6 @@ You can specify the individual properties directly in the server configuration. 
     <Parameter name="spring.datasource.url" value="jdbc:postgresql://localhost:5432"/>
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value=""/>
-    <Parameter name="spring.datasource.driver-class-name" value="org.postgresql.Driver"/>
 </Context>
 ```
 
@@ -157,7 +153,6 @@ To match the previous example, the contents of `/path/to/come/custom.properties`
 spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
 spring.datasource.username=powerauth
 spring.datasource.password=
-spring.datasource.driver-class-name=org.postgresql.Driver
 ```
 
 ## Generating Your First Application
@@ -234,7 +229,6 @@ Some application servers, such as **WildFly** by JBoss, are very restrictive in 
 spring.datasource.url=
 spring.datasource.username=
 spring.datasource.password=
-spring.datasource.driver-class-name=
 spring.jpa.database-platform=
 spring.jpa.hibernate.ddl-auto=none
 spring.datasource.jndi-name=java:/jdbc/powerauth

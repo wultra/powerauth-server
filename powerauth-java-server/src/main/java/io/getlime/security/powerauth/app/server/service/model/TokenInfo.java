@@ -28,7 +28,7 @@ public class TokenInfo {
     private String tokenSecret;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public TokenInfo() {
     }

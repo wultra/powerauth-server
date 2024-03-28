@@ -96,7 +96,6 @@ The `application-ext.properties` file is used to override default configuration 
 spring.datasource.url=jdbc:oracle:thin:@//[host]:[port]/[servicename]
 spring.datasource.username=powerauth
 spring.datasource.password=powerauth
-spring.datasource.driver-class-name=oracle.jdbc.driver.OracleDriver
 
 # Application Service Configuration
 powerauth.service.applicationEnvironment=TEST

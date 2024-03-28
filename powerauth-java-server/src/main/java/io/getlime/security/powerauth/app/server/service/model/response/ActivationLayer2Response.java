@@ -33,7 +33,7 @@ public class ActivationLayer2Response {
     private ActivationRecovery activationRecovery;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ActivationLayer2Response() {
     }

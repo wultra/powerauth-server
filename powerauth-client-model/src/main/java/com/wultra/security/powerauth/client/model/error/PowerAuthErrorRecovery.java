@@ -27,7 +27,7 @@ public class PowerAuthErrorRecovery extends PowerAuthError {
     private int currentRecoveryPukIndex;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public PowerAuthErrorRecovery() {
     }

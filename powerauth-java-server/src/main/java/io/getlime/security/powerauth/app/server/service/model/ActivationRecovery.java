@@ -30,7 +30,7 @@ public class ActivationRecovery {
     private String puk;
 
     /**
-     * Default constuctor.
+     * No-arg constructor.
      */
     public ActivationRecovery() {
     }

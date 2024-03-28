@@ -557,23 +557,6 @@
         </createTable>
     </changeSet>
 
-    <changeSet id="25" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
-        <preConditions onFail="MARK_RAN">
-            <not>
-                <tableExists tableName="pa_operation_application"/>
-            </not>
-        </preConditions>
-        <comment>Create a new table pa_operation_application</comment>
-        <createTable tableName="pa_operation_application">
-            <column name="application_id" type="bigint">
-                <constraints primaryKey="true" />
-            </column>
-            <column name="operation_id" type="varchar(255)">
-                <constraints primaryKey="true" />
-            </column>
-        </createTable>
-    </changeSet>
-
     <changeSet id="26" logicalFilePath="powerauth-java-server/1.4.x/20230322-init-db.xml" author="Lubos Racansky">
         <preConditions onFail="MARK_RAN">
             <not>

@@ -82,6 +82,7 @@ public class OfflineSignatureServiceBehavior {
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
+    private final ActivationContextValidator activationValidator;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -130,6 +131,8 @@ public class OfflineSignatureServiceBehavior {
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
         }
+
+        activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
         // Proceed and compute the results
         try {

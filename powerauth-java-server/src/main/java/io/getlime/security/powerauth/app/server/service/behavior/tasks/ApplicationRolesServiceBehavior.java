@@ -42,7 +42,7 @@ import java.util.Optional;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("applicationRolesServiceBehavior")
+@Component
 public class ApplicationRolesServiceBehavior {
 
     private static final Logger logger = LoggerFactory.getLogger(ApplicationRolesServiceBehavior.class);

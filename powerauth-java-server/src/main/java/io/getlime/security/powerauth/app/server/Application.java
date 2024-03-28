@@ -21,7 +21,10 @@ import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.security.Security;
@@ -33,8 +36,11 @@ import java.security.Security;
  */
 @SpringBootApplication
 @EnableScheduling
+@EnableCaching
 @EnableSchedulerLock(defaultLockAtMostFor = "10m")
 @ConfigurationPropertiesScan
+@EnableJpaRepositories(basePackages = {"io.getlime.security.powerauth.app.server", "com.wultra.powerauth.fido2"})
+@EntityScan(basePackages = {"io.getlime.security.powerauth.app.server", "com.wultra.powerauth.fido2"})
 public class Application {
 
     static {

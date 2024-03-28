@@ -37,6 +37,8 @@ public class RepositoryCatalogue {
 
     private final ApplicationVersionRepository applicationVersionRepository;
 
+    private final ApplicationConfigRepository applicationConfigRepository;
+
     private final CallbackUrlRepository callbackUrlRepository;
 
     private final IntegrationRepository integrationRepository;
@@ -57,7 +59,7 @@ public class RepositoryCatalogue {
             ActivationHistoryRepository activationHistoryRepository,
             ApplicationRepository applicationRepository,
             ApplicationVersionRepository applicationVersionRepository,
-            CallbackUrlRepository callbackUrlRepository,
+            ApplicationConfigRepository applicationConfigRepository, CallbackUrlRepository callbackUrlRepository,
             IntegrationRepository integrationRepository,
             MasterKeyPairRepository masterKeyPairRepository,
             SignatureAuditRepository signatureAuditRepository,
@@ -69,6 +71,7 @@ public class RepositoryCatalogue {
         this.activationHistoryRepository = activationHistoryRepository;
         this.applicationRepository = applicationRepository;
         this.applicationVersionRepository = applicationVersionRepository;
+        this.applicationConfigRepository = applicationConfigRepository;
         this.callbackUrlRepository = callbackUrlRepository;
         this.integrationRepository = integrationRepository;
         this.masterKeyPairRepository = masterKeyPairRepository;
@@ -94,6 +97,10 @@ public class RepositoryCatalogue {
 
     public ApplicationVersionRepository getApplicationVersionRepository() {
         return applicationVersionRepository;
+    }
+
+    public ApplicationConfigRepository getApplicationConfigRepository() {
+        return applicationConfigRepository;
     }
 
     public CallbackUrlRepository getCallbackUrlRepository() {

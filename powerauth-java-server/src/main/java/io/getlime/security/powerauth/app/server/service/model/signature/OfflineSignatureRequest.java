@@ -32,7 +32,7 @@ public class OfflineSignatureRequest {
     private List<SignatureType> signatureTypes;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public OfflineSignatureRequest() {
     }
