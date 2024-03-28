@@ -39,7 +39,6 @@ public class AssertionVerificationRequest {
     private String credentialId;
     @NotBlank
     private String type;
-    @NotBlank
     private String authenticatorAttachment;
     private AuthenticatorAssertionResponse response = new AuthenticatorAssertionResponse();
     @NotBlank
