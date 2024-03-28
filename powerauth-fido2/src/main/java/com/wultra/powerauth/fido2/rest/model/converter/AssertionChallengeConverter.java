@@ -115,7 +115,7 @@ public class AssertionChallengeConverter {
                 final List<String> transports = (List<String>) ad.getExtras().get("transports");
                 final String aaguid = (String) ad.getExtras().get("aaguid");
 
-                byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
+                final byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
                 if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
                     hasWultraModel = true;
                 }
