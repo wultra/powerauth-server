@@ -20,7 +20,6 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.AuthenticatorDataDeserializer;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToByteArrayDeserializer;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToStringDeserializer;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.CollectedClientDataDeserializer;
 import jakarta.validation.constraints.NotEmpty;
@@ -41,7 +40,6 @@ public class AuthenticatorAssertionResponse {
     private AuthenticatorData authenticatorData;
 
     @NotEmpty
-    @JsonDeserialize(using = Base64ToByteArrayDeserializer.class)
     private byte[] signature;
 
     @JsonDeserialize(using = Base64ToStringDeserializer.class)
