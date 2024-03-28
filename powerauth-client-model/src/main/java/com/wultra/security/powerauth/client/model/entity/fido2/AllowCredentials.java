@@ -18,8 +18,10 @@
 
 package com.wultra.security.powerauth.client.model.entity.fido2;
 
-import lombok.Data;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -27,18 +29,24 @@ import java.util.List;
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@Data
+@Getter
+@EqualsAndHashCode
+@ToString
+@Builder
+@Jacksonized
 public class AllowCredentials {
 
-    private byte[] credentialId;
+    private final byte[] credentialId;
 
     /**
      * Currently one credential type is defined, namely {@code public-key}.
      *
      * @see <a href="https://www.w3.org/TR/webauthn-2/#enum-credentialType">W3C WebAuthn specification</a>
      */
-    private String type;
+    @Builder.Default
+    private final String type = "public-key";
 
-    private List<String> transports;
+    @Builder.Default
+    private final List<String> transports = Collections.emptyList();
 
 }
