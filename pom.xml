@@ -106,7 +106,7 @@
         <zxing.version>3.5.3</zxing.version>
 
         <!-- Test dependencies -->
-        <webauthn4j.version>0.22.2.RELEASE</webauthn4j.version>
+        <webauthn4j.version>0.23.0.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>
