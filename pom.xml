@@ -82,7 +82,7 @@
 
     <properties>
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>4.1.0</spring-cloud-vault.version>
+        <spring-cloud-vault.version>4.1.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
         <powerauth-java-crypto.version>1.7.0</powerauth-java-crypto.version>
