@@ -305,7 +305,7 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-            extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
+            extendAdditionalDataWithDevice(operationDetailResponse);
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
@@ -445,7 +445,7 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-            extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
+            extendAdditionalDataWithDevice(operationDetailResponse);
 
             logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
@@ -518,7 +518,7 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-            extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
+            extendAdditionalDataWithDevice(operationDetailResponse);
 
             logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
 
@@ -601,8 +601,10 @@ public class OperationServiceBehavior {
                 .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
+        final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+        extendAdditionalDataWithDevice(operationDetailResponse);
 
-        return convertFromEntity(savedEntity);
+        return operationDetailResponse;
     }
 
     public OperationDetailResponse getOperation(OperationDetailRequest request) throws GenericServiceException {
@@ -624,7 +626,7 @@ public class OperationServiceBehavior {
                 currentTimestamp
         );
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
-        extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
+        extendAdditionalDataWithDevice(operationDetailResponse);
         generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
     }
@@ -904,6 +906,10 @@ public class OperationServiceBehavior {
             logger.error("Unable to validate proximity OTP for operation ID: {}", operation.getId(), e);
             return ProximityCheckResult.ERROR;
         }
+    }
+
+    private static void extendAdditionalDataWithDevice(OperationDetailResponse operationDetailResponse) {
+        operationDetailResponse.setAdditionalData(extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData()));
     }
 
     public static Map<String, Object> extendAdditionalDataWithDevice(Map<String, Object> additionalData) {
