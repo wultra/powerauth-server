@@ -16,32 +16,19 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToStringDeserializer;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
- * Collected client data.
+ * Model class representing registration challenge.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class CollectedClientData {
-    @NotEmpty
-    @JsonIgnore
-    private String encoded;
-    @NotBlank
-    private String type;
-    @NotEmpty
-    @JsonDeserialize(using = Base64ToStringDeserializer.class)
+public class RegistrationChallenge {
+    private String activationId;
+    private String applicationId;
     private String challenge;
-    @NotBlank
-    private String origin;
-    private String topOrigin;
-    private boolean crossOrigin;
+    private String userId;
 }

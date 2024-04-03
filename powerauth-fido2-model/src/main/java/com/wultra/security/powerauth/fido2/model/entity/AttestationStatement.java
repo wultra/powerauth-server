@@ -16,14 +16,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.enumeration;
+package com.wultra.security.powerauth.fido2.model.entity;
+
+import com.wultra.security.powerauth.fido2.model.enumeration.AttestationType;
+import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
+import lombok.Data;
 
 /**
- * Signature algorithm enumeration.
+ * Attestation statement.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public enum SignatureAlgorithm {
-    ES256,
-    UNKNOWN
+@Data
+public class AttestationStatement {
+
+    private SignatureAlgorithm algorithm;
+    private byte[] signature;
+    private X509Cert x509Cert;
+    private AttestationType attestationType;
+
 }

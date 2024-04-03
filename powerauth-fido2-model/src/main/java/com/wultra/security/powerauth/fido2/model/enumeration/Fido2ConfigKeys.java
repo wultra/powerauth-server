@@ -14,37 +14,20 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
  */
 
-package com.wultra.powerauth.fido2.errorhandling;
-
-import java.io.IOException;
-import java.io.Serial;
+package com.wultra.security.powerauth.fido2.model.enumeration;
 
 /**
- * Exception related to FIDO2 deserialization issues.
+ * FIDO2 configuration key strings.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class Fido2DeserializationException extends IOException {
+public class Fido2ConfigKeys {
 
-    @Serial
-    private static final long serialVersionUID = 1835532378587759773L;
+    public static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
+    public static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";
+    public static final String CONFIG_KEY_ROOT_CA_CERTS = "fido2_root_ca_certs";
 
-    /**
-     * Exception constructor with message.
-     * @param message Exception message.
-     */
-    public Fido2DeserializationException(String message) {
-        super(message);
-    }
-
-    /**
-     * Exception constructor with message and cause.
-     * @param message Exception message.
-     * @param cause Exception cause.
-     */
-    public Fido2DeserializationException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

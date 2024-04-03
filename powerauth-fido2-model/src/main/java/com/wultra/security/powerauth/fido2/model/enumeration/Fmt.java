@@ -16,17 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.enumeration;
 
-import lombok.Data;
+import java.util.List;
 
 /**
- * Elliptic curve point coordinates.
+ * Attestation format enumeration.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Data
-public class ECPoint {
-    private byte[] x;
-    private byte[] y;
+public enum Fmt {
+
+    FMT_PACKED("packed"),
+    FMT_NONE("none");
+
+    private final String value;
+
+    public static final List<String> allowedFmt = List.of(
+            FMT_PACKED.value, FMT_NONE.value
+            // not supported: "tpm", "android-key", "android-safetynet", "apple", "fido-u2f"
+    );
+
+    Fmt(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

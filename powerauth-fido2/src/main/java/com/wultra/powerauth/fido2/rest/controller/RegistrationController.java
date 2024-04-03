@@ -20,11 +20,11 @@ package com.wultra.powerauth.fido2.rest.controller;
 
 import com.wultra.powerauth.fido2.rest.model.request.RegisteredAuthenticatorsRequest;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationChallengeRequest;
-import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsResponse;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
-import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
 import com.wultra.powerauth.fido2.service.RegistrationService;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;

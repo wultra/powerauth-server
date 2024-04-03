@@ -16,30 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.AttestationStatementDeserializer;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.AuthenticatorDataDeserializer;
 import lombok.Data;
 
 /**
- * Attestation object.
+ * Elliptic curve point coordinates.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class AttestationObject {
-
-    @JsonIgnore
-    private String encoded;
-
-    private String fmt;
-
-    @JsonDeserialize(using = AuthenticatorDataDeserializer.class)
-    private AuthenticatorData authData;
-    @JsonDeserialize(using = AttestationStatementDeserializer.class)
-    private AttestationStatement attStmt;
-
+public class ECPoint {
+    private byte[] x;
+    private byte[] y;
 }

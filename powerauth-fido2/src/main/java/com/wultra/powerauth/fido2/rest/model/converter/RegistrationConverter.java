@@ -19,13 +19,13 @@
 package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorParameters;
-import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
-import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
-import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
+import com.wultra.security.powerauth.fido2.model.entity.RegistrationChallenge;
+import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

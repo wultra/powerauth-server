@@ -18,7 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
-import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
+import com.wultra.security.powerauth.fido2.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

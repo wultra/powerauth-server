@@ -16,23 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.converter.serialization;
+package com.wultra.security.powerauth.fido2.model.serializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
-import com.wultra.powerauth.fido2.rest.model.entity.ECPoint;
-import com.wultra.powerauth.fido2.rest.model.entity.Flags;
-import com.wultra.powerauth.fido2.rest.model.entity.PublicKeyObject;
-import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
-import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
-import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorData;
+import com.wultra.security.powerauth.fido2.model.entity.ECPoint;
+import com.wultra.security.powerauth.fido2.model.entity.Flags;
+import com.wultra.security.powerauth.fido2.model.entity.PublicKeyObject;
+import com.wultra.security.powerauth.fido2.model.enumeration.CurveType;
+import com.wultra.security.powerauth.fido2.model.enumeration.ECKeyType;
+import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -40,11 +38,10 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
- * JSON deserializer for FIDO2 authenticator data.
+ * JSON deserializer for FIDO2 {@link AuthenticatorData}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
 @Slf4j
 public class AuthenticatorDataDeserializer extends StdDeserializer<AuthenticatorData> {
 

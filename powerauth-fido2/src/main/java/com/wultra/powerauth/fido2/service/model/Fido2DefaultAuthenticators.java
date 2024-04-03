@@ -16,9 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.powerauth.fido2.service.model;
 
-import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
 import java.util.Map;

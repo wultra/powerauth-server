@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,24 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.entity;
 
-import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
-import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
-import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
- * Class representing a public key object.
+ * X509 Certificate used in Packed attestation.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class PublicKeyObject {
+@NoArgsConstructor
+@AllArgsConstructor
+public class X509Cert {
 
-    private SignatureAlgorithm algorithm;
-    private CurveType curveType;
-    private ECKeyType keyType;
-    private ECPoint point;
+    private byte[] attestationCert;
+    private List<byte[]> certChain;
 
 }

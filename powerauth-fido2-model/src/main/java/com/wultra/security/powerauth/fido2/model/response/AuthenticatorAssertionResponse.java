@@ -18,10 +18,14 @@
 
 package com.wultra.security.powerauth.fido2.model.response;
 
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorData;
+import com.wultra.security.powerauth.fido2.model.entity.CollectedClientData;
+import com.wultra.security.powerauth.fido2.model.serializer.AuthenticatorDataDeserializer;
+import com.wultra.security.powerauth.fido2.model.serializer.Base64ToStringDeserializer;
+import com.wultra.security.powerauth.fido2.model.serializer.CollectedClientDataDeserializer;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-import lombok.ToString;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -29,16 +33,16 @@ import lombok.ToString;
 @Data
 public class AuthenticatorAssertionResponse {
 
-    @NotBlank
-    private String clientDataJSON;
+    @JsonDeserialize(using = CollectedClientDataDeserializer.class)
+    private CollectedClientData clientDataJSON;
 
-    @NotBlank
-    private String authenticatorData;
+    @JsonDeserialize(using = AuthenticatorDataDeserializer.class)
+    private AuthenticatorData authenticatorData;
 
     @NotEmpty
-    @ToString.Exclude
     private byte[] signature;
 
+    @JsonDeserialize(using = Base64ToStringDeserializer.class)
     private String userHandle;
 
 }

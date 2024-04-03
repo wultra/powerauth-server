@@ -16,20 +16,30 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.wultra.security.powerauth.fido2.model.serializer.AttestationStatementDeserializer;
+import com.wultra.security.powerauth.fido2.model.serializer.AuthenticatorDataDeserializer;
 import lombok.Data;
 
 /**
- * Attested credential data.
- * 
+ * Attestation object.
+ *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class AttestedCredentialData {
+public class AttestationObject {
 
-    private byte[] aaguid;
-    private byte[] credentialId;
-    private PublicKeyObject publicKeyObject;
+    @JsonIgnore
+    private String encoded;
+
+    private String fmt;
+
+    @JsonDeserialize(using = AuthenticatorDataDeserializer.class)
+    private AuthenticatorData authData;
+    @JsonDeserialize(using = AttestationStatementDeserializer.class)
+    private AttestationStatement attStmt;
 
 }

@@ -16,14 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.enumeration;
+package com.wultra.security.powerauth.fido2.model.entity;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.wultra.security.powerauth.fido2.model.serializer.Base64ToStringDeserializer;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import lombok.Data;
 
 /**
- * Elliptic curve type enumeration.
+ * Collected client data.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public enum CurveType {
-    P256,
-    UNKNOWN
+@Data
+public class CollectedClientData {
+    @NotEmpty
+    @JsonIgnore
+    private String encoded;
+    @NotBlank
+    private String type;
+    @NotEmpty
+    @JsonDeserialize(using = Base64ToStringDeserializer.class)
+    private String challenge;
+    @NotBlank
+    private String origin;
+    private String topOrigin;
+    private boolean crossOrigin;
 }

@@ -16,27 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.converter.serialization;
+package com.wultra.security.powerauth.fido2.model.serializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
-import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
+import com.wultra.security.powerauth.fido2.model.entity.AttestationObject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
 import java.util.Base64;
 
 /**
- * JSON deserializer for the attestation object.
+ * JSON deserializer for {@link AttestationObject}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
 @Slf4j
 public class AttestationObjectDeserializer extends StdDeserializer<AttestationObject> {
 

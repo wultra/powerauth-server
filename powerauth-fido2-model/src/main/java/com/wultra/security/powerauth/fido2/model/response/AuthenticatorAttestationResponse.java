@@ -18,7 +18,11 @@
 
 package com.wultra.security.powerauth.fido2.model.response;
 
-import jakarta.validation.constraints.NotBlank;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.wultra.security.powerauth.fido2.model.entity.AttestationObject;
+import com.wultra.security.powerauth.fido2.model.entity.CollectedClientData;
+import com.wultra.security.powerauth.fido2.model.serializer.AttestationObjectDeserializer;
+import com.wultra.security.powerauth.fido2.model.serializer.CollectedClientDataDeserializer;
 import lombok.Data;
 
 import java.util.List;
@@ -29,10 +33,10 @@ import java.util.List;
 @Data
 public class AuthenticatorAttestationResponse {
 
-    @NotBlank
-    private String clientDataJSON;
-    @NotBlank
-    private String attestationObject;
+    @JsonDeserialize(using = CollectedClientDataDeserializer.class)
+    private CollectedClientData clientDataJSON;
+    @JsonDeserialize(using = AttestationObjectDeserializer.class)
+    private AttestationObject attestationObject;
     private List<String> transports;
 
 }

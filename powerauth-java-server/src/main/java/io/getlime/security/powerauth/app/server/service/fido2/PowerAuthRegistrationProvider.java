@@ -19,7 +19,7 @@
 package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
+import com.wultra.security.powerauth.fido2.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
@@ -42,14 +42,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
+import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
+import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
 
 /**
  * Challenge provider based on the PowerAuth core implementations.

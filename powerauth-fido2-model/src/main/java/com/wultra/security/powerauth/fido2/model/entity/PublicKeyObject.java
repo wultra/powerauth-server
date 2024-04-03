@@ -16,23 +16,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.entity;
 
-import com.wultra.powerauth.fido2.rest.model.enumeration.AttestationType;
-import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
+import com.wultra.security.powerauth.fido2.model.enumeration.CurveType;
+import com.wultra.security.powerauth.fido2.model.enumeration.ECKeyType;
+import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
 import lombok.Data;
 
 /**
- * Attestation statement.
+ * Class representing a public key object.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class AttestationStatement {
+public class PublicKeyObject {
 
     private SignatureAlgorithm algorithm;
-    private byte[] signature;
-    private X509Cert x509Cert;
-    private AttestationType attestationType;
+    private CurveType curveType;
+    private ECKeyType keyType;
+    private ECPoint point;
 
 }

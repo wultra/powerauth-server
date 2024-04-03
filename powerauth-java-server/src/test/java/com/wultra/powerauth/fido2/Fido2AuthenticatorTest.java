@@ -21,8 +21,6 @@ package com.wultra.powerauth.fido2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.webauthn4j.data.AuthenticatorAssertionResponse;
-import com.webauthn4j.data.AuthenticatorAttestationResponse;
 import com.webauthn4j.data.*;
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier;
 import com.webauthn4j.data.client.Origin;
@@ -35,20 +33,20 @@ import com.webauthn4j.test.authenticator.webauthn.SelfAttestedPackedAuthenticato
 import com.webauthn4j.test.authenticator.webauthn.WebAuthnAuthenticatorAdaptor;
 import com.webauthn4j.test.client.ClientPlatform;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
-import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
 import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
-import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
 import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.powerauth.fido2.service.RegistrationService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
+import com.wultra.security.powerauth.fido2.model.entity.*;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import io.getlime.security.powerauth.app.server.Application;
 import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import org.junit.jupiter.api.Test;
@@ -62,7 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.*;
+import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -135,7 +133,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_SELF_ATTESTED);
+        final RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_SELF_ATTESTED);
 
         // Register credential
         assertThrows(Fido2AuthenticationFailedException.class, () -> registrationService.register(registrationRequest));
@@ -162,7 +160,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_ANDROID_SAFETY_NET_ATTESTATION);
+        final RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_ANDROID_SAFETY_NET_ATTESTATION);
 
         // Register credential
         assertThrows(Fido2AuthenticationFailedException.class, () -> registrationService.register(registrationRequest));
@@ -189,7 +187,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
+        final RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
 
         // Register credential
         final RegistrationResponse registrationResponse = registrationService.register(registrationRequest);
@@ -223,7 +221,7 @@ class Fido2AuthenticatorTest {
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
-        final com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse();
+        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientData);
         assertionResponse.setAuthenticatorData(authData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
@@ -273,7 +271,7 @@ class Fido2AuthenticatorTest {
         final AuthenticatorData authData = deserializeAuthenticationData(authenticatorData);
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
 
-        final com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse();
+        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientData);
         assertionResponse.setAuthenticatorData(authData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
@@ -425,7 +423,7 @@ class Fido2AuthenticatorTest {
         powerAuthService.createApplicationConfig(requestCreate);
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
+        final RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
 
         // Register credential
         final RegistrationResponse registrationResponse = registrationService.register(registrationRequest);
@@ -482,7 +480,7 @@ class Fido2AuthenticatorTest {
         );
 
         // Prepare registration request
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_SELF_ATTESTED);
+        final RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_SELF_ATTESTED);
 
         // Register credential
         final RegistrationResponse registrationResponse = registrationService.register(registrationRequest);
@@ -497,7 +495,7 @@ class Fido2AuthenticatorTest {
     private RegistrationRequest prepareRegistrationRequest(PublicKeyCredentialCreationOptions credentialCreationOptions, Challenge challenge, ClientPlatform clientPlatform) throws Exception {
         // Create credential on authenticator emulator
         final PublicKeyCredential<AuthenticatorAttestationResponse, RegistrationExtensionClientOutput> credential = clientPlatform.create(credentialCreationOptions);
-        com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest registrationRequest = new RegistrationRequest();
+        final RegistrationRequest registrationRequest = new RegistrationRequest();
         registrationRequest.setApplicationId(APPLICATION_ID);
         registrationRequest.setActivationName(ACTIVATION_NAME);
         registrationRequest.setExpectedChallenge(new String(challenge.getValue(), StandardCharsets.UTF_8));
@@ -516,7 +514,7 @@ class Fido2AuthenticatorTest {
         final AttestationObject attObj = CBOR_MAPPER.readValue(attestationObject, AttestationObject.class);
         attObj.setEncoded(new String(attestationObject));
 
-        final com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAttestationResponse attestationResponse = new com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAttestationResponse();
+        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse attestationResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse();
         attestationResponse.setClientDataJSON(clientData);
         attestationResponse.setAttestationObject(attObj);
         final AuthenticatorTransport[] transports = credential.getResponse().getTransports().toArray(new AuthenticatorTransport[0]);
@@ -580,7 +578,7 @@ class Fido2AuthenticatorTest {
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
-        final com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse();
+        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientData);
         assertionResponse.setAuthenticatorData(authData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));

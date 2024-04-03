@@ -18,12 +18,12 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
-import com.wultra.powerauth.fido2.rest.model.entity.Fido2DefaultAuthenticators;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
+import com.wultra.security.powerauth.fido2.model.entity.AssertionChallenge;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import lombok.extern.slf4j.Slf4j;

@@ -18,7 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.response;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import lombok.Data;
 
 import java.util.ArrayList;

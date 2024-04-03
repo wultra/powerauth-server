@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -14,20 +14,22 @@
  *
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  */
 
-package com.wultra.powerauth.fido2.rest.model.enumeration;
+package com.wultra.security.powerauth.fido2.model.entity;
+
+import lombok.Data;
 
 /**
- * Attestation type.
- *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * Attested credential data.
+ * 
+ * @author Petr Dvorak, petr@wultra.com
  */
-public enum AttestationType {
+@Data
+public class AttestedCredentialData {
 
-    BASIC,
-    SELF,
-    NONE
+    private byte[] aaguid;
+    private byte[] credentialId;
+    private PublicKeyObject publicKeyObject;
 
 }

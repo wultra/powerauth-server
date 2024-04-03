@@ -16,14 +16,15 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.converter.serialization;
+package com.wultra.security.powerauth.fido2.model.serializer;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
+import com.wultra.security.powerauth.fido2.model.entity.CollectedClientData;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -31,21 +32,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 /**
- * Deserializer from Base64 to string.
+ * Deserializer for FIDO2 {@link CollectedClientData}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
 @Slf4j
-public class Base64ToStringDeserializer extends StdDeserializer<String> {
+public class CollectedClientDataDeserializer extends StdDeserializer<CollectedClientData> {
 
     @Serial
-    private static final long serialVersionUID = 2540966716709142276L;
+    private static final long serialVersionUID = 8991171442005200006L;
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     /**
      * No-arg deserializer constructor.
      */
-    public Base64ToStringDeserializer() {
+    public CollectedClientDataDeserializer() {
         this(null);
     }
 
@@ -53,22 +55,26 @@ public class Base64ToStringDeserializer extends StdDeserializer<String> {
      * Deserializer constructor with value class parameter.
      * @param vc Value class.
      */
-    public Base64ToStringDeserializer(Class<?> vc) {
+    public CollectedClientDataDeserializer(Class<?> vc) {
         super(vc);
     }
 
     /**
-     * Deserialize data from Base64 to string.
+     * Deserialized the FIDO2 collected client data.
      * @param jsonParser JSON parser.
      * @param deserializationContext Deserialization context.
-     * @return Deserialized string.
+     * @return Deserialized FIDO2 collected client data.
      * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
     @Override
-    public String deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
+    public CollectedClientData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
         try {
-            return new String(Base64.getDecoder().decode(jsonParser.getText()), StandardCharsets.UTF_8);
-        }  catch (IOException e) {
+            final String originalTextValue = jsonParser.getText();
+            final byte[] decodedClientDataJSON = Base64.getDecoder().decode(originalTextValue);
+            final CollectedClientData collectedClientData = objectMapper.readValue(decodedClientDataJSON, CollectedClientData.class);
+            collectedClientData.setEncoded(new String(decodedClientDataJSON, StandardCharsets.UTF_8));
+            return collectedClientData;
+        } catch (IOException e) {
             logger.debug(e.getMessage(), e);
             throw new Fido2DeserializationException(e.getMessage(), e);
         }

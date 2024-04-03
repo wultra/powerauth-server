@@ -20,7 +20,7 @@ package com.wultra.powerauth.fido2.rest.model.request;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorAssertionResponse;
+import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 

@@ -20,7 +20,7 @@ package com.wultra.powerauth.fido2.service;
 
 import com.wultra.powerauth.fido2.database.entity.Fido2AuthenticatorEntity;
 import com.wultra.powerauth.fido2.database.repository.Fido2AuthenticatorRepository;
-import com.wultra.powerauth.fido2.rest.model.entity.Fido2DefaultAuthenticators;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import lombok.AllArgsConstructor;

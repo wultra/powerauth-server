@@ -16,27 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
-
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.AttestationObjectDeserializer;
-import com.wultra.powerauth.fido2.rest.model.converter.serialization.CollectedClientDataDeserializer;
-import lombok.Data;
-
-import java.util.List;
+package com.wultra.security.powerauth.fido2.model.enumeration;
 
 /**
- * Authenticator attestation response.
+ * Elliptic key type enumeration.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
-public class AuthenticatorAttestationResponse {
+public enum ECKeyType {
 
-    @JsonDeserialize(using = CollectedClientDataDeserializer.class)
-    private CollectedClientData clientDataJSON;
-    @JsonDeserialize(using = AttestationObjectDeserializer.class)
-    private AttestationObject attestationObject;
-    private List<String> transports;
+    COMPRESSED,
+    UNCOMPRESSED
 
 }
