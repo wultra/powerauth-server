@@ -18,12 +18,12 @@
 package com.wultra.powerauth.fido2.rest.controller;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
-import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
 import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
 import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;

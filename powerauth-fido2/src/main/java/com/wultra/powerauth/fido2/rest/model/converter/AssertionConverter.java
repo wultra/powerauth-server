@@ -18,8 +18,8 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
-import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
