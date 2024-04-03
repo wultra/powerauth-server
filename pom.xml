@@ -76,6 +76,7 @@
         <module>powerauth-client-model</module>
         <module>powerauth-rest-client-spring</module>
         <module>powerauth-fido2</module>
+        <module>powerauth-fido2-model</module>
         <module>powerauth-java-server</module>
         <module>powerauth-admin</module>
     </modules>
@@ -115,6 +116,12 @@
             <dependency>
                 <groupId>io.getlime.security</groupId>
                 <artifactId>powerauth-client-model</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-fido2-model</artifactId>
                 <version>${project.version}</version>
             </dependency>
 

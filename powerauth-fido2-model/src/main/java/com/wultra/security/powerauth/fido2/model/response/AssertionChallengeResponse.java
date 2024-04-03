@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2021 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -16,30 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.request.fido2;
+package com.wultra.security.powerauth.fido2.model.response;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
 import lombok.Data;
+import lombok.ToString;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
- * Request for obtaining assertion challenge.
+ * Response for obtaining assertion challenge.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class AssertionChallengeRequest {
+public class AssertionChallengeResponse {
 
+    private List<String> applicationIds;
+    @ToString.Exclude
+    private String challenge;
     private String userId;
-    @NotEmpty
-    private List<@NotBlank String> applicationIds;
-    private String externalId;
-    @NotBlank
-    private String templateName;
-    private Map<String, String> parameters = new HashMap<>();
+    private Long failedAttempts;
+    private Long maxFailedAttempts;
+    private List<AllowCredentials> allowCredentials;
 
 }

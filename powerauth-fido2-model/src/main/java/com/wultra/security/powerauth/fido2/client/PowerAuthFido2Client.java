@@ -16,13 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-package com.wultra.security.powerauth.client;
+package com.wultra.security.powerauth.fido2.client;
 
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorAssertionResponse;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorParameters;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.fido2.*;
-import com.wultra.security.powerauth.client.model.response.fido2.*;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.fido2.model.request.*;
+import com.wultra.security.powerauth.fido2.model.response.*;
 import org.springframework.util.MultiValueMap;
 
 import java.util.List;

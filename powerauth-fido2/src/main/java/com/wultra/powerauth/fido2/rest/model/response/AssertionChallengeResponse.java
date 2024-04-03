@@ -18,7 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.response;
 
-import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
+import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
 import lombok.Data;
 
 import java.util.List;

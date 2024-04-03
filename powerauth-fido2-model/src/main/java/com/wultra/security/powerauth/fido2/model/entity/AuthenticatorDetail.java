@@ -16,20 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.response.fido2;
+package com.wultra.security.powerauth.fido2.model.entity;
 
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
 import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
+ * Information about a registered authenticator.
+ *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsResponse {
+public class AuthenticatorDetail {
 
-    private List<AuthenticatorDetail> authenticators = new ArrayList<>();
+    private String userId;
+    private String activationId;
+    private String applicationId;
+    private String activationName;
+    private String credentialId;
+    private ActivationStatus activationStatus;
+    private Map<String, Object> extras;
+    private String platform;
+    private String deviceInfo;
+    private String blockedReason;
+    private long failedAttempts;
+    private long maxFailedAttempts;
+    private List<String> applicationRoles = new ArrayList<>();
+    private List<String> activationFlags = new ArrayList<>();
+    private byte[] publicKeyBytes;
 
 }

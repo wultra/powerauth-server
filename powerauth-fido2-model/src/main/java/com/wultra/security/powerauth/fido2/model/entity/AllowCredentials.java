@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.entity.fido2;
+package com.wultra.security.powerauth.fido2.model.entity;
 
 import lombok.*;
 import lombok.extern.jackson.Jacksonized;

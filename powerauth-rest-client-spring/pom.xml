@@ -38,6 +38,10 @@
             <artifactId>powerauth-client-model</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2-model</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.getlime.core</groupId>
             <artifactId>rest-model-base</artifactId>
         </dependency>

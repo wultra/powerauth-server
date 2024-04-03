@@ -16,21 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.response.fido2;
+package com.wultra.security.powerauth.fido2.model.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import lombok.ToString;
 
 /**
+ * Request object for registration challenge.
+ *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegistrationChallengeResponse {
+public class RegistrationChallengeRequest {
 
-    private String activationId;
-    private String applicationId;
-    @ToString.Exclude
-    private String challenge;
+    @NotBlank
     private String userId;
-
+    @NotBlank
+    private String applicationId;
 }

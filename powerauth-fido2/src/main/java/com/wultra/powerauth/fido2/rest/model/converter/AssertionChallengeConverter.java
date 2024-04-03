@@ -23,9 +23,9 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
-import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;

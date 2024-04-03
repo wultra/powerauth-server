@@ -16,22 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.client.model.request.fido2;
+package com.wultra.security.powerauth.fido2.model.response;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.ToString;
 
 /**
- * Request for obtaining list of registered authenticators for given user.
- *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class RegisteredAuthenticatorsRequest {
+public class RegistrationChallengeResponse {
 
-    @NotBlank
-    private String userId;
-    @NotBlank
+    private String activationId;
     private String applicationId;
+    @ToString.Exclude
+    private String challenge;
+    private String userId;
 
 }

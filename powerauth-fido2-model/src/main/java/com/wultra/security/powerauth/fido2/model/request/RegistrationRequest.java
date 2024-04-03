@@ -16,26 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.rest.model.entity;
+package com.wultra.security.powerauth.fido2.model.request;
 
-import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-import java.util.List;
-
 /**
- * Assertion challenge.
- *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class AssertionChallenge {
+public class RegistrationRequest {
 
-    private List<String> applicationIds;
-    private String challenge;
-    private String userId;
-    private Long failedAttempts;
-    private Long maxFailedAttempts;
-    private List<AllowCredentials> allowCredentials;
+    // Relying party parameters
+    @NotBlank
+    private String applicationId;
+    @NotBlank
+    private String activationName;
+    private String expectedChallenge;
+
+    // Authenticator parameters
+    @Valid
+    private AuthenticatorParameters authenticatorParameters;
+
 
 }
