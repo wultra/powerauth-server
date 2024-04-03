@@ -22,7 +22,6 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationConverter;
 import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsResponse;
-import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
 import com.wultra.powerauth.fido2.rest.model.validator.RegistrationRequestValidator;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
@@ -32,6 +31,7 @@ import com.wultra.security.powerauth.fido2.model.entity.*;
 import com.wultra.security.powerauth.fido2.model.enumeration.Fmt;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
