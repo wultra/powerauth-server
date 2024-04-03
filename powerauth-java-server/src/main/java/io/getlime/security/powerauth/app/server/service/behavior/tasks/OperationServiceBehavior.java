@@ -305,6 +305,7 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+            extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
@@ -312,7 +313,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", savedEntity.getStatus().name())
-                    .param("additionalData", extendAdditionalDataWithDevice(savedEntity.getAdditionalData()))
+                    .param("additionalData", operationDetailResponse.getAdditionalData())
                     .param("failureCount", savedEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
@@ -444,6 +445,7 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+            extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
 
             logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
@@ -453,7 +455,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
+                    .param("additionalData", operationDetailResponse.getAdditionalData())
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -516,6 +518,7 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+            extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
 
             logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
 
@@ -524,7 +527,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
+                    .param("additionalData", operationDetailResponse.getAdditionalData())
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
 
@@ -621,6 +624,7 @@ public class OperationServiceBehavior {
                 currentTimestamp
         );
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
+        extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
         generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
     }
@@ -720,7 +724,7 @@ public class OperationServiceBehavior {
         destination.setTemplateName(source.getTemplateName());
         destination.setData(source.getData());
         destination.setParameters(source.getParameters());
-        destination.setAdditionalData(extendAdditionalDataWithDevice(source.getAdditionalData()));
+        destination.setAdditionalData(source.getAdditionalData() != null ? source.getAdditionalData() : Collections.emptyMap());
         final List<SignatureType> signatureTypeList = Arrays.stream(source.getSignatureType())
                 .distinct()
                 .map(p -> SignatureType.enumFromString(p.toString()))
