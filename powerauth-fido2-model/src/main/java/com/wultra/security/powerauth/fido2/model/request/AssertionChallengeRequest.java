@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.fido2.model.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
@@ -40,6 +42,7 @@ public class AssertionChallengeRequest {
     private String externalId;
     @NotBlank
     private String templateName;
+    @JsonSetter(nulls = Nulls.SKIP)
     private Map<String, String> parameters = new HashMap<>();
 
 }
