@@ -18,11 +18,11 @@
 
 package com.wultra.powerauth.fido2.rest.controller;
 
-import com.wultra.powerauth.fido2.rest.model.request.RegisteredAuthenticatorsRequest;
-import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsResponse;
 import com.wultra.powerauth.fido2.service.RegistrationService;
+import com.wultra.security.powerauth.fido2.model.request.RegisteredAuthenticatorsRequest;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.response.RegisteredAuthenticatorsResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
