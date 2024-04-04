@@ -21,21 +21,21 @@ import java.io.Serial;
 import java.util.Optional;
 
 /**
- * PowerAuth client exception.
+ * PowerAuth FIDO2 client exception.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class PowerAuthClientException extends Exception {
+public class PowerAuthFido2Exception extends Exception {
 
     @Serial
-    private static final long serialVersionUID = -4721271754602015511L;
+    private static final long serialVersionUID = -7019570662090688520L;
 
     private final PowerAuthError powerAuthError;
 
     /**
      * No-arg constructor.
      */
-    public PowerAuthClientException() {
+    public PowerAuthFido2Exception() {
         this.powerAuthError = null;
     }
 
@@ -43,7 +43,7 @@ public class PowerAuthClientException extends Exception {
      * Constructor with message.
      * @param message Error message.
      */
-    public PowerAuthClientException(String message) {
+    public PowerAuthFido2Exception(String message) {
         super(message);
         this.powerAuthError = null;
     }
@@ -53,7 +53,7 @@ public class PowerAuthClientException extends Exception {
      * @param message Error message.
      * @param cause Exception which caused the error.
      */
-    public PowerAuthClientException(String message, Throwable cause) {
+    public PowerAuthFido2Exception(String message, Throwable cause) {
         super(message, cause);
         this.powerAuthError = null;
     }
@@ -64,7 +64,7 @@ public class PowerAuthClientException extends Exception {
      * @param cause Exception which caused the error.
      * @param powerAuthError PowerAuth error with additional details.
      */
-    public PowerAuthClientException(String message, Throwable cause, PowerAuthError powerAuthError) {
+    public PowerAuthFido2Exception(String message, Throwable cause, PowerAuthError powerAuthError) {
         super(message, cause);
         this.powerAuthError = powerAuthError;
     }
