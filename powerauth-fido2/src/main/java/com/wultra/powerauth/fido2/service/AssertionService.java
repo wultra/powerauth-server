@@ -21,21 +21,25 @@ package com.wultra.powerauth.fido2.service;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionConverter;
+import com.wultra.powerauth.fido2.rest.model.converter.AssertionVerificationRequestWrapperConverter;
+import com.wultra.powerauth.fido2.rest.model.converter.serialization.Fido2DeserializationException;
+import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
+import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
-import com.wultra.security.powerauth.fido2.model.entity.AssertionChallenge;
-import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorData;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
-import com.wultra.security.powerauth.fido2.model.entity.CollectedClientData;
 import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -45,27 +49,15 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class AssertionService {
 
     private final CryptographyService cryptographyService;
     private final AuthenticatorProvider authenticatorProvider;
     private final AssertionProvider assertionProvider;
     private final AssertionConverter assertionConverter;
+    private final AssertionRequestValidator assertionRequestValidator;
 
-    /**
-     * Assertion service constructor.
-     * @param cryptographyService Cryptography service.
-     * @param authenticatorProvider Authenticator provider.
-     * @param assertionProvider Assertion provider.
-     * @param assertionConverter Assertion converter.
-     */
-    @Autowired
-    public AssertionService(CryptographyService cryptographyService, AuthenticatorProvider authenticatorProvider, AssertionProvider assertionProvider, AssertionConverter assertionConverter) {
-        this.cryptographyService = cryptographyService;
-        this.authenticatorProvider = authenticatorProvider;
-        this.assertionProvider = assertionProvider;
-        this.assertionConverter = assertionConverter;
-    }
 
     /**
      * Request assertion challenge value.
@@ -91,13 +83,20 @@ public class AssertionService {
      * @param request Request with assertion.
      * @throws Fido2AuthenticationFailedException In case authentication fails.
      */
-    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request) throws Fido2AuthenticationFailedException {
+    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request) throws Fido2AuthenticationFailedException, Fido2DeserializationException {
+        final AssertionVerificationRequestWrapper wrapper = AssertionVerificationRequestWrapperConverter.convert(request);
+
+        final String error = assertionRequestValidator.validate(wrapper);
+        if (error != null) {
+            throw new Fido2AuthenticationFailedException(error);
+        }
+
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
             final String credentialId = request.getCredentialId();
-            final CollectedClientData clientDataJSON = response.getClientDataJSON();
-            final AuthenticatorData authenticatorData = response.getAuthenticatorData();
+            final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
+            final AuthenticatorData authenticatorData = wrapper.authenticatorData();
             final String challenge = clientDataJSON.getChallenge();
             final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {

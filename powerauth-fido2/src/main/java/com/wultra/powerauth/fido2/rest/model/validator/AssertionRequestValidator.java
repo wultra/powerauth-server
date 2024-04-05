@@ -18,18 +18,20 @@
 
 package com.wultra.powerauth.fido2.rest.model.validator;
 
-import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorData;
-import com.wultra.security.powerauth.fido2.model.entity.CollectedClientData;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
+import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validator for the assertion request class.
+ * Validator for {@link AssertionVerificationRequest}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -39,10 +41,12 @@ public class AssertionRequestValidator {
 
     /**
      * Validate an assertion verification request.
-     * @param request Assertion verification request.
+     * @param wrapper Assertion verification request wrapper.
      * @return Validation result.
      */
-    public String validate(AssertionVerificationRequest request) {
+    public String validate(final AssertionVerificationRequestWrapper wrapper) {
+        Assert.notNull(wrapper, "Wrapper must not be null");
+        final AssertionVerificationRequest request = wrapper.assertionVerificationRequest();
 
         if (request == null || request.getResponse() == null
                 || request.getResponse().getClientDataJSON() == null
@@ -50,7 +54,7 @@ public class AssertionRequestValidator {
             return "Invalid request, you need to include response.clientDataJSON and response.attestationObject.";
         }
 
-        final CollectedClientData clientDataJSON = request.getResponse().getClientDataJSON();
+        final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
 
         if (!"webauthn.get".equals(clientDataJSON.getType())) {
             return "Request does not contain webauthn.get type.";
@@ -72,7 +76,7 @@ public class AssertionRequestValidator {
             return "Request contains the top origin which is not allowed.";
         }
 
-        final AuthenticatorData authenticatorData = request.getResponse().getAuthenticatorData();
+        final AuthenticatorData authenticatorData = wrapper.authenticatorData();
 
         final byte[] rpIdHash = authenticatorData.getRpIdHash();
         final String relyingPartyId = request.getRelyingPartyId();

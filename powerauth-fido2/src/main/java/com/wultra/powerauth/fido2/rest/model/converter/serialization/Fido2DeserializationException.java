@@ -16,25 +16,35 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.entity;
+package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import java.util.List;
+import java.io.IOException;
+import java.io.Serial;
 
 /**
- * X509 Certificate used in Packed attestation.
+ * Exception related to FIDO2 deserialization issues.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class X509Cert {
+public class Fido2DeserializationException extends IOException {
 
-    private byte[] attestationCert;
-    private List<byte[]> certChain;
+    @Serial
+    private static final long serialVersionUID = 1835532378587759773L;
 
+    /**
+     * Exception constructor with message.
+     * @param message Exception message.
+     */
+    public Fido2DeserializationException(String message) {
+        super(message);
+    }
+
+    /**
+     * Exception constructor with message and cause.
+     * @param message Exception message.
+     * @param cause Exception cause.
+     */
+    public Fido2DeserializationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

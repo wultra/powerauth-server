@@ -16,14 +16,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.serializer;
+package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.wultra.security.powerauth.fido2.model.entity.AttestationStatement;
-import com.wultra.security.powerauth.fido2.model.entity.X509Cert;
+import com.wultra.powerauth.fido2.rest.model.entity.AttestationStatement;
+import com.wultra.powerauth.fido2.rest.model.entity.X509Cert;
 import com.wultra.security.powerauth.fido2.model.enumeration.AttestationType;
 import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;

@@ -22,6 +22,7 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -40,6 +41,7 @@ public class AssertionVerificationRequest {
     @NotBlank
     private String type;
     private String authenticatorAttachment;
+    @NotNull
     private AuthenticatorAssertionResponse response = new AuthenticatorAssertionResponse();
     @NotBlank
     private String applicationId;

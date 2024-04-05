@@ -18,7 +18,7 @@
 
 package com.wultra.powerauth.fido2.service.provider;
 
-import com.wultra.security.powerauth.fido2.model.entity.RegistrationChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 
 /**
  * Interface for registration use-cases.

@@ -16,29 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.entity;
+package com.wultra.powerauth.fido2.rest.model.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 /**
- * Authenticator data.
+ * FIDO2 flags.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class AuthenticatorData {
+public class Flags {
 
-    @NotEmpty
-    @JsonIgnore
-    private byte[] encoded;
-    @NotEmpty
-    private byte[] rpIdHash;
-    private Flags flags = new Flags();
-    @PositiveOrZero
-    private int signCount;
-    private AttestedCredentialData attestedCredentialData = new AttestedCredentialData();
+    private boolean userPresent;
+    private boolean reservedBit2;
+    private boolean userVerified;
+    private boolean backupEligible;
+    private boolean backupState;
+    private boolean reservedBit6;
+    private boolean attestedCredentialsIncluded;
+    private boolean extensionDataIncluded;
 
 }

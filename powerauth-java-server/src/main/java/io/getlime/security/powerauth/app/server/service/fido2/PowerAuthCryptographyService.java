@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.service.fido2;
 
+import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.security.powerauth.fido2.model.entity.*;

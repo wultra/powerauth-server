@@ -16,19 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.entity;
+package com.wultra.powerauth.fido2.rest.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Data;
 
 /**
- * Model class representing registration challenge.
+ * Authenticator data.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class RegistrationChallenge {
-    private String activationId;
-    private String applicationId;
-    private String challenge;
-    private String userId;
+public class AuthenticatorData {
+
+    @NotEmpty
+    @JsonIgnore
+    private byte[] encoded;
+    @NotEmpty
+    private byte[] rpIdHash;
+    private Flags flags = new Flags();
+    @PositiveOrZero
+    private int signCount;
+    private AttestedCredentialData attestedCredentialData = new AttestedCredentialData();
+
 }

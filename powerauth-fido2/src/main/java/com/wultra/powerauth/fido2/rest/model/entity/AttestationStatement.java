@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.entity;
+package com.wultra.powerauth.fido2.rest.model.entity;
 
 import com.wultra.security.powerauth.fido2.model.enumeration.AttestationType;
 import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;

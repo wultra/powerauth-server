@@ -16,24 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.entity;
+package com.wultra.powerauth.fido2.rest.model.entity;
 
-import com.wultra.security.powerauth.fido2.model.enumeration.CurveType;
-import com.wultra.security.powerauth.fido2.model.enumeration.ECKeyType;
-import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.wultra.powerauth.fido2.rest.model.converter.serialization.Base64ToStringDeserializer;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 /**
- * Class representing a public key object.
+ * Collected client data.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class PublicKeyObject {
-
-    private SignatureAlgorithm algorithm;
-    private CurveType curveType;
-    private ECKeyType keyType;
-    private ECPoint point;
-
+public class CollectedClientData {
+    @NotEmpty
+    @JsonIgnore
+    private String encoded;
+    @NotBlank
+    private String type;
+    @NotEmpty
+    @JsonDeserialize(using = Base64ToStringDeserializer.class)
+    private String challenge;
+    @NotBlank
+    private String origin;
+    private String topOrigin;
+    private boolean crossOrigin;
 }

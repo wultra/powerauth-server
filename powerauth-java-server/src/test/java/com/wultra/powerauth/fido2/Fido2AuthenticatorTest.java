@@ -19,8 +19,6 @@
 
 package com.wultra.powerauth.fido2;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
 import com.webauthn4j.data.*;
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier;
 import com.webauthn4j.data.client.Origin;
@@ -33,13 +31,15 @@ import com.webauthn4j.test.authenticator.webauthn.SelfAttestedPackedAuthenticato
 import com.webauthn4j.test.authenticator.webauthn.WebAuthnAuthenticatorAdaptor;
 import com.webauthn4j.test.client.ClientPlatform;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.Flags;
 import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.powerauth.fido2.service.RegistrationService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
-import com.wultra.security.powerauth.fido2.model.entity.*;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
@@ -71,9 +71,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(classes = Application.class)
 @ActiveProfiles("test")
 class Fido2AuthenticatorTest {
-
-    private final CBORMapper CBOR_MAPPER = new CBORMapper();
-    private final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private static final String RP_ID = "powerauth.com";
     private static final Origin ORIGIN = new Origin("http://localhost");
@@ -213,17 +210,14 @@ class Fido2AuthenticatorTest {
         authRequest.setExpectedChallenge(Base64.getEncoder().encodeToString(challenge.getValue()));
 
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
-        final byte[] clientDataJSON = Objects.requireNonNull(credential.getResponse()).getClientDataJSON();
-        final CollectedClientData clientData = OBJECT_MAPPER.readValue(clientDataJSON, CollectedClientData.class);
-        clientData.setEncoded(new String(clientDataJSON));
-        final byte[] authenticatorData = Objects.requireNonNull(credential.getResponse()).getAuthenticatorData();
-        final AuthenticatorData authData = deserializeAuthenticationData(authenticatorData);
+        final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
+        final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
         final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
-        assertionResponse.setClientDataJSON(clientData);
-        assertionResponse.setAuthenticatorData(authData);
+        assertionResponse.setClientDataJSON(clientDataJSON);
+        assertionResponse.setAuthenticatorData(authenticatorData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
         assertionResponse.setSignature(signature);
         authRequest.setResponse(assertionResponse);
@@ -264,16 +258,13 @@ class Fido2AuthenticatorTest {
         authRequest.setExpectedChallenge(new String(challenge.getValue(), StandardCharsets.UTF_8));
 
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
-        final byte[] clientDataJSON = Objects.requireNonNull(credential.getResponse()).getClientDataJSON();
-        final CollectedClientData clientData = OBJECT_MAPPER.readValue(clientDataJSON, CollectedClientData.class);
-        clientData.setEncoded(new String(clientDataJSON));
-        final byte[] authenticatorData = Objects.requireNonNull(credential.getResponse()).getAuthenticatorData();
-        final AuthenticatorData authData = deserializeAuthenticationData(authenticatorData);
+        final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
+        final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
 
         final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
-        assertionResponse.setClientDataJSON(clientData);
-        assertionResponse.setAuthenticatorData(authData);
+        assertionResponse.setClientDataJSON(clientDataJSON);
+        assertionResponse.setAuthenticatorData(authenticatorData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
         assertionResponse.setSignature(new byte[32]);
         authRequest.setResponse(assertionResponse);
@@ -507,16 +498,12 @@ class Fido2AuthenticatorTest {
         authenticationParameters.setRequiresUserVerification(true);
 
         // Convert clientDataJSON and attestationObject into object and supply encoded values for signature verification
-        final byte[] clientDataJSON = Objects.requireNonNull(credential.getResponse()).getClientDataJSON();
-        final CollectedClientData clientData = OBJECT_MAPPER.readValue(clientDataJSON, CollectedClientData.class);
-        clientData.setEncoded(new String(clientDataJSON));
-        final byte[] attestationObject = Objects.requireNonNull(credential.getResponse()).getAttestationObject();
-        final AttestationObject attObj = CBOR_MAPPER.readValue(attestationObject, AttestationObject.class);
-        attObj.setEncoded(new String(attestationObject));
+        final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
+        final String attestationObject = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAttestationObject());
 
         final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse attestationResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse();
-        attestationResponse.setClientDataJSON(clientData);
-        attestationResponse.setAttestationObject(attObj);
+        attestationResponse.setClientDataJSON(clientDataJSON);
+        attestationResponse.setAttestationObject(attestationObject);
         final AuthenticatorTransport[] transports = credential.getResponse().getTransports().toArray(new AuthenticatorTransport[0]);
         attestationResponse.setTransports(Arrays.stream(transports).map(AuthenticatorTransport::toString).collect(Collectors.toList()));
         authenticationParameters.setResponse(attestationResponse);
@@ -570,17 +557,14 @@ class Fido2AuthenticatorTest {
         authRequest.setExpectedChallenge(new String(challenge.getValue(), StandardCharsets.UTF_8));
 
         // Convert clientDataJSON and authenticatorData into object and supply encoded values for signature verification
-        final byte[] clientDataJSON = Objects.requireNonNull(credential.getResponse()).getClientDataJSON();
-        final CollectedClientData clientData = OBJECT_MAPPER.readValue(clientDataJSON, CollectedClientData.class);
-        clientData.setEncoded(new String(clientDataJSON));
-        final byte[] authenticatorData = Objects.requireNonNull(credential.getResponse()).getAuthenticatorData();
-        final AuthenticatorData authData = deserializeAuthenticationData(authenticatorData);
+        final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
+        final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
         final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
-        assertionResponse.setClientDataJSON(clientData);
-        assertionResponse.setAuthenticatorData(authData);
+        assertionResponse.setClientDataJSON(clientDataJSON);
+        assertionResponse.setAuthenticatorData(authenticatorData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
         assertionResponse.setSignature(signature);
         authRequest.setResponse(assertionResponse);

@@ -18,11 +18,13 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
+import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
+import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequestWrapper;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
-import com.wultra.security.powerauth.fido2.model.entity.RegistrationChallenge;
 import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
@@ -46,33 +48,29 @@ public class RegistrationConverter {
     /**
      * Convert registration challenge to authenticator detail.
      * @param challenge Registration challenge.
-     * @param requestObject Registration request.
+     * @param wrapper Registration request wrapper.
      * @param model FIDO2 Authenticator details.
      * @param publicKey Public key bytes.
      * @return Authenticator detail, if present.
      */
-    public Optional<AuthenticatorDetail> convert(RegistrationChallenge challenge, RegistrationRequest requestObject, Fido2Authenticator model, byte[] publicKey) {
-        try {
-            final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
-            authenticatorDetail.setUserId(challenge.getUserId());
-            authenticatorDetail.setActivationId(challenge.getActivationId());
-            authenticatorDetail.setApplicationId(challenge.getApplicationId());
-            authenticatorDetail.setCredentialId(requestObject.getAuthenticatorParameters().getCredentialId());
-            authenticatorDetail.setExtras(convertExtras(requestObject));
-            authenticatorDetail.setActivationName(requestObject.getActivationName());
-            authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
-            authenticatorDetail.setDeviceInfo(model.description());
-            authenticatorDetail.setActivationStatus(ActivationStatus.ACTIVE);
-            authenticatorDetail.setActivationFlags(new ArrayList<>());
-            authenticatorDetail.setApplicationRoles(new ArrayList<>());
-            authenticatorDetail.setPublicKeyBytes(publicKey);
-            authenticatorDetail.setFailedAttempts(0L);
-            authenticatorDetail.setMaxFailedAttempts(5L);
-            return Optional.of(authenticatorDetail);
-        } catch (JsonProcessingException e) {
-            logger.warn(e.getMessage(), e);
-            return Optional.empty();
-        }
+    public AuthenticatorDetail convert(RegistrationChallenge challenge, RegistrationRequestWrapper wrapper, Fido2Authenticator model, byte[] publicKey) {
+        final RegistrationRequest requestObject = wrapper.registrationRequest();
+        final AuthenticatorDetail authenticatorDetail = new AuthenticatorDetail();
+        authenticatorDetail.setUserId(challenge.getUserId());
+        authenticatorDetail.setActivationId(challenge.getActivationId());
+        authenticatorDetail.setApplicationId(challenge.getApplicationId());
+        authenticatorDetail.setCredentialId(requestObject.getAuthenticatorParameters().getCredentialId());
+        authenticatorDetail.setExtras(convertExtras(wrapper));
+        authenticatorDetail.setActivationName(requestObject.getActivationName());
+        authenticatorDetail.setPlatform(requestObject.getAuthenticatorParameters().getAuthenticatorAttachment());
+        authenticatorDetail.setDeviceInfo(model.description());
+        authenticatorDetail.setActivationStatus(ActivationStatus.ACTIVE);
+        authenticatorDetail.setActivationFlags(new ArrayList<>());
+        authenticatorDetail.setApplicationRoles(new ArrayList<>());
+        authenticatorDetail.setPublicKeyBytes(publicKey);
+        authenticatorDetail.setFailedAttempts(0L);
+        authenticatorDetail.setMaxFailedAttempts(5L);
+        return authenticatorDetail;
     }
 
     /**
@@ -99,16 +97,18 @@ public class RegistrationConverter {
         return result;
     }
 
-    private Map<String, Object> convertExtras(RegistrationRequest requestObject) throws JsonProcessingException {
-        final AuthenticatorParameters authenticatorParameters = requestObject.getAuthenticatorParameters();
+    private Map<String, Object> convertExtras(RegistrationRequestWrapper wrapper) {
+        final AuthenticatorParameters authenticatorParameters = wrapper.registrationRequest().getAuthenticatorParameters();
         final Map<String, Object> params = new HashMap<>();
         params.put("relyingPartyId", authenticatorParameters.getRelyingPartyId());
         params.put("authenticatorAttachment", authenticatorParameters.getAuthenticatorAttachment());
-        params.put("credentialId", authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getCredentialId());
-        params.put("origin", authenticatorParameters.getResponse().getClientDataJSON().getOrigin());
-        params.put("topOrigin", authenticatorParameters.getResponse().getClientDataJSON().getTopOrigin());
-        params.put("isCrossOrigin", authenticatorParameters.getResponse().getClientDataJSON().isCrossOrigin());
-        final byte[] aaguidBytes = authenticatorParameters.getResponse().getAttestationObject().getAuthData().getAttestedCredentialData().getAaguid();
+        final CollectedClientData collectedClientData = wrapper.clientDataJSON();
+        final AttestationObject attestationObject = wrapper.attestationObject();
+        params.put("credentialId", attestationObject.getAuthData().getAttestedCredentialData().getCredentialId());
+        params.put("origin", collectedClientData.getOrigin());
+        params.put("topOrigin", collectedClientData.getTopOrigin());
+        params.put("isCrossOrigin", collectedClientData.isCrossOrigin());
+        final byte[] aaguidBytes = attestationObject.getAuthData().getAttestedCredentialData().getAaguid();
         params.put("aaguid", bytesToUUID(aaguidBytes));
         params.put("transports", authenticatorParameters.getResponse().getTransports());
         return params;
@@ -119,8 +119,8 @@ public class RegistrationConverter {
             return null;
         }
         final ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        long mostSigBits = byteBuffer.getLong();
-        long leastSigBits = byteBuffer.getLong();
+        final long mostSigBits = byteBuffer.getLong();
+        final long leastSigBits = byteBuffer.getLong();
         return new UUID(mostSigBits, leastSigBits);
     }
 
