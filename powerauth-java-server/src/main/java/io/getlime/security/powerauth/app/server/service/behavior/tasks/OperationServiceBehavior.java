@@ -348,7 +348,7 @@ public class OperationServiceBehavior {
                         .param("userId", userId)
                         .param("appId", applicationId)
                         .param("status", operationEntity.getStatus().name())
-                        .param("additionalData", operationEntity.getAdditionalData())
+                        .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
                         .param("currentTimestamp", currentTimestamp)
@@ -382,7 +382,7 @@ public class OperationServiceBehavior {
                         .param("userId", userId)
                         .param("appId", applicationId)
                         .param("status", operationEntity.getStatus().name())
-                        .param("additionalData", operationEntity.getAdditionalData())
+                        .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("maxFailureCount", operationEntity.getMaxFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
@@ -474,7 +474,7 @@ public class OperationServiceBehavior {
                     .param("appId", applicationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
 
@@ -552,7 +552,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationEntity.getAdditionalData())
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval permanently failed via explicit server call with ID: {}", auditDetail, operationId);
 
