@@ -369,7 +369,7 @@ public class CallbackUrlBehavior {
             callbackData.put("parameters", operation.getParameters());
         }
         if (callbackUrlEntity.getAttributes().contains("additionalData")) {
-            callbackData.put("additionalData", operation.getAdditionalData());
+            callbackData.put("additionalData", OperationServiceBehavior.extendAdditionalDataWithDevice(operation.getAdditionalData()));
         }
         if (callbackUrlEntity.getCallbackUrl().contains("activationFlag")) {
             callbackData.put("activationFlag", operation.getActivationFlag());
