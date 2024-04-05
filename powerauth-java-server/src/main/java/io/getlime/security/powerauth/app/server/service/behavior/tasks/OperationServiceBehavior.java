@@ -305,7 +305,6 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-            extendAdditionalDataWithDevice(operationDetailResponse);
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
@@ -313,7 +312,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", savedEntity.getStatus().name())
-                    .param("additionalData", operationDetailResponse.getAdditionalData())
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .param("failureCount", savedEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
                     .param("currentTimestamp", currentTimestamp)
@@ -445,7 +444,6 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-            extendAdditionalDataWithDevice(operationDetailResponse);
 
             logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
@@ -455,7 +453,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationDetailResponse.getAdditionalData())
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -518,7 +516,6 @@ public class OperationServiceBehavior {
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
             behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-            extendAdditionalDataWithDevice(operationDetailResponse);
 
             logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
 
@@ -527,7 +524,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
-                    .param("additionalData", operationDetailResponse.getAdditionalData())
+                    .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
 
@@ -590,6 +587,8 @@ public class OperationServiceBehavior {
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
+        final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
+        extendAndSetOperationDetailData(operationDetailResponse);
 
         logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
 
@@ -598,11 +597,9 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
-                .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
+                .param("additionalData", operationDetailResponse.getAdditionalData())
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
-        final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-        extendAdditionalDataWithDevice(operationDetailResponse);
 
         return operationDetailResponse;
     }
@@ -626,7 +623,7 @@ public class OperationServiceBehavior {
                 currentTimestamp
         );
         final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
-        extendAdditionalDataWithDevice(operationDetailResponse);
+        extendAndSetOperationDetailData(operationDetailResponse);
         generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
         return operationDetailResponse;
     }
@@ -908,8 +905,9 @@ public class OperationServiceBehavior {
         }
     }
 
-    private static void extendAdditionalDataWithDevice(OperationDetailResponse operationDetailResponse) {
-        operationDetailResponse.setAdditionalData(extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData()));
+    public static void extendAndSetOperationDetailData(OperationDetailResponse operationDetailResponse) {
+        final Map<String, Object> additionalDataExtended = extendAdditionalDataWithDevice(operationDetailResponse.getAdditionalData());
+        operationDetailResponse.setAdditionalData(additionalDataExtended);
     }
 
     public static Map<String, Object> extendAdditionalDataWithDevice(Map<String, Object> additionalData) {
