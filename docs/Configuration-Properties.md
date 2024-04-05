@@ -76,3 +76,13 @@ The PowerAuth Server uses the following public configuration properties:
 
 The WAR file includes the `micrometer-registry-prometheus` dependency.
 Discuss its configuration with the [Spring Boot documentation](https://docs.spring.io/spring-boot/docs/3.1.x/reference/html/actuator.html#actuator.metrics).
+
+## Scheduled Jobs Configuration
+
+| Property                                                                    | Default   | Note                                                                                               |
+|-----------------------------------------------------------------------------|-----------|----------------------------------------------------------------------------------------------------|
+| `powerauth.service.scheduled.job.operationCleanup`                          | `5000`    | Time delay in milliseconds between two consecutive tasks that expire long pending operations.      |
+| `powerauth.service.scheduled.job.activationsCleanup`                        | `5000`    | Time delay in milliseconds between two consecutive tasks that expire abandoned activations.        |
+| `powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds` | `3600000` | Number of milliseconds to look back in the past when looking for abandoned activations.            |
+| `powerauth.service.scheduled.job.uniqueValueCleanup`                        | `60000`   | Time delay in milliseconds between two consecutive tasks that delete expired unique values.        |
+| `powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction`           | `3600000` | Duration in milliseconds for which the internal cache holds details of FIDO2 Authenticator models. |
