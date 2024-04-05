@@ -30,7 +30,7 @@ import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
-import com.wultra.security.powerauth.fido2.model.enumeration.Fmt;
+import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
 import com.wultra.security.powerauth.fido2.model.response.RegisteredAuthenticatorsResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;

@@ -47,8 +47,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
-import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
 
 /**
  * Challenge provider based on the PowerAuth core implementations.

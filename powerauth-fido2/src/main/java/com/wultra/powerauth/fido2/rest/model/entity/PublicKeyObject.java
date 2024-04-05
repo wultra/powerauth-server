@@ -18,9 +18,9 @@
 
 package com.wultra.powerauth.fido2.rest.model.entity;
 
-import com.wultra.security.powerauth.fido2.model.enumeration.CurveType;
-import com.wultra.security.powerauth.fido2.model.enumeration.ECKeyType;
-import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
+import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.Data;
 
 /**

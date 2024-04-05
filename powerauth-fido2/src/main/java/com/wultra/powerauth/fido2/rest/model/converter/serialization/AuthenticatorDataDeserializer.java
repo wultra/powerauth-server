@@ -27,9 +27,9 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.ECPoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
 import com.wultra.powerauth.fido2.rest.model.entity.PublicKeyObject;
-import com.wultra.security.powerauth.fido2.model.enumeration.CurveType;
-import com.wultra.security.powerauth.fido2.model.enumeration.ECKeyType;
-import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
+import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

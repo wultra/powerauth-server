@@ -60,7 +60,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.*;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**

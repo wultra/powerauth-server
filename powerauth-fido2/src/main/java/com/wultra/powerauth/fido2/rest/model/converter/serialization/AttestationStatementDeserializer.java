@@ -24,8 +24,8 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationStatement;
 import com.wultra.powerauth.fido2.rest.model.entity.X509Cert;
-import com.wultra.security.powerauth.fido2.model.enumeration.AttestationType;
-import com.wultra.security.powerauth.fido2.model.enumeration.SignatureAlgorithm;
+import com.wultra.powerauth.fido2.rest.model.enumeration.AttestationType;
+import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;

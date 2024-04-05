@@ -48,7 +48,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.wultra.security.powerauth.fido2.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ROOT_CA_CERTS;
+import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ROOT_CA_CERTS;
 
 /**
  * Service providing FIDO2 cryptographic functionality.
