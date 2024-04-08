@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import lombok.Data;
 
 import java.util.LinkedHashMap;
@@ -34,6 +36,8 @@ public class OperationRejectRequest {
     private String operationId;
     private String userId;
     private String applicationId;
+
+    @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
 }

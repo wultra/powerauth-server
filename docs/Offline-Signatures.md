@@ -17,6 +17,15 @@ For Web Flow the format of request `data` is documented in the [Offline Signatur
 
 The `offlineData` in response already contains all data required to display a QR code. The validity of the QR code should be verified by computing the ECDSA signature of `offlineData` content before the computed signature and comparing it with the `ECDSA_SIGNATURE` in `offlineData`. The `nonce` in response will be required during offline signature verification step.
 
+
+### Proximity anti-fraud check
+
+If you want to use the proximity anti-fraud feature in offline mode, you have to specify `nonce`, `proximityCheck.seed`, and `proximityCheck.stepLength` in `CreatePersonalizedOfflineSignaturePayloadRequest`.
+In that case, `CreatePersonalizedOfflineSignaturePayloadResponse#offlineData` contains `CreatePersonalizedOfflineSignaturePayloadRequest#data` plus a generated TOTP.
+The structure is following `{DATA})\n{TOTP}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}{ECDSA_SIGNATURE}`.
+This value is transparent for you and is handled by Mobile SDK.
+
+
 ## Generating non-personalized offline signature payload
 
 Non-personalized offline signatures are used when activation ID is not known. A typical use case is offline verification for login operation.

@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
@@ -50,7 +52,12 @@ public class OperationCreateRequest {
     private String externalId;
 
     @Schema(description = "Parameters of the operation, will be filled to the operation data", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, String> parameters = new LinkedHashMap<>();
+
+    @Schema(description = "Additional data associated with the operation to initialize the operation context", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonSetter(nulls = Nulls.SKIP)
+    private Map<String, Object> additionalData;
 
     @Schema(description = "Whether proximity check should be used, overrides configuration from operation template", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean proximityCheckEnabled;

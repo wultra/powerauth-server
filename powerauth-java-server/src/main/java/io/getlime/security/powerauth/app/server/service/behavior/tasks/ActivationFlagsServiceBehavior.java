@@ -44,7 +44,7 @@ import java.util.stream.Collectors;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component("activationFlagsServiceBehavior")
+@Component
 public class ActivationFlagsServiceBehavior {
 
     private static final Logger logger = LoggerFactory.getLogger(ActivationFlagsServiceBehavior.class);

@@ -26,13 +26,13 @@
 
     <groupId>io.getlime.security</groupId>
     <artifactId>powerauth-server-parent</artifactId>
-    <version>1.6.0</version>
+    <version>1.7.0</version>
     <packaging>pom</packaging>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.6</version>
+        <version>3.2.4</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -75,35 +75,38 @@
     <modules>
         <module>powerauth-client-model</module>
         <module>powerauth-rest-client-spring</module>
+        <module>powerauth-fido2</module>
         <module>powerauth-java-server</module>
         <module>powerauth-admin</module>
     </modules>
 
     <properties>
         <!-- Spring Dependencies -->
-        <spring-cloud-vault.version>4.0.1</spring-cloud-vault.version>
+        <spring-cloud-vault.version>4.1.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
-        <powerauth-java-crypto.version>1.6.0</powerauth-java-crypto.version>
-        <wultra-core.version>1.8.0</wultra-core.version>
+        <powerauth-java-crypto.version>1.7.0</powerauth-java-crypto.version>
+        <wultra-core.version>1.9.0</wultra-core.version>
 
         <bcprov-jdk18on.version>1.77</bcprov-jdk18on.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
         <!-- Documentation Dependencies -->
-        <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
-        <swagger-annotations-jakarta.version>2.2.20</swagger-annotations-jakarta.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.5.0</springdoc-openapi-starter-webmvc-ui.version>
+        <swagger-annotations-jakarta.version>2.2.21</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <shedlock.version>5.10.2</shedlock.version>
+        <shedlock.version>5.13.0</shedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.11.0</commons-text.version>
         <logstash.version>7.4</logstash.version>
-        <equalsverifier.version>3.15.5</equalsverifier.version>
-        <!--  TODO (racansky, 2023-12-08) temporarily override the version 1.4.11 from spring boot version because of CVE  -->
-        <logback.version>1.4.14</logback.version>
+        <equalsverifier.version>3.16.1</equalsverifier.version>
+        <zxing.version>3.5.3</zxing.version>
+
+        <!-- Test dependencies -->
+        <webauthn4j.version>0.23.0.RELEASE</webauthn4j.version>
     </properties>
 
     <dependencyManagement>
@@ -121,11 +124,32 @@
                 <version>${project.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-java-crypto</artifactId>
+                <version>${powerauth-java-crypto.version}</version>
+            </dependency>
+
             <!--  Wultra Dependencies  -->
             <dependency>
                 <groupId>io.getlime.core</groupId>
                 <artifactId>core-bom</artifactId>
                 <version>${wultra-core.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bcprov-jdk18on.version}</version>
+            </dependency>
+
+            <!-- QR code support -->
+            <dependency>
+                <groupId>com.google.zxing</groupId>
+                <artifactId>zxing-parent</artifactId>
+                <version>${zxing.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

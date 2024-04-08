@@ -42,10 +42,10 @@ public class VerifyOfflineSignatureRequest {
     private boolean allowBiometry;
 
     @Schema(description = "Optional proximity check configuration of TOTP.")
-    private ProximityCheck proximityCheck;
+    private VerifyProximityCheck proximityCheck;
 
     @Data
-    public static class ProximityCheck {
+    public static class VerifyProximityCheck {
         @NotNull
         @ToString.Exclude
         @Schema(description = "Seed for TOTP, base64 encoded.")

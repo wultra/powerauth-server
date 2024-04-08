@@ -24,10 +24,12 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.client.model.validator.*;
+import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
@@ -159,15 +161,16 @@ public class PowerAuthService {
         try {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
+            final Set<Protocols> protocols = request.getProtocols();
             final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
             final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
             final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("timestampCreated").descending());
             final Set<ActivationStatus> activationStatuses = convert(request.getActivationStatuses());
             logger.info("GetActivationListForUserRequest received, user ID: {}, application ID: {}", userId, applicationId);
-            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, pageable, activationStatuses);
+            final GetActivationListForUserResponse response = behavior.getActivationServiceBehavior().getActivationList(applicationId, userId, protocols, pageable, activationStatuses);
             logger.info("GetActivationListForUserRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -207,7 +210,7 @@ public class PowerAuthService {
             final LookupActivationsResponse response = behavior.getActivationServiceBehavior().lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, activationStatus, activationFlags);
             logger.info("LookupActivationsRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -233,7 +236,7 @@ public class PowerAuthService {
             final UpdateStatusForActivationsResponse response = behavior.getActivationServiceBehavior().updateStatusForActivation(activationIds, activationStatus);
             logger.info("UpdateStatusForActivationsRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -259,7 +262,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -278,6 +281,7 @@ public class PowerAuthService {
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
         try {
+            final Protocols protocol = request.getProtocol();
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             final Long maxFailedCount = request.getMaxFailureCount();
@@ -286,6 +290,7 @@ public class PowerAuthService {
             final String activationOtp = request.getActivationOtp();
             logger.info("InitActivationRequest received, user ID: {}, application ID: {}", userId, applicationId);
             final InitActivationResponse response = behavior.getActivationServiceBehavior().initActivation(
+                    protocol,
                     applicationId,
                     userId,
                     maxFailedCount,
@@ -299,7 +304,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -330,7 +335,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -374,7 +379,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -410,12 +415,12 @@ public class PowerAuthService {
         try {
             logger.info("VerifySignatureRequest received, activation ID: {}", request.getActivationId());
             final VerifySignatureResponse response = this.verifySignatureImplNonTransaction(request, new ArrayList<>());
-            logger.info("VerifySignatureRequest succeeded");
+            logger.info("VerifySignatureRequest succeeded, activation ID: {}, signature valid: {}", request.getActivationId(), response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -440,7 +445,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -482,7 +487,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -513,12 +518,12 @@ public class PowerAuthService {
             logger.info("VerifyOfflineSignatureRequest received, activation ID: {}", activationId);
             final VerifyOfflineSignatureParameter parameter = convert(request, expectedComponentLength, allowedSignatureTypes, keyConvertor);
             final VerifyOfflineSignatureResponse response = behavior.getOfflineSignatureServiceBehavior().verifyOfflineSignature(parameter);
-            logger.info("VerifyOfflineSignatureRequest succeeded");
+            logger.info("VerifyOfflineSignatureRequest succeeded, activation ID: {}, signature valid: {}", activationId, response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -571,7 +576,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -598,7 +603,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -625,7 +630,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -652,7 +657,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -678,7 +683,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -731,7 +736,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -755,12 +760,12 @@ public class PowerAuthService {
             final boolean matches = behavior.getAsymmetricSignatureServiceBehavior().verifyECDSASignature(activationId, signedData, signature, keyConvertor);
             final VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
             response.setSignatureValid(matches);
-            logger.info("VerifyECDSASignatureRequest succeeded");
+            logger.info("VerifyECDSASignatureRequest succeeded, activation ID: {}, signature valid: {}", activationId, response.isSignatureValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -787,7 +792,7 @@ public class PowerAuthService {
             final SignatureAuditResponse response = behavior.getAuditingServiceBehavior().getSignatureAuditLog(userId, applicationId, startingDate, endingDate);
             logger.info("SignatureAuditRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -812,7 +817,7 @@ public class PowerAuthService {
             final ActivationHistoryResponse response = behavior.getActivationHistoryServiceBehavior().getActivationHistory(activationId, startingDate, endingDate);
             logger.info("ActivationHistoryRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -828,7 +833,7 @@ public class PowerAuthService {
             final GetApplicationListResponse response = behavior.getApplicationServiceBehavior().getApplicationList();
             logger.info("GetApplicationListRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -853,7 +858,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -877,7 +882,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -901,7 +906,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -930,7 +935,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -951,7 +956,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -972,7 +977,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -993,7 +998,7 @@ public class PowerAuthService {
             final CreateIntegrationResponse response = behavior.getIntegrationBehavior().createIntegration(request);
             logger.info("CreateIntegrationRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1009,7 +1014,7 @@ public class PowerAuthService {
             final GetIntegrationListResponse response = behavior.getIntegrationBehavior().getIntegrationList();
             logger.info("GetIntegrationListRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1025,7 +1030,7 @@ public class PowerAuthService {
             final RemoveIntegrationResponse response = behavior.getIntegrationBehavior().removeIntegration(request);
             logger.info("RemoveIntegrationRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1049,7 +1054,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1072,7 +1077,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1088,7 +1093,7 @@ public class PowerAuthService {
             final GetCallbackUrlListResponse response = behavior.getCallbackUrlBehavior().getCallbackUrlList(request);
             logger.info("GetCallbackUrlListRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1104,7 +1109,7 @@ public class PowerAuthService {
             final RemoveCallbackUrlResponse response = behavior.getCallbackUrlBehavior().removeCallbackUrl(request);
             logger.info("RemoveCallbackUrlRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1128,7 +1133,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1159,12 +1164,12 @@ public class PowerAuthService {
         try {
             logger.info("ValidateTokenRequest received, token ID: {}", request.getTokenId());
             final ValidateTokenResponse response = behavior.getTokenBehavior().validateToken(request);
-            logger.info("ValidateTokenRequest succeeded");
+            logger.info("ValidateTokenRequest succeeded, token ID: {}, token valid: {}", request.getTokenId(), response.isTokenValid());
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1185,7 +1190,7 @@ public class PowerAuthService {
             final RemoveTokenResponse response = behavior.getTokenBehavior().removeToken(request);
             logger.info("RemoveTokenRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1210,7 +1215,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1234,7 +1239,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1258,7 +1263,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1282,7 +1287,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1306,7 +1311,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1330,7 +1335,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1354,7 +1359,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1378,7 +1383,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1402,7 +1407,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1426,7 +1431,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1451,7 +1456,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1482,7 +1487,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1513,7 +1518,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1544,7 +1549,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1569,7 +1574,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1600,7 +1605,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1631,7 +1636,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1662,7 +1667,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1678,14 +1683,14 @@ public class PowerAuthService {
             throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
         }
         try {
-            logger.info("CreateOperationRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplications());
+            logger.info("OperationCreateRequest received, template name: {}, user ID: {}, application ID: {}", request.getTemplateName(), request.getUserId(), request.getApplications());
             final OperationDetailResponse response = behavior.getOperationBehavior().createOperation(request);
-            logger.info("CreateOperationRequest succeeded");
+            logger.info("OperationCreateRequest succeeded");
             return response;
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1708,7 +1713,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1728,7 +1733,9 @@ public class PowerAuthService {
             final OperationListResponse response = behavior.getOperationBehavior().findPendingOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (GenericServiceException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1748,7 +1755,9 @@ public class PowerAuthService {
             final OperationListResponse response = behavior.getOperationBehavior().findAllOperationsForUser(convert(request));
             logger.info("OperationListForUserRequest succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (GenericServiceException ex) {
+            throw ex;
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1768,7 +1777,7 @@ public class PowerAuthService {
             final OperationListResponse response = behavior.getOperationBehavior().findOperationsByExternalId(convert(request));
             logger.info("findAllOperationsByExternalId succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1791,7 +1800,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1821,7 +1830,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back, operation ID: {}", operationId, ex);
             throw ex;
         } catch (Exception ex) {
@@ -1848,7 +1857,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1871,7 +1880,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1887,7 +1896,7 @@ public class PowerAuthService {
             final OperationTemplateListResponse response = behavior.getOperationTemplateBehavior().getAllTemplates();
             logger.info("OperationTemplateListResponse succeeded");
             return response;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1910,7 +1919,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1933,7 +1942,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1956,7 +1965,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
              logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1978,7 +1987,7 @@ public class PowerAuthService {
         } catch (GenericServiceException ex) {
             // already logged
             throw ex;
-        } catch (RuntimeException | Error ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -1995,6 +2004,51 @@ public class PowerAuthService {
             logger.debug("Updating activation: {}", request);
             final UpdateActivationNameResponse response = behavior.getActivationServiceBehavior().updateActivationName(request);
             logger.info("UpdateActivationRequest succeeded, activation ID: {}", activationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            logger.info("GetApplicationConfig call received, application ID: {}", applicationId);
+            logger.debug("Obtaining application config: {}", request);
+            final GetApplicationConfigResponse response = behavior.getApplicationConfigServiceBehavior().getApplicationConfig(request);
+            logger.info("GetApplicationConfig succeeded, application ID: {}", applicationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    @Transactional
+    public CreateApplicationConfigResponse createApplicationConfig(final CreateApplicationConfigRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            logger.info("CreateApplicationConfig call received, application ID: {}", applicationId);
+            logger.debug("Creating application config: {}", request);
+            final CreateApplicationConfigResponse response = behavior.getApplicationConfigServiceBehavior().createApplicationConfig(request);
+            logger.info("CreateApplicationConfig succeeded, application ID: {}", applicationId);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        }
+    }
+
+    @Transactional
+    public Response removeApplicationConfig(final RemoveApplicationConfigRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            logger.info("RemoveApplicationConfig call received, application ID: {}", applicationId);
+            logger.debug("Removing application config: {}", request);
+            final Response response = behavior.getApplicationConfigServiceBehavior().removeApplicationConfig(request);
+            logger.info("RemoveApplicationConfig succeeded, application ID: {}", applicationId);
             return response;
         } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);

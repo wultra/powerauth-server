@@ -70,7 +70,7 @@ public class RecoveryConfigEntity implements Serializable {
     private ApplicationEntity application;
 
     /**
-     * Default constructor
+     * No-arg constructor
      */
     public RecoveryConfigEntity() {
     }

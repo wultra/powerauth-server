@@ -434,6 +434,43 @@ public class PowerAuthController {
     }
 
     /**
+     * Call {@link PowerAuthService#getApplicationConfig(GetApplicationConfigRequest)} method and
+     * return the response.
+     * @param request Get application configuration.
+     * @return Application configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PostMapping("/application/config/detail")
+    public ObjectResponse<GetApplicationConfigResponse> getApplicationConfig(@RequestBody ObjectRequest<GetApplicationConfigRequest> request) throws Exception {
+        return new ObjectResponse<>(powerAuthService.getApplicationConfig(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#createApplicationConfig(CreateApplicationConfigRequest)} method and
+     * return the response.
+     * @param request Create an application configuration.
+     * @return Create application configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PostMapping("/application/config/create")
+    public ObjectResponse<CreateApplicationConfigResponse> createApplicationConfig(@RequestBody ObjectRequest<CreateApplicationConfigRequest> request) throws Exception {
+        return new ObjectResponse<>(powerAuthService.createApplicationConfig(request.getRequestObject()));
+    }
+
+    /**
+     * Call {@link PowerAuthService#removeApplicationConfig(RemoveApplicationConfigRequest)} method and
+     * return the response.
+     * @param request Delete an application configuration.
+     * @return Delete application configuration response.
+     * @throws Exception In case the service throws exception.
+     */
+    @PostMapping("/application/config/remove")
+    public Response removeApplicationConfig(@RequestBody ObjectRequest<RemoveApplicationConfigRequest> request) throws Exception {
+        powerAuthService.removeApplicationConfig(request.getRequestObject());
+        return new Response();
+    }
+
+    /**
      * Call {@link PowerAuthService#createIntegration(CreateIntegrationRequest)} method and
      * return the response.
      *

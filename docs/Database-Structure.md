@@ -6,11 +6,7 @@ You can download DDL scripts for supported databases:
 
 - [Oracle - Create Database Schema](./sql/oracle/create_schema.sql)
 - [PostgreSQL - Create Database Schema](./sql/postgresql/create_schema.sql)
-
-The drop scripts are available for supported databases:
-
-- [Oracle - Drop Tables and Sequences](./sql/oracle/delete_schema.sql)
-- [PostgreSQL - Drop Tables and Sequences](./sql/postgresql/delete_schema.sql)
+- [MS SQL - Create Database Schema](./sql/mssql/create_schema.sql)
 
 See the overall database schema:
 
@@ -90,6 +86,33 @@ CREATE TABLE pa_application_version
 | supported | INT(11) | - | Flag indicating if this version is supported or not (0 = not supported, 1..N = supported)                                               |
 <!-- end -->
 
+<!-- begin database table pa_application_config -->
+### Application Configuration Table
+
+Stores configurations for the applications stored in `pa_application` table.
+
+#### Schema
+
+```sql
+CREATE TABLE pa_application_config
+(
+    id                 INTEGER NOT NULL PRIMARY KEY,
+    application_id     INTEGER NOT NULL,
+    config_key         VARCHAR(255) NOT NULL,
+    config_values      TEXT
+);
+```
+
+#### Columns
+
+| Name | Type | Info | Note                                                                                                                                    |
+|------|------|---------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| id | BIGINT(20)  | primary key, autoincrement | Unique application configuration identifier. |
+| application_id | BIGINT(20)  | foreign key: pa\_application.id | Related application ID. |
+| config_key | VARCHAR(255) | index | Configuration key names: `fido2_attestation_fmt_allowed`, `fido2_aaguids_allowed`, or `fido2_root_ca_certs`. |
+| config_values | TEXT | - | Configuration values serialized in JSON format. |
+<!-- end -->
+
 <!-- begin database table pa_activation -->
 ### Activations Table
 
@@ -112,10 +135,12 @@ CREATE TABLE pa_activation
     counter                       INTEGER NOT NULL,
     ctr_data                      VARCHAR(255),
     device_public_key_base64      VARCHAR(255),
-    extras                        VARCHAR(255),
+    extras                        VARCHAR(4000),
     platform                      VARCHAR(255),
     device_info                   VARCHAR(255),
     flags                         VARCHAR(255),
+    external_id                   VARCHAR(255),
+    protocol                      VARCHAR(32) DEFAULT 'powerauth',
     failed_attempts               INTEGER NOT NULL,
     max_failed_attempts           INTEGER DEFAULT 5 NOT NULL,
     server_private_key_base64     VARCHAR(255) NOT NULL,
@@ -143,10 +168,15 @@ CREATE TABLE pa_activation
 | activation_name  | VARCHAR(255 | - | Name of the activation, typically a name of the client device, for example "John's iPhone 6" |
 | application_id  | BIGINT(20) | foreign key: pa\_application.id | Associated application ID. |
 | user_id  | VARCHAR(255) | index | Associated user ID. |
-| extras  | TEXT | - | Any application specific information. |
 | counter  | BIGINT(20) | - | Activation counter. |
 | ctr_data | VARCHAR(255) | - | Activation hash based counter data. |
 | device_public_key_base64  | TEXT | - | Device public key, encoded in Base64 encoding. |
+| extras  | VARCHAR(4000) | - | Any application specific information. |
+| platform | VARCHAR(255) | - | User device platform. |
+| device_info | VARCHAR(255) | - | User device information. |
+| flags | VARCHAR(255) | - | Activation flags. |
+| external_id | VARCHAR(255) | - | External identifier related to the activation. |
+| protocol | VARCHAR(32) | - | Security protocol: `powerauth` (default) or `fido2`. |
 | failed_attempts  | BIGINT(20) | - | Number of failed signature verification attempts. |
 | max_failed_attempts | BIGINT(20) | - | Number of maximum allowed failed signature verification attempts. After value of "failed_attempts" matches this value, activation becomes blocked (activation_status = 4, BLOCKED) |
 | server_private_key_base64 | TEXT | - | Server private key, encoded as Base64 |
@@ -158,8 +188,6 @@ CREATE TABLE pa_activation
 | timestamp_last_used | DATETIME | - | Timestamp of the last signature verification attempt. |
 | timestamp_last_change | DATETIME | - | Timestamp of the last signature verification attempt. |
 | version | BIGINT(2) | - | Cryptography protocol version. |
-| platform | VARCHAR(255) | - | User device platform. |
-| device_info | VARCHAR(255) | - | User device information. |
 <!-- end -->
 
 <!-- begin database table pa_master_keypair -->
@@ -581,4 +609,29 @@ CREATE TABLE pa_operation_application (
 |------|------|---------|------|
 | application_id | bigint | part of primary key | Related application ID. |
 | operation_id | varchar(37)  | part of primary key | Related operation ID. |
+<!-- end -->
+
+<!-- begin database table pa_fido2_authenticator -->
+### FIDO2 Authenticators
+
+Table stores details about FIDO2 Authenticators.
+
+#### Schema
+
+```sql
+CREATE TABLE pa_fido2_authenticator (
+    aaguid          VARCHAR(255)    NOT NULL,
+    description     VARCHAR(255)    NOT NULL,
+    signature_type  VARCHAR(255)    NOT NULL,
+    CONSTRAINT pa_fido2_authenticator_pkey PRIMARY KEY (aaguid)
+);
+```
+
+#### Columns
+
+| Name           | Type         | Info        | Note                                                   |
+|----------------|--------------|-------------|--------------------------------------------------------|
+| aaguid         | varchar(255) | primary key | Identifier of the FIDO2 authenticator.                 |
+| description    | varchar(255) | -           | Human-readable description of the FIDO2 authenticator. |
+| signature_type | varchar(255) | -           | Signature type provided by the FIDO2 authenticator.    |
 <!-- end -->

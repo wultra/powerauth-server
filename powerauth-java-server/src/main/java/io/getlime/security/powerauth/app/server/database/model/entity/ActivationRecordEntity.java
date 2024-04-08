@@ -58,14 +58,20 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "activation_otp")
     private String activationOtp;
 
+    @Column(name = "external_id")
+    private String externalId;
+
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
     @Column(name = "activation_name")
     private String activationName;
 
-    @Column(name = "extras")
+    @Column(name = "extras", columnDefinition = "CLOB")
     private String extras;
+
+    @Column(name = "protocol")
+    private String protocol;
 
     @Column(name = "platform")
     private String platform;
@@ -138,93 +144,9 @@ public class ActivationRecordEntity implements Serializable {
     private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ActivationRecordEntity() {
-    }
-
-    /**
-     * Constructor with all parameters.
-     *
-     * @param activationId               Activation ID.
-     * @param activationCode             Activation code.
-     * @param activationOtpValidation    Activation OTP validation mode.
-     * @param activationOtp              Activation OTP value.
-     * @param userId                     User Id.
-     * @param activationName             Activation name.
-     * @param extras                     Extra parameters.
-     * @param platform                   User device platform.
-     * @param deviceInfo                 User device information.
-     * @param serverPrivateKeyBase64     Server private key encoded as Base64.
-     * @param serverPublicKeyBase64      Server public key encoded as Base64.
-     * @param devicePublicKeyBase64      Device public key encoded as Base64.
-     * @param counter                    Counter.
-     * @param failedAttempts             Current failed attempt count.
-     * @param maxFailedAttempts          Maximum allowed failed attempt count.
-     * @param timestampCreated           Created timestamp.
-     * @param timestampActivationExpire  Activation completion expiration timestamp.
-     * @param timestampLastUsed          Last signature timestamp.
-     * @param activationStatus           Activation status.
-     * @param blockedReason              Reason why activation is blocked.
-     * @param serverPrivateKeyEncryption Mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
-     * @param masterKeyPair              Associated master keypair.
-     * @param application                Associated application.
-     */
-    public ActivationRecordEntity(String activationId,
-                                  String activationCode,
-                                  ActivationOtpValidation activationOtpValidation,
-                                  String activationOtp,
-                                  String userId,
-                                  String activationName,
-                                  String extras,
-                                  String platform,
-                                  String deviceInfo,
-                                  List<String> flags,
-                                  String serverPrivateKeyBase64,
-                                  String serverPublicKeyBase64,
-                                  String devicePublicKeyBase64,
-                                  Long counter,
-                                  String ctrDataBase64,
-                                  Long failedAttempts,
-                                  Long maxFailedAttempts,
-                                  Date timestampCreated,
-                                  Date timestampActivationExpire,
-                                  Date timestampLastUsed,
-                                  Date timestampLastChange,
-                                  ActivationStatus activationStatus,
-                                  String blockedReason,
-                                  EncryptionMode serverPrivateKeyEncryption,
-                                  Integer version,
-                                  MasterKeyPairEntity masterKeyPair,
-                                  ApplicationEntity application) {
-        super();
-        this.activationId = activationId;
-        this.activationCode = activationCode;
-        this.activationOtpValidation = activationOtpValidation;
-        this.activationOtp = activationOtp;
-        this.userId = userId;
-        this.activationName = activationName;
-        this.extras = extras;
-        this.deviceInfo = deviceInfo;
-        this.platform = platform;
-        this.flags.addAll(flags);
-        this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
-        this.serverPublicKeyBase64 = serverPublicKeyBase64;
-        this.devicePublicKeyBase64 = devicePublicKeyBase64;
-        this.counter = counter;
-        this.ctrDataBase64 = ctrDataBase64;
-        this.failedAttempts = failedAttempts;
-        this.maxFailedAttempts = maxFailedAttempts;
-        this.timestampCreated = timestampCreated;
-        this.timestampActivationExpire = timestampActivationExpire;
-        this.timestampLastUsed = timestampLastUsed;
-        this.timestampLastChange = timestampLastChange;
-        this.activationStatus = activationStatus;
-        this.blockedReason = blockedReason;
-        this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
-        this.version = version;
-        this.masterKeyPair = masterKeyPair;
-        this.application = application;
     }
 
     /**
@@ -300,6 +222,24 @@ public class ActivationRecordEntity implements Serializable {
     }
 
     /**
+     * Get external ID.
+     *
+     * @return External ID.
+     */
+    public String getExternalId() {
+        return externalId;
+    }
+
+    /**
+     * Set external ID.
+     *
+     * @param externalId External ID.
+     */
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
+    }
+
+    /**
      * Get user ID
      *
      * @return User ID
@@ -351,6 +291,24 @@ public class ActivationRecordEntity implements Serializable {
      */
     public void setExtras(String extras) {
         this.extras = extras;
+    }
+
+    /**
+     * Get protocol.
+     *
+     * @return Protocol.
+     */
+    public String getProtocol() {
+        return protocol;
+    }
+
+    /**
+     * Set protocol.
+     *
+     * @param protocol protocol.
+     */
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
     }
 
     /**

@@ -61,7 +61,7 @@ public class ApplicationEntity implements Serializable {
     private final List<RecoveryCodeEntity> recoveryCodes = new ArrayList<>();
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public ApplicationEntity() {
     }
@@ -75,7 +75,6 @@ public class ApplicationEntity implements Serializable {
      * @param versions Collection of versions.
      */
     public ApplicationEntity(Long rid, String id, List<String> roles, List<ApplicationVersionEntity> versions) {
-        super();
         this.rid = rid;
         this.id = id;
         this.roles.addAll(roles);

@@ -44,7 +44,7 @@ public enum EncryptionMode {
     final byte value;
 
     /**
-     * Default constructor with byte value of encryption mode.
+     * No-arg constructor with byte value of encryption mode.
      * @param value Byte value of encryption mode.
      */
     EncryptionMode(final byte value) {

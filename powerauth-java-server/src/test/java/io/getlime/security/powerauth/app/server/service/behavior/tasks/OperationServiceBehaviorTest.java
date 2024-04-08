@@ -17,12 +17,10 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.core.http.common.headers.UserAgent;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
-import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
-import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
-import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationListResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
@@ -425,6 +423,7 @@ class OperationServiceBehaviorTest {
         final int year = calendar.get(Calendar.YEAR);
         assertEquals(2023, year);
     }
+
     /**
      * Tests the scenario when an application does not exist in the database for pending operations.
      */
@@ -472,6 +471,88 @@ class OperationServiceBehaviorTest {
         assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
     }
 
+    @Test
+    void testOperationApproveWithValidProximityOtp() throws Exception {
+        final OperationDetailResponse operation = createOperation(true);
+        final String operationId = operation.getId();
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationId);
+
+        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+        final String totp = detailResponse.getProximityOtp();
+        assertNotNull(totp);
+
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(operationId);
+        approveRequest.getAdditionalData().put("proximity_otp", totp);
+
+        final OperationUserActionResponse actionResponse = operationService.attemptApproveOperation(approveRequest);
+
+        assertEquals("APPROVED", actionResponse.getResult().toString());
+    }
+
+    @Test
+    void testOperationApproveWithInvalidProximityOtp() throws Exception {
+        final OperationDetailResponse operation = createOperation(true);
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operation.getId());
+
+        final String totp = operationService.getOperation(detailRequest).getProximityOtp();
+        assertNotNull(totp);
+
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
+        approveRequest.getAdditionalData().put("proximity_otp", "1111"); // invalid otp on purpose, it is too short
+
+        final OperationUserActionResponse result = operationService.attemptApproveOperation(approveRequest);
+
+        assertEquals("APPROVAL_FAILED", result.getResult().toString());
+    }
+
+    /**
+     * Tests the parsing and addition of device information to the operation cancellation details.
+     * This test follows simulates an operation cancellation request with a specific user agent string.
+     * It checks that the device information extracted from the user agent is correctly appended
+     * to the operation's additional data. Predefined expected device information is used for comparison
+     * against the actual device information found in the operation's additional data after the cancellation process.
+     *
+     * @throws Exception if any error occurs during the test execution.
+     */
+    @Test
+    void testParsingDeviceOperationCancelDetail() throws Exception {
+        final String parseableUserAgent = "PowerAuthNetworking/1.1.7 (en; cellular) com.wultra.app.MobileToken.wtest/2.0.0 (Apple; iOS/16.6.1; iphone12,3)";
+        final UserAgent.Device expectedDevice = new UserAgent.Device();
+        expectedDevice.setVersion("2.0.0");
+        expectedDevice.setNetworkVersion("1.1.7");
+        expectedDevice.setLanguage("en");
+        expectedDevice.setConnection("cellular");
+        expectedDevice.setProduct("com.wultra.app.MobileToken.wtest");
+        expectedDevice.setPlatform("Apple");
+        expectedDevice.setOs("iOS");
+        expectedDevice.setOsVersion("16.6.1");
+        expectedDevice.setModel("iphone12,3");
+
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setUserId("test-user");
+        request.setApplications(Collections.singletonList(APP_ID));
+        final OperationDetailResponse operation = createOperation(false);
+
+        final OperationCancelRequest cancelRequest = new OperationCancelRequest();
+        cancelRequest.setOperationId(operation.getId());
+        cancelRequest.getAdditionalData().put("userAgent", parseableUserAgent);
+        final OperationDetailResponse operationCancelDetailResponse = operationService.cancelOperation(cancelRequest);
+
+        assertNotNull(operationCancelDetailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, operationCancelDetailResponse.getAdditionalData().get("device"));
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operation.getId());
+        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+
+        assertNotNull(detailResponse.getAdditionalData().get("device"));
+        assertEquals(expectedDevice, detailResponse.getAdditionalData().get("device"));
+    }
+
     private void createApplication() throws GenericServiceException {
         boolean appExists = applicationService.getApplicationList().getApplications().stream()
                 .anyMatch(app -> app.getApplicationId().equals(APP_ID));
@@ -502,6 +583,25 @@ class OperationServiceBehaviorTest {
             request.setExpiration(300L);
             templateService.createOperationTemplate(request);
         }
+    }
+
+    private OperationDetailResponse createOperation(final boolean proximityOtp) throws Exception {
+        final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setApplications(List.of("PA_Tests"));
+        operationCreateRequest.setTemplateName("test-template");
+        operationCreateRequest.setUserId("test-user");
+        operationCreateRequest.setProximityCheckEnabled(proximityOtp);
+        return operationService.createOperation(operationCreateRequest);
+    }
+
+    private static OperationApproveRequest createOperationApproveRequest(final String operationId) {
+        final OperationApproveRequest approveRequest = new OperationApproveRequest();
+        approveRequest.setOperationId(operationId);
+        approveRequest.setUserId("test-user");
+        approveRequest.setApplicationId("PA_Tests");
+        approveRequest.setData("A2");
+        approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
+        return approveRequest;
     }
 
 }

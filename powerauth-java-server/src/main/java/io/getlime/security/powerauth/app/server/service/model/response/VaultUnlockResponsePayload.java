@@ -28,7 +28,7 @@ public class VaultUnlockResponsePayload {
     private String encryptedVaultEncryptionKey;
 
     /**
-     * Default constructor.
+     * No-arg constructor.
      */
     public VaultUnlockResponsePayload() {
     }
