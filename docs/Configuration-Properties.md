@@ -70,6 +70,7 @@ The PowerAuth Server uses the following public configuration properties:
 
 
 ## Monitoring and Observability
+
 | Property                                  | Default | Note                                                                                                                                                                        |
 |-------------------------------------------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `management.tracing.sampling.probability` | `1.0`   | Specifies the proportion of requests that are sampled for tracing. A value of 1.0 means that 100% of requests are sampled, while a value of 0 effectively disables tracing. |
