@@ -84,7 +84,7 @@ List of authenticators for provided user and application.
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute           | Type       | Description                                                 |
 |---------------------|------------|-------------------------------------------------------------|
@@ -149,7 +149,7 @@ Challenge for new FIDO2 authenticator registration.
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute           | Type       | Description                                                 |
 |---------------------|------------|-------------------------------------------------------------|
@@ -253,7 +253,7 @@ A new FIDO2 authenticator registration.
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute           | Type       | Description                                                 |
 |---------------------|------------|-------------------------------------------------------------|
@@ -344,7 +344,7 @@ If the challenge is successfully created, API returns the following response:
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute                                                        | Type                 | Description                                                                     |
 |------------------------------------------------------------------|----------------------|---------------------------------------------------------------------------------|
@@ -433,7 +433,7 @@ If the challenge is successfully verified, API returns the following response:
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute                                                        | Type       | Description                                                                         |
 |------------------------------------------------------------------|------------|-------------------------------------------------------------------------------------|
