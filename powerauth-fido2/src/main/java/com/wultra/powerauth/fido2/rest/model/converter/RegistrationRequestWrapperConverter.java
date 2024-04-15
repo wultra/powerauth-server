@@ -25,6 +25,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequestWrapper;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
@@ -32,11 +33,8 @@ import org.springframework.util.Assert;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public final class RegistrationRequestWrapperConverter {
-
-    private RegistrationRequestWrapperConverter() {
-        throw new IllegalStateException("Should not be instantiated");
-    }
+@Component
+public class RegistrationRequestWrapperConverter {
 
     /**
      * Convert the given request into a wrapper.
@@ -44,7 +42,7 @@ public final class RegistrationRequestWrapperConverter {
      * @param source registration request
      * @return wrapped registration request
      */
-    public static RegistrationRequestWrapper convert(final RegistrationRequest source) throws Fido2DeserializationException {
+    public RegistrationRequestWrapper convert(final RegistrationRequest source) throws Fido2DeserializationException {
         Assert.notNull(source, "Source must not be null");
 
         final CollectedClientData clientDataJSON = CollectedClientDataDeserializer.deserialize(source.getAuthenticatorParameters().getResponse().getClientDataJSON());

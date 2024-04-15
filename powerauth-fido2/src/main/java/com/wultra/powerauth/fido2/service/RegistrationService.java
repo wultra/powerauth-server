@@ -56,6 +56,7 @@ public class RegistrationService {
     private final RegistrationRequestValidator registrationRequestValidator;
     private final CryptographyService cryptographyService;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
+    private final RegistrationRequestWrapperConverter registrationRequestWrapperConverter;
 
     /**
      * List registrations for a user.
@@ -94,7 +95,7 @@ public class RegistrationService {
     public RegistrationResponse register(RegistrationRequest requestObject) throws Exception {
         final String applicationId = requestObject.getApplicationId();
 
-        final RegistrationRequestWrapper wrapper = RegistrationRequestWrapperConverter.convert(requestObject);
+        final RegistrationRequestWrapper wrapper = registrationRequestWrapperConverter.convert(requestObject);
         final String error = registrationRequestValidator.validate(wrapper);
         if (error != null) {
             throw new Fido2AuthenticationFailedException(error);

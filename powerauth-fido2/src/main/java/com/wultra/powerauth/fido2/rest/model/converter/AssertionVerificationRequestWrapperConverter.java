@@ -25,6 +25,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 /**
@@ -32,11 +33,8 @@ import org.springframework.util.Assert;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public final class AssertionVerificationRequestWrapperConverter {
-
-    private AssertionVerificationRequestWrapperConverter() {
-        throw new IllegalStateException("Should not be instantiated");
-    }
+@Component
+public class AssertionVerificationRequestWrapperConverter {
 
     /**
      * Convert the given request into a wrapper.
@@ -44,7 +42,7 @@ public final class AssertionVerificationRequestWrapperConverter {
      * @param source assertion verification request
      * @return wrapped registration request
      */
-    public static AssertionVerificationRequestWrapper convert(final AssertionVerificationRequest source) throws Fido2DeserializationException {
+    public AssertionVerificationRequestWrapper convert(final AssertionVerificationRequest source) throws Fido2DeserializationException {
         Assert.notNull(source, "Source must not be null");
 
         final CollectedClientData clientDataJSON = CollectedClientDataDeserializer.deserialize(source.getResponse().getClientDataJSON());

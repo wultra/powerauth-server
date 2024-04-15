@@ -57,6 +57,7 @@ public class AssertionService {
     private final AssertionProvider assertionProvider;
     private final AssertionConverter assertionConverter;
     private final AssertionRequestValidator assertionRequestValidator;
+    private final AssertionVerificationRequestWrapperConverter assertionVerificationRequestWrapperConverter;
 
 
     /**
@@ -84,7 +85,7 @@ public class AssertionService {
      * @throws Fido2AuthenticationFailedException In case authentication fails.
      */
     public AssertionVerificationResponse authenticate(AssertionVerificationRequest request) throws Fido2AuthenticationFailedException, Fido2DeserializationException {
-        final AssertionVerificationRequestWrapper wrapper = AssertionVerificationRequestWrapperConverter.convert(request);
+        final AssertionVerificationRequestWrapper wrapper = assertionVerificationRequestWrapperConverter.convert(request);
 
         final String error = assertionRequestValidator.validate(wrapper);
         if (error != null) {
