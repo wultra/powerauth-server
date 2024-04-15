@@ -25,6 +25,7 @@ import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
 import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import com.wultra.security.powerauth.fido2.model.error.PowerAuthError;

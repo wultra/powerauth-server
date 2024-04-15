@@ -26,7 +26,7 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
-import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAttestationResponse;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

@@ -16,23 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.model.response;
+package com.wultra.security.powerauth.fido2.model.entity;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
-
-import java.util.List;
+import lombok.ToString;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class AuthenticatorAttestationResponse {
+public class AuthenticatorAssertionResponse {
 
     @NotBlank
     private String clientDataJSON;
+
     @NotBlank
-    private String attestationObject;
-    private List<String> transports;
+    private String authenticatorData;
+
+    @NotEmpty
+    @ToString.Exclude
+    private byte[] signature;
+
+    private String userHandle;
 
 }

@@ -37,7 +37,7 @@ import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeReque
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
-import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

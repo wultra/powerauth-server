@@ -31,8 +31,6 @@ import com.webauthn4j.test.authenticator.webauthn.SelfAttestedPackedAuthenticato
 import com.webauthn4j.test.authenticator.webauthn.WebAuthnAuthenticatorAdaptor;
 import com.webauthn4j.test.client.ClientPlatform;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
-import com.wultra.powerauth.fido2.rest.model.entity.Flags;
 import com.wultra.powerauth.fido2.service.AssertionService;
 import com.wultra.powerauth.fido2.service.RegistrationService;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
@@ -54,8 +52,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -215,7 +211,7 @@ class Fido2AuthenticatorTest {
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
-        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
+        final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientDataJSON);
         assertionResponse.setAuthenticatorData(authenticatorData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
@@ -262,7 +258,7 @@ class Fido2AuthenticatorTest {
         final String authenticatorData = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAuthenticatorData());
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
 
-        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
+        final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientDataJSON);
         assertionResponse.setAuthenticatorData(authenticatorData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
@@ -441,7 +437,7 @@ class Fido2AuthenticatorTest {
             return;
         }
         // Create application for FIDO2 tests
-        CreateApplicationRequest request = new CreateApplicationRequest();
+        final CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId(APPLICATION_ID);
         powerAuthService.createApplication(request);
     }
@@ -501,7 +497,7 @@ class Fido2AuthenticatorTest {
         final String clientDataJSON = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getClientDataJSON());
         final String attestationObject = Base64.getEncoder().encodeToString(Objects.requireNonNull(credential.getResponse()).getAttestationObject());
 
-        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse attestationResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAttestationResponse();
+        final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAttestationResponse attestationResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAttestationResponse();
         attestationResponse.setClientDataJSON(clientDataJSON);
         attestationResponse.setAttestationObject(attestationObject);
         final AuthenticatorTransport[] transports = credential.getResponse().getTransports().toArray(new AuthenticatorTransport[0]);
@@ -562,7 +558,7 @@ class Fido2AuthenticatorTest {
         final byte[] userHandle = Objects.requireNonNull(credential.getResponse()).getUserHandle();
         final byte[] signature = Objects.requireNonNull(credential.getResponse()).getSignature();
 
-        final com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse();
+        final com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse assertionResponse = new com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse();
         assertionResponse.setClientDataJSON(clientDataJSON);
         assertionResponse.setAuthenticatorData(authenticatorData);
         assertionResponse.setUserHandle(new String(userHandle, StandardCharsets.UTF_8));
@@ -573,44 +569,6 @@ class Fido2AuthenticatorTest {
         final AssertionVerificationResponse authResponse = assertionService.authenticate(authRequest);
         assertEquals(APPLICATION_ID, authResponse.getApplicationId());
 
-    }
-
-    private AuthenticatorData deserializeAuthenticationData(byte[] authData) throws IOException {
-        final AuthenticatorData result = new AuthenticatorData();
-        result.setEncoded(authData);
-
-        // Get RP ID Hash
-        final byte[] rpIdHash = new byte[32];
-        System.arraycopy(authData, 0, rpIdHash,0, 32);
-        result.setRpIdHash(rpIdHash);
-
-        // Get Flags
-        final byte flagByte = authData[32];
-        final Flags flags = result.getFlags();
-
-        flags.setUserPresent(isFlagOn(flagByte, 0));
-        flags.setReservedBit2(isFlagOn(flagByte, 1));
-        flags.setUserVerified(isFlagOn(flagByte, 2));
-        flags.setBackupEligible(isFlagOn(flagByte, 3));
-        flags.setBackupState(isFlagOn(flagByte, 4));
-        flags.setReservedBit6(isFlagOn(flagByte, 5));
-        flags.setAttestedCredentialsIncluded(isFlagOn(flagByte,6));
-        flags.setExtensionDataIncluded(isFlagOn(flagByte,7));
-
-        // Get Signature Counter
-        final byte[] signCountBytes = new byte[4];
-        System.arraycopy(authData, 33, signCountBytes, 0, 4);
-        final int signCount = ByteBuffer.wrap(signCountBytes).getInt(); // big-endian by default
-        result.setSignCount(signCount);
-
-        return result;
-    }
-
-    private boolean isFlagOn(byte flags, int position) throws IOException {
-        if (position < 0 || position > 7) {
-            throw new IOException("Invalid position for flag: " + position);
-        }
-        return ((flags >> position) & 1) == 1;
     }
 
 }

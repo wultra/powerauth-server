@@ -18,6 +18,7 @@
  */
 package com.wultra.security.powerauth.fido2.client;
 
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
 import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import com.wultra.security.powerauth.fido2.model.request.*;
