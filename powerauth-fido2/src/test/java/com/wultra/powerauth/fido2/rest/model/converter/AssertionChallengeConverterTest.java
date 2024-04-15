@@ -153,16 +153,11 @@ class AssertionChallengeConverterTest {
         assertEquals(5L, assertionChallenge.getMaxFailedAttempts());
 
         assertNotNull(assertionChallenge.getAllowCredentials());
-        assertEquals(2, assertionChallenge.getAllowCredentials().size());
+        assertEquals(1, assertionChallenge.getAllowCredentials().size());
         final AllowCredentials allowCredential = assertionChallenge.getAllowCredentials().get(0);
-        assertArrayEquals("credential-1".getBytes(), allowCredential.getCredentialId());
+        assertArrayEquals("credential-1A1*A100CZK".getBytes(), allowCredential.getCredentialId());
         assertEquals("usb", allowCredential.getTransports().get(0));
         assertEquals("public-key", allowCredential.getType());
-
-        final AllowCredentials operationDataCredential = assertionChallenge.getAllowCredentials().get(1);
-        assertArrayEquals("A1*A100CZK".getBytes(), operationDataCredential.getCredentialId());
-        assertTrue(operationDataCredential.getTransports().isEmpty());
-        assertEquals("public-key", operationDataCredential.getType());
     }
 
     @Test
@@ -198,21 +193,16 @@ class AssertionChallengeConverterTest {
         assertEquals(5L, assertionChallenge.getMaxFailedAttempts());
 
         assertNotNull(assertionChallenge.getAllowCredentials());
-        assertEquals(3, assertionChallenge.getAllowCredentials().size());
+        assertEquals(2, assertionChallenge.getAllowCredentials().size());
         final AllowCredentials allowCredential1 = assertionChallenge.getAllowCredentials().get(0);
-        assertArrayEquals("credential-1".getBytes(), allowCredential1.getCredentialId());
+        assertArrayEquals("credential-1A1*A100CZK".getBytes(), allowCredential1.getCredentialId());
         assertEquals("usb", allowCredential1.getTransports().get(0));
         assertEquals("public-key", allowCredential1.getType());
 
         final AllowCredentials allowCredential2 = assertionChallenge.getAllowCredentials().get(1);
-        assertArrayEquals("credential-2".getBytes(), allowCredential2.getCredentialId());
+        assertArrayEquals("credential-2A1*A100CZK".getBytes(), allowCredential2.getCredentialId());
         assertEquals("usb", allowCredential2.getTransports().get(0));
         assertEquals("public-key", allowCredential2.getType());
-
-        final AllowCredentials operationDataCredential = assertionChallenge.getAllowCredentials().get(2);
-        assertArrayEquals("A1*A100CZK".getBytes(), operationDataCredential.getCredentialId());
-        assertTrue(operationDataCredential.getTransports().isEmpty());
-        assertEquals("public-key", operationDataCredential.getType());
     }
 
 }
