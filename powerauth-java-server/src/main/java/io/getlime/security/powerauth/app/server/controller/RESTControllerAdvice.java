@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server.controller;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
+import com.wultra.powerauth.fido2.rest.model.converter.serialization.Fido2DeserializationException;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import com.wultra.security.powerauth.client.model.error.PowerAuthErrorRecovery;
 import io.getlime.core.rest.model.base.response.ObjectResponse;

@@ -19,20 +19,24 @@
 package com.wultra.powerauth.fido2.rest.model.validator;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequestWrapper;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
 import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
-import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAttestationResponse;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.Arrays;
 import java.util.List;
 
 /**
- * Validator for registration request.
+ * Validator for {@link RegistrationRequest}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -42,10 +46,12 @@ public class RegistrationRequestValidator {
 
     /**
      * Validate a registration request.
-     * @param request Registration request.
+     * @param wrapper Registration request wrapper.
      * @return Validation result.
      */
-    public String validate(RegistrationRequest request) {
+    public String validate(final RegistrationRequestWrapper wrapper) {
+        Assert.notNull(wrapper, "Wrapper must not be null");
+        final RegistrationRequest request = wrapper.registrationRequest();
 
         if (request == null) {
             return "Null request provided.";
@@ -65,8 +71,7 @@ public class RegistrationRequestValidator {
             return "Invalid request authenticator parameters, you need to include response.clientDataJSON and response.attestationObject.";
         }
 
-        final CollectedClientData clientDataJSON = response.getClientDataJSON();
-
+        final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
         if (!"webauthn.create".equals(clientDataJSON.getType())) {
             return "Request does not contain webauthn.create type.";
         }
@@ -87,7 +92,7 @@ public class RegistrationRequestValidator {
             return "Request contains the top origin which is not allowed.";
         }
 
-        final AttestationObject attestationObject = response.getAttestationObject();
+        final AttestationObject attestationObject = wrapper.attestationObject();
         final AuthenticatorData authData = attestationObject.getAuthData();
         if (authData == null) {
             return "Missing authentication data.";

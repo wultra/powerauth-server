@@ -24,7 +24,7 @@ package com.wultra.powerauth.fido2.rest.model.enumeration;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class Fido2ConfigKeys {
+public final class Fido2ConfigKeys {
 
     public static final String CONFIG_KEY_ALLOWED_ATTESTATION_FMT = "fido2_attestation_fmt_allowed";
     public static final String CONFIG_KEY_ALLOWED_AAGUIDS = "fido2_aaguids_allowed";

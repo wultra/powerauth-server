@@ -53,11 +53,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-cbor</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
         </dependency>
@@ -68,6 +63,10 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
 
         <dependency>

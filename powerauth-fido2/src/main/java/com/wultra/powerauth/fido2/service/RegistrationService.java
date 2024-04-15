@@ -21,19 +21,22 @@ package com.wultra.powerauth.fido2.service;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationChallengeConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.RegistrationConverter;
+import com.wultra.powerauth.fido2.rest.model.converter.RegistrationRequestWrapperConverter;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
-import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
-import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequest;
-import com.wultra.powerauth.fido2.rest.model.response.RegisteredAuthenticatorsResponse;
-import com.wultra.powerauth.fido2.rest.model.response.RegistrationChallengeResponse;
-import com.wultra.powerauth.fido2.rest.model.response.RegistrationResponse;
+import com.wultra.powerauth.fido2.rest.model.request.RegistrationRequestWrapper;
 import com.wultra.powerauth.fido2.rest.model.validator.RegistrationRequestValidator;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.response.RegisteredAuthenticatorsResponse;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
@@ -43,6 +46,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class RegistrationService {
 
     private final AuthenticatorProvider authenticatorProvider;
@@ -52,28 +56,7 @@ public class RegistrationService {
     private final RegistrationRequestValidator registrationRequestValidator;
     private final CryptographyService cryptographyService;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
-
-    /**
-     * Registration service.
-     *
-     * @param authenticatorProvider Authenticator provider.
-     * @param registrationProvider Registration provider.
-     * @param registrationChallengeConverter Registration challenge converter.
-     * @param registrationConverter Registration converter.
-     * @param registrationRequestValidator Registration request validator.
-     * @param cryptographyService Cryptography service.
-     * @param fido2AuthenticatorService FIDO2 Authenticator details service.
-     */
-    @Autowired
-    public RegistrationService(AuthenticatorProvider authenticatorProvider, RegistrationProvider registrationProvider, RegistrationChallengeConverter registrationChallengeConverter, RegistrationConverter registrationConverter, RegistrationRequestValidator registrationRequestValidator, CryptographyService cryptographyService, Fido2AuthenticatorService fido2AuthenticatorService) {
-        this.authenticatorProvider = authenticatorProvider;
-        this.registrationProvider = registrationProvider;
-        this.registrationChallengeConverter = registrationChallengeConverter;
-        this.registrationConverter = registrationConverter;
-        this.registrationRequestValidator = registrationRequestValidator;
-        this.cryptographyService = cryptographyService;
-        this.fido2AuthenticatorService = fido2AuthenticatorService;
-    }
+    private final RegistrationRequestWrapperConverter registrationRequestWrapperConverter;
 
     /**
      * List registrations for a user.
@@ -112,18 +95,18 @@ public class RegistrationService {
     public RegistrationResponse register(RegistrationRequest requestObject) throws Exception {
         final String applicationId = requestObject.getApplicationId();
 
-        final String error = registrationRequestValidator.validate(requestObject);
+        final RegistrationRequestWrapper wrapper = registrationRequestWrapperConverter.convert(requestObject);
+        final String error = registrationRequestValidator.validate(wrapper);
         if (error != null) {
             throw new Fido2AuthenticationFailedException(error);
         }
 
         final String credentialId = requestObject.getAuthenticatorParameters().getCredentialId();
-        final AuthenticatorAttestationResponse response = requestObject.getAuthenticatorParameters().getResponse();
 
-        final CollectedClientData clientDataJSON = response.getClientDataJSON();
+        final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
         final String challengeValue = clientDataJSON.getChallenge();
 
-        final AttestationObject attestationObject = response.getAttestationObject();
+        final AttestationObject attestationObject = wrapper.attestationObject();
         final AttestationStatement attStmt = attestationObject.getAttStmt();
         final byte[] signature = attStmt.getSignature();
 
@@ -149,8 +132,7 @@ public class RegistrationService {
 
         final Fido2Authenticator model = fido2AuthenticatorService.findByAaguid(registrationConverter.bytesToUUID(aaguid));
         final RegistrationChallenge challenge = registrationProvider.findRegistrationChallengeByValue(applicationId, challengeValue);
-        final AuthenticatorDetail authenticator = registrationConverter.convert(challenge, requestObject, model, cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()))
-                .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+        final AuthenticatorDetail authenticator = registrationConverter.convert(challenge, wrapper, model, cryptographyService.publicKeyToBytes(attestedCredentialData.getPublicKeyObject()));
         final AuthenticatorDetail authenticatorDetailResponse = authenticatorProvider.storeAuthenticator(requestObject.getApplicationId(), challenge.getChallenge(), authenticator);
         return registrationConverter.convertRegistrationResponse(authenticatorDetailResponse);
     }

@@ -19,7 +19,9 @@
 package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.security.powerauth.fido2.model.entity.*;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
@@ -265,9 +267,9 @@ public class PowerAuthCryptographyService implements CryptographyService {
     }
 
     /**
-     * Convert {@link java.security.spec.ECPoint} from JavaSecurity to {@link com.wultra.powerauth.fido2.rest.model.entity.ECPoint}.
+     * Convert {@link java.security.spec.ECPoint} from JavaSecurity to {@link ECPoint}.
      * @param p {@link java.security.spec.ECPoint} from Java Security.
-     * @return {@link com.wultra.powerauth.fido2.rest.model.entity.ECPoint}
+     * @return {@link ECPoint}
      */
     private ECPoint convertPoint(java.security.spec.ECPoint p) {
         final ECPoint result = new ECPoint();

@@ -19,7 +19,7 @@
 package com.wultra.powerauth.fido2.service.provider;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 
 import java.util.List;
 import java.util.Optional;

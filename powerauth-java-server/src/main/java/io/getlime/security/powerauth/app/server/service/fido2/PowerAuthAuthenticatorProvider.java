@@ -24,15 +24,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
@@ -290,7 +290,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         authenticatorDetail.setApplicationId(activation.getApplicationId());
         authenticatorDetail.setUserId(activation.getUserId());
         authenticatorDetail.setActivationId(activation.getActivationId());
-        authenticatorDetail.setActivationStatus(activation.getActivationStatus());
+        authenticatorDetail.setActivationStatus(convert(activation.getActivationStatus()));
         authenticatorDetail.setActivationName(activation.getActivationName());
         authenticatorDetail.setCredentialId(activation.getExternalId());
         try {
@@ -317,6 +317,19 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         return Optional.of(authenticatorDetail);
     }
 
+    private static com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus convert(final com.wultra.security.powerauth.client.model.enumeration.ActivationStatus source) {
+        if (source == null) {
+            return null;
+        }
+
+        return switch (source) {
+            case REMOVED -> com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus.REMOVED;
+            case CREATED -> com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus.CREATED;
+            case ACTIVE -> com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus.ACTIVE;
+            case BLOCKED -> com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus.BLOCKED;
+            case PENDING_COMMIT -> com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus.PENDING_COMMIT;
+        };
+    }
 
     /**
      * Validate activation in prepare or create activation step: it should be in CREATED state, it should be linked to correct

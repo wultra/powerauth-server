@@ -18,62 +18,43 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter.serialization;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
-import java.io.Serial;
 import java.util.Base64;
 
 /**
- * JSON deserializer for the attestation object.
+ * Deserializer for {@link AttestationObject}.
  *
  * @author Petr Dvorak, petr@wultra.com
+ * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@Component
 @Slf4j
-public class AttestationObjectDeserializer extends StdDeserializer<AttestationObject> {
+public final class AttestationObjectDeserializer {
 
-    @Serial
-    private static final long serialVersionUID = -5549850902593127253L;
+    private static final CBORMapper CBOR_MAPPER = new CBORMapper();
 
-    private final CBORMapper cborMapper = new CBORMapper();
-
-    /**
-     * No-arg deserializer constructor.
-     */
-    public AttestationObjectDeserializer() {
-        this(null);
+    private AttestationObjectDeserializer() {
+        throw new IllegalStateException("Should not be instantiated");
     }
 
     /**
-     * Deserializer constructor with value class parameter.
-     * @param vc Value class.
-     */
-    public AttestationObjectDeserializer(Class<?> vc) {
-        super(vc);
-    }
-
-    /**
-     * Deserialize the FIDO2 attestation object from JSON request.
-     * @param jsonParser JSON parser.
-     * @param deserializationContext Deserialization context.
-     * @return Deserialized FIDO2 attestation object.
+     * Deserialize the FIDO2 attestation object from the given string.
+     *
+     * @param source base64 encoded string.
+     * @return Deserialized FIDO2 attestation object or {@code null}
      * @throws Fido2DeserializationException Thrown in case JSON deserialization fails.
      */
-    @Override
-    public AttestationObject deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
+    public static AttestationObject deserialize(final String source) throws Fido2DeserializationException {
+        Assert.notNull(source, "Source must not be null");
+
         try {
-            final String originalTextValue = jsonParser.getText();
-            final byte[] decodedAttestationObject = Base64.getDecoder().decode(originalTextValue);
-            final AttestationObject attestationObject = cborMapper.readValue(decodedAttestationObject, AttestationObject.class);
-            attestationObject.setEncoded(originalTextValue);
+            final byte[] decodedAttestationObject = Base64.getDecoder().decode(source);
+            final AttestationObject attestationObject = CBOR_MAPPER.readValue(decodedAttestationObject, AttestationObject.class);
+            attestationObject.setEncoded(source);
             return attestationObject;
         } catch (IOException e) {
             logger.debug(e.getMessage(), e);
