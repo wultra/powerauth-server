@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * Data class representing the parameters obtained from the authenticator registration.
  *
- * @author Roman Strobl, roman.strobl@wulra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
 public class AuthenticatorParameters {
