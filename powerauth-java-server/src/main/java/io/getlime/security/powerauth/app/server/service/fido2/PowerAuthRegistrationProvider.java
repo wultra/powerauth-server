@@ -23,7 +23,7 @@ import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
 import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
@@ -74,7 +74,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     @Transactional
     public RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws GenericServiceException {
         final InitActivationResponse initActivationResponse = serviceBehaviorCatalogue.getActivationServiceBehavior()
-                .initActivation(Protocols.FIDO2, applicationId, userId, null, null, ActivationOtpValidation.NONE, null, null, keyConvertor);
+                .initActivation(ActivationProtocol.FIDO2, applicationId, userId, null, null, ActivationOtpValidation.NONE, null, null, keyConvertor);
         final RegistrationChallenge registrationChallenge = new RegistrationChallenge();
         registrationChallenge.setUserId(initActivationResponse.getUserId());
         registrationChallenge.setApplicationId(initActivationResponse.getApplicationId());

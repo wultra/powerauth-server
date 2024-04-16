@@ -29,7 +29,7 @@ import io.getlime.security.powerauth.app.server.configuration.PowerAuthPageableC
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureParameter;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
@@ -161,7 +161,7 @@ public class PowerAuthService {
         try {
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
-            final Set<Protocols> protocols = request.getProtocols();
+            final Set<ActivationProtocol> protocols = request.getProtocols();
             final int pageNumber = request.getPageNumber() != null ? request.getPageNumber() : powerAuthPageableConfiguration.defaultPageNumber();
             final int pageSize = request.getPageSize() != null ? request.getPageSize() : powerAuthPageableConfiguration.defaultPageSize();
             final Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("timestampCreated").descending());
@@ -281,7 +281,7 @@ public class PowerAuthService {
         }
         // The maxFailedCount and activationExpireTimestamp values can be null, in this case default values are used
         try {
-            final Protocols protocol = request.getProtocol();
+            final ActivationProtocol protocol = request.getProtocol();
             final String userId = request.getUserId();
             final String applicationId = request.getApplicationId();
             final Long maxFailedCount = request.getMaxFailureCount();

@@ -26,7 +26,7 @@ import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.client.model.entity.Activation;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
@@ -106,17 +106,17 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         final List<AuthenticatorDetail> authenticatorDetailList = new ArrayList<>();
 
         int pageIndex = 0;
-        GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
+        GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(ActivationProtocol.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
         while (!activationList.getActivations().isEmpty()) {
             for (Activation activation : activationList.getActivations()) {
-                if (!Protocols.FIDO2.toString().equals(activation.getProtocol())) { // Check the protocol, just in case
+                if (ActivationProtocol.FIDO2 != activation.getProtocol()) { // Check the protocol, just in case
                     continue;
                 }
                 final Optional<AuthenticatorDetail> authenticatorOptional = convert(activation, application.get());
                 authenticatorOptional.ifPresent(authenticatorDetailList::add);
             }
             pageIndex++;
-            activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(Protocols.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
+            activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(ActivationProtocol.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
         }
         return authenticatorDetailList;
     }
@@ -173,7 +173,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             }
 
             // Make sure this is the FIDO2 authenticator
-            if (!Protocols.FIDO2.toString().equals(activation.getProtocol())) {
+            if (io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.FIDO2 != activation.getProtocol()) {
                 logger.warn("Invalid authenticator protocol, expected 'fido2', obtained: {}", activation.getProtocol());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);

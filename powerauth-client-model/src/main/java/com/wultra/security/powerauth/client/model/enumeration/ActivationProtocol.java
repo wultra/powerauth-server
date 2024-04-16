@@ -25,29 +25,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-public enum Protocols {
+public enum ActivationProtocol {
+
     @JsonProperty("powerauth")
-    POWERAUTH("powerauth"),
+    POWERAUTH,
     @JsonProperty("fido2")
-    FIDO2("fido2");
-
-    private final String protocol;
-
-    Protocols(String protocol) {
-        this.protocol = protocol;
-    }
-
-    @Override
-    public String toString() {
-        return protocol;
-    }
-
-    public static boolean isPowerAuth(String protocol) {
-        return POWERAUTH.protocol.equals(protocol);
-    }
-
-    public static boolean isFido2(String protocol) {
-        return FIDO2.protocol.equals(protocol);
-    }
-
+    FIDO2
 }

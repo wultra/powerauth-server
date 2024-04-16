@@ -17,10 +17,12 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.converter.ActivationProtocolConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationFlagConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
@@ -70,8 +72,9 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "extras", columnDefinition = "CLOB")
     private String extras;
 
+    @Convert(converter = ActivationProtocolConverter.class)
     @Column(name = "protocol")
-    private String protocol;
+    private ActivationProtocol protocol;
 
     @Column(name = "platform")
     private String platform;
@@ -298,7 +301,7 @@ public class ActivationRecordEntity implements Serializable {
      *
      * @return Protocol.
      */
-    public String getProtocol() {
+    public ActivationProtocol getProtocol() {
         return protocol;
     }
 
@@ -307,7 +310,7 @@ public class ActivationRecordEntity implements Serializable {
      *
      * @param protocol protocol.
      */
-    public void setProtocol(String protocol) {
+    public void setProtocol(ActivationProtocol protocol) {
         this.protocol = protocol;
     }
 
