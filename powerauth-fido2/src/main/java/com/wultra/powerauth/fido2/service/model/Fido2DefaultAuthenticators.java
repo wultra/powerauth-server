@@ -203,7 +203,7 @@ public class Fido2DefaultAuthenticators {
     }
 
     public static boolean isWultraModel(final String aaguid) {
-        return WULTRA_MODELS.contains(aaguid);
+        return aaguid != null && WULTRA_MODELS.contains(aaguid);
     }
 
 }
