@@ -109,7 +109,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
         GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(ActivationProtocol.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
         while (!activationList.getActivations().isEmpty()) {
             for (Activation activation : activationList.getActivations()) {
-                if (ActivationProtocol.FIDO2 != activation.getProtocol()) { // Check the protocol, just in case
+                if (activation.getProtocol() != ActivationProtocol.FIDO2) { // Check the protocol, just in case
                     continue;
                 }
                 final Optional<AuthenticatorDetail> authenticatorOptional = convert(activation, application.get());
@@ -173,7 +173,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             }
 
             // Make sure this is the FIDO2 authenticator
-            if (io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.FIDO2 != activation.getProtocol()) {
+            if (activation.getProtocol() != io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.FIDO2) {
                 logger.warn("Invalid authenticator protocol, expected 'fido2', obtained: {}", activation.getProtocol());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
