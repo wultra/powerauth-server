@@ -24,10 +24,13 @@ import com.wultra.powerauth.fido2.rest.model.converter.AssertionConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionVerificationRequestWrapperConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.AttestedCredentialData;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
 import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
+import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
@@ -40,7 +43,13 @@ import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationR
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.Arrays;
 import org.springframework.stereotype.Service;
+
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+import java.util.UUID;
 
 /**
  * Service related to handling assertions.
@@ -95,10 +104,24 @@ public class AssertionService {
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
-            final String credentialId = request.getCredentialId();
             final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
             final AuthenticatorData authenticatorData = wrapper.authenticatorData();
             final String challenge = clientDataJSON.getChallenge();
+            final AttestedCredentialData attestedCredentialData = authenticatorData.getAttestedCredentialData();
+
+            // Obtain clean credential ID encoded in Base64
+            String credentialId = request.getCredentialId();
+            if (attestedCredentialData != null) {
+                final byte[] credentialIdBytes = attestedCredentialData.getCredentialId();
+                final byte[] aaguid = attestedCredentialData.getAaguid();
+                final boolean isWultraModel = Fido2DefaultAuthenticators.isWultraModel(bytesToUUID(aaguid).toString());
+                if (aaguid != null
+                        && credentialIdBytes.length > 32
+                        && isWultraModel) {
+                    credentialId = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
+                }
+            }
+
             final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
@@ -121,6 +144,16 @@ public class AssertionService {
     private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
         return authenticatorProvider.findByCredentialId(credentialId, applicationId)
                 .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
+    }
+
+    private UUID bytesToUUID(byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+        final ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+        long mostSigBits = byteBuffer.getLong();
+        long leastSigBits = byteBuffer.getLong();
+        return new UUID(mostSigBits, leastSigBits);
     }
 
 }
