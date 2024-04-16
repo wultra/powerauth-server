@@ -271,7 +271,7 @@ public class ActivationServiceBehavior {
 
                 deactivatePendingActivation(timestamp, activation, false);
 
-                if (!protocols.contains(covert(activation.getProtocol()))) { // skip authenticators that were not required
+                if (!protocols.contains(convert(activation.getProtocol()))) { // skip authenticators that were not required
                     continue;
                 }
 
@@ -310,16 +310,6 @@ public class ActivationServiceBehavior {
         return switch(source) {
             case FIDO2 -> ActivationProtocol.FIDO2;
             case POWERAUTH -> ActivationProtocol.POWERAUTH;
-        };
-    }
-
-    private static ActivationProtocol covert(final io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol source) {
-        if (source == null) {
-            return null;
-        }
-        return switch (source) {
-            case POWERAUTH -> ActivationProtocol.POWERAUTH;
-            case FIDO2 -> ActivationProtocol.FIDO2;
         };
     }
 
