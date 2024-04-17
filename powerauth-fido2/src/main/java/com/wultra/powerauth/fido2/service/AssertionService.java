@@ -112,27 +112,29 @@ public class AssertionService {
             String credentialId = request.getCredentialId();
             AuthenticatorDetail authenticatorDetail;
             try {
-                logger.info("Looking up authenticator for credential ID: {}, application ID: {}", credentialId, applicationId);
+                logger.debug("Looking up authenticator for credential ID: {}, application ID: {}", credentialId, applicationId);
                 authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
+                logger.info("Found authenticator with ID: {}, for credential ID: {}, application ID: {}", authenticatorDetail.getActivationId(), credentialId, applicationId);
             } catch (Fido2AuthenticationFailedException ex) {
-                logger.info("Authenticator lookup failed, trying find trimmed version.");
+                logger.debug("Authenticator lookup failed, trying find trimmed version.");
                 // Try to find trimmed credential ID
                 final byte[] credentialIdBytes = Base64.getDecoder().decode(credentialId);
                 if (credentialIdBytes.length > 32) {
                     String credentialIdTrimmed = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
+                    logger.debug("Looking up authenticator for trimmed credential ID: {}, application ID: {}", credentialIdTrimmed, applicationId);
                     authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId);
                     // Check if trimming is supported
                     final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
                     final boolean isWultraModel = Fido2DefaultAuthenticators.isWultraModel(aaguid);
                     if (isWultraModel) {
-                        logger.info("Authenticator found for trimmed credential ID: {}, application ID: {}, with AAGUID: {}", credentialIdTrimmed, applicationId, aaguid);
+                        logger.info("Found authenticator with ID: {}, for trimmed credential ID: {}, application ID: {}, with AAGUID: {}", authenticatorDetail.getActivationId(), credentialIdTrimmed, applicationId, aaguid);
                         credentialId = credentialIdTrimmed;
                     } else {
-                        logger.warn("Trimmed credentials are only supported for Wultra models, found trimmed credential ID: {}, application ID: {}, with AAGUID: {}", credentialIdTrimmed, applicationId, aaguid);
+                        logger.debug("Trimmed credentials are only supported for Wultra models, found trimmed credential ID: {}, application ID: {}, with AAGUID: {}", credentialIdTrimmed, applicationId, aaguid);
                         throw ex;
                     }
                 } else {
-                    logger.warn("Credentials do not have sufficient length to use trimmed version");
+                    logger.debug("Credential ID: {}, does not have sufficient length (32 bytes) to use trimmed version", credentialId);
                     throw ex;
                 }
             }
@@ -158,16 +160,6 @@ public class AssertionService {
     private AuthenticatorDetail getAuthenticatorDetail(String credentialId, String applicationId) throws Fido2AuthenticationFailedException {
         return authenticatorProvider.findByCredentialId(credentialId, applicationId)
                 .orElseThrow(() -> new Fido2AuthenticationFailedException("Invalid request"));
-    }
-
-    private UUID bytesToUUID(byte[] bytes) {
-        if (bytes == null) {
-            return null;
-        }
-        final ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
-        long mostSigBits = byteBuffer.getLong();
-        long leastSigBits = byteBuffer.getLong();
-        return new UUID(mostSigBits, leastSigBits);
     }
 
 }
