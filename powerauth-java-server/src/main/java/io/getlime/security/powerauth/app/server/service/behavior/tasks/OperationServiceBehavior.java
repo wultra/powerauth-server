@@ -751,22 +751,30 @@ public class OperationServiceBehavior {
     private OperationEntity claimOperation(OperationEntity source, String userId, Date currentTimestamp) throws GenericServiceException {
         // If a user accessing the operation is specified in the query, either claim the operation to that user,
         // or check if the user is already granted to be able to access the operation.
-        if (userId != null) {
-            if (OperationStatusDo.PENDING.equals(source.getStatus())
-                    && source.getTimestampExpires().after(currentTimestamp)) {
-                final String operationId = source.getId();
-                final String expectedUserId = source.getUserId();
-                if (expectedUserId == null) {
-                    logger.info("Operation {} will be assigned to the user {}.", operationId, userId);
-                    source.setUserId(userId);
-                    return operationRepository.save(source);
-                } else if (!expectedUserId.equals(userId)) {
-                    logger.warn("Operation with ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
-                    throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
-                }
+        if (userId != null && source.getStatus() == OperationStatusDo.PENDING && source.getTimestampExpires().after(currentTimestamp)) {
+            final String operationId = source.getId();
+            final String expectedUserId = source.getUserId();
+            final String activationId = source.getActivationId();
+            if (activationId != null && !doesActivationBelongToUser(activationId, userId)) {
+                logger.warn("Operation ID: {}; activation ID: {} does not belong to user ID: {}", operationId, activationId, userId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            if (expectedUserId == null) {
+                logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
+                source.setUserId(userId);
+                return operationRepository.save(source);
+            } else if (!expectedUserId.equals(userId)) {
+                logger.warn("Operation ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
             }
         }
         return source;
+    }
+
+    private boolean doesActivationBelongToUser(final String activationId, final String userId) {
+        return activationRepository.findById(activationId)
+                .filter(it -> it.getUserId().equals(userId))
+                .isPresent();
     }
 
     private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {

@@ -56,7 +56,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class OperationServiceBehaviorTest {
 
     private static final String APP_ID = UUID.randomUUID().toString();
-    private static final String TEMPLATE_NAME = "login_" + UUID.randomUUID().toString();
+    private static final String TEMPLATE_NAME = "login_" + UUID.randomUUID();
+    private static final String ACTIVATION_ID = "68c5ca56-b419-4653-949f-49061a4be886"; // created by @Sql
 
     private final OperationServiceBehavior operationService;
     private final OperationTemplateServiceBehavior templateService;
@@ -344,17 +345,16 @@ class OperationServiceBehaviorTest {
     @Test
     void testFindAPendingOperationsForUserWithFilters() throws Exception {
         final String userId = "testUser";
-        final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
-        final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
+        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
         final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
-        final OperationListResponse operationListResponse1 = operationService.findPendingOperationsForUser(request1);
+                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId, pageable);
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
-        assertNotNull(operationListResponse1);
-        assertEquals(0, operationListResponse1.size());
+        assertNotNull(operationListResponse);
+        assertEquals(0, operationListResponse.size());
     }
 
     /**
@@ -472,6 +472,33 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
+    void testOperationClaim_activationId() throws Exception {
+        final String operationId = createLoginOperation(ACTIVATION_ID);
+
+        final String userId = "testUser";
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationId);
+        detailRequest.setUserId(userId);
+
+        assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
+    }
+
+    @Test
+    void testOperationClaim_activationId_invalidUserId() throws Exception {
+        final String operationId = createLoginOperation(ACTIVATION_ID);
+
+        final String userId = "user_" + UUID.randomUUID();
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationId);
+        detailRequest.setUserId(userId);
+
+        final GenericServiceException thrown = assertThrows(GenericServiceException.class, () ->
+                operationService.getOperation(detailRequest).getUserId());
+
+        assertEquals("ERR0024", thrown.getCode());
+    }
+
+    @Test
     void testOperationApproveWithValidProximityOtp() throws Exception {
         final OperationDetailResponse operation = createOperation(true);
         final String operationId = operation.getId();
@@ -562,7 +589,12 @@ class OperationServiceBehaviorTest {
     }
 
     private String createLoginOperation() throws GenericServiceException {
+        return createLoginOperation(null);
+    }
+
+    private String createLoginOperation(final String activationId) throws GenericServiceException {
         final OperationCreateRequest operationCreateRequest = new OperationCreateRequest();
+        operationCreateRequest.setActivationId(activationId);
         operationCreateRequest.setApplications(Collections.singletonList(APP_ID));
         operationCreateRequest.setTemplateName(TEMPLATE_NAME);
         operationCreateRequest.setTimestampExpires(new Date(Instant.now()
