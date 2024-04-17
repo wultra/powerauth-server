@@ -102,7 +102,7 @@ public class RegistrationRequestValidator {
         final String relyingPartyId = authenticatorParameters.getRelyingPartyId();
         final byte[] expectedRpIdHash = Hash.sha256(relyingPartyId);
         if (!Arrays.equals(rpIdHash, expectedRpIdHash)) {
-            return "The origin does not match relying party ID.";
+            return "The relying party ID stored with authenticator does not match the relying party ID provided in the request.";
         }
 
         final Flags flags = authData.getFlags();
