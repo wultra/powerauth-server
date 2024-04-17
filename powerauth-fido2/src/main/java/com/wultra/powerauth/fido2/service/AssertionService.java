@@ -24,32 +24,27 @@ import com.wultra.powerauth.fido2.rest.model.converter.AssertionConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionVerificationRequestWrapperConverter;
 import com.wultra.powerauth.fido2.rest.model.converter.serialization.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
-import com.wultra.powerauth.fido2.rest.model.entity.AttestedCredentialData;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
 import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
-import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
-import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.bouncycastle.util.Arrays;
 import org.springframework.stereotype.Service;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.UUID;
 
 /**
  * Service related to handling assertions.
