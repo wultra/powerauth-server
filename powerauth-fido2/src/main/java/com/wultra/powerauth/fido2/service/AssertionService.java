@@ -115,7 +115,7 @@ public class AssertionService {
                 // Try to find trimmed credential ID
                 final byte[] credentialIdBytes = Base64.getDecoder().decode(credentialId);
                 if (credentialIdBytes.length > 32) {
-                    String credentialIdTrimmed = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
+                   final String credentialIdTrimmed = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
                     logger.debug("Looking up authenticator for trimmed credential ID: {}, application ID: {}", credentialIdTrimmed, applicationId);
                     authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId);
                     // Check if trimming is supported
