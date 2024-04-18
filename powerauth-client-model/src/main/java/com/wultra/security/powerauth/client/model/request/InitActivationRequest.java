@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import lombok.Data;
 import lombok.ToString;
 
@@ -33,7 +33,7 @@ import java.util.Date;
 @Data
 public class InitActivationRequest {
 
-    private Protocols protocol = Protocols.POWERAUTH;
+    private ActivationProtocol protocol = ActivationProtocol.POWERAUTH;
     private String userId;
     private String applicationId;
     private Date timestampActivationExpire;

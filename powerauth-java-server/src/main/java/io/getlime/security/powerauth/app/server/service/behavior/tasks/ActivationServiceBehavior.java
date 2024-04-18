@@ -20,7 +20,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.Activation;
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.RecoveryCodeActivationRequest;
 import com.wultra.security.powerauth.client.model.request.UpdateActivationNameRequest;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -249,7 +249,7 @@ public class ActivationServiceBehavior {
      *         activation is represented as an {@link Activation} object. The response also includes the user ID associated
      *         with the activations.
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Set<Protocols> protocols, Pageable pageable, Set<ActivationStatus> activationStatuses) {
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Set<ActivationProtocol> protocols, Pageable pageable, Set<ActivationStatus> activationStatuses) {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
@@ -271,7 +271,7 @@ public class ActivationServiceBehavior {
 
                 deactivatePendingActivation(timestamp, activation, false);
 
-                if (!protocols.contains(Protocols.valueOf(activation.getProtocol().toUpperCase()))) { // skip authenticators that were not required
+                if (!protocols.contains(convert(activation.getProtocol()))) { // skip authenticators that were not required
                     continue;
                 }
 
@@ -283,7 +283,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExternalId(activation.getExternalId());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
-                activationServiceItem.setProtocol(activation.getProtocol());
+                activationServiceItem.setProtocol(convert(activation.getProtocol()));
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.getActivationFlags().addAll(activation.getFlags());
@@ -301,6 +301,16 @@ public class ActivationServiceBehavior {
             }
         }
         return response;
+    }
+
+    private static ActivationProtocol convert(final io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol source) {
+        if (source == null) {
+            return null;
+        }
+        return switch(source) {
+            case FIDO2 -> ActivationProtocol.FIDO2;
+            case POWERAUTH -> ActivationProtocol.POWERAUTH;
+        };
     }
 
     /**
@@ -352,7 +362,7 @@ public class ActivationServiceBehavior {
             activationServiceItem.setExternalId(activation.getExternalId());
             activationServiceItem.setActivationName(activation.getActivationName());
             activationServiceItem.setExtras(activation.getExtras());
-            activationServiceItem.setProtocol(activation.getProtocol());
+            activationServiceItem.setProtocol(convert(activation.getProtocol()));
             activationServiceItem.setPlatform(activation.getPlatform());
             activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
             activationServiceItem.getActivationFlags().addAll(activation.getFlags());
@@ -473,7 +483,7 @@ public class ActivationServiceBehavior {
                     response.setActivationSignature(Base64.getEncoder().encodeToString(activationSignature));
                     response.setDevicePublicKeyFingerprint(null);
                     response.setPlatform(activation.getPlatform());
-                    response.setProtocol(activation.getProtocol());
+                    response.setProtocol(convert(activation.getProtocol()));
                     response.setExternalId(activation.getExternalId());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
@@ -589,7 +599,7 @@ public class ActivationServiceBehavior {
                     response.setActivationSignature(null);
                     response.setDevicePublicKeyFingerprint(activationFingerPrint);
                     response.setPlatform(activation.getPlatform());
-                    response.setProtocol(activation.getProtocol());
+                    response.setProtocol(convert(activation.getProtocol()));
                     response.setExternalId(activation.getExternalId());
                     response.setDeviceInfo(activation.getDeviceInfo());
                     response.getActivationFlags().addAll(activation.getFlags());
@@ -667,7 +677,7 @@ public class ActivationServiceBehavior {
      * @return Response with activation initialization data
      * @throws GenericServiceException If invalid values are provided.
      */
-    public InitActivationResponse initActivation(Protocols protocol, String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
+    public InitActivationResponse initActivation(ActivationProtocol protocol, String applicationId, String userId, Long maxFailureCount, Date activationExpireTimestamp,
                                                  com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation, String activationOtp, List<String> flags,
                                                  KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
@@ -798,7 +808,7 @@ public class ActivationServiceBehavior {
             activation.setCtrDataBase64(null);
             activation.setDevicePublicKeyBase64(null);
             activation.setExtras(null);
-            activation.setProtocol(protocol.toString());
+            activation.setProtocol(convert(protocol));
             activation.setPlatform(null);
             activation.setDeviceInfo(null);
             activation.setFailedAttempts(0L);
@@ -846,6 +856,16 @@ public class ActivationServiceBehavior {
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
         }
+    }
+
+    private io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol convert(final ActivationProtocol source) {
+        if (source == null) {
+            return null;
+        }
+        return switch (source) {
+            case POWERAUTH -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.POWERAUTH;
+            case FIDO2 -> io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.FIDO2;
+        };
     }
 
     /**
@@ -1133,7 +1153,7 @@ public class ActivationServiceBehavior {
             final com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation activationOtpValidation = activationOtp != null ? com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.ON_COMMIT : com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation.NONE;
 
             // Create an activation record and obtain the activation database record
-            final InitActivationResponse initResponse = this.initActivation(Protocols.POWERAUTH, applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
+            final InitActivationResponse initResponse = this.initActivation(ActivationProtocol.POWERAUTH, applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
             final String activationId = initResponse.getActivationId();
             final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
 
@@ -1889,7 +1909,7 @@ public class ActivationServiceBehavior {
             // Initialize version 3 activation entity.
             // Parameter maxFailureCount can be customized, activationExpireTime is null because activation is committed immediately.
             final InitActivationResponse initResponse = initActivation(
-                    Protocols.POWERAUTH,
+                    ActivationProtocol.POWERAUTH,
                     applicationId,
                     recoveryCodeEntity.getUserId(),
                     maxFailureCount,
@@ -2168,7 +2188,7 @@ public class ActivationServiceBehavior {
                 activationServiceItem.setExternalId(activation.getExternalId());
                 activationServiceItem.setActivationName(activation.getActivationName());
                 activationServiceItem.setExtras(activation.getExtras());
-                activationServiceItem.setProtocol(activation.getProtocol());
+                activationServiceItem.setProtocol(convert(activation.getProtocol()));
                 activationServiceItem.setPlatform(activation.getPlatform());
                 activationServiceItem.setDeviceInfo(activation.getDeviceInfo());
                 activationServiceItem.getActivationFlags().addAll(activation.getFlags());

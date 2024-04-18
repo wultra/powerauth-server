@@ -19,7 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.security.powerauth.client.model.enumeration.Protocols;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -42,22 +42,9 @@ public class ActivationContextValidator {
      * @param localizationProvider Localization provider.
      * @throws GenericServiceException Thrown when protocol is invalid.
      */
-    public void validatePowerAuthProtocol(final String protocol, final LocalizationProvider localizationProvider) throws GenericServiceException {
-        if (!Protocols.isPowerAuth(protocol)) {
+    public void validatePowerAuthProtocol(final ActivationProtocol protocol, final LocalizationProvider localizationProvider) throws GenericServiceException {
+        if (protocol != ActivationProtocol.POWERAUTH) {
             logger.warn("Invalid protocol: {}, expected: powerauth", protocol);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-    }
-
-    /**
-     * Validate that protocol is fido2.
-     * @param protocol Protocol.
-     * @param localizationProvider Localization provider.
-     * @throws GenericServiceException Thrown when protocol is invalid.
-     */
-    public void validateFido2Protocol(final String protocol, final LocalizationProvider localizationProvider) throws GenericServiceException {
-        if (!Protocols.isFido2(protocol)) {
-            logger.warn("Invalid protocol: {}, expected: fido2", protocol);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
     }

@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.client.model.entity;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -38,7 +39,7 @@ public class Activation {
     private String activationName;
     private String externalId;
     private String extras;
-    private String protocol;
+    private ActivationProtocol protocol;
     private String platform;
     private String deviceInfo;
     private List<String> activationFlags = new ArrayList<>();
