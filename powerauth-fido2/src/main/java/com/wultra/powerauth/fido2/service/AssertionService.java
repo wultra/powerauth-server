@@ -28,19 +28,23 @@ import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequestWrapper;
 import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
-import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bouncycastle.util.Arrays;
 import org.springframework.stereotype.Service;
+
+import java.util.Base64;
 
 /**
  * Service related to handling assertions.
@@ -95,11 +99,41 @@ public class AssertionService {
         try {
             final AuthenticatorAssertionResponse response = request.getResponse();
             final String applicationId = request.getApplicationId();
-            final String credentialId = request.getCredentialId();
             final CollectedClientData clientDataJSON = wrapper.clientDataJSON();
             final AuthenticatorData authenticatorData = wrapper.authenticatorData();
             final String challenge = clientDataJSON.getChallenge();
-            final AuthenticatorDetail authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
+
+            // Obtain clean credential ID encoded in Base64
+            String credentialId = request.getCredentialId();
+            AuthenticatorDetail authenticatorDetail;
+            try {
+                logger.debug("Looking up authenticator for credential ID: {}, application ID: {}", credentialId, applicationId);
+                authenticatorDetail = getAuthenticatorDetail(credentialId, applicationId);
+                logger.info("Found authenticator with ID: {}, for credential ID: {}, application ID: {}", authenticatorDetail.getActivationId(), credentialId, applicationId);
+            } catch (Fido2AuthenticationFailedException ex) {
+                logger.debug("Authenticator lookup failed, trying find trimmed version.");
+                // Try to find trimmed credential ID
+                final byte[] credentialIdBytes = Base64.getDecoder().decode(credentialId);
+                if (credentialIdBytes.length > 32) {
+                   final String credentialIdTrimmed = Base64.getEncoder().encodeToString(Arrays.copyOfRange(credentialIdBytes, 0, 32));
+                    logger.debug("Looking up authenticator for trimmed credential ID: {}, application ID: {}", credentialIdTrimmed, applicationId);
+                    authenticatorDetail = getAuthenticatorDetail(credentialIdTrimmed, applicationId);
+                    // Check if trimming is supported
+                    final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
+                    final boolean isWultraModel = Fido2DefaultAuthenticators.isWultraModel(aaguid);
+                    if (isWultraModel) {
+                        logger.info("Found authenticator with ID: {}, for trimmed credential ID: {}, application ID: {}, with AAGUID: {}", authenticatorDetail.getActivationId(), credentialIdTrimmed, applicationId, aaguid);
+                        credentialId = credentialIdTrimmed;
+                    } else {
+                        logger.debug("Trimmed credentials are only supported for Wultra models, found trimmed credential ID: {}, application ID: {}, with AAGUID: {}", credentialIdTrimmed, applicationId, aaguid);
+                        throw ex;
+                    }
+                } else {
+                    logger.debug("Credential ID: {}, does not have sufficient length (32 bytes) to use trimmed version", credentialId);
+                    throw ex;
+                }
+            }
+
             if (authenticatorDetail.getActivationStatus() == ActivationStatus.ACTIVE) {
                 final boolean signatureCorrect = cryptographyService.verifySignatureForAssertion(applicationId, credentialId, clientDataJSON, authenticatorData, response.getSignature(), authenticatorDetail);
                 if (signatureCorrect) {
