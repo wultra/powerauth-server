@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.database.repository;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.UniqueValueEntity;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -32,6 +33,7 @@ import java.util.Date;
 @Repository
 public interface UniqueValueRepository extends CrudRepository<UniqueValueEntity, String> {
 
+    @Modifying
     @Query("DELETE FROM UniqueValueEntity u WHERE u.timestampExpires < :timestampExpires")
     int deleteExpiredValues(Date timestampExpires);
 
