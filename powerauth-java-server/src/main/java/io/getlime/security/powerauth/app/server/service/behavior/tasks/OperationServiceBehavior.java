@@ -131,6 +131,7 @@ public class OperationServiceBehavior {
     }
 
     public OperationDetailResponse createOperation(OperationCreateRequest request) throws GenericServiceException {
+        validate(request);
 
         final String userId = request.getUserId();
         final List<String> applications = request.getApplications();
@@ -241,7 +242,26 @@ public class OperationServiceBehavior {
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
         return convertFromEntity(savedEntity);
+    }
 
+    private void validate(final OperationCreateRequest request) throws GenericServiceException {
+        final String activationId = request.getActivationId();
+        if (activationId != null) {
+            final String userId = request.getUserId();
+            if (userId == null) {
+                logger.warn("Filled activation ID: {} but missing user ID.", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            } else if (!doesActivationBelongToUser(activationId, userId)) {
+                logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+        }
+    }
+
+    private boolean doesActivationBelongToUser(final String activationId, final String userId) {
+        return activationRepository.findById(activationId)
+                .filter(it -> it.getUserId().equals(userId))
+                .isPresent();
     }
 
     public OperationUserActionResponse attemptApproveOperation(OperationApproveRequest request) throws GenericServiceException {
@@ -757,11 +777,11 @@ public class OperationServiceBehavior {
                 final String operationId = source.getId();
                 final String expectedUserId = source.getUserId();
                 if (expectedUserId == null) {
-                    logger.info("Operation {} will be assigned to the user {}.", operationId, userId);
+                    logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
                     source.setUserId(userId);
                     return operationRepository.save(source);
                 } else if (!expectedUserId.equals(userId)) {
-                    logger.warn("Operation with ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
+                    logger.warn("Operation ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
                     throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
                 }
             }
