@@ -2095,17 +2095,17 @@ REST endpoint: `POST /rest/v3/operation/create`
 
 `OperationCreateRequest`
 
-| Type                  | Name                    | Description                                                                                      |
-|-----------------------|-------------------------|--------------------------------------------------------------------------------------------------|
-| `String`              | `userId`                | The identifier of the user (optional for non-personalized operations)                     |
-| `List<String>`        | `applications`          | List of associated applications                                                                  |
-| `String`              | `activationFlag`        | Activation flag associated with the operation                                                    |
-| `String`              | `templateName`          | Name of the template used for creating the operation                                             |
-| `Date`                | `timestampExpires`      | Timestamp of when the operation will expire, overrides expiration period from operation template |
-| `String`              | `externalId`            | External identifier of the operation, i.e., ID from transaction system                           |
-| `Map<String, String>` | `parameters`            | Parameters of the operation, will be filled to the operation data                                |
-| `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used, overrides configuration from operation template          |
-| `String`              | `activationId`          | Activation Id of a specific device                                                               |
+| Type                  | Name                    | Description                                                                                                         |
+|-----------------------|-------------------------|---------------------------------------------------------------------------------------------------------------------|
+| `String`              | `userId`                | The identifier of the user (optional for non-personalized operations)                                               |
+| `List<String>`        | `applications`          | List of associated applications                                                                                     |
+| `String`              | `activationFlag`        | Activation flag associated with the operation                                                                       |
+| `String`              | `templateName`          | Name of the template used for creating the operation                                                                |
+| `Date`                | `timestampExpires`      | Timestamp of when the operation will expire, overrides expiration period from operation template                    |
+| `String`              | `externalId`            | External identifier of the operation, i.e., ID from transaction system                                              |
+| `Map<String, String>` | `parameters`            | Parameters of the operation, will be filled to the operation data                                                   |
+| `Boolean`             | `proximityCheckEnabled` | Whether proximity check should be used, overrides configuration from operation template                             |
+| `String`              | `activationId`          | Activation ID. It is possible to specify a single device (otherwise all user's activations are taken into account). |
 
 #### Response
 
