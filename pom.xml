@@ -89,7 +89,7 @@
         <powerauth-java-crypto.version>1.7.0</powerauth-java-crypto.version>
         <wultra-core.version>1.9.0</wultra-core.version>
 
-        <bcprov-jdk18on.version>1.78</bcprov-jdk18on.version>
+        <bcprov-jdk18on.version>1.78.1</bcprov-jdk18on.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
