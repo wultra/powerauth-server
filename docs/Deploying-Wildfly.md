@@ -11,16 +11,12 @@ PowerAuth server contains the following configuration in `jboss-deployment-struc
         <exclusions>
             <module name="org.apache.xerces" />
             <module name="org.apache.xalan" />
+            <module name="org.bouncycastle"/>
         </exclusions>
         <exclude-subsystems>
             <!-- disable the logging subsystem because the application manages its own logging independently -->
             <subsystem name="logging" />
         </exclude-subsystems>
-
-        <resources>
-            <!-- use WAR provided Bouncy Castle -->
-            <resource-root path="WEB-INF/lib/bcprov-jdk18on-${BC_VERSION}.jar" use-physical-code-source="true"/>
-        </resources>
 
         <dependencies>
             <module name="com.wultra.powerauth.server.conf" />

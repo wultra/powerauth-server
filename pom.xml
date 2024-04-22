@@ -86,10 +86,8 @@
         <spring-cloud-vault.version>4.1.1</spring-cloud-vault.version>
 
         <!-- Wultra Dependencies -->
-        <powerauth-java-crypto.version>1.7.0</powerauth-java-crypto.version>
-        <wultra-core.version>1.9.0</wultra-core.version>
-
-        <bcprov-jdk18on.version>1.78.1</bcprov-jdk18on.version>
+        <powerauth-java-crypto.version>1.8.0-SNAPSHOT</powerauth-java-crypto.version>
+        <wultra-core.version>1.10.0-SNAPSHOT</wultra-core.version>
 
         <istack-commons-runtime.version>3.0.12</istack-commons-runtime.version>
 
@@ -144,12 +142,6 @@
                 <version>${wultra-core.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
-            </dependency>
-
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk18on</artifactId>
-                <version>${bcprov-jdk18on.version}</version>
             </dependency>
 
             <!-- QR code support -->
