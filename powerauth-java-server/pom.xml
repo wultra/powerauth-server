@@ -29,7 +29,7 @@
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.6.3-SNAPSHOT</version>
+        <version>1.6.3</version>
     </parent>
 
     <dependencies>
