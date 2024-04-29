@@ -6,7 +6,7 @@ PowerAuth server contains the following configuration in `jboss-deployment-struc
 
 ```xml
 <?xml version="1.0"?>
-<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.3">
     <deployment>
         <exclude-subsystems>
             <!-- disable the logging subsystem because the application manages its own logging independently -->
