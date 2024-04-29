@@ -26,6 +26,7 @@ import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.nio.charset.StandardCharsets;
@@ -108,28 +109,21 @@ public class AssertionChallengeConverter {
 
         if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
             final List<AllowCredentials> allowCredentials = new ArrayList<>();
-            boolean hasWultraModel = false;
             for (AuthenticatorDetail ad: authenticatorDetails) {
 
                 @SuppressWarnings("unchecked")
                 final List<String> transports = (List<String>) ad.getExtras().get("transports");
                 final String aaguid = (String) ad.getExtras().get("aaguid");
 
-                final byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
+                byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
                 if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
-                    hasWultraModel = true;
+                    final byte[] operationDataBytes = source.getData().getBytes(StandardCharsets.UTF_8);
+                    credentialId = ByteUtils.concat(credentialId, operationDataBytes);
                 }
 
                 final AllowCredentials ac = AllowCredentials.builder()
                         .credentialId(credentialId)
                         .transports(transports)
-                        .build();
-                allowCredentials.add(ac);
-            }
-            if (hasWultraModel) {
-                final byte[] credentialId = source.getData().getBytes(StandardCharsets.UTF_8);
-                final AllowCredentials ac = AllowCredentials.builder()
-                        .credentialId(credentialId)
                         .build();
                 allowCredentials.add(ac);
             }
