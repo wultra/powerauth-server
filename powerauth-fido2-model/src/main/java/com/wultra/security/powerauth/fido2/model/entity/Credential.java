@@ -25,7 +25,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Representation of an allowed authenticator instance.
+ * Representation of a FIDO2 Credential.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
