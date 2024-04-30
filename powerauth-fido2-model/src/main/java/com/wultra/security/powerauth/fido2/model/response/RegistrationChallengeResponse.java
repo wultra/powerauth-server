@@ -18,8 +18,11 @@
 
 package com.wultra.security.powerauth.fido2.model.response;
 
+import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import lombok.Data;
 import lombok.ToString;
+
+import java.util.List;
 
 /**
  * @author Roman Strobl, roman.strobl@wultra.com
@@ -32,5 +35,6 @@ public class RegistrationChallengeResponse {
     @ToString.Exclude
     private String challenge;
     private String userId;
+    private List<Credential> excludeCredentials;
 
 }
