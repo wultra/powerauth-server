@@ -21,7 +21,7 @@ package com.wultra.powerauth.fido2.rest.model.converter;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
+import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
@@ -108,7 +108,7 @@ public class AssertionChallengeConverter {
         destination.setMaxFailedAttempts(source.getMaxFailureCount());
 
         if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
-            final List<AllowCredentials> allowCredentials = new ArrayList<>();
+            final List<Credential> allowCredentials = new ArrayList<>();
             for (AuthenticatorDetail ad: authenticatorDetails) {
 
                 @SuppressWarnings("unchecked")
@@ -121,11 +121,11 @@ public class AssertionChallengeConverter {
                     credentialId = ByteUtils.concat(credentialId, operationDataBytes);
                 }
 
-                final AllowCredentials ac = AllowCredentials.builder()
+                final Credential credential = Credential.builder()
                         .credentialId(credentialId)
                         .transports(transports)
                         .build();
-                allowCredentials.add(ac);
+                allowCredentials.add(credential);
             }
             destination.setAllowCredentials(allowCredentials);
         }

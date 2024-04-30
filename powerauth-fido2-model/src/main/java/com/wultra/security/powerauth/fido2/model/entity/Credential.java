@@ -34,7 +34,7 @@ import java.util.List;
 @ToString
 @Builder
 @Jacksonized
-public class AllowCredentials {
+public class Credential {
 
     private final byte[] credentialId;
 
