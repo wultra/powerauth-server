@@ -19,6 +19,8 @@
 package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
+import com.wultra.powerauth.fido2.rest.model.converter.RegistrationChallengeConverter;
+import com.wultra.powerauth.fido2.rest.model.entity.Credential;
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
@@ -42,11 +44,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
@@ -62,25 +60,33 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
-
+    private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public PowerAuthRegistrationProvider(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue serviceBehaviorCatalogue) {
+    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final ServiceBehaviorCatalogue serviceBehaviorCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
+        this.authenticatorProvider = authenticatorProvider;
     }
 
     @Override
     @Transactional
-    public RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws GenericServiceException {
+    public RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws GenericServiceException, Fido2AuthenticationFailedException {
         final InitActivationResponse initActivationResponse = serviceBehaviorCatalogue.getActivationServiceBehavior()
                 .initActivation(Protocols.FIDO2, applicationId, userId, null, null, ActivationOtpValidation.NONE, null, null, keyConvertor);
+
+        final List<Credential> excludeCredentials = authenticatorProvider.findByUserId(userId, applicationId)
+                .stream()
+                .map(RegistrationChallengeConverter::toCredentialDescriptor)
+                .toList();
+
         final RegistrationChallenge registrationChallenge = new RegistrationChallenge();
         registrationChallenge.setUserId(initActivationResponse.getUserId());
         registrationChallenge.setApplicationId(initActivationResponse.getApplicationId());
         registrationChallenge.setActivationId(initActivationResponse.getActivationId());
         registrationChallenge.setChallenge(initActivationResponse.getActivationCode());
+        registrationChallenge.setExcludeCredentials(excludeCredentials);
         return registrationChallenge;
     }
 
