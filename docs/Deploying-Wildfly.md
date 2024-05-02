@@ -6,13 +6,8 @@ PowerAuth server contains the following configuration in `jboss-deployment-struc
 
 ```xml
 <?xml version="1.0"?>
-<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.2">
+<jboss-deployment-structure xmlns="urn:jboss:deployment-structure:1.3">
     <deployment>
-        <exclusions>
-            <module name="org.apache.xerces" />
-            <module name="org.apache.xalan" />
-            <module name="org.bouncycastle"/>
-        </exclusions>
         <exclude-subsystems>
             <!-- disable the logging subsystem because the application manages its own logging independently -->
             <subsystem name="logging" />
@@ -89,12 +84,14 @@ The `application-ext.properties` file is used to override default configuration 
 
 ```
 # Database Configuration - Oracle
-spring.datasource.url=jdbc:oracle:thin:@//[host]:[port]/[servicename]
-spring.datasource.username=powerauth
-spring.datasource.password=powerauth
+spring.datasource.jndi-name=java:/jdbc/powerauth
 
 # Application Service Configuration
 powerauth.service.applicationEnvironment=TEST
 ```
+
+Mind that you should specify `spring.datasource.jndi-name` to use the application server datasource (its declaration is out of the scope of this guideline).
+When configure `spring.datasource.url`, the hikari connection pool is used.
+Spring Boot running on WildFly or JBoos initializes [JtaTransactionManager](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/transaction/jta/JtaTransactionManager.html).
 
 PowerAuth Server Spring application uses the `ext` Spring profile which activates overriding of default properties by `application-ext.properties`.
