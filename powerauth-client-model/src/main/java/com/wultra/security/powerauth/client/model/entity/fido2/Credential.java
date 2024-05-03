@@ -23,12 +23,12 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * Representation of an allowed authenticator instance.
+ * Representation of a FIDO2 Credential.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Data
-public class AllowCredentials {
+public class Credential {
 
     private byte[] credentialId;
 
