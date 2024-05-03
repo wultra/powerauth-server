@@ -19,9 +19,14 @@
 package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.wultra.powerauth.fido2.rest.model.entity.RegistrationChallenge;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.Base64;
+import java.util.List;
 
 /**
  * @author Petr Dvorak, petr@wultra.com
@@ -45,7 +50,19 @@ public class RegistrationChallengeConverter {
         destination.setActivationId(source.getActivationId());
         destination.setApplicationId(source.getApplicationId());
         destination.setChallenge(source.getChallenge());
+        destination.setExcludeCredentials(source.getExcludeCredentials());
         return destination;
+    }
+
+    public static Credential toCredentialDescriptor(final AuthenticatorDetail authenticatorDetail) {
+        @SuppressWarnings("unchecked")
+        final List<String> transports = (List<String>) authenticatorDetail.getExtras().get("transports");
+        final byte[] credentialId = Base64.getDecoder().decode(authenticatorDetail.getCredentialId());
+
+        return Credential.builder()
+                .credentialId(credentialId)
+                .transports(transports)
+                .build();
     }
 
 }

@@ -20,7 +20,7 @@ package com.wultra.powerauth.fido2.rest.model.converter;
 
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
+import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
@@ -121,7 +121,7 @@ class AssertionChallengeConverterTest {
         assertEquals(5L, assertionChallenge.getMaxFailedAttempts());
 
         assertNotNull(assertionChallenge.getAllowCredentials());
-        final AllowCredentials allowCredential = assertionChallenge.getAllowCredentials().get(0);
+        final Credential allowCredential = assertionChallenge.getAllowCredentials().get(0);
         assertArrayEquals("credential-1".getBytes(), allowCredential.getCredentialId());
         assertEquals("hybrid", allowCredential.getTransports().get(0));
         assertEquals("public-key", allowCredential.getType());
@@ -154,7 +154,7 @@ class AssertionChallengeConverterTest {
 
         assertNotNull(assertionChallenge.getAllowCredentials());
         assertEquals(1, assertionChallenge.getAllowCredentials().size());
-        final AllowCredentials allowCredential = assertionChallenge.getAllowCredentials().get(0);
+        final Credential allowCredential = assertionChallenge.getAllowCredentials().get(0);
         assertArrayEquals("credential-1A1*A100CZK".getBytes(), allowCredential.getCredentialId());
         assertEquals("usb", allowCredential.getTransports().get(0));
         assertEquals("public-key", allowCredential.getType());
@@ -194,12 +194,12 @@ class AssertionChallengeConverterTest {
 
         assertNotNull(assertionChallenge.getAllowCredentials());
         assertEquals(2, assertionChallenge.getAllowCredentials().size());
-        final AllowCredentials allowCredential1 = assertionChallenge.getAllowCredentials().get(0);
+        final Credential allowCredential1 = assertionChallenge.getAllowCredentials().get(0);
         assertArrayEquals("credential-1A1*A100CZK".getBytes(), allowCredential1.getCredentialId());
         assertEquals("usb", allowCredential1.getTransports().get(0));
         assertEquals("public-key", allowCredential1.getType());
 
-        final AllowCredentials allowCredential2 = assertionChallenge.getAllowCredentials().get(1);
+        final Credential allowCredential2 = assertionChallenge.getAllowCredentials().get(1);
         assertArrayEquals("credential-2A1*A100CZK".getBytes(), allowCredential2.getCredentialId());
         assertEquals("usb", allowCredential2.getTransports().get(0));
         assertEquals("public-key", allowCredential2.getType());
