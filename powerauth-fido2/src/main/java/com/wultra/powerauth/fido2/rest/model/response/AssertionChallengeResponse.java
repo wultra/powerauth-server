@@ -18,7 +18,7 @@
 
 package com.wultra.powerauth.fido2.rest.model.response;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AllowCredentials;
+import com.wultra.powerauth.fido2.rest.model.entity.Credential;
 import lombok.Data;
 
 import java.util.List;
@@ -36,6 +36,6 @@ public class AssertionChallengeResponse {
     private String userId;
     private Long failedAttempts;
     private Long maxFailedAttempts;
-    private List<AllowCredentials> allowCredentials;
+    private List<Credential> allowCredentials;
 
 }

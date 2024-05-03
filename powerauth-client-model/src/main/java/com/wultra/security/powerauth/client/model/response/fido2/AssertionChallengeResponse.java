@@ -18,7 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.response.fido2;
 
-import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
+import com.wultra.security.powerauth.client.model.entity.fido2.Credential;
 import lombok.Data;
 import lombok.ToString;
 
@@ -38,6 +38,6 @@ public class AssertionChallengeResponse {
     private String userId;
     private Long failedAttempts;
     private Long maxFailedAttempts;
-    private List<AllowCredentials> allowCredentials;
+    private List<Credential> allowCredentials;
 
 }

@@ -27,7 +27,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Representation of an allowed authenticator instance.
+ * Representation of a FIDO2 Credential.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
@@ -35,7 +35,7 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 @Builder
-public class AllowCredentials {
+public class Credential {
 
     private final byte[] credentialId;
 
