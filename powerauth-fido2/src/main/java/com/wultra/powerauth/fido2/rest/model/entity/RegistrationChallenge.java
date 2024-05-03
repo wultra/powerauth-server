@@ -20,6 +20,8 @@ package com.wultra.powerauth.fido2.rest.model.entity;
 
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * Model class representing registration challenge.
  *
@@ -31,4 +33,5 @@ public class RegistrationChallenge {
     private String applicationId;
     private String challenge;
     private String userId;
+    private List<Credential> excludeCredentials;
 }
