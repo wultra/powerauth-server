@@ -265,6 +265,12 @@ public class PowerAuthServiceConfiguration {
     private int proximityCheckOtpLength;
 
     /**
+     * Number of operation that will be set expired in the single scheduled job run.
+     */
+    @Value("${powerauth.service.scheduled.job.expireOperationsLimit:100}")
+    private int expireOperationsLimit;
+
+    /**
      * Prepare and configure object mapper.
      * @return Object mapper.
      */

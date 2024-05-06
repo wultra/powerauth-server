@@ -83,6 +83,7 @@ Discuss its configuration with the [Spring Boot documentation](https://docs.spri
 | Property                                                                    | Default   | Note                                                                                               |
 |-----------------------------------------------------------------------------|-----------|----------------------------------------------------------------------------------------------------|
 | `powerauth.service.scheduled.job.operationCleanup`                          | `5000`    | Time delay in milliseconds between two consecutive tasks that expire long pending operations.      |
+| `powerauth.service.scheduled.job.expireOperationsLimit`                     | `100`     | Number of long pending operations that will be set expired in single scheduled job run.            |
 | `powerauth.service.scheduled.job.activationsCleanup`                        | `5000`    | Time delay in milliseconds between two consecutive tasks that expire abandoned activations.        |
 | `powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds` | `3600000` | Number of milliseconds to look back in the past when looking for abandoned activations.            |
 | `powerauth.service.scheduled.job.uniqueValueCleanup`                        | `60000`   | Time delay in milliseconds between two consecutive tasks that delete expired unique values.        |

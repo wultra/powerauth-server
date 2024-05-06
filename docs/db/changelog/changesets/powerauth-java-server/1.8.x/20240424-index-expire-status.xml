@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <!-- Drop index pa_operation_status_exp -->
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.8.x/20240424-index-expire-status.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <indexExists indexName="pa_operation_status_exp"/>
+        </preConditions>
+        <comment>Drop index on pa_operation(timestamp_expires, status).</comment>
+        <dropIndex tableName="pa_operation" indexName="pa_operation_status_exp" />
+    </changeSet>
+
+    <!-- Create index pa_operation_status_exp with different column ordering -->
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.8.x/20240424-index-expire-status.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="pa_operation_status_exp"/>
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_operation(status, timestamp_expires).</comment>
+        <createIndex tableName="pa_operation" indexName="pa_operation_status_exp">
+            <column name="status" />
+            <column name="timestamp_expires" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

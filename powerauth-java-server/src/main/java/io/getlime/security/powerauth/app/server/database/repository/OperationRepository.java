@@ -81,8 +81,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
             SELECT o FROM OperationEntity o 
             WHERE o.timestampExpires < :timestamp
             AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING
-            ORDER BY o.timestampCreated
             """)
-    Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);
+    Stream<OperationEntity> findExpiredPendingOperations(Date timestamp, Pageable pageable);
 
 }
