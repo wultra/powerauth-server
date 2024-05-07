@@ -328,9 +328,11 @@ public class CallbackUrlBehavior {
         try {
             if (operation != null && operation.getApplications() != null && !operation.getApplications().isEmpty()) {
                 for (ApplicationEntity application : operation.getApplications()) {
-                    final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(
-                            application.getId(), CallbackUrlType.OPERATION_STATUS_CHANGE
-                    );
+                    final Iterable<CallbackUrlEntity> callbackUrlEntities = application.getCallbacks()
+                            .stream()
+                            .filter(callbackUrlEntity -> CallbackUrlType.OPERATION_STATUS_CHANGE == callbackUrlEntity.getType())
+                            .toList();
+
                     for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
                         final Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
                         notifyCallbackUrl(callbackUrlEntity, callbackData);
