@@ -1144,7 +1144,7 @@ public class PowerAuthService {
 
     @Transactional
     public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
-        if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null) {
+        if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null || request.getProtocolVersion() == null) {
             logger.warn("Invalid request parameters in method validateToken");
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
