@@ -16,24 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.powerauth.fido2.config;
+package com.wultra.powerauth.fido2.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
 
 /**
- * Configuration of the FIDO2 Authenticators cache periodical eviction.
+ * Service of the FIDO2 Authenticators cache.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@Configuration
+@Service
 @Slf4j
-public class CachingConfig {
+public class CacheService {
 
+    /**
+     * Evict cache name {@code fido2-authenticators-cache}.
+     */
     @CacheEvict(value = "fido2-authenticators-cache", allEntries = true)
-    @Scheduled(fixedDelayString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
     public void evictFido2AuthenticatorCache() {
         logger.debug("Flush FIDO2 Authenticators cache.");
     }

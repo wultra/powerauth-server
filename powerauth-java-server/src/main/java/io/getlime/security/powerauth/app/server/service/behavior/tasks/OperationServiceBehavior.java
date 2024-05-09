@@ -48,15 +48,12 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.totp.Totp;
 import jakarta.validation.constraints.NotNull;
 import lombok.SneakyThrows;
-import net.javacrumbs.shedlock.core.LockAssert;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -962,13 +959,8 @@ public class OperationServiceBehavior {
         return Collections.emptyList();
     }
 
-    // Scheduled tasks
-
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup:5000}")
-    @SchedulerLock(name = "expireOperationsTask")
     @Transactional
     public void expireOperations() {
-        LockAssert.assertLocked();
         final Date currentTimestamp = new Date();
         logger.debug("Running scheduled task for expiring operations");
 

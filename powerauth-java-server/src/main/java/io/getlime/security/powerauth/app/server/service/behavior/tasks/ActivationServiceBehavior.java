@@ -63,13 +63,10 @@ import io.getlime.security.powerauth.crypto.lib.util.PasswordHash;
 import io.getlime.security.powerauth.crypto.server.activation.PowerAuthServerActivation;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import jakarta.validation.constraints.NotNull;
-import net.javacrumbs.shedlock.core.LockAssert;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -2208,13 +2205,8 @@ public class ActivationServiceBehavior {
         return result;
     }
 
-    // Scheduled tasks
-
-    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
-    @SchedulerLock(name = "expireActivationsTask")
     @Transactional
     public void expireActivations() {
-        LockAssert.assertLocked();
         final Date currentTimestamp = new Date();
         final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
         logger.debug("Running scheduled task for expiring activations");
