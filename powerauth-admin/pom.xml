@@ -78,13 +78,6 @@
             <artifactId>logstash-logback-encoder</artifactId>
         </dependency>
 
-        <!-- Standalone run -->
-        <dependency>
-            <groupId>org.apache.tomcat.embed</groupId>
-            <artifactId>tomcat-embed-jasper</artifactId>
-            <scope>provided</scope>
-        </dependency>
-
         <!-- For run at Apple M1 architecture -->
         <dependency>
             <groupId>io.netty</groupId>
@@ -166,6 +159,22 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.leonard.maven.plugins</groupId>
+                <artifactId>jspc-maven-plugin</artifactId>
+                <version>4.2.0</version>
+                <executions>
+                    <execution>
+                        <id>compile-jsp</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <webAppSourceDirectory>${basedir}/src/main/webapp/WEB-INF/jsp</webAppSourceDirectory>
                 </configuration>
             </plugin>
         </plugins>
