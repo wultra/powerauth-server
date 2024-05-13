@@ -89,7 +89,7 @@ public class ReplayPersistenceService {
      */
     @Transactional
     public void deleteExpiredUniqueValues() {
-        final int expiredCount = uniqueValueRepository.deleteExpiredValues(Date.from(Instant.now()));
+        final int expiredCount = uniqueValueRepository.deleteExpiredValues(new Date());
         logger.debug("Removed {} expired unique values", expiredCount);
     }
 }
