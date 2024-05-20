@@ -77,14 +77,16 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final AuditingServiceBehavior audit;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
+    private final AssertionChallengeConverter assertionChallengeConverter;
 
     @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService) {
+    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService, final AssertionChallengeConverter assertionChallengeConverter) {
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.repositoryCatalogue = repositoryCatalogue;
         this.audit = audit;
         this.authenticatorProvider = authenticatorProvider;
         this.fido2AuthenticatorService = fido2AuthenticatorService;
+        this.assertionChallengeConverter = assertionChallengeConverter;
     }
 
     @Override
@@ -104,7 +106,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
         final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
         final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
-        return AssertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
+        return assertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
     }
 
     @Override

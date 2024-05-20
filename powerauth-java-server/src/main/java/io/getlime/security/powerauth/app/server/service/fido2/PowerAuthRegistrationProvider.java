@@ -61,13 +61,15 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
+    private final RegistrationChallengeConverter registrationChallengeConverter;
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final ServiceBehaviorCatalogue serviceBehaviorCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider) {
+    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final ServiceBehaviorCatalogue serviceBehaviorCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.authenticatorProvider = authenticatorProvider;
+        this.registrationChallengeConverter = registrationChallengeConverter;
     }
 
     @Override
@@ -78,7 +80,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
         final List<Credential> excludeCredentials = authenticatorProvider.findByUserId(userId, applicationId)
                 .stream()
-                .map(RegistrationChallengeConverter::toCredentialDescriptor)
+                .map(registrationChallengeConverter::toCredentialDescriptor)
                 .toList();
 
         final RegistrationChallenge registrationChallenge = new RegistrationChallenge();
