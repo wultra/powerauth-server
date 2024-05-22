@@ -20,10 +20,7 @@ package com.wultra.powerauth.fido2.service.model;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -165,7 +162,7 @@ public class Fido2DefaultAuthenticators {
             Fido2Authenticator.create("504d7149-4e4c-3841-4555-55445a677357", "WiSECURE AuthTron USB FIDO2 Authenticator"),
 
             // Wultra
-            Fido2Authenticator.create("dca09ba7-4992-4be8-9283-ee98cd6fb529", "Wultra Authenticator 1", SignatureType.POSSESSION_KNOWLEDGE),
+            Fido2Authenticator.create("dca09ba7-4992-4be8-9283-ee98cd6fb529", "Wultra Authenticator 1", SignatureType.POSSESSION_KNOWLEDGE, List.of("usb")),
 
             // Yubico
             Fido2Authenticator.create("0bb43545-fd2c-4185-87dd-feb0b2916ace", "Security Key NFC by Yubico - Enterprise Edition"),

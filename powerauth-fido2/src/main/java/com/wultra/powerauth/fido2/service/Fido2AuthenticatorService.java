@@ -28,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -76,15 +77,15 @@ public class Fido2AuthenticatorService {
     }
 
     private static Fido2Authenticator convert(final Fido2AuthenticatorEntity entity) {
-        return new Fido2Authenticator(UUID.fromString(entity.getAaguid()), entity.getDescription(), entity.getSignatureType());
+        return new Fido2Authenticator(UUID.fromString(entity.getAaguid()), entity.getDescription(), entity.getSignatureType(), entity.getTransports());
     }
 
     private static Fido2Authenticator unknownAuthenticator() {
-        return new Fido2Authenticator(null, UNKNOWN_AUTHENTICATOR_DESCRIPTION, UNKNOWN_AUTHENTICATOR_SIGNATURE_TYPE);
+        return new Fido2Authenticator(null, UNKNOWN_AUTHENTICATOR_DESCRIPTION, UNKNOWN_AUTHENTICATOR_SIGNATURE_TYPE, Collections.emptyList());
     }
 
     private static Fido2Authenticator unknownAuthenticator(final UUID aaguid) {
-        return new Fido2Authenticator(aaguid, UNKNOWN_AUTHENTICATOR_DESCRIPTION, UNKNOWN_AUTHENTICATOR_SIGNATURE_TYPE);
+        return new Fido2Authenticator(aaguid, UNKNOWN_AUTHENTICATOR_DESCRIPTION, UNKNOWN_AUTHENTICATOR_SIGNATURE_TYPE, Collections.emptyList());
     }
 
 }
