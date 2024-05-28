@@ -84,6 +84,7 @@ public class AssertionChallengeConverter {
         destination.setUserId(source.getUserId());
         destination.setApplications(source.getApplicationIds());
         destination.setTemplateName(source.getTemplateName());
+        destination.setExternalId(source.getExternalId());
         destination.getParameters().putAll(source.getParameters());
 
         //TODO: Use relation to activation ID instead of additional data
