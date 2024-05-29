@@ -24,3 +24,10 @@ transport hints to a FIDO2 Authenticator registered in the table. These transpor
 credential list or exclude credential list during WebAuthn ceremonies, serving as a fallback if the client fails to
 provide transport hints when registering a new credential. The format of the column is a list of authenticator transport
 values supported by the WebAuthn protocol, serialized as a JSON array.
+
+
+### Add status_reason Column
+
+A new column `status_reason` has been added to the `pa_operation` table.
+It provides optional details why the status changed.
+The value is more about code than free-text detail.

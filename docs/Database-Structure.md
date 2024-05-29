@@ -519,6 +519,7 @@ CREATE TABLE pa_operation (
     parameters            TEXT,
     additional_data       TEXT,
     status                INTEGER NOT NULL,
+    status_reason         VARCHAR(32),
     signature_type        VARCHAR(255) NOT NULL,
     failure_count         BIGINT DEFAULT 0 NOT NULL,
     max_failure_count     BIGINT NOT NULL,
@@ -542,6 +543,7 @@ CREATE TABLE pa_operation (
 | data                | text         | -           | Data of the operation that enter the final signature.                                           |
 | parameters          | text         | -           | JSON-encoded parameters that were used while creating the operation.                            |
 | status              | integer      | -           | Status of the operation.                                                                        |
+| status_reason       | varchar(32)  | -           | Optional details why the status changed. The value is more about code than free-text detail.    |
 | signature_type      | varchar(255) | -           | Comma-separated list of allowed signature types.                                                |
 | failure_count       | bigint       | -           | Number of already failed attempts to approve the operation.                                     |
 | max_failure_count   | bigint       | -           | Maximum allowed number of failed attempts when approving the operation.                         |

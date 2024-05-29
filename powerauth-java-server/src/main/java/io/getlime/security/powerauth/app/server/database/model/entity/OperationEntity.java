@@ -24,6 +24,8 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Signatu
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,6 +38,7 @@ import java.util.*;
  */
 @Entity
 @Table(name = "pa_operation")
+@Getter @Setter
 public class OperationEntity implements Serializable {
 
     @Serial
@@ -82,6 +85,13 @@ public class OperationEntity implements Serializable {
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
     private OperationStatusDo status;
+
+    /**
+     * Optional details why the status has changed.
+     * The value is more about code than free-text detail.
+     */
+    @Column(name = "status_reason", length = 32)
+    private String statusReason;
 
     @Column(name = "signature_type", nullable = false)
     @Convert(converter = SignatureTypeConverter.class)
@@ -481,6 +491,7 @@ public class OperationEntity implements Serializable {
                 ", parameters=" + parameters +
                 ", additionalData=" + additionalData +
                 ", status=" + status +
+                ", status_reason=" + statusReason +
                 ", signatureType=" + Arrays.toString(signatureType) +
                 ", failureCount=" + failureCount +
                 ", maxFailureCount=" + maxFailureCount +

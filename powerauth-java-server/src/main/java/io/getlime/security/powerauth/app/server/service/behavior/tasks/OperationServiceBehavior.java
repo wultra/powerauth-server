@@ -317,6 +317,7 @@ public class OperationServiceBehavior {
             // Approve the operation
             operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.APPROVED);
+            operationEntity.setStatusReason(request.getStatusReason());
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
@@ -330,6 +331,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", savedEntity.getStatus().name())
+                    .param("statusReason", request.getStatusReason())
                     .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .param("failureCount", savedEntity.getFailureCount())
                     .param("proximityCheckResult", proximityCheckResult)
@@ -365,6 +367,7 @@ public class OperationServiceBehavior {
                         .param("userId", userId)
                         .param("appId", applicationId)
                         .param("status", operationEntity.getStatus().name())
+                        .param("statusReason", request.getStatusReason())
                         .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("proximityCheckResult", proximityCheckResult)
@@ -383,6 +386,7 @@ public class OperationServiceBehavior {
             } else {
                 operationEntity.setUserId(userId);
                 operationEntity.setStatus(OperationStatusDo.FAILED);
+                operationEntity.setStatusReason(request.getStatusReason());
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -399,6 +403,7 @@ public class OperationServiceBehavior {
                         .param("userId", userId)
                         .param("appId", applicationId)
                         .param("status", operationEntity.getStatus().name())
+                        .param("statusReason", request.getStatusReason())
                         .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                         .param("failureCount", operationEntity.getFailureCount())
                         .param("maxFailureCount", operationEntity.getMaxFailureCount())
@@ -456,6 +461,7 @@ public class OperationServiceBehavior {
             // Reject the operation
             operationEntity.setUserId(userId);
             operationEntity.setStatus(OperationStatusDo.REJECTED);
+            operationEntity.setStatusReason(request.getStatusReason());
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
@@ -471,6 +477,7 @@ public class OperationServiceBehavior {
                     .param("userId", userId)
                     .param("appId", applicationId)
                     .param("status", operationEntity.getStatus().name())
+                    .param("statusReason", request.getStatusReason())
                     .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .param("failureCount", operationEntity.getFailureCount())
                     .build();
@@ -490,6 +497,7 @@ public class OperationServiceBehavior {
                     .param("appId", applicationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
+                    .param("statusReason", request.getStatusReason())
                     .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation failed with ID: {}", auditDetail, operationId);
@@ -542,6 +550,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
+                    .param("statusReason", request.getStatusReason())
                     .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval failed via explicit server call with ID: {}", auditDetail, operationId);
@@ -552,6 +561,7 @@ public class OperationServiceBehavior {
             return response;
         } else {
             operationEntity.setStatus(OperationStatusDo.FAILED);
+            operationEntity.setStatusReason(request.getStatusReason());
             operationEntity.setTimestampFinalized(currentTimestamp);
             operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
@@ -567,6 +577,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
+                    .param("statusReason", request.getStatusReason())
                     .param("additionalData", extendAdditionalDataWithDevice(operationEntity.getAdditionalData()))
                     .build();
             audit.log(AuditLevel.INFO, "Operation approval permanently failed via explicit server call with ID: {}", auditDetail, operationId);
@@ -601,6 +612,7 @@ public class OperationServiceBehavior {
         }
 
         operationEntity.setStatus(OperationStatusDo.CANCELED);
+        operationEntity.setStatusReason(request.getStatusReason());
         operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
@@ -615,6 +627,7 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
+                .param("statusReason", request.getStatusReason())
                 .param("additionalData", operationDetailResponse.getAdditionalData())
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
@@ -754,6 +767,7 @@ public class OperationServiceBehavior {
         destination.setTimestampFinalized(source.getTimestampFinalized());
         destination.setRiskFlags(source.getRiskFlags());
         destination.setActivationId(source.getActivationId());
+        destination.setStatusReason(source.getStatusReason());
 
         switch (source.getStatus()) {
             case PENDING -> destination.setStatus(OperationStatus.PENDING);
