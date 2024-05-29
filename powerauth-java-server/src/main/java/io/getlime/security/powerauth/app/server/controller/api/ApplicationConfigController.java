@@ -60,7 +60,7 @@ public class ApplicationConfigController {
      * @return Application configuration response.
      * @throws Exception In case the service throws exception.
      */
-    @PostMapping("/config/detail")
+    @PostMapping("/detail")
     public ObjectResponse<GetApplicationConfigResponse> getApplicationConfig(@RequestBody ObjectRequest<GetApplicationConfigRequest> request) throws Exception {
         logger.info("GetApplicationConfig call received: {}", request);
         final ObjectResponse<GetApplicationConfigResponse> response = new ObjectResponse<>(service.getApplicationConfig(request.getRequestObject()));
@@ -75,7 +75,7 @@ public class ApplicationConfigController {
      * @return Create application configuration response.
      * @throws Exception In case the service throws exception.
      */
-    @PostMapping("/config/create")
+    @PostMapping("/create")
     public ObjectResponse<CreateApplicationConfigResponse> createApplicationConfig(@RequestBody ObjectRequest<CreateApplicationConfigRequest> request) throws Exception {
         logger.info("CreateApplicationConfig call received: {}", request);
         final ObjectResponse<CreateApplicationConfigResponse> response = new ObjectResponse<>(service.createApplicationConfig(request.getRequestObject()));
@@ -90,7 +90,7 @@ public class ApplicationConfigController {
      * @return Delete application configuration response.
      * @throws Exception In case the service throws exception.
      */
-    @PostMapping("/config/remove")
+    @PostMapping("/remove")
     public Response removeApplicationConfig(@RequestBody ObjectRequest<RemoveApplicationConfigRequest> request) throws Exception {
         logger.info("RemoveApplicationConfig call received: {}", request);
         service.removeApplicationConfig(request.getRequestObject());
