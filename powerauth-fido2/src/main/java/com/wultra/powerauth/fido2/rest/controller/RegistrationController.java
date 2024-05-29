@@ -80,11 +80,11 @@ public class RegistrationController {
     })
     @PostMapping("list")
     public ObjectResponse<RegisteredAuthenticatorsResponse> registeredAuthenticators(@Valid @RequestBody ObjectRequest<RegisteredAuthenticatorsRequest> request) throws Exception {
-        final RegisteredAuthenticatorsRequest requestObject = request.getRequestObject();
-        logger.info("RegisteredAuthenticatorsRequest received, user ID: {}, application ID: {}", requestObject.getUserId(), requestObject.getApplicationId());
-        final RegisteredAuthenticatorsResponse responseObject = registrationService.listRegistrationsForUser(requestObject.getUserId(), requestObject.getApplicationId());
-        logger.info("RegisteredAuthenticatorsRequest succeeded, user ID: {}, application ID: {}", requestObject.getUserId(), requestObject.getApplicationId());
-        return new ObjectResponse<>(responseObject);
+        logger.info("RegisteredAuthenticatorsRequest received: {}", request);
+        final ObjectResponse<RegisteredAuthenticatorsResponse> response = new ObjectResponse<>(registrationService.listRegistrationsForUser(request.getRequestObject()));
+        logger.info("RegisteredAuthenticatorsRequest succeeded: {}", response);
+        return response;
+
     }
 
     /**
@@ -104,11 +104,11 @@ public class RegistrationController {
     })
     @PostMapping("challenge")
     public ObjectResponse<RegistrationChallengeResponse> requestRegistrationChallenge(@Valid @RequestBody ObjectRequest<RegistrationChallengeRequest> request) throws Exception {
-        final RegistrationChallengeRequest requestObject = request.getRequestObject();
-        logger.info("RegistrationChallengeRequest received, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
-        final RegistrationChallengeResponse responseObject = registrationService.requestRegistrationChallenge(requestObject.getUserId(), requestObject.getApplicationId());
-        logger.info("RegistrationChallengeRequest succeeded, application ID: {}, user ID: {}", requestObject.getApplicationId(), requestObject.getUserId());
-        return new ObjectResponse<>(responseObject);
+        logger.info("RegistrationChallengeRequest received: {}", request);
+        final ObjectResponse<RegistrationChallengeResponse> response = new ObjectResponse<>(registrationService.requestRegistrationChallenge(request.getRequestObject()));
+        logger.info("RegistrationChallengeRequest succeeded: {}", response);
+        return response;
+
     }
 
     /**
@@ -128,11 +128,11 @@ public class RegistrationController {
     })
     @PostMapping
     public ObjectResponse<RegistrationResponse> register(@Valid @RequestBody ObjectRequest<RegistrationRequest> request) throws Exception {
-        final RegistrationRequest requestObject = request.getRequestObject();
-        logger.info("RegistrationRequest received, application ID: {}, activation name: {}", requestObject.getApplicationId(), requestObject.getActivationName());
-        final RegistrationResponse responseObject = registrationService.register(requestObject);
-        logger.info("RegistrationRequest succeeded, application ID: {}, activation name: {}", requestObject.getApplicationId(), requestObject.getActivationName());
-        return new ObjectResponse<>(responseObject);
+        logger.info("RegistrationRequest received: {}", request);
+        final ObjectResponse<RegistrationResponse> response = new ObjectResponse<>(registrationService.register(request.getRequestObject()));
+        logger.info("RegistrationRequest succeeded: {}", response);
+        return response;
+
     }
 
 }

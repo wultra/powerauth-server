@@ -40,6 +40,7 @@ import com.wultra.security.powerauth.client.model.response.OperationTemplateDeta
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
 import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
@@ -145,7 +146,10 @@ class Fido2AuthenticatorTest {
     @Test
     void packedAuthenticatorInvalidAttestationTest() throws Exception {
         // Obtain challenge from PowerAuth server
-        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        final RegistrationChallengeRequest request = new RegistrationChallengeRequest();
+        request.setUserId(USER_ID);
+        request.setApplicationId(APPLICATION_ID);
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(request);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
         assertEquals(USER_ID, challengeResponse.getUserId());
         assertNotNull(challengeResponse.getChallenge());
@@ -172,7 +176,10 @@ class Fido2AuthenticatorTest {
     @Test
     void packedAuthenticatorNoAttestationTest() throws Exception {
         // Obtain challenge from PowerAuth server
-        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        final RegistrationChallengeRequest request = new RegistrationChallengeRequest();
+        request.setUserId(USER_ID);
+        request.setApplicationId(APPLICATION_ID);
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(request);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
         assertEquals(USER_ID, challengeResponse.getUserId());
         assertNotNull(challengeResponse.getChallenge());
@@ -396,7 +403,10 @@ class Fido2AuthenticatorTest {
     @Test
     void packedAuthenticatorBasicAttestationTest() throws Exception {
         // Obtain challenge from PowerAuth server
-        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        final RegistrationChallengeRequest request = new RegistrationChallengeRequest();
+        request.setUserId(USER_ID);
+        request.setApplicationId(APPLICATION_ID);
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(request);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
         assertEquals(USER_ID, challengeResponse.getUserId());
         assertNotNull(challengeResponse.getChallenge());
@@ -454,7 +464,10 @@ class Fido2AuthenticatorTest {
 
     private void registerCredential() throws Exception {
         // Obtain challenge from PowerAuth server
-        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(USER_ID, APPLICATION_ID);
+        final RegistrationChallengeRequest request = new RegistrationChallengeRequest();
+        request.setUserId(USER_ID);
+        request.setApplicationId(APPLICATION_ID);
+        final RegistrationChallengeResponse challengeResponse = registrationService.requestRegistrationChallenge(request);
         assertEquals(APPLICATION_ID, challengeResponse.getApplicationId());
         assertEquals(USER_ID, challengeResponse.getUserId());
         assertNotNull(challengeResponse.getChallenge());
