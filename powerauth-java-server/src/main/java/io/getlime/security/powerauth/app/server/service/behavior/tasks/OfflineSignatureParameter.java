@@ -18,14 +18,13 @@
 
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.Duration;
 
 /**
- * Parameter object for {@link OfflineSignatureServiceBehavior#createPersonalizedOfflineSignaturePayload(OfflineSignatureParameter)}.
+ * Parameter object..
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
@@ -35,7 +34,6 @@ public class OfflineSignatureParameter {
 
     private String activationId;
     private String data;
-    private KeyConvertor keyConversionUtilities;
     private String nonce;
     private String proximityCheckSeed;
     private Duration proximityCheckStepLength;

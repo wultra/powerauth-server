@@ -26,6 +26,8 @@ import com.wultra.security.powerauth.client.model.entity.ApplicationConfiguratio
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.RemoveActivationRequest;
 import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.fido2.model.entity.Credential;
@@ -34,17 +36,19 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
@@ -59,24 +63,30 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
 public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     private final RepositoryCatalogue repositoryCatalogue;
-    private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final RegistrationChallengeConverter registrationChallengeConverter;
-    private final KeyConvertor keyConvertor = new KeyConvertor();
+
+    private final ActivationServiceBehavior activations;
+    private final ApplicationConfigServiceBehavior applicationConfig;
 
     @Autowired
-    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final ServiceBehaviorCatalogue serviceBehaviorCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter) {
+    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter, ActivationServiceBehavior activations, ApplicationConfigServiceBehavior applicationConfig) {
         this.repositoryCatalogue = repositoryCatalogue;
-        this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.authenticatorProvider = authenticatorProvider;
         this.registrationChallengeConverter = registrationChallengeConverter;
+        this.activations = activations;
+        this.applicationConfig = applicationConfig;
     }
 
     @Override
     @Transactional
     public RegistrationChallenge provideChallengeForRegistration(String userId, String applicationId) throws GenericServiceException, Fido2AuthenticationFailedException {
-        final InitActivationResponse initActivationResponse = serviceBehaviorCatalogue.getActivationServiceBehavior()
-                .initActivation(ActivationProtocol.FIDO2, applicationId, userId, null, null, ActivationOtpValidation.NONE, null, null, keyConvertor);
+        final InitActivationRequest request = new InitActivationRequest();
+        request.setProtocol(ActivationProtocol.FIDO2);
+        request.setApplicationId(applicationId);
+        request.setUserId(userId);
+        request.setActivationOtpValidation(ActivationOtpValidation.NONE);
+        final InitActivationResponse initActivationResponse = activations.initActivation(request);
 
         final List<Credential> excludeCredentials = authenticatorProvider.findByUserId(userId, applicationId)
                 .stream()
@@ -155,7 +165,11 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
         final String activationId = activationRecordEntity.getActivationId();
         try {
-            serviceBehaviorCatalogue.getActivationServiceBehavior().removeActivation(activationId, null, true);
+            final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
+            removeActivationRequest.setActivationId(activationId);
+            removeActivationRequest.setRevokeRecoveryCodes(true);
+            removeActivationRequest.setExternalUserId(null);
+            activations.removeActivation(removeActivationRequest);
         } catch (GenericServiceException e) {
             throw new Fido2AuthenticationFailedException("Activation could not have been removed.", e);
         }
@@ -165,10 +179,9 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     @Override
     @Transactional(readOnly = true)
     public boolean registrationAllowed(String applicationId, String credentialId, String attestationFormat, byte[] aaguid) throws Exception {
-        final ApplicationConfigServiceBehavior configService = serviceBehaviorCatalogue.getApplicationConfigServiceBehavior();
         final GetApplicationConfigRequest configRequest = new GetApplicationConfigRequest();
         configRequest.setApplicationId(applicationId);
-        final GetApplicationConfigResponse configResponse = configService.getApplicationConfig(configRequest);
+        final GetApplicationConfigResponse configResponse = applicationConfig.getApplicationConfig(configRequest);
         final String aaguidStr = bytesToUUID(aaguid).toString();
         Optional<ApplicationConfigurationItem> configFmt = configResponse.getApplicationConfigs().stream()
                 .filter(cfg -> CONFIG_KEY_ALLOWED_ATTESTATION_FMT.equals(cfg.getKey()))

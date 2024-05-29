@@ -26,10 +26,10 @@ import com.wultra.security.powerauth.client.model.response.StartUpgradeResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -49,10 +49,10 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
@@ -67,7 +67,8 @@ import java.util.Date;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class UpgradeServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
@@ -82,9 +83,6 @@ public class UpgradeServiceBehavior {
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final ObjectMapper objectMapper;
     private final ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(UpgradeServiceBehavior.class);
 
     @Autowired
     public UpgradeServiceBehavior(
@@ -110,11 +108,18 @@ public class UpgradeServiceBehavior {
      * @return Start upgrade response.
      * @throws GenericServiceException In case upgrade fails.
      */
+    @Transactional
     public StartUpgradeResponse startUpgrade(StartUpgradeRequest request) throws GenericServiceException{
         try {
             final String activationId = request.getActivationId();
             final String applicationKey = request.getApplicationKey();
             final String protocolVersion = request.getProtocolVersion();
+
+            if (activationId == null || applicationKey == null) {
+                logger.warn("Invalid request parameters in method startUpgrade");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
             // Build and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
@@ -124,8 +129,7 @@ public class UpgradeServiceBehavior {
                     request.getNonce(),
                     request.getTimestamp()
             );
-            if (activationId == null || applicationKey == null ||
-                    !encryptorFactory.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
+            if (!encryptorFactory.getRequestResponseValidator(protocolVersion).validateEncryptedRequest(encryptedRequest)) {
                 logger.warn("Invalid start upgrade request");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
@@ -250,6 +254,15 @@ public class UpgradeServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
     }
@@ -260,54 +273,66 @@ public class UpgradeServiceBehavior {
      * @return Commit upgrade response.
      * @throws GenericServiceException In case upgrade fails.
      */
+    @Transactional
     public CommitUpgradeResponse commitUpgrade(CommitUpgradeRequest request) throws GenericServiceException {
-        final String activationId = request.getActivationId();
-        final String applicationKey = request.getApplicationKey();
+        try {
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
 
-        // Verify input data
-        if (activationId == null || applicationKey == null) {
-            logger.warn("Invalid commit upgrade request");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+            // Verify input data
+            if (activationId == null || applicationKey == null) {
+                logger.warn("Invalid commit upgrade request");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.DECRYPTION_FAILED);
+            }
+
+            // Lookup the activation
+            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+            if (activation == null) {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
+
+            activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
+
+            activationValidator.validateVersion(activation.getVersion(), 2, activationId, localizationProvider);
+
+            // Check if the activation hash based counter was generated (upgrade has been started)
+            if (activation.getCtrDataBase64() == null) {
+                logger.warn("Activation counter data is missing, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Lookup the application version and check that it is supported
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
+            if (applicationVersion == null || !applicationVersion.getSupported()) {
+                logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
+            // Upgrade activation to version 3
+            activation.setVersion(3);
+
+            activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.Reason.ACTIVATION_VERSION_CHANGED);
+
+            final CommitUpgradeResponse response = new CommitUpgradeResponse();
+            response.setCommitted(true);
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
-
-        // Lookup the activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-        if (activation == null) {
-            logger.info("Activation not found, activation ID: {}", activationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
-
-        activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-
-        activationValidator.validateActiveStatus(activation.getActivationStatus(), activation.getActivationId(), localizationProvider);
-
-        activationValidator.validateVersion(activation.getVersion(), 2, activationId, localizationProvider);
-
-        // Check if the activation hash based counter was generated (upgrade has been started)
-        if (activation.getCtrDataBase64() == null) {
-            logger.warn("Activation counter data is missing, activation ID: {}", activationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
-        }
-
-        // Lookup the application version and check that it is supported
-        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(request.getApplicationKey());
-        if (applicationVersion == null || !applicationVersion.getSupported()) {
-            logger.warn("Application version is incorrect, application key: {}", request.getApplicationKey());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-
-        // Upgrade activation to version 3
-        activation.setVersion(3);
-
-        activationHistoryServiceBehavior.saveActivationAndLogChange(activation, null, AdditionalInformation.Reason.ACTIVATION_VERSION_CHANGED);
-
-        final CommitUpgradeResponse response = new CommitUpgradeResponse();
-        response.setCommitted(true);
-        return response;
     }
 
 }

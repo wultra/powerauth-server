@@ -22,6 +22,7 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.SignatureAuditRequest;
 import com.wultra.security.powerauth.client.model.response.SignatureAuditResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.converter.KeyValueMapConverter;
@@ -33,11 +34,16 @@ import io.getlime.security.powerauth.app.server.database.model.entity.SignatureE
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.SignatureAuditRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
 import java.util.Date;
@@ -49,12 +55,14 @@ import java.util.List;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class AuditingServiceBehavior {
 
     private final SignatureAuditRepository signatureAuditRepository;
 
     private final ActivationRepository activationRepository;
+    private final LocalizationProvider localizationProvider;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
@@ -67,9 +75,10 @@ public class AuditingServiceBehavior {
     private final Audit audit;
 
     @Autowired
-    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, ActivationRepository activationRepository, KeyValueMapConverter keyValueMapConverter, Audit audit) {
+    public AuditingServiceBehavior(SignatureAuditRepository signatureAuditRepository, ActivationRepository activationRepository, LocalizationProvider localizationProvider, KeyValueMapConverter keyValueMapConverter, Audit audit) {
         this.signatureAuditRepository = signatureAuditRepository;
         this.activationRepository = activationRepository;
+        this.localizationProvider = localizationProvider;
         this.keyValueMapConverter = keyValueMapConverter;
         this.audit = audit;
     }
@@ -98,49 +107,64 @@ public class AuditingServiceBehavior {
     /**
      * List records from the signature audit log for given user
      *
-     * @param userId        User ID
-     * @param applicationId Application ID. If null is provided, all applications are checked.
-     * @param startingDate  Since when should the log be displayed.
-     * @param endingDate    Until when should the log be displayed.
+     * @param request Request with signature audit log query.
      * @return Response with log items.
      */
-    public SignatureAuditResponse getSignatureAuditLog(String userId, String applicationId, Date startingDate, Date endingDate) {
+    @Transactional
+    public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws GenericServiceException {
 
-        List<SignatureEntity> signatureAuditEntityList;
-        if (applicationId == null) {
-            signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForUser(userId, startingDate, endingDate);
-        } else {
-            signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForApplicationAndUser(applicationId, userId, startingDate, endingDate);
-        }
-
-        final SignatureAuditResponse response = new SignatureAuditResponse();
-        if (signatureAuditEntityList != null) {
-            for (SignatureEntity signatureEntity : signatureAuditEntityList) {
-
-                final SignatureAuditItem item = new SignatureAuditItem();
-
-                item.setId(signatureEntity.getId());
-                item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
-                item.setActivationCounter(signatureEntity.getActivationCounter());
-                item.setActivationCtrData(signatureEntity.getActivationCtrDataBase64());
-                item.setActivationStatus(activationStatusConverter.convert(signatureEntity.getActivationStatus()));
-                item.setAdditionalInfo(keyValueMapConverter.fromString(signatureEntity.getAdditionalInfo()));
-                item.setActivationId(signatureEntity.getActivation().getActivationId());
-                item.setDataBase64(signatureEntity.getDataBase64());
-                item.setSignatureVersion(signatureEntity.getSignatureVersion());
-                item.setSignature(signatureEntity.getSignature());
-                item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
-                item.setValid(signatureEntity.getValid());
-                item.setVersion(signatureEntity.getVersion());
-                item.setTimestampCreated(signatureEntity.getTimestampCreated());
-                item.setNote(signatureEntity.getNote());
-                item.setUserId(signatureEntity.getActivation().getUserId());
-
-                response.getItems().add(item);
+        try {
+            final String userId = request.getUserId();
+            final String applicationId = request.getApplicationId();
+            final Date timestampFrom = request.getTimestampFrom();
+            final Date timestampTo = request.getTimestampTo();
+            if (userId == null) {
+                logger.warn("Invalid request parameter userId in method getSignatureAuditLog");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-        }
 
-        return response;
+            List<SignatureEntity> signatureAuditEntityList;
+            if (applicationId == null) {
+                signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForUser(userId, timestampFrom, timestampTo);
+            } else {
+                signatureAuditEntityList = signatureAuditRepository.findSignatureAuditRecordsForApplicationAndUser(applicationId, userId, timestampFrom, timestampTo);
+            }
+
+            final SignatureAuditResponse response = new SignatureAuditResponse();
+            if (signatureAuditEntityList != null) {
+                for (SignatureEntity signatureEntity : signatureAuditEntityList) {
+
+                    final SignatureAuditItem item = new SignatureAuditItem();
+
+                    item.setId(signatureEntity.getId());
+                    item.setApplicationId(signatureEntity.getActivation().getApplication().getId());
+                    item.setActivationCounter(signatureEntity.getActivationCounter());
+                    item.setActivationCtrData(signatureEntity.getActivationCtrDataBase64());
+                    item.setActivationStatus(activationStatusConverter.convert(signatureEntity.getActivationStatus()));
+                    item.setAdditionalInfo(keyValueMapConverter.fromString(signatureEntity.getAdditionalInfo()));
+                    item.setActivationId(signatureEntity.getActivation().getActivationId());
+                    item.setDataBase64(signatureEntity.getDataBase64());
+                    item.setSignatureVersion(signatureEntity.getSignatureVersion());
+                    item.setSignature(signatureEntity.getSignature());
+                    item.setSignatureType(signatureTypeConverter.convertFrom(signatureEntity.getSignatureType()));
+                    item.setValid(signatureEntity.getValid());
+                    item.setVersion(signatureEntity.getVersion());
+                    item.setTimestampCreated(signatureEntity.getTimestampCreated());
+                    item.setNote(signatureEntity.getNote());
+                    item.setUserId(signatureEntity.getActivation().getUserId());
+
+                    response.getItems().add(item);
+                }
+            }
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     /**

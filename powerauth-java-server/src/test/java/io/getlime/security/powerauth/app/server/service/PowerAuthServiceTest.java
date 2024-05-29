@@ -18,9 +18,10 @@
 package io.getlime.security.powerauth.app.server.service;
 
 import com.wultra.security.powerauth.client.model.entity.Activation;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PowerAuthServiceTest {
 
     @Autowired
-    private PowerAuthService tested;
+    private ActivationServiceBehavior tested;
 
     @Test
     void testGetActivationListForUser() throws Exception {
@@ -54,7 +55,7 @@ class PowerAuthServiceTest {
         request.setUserId("user1");
         request.setProtocols(Set.of(ActivationProtocol.POWERAUTH));
 
-        final List<Activation> result = tested.getActivationListForUser(request).getActivations();
+        final List<Activation> result = tested.getActivationList(request).getActivations();
 
         assertEquals(3, result.size());
 
@@ -76,7 +77,7 @@ class PowerAuthServiceTest {
         request.setProtocols(Set.of(ActivationProtocol.POWERAUTH));
         request.setActivationStatuses(Set.of(ActivationStatus.ACTIVE));
 
-        final List<Activation> resultList = tested.getActivationListForUser(request).getActivations();
+        final List<Activation> resultList = tested.getActivationList(request).getActivations();
 
         assertEquals(1, resultList.size());
         final Activation resultActivation = resultList.get(0);

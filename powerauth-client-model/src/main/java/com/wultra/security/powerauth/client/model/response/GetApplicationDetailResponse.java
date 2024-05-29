@@ -33,7 +33,6 @@ import java.util.List;
 public class GetApplicationDetailResponse {
 
     private String applicationId;
-    private String applicationName;
     private String masterPublicKey;
     private List<String> applicationRoles = new ArrayList<>();
     private List<ApplicationVersion> versions = new ArrayList<>();

@@ -17,9 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.enumeration;
 
-import com.wultra.security.powerauth.client.model.request.*;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
-
 /**
  * Enum representing possible activation states. Following values are supported:
  * <p>
@@ -34,36 +31,30 @@ import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 public enum ActivationStatus {
 
     /**
-     * CREATED - status right after the activation record was created by calling
-     * {@link PowerAuthService#initActivation(InitActivationRequest)}.
+     * CREATED - status right after the activation record was created.
      */
     CREATED((byte) 1),
 
     /**
      * PENDING_COMMIT - status right after PowerAuth Server receives PowerAuth Client public
-     * key, via {@link PowerAuthService#prepareActivation(PrepareActivationRequest)} 
-     * method. This status means that activation is awaiting commit.
+     * key. This status means that activation is awaiting commit.
      */
     PENDING_COMMIT((byte) 2),
 
     /**
-     * ACTIVE - status after the activation record was committed by calling
-     * {@link PowerAuthService#commitActivation(CommitActivationRequest)} 
-     * or after activation was unblocked from the BLOCKED state by calling
-     * {@link PowerAuthService#unblockActivation(UnblockActivationRequest)} 
+     * ACTIVE - status after the activation record was committed
+     * or after activation was unblocked from the BLOCKED state
      */
     ACTIVE((byte) 3),
 
     /**
-     * BLOCKED - status after the activation record was blocked by calling
-     * {@link PowerAuthService#blockActivation(BlockActivationRequest)} 
+     * BLOCKED - status after the activation record was blocked or
      * after too many authentication failed attempt occurred.
      */
     BLOCKED((byte) 4),
 
     /**
-     * REMOVED - status after the activation record was removed by calling
-     * {@link PowerAuthService#removeActivation(RemoveActivationRequest)} 
+     * REMOVED - status after the activation record was removed
      */
     REMOVED((byte) 5);
 

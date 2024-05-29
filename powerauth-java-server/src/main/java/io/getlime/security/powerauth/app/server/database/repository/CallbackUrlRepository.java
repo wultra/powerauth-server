@@ -17,8 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.database.repository;
 
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

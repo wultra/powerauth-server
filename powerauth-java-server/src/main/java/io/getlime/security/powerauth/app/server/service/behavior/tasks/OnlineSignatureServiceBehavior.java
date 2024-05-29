@@ -19,12 +19,13 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
 import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -36,10 +37,10 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -55,7 +56,8 @@ import java.util.Objects;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class OnlineSignatureServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
@@ -64,9 +66,7 @@ public class OnlineSignatureServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(OnlineSignatureServiceBehavior.class);
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
     public OnlineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, SignatureSharedServiceBehavior signatureSharedServiceBehavior, LocalizationProvider localizationProvider) {
@@ -78,23 +78,34 @@ public class OnlineSignatureServiceBehavior {
     /**
      * Verify signature for given activation and provided data in online mode. Log every validation attempt in the audit log.
      *
-     * @param activationId           Activation ID.
-     * @param signatureType          Provided signature type.
-     * @param signature              Provided signature.
-     * @param signatureVersion       Version of signature.
-     * @param additionalInfo         Additional information about operation.
-     * @param dataString             String with data used to compute the signature.
-     * @param applicationKey         Associated application key.
-     * @param forcedSignatureVersion Forced signature version during upgrade.
-     * @param keyConversionUtilities Conversion utility class.
+     * @param request Signature verification request.
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VerifySignatureResponse verifySignature(String activationId, SignatureType signatureType, String signature, String signatureVersion, List<KeyValue> additionalInfo,
-                                                   String dataString, String applicationKey, Integer forcedSignatureVersion, KeyConvertor keyConversionUtilities)
+    @Transactional
+    public VerifySignatureResponse verifySignature(VerifySignatureRequest request, List<KeyValue> additionalInfo)
             throws GenericServiceException {
         try {
-            return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConversionUtilities);
+            // Get request data
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
+            final String dataString = request.getData();
+            final String signature = request.getSignature();
+            final String signatureVersion = request.getSignatureVersion();
+            final SignatureType signatureType = request.getSignatureType();
+            // Forced signature version during upgrade, currently only version 3 is supported
+            Integer forcedSignatureVersion = null;
+            if (request.getForcedSignatureVersion() != null && request.getForcedSignatureVersion() == 3) {
+                forcedSignatureVersion = 3;
+            }
+
+            if (activationId == null || applicationKey == null || dataString == null
+                    || signature == null || signatureType == null || signatureVersion == null) {
+                logger.warn("Invalid request parameters in method verifySignature");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            return verifySignatureImpl(activationId, signatureType, signature, signatureVersion, additionalInfo, dataString, applicationKey, forcedSignatureVersion, keyConvertor);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -107,6 +118,15 @@ public class OnlineSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        }  catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
 

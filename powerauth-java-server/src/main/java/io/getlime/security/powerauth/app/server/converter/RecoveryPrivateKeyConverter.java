@@ -18,8 +18,8 @@
 package io.getlime.security.powerauth.app.server.converter;
 
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -28,8 +28,7 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.AESEncryptionUtils;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -47,6 +46,7 @@ import java.util.Base64;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
+@Slf4j
 public class RecoveryPrivateKeyConverter {
 
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
@@ -56,9 +56,6 @@ public class RecoveryPrivateKeyConverter {
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final AESEncryptionUtils aesEncryptionUtils = new AESEncryptionUtils();
     private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(RecoveryPrivateKeyConverter.class);
 
     @Autowired
     public RecoveryPrivateKeyConverter(PowerAuthServiceConfiguration powerAuthServiceConfiguration, LocalizationProvider localizationProvider) {

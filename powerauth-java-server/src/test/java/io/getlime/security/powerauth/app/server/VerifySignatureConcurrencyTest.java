@@ -7,7 +7,9 @@ import com.wultra.security.powerauth.client.model.response.CreateActivationRespo
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import com.wultra.security.powerauth.client.model.response.CreateApplicationVersionResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OnlineSignatureServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
@@ -34,14 +36,18 @@ import java.util.*;
 @Disabled("The test requires running database.")
 public class VerifySignatureConcurrencyTest {
 
-    private PowerAuthService powerAuthService;
+    private final ApplicationServiceBehavior applicationServiceBehavior;
+    private final ActivationServiceBehavior activationServiceBehavior;
+    private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
 
     @Autowired
-    public void setPowerAuthService(PowerAuthService powerAuthService) {
-        this.powerAuthService = powerAuthService;
+    public VerifySignatureConcurrencyTest(ApplicationServiceBehavior applicationServiceBehavior, ActivationServiceBehavior activationServiceBehavior, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+        this.applicationServiceBehavior = applicationServiceBehavior;
+        this.activationServiceBehavior = activationServiceBehavior;
+        this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
     }
 
     @Test
@@ -51,13 +57,13 @@ public class VerifySignatureConcurrencyTest {
         String testId = UUID.randomUUID().toString();
         CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
         createApplicationRequest.setApplicationId(testId);
-        CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
+        CreateApplicationResponse createApplicationResponse = applicationServiceBehavior.createApplication(createApplicationRequest);
 
         // Generate test application version
         CreateApplicationVersionRequest createApplicationVersionRequest = new CreateApplicationVersionRequest();
         createApplicationVersionRequest.setApplicationId(createApplicationResponse.getApplicationId());
         createApplicationVersionRequest.setApplicationVersionId("test");
-        CreateApplicationVersionResponse createApplicationVersionResponse = powerAuthService.createApplicationVersion(createApplicationVersionRequest);
+        CreateApplicationVersionResponse createApplicationVersionResponse = applicationServiceBehavior.createApplicationVersion(createApplicationVersionRequest);
 
         // Generate public key for non-existent client device
         KeyGenerator keyGenerator = new KeyGenerator();
@@ -75,7 +81,7 @@ public class VerifySignatureConcurrencyTest {
 
         GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
-        GetApplicationDetailResponse detailResponse = powerAuthService.getApplicationDetail(detailRequest);
+        GetApplicationDetailResponse detailResponse = applicationServiceBehavior.getApplicationDetail(detailRequest);
 
         PublicKey masterPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(detailResponse.getMasterPublicKey()));
 
@@ -103,12 +109,12 @@ public class VerifySignatureConcurrencyTest {
         createActivationRequest.setNonce(encryptedRequest.getNonce());
         createActivationRequest.setTimestamp(encryptedRequest.getTimestamp());
         createActivationRequest.setProtocolVersion(version);
-        CreateActivationResponse createActivationResponse = powerAuthService.createActivation(createActivationRequest);
+        CreateActivationResponse createActivationResponse = activationServiceBehavior.createActivation(createActivationRequest);
 
         // Commit activation
         CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
         commitActivationRequest.setActivationId(createActivationResponse.getActivationId());
-        powerAuthService.commitActivation(commitActivationRequest);
+        activationServiceBehavior.commitActivation(commitActivationRequest);
 
         // Finally here comes the test - create two threads and verify signatures in parallel
         Runnable verifySignatureRunnable = () -> {
@@ -119,7 +125,7 @@ public class VerifySignatureConcurrencyTest {
                 verifySignatureRequest.setSignatureType(SignatureType.KNOWLEDGE);
                 verifySignatureRequest.setData("data");
                 verifySignatureRequest.setSignature("bad signature");
-                powerAuthService.verifySignature(verifySignatureRequest);
+                onlineSignatureServiceBehavior.verifySignature(verifySignatureRequest, null);
             } catch (Exception e) {
                 e.printStackTrace();
             }

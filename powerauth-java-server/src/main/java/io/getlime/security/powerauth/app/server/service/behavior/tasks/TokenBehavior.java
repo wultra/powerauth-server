@@ -51,31 +51,34 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRespons
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
-import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenGenerator;
 import io.getlime.security.powerauth.crypto.server.token.ServerTokenVerifier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Optional;
 
 /**
  * Behavior that contains methods related to simple token-based authentication.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class TokenBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
@@ -94,12 +97,9 @@ public class TokenBehavior {
     // Helper classes
     private final SignatureTypeConverter signatureTypeConverter = new SignatureTypeConverter();
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
-    private final KeyGenerator keyGenerator = new KeyGenerator();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     private final ObjectMapper objectMapper;
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(TokenBehavior.class);
 
     @Autowired
     public TokenBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
@@ -121,30 +121,185 @@ public class TokenBehavior {
      * </ul>
      *
      * @param request Request with the activation ID, signature type and ephemeral public key.
-     * @param keyConversion Key conversion utility class.
      * @return Response with a newly created token information (ECIES encrypted).
      * @throws GenericServiceException In case a business error occurs.
      */
-    public CreateTokenResponse createToken(CreateTokenRequest request, KeyConvertor keyConversion) throws GenericServiceException {
-        final String activationId = request.getActivationId();
-        final String applicationKey = request.getApplicationKey();
-        final String version = request.getProtocolVersion();
-        final SignatureType signatureType = request.getSignatureType();
+    @Transactional
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws GenericServiceException {
+        try {
+            if (request.getActivationId() == null || request.getApplicationKey() == null) {
+                logger.warn("Invalid request parameters in method createToken");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
-        final EncryptedRequest encryptedRequest = new EncryptedRequest(
-                request.getEphemeralPublicKey(),
-                request.getEncryptedData(),
-                request.getMac(),
-                request.getNonce(),
-                request.getTimestamp()
-        );
-        final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, keyConversion);
-        final CreateTokenResponse response = new CreateTokenResponse();
-        response.setEncryptedData(encryptedResponse.getEncryptedData());
-        response.setMac(encryptedResponse.getMac());
-        response.setNonce(encryptedResponse.getNonce());
-        response.setTimestamp(encryptedResponse.getTimestamp());
-        return response;
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
+            final String version = request.getProtocolVersion();
+            final SignatureType signatureType = request.getSignatureType();
+
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
+            final EncryptedResponse encryptedResponse = createToken(activationId, applicationKey, encryptedRequest, signatureType.name(), version, keyConvertor);
+            final CreateTokenResponse response = new CreateTokenResponse();
+            response.setEncryptedData(encryptedResponse.getEncryptedData());
+            response.setMac(encryptedResponse.getMac());
+            response.setNonce(encryptedResponse.getNonce());
+            response.setTimestamp(encryptedResponse.getTimestamp());
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Method that validates provided token-based authentication credentials.
+     *
+     * @param request Request with the token-based authentication credentials.
+     * @return Response with the validation results.
+     * @throws GenericServiceException In case of the business logic error.
+     */
+    @Transactional
+    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
+        try {
+            if (request.getTokenId() == null || request.getNonce() == null || request.getTokenDigest() == null || request.getProtocolVersion() == null) {
+                logger.warn("Invalid request parameters in method validateToken");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Verify the token timestamp validity
+            final long currentTimeMillis = System.currentTimeMillis();
+            final long requestTimestamp = request.getTimestamp();
+            if (requestTimestamp < currentTimeMillis - powerAuthServiceConfiguration.getTokenTimestampValidity().toMillis()) {
+                logger.warn("Invalid request - token timestamp is too old for token ID: {}, request timestamp: {}", request.getTokenId(), requestTimestamp);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_OLD);
+            }
+            if (requestTimestamp > currentTimeMillis + powerAuthServiceConfiguration.getTokenTimestampForwardValidity().toMillis()) {
+                logger.warn("Invalid request - token timestamp is set too much in the future for token ID: {}, request timestamp: {}", request.getTokenId(), requestTimestamp);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.TOKEN_TIMESTAMP_TOO_IN_FUTURE);
+            }
+
+            final String tokenId = request.getTokenId();
+            final byte[] nonce = Base64.getDecoder().decode(request.getNonce());
+            final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());
+            final byte[] tokenDigest = Base64.getDecoder().decode(request.getTokenDigest());
+
+            // Lookup the token
+            final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
+            if (tokenEntityOptional.isEmpty()) {
+                // Instead of throwing INVALID_TOKEN exception a response with invalid token is returned
+                final ValidateTokenResponse response = new ValidateTokenResponse();
+                response.setTokenValid(false);
+                return response;
+            }
+            final TokenEntity token = tokenEntityOptional.get();
+
+            // Check if the activation is in correct state
+            final ActivationRecordEntity activation = token.getActivation();
+            final byte[] tokenSecret = Base64.getDecoder().decode(token.getTokenSecret());
+            final boolean isTokenValid;
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
+            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+                logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
+                isTokenValid = false;
+            } else {
+                // Check MAC token verification request for replay attacks and persist unique value from request
+                replayVerificationService.checkAndPersistUniqueValue(
+                        UniqueValueType.MAC_TOKEN,
+                        new Date(request.getTimestamp()),
+                        null,
+                        request.getNonce(),
+                        tokenId,
+                        request.getProtocolVersion());
+                // Validate MAC token
+                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
+            }
+
+            final ValidateTokenResponse response = new ValidateTokenResponse();
+            response.setTokenValid(isTokenValid);
+            response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
+            response.setBlockedReason(activation.getBlockedReason());
+            response.setActivationId(activation.getActivationId());
+            response.setApplicationId(activation.getApplication().getId());
+            response.getApplicationRoles().addAll(activation.getApplication().getRoles());
+            response.getActivationFlags().addAll(activation.getFlags());
+            response.setUserId(activation.getUserId());
+            response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
+            return response;
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Remove token with provided ID.
+     *
+     * @param request Request with token ID.
+     * @return Token removal response.
+     */
+    @Transactional
+    public RemoveTokenResponse removeToken(RemoveTokenRequest request) throws GenericServiceException {
+        try {
+            if (request.getTokenId() == null) {
+                logger.warn("Invalid request parameter tokenId in method removeToken");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            final String tokenId = request.getTokenId();
+            boolean removed = false;
+
+            final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
+
+            // Token was found and activation ID corresponds to the correct user.
+            if (tokenEntityOptional.isPresent()) {
+                final TokenEntity token = tokenEntityOptional.get();
+                if (token.getActivation().getActivationId().equals(request.getActivationId())) {
+                    repositoryCatalogue.getTokenRepository().delete(token);
+                    removed = true;
+                }
+            }
+
+            final RemoveTokenResponse response = new RemoveTokenResponse();
+            response.setRemoved(removed);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+        }
     }
 
     /**
@@ -271,97 +426,5 @@ public class TokenBehavior {
         }
     }
 
-    /**
-     * Method that validates provided token-based authentication credentials.
-     *
-     * @param request Request with the token-based authentication credentials.
-     * @return Response with the validation results.
-     * @throws GenericServiceException In case of the business logic error.
-     */
-    public ValidateTokenResponse validateToken(ValidateTokenRequest request) throws GenericServiceException {
-        try {
-            final String tokenId = request.getTokenId();
-            final byte[] nonce = Base64.getDecoder().decode(request.getNonce());
-            final byte[] timestamp = tokenVerifier.convertTokenTimestamp(request.getTimestamp());
-            final byte[] tokenDigest = Base64.getDecoder().decode(request.getTokenDigest());
 
-            // Lookup the token
-            final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
-            if (tokenEntityOptional.isEmpty()) {
-                // Instead of throwing INVALID_TOKEN exception a response with invalid token is returned
-                final ValidateTokenResponse response = new ValidateTokenResponse();
-                response.setTokenValid(false);
-                return response;
-            }
-            final TokenEntity token = tokenEntityOptional.get();
-
-            // Check if the activation is in correct state
-            final ActivationRecordEntity activation = token.getActivation();
-            final byte[] tokenSecret = Base64.getDecoder().decode(token.getTokenSecret());
-            final boolean isTokenValid;
-            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-            if (!ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
-                logger.info("Activation is not ACTIVE, activation ID: {}", activation.getActivationId());
-                isTokenValid = false;
-            } else {
-                // Check MAC token verification request for replay attacks and persist unique value from request
-                replayVerificationService.checkAndPersistUniqueValue(
-                        UniqueValueType.MAC_TOKEN,
-                        new Date(request.getTimestamp()),
-                        null,
-                        request.getNonce(),
-                        tokenId,
-                        request.getProtocolVersion());
-                // Validate MAC token
-                isTokenValid = tokenVerifier.validateTokenDigest(nonce, timestamp, request.getProtocolVersion(), tokenSecret, tokenDigest);
-            }
-
-            final ValidateTokenResponse response = new ValidateTokenResponse();
-            response.setTokenValid(isTokenValid);
-            response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
-            response.setBlockedReason(activation.getBlockedReason());
-            response.setActivationId(activation.getActivationId());
-            response.setApplicationId(activation.getApplication().getId());
-            response.getApplicationRoles().addAll(activation.getApplication().getRoles());
-            response.getActivationFlags().addAll(activation.getFlags());
-            response.setUserId(activation.getUserId());
-            response.setSignatureType(signatureTypeConverter.convertFrom(token.getSignatureTypeCreated()));
-            return response;
-        } catch (GenericCryptoException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
-        }
-    }
-
-    /**
-     * Remove token with provided ID.
-     *
-     * @param request Request with token ID.
-     * @return Token removal response.
-     */
-    public RemoveTokenResponse removeToken(RemoveTokenRequest request) {
-        final String tokenId = request.getTokenId();
-        boolean removed = false;
-
-        final Optional<TokenEntity> tokenEntityOptional = repositoryCatalogue.getTokenRepository().findById(tokenId);
-
-        // Token was found and activation ID corresponds to the correct user.
-        if (tokenEntityOptional.isPresent()) {
-            final TokenEntity token = tokenEntityOptional.get();
-            if (token.getActivation().getActivationId().equals(request.getActivationId())) {
-                repositoryCatalogue.getTokenRepository().delete(token);
-                removed = true;
-            }
-        }
-
-        final RemoveTokenResponse response = new RemoveTokenResponse();
-        response.setRemoved(removed);
-
-        return response;
-    }
 }

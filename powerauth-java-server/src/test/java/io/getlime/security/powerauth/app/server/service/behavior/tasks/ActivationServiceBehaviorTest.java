@@ -18,12 +18,11 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
@@ -65,13 +64,20 @@ class ActivationServiceBehaviorTest {
     @Autowired
     private ActivationServiceBehavior tested;
 
-    @Autowired
-    private PowerAuthService powerAuthService;
+    private final ApplicationServiceBehavior applicationServiceBehavior;
+    private final RecoveryServiceBehavior recoveryServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String version = "3.2";
     private final String userId = UUID.randomUUID().toString();
+    @Autowired private ActivationServiceBehavior activationServiceBehavior;
+
+    @Autowired
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, RecoveryServiceBehavior recoveryServiceBehavior) {
+        this.applicationServiceBehavior = applicationServiceBehavior;
+        this.recoveryServiceBehavior = recoveryServiceBehavior;
+    }
 
     @Test
     void testPrepareActivationWithValidPayload() throws Exception {
@@ -96,7 +102,17 @@ class ActivationServiceBehaviorTest {
         // Prepare activation
         final String activationCode = initActivationResponse.getActivationCode();
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
-        tested.prepareActivation(activationCode, applicationKey, false, encryptedRequest, version, keyConvertor);
+        final PrepareActivationRequest request = new PrepareActivationRequest();
+        request.setActivationCode(activationCode);
+        request.setGenerateRecoveryCodes(false);
+        request.setProtocolVersion(version);
+        request.setApplicationKey(applicationKey);
+        request.setMac(encryptedRequest.getMac());
+        request.setNonce(encryptedRequest.getNonce());
+        request.setEncryptedData(encryptedRequest.getEncryptedData());
+        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        request.setTimestamp(encryptedRequest.getTimestamp());
+        tested.prepareActivation(request);
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
     }
@@ -120,8 +136,19 @@ class ActivationServiceBehaviorTest {
         // Prepare activation with missing devicePublicKey
         final String activationCode = initActivationResponse.getActivationCode();
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-                tested.prepareActivation(activationCode, applicationKey, false, encryptedRequest, version, keyConvertor));
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> {
+            final PrepareActivationRequest request = new PrepareActivationRequest();
+            request.setActivationCode(activationCode);
+            request.setGenerateRecoveryCodes(false);
+            request.setProtocolVersion(version);
+            request.setApplicationKey(applicationKey);
+            request.setMac(encryptedRequest.getMac());
+            request.setNonce(encryptedRequest.getNonce());
+            request.setEncryptedData(encryptedRequest.getEncryptedData());
+            request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+            request.setTimestamp(encryptedRequest.getTimestamp());
+            tested.prepareActivation(request);
+        });
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
 
         assertEquals(ActivationStatus.CREATED, getActivationStatus(activationId));
@@ -143,8 +170,17 @@ class ActivationServiceBehaviorTest {
 
         // Create activation
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
-        final CreateActivationResponse response =
-                tested.createActivation(userId, null, false, null, applicationKey, encryptedRequest, null, version, keyConvertor);
+        final CreateActivationRequest request = new CreateActivationRequest();
+        request.setApplicationKey(applicationKey);
+        request.setUserId(userId);
+        request.setProtocolVersion(version);
+        request.setGenerateRecoveryCodes(false);
+        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        request.setNonce(encryptedRequest.getNonce());
+        request.setTimestamp(encryptedRequest.getTimestamp());
+        request.setMac(encryptedRequest.getMac());
+        request.setEncryptedData(encryptedRequest.getEncryptedData());
+        final CreateActivationResponse response = tested.createActivation(request);
 
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(response.getActivationId()));
     }
@@ -161,8 +197,20 @@ class ActivationServiceBehaviorTest {
 
         // Create activation with missing devicePublicKey
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
-        final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-                tested.createActivation(userId, null, false, null, applicationKey, encryptedRequest, null, version, keyConvertor));
+        final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> {
+            final CreateActivationRequest request = new CreateActivationRequest();
+            request.setApplicationKey(applicationKey);
+            request.setUserId(userId);
+            request.setProtocolVersion(version);
+            request.setGenerateRecoveryCodes(false);
+            request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+            request.setNonce(encryptedRequest.getNonce());
+            request.setTimestamp(encryptedRequest.getTimestamp());
+            request.setMac(encryptedRequest.getMac());
+            request.setEncryptedData(encryptedRequest.getEncryptedData());
+            tested.createActivation(request);
+        });
+
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
     }
 
@@ -189,7 +237,7 @@ class ActivationServiceBehaviorTest {
                 buildRecoveryCodeActivationRequest(recoveryCode, puk, activationLayer2Request, detailResponse);
 
         // Create activation
-        final RecoveryCodeActivationResponse recoveryCodeActivationResponse = tested.createActivationUsingRecoveryCode(recoveryCodeActivationRequest, keyConvertor);
+        final RecoveryCodeActivationResponse recoveryCodeActivationResponse = tested.createActivationUsingRecoveryCode(recoveryCodeActivationRequest);
 
         // Check new activation was created
         assertNotEquals(responsePayload.getActivationId(), recoveryCodeActivationResponse.getActivationId());
@@ -217,7 +265,7 @@ class ActivationServiceBehaviorTest {
 
         // Create activation with missing devicePublicKey
         final GenericServiceException exception = assertThrows(GenericServiceException.class, () ->
-                tested.createActivationUsingRecoveryCode(recoveryCodeActivationRequest, keyConvertor));
+                tested.createActivationUsingRecoveryCode(recoveryCodeActivationRequest));
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
     }
 
@@ -248,8 +296,17 @@ class ActivationServiceBehaviorTest {
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(objectMapper.writeValueAsBytes(activationLayer2Request));
 
         // Create activation
-        final CreateActivationResponse createActivationResponse =
-                tested.createActivation(userId, null, true, null, applicationKey, encryptedRequest, null, version, keyConvertor);
+        final CreateActivationRequest request = new CreateActivationRequest();
+        request.setApplicationKey(applicationKey);
+        request.setUserId(userId);
+        request.setProtocolVersion(version);
+        request.setGenerateRecoveryCodes(true);
+        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        request.setNonce(encryptedRequest.getNonce());
+        request.setTimestamp(encryptedRequest.getTimestamp());
+        request.setMac(encryptedRequest.getMac());
+        request.setEncryptedData(encryptedRequest.getEncryptedData());
+        final CreateActivationResponse createActivationResponse = tested.createActivation(request);
 
         final String activationId = createActivationResponse.getActivationId();
         assertEquals(ActivationStatus.PENDING_COMMIT, getActivationStatus(activationId));
@@ -274,13 +331,13 @@ class ActivationServiceBehaviorTest {
         final UpdateRecoveryConfigRequest updateRecoveryConfigRequest = new UpdateRecoveryConfigRequest();
         updateRecoveryConfigRequest.setApplicationId(applicationId);
         updateRecoveryConfigRequest.setActivationRecoveryEnabled(true);
-        powerAuthService.updateRecoveryConfig(updateRecoveryConfigRequest);
+        recoveryServiceBehavior.updateRecoveryConfig(updateRecoveryConfigRequest);
     }
 
     private boolean isRecoveryCodeGenerationEnabled(String applicationId) throws Exception {
         final GetRecoveryConfigRequest getRecoveryConfigRequest = new GetRecoveryConfigRequest();
         getRecoveryConfigRequest.setApplicationId(applicationId);
-        final GetRecoveryConfigResponse recoveryConfigResponse = powerAuthService.getRecoveryConfig(getRecoveryConfigRequest);
+        final GetRecoveryConfigResponse recoveryConfigResponse = recoveryServiceBehavior.getRecoveryConfig(getRecoveryConfigRequest);
         return recoveryConfigResponse.isActivationRecoveryEnabled();
     }
 
@@ -294,7 +351,7 @@ class ActivationServiceBehaviorTest {
     private void commitActivation(String activationId) throws Exception {
         final CommitActivationRequest commitActivationRequest = new CommitActivationRequest();
         commitActivationRequest.setActivationId(activationId);
-        powerAuthService.commitActivation(commitActivationRequest);
+        activationServiceBehavior.commitActivation(commitActivationRequest);
     }
 
     private ActivationLayer2Response decryptPayload(CreateActivationResponse response, ClientEncryptor clientEncryptor) throws Exception {
@@ -308,7 +365,7 @@ class ActivationServiceBehaviorTest {
         lookupRecoveryCodesRequest.setUserId(userId);
         lookupRecoveryCodesRequest.setActivationId(activationId);
         lookupRecoveryCodesRequest.setApplicationId(applicationId);
-        final LookupRecoveryCodesResponse lookupRecoveryCodesResponse = powerAuthService.lookupRecoveryCodes(lookupRecoveryCodesRequest);
+        final LookupRecoveryCodesResponse lookupRecoveryCodesResponse = recoveryServiceBehavior.lookupRecoveryCodes(lookupRecoveryCodesRequest);
         return lookupRecoveryCodesResponse.getRecoveryCodes().get(0).getStatus();
     }
 
@@ -347,24 +404,28 @@ class ActivationServiceBehaviorTest {
     }
 
     private InitActivationResponse initActivation(String applicationId) throws Exception {
-        return tested.initActivation(ActivationProtocol.POWERAUTH, applicationId, userId, null, null, null, null, null, keyConvertor);
+        final InitActivationRequest request = new InitActivationRequest();
+        request.setProtocol(ActivationProtocol.POWERAUTH);
+        request.setApplicationId(applicationId);
+        request.setUserId(userId);
+        return tested.initActivation(request);
     }
 
     private GetApplicationDetailResponse createApplication() throws Exception {
         final String testId = UUID.randomUUID().toString();
         final CreateApplicationRequest createApplicationRequest = new CreateApplicationRequest();
         createApplicationRequest.setApplicationId(testId);
-        final CreateApplicationResponse createApplicationResponse = powerAuthService.createApplication(createApplicationRequest);
+        final CreateApplicationResponse createApplicationResponse = applicationServiceBehavior.createApplication(createApplicationRequest);
 
         final GetApplicationDetailRequest detailRequest = new GetApplicationDetailRequest();
         detailRequest.setApplicationId(createApplicationResponse.getApplicationId());
-        return powerAuthService.getApplicationDetail(detailRequest);
+        return applicationServiceBehavior.getApplicationDetail(detailRequest);
     }
 
     private ActivationStatus getActivationStatus(String activationId) throws Exception {
         final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
         statusRequest.setActivationId(activationId);
-        final GetActivationStatusResponse statusResponse = powerAuthService.getActivationStatus(statusRequest);
+        final GetActivationStatusResponse statusResponse = activationServiceBehavior.getActivationStatus(statusRequest);
 
         return statusResponse.getActivationStatus();
     }

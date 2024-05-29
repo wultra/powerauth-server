@@ -17,6 +17,8 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
+import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -26,10 +28,10 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -42,7 +44,8 @@ import java.util.Base64;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class AsymmetricSignatureServiceBehavior {
 
     private final ActivationRepository activationRepository;
@@ -50,9 +53,7 @@ public class AsymmetricSignatureServiceBehavior {
     private final ActivationContextValidator activationValidator;
 
     private final SignatureUtils signatureUtils = new SignatureUtils();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
     public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider, ActivationContextValidator activationValidator) {
@@ -63,24 +64,37 @@ public class AsymmetricSignatureServiceBehavior {
 
     /**
      * Validate ECDSA signature for given data using public key associated with given activation ID.
-     * @param activationId Activation ID to be used for device public key lookup.
-     * @param data Data that were signed, in Base64 format.
-     * @param signature Provided signature to be verified, in Base64 format.
-     * @param keyConversionUtilities Key converter provided by the client code.
+     *
+     * @param request Request with ECDSA verification request.
      * @return True in case signature validates for given data with provided public key, false otherwise.
      * @throws GenericServiceException In case signature verification fails.
      */
-    public boolean verifyECDSASignature(String activationId, String data, String signature, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    @Transactional
+    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws GenericServiceException {
         try {
+            final String activationId = request.getActivationId();
+            final String data = request.getData();
+            final String signature  = request.getSignature();
+            if (activationId == null || data == null || signature == null) {
+                logger.warn("Invalid request parameters in method verifyECDSASignature");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
-                return false;
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-            byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
-            return signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
+
+            final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
+            final boolean matches = signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
+
+            final VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
+            response.setSignatureValid(matches);
+            return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -93,6 +107,15 @@ public class AsymmetricSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
     }

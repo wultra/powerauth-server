@@ -46,7 +46,10 @@ import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationR
 import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import io.getlime.security.powerauth.app.server.Application;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationTemplateServiceBehavior;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,14 +97,19 @@ class Fido2AuthenticatorTest {
     private final ClientPlatform CLIENT_PLATFORM_BASIC_ATTESTATION = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(EmulatorUtil.PACKED_AUTHENTICATOR));
     private final ClientPlatform CLIENT_PLATFORM_ANDROID_SAFETY_NET_ATTESTATION = new ClientPlatform(ORIGIN, new WebAuthnAuthenticatorAdaptor(EmulatorUtil.ANDROID_SAFETY_NET_AUTHENTICATOR));
 
-    private final PowerAuthService powerAuthService;
+    private final ApplicationServiceBehavior applicationServiceBehavior;
+    private final ApplicationConfigServiceBehavior applicationConfigService;
+    private final OperationTemplateServiceBehavior operationTemplateService;
     private final RegistrationService registrationService;
     private final AssertionService assertionService;
+    @Autowired private ActivationServiceBehavior activationServiceBehavior;
 
 
     @Autowired
-    public Fido2AuthenticatorTest(PowerAuthService powerAuthService, RegistrationService registrationService, AssertionService assertionService) throws Exception {
-        this.powerAuthService = powerAuthService;
+    public Fido2AuthenticatorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationConfigServiceBehavior applicationConfigService, OperationTemplateServiceBehavior operationTemplateService, RegistrationService registrationService, AssertionService assertionService) throws Exception {
+        this.applicationServiceBehavior = applicationServiceBehavior;
+        this.applicationConfigService = applicationConfigService;
+        this.operationTemplateService = operationTemplateService;
         this.registrationService = registrationService;
         this.assertionService = assertionService;
         createApplication();
@@ -278,7 +286,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
         requestCreate.setValues(Collections.emptyList());
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Registration should fail
         assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
@@ -287,7 +295,7 @@ class Fido2AuthenticatorTest {
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     @Test
@@ -297,7 +305,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
         requestCreate.setValues(List.of("00000000-0000-0000-0000-000000000001"));
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Registration should fail
         assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
@@ -306,7 +314,7 @@ class Fido2AuthenticatorTest {
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     @Test
@@ -316,7 +324,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
         requestCreate.setValues(List.of("00000000-0000-0000-0000-000000000000"));
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Registration should succeed
         registerCredential();
@@ -325,7 +333,7 @@ class Fido2AuthenticatorTest {
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_AAGUIDS);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     @Test
@@ -335,7 +343,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
         requestCreate.setValues(Collections.emptyList());
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Registration should fail
         assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
@@ -344,7 +352,7 @@ class Fido2AuthenticatorTest {
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     @Test
@@ -354,7 +362,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
         requestCreate.setValues(List.of("none"));
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Registration should fail
         assertThrows(Fido2AuthenticationFailedException.class, this::registerCredential);
@@ -363,7 +371,7 @@ class Fido2AuthenticatorTest {
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     @Test
@@ -373,7 +381,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
         requestCreate.setValues(List.of("packed"));
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Registration should succeed
         registerCredential();
@@ -382,7 +390,7 @@ class Fido2AuthenticatorTest {
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ALLOWED_ATTESTATION_FMT);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     @Test
@@ -409,7 +417,7 @@ class Fido2AuthenticatorTest {
         requestCreate.setApplicationId(APPLICATION_ID);
         requestCreate.setKey(CONFIG_KEY_ROOT_CA_CERTS);
         requestCreate.setValues(List.of(TEST_ROOT_CERT));
-        powerAuthService.createApplicationConfig(requestCreate);
+        applicationConfigService.createApplicationConfig(requestCreate);
 
         // Prepare registration request
         final RegistrationRequest registrationRequest = prepareRegistrationRequest(credentialCreationOptions, challenge, CLIENT_PLATFORM_BASIC_ATTESTATION);
@@ -421,18 +429,18 @@ class Fido2AuthenticatorTest {
         // Check that activation is in ACTIVE state
         final GetActivationStatusRequest activationStatusRequest2 = new GetActivationStatusRequest();
         activationStatusRequest2.setActivationId(challengeResponse.getActivationId());
-        assertEquals(ActivationStatus.ACTIVE, powerAuthService.getActivationStatus(activationStatusRequest2).getActivationStatus());
+        assertEquals(ActivationStatus.ACTIVE, activationServiceBehavior.getActivationStatus(activationStatusRequest2).getActivationStatus());
 
         // Remove configuration
         final RemoveApplicationConfigRequest requestRemove = new RemoveApplicationConfigRequest();
         requestRemove.setApplicationId(APPLICATION_ID);
         requestRemove.setKey(CONFIG_KEY_ROOT_CA_CERTS);
-        powerAuthService.removeApplicationConfig(requestRemove);
+        applicationConfigService.removeApplicationConfig(requestRemove);
     }
 
     private void createApplication() throws Exception {
         // Search if application for FIDO2 tests exists
-        final boolean applicationFound = powerAuthService.getApplicationList().getApplications().stream()
+        final boolean applicationFound = applicationServiceBehavior.getApplicationList().getApplications().stream()
                 .map(com.wultra.security.powerauth.client.model.entity.Application::getApplicationId)
                 .anyMatch(APPLICATION_ID::equals);
         if (applicationFound) {
@@ -441,7 +449,7 @@ class Fido2AuthenticatorTest {
         // Create application for FIDO2 tests
         final CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId(APPLICATION_ID);
-        powerAuthService.createApplication(request);
+        applicationServiceBehavior.createApplication(request);
     }
 
     private void registerCredential() throws Exception {
@@ -455,7 +463,7 @@ class Fido2AuthenticatorTest {
         // Check that activation is in CREATED state
         final GetActivationStatusRequest activationStatusRequest = new GetActivationStatusRequest();
         activationStatusRequest.setActivationId(challengeResponse.getActivationId());
-        assertEquals(ActivationStatus.CREATED, powerAuthService.getActivationStatus(activationStatusRequest).getActivationStatus());
+        assertEquals(ActivationStatus.CREATED, activationServiceBehavior.getActivationStatus(activationStatusRequest).getActivationStatus());
 
         // Use obtained activation code as a challenge, prepare credential options
         final Challenge challenge = new DefaultChallenge(challengeResponse.getChallenge().getBytes(StandardCharsets.UTF_8));
@@ -478,7 +486,7 @@ class Fido2AuthenticatorTest {
         // Check that activation is in ACTIVE state
         final GetActivationStatusRequest activationStatusRequest2 = new GetActivationStatusRequest();
         activationStatusRequest2.setActivationId(challengeResponse.getActivationId());
-        assertEquals(ActivationStatus.ACTIVE, powerAuthService.getActivationStatus(activationStatusRequest2).getActivationStatus());
+        assertEquals(ActivationStatus.ACTIVE, activationServiceBehavior.getActivationStatus(activationStatusRequest2).getActivationStatus());
     }
 
     private RegistrationRequest prepareRegistrationRequest(PublicKeyCredentialCreationOptions credentialCreationOptions, Challenge challenge, ClientPlatform clientPlatform) throws Exception {
@@ -510,7 +518,7 @@ class Fido2AuthenticatorTest {
     }
 
     private void createOperationTemplate() throws Exception {
-        final boolean templateFound = powerAuthService.getAllTemplates().stream()
+        final boolean templateFound = operationTemplateService.getAllTemplates().stream()
                 .map(OperationTemplateDetailResponse::getTemplateName)
                 .anyMatch("login"::equals);
         if (templateFound) {
@@ -523,7 +531,7 @@ class Fido2AuthenticatorTest {
         templateCreateRequest.setMaxFailureCount(5L);
         templateCreateRequest.setExpiration(300L);
         templateCreateRequest.getSignatureType().add(SignatureType.POSSESSION_KNOWLEDGE);
-        powerAuthService.createOperationTemplate(templateCreateRequest);
+        operationTemplateService.createOperationTemplate(templateCreateRequest);
     }
 
     private void authenticate() throws Exception {

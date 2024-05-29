@@ -79,7 +79,7 @@ public class ReplayPersistenceService {
             uniqueValueRepository.save(uniqueVal);
             return true;
         } catch (Exception ex) {
-            logger.warn("Could not persist unique value: " + uniqueValue, ex);
+            logger.warn("Could not persist unique value: {}", uniqueValue, ex);
             return false;
         }
     }

@@ -27,17 +27,19 @@ import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedExcepti
 import com.wultra.powerauth.fido2.service.provider.AuthenticatorProvider;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.GetActivationListForUserResponse;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -47,7 +49,6 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,7 +70,9 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final ApplicationRepository applicationRepository;
 
     private final RepositoryCatalogue repositoryCatalogue;
-    private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
+    private final ActivationServiceBehavior activations;
+    private final ActivationHistoryServiceBehavior activationHistory;
+    private final CallbackUrlBehavior callbacks;
     private final AuditingServiceBehavior audit;
 
     private LocalizationProvider localizationProvider;
@@ -79,11 +82,12 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public PowerAuthAuthenticatorProvider(RepositoryCatalogue repositoryCatalogue, ServiceBehaviorCatalogue serviceBehaviorCatalogue,
-                                          ApplicationRepository applicationRepository, AuditingServiceBehavior audit) {
+    public PowerAuthAuthenticatorProvider(RepositoryCatalogue repositoryCatalogue, ApplicationRepository applicationRepository, ActivationServiceBehavior activations, ActivationHistoryServiceBehavior activationHistory, CallbackUrlBehavior callbacks, AuditingServiceBehavior audit) {
         this.repositoryCatalogue = repositoryCatalogue;
-        this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.applicationRepository = applicationRepository;
+        this.activations = activations;
+        this.activationHistory = activationHistory;
+        this.callbacks = callbacks;
         this.audit = audit;
     }
 
@@ -95,30 +99,41 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     @Override
     @Transactional(readOnly = true)
     public List<AuthenticatorDetail> findByUserId(String userId, String applicationId) throws Fido2AuthenticationFailedException {
-
-        // Find application
-        final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
-        if (application.isEmpty()) {
-            logger.warn("Application with given ID is not present: {}", applicationId);
-            throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
-        }
-
-        final List<AuthenticatorDetail> authenticatorDetailList = new ArrayList<>();
-
-        int pageIndex = 0;
-        GetActivationListForUserResponse activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(ActivationProtocol.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
-        while (!activationList.getActivations().isEmpty()) {
-            for (Activation activation : activationList.getActivations()) {
-                if (activation.getProtocol() != ActivationProtocol.FIDO2) { // Check the protocol, just in case
-                    continue;
-                }
-                final Optional<AuthenticatorDetail> authenticatorOptional = convert(activation, application.get());
-                authenticatorOptional.ifPresent(authenticatorDetailList::add);
+        try {
+            // Find application
+            final Optional<ApplicationEntity> application = applicationRepository.findById(applicationId);
+            if (application.isEmpty()) {
+                logger.warn("Application with given ID is not present: {}", applicationId);
+                throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
             }
-            pageIndex++;
-            activationList = serviceBehaviorCatalogue.getActivationServiceBehavior().getActivationList(applicationId, userId, Set.of(ActivationProtocol.FIDO2), PageRequest.of(pageIndex, 1000), Set.of(ActivationStatus.ACTIVE, ActivationStatus.BLOCKED));
+
+            final List<AuthenticatorDetail> authenticatorDetailList = new ArrayList<>();
+
+            int pageIndex = 0;
+            GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+            request.setProtocols(Set.of(ActivationProtocol.FIDO2));
+            request.setApplicationId(applicationId);
+            request.setUserId(userId);
+            request.setActivationStatuses(Set.of(com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.ACTIVE, com.wultra.security.powerauth.client.model.enumeration.ActivationStatus.BLOCKED));
+            request.setPageNumber(pageIndex);
+            request.setPageSize(1000);
+            GetActivationListForUserResponse activationList = activations.getActivationList(request);
+            while (!activationList.getActivations().isEmpty()) {
+                for (Activation activation : activationList.getActivations()) {
+                    if (activation.getProtocol() != ActivationProtocol.FIDO2) { // Check the protocol, just in case
+                        continue;
+                    }
+                    final Optional<AuthenticatorDetail> authenticatorOptional = convert(activation, application.get());
+                    authenticatorOptional.ifPresent(authenticatorDetailList::add);
+                }
+                pageIndex++;
+                request.setPageNumber(pageIndex);
+                activationList = activations.getActivationList(request);
+            }
+            return authenticatorDetailList;
+        } catch (GenericServiceException ex) {
+            throw new Fido2AuthenticationFailedException("Unable to fetch list of activations", ex);
         }
-        return authenticatorDetailList;
     }
 
     @Override
@@ -132,7 +147,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
         }
 
-        final List<Activation> activationRecordEntities = serviceBehaviorCatalogue.getActivationServiceBehavior().findByExternalId(applicationId, credentialId);
+        final List<Activation> activationRecordEntities = activations.findByExternalId(applicationId, credentialId);
         if (activationRecordEntities == null || activationRecordEntities.size() != 1) {
             throw new Fido2AuthenticationFailedException("Two authenticators with the same ID exist - ambiguous result.");
         }
@@ -221,8 +236,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             activation.setCtrDataBase64(ctrDataBase64);
 
             // Persist activation report and notify listeners
-            serviceBehaviorCatalogue.getActivationHistoryServiceBehavior().saveActivationAndLogChange(activation);
-            serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
+            activationHistory.saveActivationAndLogChange(activation);
+            callbacks.notifyCallbackListenersOnActivationChange(activation);
 
             final Activation activationResponse = new Activation();
             activationResponse.setActivationId(activation.getActivationId());
@@ -380,8 +395,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private void removeActivationInternal(final ActivationRecordEntity activation) {
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED);
         // Recovery codes are revoked in case revocation is requested, or always when the activation is in CREATED or PENDING_COMMIT state
-        serviceBehaviorCatalogue.getActivationHistoryServiceBehavior().saveActivationAndLogChange(activation, null);
-        serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
+        activationHistory.saveActivationAndLogChange(activation, null);
+        callbacks.notifyCallbackListenersOnActivationChange(activation);
     }
 
     /**
@@ -393,8 +408,8 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
      */
     private void handleInvalidPublicKey(ActivationRecordEntity activation) throws GenericServiceException {
         activation.setActivationStatus(io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.REMOVED);
-        serviceBehaviorCatalogue.getActivationHistoryServiceBehavior().saveActivationAndLogChange(activation);
-        serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
+        activationHistory.saveActivationAndLogChange(activation);
+        callbacks.notifyCallbackListenersOnActivationChange(activation);
         // Exception must not be rollbacking, otherwise data written to database in this method would be lost
         throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
     }
