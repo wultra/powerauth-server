@@ -43,7 +43,4 @@ public class OperationApproveRequest {
     @JsonSetter(nulls = Nulls.SKIP)
     private final Map<String, Object> additionalData = new LinkedHashMap<>();
 
-    /**
-     * Optional details why the status has changed. The value is more about code than free-text detail.
-     */
 }
