@@ -143,7 +143,7 @@ public class OfflineSignatureServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -224,7 +224,7 @@ public class OfflineSignatureServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -324,7 +324,7 @@ public class OfflineSignatureServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 

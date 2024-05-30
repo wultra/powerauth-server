@@ -133,7 +133,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationCreateRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
             validate(request);
 
@@ -254,7 +254,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -288,7 +288,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationApproveRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Instant currentInstant = Instant.now();
@@ -449,7 +449,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred, operation ID: {}", request.getOperationId(), ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -458,7 +458,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationRejectRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Date currentTimestamp = new Date();
@@ -549,7 +549,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -558,7 +558,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationFailApprovalRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Date currentTimestamp = new Date();
@@ -642,7 +642,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -651,7 +651,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationCancelRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Date currentTimestamp = new Date();
@@ -702,7 +702,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -711,7 +711,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationDetailRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Date currentTimestamp = new Date();
@@ -743,7 +743,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -752,7 +752,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationListForUserRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Date currentTimestamp = new Date();
@@ -786,7 +786,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -795,7 +795,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationListForUserRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final OperationListRequest operationListRequest = convert(request);
@@ -835,7 +835,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -849,7 +849,7 @@ public class OperationServiceBehavior {
         try {
             final String error = OperationExtIdRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Date currentTimestamp = new Date();
@@ -879,7 +879,7 @@ public class OperationServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -1022,7 +1022,7 @@ public class OperationServiceBehavior {
             return new String(totp, StandardCharsets.UTF_8);
         } catch (CryptoProviderException | IllegalArgumentException e) {
             logger.error("Unable to generate OTP for operation ID: {}, user ID: {}", operationId, operation.getUserId(), e);
-            throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage());
         }
     }
 
@@ -1038,7 +1038,7 @@ public class OperationServiceBehavior {
                 return Base64.getEncoder().encodeToString(seed);
             } catch (CryptoProviderException e) {
                 logger.error("Unable to generate proximity OTP seed for operation, user ID: {}", request.getUserId(), e);
-                throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage(), e.getLocalizedMessage());
+                throw new GenericServiceException(ServiceError.OPERATION_ERROR, e.getMessage());
             }
         }
         logger.debug("Proximity check not enabled neither in request user ID: {} nor in templateName: {}", request.getUserId(), template.getTemplateName());

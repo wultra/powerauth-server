@@ -85,7 +85,7 @@ public class OperationTemplateServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -99,7 +99,7 @@ public class OperationTemplateServiceBehavior {
         try {
             final String error = OperationTemplateDetailRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
             final Long id = request.getId();
             final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
@@ -115,7 +115,7 @@ public class OperationTemplateServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -129,7 +129,7 @@ public class OperationTemplateServiceBehavior {
         try {
             final String error = OperationTemplateCreateRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
             final String templateName = request.getTemplateName();
             final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
@@ -147,7 +147,7 @@ public class OperationTemplateServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -161,7 +161,7 @@ public class OperationTemplateServiceBehavior {
         try {
             final String error = OperationTemplateUpdateRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Long id = request.getId();
@@ -184,7 +184,7 @@ public class OperationTemplateServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -198,7 +198,7 @@ public class OperationTemplateServiceBehavior {
         try {
             final String error = OperationTemplateDeleteRequestValidator.validate(request);
             if (error != null) {
-                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error, error);
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
             }
 
             final Long id = request.getId();
@@ -216,7 +216,7 @@ public class OperationTemplateServiceBehavior {
             throw ex;
         } catch (Exception ex) {
             logger.error("Unknown error occurred", ex);
-            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
