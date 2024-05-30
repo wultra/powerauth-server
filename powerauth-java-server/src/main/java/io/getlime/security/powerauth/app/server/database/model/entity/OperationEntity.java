@@ -88,7 +88,7 @@ public class OperationEntity implements Serializable {
 
     /**
      * Optional details why the status has changed.
-     * The value is more about code than free-text detail.
+     * The value should be sent in the form of a computer-readable code, not a free-form text.
      */
     @Column(name = "status_reason", length = 32)
     private String statusReason;
