@@ -100,7 +100,7 @@ public class IntegrationBehavior {
      * Get the list of all current integrations.
      * @return List of all current integrations.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public GetIntegrationListResponse getIntegrationList() throws GenericServiceException {
         try {
             final Iterable<IntegrationEntity> integrations = integrationRepository.findAll();

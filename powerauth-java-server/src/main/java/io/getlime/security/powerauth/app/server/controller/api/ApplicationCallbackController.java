@@ -65,7 +65,7 @@ public class ApplicationCallbackController {
     @PostMapping("/create")
     public ObjectResponse<CreateCallbackUrlResponse> createCallbackUrl(@RequestBody ObjectRequest<CreateCallbackUrlRequest> request) throws Exception {
         logger.info("CreateCallbackUrlRequest received: {}", request);
-        final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>("OK", service.createCallbackUrl(request.getRequestObject()));
+        final ObjectResponse<CreateCallbackUrlResponse> response = new ObjectResponse<>(service.createCallbackUrl(request.getRequestObject()));
         logger.info("CreateCallbackUrlRequest succeeded: {}", response);
         return response;
     }
@@ -80,7 +80,7 @@ public class ApplicationCallbackController {
     @PostMapping("/update")
     public ObjectResponse<UpdateCallbackUrlResponse> updateCallbackUrl(@RequestBody ObjectRequest<UpdateCallbackUrlRequest> request) throws Exception {
         logger.info("UpdateCallbackUrlRequest received: {}", request);
-        final ObjectResponse<UpdateCallbackUrlResponse> response = new ObjectResponse<>("OK", service.updateCallbackUrl(request.getRequestObject()));
+        final ObjectResponse<UpdateCallbackUrlResponse> response = new ObjectResponse<>(service.updateCallbackUrl(request.getRequestObject()));
         logger.info("UpdateCallbackUrlRequest succeeded: {}", response);
         return response;
     }
@@ -95,7 +95,7 @@ public class ApplicationCallbackController {
     @PostMapping("/list")
     public ObjectResponse<GetCallbackUrlListResponse> getCallbackUrlList(@RequestBody ObjectRequest<GetCallbackUrlListRequest> request) throws Exception {
         logger.info("GetCallbackUrlListRequest received: {}", request);
-        final ObjectResponse<GetCallbackUrlListResponse> response = new ObjectResponse<>("OK", service.getCallbackUrlList(request.getRequestObject()));
+        final ObjectResponse<GetCallbackUrlListResponse> response = new ObjectResponse<>(service.getCallbackUrlList(request.getRequestObject()));
         logger.info("GetCallbackUrlListRequest succeeded: {}", response);
         return response;
     }
@@ -110,7 +110,7 @@ public class ApplicationCallbackController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveCallbackUrlResponse> removeCallbackUrl(@RequestBody ObjectRequest<RemoveCallbackUrlRequest> request) throws Exception {
         logger.info("RemoveCallbackUrlRequest received: {}", request);
-        final ObjectResponse<RemoveCallbackUrlResponse> response = new ObjectResponse<>("OK", service.removeCallbackUrl(request.getRequestObject()));
+        final ObjectResponse<RemoveCallbackUrlResponse> response = new ObjectResponse<>(service.removeCallbackUrl(request.getRequestObject()));
         logger.info("RemoveCallbackUrlRequest succeeded: {}", response);
         return response;
     }

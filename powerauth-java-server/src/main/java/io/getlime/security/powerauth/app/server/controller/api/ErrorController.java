@@ -54,7 +54,7 @@ public class ErrorController {
     @PostMapping("/list")
     public ObjectResponse<GetErrorCodeListResponse> getErrorCodeList() {
         logger.info("GetErrorCodeListRequest received");
-        final ObjectResponse<GetErrorCodeListResponse> response = new ObjectResponse<>("OK", service.getErrorCodeList());
+        final ObjectResponse<GetErrorCodeListResponse> response = new ObjectResponse<>(service.getErrorCodeList());
         logger.info("GetErrorCodeListRequest succeeded: {}", response);
         return response;
     }

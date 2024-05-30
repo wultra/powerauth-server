@@ -110,7 +110,7 @@ public class AuditingServiceBehavior {
      * @param request Request with signature audit log query.
      * @return Response with log items.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public SignatureAuditResponse getSignatureAuditLog(SignatureAuditRequest request) throws GenericServiceException {
 
         try {

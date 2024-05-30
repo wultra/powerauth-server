@@ -450,7 +450,6 @@ public class RecoveryServiceBehavior {
             }
 
             return response;
-
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography errors can only occur before writing to database
@@ -485,7 +484,7 @@ public class RecoveryServiceBehavior {
      * @return Lookup recovery codes response.
      * @throws GenericServiceException In case of any error.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public LookupRecoveryCodesResponse lookupRecoveryCodes(LookupRecoveryCodesRequest request) throws GenericServiceException {
         try {
             final String applicationId = request.getApplicationId();
@@ -673,7 +672,7 @@ public class RecoveryServiceBehavior {
      * @return Get recovery configuration response.
      * @throws GenericServiceException In case of any error.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
         try {
             String applicationId = request.getApplicationId();

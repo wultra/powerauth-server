@@ -61,7 +61,7 @@ public class OperationsController {
     @PostMapping("/create")
     public ObjectResponse<OperationDetailResponse> createOperation(@RequestBody ObjectRequest<OperationCreateRequest> request) throws Exception {
         logger.info("OperationCreateRequest received: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>("OK", service.createOperation(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.createOperation(request.getRequestObject()));
         logger.info("OperationCreateRequest succeeded: {}", response);
         return response;
     }
@@ -76,7 +76,7 @@ public class OperationsController {
     @PostMapping("/detail")
     public ObjectResponse<OperationDetailResponse> operationDetail(@RequestBody ObjectRequest<OperationDetailRequest> request) throws Exception {
         logger.info("OperationDetailRequest received: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>("OK", service.operationDetail(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.operationDetail(request.getRequestObject()));
         logger.info("OperationDetailRequest succeeded: {}", response);
         return response;
     }
@@ -91,7 +91,7 @@ public class OperationsController {
     @PostMapping("/list")
     public ObjectResponse<OperationListResponse> operationList(@RequestBody ObjectRequest<OperationListForUserRequest> request) throws Exception {
         logger.info("OperationListForUserRequest received: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>("OK", service.findAllOperationsForUser(request.getRequestObject()));
+        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findAllOperationsForUser(request.getRequestObject()));
         logger.info("OperationListForUserRequest succeeded: {}", response);
         return response;
     }
@@ -106,7 +106,7 @@ public class OperationsController {
     @PostMapping("/list/pending")
     public ObjectResponse<OperationListResponse> pendingOperationList(@RequestBody ObjectRequest<OperationListForUserRequest> request) throws Exception {
         logger.info("OperationListForUserRequest received: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>("OK", service.findPendingOperationsForUser(request.getRequestObject()));
+        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findPendingOperationsForUser(request.getRequestObject()));
         logger.info("OperationListForUserRequest succeeded: {}", response);
         return response;
     }
@@ -121,7 +121,7 @@ public class OperationsController {
     @PostMapping("/list/external")
     public ObjectResponse<OperationListResponse> findAllOperationsByExternalId(@RequestBody ObjectRequest<OperationExtIdRequest> request) throws Exception {
         logger.info("findAllOperationsByExternalId received: {}", request);
-        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>("OK", service.findOperationsByExternalId(request.getRequestObject()));
+        final ObjectResponse<OperationListResponse> response = new ObjectResponse<>(service.findOperationsByExternalId(request.getRequestObject()));
         logger.info("findAllOperationsByExternalId succeeded: {}", response);
         return response;
     }
@@ -136,7 +136,7 @@ public class OperationsController {
     @PostMapping("/cancel")
     public ObjectResponse<OperationDetailResponse> cancelOperation(@RequestBody ObjectRequest<OperationCancelRequest> request) throws Exception {
         logger.info("OperationCancelRequest received: {}", request);
-        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>("OK", service.cancelOperation(request.getRequestObject()));
+        final ObjectResponse<OperationDetailResponse> response = new ObjectResponse<>(service.cancelOperation(request.getRequestObject()));
         logger.info("OperationCancelRequest succeeded: {}", response);
         return response;
     }
@@ -151,7 +151,7 @@ public class OperationsController {
     @PostMapping("/approve")
     public ObjectResponse<OperationUserActionResponse> approveOperation(@RequestBody ObjectRequest<OperationApproveRequest> request) throws Exception {
         logger.info("OperationApproveRequest received: {}", request);
-        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>("OK", service.attemptApproveOperation(request.getRequestObject()));
+        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.attemptApproveOperation(request.getRequestObject()));
         logger.info("OperationApproveRequest succeeded: {}", response);
         return response;
     }
@@ -166,7 +166,7 @@ public class OperationsController {
     @PostMapping("/approve/fail")
     public ObjectResponse<OperationUserActionResponse> failApprovalOperation(@RequestBody ObjectRequest<OperationFailApprovalRequest> request) throws Exception {
         logger.info("OperationFailApprovalRequest received: {}", request);
-        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>("OK", service.failApprovalOperation(request.getRequestObject()));
+        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.failApprovalOperation(request.getRequestObject()));
         logger.info("OperationFailApprovalRequest succeeded: {}", response);
         return response;
     }
@@ -181,7 +181,7 @@ public class OperationsController {
     @PostMapping("/reject")
     public ObjectResponse<OperationUserActionResponse> rejectOperation(@RequestBody ObjectRequest<OperationRejectRequest> request) throws Exception {
         logger.info("OperationRejectRequest received: {}", request);
-        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>("OK", service.rejectOperation(request.getRequestObject()));
+        final ObjectResponse<OperationUserActionResponse> response = new ObjectResponse<>(service.rejectOperation(request.getRequestObject()));
         logger.info("OperationRejectRequest succeeded: {}", response);
         return response;
     }

@@ -59,7 +59,7 @@ public class EciesController {
     @PostMapping("/decryptor")
     public ObjectResponse<GetEciesDecryptorResponse> getEciesDecryptor(@RequestBody ObjectRequest<GetEciesDecryptorRequest> request) throws Exception {
         logger.info("GetEciesDecryptorRequest received: {}", request);
-        final ObjectResponse<GetEciesDecryptorResponse> response = new ObjectResponse<>("OK", service.getEciesDecryptor(request.getRequestObject()));
+        final ObjectResponse<GetEciesDecryptorResponse> response = new ObjectResponse<>(service.getEciesDecryptor(request.getRequestObject()));
         logger.info("GetEciesDecryptorRequest succeeded: {}", response);
         return response;
     }

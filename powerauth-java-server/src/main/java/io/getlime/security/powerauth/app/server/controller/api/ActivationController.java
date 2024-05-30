@@ -60,7 +60,7 @@ public class ActivationController {
     @PostMapping("/init")
     public ObjectResponse<InitActivationResponse> initActivation(@RequestBody ObjectRequest<InitActivationRequest> request) throws Exception {
         logger.info("InitActivationRequest received: {}", request);
-        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.initActivation(request.getRequestObject()));
+        final ObjectResponse<InitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.initActivation(request.getRequestObject()));
         logger.info("InitActivationRequest succeeded: {}", response);
         return response;
     }
@@ -75,7 +75,7 @@ public class ActivationController {
     @PostMapping("/prepare")
     public ObjectResponse<PrepareActivationResponse> prepareActivation(@RequestBody ObjectRequest<PrepareActivationRequest> request) throws Exception {
         logger.info("PrepareActivationRequest received: {}", request);
-        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.prepareActivation(request.getRequestObject()));
+        final ObjectResponse<PrepareActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.prepareActivation(request.getRequestObject()));
         logger.info("PrepareActivationRequest succeeded");
         return response;
     }
@@ -90,7 +90,7 @@ public class ActivationController {
     @PostMapping("/create")
     public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws Exception {
         logger.info("CreateActivationRequest received: {}", request);
-        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.createActivation(request.getRequestObject()));
+        final ObjectResponse<CreateActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivation(request.getRequestObject()));
         logger.info("CreateActivationRequest succeeded: {}", response);
         return response;
     }
@@ -105,7 +105,7 @@ public class ActivationController {
     @PostMapping("/recovery/create")
     public ObjectResponse<RecoveryCodeActivationResponse> createActivationUsingRecoveryCode(@RequestBody ObjectRequest<RecoveryCodeActivationRequest> request) throws Exception {
         logger.info("RecoveryCodeActivationRequest received: {}", request);
-        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.createActivationUsingRecoveryCode(request.getRequestObject()));
+        final ObjectResponse<RecoveryCodeActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.createActivationUsingRecoveryCode(request.getRequestObject()));
         logger.info("RecoveryCodeActivationRequest succeeded: {}", response);
         return response;
     }
@@ -120,7 +120,7 @@ public class ActivationController {
     @PostMapping("/otp/update")
     public ObjectResponse<UpdateActivationOtpResponse> updateActivationOtp(@RequestBody ObjectRequest<UpdateActivationOtpRequest> request) throws Exception {
         logger.info("UpdateActivationOtpRequest received: {}", request);
-        final ObjectResponse<UpdateActivationOtpResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.updateActivationOtp(request.getRequestObject()));
+        final ObjectResponse<UpdateActivationOtpResponse> response = new ObjectResponse<>(activationServiceBehavior.updateActivationOtp(request.getRequestObject()));
         logger.info("UpdateActivationOtpRequest succeeded: {}", response);
         return response;
     }
@@ -135,7 +135,7 @@ public class ActivationController {
     @PostMapping("/commit")
     public ObjectResponse<CommitActivationResponse> commitActivation(@RequestBody ObjectRequest<CommitActivationRequest> request) throws Exception {
         logger.info("CommitActivationRequest received: {}", request);
-        final ObjectResponse<CommitActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.commitActivation(request.getRequestObject()));
+        final ObjectResponse<CommitActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.commitActivation(request.getRequestObject()));
         logger.info("CommitActivationRequest succeeded: {}", response);
         return response;
     }
@@ -150,7 +150,7 @@ public class ActivationController {
     @PostMapping("/status")
     public ObjectResponse<GetActivationStatusResponse> getActivationStatus(@RequestBody ObjectRequest<GetActivationStatusRequest> request) throws Exception {
         logger.info("GetActivationStatusRequest received: {}", request);
-        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.getActivationStatus(request.getRequestObject()));
+        final ObjectResponse<GetActivationStatusResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationStatus(request.getRequestObject()));
         logger.info("GetActivationStatusResponse succeeded: {}", response);
         return response;
     }
@@ -165,7 +165,7 @@ public class ActivationController {
     @PostMapping("/block")
     public ObjectResponse<BlockActivationResponse> blockActivation(@RequestBody ObjectRequest<BlockActivationRequest> request) throws Exception {
         logger.info("BlockActivationRequest received: {}", request);
-        final ObjectResponse<BlockActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.blockActivation(request.getRequestObject()));
+        final ObjectResponse<BlockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.blockActivation(request.getRequestObject()));
         logger.info("BlockActivationRequest succeeded: {}", response);
         return response;
     }
@@ -180,7 +180,7 @@ public class ActivationController {
     @PostMapping("/unblock")
     public ObjectResponse<UnblockActivationResponse> unblockActivation(@RequestBody ObjectRequest<UnblockActivationRequest> request) throws Exception {
         logger.info("UnblockActivationRequest received: {}", request);
-        final ObjectResponse<UnblockActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.unblockActivation(request.getRequestObject()));
+        final ObjectResponse<UnblockActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.unblockActivation(request.getRequestObject()));
         logger.info("UnblockActivationRequest succeeded: {}", response);
         return response;
     }
@@ -195,7 +195,7 @@ public class ActivationController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveActivationResponse> removeActivation(@RequestBody ObjectRequest<RemoveActivationRequest> request) throws Exception {
         logger.info("RemoveActivationRequest received: {}", request);
-        final ObjectResponse<RemoveActivationResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.removeActivation(request.getRequestObject()));
+        final ObjectResponse<RemoveActivationResponse> response = new ObjectResponse<>(activationServiceBehavior.removeActivation(request.getRequestObject()));
         logger.info("RemoveActivationRequest succeeded: {}", response);
         return response;
     }
@@ -212,7 +212,7 @@ public class ActivationController {
     @PostMapping("/list")
     public ObjectResponse<GetActivationListForUserResponse> getActivationListForUser(@RequestBody ObjectRequest<GetActivationListForUserRequest> request) throws Exception {
         logger.info("GetActivationListForUserRequest received: {}", request);
-        final ObjectResponse<GetActivationListForUserResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.getActivationList(request.getRequestObject()));
+        final ObjectResponse<GetActivationListForUserResponse> response = new ObjectResponse<>(activationServiceBehavior.getActivationList(request.getRequestObject()));
         logger.info("GetActivationListForUserRequest succeeded: {}", response);
         return response;
     }
@@ -242,7 +242,7 @@ public class ActivationController {
     @PostMapping("/lookup")
     public ObjectResponse<LookupActivationsResponse> lookupActivations(@RequestBody ObjectRequest<LookupActivationsRequest> request) throws Exception {
         logger.info("LookupActivationsRequest received: {}", request);
-        final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.lookupActivations(request.getRequestObject()));
+        final ObjectResponse<LookupActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.lookupActivations(request.getRequestObject()));
         logger.info("LookupActivationsRequest succeeded: {}", response);
         return response;
     }
@@ -257,7 +257,7 @@ public class ActivationController {
     @PostMapping("/status/update")
     public ObjectResponse<UpdateStatusForActivationsResponse> updateStatusForActivations(@RequestBody ObjectRequest<UpdateStatusForActivationsRequest> request) throws Exception {
         logger.info("UpdateStatusForActivationsRequest received: {}", request);
-        final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>("OK", activationServiceBehavior.updateStatusForActivation(request.getRequestObject()));
+        final ObjectResponse<UpdateStatusForActivationsResponse> response = new ObjectResponse<>(activationServiceBehavior.updateStatusForActivation(request.getRequestObject()));
         logger.info("UpdateStatusForActivationsRequest succeeded: {}", response);
         return response;
     }

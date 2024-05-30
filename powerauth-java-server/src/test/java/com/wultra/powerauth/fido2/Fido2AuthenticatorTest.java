@@ -103,16 +103,17 @@ class Fido2AuthenticatorTest {
     private final OperationTemplateServiceBehavior operationTemplateService;
     private final RegistrationService registrationService;
     private final AssertionService assertionService;
-    @Autowired private ActivationServiceBehavior activationServiceBehavior;
+    private final ActivationServiceBehavior activationServiceBehavior;
 
 
     @Autowired
-    public Fido2AuthenticatorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationConfigServiceBehavior applicationConfigService, OperationTemplateServiceBehavior operationTemplateService, RegistrationService registrationService, AssertionService assertionService) throws Exception {
+    public Fido2AuthenticatorTest(ApplicationServiceBehavior applicationServiceBehavior, ApplicationConfigServiceBehavior applicationConfigService, OperationTemplateServiceBehavior operationTemplateService, RegistrationService registrationService, AssertionService assertionService, ActivationServiceBehavior activationServiceBehavior) throws Exception {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.applicationConfigService = applicationConfigService;
         this.operationTemplateService = operationTemplateService;
         this.registrationService = registrationService;
         this.assertionService = assertionService;
+        this.activationServiceBehavior = activationServiceBehavior;
         createApplication();
         createOperationTemplate();
     }

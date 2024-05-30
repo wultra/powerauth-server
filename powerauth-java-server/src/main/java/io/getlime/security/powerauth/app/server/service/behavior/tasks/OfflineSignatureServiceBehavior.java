@@ -203,7 +203,6 @@ public class OfflineSignatureServiceBehavior {
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
-
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -303,7 +302,6 @@ public class OfflineSignatureServiceBehavior {
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
-
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing

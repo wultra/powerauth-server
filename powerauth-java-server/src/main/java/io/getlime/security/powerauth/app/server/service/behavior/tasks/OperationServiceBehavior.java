@@ -706,7 +706,7 @@ public class OperationServiceBehavior {
         }
     }
 
-    @Transactional
+    @Transactional // operation is modified when expiration happens
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws GenericServiceException {
         try {
             final String error = OperationDetailRequestValidator.validate(request);
@@ -790,7 +790,7 @@ public class OperationServiceBehavior {
         }
     }
 
-    @Transactional
+    @Transactional // operation is modified when expiration happens
     public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
         try {
             final String error = OperationListForUserRequestValidator.validate(request);
@@ -844,7 +844,7 @@ public class OperationServiceBehavior {
      * @param request Request with the external ID.
      * @return List of operations that match.
      */
-    @Transactional
+    @Transactional // operation is modified when expiration happens
     public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
         try {
             final String error = OperationExtIdRequestValidator.validate(request);

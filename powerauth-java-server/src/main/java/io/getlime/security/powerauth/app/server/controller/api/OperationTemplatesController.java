@@ -63,7 +63,7 @@ public class OperationTemplatesController {
     @PostMapping("/list")
     public ObjectResponse<OperationTemplateListResponse> getOperationTemplateList() throws Exception {
         logger.info("OperationTemplateListResponse call received");
-        final ObjectResponse<OperationTemplateListResponse> response = new ObjectResponse<>("OK", service.getAllTemplates());
+        final ObjectResponse<OperationTemplateListResponse> response = new ObjectResponse<>(service.getAllTemplates());
         logger.info("OperationTemplateListResponse succeeded: {}", response);
         return response;
     }
@@ -78,7 +78,7 @@ public class OperationTemplatesController {
     @PostMapping("/detail")
     public ObjectResponse<OperationTemplateDetailResponse> getOperationTemplateDetail(@RequestBody ObjectRequest<OperationTemplateDetailRequest> request) throws Exception {
         logger.info("OperationTemplateDetailRequest call received: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>("OK", service.getTemplateDetail(request.getRequestObject()));
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.getTemplateDetail(request.getRequestObject()));
         logger.info("OperationTemplateDetailRequest succeeded: {}", response);
         return response;
     }
@@ -93,7 +93,7 @@ public class OperationTemplatesController {
     @PostMapping("/create")
     public ObjectResponse<OperationTemplateDetailResponse> createOperationTemplate(@RequestBody ObjectRequest<OperationTemplateCreateRequest> request) throws Exception {
         logger.info("OperationTemplateCreateRequest call received: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>("OK", service.createOperationTemplate(request.getRequestObject()));
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.createOperationTemplate(request.getRequestObject()));
         logger.info("OperationTemplateCreateRequest succeeded: {}", response);
         return response;
     }
@@ -108,7 +108,7 @@ public class OperationTemplatesController {
     @PostMapping("/update")
     public ObjectResponse<OperationTemplateDetailResponse> updateOperationTemplate(@RequestBody ObjectRequest<OperationTemplateUpdateRequest> request) throws Exception {
         logger.info("OperationTemplateUpdateRequest call received: {}", request);
-        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>("OK", service.updateOperationTemplate(request.getRequestObject()));
+        final ObjectResponse<OperationTemplateDetailResponse> response = new ObjectResponse<>(service.updateOperationTemplate(request.getRequestObject()));
         logger.info("OperationTemplateUpdateRequest succeeded: {}", response);
         return response;
     }

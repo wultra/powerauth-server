@@ -480,7 +480,7 @@ public class ActivationServiceBehavior {
             response.setUpdated(true);
 
             return response;
-        }  catch (RuntimeException ex) {
+        } catch (RuntimeException ex) {
             logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
             throw ex;
         } catch (Exception ex) {
@@ -581,7 +581,6 @@ public class ActivationServiceBehavior {
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
-
                 } else {
 
                     // Get the server private and device public keys to compute the transport key
@@ -697,7 +696,6 @@ public class ActivationServiceBehavior {
                     // Unknown version is converted to 0 in service
                     response.setVersion(activation.getVersion() == null ? 0L : activation.getVersion());
                     return response;
-
                 }
             } else {
 
@@ -1929,7 +1927,7 @@ public class ActivationServiceBehavior {
             response.setActivationId(activationId);
             response.setActivationStatus(activationStatusConverter.convert(activation.getActivationStatus()));
             return response;
-        }  catch (GenericServiceException ex) {
+        } catch (GenericServiceException ex) {
             // already logged
             throw ex;
         } catch (RuntimeException ex) {

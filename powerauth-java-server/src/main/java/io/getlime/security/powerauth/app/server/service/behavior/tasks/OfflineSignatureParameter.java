@@ -24,7 +24,7 @@ import lombok.Getter;
 import java.time.Duration;
 
 /**
- * Parameter object..
+ * Parameter object.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */

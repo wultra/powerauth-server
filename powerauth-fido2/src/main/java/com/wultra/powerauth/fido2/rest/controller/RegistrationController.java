@@ -84,7 +84,6 @@ public class RegistrationController {
         final ObjectResponse<RegisteredAuthenticatorsResponse> response = new ObjectResponse<>(registrationService.listRegistrationsForUser(request.getRequestObject()));
         logger.info("RegisteredAuthenticatorsRequest succeeded: {}", response);
         return response;
-
     }
 
     /**
@@ -108,7 +107,6 @@ public class RegistrationController {
         final ObjectResponse<RegistrationChallengeResponse> response = new ObjectResponse<>(registrationService.requestRegistrationChallenge(request.getRequestObject()));
         logger.info("RegistrationChallengeRequest succeeded: {}", response);
         return response;
-
     }
 
     /**
@@ -132,7 +130,6 @@ public class RegistrationController {
         final ObjectResponse<RegistrationResponse> response = new ObjectResponse<>(registrationService.register(request.getRequestObject()));
         logger.info("RegistrationRequest succeeded: {}", response);
         return response;
-
     }
 
 }

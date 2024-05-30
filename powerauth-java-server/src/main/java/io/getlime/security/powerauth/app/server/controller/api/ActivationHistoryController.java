@@ -59,10 +59,9 @@ public class ActivationHistoryController {
     @PostMapping
     public ObjectResponse<ActivationHistoryResponse> getActivationHistory(@RequestBody ObjectRequest<ActivationHistoryRequest> request) throws Exception {
         logger.info("ActivationHistoryRequest received: {}", request);
-        final ObjectResponse<ActivationHistoryResponse> response = new ObjectResponse<>("OK", service.getActivationHistory(request.getRequestObject()));
+        final ObjectResponse<ActivationHistoryResponse> response = new ObjectResponse<>(service.getActivationHistory(request.getRequestObject()));
         logger.info("ActivationHistoryRequest succeeded: {}", response);
         return response;
     }
-
 
 }
