@@ -2351,15 +2351,14 @@ REST endpoint: `POST /rest/v3/operation/approve`
 
 `OperationApproveRequest`
 
-| Type                  | Name             | Description                                                                                  |
-|-----------------------|------------------|----------------------------------------------------------------------------------------------|
-| `String`              | `operationId`    | The identifier of the operation                                                              |
-| `String`              | `userId`         | The identifier of the user who attempts to approve the operation                             |
-| `String`              | `applicationId`  | The identifier of the application                                                            |
-| `String`              | `data`           | Operation data that the user attempts to approve                                             |
-| `SignatureType`       | `signatureType`  | Signature type used when approving the operation                                             |
-| `Map<String, String>` | `additionalData` | Operation context, such as the IP address of the caller                                      |
-| `String`              | `statusReason`   | Optional details why the status changed. The value is more about code than free-text detail. |
+| Type                  | Name             | Description                                                      |
+|-----------------------|------------------|------------------------------------------------------------------|
+| `String`              | `operationId`    | The identifier of the operation                                  |
+| `String`              | `userId`         | The identifier of the user who attempts to approve the operation |
+| `String`              | `applicationId`  | The identifier of the application                                |
+| `String`              | `data`           | Operation data that the user attempts to approve                 |
+| `SignatureType`       | `signatureType`  | Signature type used when approving the operation                 |
+| `Map<String, String>` | `additionalData` | Operation context, such as the IP address of the caller          |
 
 #### Response
 
@@ -2403,10 +2402,9 @@ REST endpoint: `POST /rest/v3/operation/approve/fail`
 
 `OperationFailApprovalRequest`
 
-| Type     | Name           | Description                                                                                  |
-|----------|----------------|----------------------------------------------------------------------------------------------|
-| `String` | `operationId`  | The identifier of the operation                                                              |
-| `String` | `statusReason` | Optional details why the status changed. The value is more about code than free-text detail. |
+| Type     | Name          | Description                     |
+|----------|---------------|---------------------------------|
+| `String` | `operationId` | The identifier of the operation |
 
 #### Response
 
@@ -2450,12 +2448,11 @@ REST endpoint: `POST /rest/v3/operation/reject`
 
 `OperationRejectRequest`
 
-| Type     | Name            | Description                                                                                  |
-|----------|-----------------|----------------------------------------------------------------------------------------------|
-| `String` | `operationId`   | The identifier of the operation                                                              |
-| `String` | `userId`        | The identifier of the user who attempts to approve the operation                             |
-| `String` | `applicationId` | The identifier of the application                                                            |
-| `String` | `statusReason`  | Optional details why the status changed. The value is more about code than free-text detail. |
+| Type     | Name            | Description                                                      |
+|----------|-----------------|------------------------------------------------------------------|
+| `String` | `operationId`   | The identifier of the operation                                  |
+| `String` | `userId`        | The identifier of the user who attempts to approve the operation |
+| `String` | `applicationId` | The identifier of the application                                |
 
 #### Response
 

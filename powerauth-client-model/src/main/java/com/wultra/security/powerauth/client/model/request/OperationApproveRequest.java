@@ -21,8 +21,6 @@ package com.wultra.security.powerauth.client.model.request;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.util.LinkedHashMap;
@@ -48,8 +46,4 @@ public class OperationApproveRequest {
     /**
      * Optional details why the status has changed. The value is more about code than free-text detail.
      */
-    @Schema(description = "Optional details why the status has changed. The value is more about code than free-text detail.")
-    @Size(max = 32)
-    private String statusReason;
-
 }
