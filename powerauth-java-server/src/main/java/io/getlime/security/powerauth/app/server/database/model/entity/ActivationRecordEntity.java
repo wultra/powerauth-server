@@ -73,7 +73,7 @@ public class ActivationRecordEntity implements Serializable {
     private String extras;
 
     @Convert(converter = ActivationProtocolConverter.class)
-    @Column(name = "protocol", nullable = false)
+    @Column(name = "protocol", nullable = false, columnDefinition = "varchar(32) default 'powerauth'")
     private ActivationProtocol protocol;
 
     @Column(name = "platform")
