@@ -519,6 +519,7 @@ CREATE TABLE pa_operation (
     parameters            TEXT,
     additional_data       TEXT,
     status                INTEGER NOT NULL,
+    status_reason         VARCHAR(32),
     signature_type        VARCHAR(255) NOT NULL,
     failure_count         BIGINT DEFAULT 0 NOT NULL,
     max_failure_count     BIGINT NOT NULL,
@@ -532,24 +533,25 @@ CREATE TABLE pa_operation (
 
 #### Columns
 
-| Name                | Type         | Info        | Note                                                                                            |
-|---------------------|--------------|-------------|-------------------------------------------------------------------------------------------------|
-| id                  | varchar(37)  | primary key | Unique operation ID.                                                                            |
-| user_id             | varchar(255) | -           | Related user ID.                                                                                |
-| template_id         | bigint       | -           | Template ID used for creating the operation.                                                    |
-| external_id         | varchar(255) | -           | Identifier in external system.                                                                  |
-| operation_type      | varchar(255) | -           | Name of the type of operation.                                                                  |
-| data                | text         | -           | Data of the operation that enter the final signature.                                           |
-| parameters          | text         | -           | JSON-encoded parameters that were used while creating the operation.                            |
-| status              | integer      | -           | Status of the operation.                                                                        |
-| signature_type      | varchar(255) | -           | Comma-separated list of allowed signature types.                                                |
-| failure_count       | bigint       | -           | Number of already failed attempts to approve the operation.                                     |
-| max_failure_count   | bigint       | -           | Maximum allowed number of failed attempts when approving the operation.                         |
-| timestamp_created   | timestamp    | -           | Timestamp of when the operation was created.                                                    |
-| timestamp_expires   | timestamp    | -           | Timestamp of when the operation will expire.                                                    |
-| timestamp_finalized | timestamp    | -           | Timestamp of when the operation reached the terminal state (approved, rejected, expired, etc.). |
-| risk_flages         | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                |
-| totp_seed           | varchar(24)  | -           | Optional TOTP seed used for proximity check, base64 encoded.                                    |
+| Name                | Type         | Info        | Note                                                                                                                             |
+|---------------------|--------------|-------------|----------------------------------------------------------------------------------------------------------------------------------|
+| id                  | varchar(37)  | primary key | Unique operation ID.                                                                                                             |
+| user_id             | varchar(255) | -           | Related user ID.                                                                                                                 |
+| template_id         | bigint       | -           | Template ID used for creating the operation.                                                                                     |
+| external_id         | varchar(255) | -           | Identifier in external system.                                                                                                   |
+| operation_type      | varchar(255) | -           | Name of the type of operation.                                                                                                   |
+| data                | text         | -           | Data of the operation that enter the final signature.                                                                            |
+| parameters          | text         | -           | JSON-encoded parameters that were used while creating the operation.                                                             |
+| status              | integer      | -           | Status of the operation.                                                                                                         |
+| status_reason       | varchar(32)  | -           | Optional details why the status changed. The value should be sent in the form of a computer-readable code, not a free-form text. |
+| signature_type      | varchar(255) | -           | Comma-separated list of allowed signature types.                                                                                 |
+| failure_count       | bigint       | -           | Number of already failed attempts to approve the operation.                                                                      |
+| max_failure_count   | bigint       | -           | Maximum allowed number of failed attempts when approving the operation.                                                          |
+| timestamp_created   | timestamp    | -           | Timestamp of when the operation was created.                                                                                     |
+| timestamp_expires   | timestamp    | -           | Timestamp of when the operation will expire.                                                                                     |
+| timestamp_finalized | timestamp    | -           | Timestamp of when the operation reached the terminal state (approved, rejected, expired, etc.).                                  |
+| risk_flages         | varchar(255) | -           | Risk flags for offline QR code. Uppercase letters without separator, e.g. `XFC`.                                                 |
+| totp_seed           | varchar(24)  | -           | Optional TOTP seed used for proximity check, base64 encoded.                                                                     |
 <!-- end -->
 
 <!-- begin database table pa_operation_template -->

@@ -601,6 +601,7 @@ public class OperationServiceBehavior {
         }
 
         operationEntity.setStatus(OperationStatusDo.CANCELED);
+        operationEntity.setStatusReason(request.getStatusReason());
         operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
@@ -615,6 +616,7 @@ public class OperationServiceBehavior {
                 .param("id", operationId)
                 .param("failureCount", operationEntity.getFailureCount())
                 .param("status", operationEntity.getStatus().name())
+                .param("statusReason", request.getStatusReason())
                 .param("additionalData", operationDetailResponse.getAdditionalData())
                 .build();
         audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
@@ -754,6 +756,7 @@ public class OperationServiceBehavior {
         destination.setTimestampFinalized(source.getTimestampFinalized());
         destination.setRiskFlags(source.getRiskFlags());
         destination.setActivationId(source.getActivationId());
+        destination.setStatusReason(source.getStatusReason());
 
         switch (source.getStatus()) {
             case PENDING -> destination.setStatus(OperationStatus.PENDING);
