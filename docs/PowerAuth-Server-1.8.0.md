@@ -30,4 +30,4 @@ values supported by the WebAuthn protocol, serialized as a JSON array.
 
 A new column `status_reason` has been added to the `pa_operation` table.
 It provides optional details why the status changed.
-The value is more about code than free-text detail.
+The value should be sent in the form of a computer-readable code, not a free-form text.
