@@ -25,8 +25,25 @@ liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/
 
 To generate SQL script run this command.
 
+#### Oracle
+
 ```shell
 liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --output-file=./docs/sql/oracle/generated-oracle-script.sql updateSQL --url=offline:oracle
+```
+
+
+#### MS SQL
+
+```shell
+liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --output-file=./docs/sql/mssql/generated-mssql-script.sql updateSQL --url=offline:mssql
+```
+
+
+#### PostgreSQL
+
+```shell
+liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --output-file=./docs/sql/postgresql/generated-postgresql-script.sql updateSQL --url=offline:postgres
+```
 ```
 
 

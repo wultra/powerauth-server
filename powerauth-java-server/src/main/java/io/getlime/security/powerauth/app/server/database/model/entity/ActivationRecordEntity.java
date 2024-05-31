@@ -24,6 +24,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Activ
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -39,6 +40,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_activation")
+@Slf4j
 public class ActivationRecordEntity implements Serializable {
 
     @Serial
@@ -665,6 +667,16 @@ public class ActivationRecordEntity implements Serializable {
      */
     public List<ActivationHistoryEntity> getActivationHistory() {
         return activationHistory;
+    }
+
+    @PostLoad
+    public void setDefaultProtocol() {
+        if (protocol == null) {
+            // temporary workaround for MS SQL default value https://github.com/liquibase/liquibase/issues/4644
+            // in version 1.8.0 protocol will be not-null
+            logger.warn("Protocol is null for activation ID: {}, setting default value.", activationId );
+            protocol = "powerauth";
+        }
     }
 
     @Override
