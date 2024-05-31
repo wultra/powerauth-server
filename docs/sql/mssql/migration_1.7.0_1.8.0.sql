@@ -17,3 +17,8 @@ GO
 -- Add status_reason column to pa_operation table.
 ALTER TABLE pa_operation ADD status_reason varchar(32);
 GO
+
+-- Changeset powerauth-java-server/1.8.x/20240530-protocol-not-null.xml::1::Lubos Racansky
+-- Make column pa_activation.protocol not-null.
+ALTER TABLE pa_activation ALTER COLUMN protocol varchar(32) NOT NULL;
+GO

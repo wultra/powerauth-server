@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.19.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.8.x/20240530-protocol-not-null.xml" author="Lubos Racansky">
+        <comment>Make column pa_activation.protocol not-null.</comment>
+        <addNotNullConstraint tableName="pa_activation" columnName="protocol" constraintName="pa_activation_protocol_not_null" columnDataType="varchar(32)" />
+    </changeSet>
+
+</databaseChangeLog>

@@ -73,7 +73,7 @@ public class ActivationRecordEntity implements Serializable {
     private String extras;
 
     @Convert(converter = ActivationProtocolConverter.class)
-    @Column(name = "protocol")
+    @Column(name = "protocol", nullable = false)
     private ActivationProtocol protocol;
 
     @Column(name = "platform")

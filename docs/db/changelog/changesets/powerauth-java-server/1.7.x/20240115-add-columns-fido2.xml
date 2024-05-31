@@ -49,4 +49,12 @@
         <modifyDataType tableName="pa_activation" columnName="extras" newDataType="varchar(4000)"/>
     </changeSet>
 
+    <!--  MS SQL default value issue https://github.com/liquibase/liquibase/issues/4644  -->
+    <changeSet id="4" logicalFilePath="powerauth-java-server/1.7.x/20240115-add-columns-fido2" author="Lubos Racansky" dbms="mssql">
+        <update tableName="pa_activation">
+            <column name="protocol" value="powerauth"/>
+            <where>protocol is null</where>
+        </update>
+    </changeSet>
+
 </databaseChangeLog>
