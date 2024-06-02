@@ -41,9 +41,9 @@ import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResp
 import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bouncycastle.util.Arrays;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.Base64;
 
 /**
