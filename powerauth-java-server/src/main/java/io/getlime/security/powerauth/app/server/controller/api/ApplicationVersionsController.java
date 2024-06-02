@@ -60,7 +60,7 @@ public class ApplicationVersionsController {
      */
     @PostMapping("/create")
     public ObjectResponse<CreateApplicationVersionResponse> createApplicationVersion(@RequestBody ObjectRequest<CreateApplicationVersionRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", applicationServiceBehavior.createApplicationVersion(request.getRequestObject()));
+        return new ObjectResponse<>(applicationServiceBehavior.createApplicationVersion(request.getRequestObject()));
     }
 
     /**
@@ -72,7 +72,7 @@ public class ApplicationVersionsController {
      */
     @PostMapping("/unsupport")
     public ObjectResponse<UnsupportApplicationVersionResponse> unsupportApplicationVersion(@RequestBody ObjectRequest<UnsupportApplicationVersionRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", applicationServiceBehavior.unsupportApplicationVersion(request.getRequestObject()));
+        return new ObjectResponse<>(applicationServiceBehavior.unsupportApplicationVersion(request.getRequestObject()));
     }
 
     /**
@@ -84,7 +84,7 @@ public class ApplicationVersionsController {
      */
     @PostMapping("/support")
     public ObjectResponse<SupportApplicationVersionResponse> supportApplicationVersion(@RequestBody ObjectRequest<SupportApplicationVersionRequest> request) throws Exception {
-        return new ObjectResponse<>("OK", applicationServiceBehavior.supportApplicationVersion(request.getRequestObject()));
+        return new ObjectResponse<>(applicationServiceBehavior.supportApplicationVersion(request.getRequestObject()));
     }
 
 }

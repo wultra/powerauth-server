@@ -65,7 +65,7 @@ public class ApplicationRolesController {
     @PostMapping("/list")
     public ObjectResponse<ListApplicationRolesResponse> listApplicationRoles(@RequestBody ObjectRequest<ListApplicationRolesRequest> request) throws Exception {
         logger.info("ListApplicationRolesRequest received: {}", request);
-        final ObjectResponse<ListApplicationRolesResponse> response = new ObjectResponse<>("OK", service.listApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<ListApplicationRolesResponse> response = new ObjectResponse<>(service.listApplicationRoles(request.getRequestObject()));
         logger.info("ListApplicationRolesRequest succeeded: {}", response);
         return response;
     }
@@ -80,7 +80,7 @@ public class ApplicationRolesController {
     @PostMapping("/create")
     public ObjectResponse<AddApplicationRolesResponse> addApplicationRoles(@RequestBody ObjectRequest<AddApplicationRolesRequest> request) throws Exception {
         logger.info("AddApplicationRolesRequest received: {}", request);
-        final ObjectResponse<AddApplicationRolesResponse> response = new ObjectResponse<>("OK", service.addApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<AddApplicationRolesResponse> response = new ObjectResponse<>(service.addApplicationRoles(request.getRequestObject()));
         logger.info("AddApplicationRolesRequest succeeded: {}", response);
         return response;
     }
@@ -95,7 +95,7 @@ public class ApplicationRolesController {
     @PostMapping("/update")
     public ObjectResponse<UpdateApplicationRolesResponse> updateApplicationRoles(@RequestBody ObjectRequest<UpdateApplicationRolesRequest> request) throws Exception {
         logger.info("UpdateApplicationRolesRequest received: {}", request);
-        final ObjectResponse<UpdateApplicationRolesResponse> response = new ObjectResponse<>("OK", service.updateApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<UpdateApplicationRolesResponse> response = new ObjectResponse<>(service.updateApplicationRoles(request.getRequestObject()));
         logger.info("UpdateApplicationRolesRequest succeeded: {}", response);
         return response;
     }
@@ -110,7 +110,7 @@ public class ApplicationRolesController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveApplicationRolesResponse> removeApplicationRoles(@RequestBody ObjectRequest<RemoveApplicationRolesRequest> request) throws Exception {
         logger.info("RemoveApplicationRolesRequest received: {}", request);
-        final ObjectResponse<RemoveApplicationRolesResponse> response = new ObjectResponse<>("OK", service.removeApplicationRoles(request.getRequestObject()));
+        final ObjectResponse<RemoveApplicationRolesResponse> response = new ObjectResponse<>(service.removeApplicationRoles(request.getRequestObject()));
         logger.info("RemoveApplicationRolesRequest succeeded: {}", response);
         return response;
     }

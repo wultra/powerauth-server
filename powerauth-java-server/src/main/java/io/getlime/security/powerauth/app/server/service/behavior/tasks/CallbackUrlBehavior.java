@@ -122,7 +122,7 @@ public class CallbackUrlBehavior {
             final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
 
             if (applicationEntityOptional.isEmpty()) {
-                logger.warn("Invalid callback URL application: {}", request.getApplicationId());
+                logger.warn("Invalid callback URL application ID: {}", request.getApplicationId());
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             }
@@ -246,7 +246,7 @@ public class CallbackUrlBehavior {
      * @param request Request with application ID to fetch the callback URL agains.
      * @return List of all current callback URLs.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws GenericServiceException {
         try {
             final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(request.getApplicationId());

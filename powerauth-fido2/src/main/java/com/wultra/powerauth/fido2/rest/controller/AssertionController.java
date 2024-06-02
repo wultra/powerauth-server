@@ -75,7 +75,6 @@ public class AssertionController {
         final ObjectResponse<AssertionChallengeResponse> response = new ObjectResponse<>(assertionService.requestAssertionChallenge(request.getRequestObject()));
         logger.info("AssertionChallengeRequest succeeded: {}", response);
         return response;
-
     }
 
     /**
@@ -99,7 +98,6 @@ public class AssertionController {
         final ObjectResponse<AssertionVerificationResponse> response = new ObjectResponse<>(assertionService.authenticate(request.getRequestObject()));
         logger.info("AssertionVerificationRequest succeeded: {}", response);
         return response;
-
     }
 
 }

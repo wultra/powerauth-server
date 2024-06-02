@@ -63,7 +63,7 @@ public class ApplicationController {
     @PostMapping("/list")
     public ObjectResponse<GetApplicationListResponse> getApplicationList() throws Exception {
         logger.info("GetApplicationListRequest received");
-        final ObjectResponse<GetApplicationListResponse> response = new ObjectResponse<>("OK", applicationService.getApplicationList());
+        final ObjectResponse<GetApplicationListResponse> response = new ObjectResponse<>(applicationService.getApplicationList());
         logger.info("GetApplicationListRequest succeeded: {}", response);
         return response;
     }
@@ -78,7 +78,7 @@ public class ApplicationController {
     @PostMapping("/create")
     public ObjectResponse<CreateApplicationResponse> createApplication(@RequestBody ObjectRequest<CreateApplicationRequest> request) throws Exception {
         logger.info("CreateApplicationRequest received: {}", request);
-        final ObjectResponse<CreateApplicationResponse> response = new ObjectResponse<>("OK", applicationService.createApplication(request.getRequestObject()));
+        final ObjectResponse<CreateApplicationResponse> response = new ObjectResponse<>(applicationService.createApplication(request.getRequestObject()));
         logger.info("CreateApplicationRequest succeeded: {}", response);
         return response;
     }
@@ -93,7 +93,7 @@ public class ApplicationController {
     @PostMapping("/detail")
     public ObjectResponse<GetApplicationDetailResponse> getApplicationDetail(@RequestBody ObjectRequest<GetApplicationDetailRequest> request) throws Exception {
         logger.info("GetApplicationDetailRequest received: {}", request);
-        final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>("OK", applicationService.getApplicationDetail(request.getRequestObject()));
+        final ObjectResponse<GetApplicationDetailResponse> response = new ObjectResponse<>(applicationService.getApplicationDetail(request.getRequestObject()));
         logger.info("GetApplicationDetailRequest succeeded: {}", response);
         return response;
     }
@@ -108,7 +108,7 @@ public class ApplicationController {
     @PostMapping("/detail/version")
     public ObjectResponse<LookupApplicationByAppKeyResponse> lookupApplicationByAppKey(@RequestBody ObjectRequest<LookupApplicationByAppKeyRequest> request) throws Exception {
         logger.info("LookupApplicationByAppKeyRequest received: {}", request);
-        final ObjectResponse<LookupApplicationByAppKeyResponse> response = new ObjectResponse<>("OK", applicationService.lookupApplicationByAppKey(request.getRequestObject()));
+        final ObjectResponse<LookupApplicationByAppKeyResponse> response = new ObjectResponse<>(applicationService.lookupApplicationByAppKey(request.getRequestObject()));
         logger.info("LookupApplicationByAppKeyRequest succeeded: {}", response);
         return response;
     }

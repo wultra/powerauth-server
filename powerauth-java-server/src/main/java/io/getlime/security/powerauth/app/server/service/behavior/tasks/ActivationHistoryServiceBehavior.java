@@ -121,7 +121,7 @@ public class ActivationHistoryServiceBehavior {
      * @param request Request with history query definition.
      * @return Response with activation changes.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws GenericServiceException {
         try {
             final String activationId = request.getActivationId();

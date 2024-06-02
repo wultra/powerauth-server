@@ -675,6 +675,7 @@ public class OperationServiceBehavior {
             }
 
             operationEntity.setStatus(OperationStatusDo.CANCELED);
+            operationEntity.setStatusReason(request.getStatusReason());
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
             final OperationEntity savedEntity = operationRepository.save(operationEntity);
@@ -689,6 +690,7 @@ public class OperationServiceBehavior {
                     .param("id", operationId)
                     .param("failureCount", operationEntity.getFailureCount())
                     .param("status", operationEntity.getStatus().name())
+                    .param("statusReason", request.getStatusReason())
                     .param("additionalData", operationDetailResponse.getAdditionalData())
                     .build();
             audit.log(AuditLevel.INFO, "Operation canceled via explicit server call for operation ID: {}", auditDetail, operationId);
@@ -706,7 +708,7 @@ public class OperationServiceBehavior {
         }
     }
 
-    @Transactional
+    @Transactional // operation is modified when expiration happens
     public OperationDetailResponse operationDetail(OperationDetailRequest request) throws GenericServiceException {
         try {
             final String error = OperationDetailRequestValidator.validate(request);
@@ -715,7 +717,6 @@ public class OperationServiceBehavior {
             }
 
             final Date currentTimestamp = new Date();
-
             final String operationId = request.getOperationId();
 
             // Check if the operation exists
@@ -726,7 +727,6 @@ public class OperationServiceBehavior {
             }
 
             final String userId = request.getUserId();
-
             final OperationEntity operationEntity = expireOperation(
                     claimOperation(operationOptional.get(), userId, currentTimestamp),
                     currentTimestamp
@@ -790,7 +790,7 @@ public class OperationServiceBehavior {
         }
     }
 
-    @Transactional
+    @Transactional // operation is modified when expiration happens
     public OperationListResponse findPendingOperationsForUser(OperationListForUserRequest request) throws GenericServiceException {
         try {
             final String error = OperationListForUserRequestValidator.validate(request);
@@ -844,7 +844,7 @@ public class OperationServiceBehavior {
      * @param request Request with the external ID.
      * @return List of operations that match.
      */
-    @Transactional
+    @Transactional // operation is modified when expiration happens
     public OperationListResponse findOperationsByExternalId(OperationExtIdRequest request) throws GenericServiceException {
         try {
             final String error = OperationExtIdRequestValidator.validate(request);
@@ -907,6 +907,7 @@ public class OperationServiceBehavior {
         destination.setTimestampFinalized(source.getTimestampFinalized());
         destination.setRiskFlags(source.getRiskFlags());
         destination.setActivationId(source.getActivationId());
+        destination.setStatusReason(source.getStatusReason());
 
         switch (source.getStatus()) {
             case PENDING -> destination.setStatus(OperationStatus.PENDING);

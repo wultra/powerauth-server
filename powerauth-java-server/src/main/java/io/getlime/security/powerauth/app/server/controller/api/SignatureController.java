@@ -67,7 +67,7 @@ public class SignatureController {
     @PostMapping("/verify")
     public ObjectResponse<VerifySignatureResponse> verifySignature(@RequestBody ObjectRequest<VerifySignatureRequest> request) throws Exception {
         logger.info("VerifySignatureRequest received: {}", request);
-        final ObjectResponse<VerifySignatureResponse> response = new ObjectResponse<>("OK", onlineSignatureService.verifySignature(request.getRequestObject(), new ArrayList<>()));
+        final ObjectResponse<VerifySignatureResponse> response = new ObjectResponse<>(onlineSignatureService.verifySignature(request.getRequestObject(), new ArrayList<>()));
         logger.info("VerifySignatureRequest succeeded: {}", request);
         return response;
     }
@@ -82,7 +82,7 @@ public class SignatureController {
     @PostMapping("/offline/personalized/create")
     public ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> createPersonalizedOfflineSignaturePayload(@RequestBody ObjectRequest<CreatePersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
         logger.info("CreatePersonalizedOfflineSignaturePayloadRequest received: {}", request);
-        final ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>("OK", offlineSignatureService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
+        final ObjectResponse<CreatePersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createPersonalizedOfflineSignaturePayload(request.getRequestObject()));
         logger.info("CreatePersonalizedOfflineSignaturePayloadRequest succeeded: {}", response);
         return response;
     }
@@ -97,7 +97,7 @@ public class SignatureController {
     @PostMapping("/offline/non-personalized/create")
     public ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> createNonPersonalizedOfflineSignaturePayload(@RequestBody ObjectRequest<CreateNonPersonalizedOfflineSignaturePayloadRequest> request) throws Exception {
         logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest received: {}", request);
-        final ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>("OK", offlineSignatureService.createNonPersonalizedOfflineSignaturePayload(request.getRequestObject()));
+        final ObjectResponse<CreateNonPersonalizedOfflineSignaturePayloadResponse> response = new ObjectResponse<>(offlineSignatureService.createNonPersonalizedOfflineSignaturePayload(request.getRequestObject()));
         logger.info("CreateNonPersonalizedOfflineSignaturePayloadRequest succeeded: {}", response);
         return response;
     }
@@ -112,7 +112,7 @@ public class SignatureController {
     @PostMapping("/offline/verify")
     public ObjectResponse<VerifyOfflineSignatureResponse> verifyOfflineSignature(@RequestBody ObjectRequest<VerifyOfflineSignatureRequest> request) throws Exception {
         logger.info("VerifyOfflineSignatureRequest received: {}", request);
-        final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>("OK", offlineSignatureService.verifyOfflineSignature(request.getRequestObject()));
+        final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(request.getRequestObject()));
         logger.info("VerifyOfflineSignatureRequest succeeded: {}", response);
         return response;
     }
@@ -127,7 +127,7 @@ public class SignatureController {
     @PostMapping("/list")
     public ObjectResponse<SignatureAuditResponse> getSignatureAuditLog(@RequestBody ObjectRequest<SignatureAuditRequest> request) throws Exception {
         logger.info("SignatureAuditRequest received: {}", request);
-        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>("OK", auditingService.getSignatureAuditLog(request.getRequestObject()));
+        final ObjectResponse<SignatureAuditResponse> response = new ObjectResponse<>(auditingService.getSignatureAuditLog(request.getRequestObject()));
         logger.info("SignatureAuditRequest succeeded: {}", response);
         return response;
     }

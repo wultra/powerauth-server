@@ -62,7 +62,7 @@ public class IntegrationController {
     @PostMapping("/create")
     public ObjectResponse<CreateIntegrationResponse> createIntegration(@RequestBody ObjectRequest<CreateIntegrationRequest> request) throws Exception {
         logger.info("CreateIntegrationRequest received: {}", request);
-        final ObjectResponse<CreateIntegrationResponse> response = new ObjectResponse<>("OK", service.createIntegration(request.getRequestObject()));
+        final ObjectResponse<CreateIntegrationResponse> response = new ObjectResponse<>(service.createIntegration(request.getRequestObject()));
         logger.info("CreateIntegrationRequest succeeded: {}", response);
         return response;
     }
@@ -76,7 +76,7 @@ public class IntegrationController {
     @PostMapping("/list")
     public ObjectResponse<GetIntegrationListResponse> getIntegrationList() throws Exception {
         logger.info("GetIntegrationListRequest received");
-        final ObjectResponse<GetIntegrationListResponse> response = new ObjectResponse<>("OK", service.getIntegrationList());
+        final ObjectResponse<GetIntegrationListResponse> response = new ObjectResponse<>(service.getIntegrationList());
         logger.info("GetIntegrationListRequest succeeded: {}", response);
         return response;
     }
@@ -91,7 +91,7 @@ public class IntegrationController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveIntegrationResponse> removeIntegration(@RequestBody ObjectRequest<RemoveIntegrationRequest> request) throws Exception {
         logger.info("RemoveIntegrationRequest received: {}", request);
-        final ObjectResponse<RemoveIntegrationResponse> response = new ObjectResponse<>("OK", service.removeIntegration(request.getRequestObject()));
+        final ObjectResponse<RemoveIntegrationResponse> response = new ObjectResponse<>(service.removeIntegration(request.getRequestObject()));
         logger.info("RemoveIntegrationRequest succeeded: {}", response);
         return response;
     }

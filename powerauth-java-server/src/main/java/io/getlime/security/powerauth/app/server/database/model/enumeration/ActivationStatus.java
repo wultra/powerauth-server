@@ -54,7 +54,7 @@ public enum ActivationStatus {
     BLOCKED((byte) 4),
 
     /**
-     * REMOVED - status after the activation record was removed
+     * REMOVED - status after the activation record was removed.
      */
     REMOVED((byte) 5);
 

@@ -59,7 +59,7 @@ public class VaultController {
     @PostMapping("/unlock")
     public ObjectResponse<VaultUnlockResponse> unlockVault(@RequestBody ObjectRequest<VaultUnlockRequest> request) throws Exception {
         logger.info("VaultUnlockRequest received: {}", request);
-        final ObjectResponse<VaultUnlockResponse> response = new ObjectResponse<>("OK", service.unlockVault(request.getRequestObject()));
+        final ObjectResponse<VaultUnlockResponse> response = new ObjectResponse<>(service.unlockVault(request.getRequestObject()));
         logger.info("VaultUnlockRequest succeeded: {}", response);
         return response;
     }

@@ -61,7 +61,7 @@ public class UpgradeController {
     @PostMapping("/start")
     public ObjectResponse<StartUpgradeResponse> startUpgrade(@RequestBody ObjectRequest<StartUpgradeRequest> request) throws Exception {
         logger.info("StartUpgradeRequest received: {}", request);
-        final ObjectResponse<StartUpgradeResponse> response = new ObjectResponse<>("OK", service.startUpgrade(request.getRequestObject()));
+        final ObjectResponse<StartUpgradeResponse> response = new ObjectResponse<>(service.startUpgrade(request.getRequestObject()));
         logger.info("StartUpgradeRequest succeeded: {}", response);
         return response;
     }
@@ -76,7 +76,7 @@ public class UpgradeController {
     @PostMapping("/commit")
     public ObjectResponse<CommitUpgradeResponse> commitUpgrade(@RequestBody ObjectRequest<CommitUpgradeRequest> request) throws Exception {
         logger.info("CommitUpgradeRequest received: {}", request);
-        final ObjectResponse<CommitUpgradeResponse> response = new ObjectResponse<>("OK", service.commitUpgrade(request.getRequestObject()));
+        final ObjectResponse<CommitUpgradeResponse> response = new ObjectResponse<>(service.commitUpgrade(request.getRequestObject()));
         logger.info("CommitUpgradeRequest succeeded: {}", response);
         return response;
     }

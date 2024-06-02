@@ -58,10 +58,9 @@ public class RecoveryController {
     @PostMapping("/create")
     public ObjectResponse<CreateRecoveryCodeResponse> createRecoveryCodeForUser(@RequestBody ObjectRequest<CreateRecoveryCodeRequest> request) throws Exception {
         logger.info("CreateRecoveryCodeRequest received: {}", request);
-        final ObjectResponse<CreateRecoveryCodeResponse> response = new ObjectResponse<>("OK", service.createRecoveryCode(request.getRequestObject()));
+        final ObjectResponse<CreateRecoveryCodeResponse> response = new ObjectResponse<>(service.createRecoveryCode(request.getRequestObject()));
         logger.info("CreateRecoveryCodeRequest succeeded: {}", response);
         return response;
-
     }
 
     /**
@@ -74,7 +73,7 @@ public class RecoveryController {
     @PostMapping("/confirm")
     public ObjectResponse<ConfirmRecoveryCodeResponse> confirmRecoveryCode(@RequestBody ObjectRequest<ConfirmRecoveryCodeRequest> request) throws Exception {
         logger.info("ConfirmRecoveryCodeRequest received: {}", request);
-        final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>("OK", service.confirmRecoveryCode(request.getRequestObject()));
+        final ObjectResponse<ConfirmRecoveryCodeResponse> response = new ObjectResponse<>(service.confirmRecoveryCode(request.getRequestObject()));
         logger.info("ConfirmRecoveryCodeRequest succeeded: {}", response);
         return response;
     }
@@ -89,7 +88,7 @@ public class RecoveryController {
     @PostMapping("/lookup")
     public ObjectResponse<LookupRecoveryCodesResponse> lookupRecoveryCodesRequest(@RequestBody ObjectRequest<LookupRecoveryCodesRequest> request) throws Exception {
         logger.info("LookupRecoveryCodesRequest received: {}", request);
-        final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>("OK", service.lookupRecoveryCodes(request.getRequestObject()));
+        final ObjectResponse<LookupRecoveryCodesResponse> response = new ObjectResponse<>(service.lookupRecoveryCodes(request.getRequestObject()));
         logger.info("LookupRecoveryCodesRequest succeeded: {}", response);
         return response;
     }
@@ -104,7 +103,7 @@ public class RecoveryController {
     @PostMapping("/revoke")
     public ObjectResponse<RevokeRecoveryCodesResponse> revokeRecoveryCodesRequest(@RequestBody ObjectRequest<RevokeRecoveryCodesRequest> request) throws Exception {
         logger.info("RevokeRecoveryCodesRequest received: {}", request);
-        final ObjectResponse<RevokeRecoveryCodesResponse> response = new ObjectResponse<>("OK", service.revokeRecoveryCodes(request.getRequestObject()));
+        final ObjectResponse<RevokeRecoveryCodesResponse> response = new ObjectResponse<>(service.revokeRecoveryCodes(request.getRequestObject()));
         logger.info("RevokeRecoveryCodesRequest succeeded: {}", response);
         return response;
     }
@@ -119,7 +118,7 @@ public class RecoveryController {
     @PostMapping("/config/detail")
     public ObjectResponse<GetRecoveryConfigResponse> getRecoveryConfig(@RequestBody ObjectRequest<GetRecoveryConfigRequest> request) throws Exception {
         logger.info("GetRecoveryConfigRequest received: {}", request);
-        final ObjectResponse<GetRecoveryConfigResponse> response = new ObjectResponse<>("OK", service.getRecoveryConfig(request.getRequestObject()));
+        final ObjectResponse<GetRecoveryConfigResponse> response = new ObjectResponse<>(service.getRecoveryConfig(request.getRequestObject()));
         logger.info("GetRecoveryConfigRequest succeeded: {}", response);
         return response;
     }
@@ -134,7 +133,7 @@ public class RecoveryController {
     @PostMapping("/config/update")
     public ObjectResponse<UpdateRecoveryConfigResponse> updateRecoveryConfig(@RequestBody ObjectRequest<UpdateRecoveryConfigRequest> request) throws Exception {
         logger.info("UpdateRecoveryConfigRequest received: {}", request);
-        final ObjectResponse<UpdateRecoveryConfigResponse> response = new ObjectResponse<>("OK", service.updateRecoveryConfig(request.getRequestObject()));
+        final ObjectResponse<UpdateRecoveryConfigResponse> response = new ObjectResponse<>(service.updateRecoveryConfig(request.getRequestObject()));
         logger.info("UpdateRecoveryConfigRequest succeeded: {}", response);
         return response;
     }

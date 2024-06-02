@@ -236,7 +236,6 @@ public class OnlineSignatureServiceBehavior {
         response.setSignatureValid(false);
         response.setActivationStatus(activationStatusConverter.convert(activationStatus));
         return response;
-
     }
 
     /**

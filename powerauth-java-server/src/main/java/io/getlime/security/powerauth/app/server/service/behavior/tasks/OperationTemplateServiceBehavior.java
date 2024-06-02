@@ -70,7 +70,7 @@ public class OperationTemplateServiceBehavior {
      *
      * @return List of operation templates.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public OperationTemplateListResponse getAllTemplates() throws GenericServiceException {
         try {
             final Iterable<OperationTemplateEntity> allTemplates = templateRepository.findAll();
@@ -94,7 +94,7 @@ public class OperationTemplateServiceBehavior {
      *
      * @return List of operation templates.
      */
-    @Transactional
+    @Transactional(readOnly = true)
     public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws GenericServiceException {
         try {
             final String error = OperationTemplateDetailRequestValidator.validate(request);

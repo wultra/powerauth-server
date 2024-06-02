@@ -54,7 +54,7 @@ public class SystemStatusController {
     @PostMapping
     public ObjectResponse<GetSystemStatusResponse> getSystemStatus() {
         logger.info("GetSystemStatusRequest received");
-        final ObjectResponse<GetSystemStatusResponse> response = new ObjectResponse<>("OK", service.getSystemStatus());
+        final ObjectResponse<GetSystemStatusResponse> response = new ObjectResponse<>(service.getSystemStatus());
         logger.info("GetSystemStatusRequest succeeded: {}", response);
         return response;
     }

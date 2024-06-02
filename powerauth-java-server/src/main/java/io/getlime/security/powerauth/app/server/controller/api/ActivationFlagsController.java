@@ -65,7 +65,7 @@ public class ActivationFlagsController {
     @PostMapping("/list")
     public ObjectResponse<ListActivationFlagsResponse> listActivationFlags(@RequestBody ObjectRequest<ListActivationFlagsRequest> request) throws Exception {
         logger.info("ListActivationFlagsRequest received: {}", request);
-        final ObjectResponse<ListActivationFlagsResponse> response = new ObjectResponse<>("OK", service.listActivationFlags(request.getRequestObject()));
+        final ObjectResponse<ListActivationFlagsResponse> response = new ObjectResponse<>(service.listActivationFlags(request.getRequestObject()));
         logger.info("ListActivationFlagsRequest succeeded: {}", response);
         return response;
     }
@@ -80,7 +80,7 @@ public class ActivationFlagsController {
     @PostMapping("/create")
     public ObjectResponse<AddActivationFlagsResponse> addActivationFlags(@RequestBody ObjectRequest<AddActivationFlagsRequest> request) throws Exception {
         logger.info("AddActivationFlagsRequest received: {}", request);
-        final ObjectResponse<AddActivationFlagsResponse> response = new ObjectResponse<>("OK", service.addActivationFlags(request.getRequestObject()));
+        final ObjectResponse<AddActivationFlagsResponse> response = new ObjectResponse<>(service.addActivationFlags(request.getRequestObject()));
         logger.info("addActivationFlagsRequest succeeded: {}", response);
         return response;
     }
@@ -95,7 +95,7 @@ public class ActivationFlagsController {
     @PostMapping("/update")
     public ObjectResponse<UpdateActivationFlagsResponse> updateActivationFlags(@RequestBody ObjectRequest<UpdateActivationFlagsRequest> request) throws Exception {
         logger.info("UpdateActivationFlagsRequest received: {}", request);
-        final ObjectResponse<UpdateActivationFlagsResponse> response = new ObjectResponse<>("OK", service.updateActivationFlags(request.getRequestObject()));
+        final ObjectResponse<UpdateActivationFlagsResponse> response = new ObjectResponse<>(service.updateActivationFlags(request.getRequestObject()));
         logger.info("UpdateActivationFlagsRequest succeeded: {}", response);
         return response;
     }
@@ -110,7 +110,7 @@ public class ActivationFlagsController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveActivationFlagsResponse> removeActivationFlags(@RequestBody ObjectRequest<RemoveActivationFlagsRequest> request) throws Exception {
         logger.info("RemoveActivationFlagsRequest received: {}", request);
-        final ObjectResponse<RemoveActivationFlagsResponse> response = new ObjectResponse<>("OK", service.removeActivationFlags(request.getRequestObject()));
+        final ObjectResponse<RemoveActivationFlagsResponse> response = new ObjectResponse<>(service.removeActivationFlags(request.getRequestObject()));
         logger.info("RemoveActivationFlagsRequest succeeded: {}", response);
         return response;
     }

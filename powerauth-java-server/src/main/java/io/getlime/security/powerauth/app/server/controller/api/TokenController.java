@@ -63,7 +63,7 @@ public class TokenController {
     @PostMapping("/create")
     public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws Exception {
         logger.info("CreateTokenRequest received: {}", request);
-        final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>("OK", service.createToken(request.getRequestObject()));
+        final ObjectResponse<CreateTokenResponse> response = new ObjectResponse<>(service.createToken(request.getRequestObject()));
         logger.info("CreateTokenRequest succeeded: {}", response);
         return response;
     }
@@ -78,7 +78,7 @@ public class TokenController {
     @PostMapping("/validate")
     public ObjectResponse<ValidateTokenResponse> validateToken(@RequestBody ObjectRequest<ValidateTokenRequest> request) throws Exception {
         logger.info("ValidateTokenRequest received: {}", request);
-        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>("OK", service.validateToken(request.getRequestObject()));
+        final ObjectResponse<ValidateTokenResponse> response = new ObjectResponse<>(service.validateToken(request.getRequestObject()));
         logger.info("ValidateTokenRequest succeeded: {}", response);
         return response;
     }
@@ -93,7 +93,7 @@ public class TokenController {
     @PostMapping("/remove")
     public ObjectResponse<RemoveTokenResponse> removeToken(@RequestBody ObjectRequest<RemoveTokenRequest> request) throws Exception {
         logger.info("RemoveTokenRequest received: {}", request);
-        final ObjectResponse<RemoveTokenResponse> response = new ObjectResponse<>("OK", service.removeToken(request.getRequestObject()));
+        final ObjectResponse<RemoveTokenResponse> response = new ObjectResponse<>(service.removeToken(request.getRequestObject()));
         logger.info("RemoveTokenRequest succeeded: {}", response);
         return response;
     }

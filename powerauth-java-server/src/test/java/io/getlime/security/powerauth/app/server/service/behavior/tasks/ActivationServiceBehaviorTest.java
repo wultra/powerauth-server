@@ -66,17 +66,18 @@ class ActivationServiceBehaviorTest {
 
     private final ApplicationServiceBehavior applicationServiceBehavior;
     private final RecoveryServiceBehavior recoveryServiceBehavior;
+    private final ActivationServiceBehavior activationServiceBehavior;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final String version = "3.2";
     private final String userId = UUID.randomUUID().toString();
-    @Autowired private ActivationServiceBehavior activationServiceBehavior;
 
     @Autowired
-    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, RecoveryServiceBehavior recoveryServiceBehavior) {
+    public ActivationServiceBehaviorTest(ApplicationServiceBehavior applicationServiceBehavior, RecoveryServiceBehavior recoveryServiceBehavior, ActivationServiceBehavior activationServiceBehavior) {
         this.applicationServiceBehavior = applicationServiceBehavior;
         this.recoveryServiceBehavior = recoveryServiceBehavior;
+        this.activationServiceBehavior = activationServiceBehavior;
     }
 
     @Test
@@ -136,17 +137,19 @@ class ActivationServiceBehaviorTest {
         // Prepare activation with missing devicePublicKey
         final String activationCode = initActivationResponse.getActivationCode();
         final String applicationKey = detailResponse.getVersions().get(0).getApplicationKey();
+
+        final PrepareActivationRequest request = new PrepareActivationRequest();
+        request.setActivationCode(activationCode);
+        request.setGenerateRecoveryCodes(false);
+        request.setProtocolVersion(version);
+        request.setApplicationKey(applicationKey);
+        request.setMac(encryptedRequest.getMac());
+        request.setNonce(encryptedRequest.getNonce());
+        request.setEncryptedData(encryptedRequest.getEncryptedData());
+        request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        request.setTimestamp(encryptedRequest.getTimestamp());
+
         final GenericServiceException exception = assertThrows(GenericServiceException.class, () -> {
-            final PrepareActivationRequest request = new PrepareActivationRequest();
-            request.setActivationCode(activationCode);
-            request.setGenerateRecoveryCodes(false);
-            request.setProtocolVersion(version);
-            request.setApplicationKey(applicationKey);
-            request.setMac(encryptedRequest.getMac());
-            request.setNonce(encryptedRequest.getNonce());
-            request.setEncryptedData(encryptedRequest.getEncryptedData());
-            request.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-            request.setTimestamp(encryptedRequest.getTimestamp());
             tested.prepareActivation(request);
         });
         assertEquals(ServiceError.INVALID_REQUEST, exception.getCode());
