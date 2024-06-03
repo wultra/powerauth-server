@@ -13,7 +13,12 @@ ALTER TABLE pa_activation ALTER COLUMN extras varchar (4000);
 GO
 
 -- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::4::Lubos Racansky
-ALTER TABLE pa_activation ADD protocol varchar(255) DEFAULT 'powerauth' WITH VALUES;
+ALTER TABLE pa_activation DROP CONSTRAINT DF_pa_activation_protocol;
+GO
+
+ALTER TABLE pa_activation
+    ADD CONSTRAINT DF_pa_activation_protocol
+    DEFAULT 'powerauth' FOR protocol;
 GO
 
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
