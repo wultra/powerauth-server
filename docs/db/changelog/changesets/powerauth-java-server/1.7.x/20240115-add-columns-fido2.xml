@@ -51,10 +51,10 @@
 
     <!--  MS SQL default value issue https://github.com/liquibase/liquibase/issues/4644  -->
     <changeSet id="4" logicalFilePath="powerauth-java-server/1.7.x/20240115-add-columns-fido2" author="Lubos Racansky" dbms="mssql">
-        <update tableName="pa_activation">
-            <column name="protocol" value="powerauth"/>
-            <where>protocol is null</where>
-        </update>
+        <sql>ALTER TABLE pa_activation ADD protocol varchar(255) DEFAULT 'powerauth' WITH VALUES</sql>
+        <rollback>
+            <sql>ALTER TABLE pa_activation ALTER COLUMN protocol DROP DEFAULT</sql>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

@@ -44,7 +44,6 @@ liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/d
 ```shell
 liquibase --changeLogFile=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --output-file=./docs/sql/postgresql/generated-postgresql-script.sql updateSQL --url=offline:postgres
 ```
-```
 
 
 ## PowerAuth Admin Server
