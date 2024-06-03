@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.converter.ApplicationRoleConverter;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,30 +35,49 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application")
+@Getter @Setter
 public class ApplicationEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1295434927785255417L;
 
+    /**
+     * Application RID.
+     */
     @Id
     @SequenceGenerator(name = "pa_application", sequenceName = "pa_application_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application")
     @Column(name = "id")
     private Long rid;
 
+    /**
+     * Application ID.
+     */
     @Column(name = "name", unique = true)
     private String id;
 
+    /**
+     * Application roles.
+     */
     @Column(name = "roles")
     @Convert(converter = ApplicationRoleConverter.class)
     private final List<String> roles = new ArrayList<>();
 
+    /**
+     * List of versions associated with given application.
+     */
     @OneToMany(mappedBy = "application")
     private final List<ApplicationVersionEntity> versions = new ArrayList<>();
 
+    /**
+     * The list of callbacks for given application.
+     */
     @OneToMany(mappedBy = "application")
     private final List<CallbackUrlEntity> callbacks = new ArrayList<>();
 
+    /**
+     * The list of recovery codes.
+     */
     @OneToMany(mappedBy = "application")
     private final List<RecoveryCodeEntity> recoveryCodes = new ArrayList<>();
 
@@ -79,74 +100,6 @@ public class ApplicationEntity implements Serializable {
         this.id = id;
         this.roles.addAll(roles);
         this.versions.addAll(versions);
-    }
-
-    /**
-     * Get application RID.
-     *
-     * @return Application RID.
-     */
-    public Long getRid() {
-        return rid;
-    }
-
-    /**
-     * Set application RID.
-     *
-     * @param id Application RID.
-     */
-    public void setRid(Long id) {
-        this.rid = id;
-    }
-
-    /**
-     * Get application ID.
-     *
-     * @return Application ID.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set application ID.
-     *
-     * @param id Application ID.
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Get application roles.
-     * @return Application roles.
-     */
-    public List<String> getRoles() {
-        return roles;
-    }
-
-    /**
-     * Get list of versions associated with given application.
-     * @return Application versions.
-     */
-    public List<ApplicationVersionEntity> getVersions() {
-        return versions;
-    }
-
-    /**
-     * Get the list of callbacks for given application.
-     * @return List of callbacks.
-     */
-    public List<CallbackUrlEntity> getCallbacks() {
-        return callbacks;
-    }
-
-    /**
-     * Get the list of recovery codes.
-     * @return List of recovery codes.
-     */
-    public List<RecoveryCodeEntity> getRecoveryCodes() {
-        return recoveryCodes;
     }
 
     @Override
