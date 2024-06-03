@@ -50,15 +50,11 @@
     </changeSet>
 
     <!--  MS SQL default value issue https://github.com/liquibase/liquibase/issues/4644  -->
-    <changeSet id="4" logicalFilePath="powerauth-java-server/1.7.x/20240115-add-columns-fido2" author="Lubos Racansky" dbms="mssql">
-        <sql>
-            ALTER TABLE pa_activation DROP CONSTRAINT DF_pa_activation_protocol;
-            ALTER TABLE pa_activation
-                ADD CONSTRAINT DF_pa_activation_protocol
-                    DEFAULT 'powerauth' FOR protocol;</sql>
-        <rollback>
-            <sql>ALTER TABLE pa_activation DROP CONSTRAINT DF_pa_activation_protocol</sql>
-        </rollback>
+    <changeSet id="4" logicalFilePath="powerauth-java-server/1.7.x/20240115-add-columns-fido2" author="Lubos Racansky">
+        <update tableName="pa_activation">
+            <column name="protocol" value="powerauth"/>
+            <where>protocol is null</where>
+        </update>
     </changeSet>
 
     <changeSet id="5" logicalFilePath="powerauth-java-server/1.7.x/20240530-protocol-not-null.xml" author="Lubos Racansky">

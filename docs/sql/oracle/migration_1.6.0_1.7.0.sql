@@ -9,6 +9,9 @@ ALTER TABLE pa_activation ADD protocol VARCHAR2(32) DEFAULT 'powerauth';
 -- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
 ALTER TABLE pa_activation MODIFY extras VARCHAR2(4000);
 
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::4::Lubos Racansky
+UPDATE pa_activation SET protocol = 'powerauth' WHERE protocol is null;
+
 -- Changeset powerauth-java-server/1.7.x/20240530-protocol-not-null.xml::5::Lubos Racansky
 -- Make column pa_activation.protocol not-null.
 ALTER TABLE pa_activation MODIFY protocol NOT NULL;
