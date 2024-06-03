@@ -22,7 +22,6 @@ import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
-import io.getlime.security.powerauth.app.server.service.behavior.tasks.AsymmetricSignatureServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OfflineSignatureServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OnlineSignatureServiceBehavior;
@@ -47,14 +46,12 @@ import java.util.ArrayList;
 @Slf4j
 public class SignatureController {
 
-    private final AsymmetricSignatureServiceBehavior asymmetricSignatureService;
     private final OnlineSignatureServiceBehavior onlineSignatureService;
     private final OfflineSignatureServiceBehavior offlineSignatureService;
     private final AuditingServiceBehavior auditingService;
 
     @Autowired
-    public SignatureController(AsymmetricSignatureServiceBehavior asymmetricSignatureService, OnlineSignatureServiceBehavior onlineSignatureService, OfflineSignatureServiceBehavior offlineSignatureService, AuditingServiceBehavior auditingService) {
-        this.asymmetricSignatureService = asymmetricSignatureService;
+    public SignatureController(OnlineSignatureServiceBehavior onlineSignatureService, OfflineSignatureServiceBehavior offlineSignatureService, AuditingServiceBehavior auditingService) {
         this.onlineSignatureService = onlineSignatureService;
         this.offlineSignatureService = offlineSignatureService;
         this.auditingService = auditingService;
@@ -117,21 +114,6 @@ public class SignatureController {
         logger.info("VerifyOfflineSignatureRequest received: {}", request);
         final ObjectResponse<VerifyOfflineSignatureResponse> response = new ObjectResponse<>(offlineSignatureService.verifyOfflineSignature(request.getRequestObject()));
         logger.info("VerifyOfflineSignatureRequest succeeded: {}", response);
-        return response;
-    }
-
-    /**
-     * Validate ECDSA signature.
-     *
-     * @param request Verify ECDSA signature request.
-     * @return Verify ECDSA signature response.
-     * @throws Exception In case the service throws exception.
-     */
-    @PostMapping("/ecdsa/verify")
-    public ObjectResponse<VerifyECDSASignatureResponse> verifyECDSASignature(@RequestBody ObjectRequest<VerifyECDSASignatureRequest> request) throws Exception {
-        logger.info("VerifyECDSASignatureRequest received: {}", request);
-        final ObjectResponse<VerifyECDSASignatureResponse> response = new ObjectResponse<>(asymmetricSignatureService.verifyECDSASignature(request.getRequestObject()));
-        logger.info("VerifyECDSASignatureRequest succeeded: {}", response);
         return response;
     }
 
