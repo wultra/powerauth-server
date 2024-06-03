@@ -61,4 +61,9 @@
         </rollback>
     </changeSet>
 
+    <changeSet id="5" logicalFilePath="powerauth-java-server/1.7.x/20240530-protocol-not-null.xml" author="Lubos Racansky">
+        <comment>Make column pa_activation.protocol not-null.</comment>
+        <addNotNullConstraint tableName="pa_activation" columnName="protocol" columnDataType="varchar(32)" />
+    </changeSet>
+
 </databaseChangeLog>

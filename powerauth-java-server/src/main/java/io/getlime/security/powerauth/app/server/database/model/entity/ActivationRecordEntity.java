@@ -70,7 +70,7 @@ public class ActivationRecordEntity implements Serializable {
     @Column(name = "extras", columnDefinition = "CLOB")
     private String extras;
 
-    @Column(name = "protocol")
+    @Column(name = "protocol", nullable = false, columnDefinition = "varchar(32) default 'powerauth'")
     private String protocol;
 
     @Column(name = "platform")
