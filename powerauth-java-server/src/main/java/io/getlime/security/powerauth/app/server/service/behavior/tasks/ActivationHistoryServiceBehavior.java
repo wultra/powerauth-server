@@ -20,16 +20,22 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.security.powerauth.client.model.entity.ActivationHistoryItem;
+import com.wultra.security.powerauth.client.model.request.ActivationHistoryRequest;
 import com.wultra.security.powerauth.client.model.response.ActivationHistoryResponse;
 import io.getlime.security.powerauth.app.server.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationHistoryEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationHistoryRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -39,21 +45,24 @@ import java.util.List;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class ActivationHistoryServiceBehavior {
 
     private final ActivationHistoryRepository activationHistoryRepository;
 
     private final ActivationRepository activationRepository;
+    private final LocalizationProvider localizationProvider;
     private final AuditingServiceBehavior audit;
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, AuditingServiceBehavior audit) {
+    public ActivationHistoryServiceBehavior(ActivationHistoryRepository activationHistoryRepository, ActivationRepository activationRepository, LocalizationProvider localizationProvider, AuditingServiceBehavior audit) {
         this.activationHistoryRepository = activationHistoryRepository;
         this.activationRepository = activationRepository;
+        this.localizationProvider = localizationProvider;
         this.audit = audit;
     }
 
@@ -109,37 +118,52 @@ public class ActivationHistoryServiceBehavior {
 
     /**
      * List status changes for given activation.
-     * @param activationId Activation ID.
-     * @param startingDate Since when should the changes be displayed.
-     * @param endingDate Until when should the changes be displayed.
+     * @param request Request with history query definition.
      * @return Response with activation changes.
      */
-    public ActivationHistoryResponse getActivationHistory(String activationId, Date startingDate, Date endingDate) {
-
-        final List<ActivationHistoryEntity> activationHistoryEntityList = activationHistoryRepository.findActivationHistory(activationId, startingDate, endingDate);
-
-        final ActivationHistoryResponse response = new ActivationHistoryResponse();
-        if (activationHistoryEntityList != null) {
-            for (ActivationHistoryEntity activationHistoryEntity : activationHistoryEntityList) {
-
-                final ActivationHistoryItem item = new ActivationHistoryItem();
-                item.setId(activationHistoryEntity.getId());
-                item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
-                item.setActivationStatus(activationStatusConverter.convert(activationHistoryEntity.getActivationStatus()));
-                item.setEventReason(activationHistoryEntity.getEventReason());
-                final Integer activationVersion = activationHistoryEntity.getActivationVersion();
-                if (activationVersion != null) {
-                    item.setVersion(Long.valueOf(activationVersion));
-                }
-                item.setExternalUserId(activationHistoryEntity.getExternalUserId());
-                item.setActivationName(activationHistoryEntity.getActivationName());
-                item.setTimestampCreated(activationHistoryEntity.getTimestampCreated());
-
-                response.getItems().add(item);
+    @Transactional(readOnly = true)
+    public ActivationHistoryResponse getActivationHistory(ActivationHistoryRequest request) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+            final Date startingDate = request.getTimestampFrom();
+            final Date endingDate = request.getTimestampTo();
+            if (request.getActivationId() == null) {
+                logger.warn("Invalid request parameter activationId in method getActivationHistory");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-        }
 
-        return response;
+            final List<ActivationHistoryEntity> activationHistoryEntityList = activationHistoryRepository.findActivationHistory(activationId, startingDate, endingDate);
+
+            final ActivationHistoryResponse response = new ActivationHistoryResponse();
+            if (activationHistoryEntityList != null) {
+                for (ActivationHistoryEntity activationHistoryEntity : activationHistoryEntityList) {
+
+                    final ActivationHistoryItem item = new ActivationHistoryItem();
+                    item.setId(activationHistoryEntity.getId());
+                    item.setActivationId(activationHistoryEntity.getActivation().getActivationId());
+                    item.setActivationStatus(activationStatusConverter.convert(activationHistoryEntity.getActivationStatus()));
+                    item.setEventReason(activationHistoryEntity.getEventReason());
+                    final Integer activationVersion = activationHistoryEntity.getActivationVersion();
+                    if (activationVersion != null) {
+                        item.setVersion(Long.valueOf(activationVersion));
+                    }
+                    item.setExternalUserId(activationHistoryEntity.getExternalUserId());
+                    item.setActivationName(activationHistoryEntity.getActivationName());
+                    item.setTimestampCreated(activationHistoryEntity.getTimestampCreated());
+
+                    response.getItems().add(item);
+                }
+            }
+
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
     }
 
     // Private methods

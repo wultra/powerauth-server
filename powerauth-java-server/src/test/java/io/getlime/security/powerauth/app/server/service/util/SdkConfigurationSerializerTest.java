@@ -22,7 +22,8 @@ package io.getlime.security.powerauth.app.server.service.util;
 import io.getlime.security.powerauth.app.server.service.model.SdkConfiguration;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test for SDK data writer.

@@ -21,7 +21,7 @@ package io.getlime.security.powerauth.app.server.service.fido2;
 import com.wultra.powerauth.fido2.rest.model.entity.*;
 import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
-import com.wultra.security.powerauth.fido2.model.entity.*;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
@@ -76,7 +76,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
         }
         byte[] dataSuffix = null;
         final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
-        if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
+        if (Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
             dataSuffix = getOperationDataBytes(clientDataJSON.getChallenge());
             if (dataSuffix == null) {
                 logger.debug("Visual challenge expected, but no data found to append.");

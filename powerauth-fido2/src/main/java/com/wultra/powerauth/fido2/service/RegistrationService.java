@@ -31,6 +31,8 @@ import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.powerauth.fido2.service.provider.RegistrationProvider;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.enumeration.Fmt;
+import com.wultra.security.powerauth.fido2.model.request.RegisteredAuthenticatorsRequest;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
 import com.wultra.security.powerauth.fido2.model.response.RegisteredAuthenticatorsResponse;
 import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
@@ -61,27 +63,25 @@ public class RegistrationService {
     /**
      * List registrations for a user.
      *
-     * @param userId User identifier.
-     * @param applicationId Application identifier.
+     * @param request Request for user authenticator list.
      * @return Registered authenticator list response.
      * @throws Fido2AuthenticationFailedException In case list request fails.
      */
-    public RegisteredAuthenticatorsResponse listRegistrationsForUser(String userId, String applicationId) throws Fido2AuthenticationFailedException {
+    public RegisteredAuthenticatorsResponse listRegistrationsForUser(RegisteredAuthenticatorsRequest request) throws Fido2AuthenticationFailedException {
         final RegisteredAuthenticatorsResponse responseObject = new RegisteredAuthenticatorsResponse();
-        responseObject.getAuthenticators().addAll(authenticatorProvider.findByUserId(userId, applicationId));
+        responseObject.getAuthenticators().addAll(authenticatorProvider.findByUserId(request.getUserId(), request.getApplicationId()));
         return responseObject;
     }
 
     /**
      * Request a registration challenge.
      *
-     * @param userId User identifier.
-     * @param applicationId Application identifier.
+     * @param request Request for registration challenge.
      * @return Registration challenge response.
      * @throws Exception Thrown in case creating challenge fails.
      */
-    public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws Exception {
-        final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistration(userId, applicationId);
+    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws Exception {
+        final RegistrationChallenge challenge = registrationProvider.provideChallengeForRegistration(request.getUserId(), request.getApplicationId());
         return registrationChallengeConverter.fromChallenge(challenge);
     }
 

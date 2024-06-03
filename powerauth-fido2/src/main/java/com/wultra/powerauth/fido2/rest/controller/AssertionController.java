@@ -71,11 +71,10 @@ public class AssertionController {
     })
     @PostMapping("challenge")
     public ObjectResponse<AssertionChallengeResponse> requestAssertionChallenge(@Valid @RequestBody ObjectRequest<AssertionChallengeRequest> request) throws Exception {
-        final AssertionChallengeRequest requestObject = request.getRequestObject();
-        logger.info("AssertionChallengeRequest received, application IDs: {}", requestObject.getApplicationIds());
-        final AssertionChallengeResponse assertionChallengeResponse = assertionService.requestAssertionChallenge(requestObject);
-        logger.info("AssertionChallengeRequest succeeded, application IDs: {}", requestObject.getApplicationIds());
-        return new ObjectResponse<>(assertionChallengeResponse);
+        logger.info("AssertionChallengeRequest received: {}", request);
+        final ObjectResponse<AssertionChallengeResponse> response = new ObjectResponse<>(assertionService.requestAssertionChallenge(request.getRequestObject()));
+        logger.info("AssertionChallengeRequest succeeded: {}", response);
+        return response;
     }
 
     /**
@@ -95,11 +94,10 @@ public class AssertionController {
     })
     @PostMapping
     public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException, Fido2DeserializationException {
-        final AssertionVerificationRequest requestObject = request.getRequestObject();
-        logger.info("AssertionVerificationRequest received, credential ID: {}", requestObject.getCredentialId());
-        final AssertionVerificationResponse signatureResponse = assertionService.authenticate(requestObject);
-        logger.info("AssertionVerificationRequest succeeded, credential ID: {}, valid: {}", requestObject.getCredentialId(), signatureResponse.isAssertionValid());
-        return new ObjectResponse<>(signatureResponse);
+        logger.info("AssertionVerificationRequest received: {}", request);
+        final ObjectResponse<AssertionVerificationResponse> response = new ObjectResponse<>(assertionService.authenticate(request.getRequestObject()));
+        logger.info("AssertionVerificationRequest succeeded: {}", response);
+        return response;
     }
 
 }

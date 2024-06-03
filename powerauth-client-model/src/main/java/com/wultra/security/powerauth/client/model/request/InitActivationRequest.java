@@ -23,7 +23,9 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol
 import lombok.Data;
 import lombok.ToString;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Model class representing request for initializing activation.
@@ -41,5 +43,6 @@ public class InitActivationRequest {
     private ActivationOtpValidation activationOtpValidation;
     @ToString.Exclude
     private String activationOtp;
+    private List<String> flags = new ArrayList<>();
 
 }

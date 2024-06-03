@@ -17,7 +17,15 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
+import com.wultra.security.powerauth.client.model.request.SignECDSARequest;
+import com.wultra.security.powerauth.client.model.request.VerifyECDSASignatureRequest;
+import com.wultra.security.powerauth.client.model.response.SignECDSAResponse;
+import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
+import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -26,12 +34,13 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.InvalidKeyException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
@@ -42,7 +51,8 @@ import java.util.Base64;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class AsymmetricSignatureServiceBehavior {
 
     private final ActivationRepository activationRepository;
@@ -50,37 +60,63 @@ public class AsymmetricSignatureServiceBehavior {
     private final ActivationContextValidator activationValidator;
 
     private final SignatureUtils signatureUtils = new SignatureUtils();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
-    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider, ActivationContextValidator activationValidator) {
+    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider, ActivationContextValidator activationValidator, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.activationRepository = activationRepository;
         this.localizationProvider = localizationProvider;
         this.activationValidator = activationValidator;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
     /**
-     * Validate ECDSA signature for given data using public key associated with given activation ID.
-     * @param activationId Activation ID to be used for device public key lookup.
-     * @param data Data that were signed, in Base64 format.
-     * @param signature Provided signature to be verified, in Base64 format.
-     * @param keyConversionUtilities Key converter provided by the client code.
-     * @return True in case signature validates for given data with provided public key, false otherwise.
+     * Sign data with ECDSA signature for given data using public key associated with given activation ID.
+     *
+     * @param request Request with ECDSA signature.
+     * @return ECDSA signature for provided data payload.
      * @throws GenericServiceException In case signature verification fails.
      */
-    public boolean verifyECDSASignature(String activationId, String data, String signature, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    @Transactional
+    public SignECDSAResponse signDataWithECDSA(SignECDSARequest request) throws GenericServiceException {
         try {
+            final String activationId = request.getActivationId();
+            final String data = request.getData();
+            if (activationId == null || data == null) {
+                logger.warn("Invalid request parameters in method signDataWithECDSA");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
             if (activation == null) {
-                logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
-                return false;
+                logger.warn("Activation used when computing ECDSA signature does not exist, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
             }
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-            byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
-            return signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
+
+            final ActivationStatus activationStatus = activation.getActivationStatus();
+            if (activationStatus != ActivationStatus.ACTIVE) {
+                logger.warn("Activation used when computing ECDSA signature is in incorrect status, activation ID: {}, status: {}", activationId, activationStatus);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
+            }
+
+            // Decrypt server private key (depending on encryption mode)
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
+
+            // Sign data with the private key
+            final byte[] signature = signatureUtils.computeECDSASignature(Base64.getDecoder().decode(data), serverPrivateKey);
+            final String signatureBase64 = Base64.getEncoder().encodeToString(signature);
+
+            final SignECDSAResponse response = new SignECDSAResponse();
+            response.setSignature(signatureBase64);
+            return response;
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -93,6 +129,73 @@ public class AsymmetricSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
+
+    }
+
+    /**
+     * Validate ECDSA signature for given data using public key associated with given activation ID.
+     *
+     * @param request Request with ECDSA verification request.
+     * @return True in case signature validates for given data with provided public key, false otherwise.
+     * @throws GenericServiceException In case signature verification fails.
+     */
+    @Transactional
+    public VerifyECDSASignatureResponse verifyECDSASignature(VerifyECDSASignatureRequest request) throws GenericServiceException {
+        try {
+            final String activationId = request.getActivationId();
+            final String data = request.getData();
+            final String signature  = request.getSignature();
+            if (activationId == null || data == null || signature == null) {
+                logger.warn("Invalid request parameters in method verifyECDSASignature");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
+            if (activation == null) {
+                logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
+
+            final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
+            final boolean matches = signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
+
+            final VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
+            response.setSignatureValid(matches);
+            return response;
+        } catch (InvalidKeyException | InvalidKeySpecException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_KEY_FORMAT);
+        } catch (GenericCryptoException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
+        } catch (CryptoProviderException ex) {
+            logger.error(ex.getMessage(), ex);
+            // Rollback is not required, database is not used for writing
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
 
     }

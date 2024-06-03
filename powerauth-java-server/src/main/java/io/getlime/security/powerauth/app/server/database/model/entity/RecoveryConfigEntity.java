@@ -18,7 +18,6 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-
 import jakarta.persistence.*;
 
 import java.io.Serial;

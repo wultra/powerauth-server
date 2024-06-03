@@ -22,8 +22,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -36,9 +35,8 @@ import java.util.List;
  */
 @Converter
 @Component
+@Slf4j
 public class ApplicationRoleConverter implements AttributeConverter<List<String>, String> {
-
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationRoleConverter.class);
 
     private static final String EMPTY_ROLES = "[]";
 
@@ -60,7 +58,7 @@ public class ApplicationRoleConverter implements AttributeConverter<List<String>
         try {
             return objectMapper.writeValueAsString(roles);
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for application roles, error: {}", ex.getMessage(), ex);
             return EMPTY_ROLES;
         }
     }
@@ -73,7 +71,7 @@ public class ApplicationRoleConverter implements AttributeConverter<List<String>
         try {
             return objectMapper.readValue(roles, new TypeReference<>(){});
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for application roles, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for application roles, error: {}", ex.getMessage(), ex);
             return new ArrayList<>();
         }
 

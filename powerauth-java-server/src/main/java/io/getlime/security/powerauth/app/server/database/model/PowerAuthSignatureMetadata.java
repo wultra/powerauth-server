@@ -18,8 +18,8 @@
 
 package io.getlime.security.powerauth.app.server.database.model;
 
-import lombok.AllArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

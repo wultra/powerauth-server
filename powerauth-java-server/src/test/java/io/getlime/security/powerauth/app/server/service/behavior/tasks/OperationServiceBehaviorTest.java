@@ -27,7 +27,6 @@ import com.wultra.security.powerauth.client.model.response.OperationUserActionRe
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test for {@link OperationServiceBehavior}.
@@ -85,6 +83,7 @@ class OperationServiceBehaviorTest {
     void testCreateOperationWithActivationId() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
         request.setActivationId(ACTIVATION_ID);
+        request.setApplications(List.of(APP_ID));
         request.setTemplateName("test-template");
         request.setUserId(USER_ID);
 
@@ -126,6 +125,7 @@ class OperationServiceBehaviorTest {
     void testCreateOperationWithoutActivationId() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
+        request.setApplications(List.of(APP_ID));
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
@@ -267,15 +267,23 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, activationId1, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId1);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
         final OperationListResponse operationListResponse1 = operationService.findAllOperationsForUser(request1);
 
         assertNotNull(operationListResponse1);
         assertEquals(2, operationListResponse1.size());
 
-        final OperationServiceBehavior.OperationListRequest request2 =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, activationId2, pageable);
+        final OperationListForUserRequest request2 = new OperationListForUserRequest();
+        request2.setUserId(USER_ID);
+        request2.setApplications(applicationIds);
+        request2.setActivationId(activationId2);
+        request2.setPageNumber(pageable.getPageNumber());
+        request2.setPageSize(pageable.getPageSize());
         final OperationListResponse operationListResponse2 = operationService.findAllOperationsForUser(request2);
 
         assertNotNull(operationListResponse2);
@@ -290,9 +298,13 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+
+        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request1);
 
         assertNotNull(operationListResponse);
         assertEquals(7, operationListResponse.size());
@@ -306,8 +318,11 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable1 = PageRequest.of(0, 2);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable1);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable1.getPageNumber());
+        request1.setPageSize(pageable1.getPageSize());
         final OperationListResponse operationListResponse1 = operationService.findAllOperationsForUser(request1);
 
         assertNotNull(operationListResponse1);
@@ -315,8 +330,12 @@ class OperationServiceBehaviorTest {
 
         final Pageable pageable2 = PageRequest.of(1, 2);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable2);
+        final OperationListForUserRequest request = new OperationListForUserRequest();
+        request.setUserId(USER_ID);
+        request.setApplications(applicationIds);
+        request.setPageNumber(pageable2.getPageNumber());
+        request.setPageSize(pageable2.getPageSize());
+
         final OperationListResponse operationListResponse2 = operationService.findAllOperationsForUser(request);
 
         assertNotNull(operationListResponse2);
@@ -335,9 +354,12 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 2);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request1);
 
         assertTrue(operationListResponse.get(0).getTimestampCreated().after(operationListResponse.get(1).getTimestampCreated()));
         final Calendar calendar = Calendar.getInstance();
@@ -355,10 +377,14 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("NOT_EXISTING");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, activationId1, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId1);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
 
-        assertThrows(GenericServiceException.class, () -> operationService.findAllOperationsForUser(request));
+        assertThrows(GenericServiceException.class, () -> operationService.findAllOperationsForUser(request1));
     }
 
     /**
@@ -370,8 +396,12 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, activationId, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
         final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse);
@@ -386,9 +416,12 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse);
         assertEquals(2, operationListResponse.size());
@@ -402,8 +435,11 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable1 = PageRequest.of(0, 1);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable1);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable1.getPageNumber());
+        request1.setPageSize(pageable1.getPageSize());
         final OperationListResponse operationListResponse1 = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse1);
@@ -411,8 +447,11 @@ class OperationServiceBehaviorTest {
 
         final Pageable pageable2 = PageRequest.of(1, 1);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable2);
+        final OperationListForUserRequest request = new OperationListForUserRequest();
+        request.setUserId(USER_ID);
+        request.setApplications(applicationIds);
+        request.setPageNumber(pageable2.getPageNumber());
+        request.setPageSize(pageable2.getPageSize());
         final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request);
 
         assertNotNull(operationListResponse2);
@@ -431,9 +470,12 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 2);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
         assertTrue(operationListResponse.get(0).getTimestampCreated().after(operationListResponse.get(1).getTimestampCreated()));
         final Calendar calendar = Calendar.getInstance();
@@ -451,10 +493,14 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("NOT_EXISTING");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, activationId1, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId1);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
 
-        assertThrows(GenericServiceException.class, () -> operationService.findPendingOperationsForUser(request));
+        assertThrows(GenericServiceException.class, () -> operationService.findPendingOperationsForUser(request1));
     }
 
     /**
@@ -466,10 +512,14 @@ class OperationServiceBehaviorTest {
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(USER_ID, applicationIds, activationId2, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId2);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
 
-        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request);
+        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse2);
         assertEquals(1, operationListResponse2.size());
@@ -484,7 +534,7 @@ class OperationServiceBehaviorTest {
         detailRequest.setOperationId(operationId);
         detailRequest.setUserId(userId);
         // Check operation claim
-        assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
+        assertEquals(userId, operationService.operationDetail(detailRequest).getUserId());
     }
 
     @Test
@@ -494,7 +544,7 @@ class OperationServiceBehaviorTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operationId);
 
-        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+        final OperationDetailResponse detailResponse = operationService.operationDetail(detailRequest);
         final String totp = detailResponse.getProximityOtp();
         assertNotNull(totp);
 
@@ -513,7 +563,7 @@ class OperationServiceBehaviorTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
 
-        final String totp = operationService.getOperation(detailRequest).getProximityOtp();
+        final String totp = operationService.operationDetail(detailRequest).getProximityOtp();
         assertNotNull(totp);
 
         final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
@@ -563,7 +613,7 @@ class OperationServiceBehaviorTest {
 
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
-        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+        final OperationDetailResponse detailResponse = operationService.operationDetail(detailRequest);
 
         assertNotNull(detailResponse.getAdditionalData().get("device"));
         assertEquals(expectedDevice, detailResponse.getAdditionalData().get("device"));
@@ -573,7 +623,9 @@ class OperationServiceBehaviorTest {
         boolean appExists = applicationService.getApplicationList().getApplications().stream()
                 .anyMatch(app -> app.getApplicationId().equals(APP_ID));
         if (!appExists) {
-            applicationService.createApplication(APP_ID, new KeyConvertor());
+            final CreateApplicationRequest request = new CreateApplicationRequest();
+            request.setApplicationId(APP_ID);
+            applicationService.createApplication(request);
         }
     }
 

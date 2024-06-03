@@ -26,8 +26,7 @@ import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRec
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.exceptions.TelemetryReportException;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
@@ -47,9 +46,8 @@ import java.util.stream.Collectors;
  * @author Petr Dvorak, petr@wultra.com
  */
 @ControllerAdvice
+@Slf4j
 public class RESTControllerAdvice {
-
-    private static final Logger logger = LoggerFactory.getLogger(RESTControllerAdvice.class);
 
     /**
      * Resolver for Activation Recovery Exception.

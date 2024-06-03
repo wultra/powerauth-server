@@ -24,14 +24,20 @@ import com.wultra.security.powerauth.client.model.request.OperationTemplateDetai
 import com.wultra.security.powerauth.client.model.request.OperationTemplateUpdateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateListResponse;
+import com.wultra.security.powerauth.client.model.validator.OperationTemplateCreateRequestValidator;
+import com.wultra.security.powerauth.client.model.validator.OperationTemplateDeleteRequestValidator;
+import com.wultra.security.powerauth.client.model.validator.OperationTemplateDetailRequestValidator;
+import com.wultra.security.powerauth.client.model.validator.OperationTemplateUpdateRequestValidator;
 import io.getlime.security.powerauth.app.server.converter.OperationTemplateConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationTemplateEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationTemplateRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -41,6 +47,7 @@ import java.util.Optional;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@Slf4j
 public class OperationTemplateServiceBehavior {
 
     private final OperationTemplateRepository templateRepository;
@@ -63,14 +70,23 @@ public class OperationTemplateServiceBehavior {
      *
      * @return List of operation templates.
      */
-    public OperationTemplateListResponse getAllTemplates() {
-        final Iterable<OperationTemplateEntity> allTemplates = templateRepository.findAll();
-        final OperationTemplateListResponse result = new OperationTemplateListResponse();
-        allTemplates.forEach(template -> {
-            final OperationTemplateDetailResponse ot = operationTemplateConverter.convertFromDB(template);
-            result.add(ot);
-        });
-        return result;
+    @Transactional(readOnly = true)
+    public OperationTemplateListResponse getAllTemplates() throws GenericServiceException {
+        try {
+            final Iterable<OperationTemplateEntity> allTemplates = templateRepository.findAll();
+            final OperationTemplateListResponse result = new OperationTemplateListResponse();
+            allTemplates.forEach(template -> {
+                final OperationTemplateDetailResponse ot = operationTemplateConverter.convertFromDB(template);
+                result.add(ot);
+            });
+            return result;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
     }
 
     /**
@@ -78,13 +94,29 @@ public class OperationTemplateServiceBehavior {
      *
      * @return List of operation templates.
      */
+    @Transactional(readOnly = true)
     public OperationTemplateDetailResponse getTemplateDetail(OperationTemplateDetailRequest request) throws GenericServiceException {
-        final Long id = request.getId();
-        final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
-        if (template.isEmpty()) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+        try {
+            final String error = OperationTemplateDetailRequestValidator.validate(request);
+            if (error != null) {
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
+            }
+            final Long id = request.getId();
+            final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
+            if (template.isEmpty()) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+            }
+            return operationTemplateConverter.convertFromDB(template.get());
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        return operationTemplateConverter.convertFromDB(template.get());
     }
 
     /**
@@ -92,15 +124,31 @@ public class OperationTemplateServiceBehavior {
      * @param request New operation template attributes.
      * @return New operation template.
      */
+    @Transactional
     public OperationTemplateDetailResponse createOperationTemplate(OperationTemplateCreateRequest request) throws GenericServiceException {
-        final String templateName = request.getTemplateName();
-        final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
-        if (templateByName.isPresent()) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_ALREADY_EXISTS);
+        try {
+            final String error = OperationTemplateCreateRequestValidator.validate(request);
+            if (error != null) {
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
+            }
+            final String templateName = request.getTemplateName();
+            final Optional<OperationTemplateEntity> templateByName = templateRepository.findTemplateByName(templateName);
+            if (templateByName.isPresent()) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_ALREADY_EXISTS);
+            }
+            OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
+            operationTemplateEntity = templateRepository.save(operationTemplateEntity);
+            return operationTemplateConverter.convertFromDB(operationTemplateEntity);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        OperationTemplateEntity operationTemplateEntity = operationTemplateConverter.convertToDB(request);
-        operationTemplateEntity = templateRepository.save(operationTemplateEntity);
-        return operationTemplateConverter.convertFromDB(operationTemplateEntity);
     }
 
     /**
@@ -108,19 +156,36 @@ public class OperationTemplateServiceBehavior {
      * @param request Request to update existing operation template.
      * @return Updated operation template.
      */
+    @Transactional
     public OperationTemplateDetailResponse updateOperationTemplate(OperationTemplateUpdateRequest request) throws GenericServiceException {
-        final Long id = request.getId();
+        try {
+            final String error = OperationTemplateUpdateRequestValidator.validate(request);
+            if (error != null) {
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
+            }
 
-        // Check if the template exists
-        final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
-        if (template.isEmpty()) {
-            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+            final Long id = request.getId();
+
+            // Check if the template exists
+            final Optional<OperationTemplateEntity> template = templateRepository.findById(id);
+            if (template.isEmpty()) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+            }
+
+            // Convert and store the new template
+            final OperationTemplateEntity modifiedEntity = operationTemplateConverter.convertToDB(template.get(), request);
+            final OperationTemplateEntity savedEntity = templateRepository.save(modifiedEntity);
+            return operationTemplateConverter.convertFromDB(savedEntity);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-
-        // Convert and store the new template
-        final OperationTemplateEntity modifiedEntity = operationTemplateConverter.convertToDB(template.get(), request);
-        final OperationTemplateEntity savedEntity = templateRepository.save(modifiedEntity);
-        return operationTemplateConverter.convertFromDB(savedEntity);
     }
 
     /**
@@ -128,13 +193,30 @@ public class OperationTemplateServiceBehavior {
      *
      * @param request Request with operation ID to be deleted.
      */
+    @Transactional
     public void removeOperationTemplate(OperationTemplateDeleteRequest request) throws GenericServiceException {
-        final Long id = request.getId();
-        final Optional<OperationTemplateEntity> templateEntity = templateRepository.findById(id);
-        if (templateEntity.isPresent()) {
-            templateRepository.deleteById(id);
-        } else {
-            throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+        try {
+            final String error = OperationTemplateDeleteRequestValidator.validate(request);
+            if (error != null) {
+                throw new GenericServiceException(ServiceError.INVALID_REQUEST, error);
+            }
+
+            final Long id = request.getId();
+            final Optional<OperationTemplateEntity> templateEntity = templateRepository.findById(id);
+            if (templateEntity.isPresent()) {
+                templateRepository.deleteById(id);
+            } else {
+                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_TEMPLATE_NOT_FOUND);
+            }
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 

@@ -21,7 +21,8 @@ import com.wultra.security.powerauth.client.model.entity.ApplicationConfiguratio
 import com.wultra.security.powerauth.client.model.request.CreateApplicationConfigRequest;
 import com.wultra.security.powerauth.client.model.request.GetApplicationConfigRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveApplicationConfigRequest;
-import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.CreateApplicationConfigResponse;
+import com.wultra.security.powerauth.client.model.response.GetApplicationConfigResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
@@ -33,7 +34,8 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +48,7 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component
+@Service
 @Slf4j
 public class ApplicationConfigServiceBehavior {
 
@@ -70,25 +72,31 @@ public class ApplicationConfigServiceBehavior {
      * @return Get application configuration response.
      * @throws GenericServiceException In case of a business logic error.
      */
+    @Transactional(readOnly = true)
     public GetApplicationConfigResponse getApplicationConfig(final GetApplicationConfigRequest request) throws GenericServiceException {
-        final String applicationId = request.getApplicationId();
-        if (applicationId == null) {
-            logger.warn("Invalid application ID in getApplicationConfig");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        try {
+            final String applicationId = request.getApplicationId();
+            if (applicationId == null) {
+                logger.warn("Invalid application ID in getApplicationConfig");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            final List<ApplicationConfigEntity> applicationConfigs = repositoryCatalogue.getApplicationConfigRepository().findByApplicationId(applicationId);
+            final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
+            response.setApplicationId(applicationId);
+            final List<ApplicationConfigurationItem> responseConfigs = new ArrayList<>();
+            applicationConfigs.forEach(config -> {
+                final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
+                item.setKey(config.getKey());
+                item.setValues(config.getValues());
+                responseConfigs.add(item);
+            });
+            response.setApplicationConfigs(responseConfigs);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         }
-        final List<ApplicationConfigEntity> applicationConfigs = repositoryCatalogue.getApplicationConfigRepository().findByApplicationId(applicationId);
-        final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
-        response.setApplicationId(applicationId);
-        final List<ApplicationConfigurationItem> responseConfigs = new ArrayList<>();
-        applicationConfigs.forEach(config -> {
-            final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
-            item.setKey(config.getKey());
-            item.setValues(config.getValues());
-            responseConfigs.add(item);
-        });
-        response.setApplicationConfigs(responseConfigs);
-        return response;
     }
 
     /**
@@ -97,44 +105,50 @@ public class ApplicationConfigServiceBehavior {
      * @return Create application configuration response.
      * @throws GenericServiceException In case of a business logic error.
      */
+    @Transactional
     public CreateApplicationConfigResponse createApplicationConfig(final CreateApplicationConfigRequest request) throws GenericServiceException {
-        final String applicationId = request.getApplicationId();
-        final String key = request.getKey();
-        final List<String> values = request.getValues();
-        if (applicationId == null) {
-            logger.warn("Invalid application ID in createApplicationConfig");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        try {
+            final String applicationId = request.getApplicationId();
+            final String key = request.getKey();
+            final List<String> values = request.getValues();
+            if (applicationId == null) {
+                logger.warn("Invalid application ID in createApplicationConfig");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            validateConfigKey(key);
+            final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
+            final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
+            if (appOptional.isEmpty()) {
+                logger.info("Application not found, application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+            final ApplicationEntity appEntity = appOptional.get();
+            final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
+            final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
+            final Optional<ApplicationConfigEntity> matchedConfig = configs.stream()
+                    .filter(config -> config.getKey().equals(key))
+                    .findFirst();
+            matchedConfig.ifPresentOrElse(config -> {
+                config.setValues(values);
+                configRepository.save(config);
+            }, () -> {
+                final ApplicationConfigEntity config = new ApplicationConfigEntity();
+                config.setApplication(appEntity);
+                config.setKey(key);
+                config.setValues(values);
+                configRepository.save(config);
+            });
+            final CreateApplicationConfigResponse response = new CreateApplicationConfigResponse();
+            response.setApplicationId(applicationId);
+            response.setKey(key);
+            response.setValues(values);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         }
-        validateConfigKey(key);
-        final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-        final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
-        if (appOptional.isEmpty()) {
-            logger.info("Application not found, application ID: {}", applicationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-        final ApplicationEntity appEntity = appOptional.get();
-        final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
-        final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
-        final Optional<ApplicationConfigEntity> matchedConfig = configs.stream()
-                .filter(config -> config.getKey().equals(key))
-                .findFirst();
-        matchedConfig.ifPresentOrElse(config -> {
-            config.setValues(values);
-            configRepository.save(config);
-        }, () -> {
-            final ApplicationConfigEntity config = new ApplicationConfigEntity();
-            config.setApplication(appEntity);
-            config.setKey(key);
-            config.setValues(values);
-            configRepository.save(config);
-        });
-        final CreateApplicationConfigResponse response = new CreateApplicationConfigResponse();
-        response.setApplicationId(applicationId);
-        response.setKey(key);
-        response.setValues(values);
-        return response;
     }
 
     /**
@@ -143,26 +157,32 @@ public class ApplicationConfigServiceBehavior {
      * @return Response.
      * @throws GenericServiceException In case of a business logic error.
      */
+    @Transactional
     public Response removeApplicationConfig(final RemoveApplicationConfigRequest request) throws GenericServiceException {
-        final String applicationId = request.getApplicationId();
-        final String key = request.getKey();
-        if (applicationId == null) {
-            logger.warn("Invalid application ID in deleteApplicationConfig");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        try {
+            final String applicationId = request.getApplicationId();
+            final String key = request.getKey();
+            if (applicationId == null) {
+                logger.warn("Invalid application ID in deleteApplicationConfig");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            validateConfigKey(key);
+            final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
+            final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
+            if (appOptional.isEmpty()) {
+                logger.info("Application not found, application ID: {}", applicationId);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+            final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
+            final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
+            configs.stream().filter(config -> config.getKey().equals(key)).forEach(configRepository::delete);
+            return new Response();
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
         }
-        validateConfigKey(key);
-        final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-        final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
-        if (appOptional.isEmpty()) {
-            logger.info("Application not found, application ID: {}", applicationId);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-        final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
-        final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
-        configs.stream().filter(config -> config.getKey().equals(key)).forEach(configRepository::delete);
-        return new Response();
     }
 
     /**
