@@ -140,7 +140,7 @@ CREATE TABLE pa_activation
     device_info                   VARCHAR(255),
     flags                         VARCHAR(255),
     external_id                   VARCHAR(255),
-    protocol                      VARCHAR(32) DEFAULT 'powerauth',
+    protocol                      VARCHAR(32) DEFAULT 'powerauth' NOT NULL,
     failed_attempts               INTEGER NOT NULL,
     max_failed_attempts           INTEGER DEFAULT 5 NOT NULL,
     server_private_key_base64     VARCHAR(255) NOT NULL,
