@@ -49,14 +49,18 @@ public class ErrorCodeBehavior {
      */
     public GetErrorCodeListResponse getErrorCodeList() {
         final Locale locale = Locale.ENGLISH;
+
+        final List<ErrorInfo> errors = ServiceError.allCodes().stream()
+                .map(errorCode -> {
+                    final ErrorInfo error = new ErrorInfo();
+                    error.setCode(errorCode);
+                    error.setValue(localizationProvider.getLocalizedErrorMessage(errorCode, locale));
+                    return error;
+                })
+                .toList();
+
         final GetErrorCodeListResponse response = new GetErrorCodeListResponse();
-        final List<String> errorCodeList = ServiceError.allCodes();
-        for (String errorCode : errorCodeList) {
-            final ErrorInfo error = new ErrorInfo();
-            error.setCode(errorCode);
-            error.setValue(localizationProvider.getLocalizedErrorMessage(errorCode, locale));
-            response.getErrors().add(error);
-        }
+        response.setErrors(errors);
         return response;
     }
 
