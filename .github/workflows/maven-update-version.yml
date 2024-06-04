@@ -17,5 +17,5 @@ on:
 
 jobs:
   update-version:
-    uses: wultra/wultra-infrastructure/.github/workflows/maven-release.yml@develop
+    uses: wultra/wultra-infrastructure/.github/workflows/maven-update-version.yml@develop
     secrets: inherit
