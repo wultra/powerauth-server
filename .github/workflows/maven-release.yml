@@ -1,0 +1,21 @@
+name: Update version with Maven
+
+on:
+  workflow_dispatch:
+    branches:
+      - 'master'
+      - 'releases/*'
+    inputs:
+      update_type:
+        description: Update type
+        required: true
+        type: choice
+        options:
+          # `major` not yet supported
+          - minor
+          - bugfix
+
+jobs:
+  update-version:
+    uses: wultra/wultra-infrastructure/.github/workflows/maven-release.yml@develop
+    secrets: inherit
