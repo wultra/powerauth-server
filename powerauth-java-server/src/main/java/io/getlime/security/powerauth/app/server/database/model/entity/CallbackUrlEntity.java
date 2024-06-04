@@ -22,6 +22,8 @@ import io.getlime.security.powerauth.app.server.converter.CallbackAuthentication
 import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -35,148 +37,58 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application_callback")
+@Getter @Setter
 public class CallbackUrlEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 3372029113954119581L;
 
+    /**
+     * ID of the callback.
+     */
     @Id
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
+    /**
+     * Application.
+     */
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
 
+    /**
+     * Type of the callback URL.
+     */
     @Column(name = "type", nullable = false)
     @Convert(converter = CallbackUrlTypeConverter.class)
     private CallbackUrlType type;
 
+    /**
+     * The name of the callback.
+     */
     @Column(name = "name", nullable = false)
     private String name;
 
+    /**
+     * Callback URL string.
+     */
     @Column(name = "callback_url", nullable = false)
     private String callbackUrl;
 
+    /**
+     * Callback attribute settings.
+     */
     @Column(name = "attributes")
     @Convert(converter = CallbackAttributeConverter.class)
     private List<String> attributes;
 
+    /**
+     * Callback request authentication.
+     */
     @Column(name = "authentication")
     @Convert(converter = CallbackAuthenticationConverter.class)
     private CallbackUrlAuthenticationEntity authentication;
-
-    /**
-     * Get the ID of an integration.
-     * @return ID of an integration.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set the ID of an integration.
-     * @param id ID of an integration.
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Get the application.
-     * @return Application.
-     */
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    /**
-     * Set application.
-     * @param application Application.
-     */
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
-
-    /**
-     * Get the name of an integration.
-     * @return Name of an integration.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Set the name of an integration.
-     * @param name Name of an integration.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Get type of a callback URL.
-     * @return Callback URL type.
-     */
-    public CallbackUrlType getType() {
-        return type;
-    }
-
-    /**
-     * Set type of the callback URL.
-     * @param type Callback URL type.
-     */
-    public void setType(CallbackUrlType type) {
-        this.type = type;
-    }
-
-    /**
-     * Get callback URL string.
-     * @return Callback URL string.
-     */
-    public String getCallbackUrl() {
-        return callbackUrl;
-    }
-
-    /**
-     * Set callback URL string.
-     * @param callbackUrl Callback URL string.
-     */
-    public void setCallbackUrl(String callbackUrl) {
-        this.callbackUrl = callbackUrl;
-    }
-
-    /**
-     * Get callback attribute settings.
-     * @return Callback attribute settings.
-     */
-    public List<String> getAttributes() {
-        return attributes;
-    }
-
-    /**
-     * Set callback attribute settings.
-     * @param attributes Callback attribute settings.
-     */
-    public void setAttributes(List<String> attributes) {
-        this.attributes = attributes;
-    }
-
-    /**
-     * Get callback request authentication.
-     * @return Callback request authentication.
-     */
-    public CallbackUrlAuthenticationEntity getAuthentication() {
-        return authentication;
-    }
-
-    /**
-     * Set callback request authentication.
-     * @param authentication Callback request authentication.
-     */
-    public void setAuthentication(CallbackUrlAuthenticationEntity authentication) {
-        this.authentication = authentication;
-    }
 
     @Override
     public boolean equals(Object o) {

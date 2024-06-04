@@ -18,6 +18,8 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -31,107 +33,43 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_token")
+@Getter @Setter
 public class TokenEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 4283363212931780053L;
 
+    /**
+     * Token ID.
+     */
     @Id
     @Column(name = "token_id", length = 37)
     private String tokenId;
 
+    /**
+     * Token secret.
+     */
     @Column(name = "token_secret", nullable = false, updatable = false)
     private String tokenSecret;
 
+    /**
+     * Associated activation entity.
+     */
     @ManyToOne
     @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
+    /**
+     * The information about the type of the signature that was used to issue this token.
+     */
     @Column(name = "signature_type", nullable = false, updatable = false)
     private String signatureTypeCreated;
 
+    /**
+     * The timestamp when the token was issued.
+     */
     @Column(name = "timestamp_created", nullable = false, updatable = false)
     private Date timestampCreated;
-
-    /**
-     * Get token ID.
-     * @return Token ID.
-     */
-    public String getTokenId() {
-        return tokenId;
-    }
-
-    /**
-     * Set token ID.
-     * @param tokenId Token ID.
-     */
-    public void setTokenId(String tokenId) {
-        this.tokenId = tokenId;
-    }
-
-    /**
-     * Get token secret.
-     * @return Token secret.
-     */
-    public String getTokenSecret() {
-        return tokenSecret;
-    }
-
-    /**
-     * Set token secret.
-     * @param tokenSecret Token secret.
-     */
-    public void setTokenSecret(String tokenSecret) {
-        this.tokenSecret = tokenSecret;
-    }
-
-    /**
-     * Get associated activation entity.
-     * @return Associated activation.
-     */
-    public ActivationRecordEntity getActivation() {
-        return activation;
-    }
-
-    /**
-     * Set associated activation entity.
-     * @param activation Associated activation entity.
-     */
-    public void setActivation(ActivationRecordEntity activation) {
-        this.activation = activation;
-    }
-
-    /**
-     * Get the information about the type of the signature that was used to issue this token.
-     * @return Signature type of the signature used to issue the token.
-     */
-    public String getSignatureTypeCreated() {
-        return signatureTypeCreated;
-    }
-
-    /**
-     * Set the information about the type of the signature that was used to issue this token.
-     * @param signatureTypeCreated Signature type of the signature used to issue the token.
-     */
-    public void setSignatureTypeCreated(String signatureTypeCreated) {
-        this.signatureTypeCreated = signatureTypeCreated;
-    }
-
-    /**
-     * Get the timestamp when the token was issued.
-     * @return Timestamp created.
-     */
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    /**
-     * Set the timestamp when the token was issued.
-     * @param timestampCreated Timestamp created.
-     */
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
 
     @Override
     public boolean equals(Object o) {

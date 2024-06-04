@@ -21,6 +21,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -33,86 +35,35 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "pa_integration")
+@Getter @Setter
 public class IntegrationEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 3372029113954119581L;
 
+    /**
+     * ID of an integration.
+     */
     @Id
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
+    /**
+     * The name of an integration.
+     */
     @Column(name = "name", nullable = false, updatable = false)
     private String name;
 
+    /**
+     *  The client token value. Basically, this value serves as integration's {@code username}.
+     */
     @Column(name = "client_token", nullable = false, updatable = false, length = 37)
     private String clientToken;
 
+    /**
+     *  The client secret value. Basically, this value serves as integration's {@code password}.
+     */
     @Column(name = "client_secret", nullable = false, updatable = false, length = 37)
     private String clientSecret;
-
-    /**
-     * Get the ID of an integration.
-     * @return ID of an integration.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set the ID of an integration.
-     * @param id ID of an integration.
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Get the name of an integration.
-     * @return Name of an integration.
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
-     * Set the name of an integration.
-     * @param name Name of an integration.
-     */
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /**
-     * Get the client token value. Basically, this value serves as integration's "username".
-     * @return Client token.
-     */
-    public String getClientToken() {
-        return clientToken;
-    }
-
-    /**
-     * Set the client token value.
-     * @param clientToken Client token.
-     */
-    public void setClientToken(String clientToken) {
-        this.clientToken = clientToken;
-    }
-
-    /**
-     * Get the client secret value. Basically, this value serves as integration's "password".
-     * @return Client secret.
-     */
-    public String getClientSecret() {
-        return clientSecret;
-    }
-
-    /**
-     * Set the client secret value.
-     * @param clientSecret Client secret.
-     */
-    public void setClientSecret(String clientSecret) {
-        this.clientSecret = clientSecret;
-    }
 
 }

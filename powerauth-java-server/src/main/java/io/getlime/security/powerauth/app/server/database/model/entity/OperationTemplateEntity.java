@@ -21,6 +21,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.converter.SignatureTypeConverter;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -34,189 +36,69 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_operation_template")
+@Getter @Setter
 public class OperationTemplateEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -1534031615106111156L;
 
+    /**
+     * Template ID.
+     */
     @Id
     @SequenceGenerator(name = "pa_operation_template", sequenceName = "pa_operation_template_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_operation_template")
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Template name.
+     */
     @Column(name = "template_name", nullable=false, unique = true)
     private String templateName;
 
+    /**
+     * Operation type.
+     */
     @Column(name = "operation_type", nullable=false)
     private String operationType;
 
+    /**
+     * Data template. Template of the data used for signing. The value may contain {@code ${xyz}} placeholders.
+     */
     @Column(name = "data_template", nullable=false)
     private String dataTemplate;
 
+    /**
+     * Signature types. Value representing which factors are allowed. One of: {@code 1FA}, {@code 2FA}, {@code 2FA_NO_BIOMETRY}.
+     */
     @Column(name = "signature_type", nullable=false)
     @Convert(converter = SignatureTypeConverter.class)
     private PowerAuthSignatureTypes[] signatureType;
 
+    /**
+     * Maximum failure count.
+     */
     @Column(name = "max_failure_count", nullable=false)
     private Long maxFailureCount;
 
+    /**
+     * Expiration in seconds (since now).
+     */
     @Column(name = "expiration", nullable=false)
     private Long expiration;
 
+    /**
+     * Risk flags.
+     */
     @Column(name = "risk_flags")
     private String riskFlags;
 
+    /**
+     * Whether proximity check enabled.
+     */
     @Column(name = "proximity_check_enabled")
     private boolean proximityCheckEnabled;
-
-    /**
-     * Get template ID.
-     * @return Template ID.
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set template ID.
-     * @param id Template ID.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Get template name.
-     * @return Template name.
-     */
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    /**
-     * Set template name.
-     * @param templateName Template name.
-     */
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    /**
-     * Get operation type.
-     * @return Operation type.
-     */
-    public String getOperationType() {
-        return operationType;
-    }
-
-    /**
-     * Set operation type.
-     * @param operationType Operation type.
-     */
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    /**
-     * Get data template. Template of the data used for signing. The value may contain `${xyz}` placeholders.
-     * @return Data template.
-     */
-    public String getDataTemplate() {
-        return dataTemplate;
-    }
-
-    /**
-     * Set data template. Template of the data used for signing. The value may contain `${xyz}` placeholders.
-     * @param dataTemplate Data template.
-     */
-    public void setDataTemplate(String dataTemplate) {
-        this.dataTemplate = dataTemplate;
-    }
-
-    /**
-     * Get signature type. Value representing which factors are allowed. One of: `1FA`, `2FA`, `2FA_NO_BIOMETRY`.
-     * @return Signature types.
-     */
-    public PowerAuthSignatureTypes[] getSignatureType() {
-        return signatureType;
-    }
-
-    /**
-     * Set signature type. Value representing which factors are allowed. One of: `1FA`, `2FA`, `2FA_NO_BIOMETRY`.
-     * @param signatureType Signature types.
-     */
-    public void setSignatureType(PowerAuthSignatureTypes[] signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    /**
-     * Get maximum failure count.
-     * @return Maximum failure count.
-     */
-    public Long getMaxFailureCount() {
-        return maxFailureCount;
-    }
-
-    /**
-     * Set maximum failure count.
-     * @param maxFailureCount Maximum failure count.
-     */
-    public void setMaxFailureCount(Long maxFailureCount) {
-        this.maxFailureCount = maxFailureCount;
-    }
-
-    /**
-     * Get expiration in seconds (since "now").
-     * @return Expiration.
-     */
-    public Long getExpiration() {
-        return expiration;
-    }
-
-    /**
-     * Set expiration in seconds (since "now").
-     * @param expiration Expiration.
-     */
-    public void setExpiration(Long expiration) {
-        this.expiration = expiration;
-    }
-
-    /**
-     * Get risk flags.
-     *
-     * @return Risk flags.
-     */
-    public String getRiskFlags() {
-        return riskFlags;
-    }
-
-    /**
-     * Set risk flags.
-     *
-     * @param riskFlags Risk flags.
-     */
-    public void setRiskFlags(String riskFlags) {
-        this.riskFlags = riskFlags;
-    }
-
-    /**
-     * Get whether proximity check enabled.
-     *
-     * @return Proximity check enabled.
-     */
-    public boolean isProximityCheckEnabled() {
-        return proximityCheckEnabled;
-    }
-
-    /**
-     * Set whether proximity check enabled.
-     *
-     * @param proximityCheckEnabled Proximity check enabled.
-     */
-    public void setProximityCheckEnabled(boolean proximityCheckEnabled) {
-        this.proximityCheckEnabled = proximityCheckEnabled;
-    }
 
     @Override public boolean equals(Object o) {
         if (this == o) return true;
