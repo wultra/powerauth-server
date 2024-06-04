@@ -126,7 +126,7 @@ public class ActivationRecordEntity implements Serializable {
     private final List<String> flags = new ArrayList<>();
 
     /**
-     * Base64 encoded server private key
+     * Base64 encoded server private key.
      */
     @Column(name = "server_private_key_base64", nullable = false)
     private String serverPrivateKeyBase64;
