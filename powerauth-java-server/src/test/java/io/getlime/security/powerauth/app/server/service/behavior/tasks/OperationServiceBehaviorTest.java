@@ -96,20 +96,34 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
-    void testCreateOperationWithActivationIdAndProximityCheck() throws Exception {
+    void testCreateOperationWithoutActivationIdAndExplicitProximityCheck() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId(ACTIVATION_ID);
-        request.setApplications(List.of(APP_ID));
         request.setTemplateName("test-template");
-        request.setUserId(USER_ID);
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
         request.setProximityCheckEnabled(true);
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
         assertNotNull(operationDetailResponse.getProximityOtp());
+        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
+
+        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertNull(savedEntity.getActivationId());
+    }
+
+    @Test
+    void testCreateOperationWithoutActivationIdAndImplicitProximityCheck() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template-proximity-check");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        assertNotNull(operationDetailResponse.getProximityOtp());
+        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
+
+        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertNull(savedEntity.getActivationId());
     }
 
     @Test
