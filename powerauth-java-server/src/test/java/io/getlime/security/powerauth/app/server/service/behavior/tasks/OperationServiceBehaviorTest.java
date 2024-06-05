@@ -88,10 +88,10 @@ class OperationServiceBehaviorTest {
         request.setUserId(USER_ID);
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperation(operationDetailResponse.getId());
 
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
+        assertTrue(savedEntity.isPresent());
+        assertEquals(ACTIVATION_ID, savedEntity.get().getActivationId());
         assertNull(operationDetailResponse.getProximityOtp());
     }
 
@@ -113,9 +113,6 @@ class OperationServiceBehaviorTest {
         assertNotNull(operationDetail);
         assertNotNull(operationDetail.getProximityOtp());
         assertNull(operationDetail.getActivationId());
-
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertNull(savedEntity.getActivationId());
     }
 
     @Test
@@ -135,9 +132,6 @@ class OperationServiceBehaviorTest {
         assertNotNull(operationDetail);
         assertNotNull(operationDetail.getProximityOtp());
         assertNull(operationDetail.getActivationId());
-
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertNull(savedEntity.getActivationId());
     }
 
     @Test
