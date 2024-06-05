@@ -126,7 +126,13 @@ class OperationServiceBehaviorTest {
 
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operationDetailResponse.getId());
-        assertNotNull(operationService.operationDetail(detailRequest));
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+
+        final OperationDetailResponse operationDetail = operationService.operationDetail(detailRequest);
+        assertNotNull(operationDetail);
+        assertNotNull(operationDetail.getProximityOtp());
+        assertNull(operationDetail.getActivationId());
+        ```
 
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
