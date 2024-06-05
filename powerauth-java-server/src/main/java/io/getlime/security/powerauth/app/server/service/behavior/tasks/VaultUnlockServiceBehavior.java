@@ -256,6 +256,7 @@ public class VaultUnlockServiceBehavior {
             verifySignatureRequest.setSignature(signature);
             verifySignatureRequest.setData(signedData);
             verifySignatureRequest.setApplicationKey(applicationKey);
+            verifySignatureRequest.setSignatureVersion(signatureVersion);
             final VerifySignatureResponse signatureResponse = onlineSignatureServiceBehavior.verifySignature(verifySignatureRequest, additionalInformationList);
 
             final VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
