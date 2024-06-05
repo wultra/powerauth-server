@@ -89,8 +89,27 @@ class OperationServiceBehaviorTest {
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
+        assertNull(operationDetailResponse.getProximityOtp());
+    }
+
+    @Test
+    void testCreateOperationWithActivationIdAndProximityCheck() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setActivationId(ACTIVATION_ID);
+        request.setApplications(List.of(APP_ID));
+        request.setTemplateName("test-template");
+        request.setUserId(USER_ID);
+        request.setProximityCheckEnabled(true);
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+
+        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
+        assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
+        assertNotNull(operationDetailResponse.getProximityOtp());
     }
 
     @Test
