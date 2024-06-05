@@ -240,7 +240,7 @@ public class OperationServiceBehavior {
 
         final OperationEntity savedEntity = operationRepository.save(operationEntity);
         behavior.getCallbackUrlBehavior().notifyCallbackListenersOnOperationChange(savedEntity);
-        return convertFromEntity(savedEntity);
+        return convertFromEntityAndFillOtp(savedEntity);
 
     }
 
@@ -622,9 +622,9 @@ public class OperationServiceBehavior {
                 claimOperation(operationOptional.get(), userId, currentTimestamp),
                 currentTimestamp
         );
-        final OperationDetailResponse operationDetailResponse = convertFromEntity(operationEntity);
+        final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
         extendAndSetOperationDetailData(operationDetailResponse);
-        generateAndSetOtpToOperationDetail(operationEntity, operationDetailResponse);
+
         return operationDetailResponse;
     }
 
@@ -675,8 +675,8 @@ public class OperationServiceBehavior {
                 final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
                 // Skip operation that just expired
                 if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-                    final OperationDetailResponse operationDetail = convertFromEntity(operationEntity);
-                    generateAndSetOtpToOperationDetail(operationEntity, operationDetail);
+                    final OperationDetailResponse operationDetail = convertFromEntityAndFillOtp(operationEntity);
+
                     result.add(operationDetail);
                 }
             });
@@ -712,6 +712,14 @@ public class OperationServiceBehavior {
         return result;
     }
 
+    /**
+     * Convert the given entity to the response class.
+     * Mind that it does not fill the proximity OTP. If you need so, use {@link #convertFromEntityAndFillOtp(OperationEntity)} instead.
+     *
+     * @param source Entity to convert.
+     * @return response class
+     * @see #convertFromEntityAndFillOtp(OperationEntity)
+     */
     private OperationDetailResponse convertFromEntity(OperationEntity source) {
         final OperationDetailResponse destination = new OperationDetailResponse();
         destination.setId(source.getId());
@@ -828,10 +836,20 @@ public class OperationServiceBehavior {
         return m3;
     }
 
+    /**
+     * Convert the given entity to the response class.
+     * Unlike {@link #convertFromEntity(OperationEntity)} also fill proximity OTP value if needed.
+     *
+     * @param source Entity to convert.
+     * @return response class
+     * @see #convertFromEntity(OperationEntity)
+     */
     @SneakyThrows(GenericServiceException.class)
-    private void generateAndSetOtpToOperationDetail(final OperationEntity operation, final OperationDetailResponse operationDetailResponse) {
-        final String totp = generateTotp(operation, powerAuthServiceConfiguration.getProximityCheckOtpLength());
-        operationDetailResponse.setProximityOtp(totp);
+    private OperationDetailResponse convertFromEntityAndFillOtp(final OperationEntity source) {
+        final String totp = generateTotp(source, powerAuthServiceConfiguration.getProximityCheckOtpLength());
+        final OperationDetailResponse target = convertFromEntity(source);
+        target.setProximityOtp(totp);
+        return target;
     }
 
     private String generateTotp(final OperationEntity operation, final int otpLength) throws GenericServiceException {
@@ -844,9 +862,9 @@ public class OperationServiceBehavior {
         }
 
         try {
-            byte[] seedBytes = Base64.getDecoder().decode(seed);
+            final byte[] seedBytes = Base64.getDecoder().decode(seed);
             final Instant now = Instant.now();
-            byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
+            final byte[] totp = Totp.generateTotpSha256(seedBytes, now, otpLength);
 
             return new String(totp, StandardCharsets.UTF_8);
         } catch (CryptoProviderException | IllegalArgumentException e) {

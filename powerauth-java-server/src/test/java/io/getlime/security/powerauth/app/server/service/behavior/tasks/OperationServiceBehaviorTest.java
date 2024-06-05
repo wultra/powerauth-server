@@ -85,9 +85,51 @@ class OperationServiceBehaviorTest {
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        assertEquals("testActivationId", savedEntity.getActivationId());
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperation(operationDetailResponse.getId());
+
+        assertTrue(savedEntity.isPresent());
+        assertEquals("testActivationId", savedEntity.get().getActivationId());
+        assertNull(operationDetailResponse.getProximityOtp());
+    }
+
+    @Test
+    void testCreateOperationWithoutActivationIdAndExplicitProximityCheck() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+        request.setProximityCheckEnabled(true);
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        assertNotNull(operationDetailResponse.getProximityOtp());
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationDetailResponse.getId());
+
+        final OperationDetailResponse operationDetail = operationService.getOperation(detailRequest);
+        assertNotNull(operationDetail);
+        assertNotNull(operationDetail.getProximityOtp());
+        assertNull(operationDetail.getActivationId());
+    }
+
+    @Test
+    void testCreateOperationWithoutActivationIdAndImplicitProximityCheck() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template-proximity-check");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        assertNotNull(operationDetailResponse.getProximityOtp());
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationDetailResponse.getId());
+
+        final OperationDetailResponse operationDetail = operationService.getOperation
+                (detailRequest);
+        assertNotNull(operationDetail);
+        assertNotNull(operationDetail.getProximityOtp());
+        assertNull(operationDetail.getActivationId());
     }
 
     /**
