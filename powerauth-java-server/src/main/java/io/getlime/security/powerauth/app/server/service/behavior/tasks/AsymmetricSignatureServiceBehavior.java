@@ -164,7 +164,9 @@ public class AsymmetricSignatureServiceBehavior {
             final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
             if (activation == null) {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                return VerifyECDSASignatureResponse.builder()
+                        .signatureValid(false)
+                        .build();
             }
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
@@ -172,9 +174,9 @@ public class AsymmetricSignatureServiceBehavior {
             final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
             final boolean matches = signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
 
-            final VerifyECDSASignatureResponse response = new VerifyECDSASignatureResponse();
-            response.setSignatureValid(matches);
-            return response;
+            return VerifyECDSASignatureResponse.builder()
+                    .signatureValid(matches)
+                    .build();
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
