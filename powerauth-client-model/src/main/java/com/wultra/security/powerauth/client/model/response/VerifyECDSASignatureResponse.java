@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -25,6 +26,7 @@ import lombok.Data;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Builder
 @Data
 public class VerifyECDSASignatureResponse {
 
