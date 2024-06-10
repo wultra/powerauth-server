@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.rest.client;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 
@@ -28,12 +30,29 @@ import java.time.Duration;
  * @author Roman Strobl, roman.strobl@wultra.com
  *
  */
+@Getter @Setter
 public class PowerAuthRestClientConfiguration {
 
     // Use 1 MB as default maximum memory size
     private int maxMemorySize = 1024 * 1024;
     // Use 5 seconds as default connect timeout
     private Duration connectTimeout = Duration.ofMillis(5000);
+
+    /**
+     * The maximum duration allowed between each network-level read operations.
+     */
+    private Duration responseTimeout;
+
+    /**
+     * The options to use for configuring ConnectionProvider max idle time. {@code Null} means no max idle time.
+     */
+    private Duration maxIdleTime;
+
+    /**
+     * The options to use for configuring ConnectionProvider max life time. {@code Null} means no max life time.
+     */
+    private Duration maxLifeTime;
+
     private boolean proxyEnabled = false;
     private String proxyHost;
     private int proxyPort;
