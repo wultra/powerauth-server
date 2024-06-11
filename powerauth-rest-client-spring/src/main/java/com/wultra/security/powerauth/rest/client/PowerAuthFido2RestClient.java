@@ -75,7 +75,7 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      */
     public PowerAuthFido2RestClient(String baseUrl, PowerAuthFido2RestClientConfiguration config) throws PowerAuthFido2Exception {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
-                .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
+                .acceptInvalidCertificate(config.isAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
                 .responseTimeout(config.getResponseTimeout())
                 .maxIdleTime(config.getMaxIdleTime())
