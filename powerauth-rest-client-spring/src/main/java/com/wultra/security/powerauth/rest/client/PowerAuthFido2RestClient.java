@@ -65,7 +65,7 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      * @param baseUrl BASE URL of REST endpoints.
      */
     public PowerAuthFido2RestClient(String baseUrl) throws PowerAuthFido2Exception {
-        this(baseUrl, new PowerAuthRestClientConfiguration());
+        this(baseUrl, new PowerAuthFido2RestClientConfiguration());
     }
 
     /**
@@ -73,10 +73,13 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      *
      * @param baseUrl Base URL of REST endpoints.
      */
-    public PowerAuthFido2RestClient(String baseUrl, PowerAuthRestClientConfiguration config) throws PowerAuthFido2Exception {
+    public PowerAuthFido2RestClient(String baseUrl, PowerAuthFido2RestClientConfiguration config) throws PowerAuthFido2Exception {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
                 .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
+                .responseTimeout(config.getResponseTimeout())
+                .maxIdleTime(config.getMaxIdleTime())
+                .maxLifeTime(config.getMaxLifeTime())
                 .maxInMemorySize(config.getMaxMemorySize());
         if (config.isProxyEnabled()) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(config.getProxyHost()).port(config.getProxyPort());

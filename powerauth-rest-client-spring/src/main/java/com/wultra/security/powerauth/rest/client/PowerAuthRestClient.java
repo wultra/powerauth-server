@@ -81,6 +81,9 @@ public class PowerAuthRestClient implements PowerAuthClient {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
                 .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
+                .responseTimeout(config.getResponseTimeout())
+                .maxIdleTime(config.getMaxIdleTime())
+                .maxLifeTime(config.getMaxLifeTime())
                 .maxInMemorySize(config.getMaxMemorySize());
         if (config.isProxyEnabled()) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(config.getProxyHost()).port(config.getProxyPort());
