@@ -79,7 +79,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
      */
     public PowerAuthRestClient(String baseUrl, PowerAuthRestClientConfiguration config) throws PowerAuthClientException {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
-                .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
+                .acceptInvalidCertificate(config.isAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
                 .responseTimeout(config.getResponseTimeout())
                 .maxIdleTime(config.getMaxIdleTime())
