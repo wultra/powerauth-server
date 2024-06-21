@@ -265,7 +265,10 @@ public class OperationServiceBehavior {
             logger.debug("Filling missing user ID from the activation ID: {}", activationId);
             return activationRepository.findById(activationId)
                     .map(ActivationRecordEntity::getUserId)
-                    .orElse(null);
+                    .orElseThrow(() -> {
+                        logger.warn("Activation ID: {} does not exist.", activationId);
+                        return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                    });
         } else {
             return null;
         }
