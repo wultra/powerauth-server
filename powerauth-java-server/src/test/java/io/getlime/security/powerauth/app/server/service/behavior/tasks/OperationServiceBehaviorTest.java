@@ -93,6 +93,7 @@ class OperationServiceBehaviorTest {
         assertTrue(savedEntity.isPresent());
         assertEquals(ACTIVATION_ID, savedEntity.get().getActivationId());
         assertNull(operationDetailResponse.getProximityOtp());
+        assertEquals(USER_ID, savedEntity.get().getUserId());
     }
 
     @Test
@@ -113,6 +114,7 @@ class OperationServiceBehaviorTest {
         assertNotNull(operationDetail);
         assertNotNull(operationDetail.getProximityOtp());
         assertNull(operationDetail.getActivationId());
+        assertEquals("test-user", operationDetail.getUserId());
     }
 
     @Test
@@ -132,11 +134,13 @@ class OperationServiceBehaviorTest {
         assertNotNull(operationDetail);
         assertNotNull(operationDetail.getProximityOtp());
         assertNull(operationDetail.getActivationId());
+        assertEquals("test-user", operationDetail.getUserId());
     }
 
     @Test
     void testCreateOperationWithActivationIdButInvalidUser() {
         final OperationCreateRequest request = new OperationCreateRequest();
+        request.setApplications(List.of(APP_ID));
         request.setActivationId(ACTIVATION_ID);
         request.setTemplateName("test-template");
         request.setUserId("invalid-user"); // different userId from ActivationRecordEntity#userId
@@ -147,15 +151,20 @@ class OperationServiceBehaviorTest {
     }
 
     @Test
-    void testCreateOperationWithActivationIdButMissingUser() {
+    void testCreateOperationWithActivationIdButMissingUser() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
+        request.setApplications(List.of(APP_ID));
         request.setActivationId(ACTIVATION_ID);
         request.setTemplateName("test-template");
-        request.setUserId(null); // validating that user ID must not be missing when activation ID specified
+        request.setUserId(null); // validating that user ID is missing but filled from activation later on
 
-        final GenericServiceException thrown = assertThrows(GenericServiceException.class, () ->
-                operationService.createOperation(request));
-        assertEquals("ERR0024", thrown.getCode());
+        final OperationDetailResponse result = operationService.createOperation(request);
+
+        assertNotNull(result.getId());
+        assertEquals(ACTIVATION_ID, result.getActivationId());
+        assertEquals(1, result.getApplications().size());
+        assertEquals(APP_ID, result.getApplications().get(0));
+        assertEquals("testUser", result.getUserId());
     }
 
     /**
@@ -173,6 +182,7 @@ class OperationServiceBehaviorTest {
         assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
         final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
+        assertEquals("test-user", savedEntity.getUserId());
     }
 
     /**
