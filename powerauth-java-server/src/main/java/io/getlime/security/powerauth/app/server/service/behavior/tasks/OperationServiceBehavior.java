@@ -137,7 +137,6 @@ public class OperationServiceBehavior {
             }
             validate(request);
 
-            final String userId = request.getUserId();
             final List<String> applications = request.getApplications();
             final String activationFlag = request.getActivationFlag();
             final String templateName = request.getTemplateName();
@@ -202,7 +201,7 @@ public class OperationServiceBehavior {
             // Create a new operation
             final OperationEntity operationEntity = new OperationEntity();
             operationEntity.setId(operationId);
-            operationEntity.setUserId(userId);
+            operationEntity.setUserId(fetchUserId(request));
             operationEntity.setApplications(applicationEntities);
             operationEntity.setExternalId(externalId);
             operationEntity.setActivationFlag(activationFlag);
@@ -225,7 +224,7 @@ public class OperationServiceBehavior {
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
                     .param("id", operationId)
-                    .param("userId", userId)
+                    .param("userId", operationEntity.getUserId())
                     .param("applications", applications)
                     .param("externalId", externalId)
                     .param("activationFlag", activationFlag)
@@ -258,23 +257,36 @@ public class OperationServiceBehavior {
         }
     }
 
+    private String fetchUserId(final OperationCreateRequest request) throws GenericServiceException {
+        if (request.getUserId() != null) {
+            return request.getUserId();
+        } else if (request.getActivationId() != null) {
+            final String activationId = request.getActivationId();
+            logger.debug("Filling missing user ID from the activation ID: {}", activationId);
+            return activationRepository.findById(activationId)
+                    .map(ActivationRecordEntity::getUserId)
+                    .orElseThrow(() -> {
+                        logger.warn("Activation ID: {} does not exist.", activationId);
+                        return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                    });
+        } else {
+            return null;
+        }
+    }
+
     private void validate(final OperationCreateRequest request) throws GenericServiceException {
         final String activationId = request.getActivationId();
-        if (activationId != null) {
-            final String userId = request.getUserId();
-            if (userId == null) {
-                logger.warn("Filled activation ID: {} but missing user ID.", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            } else if (!doesActivationBelongToUser(activationId, userId)) {
-                logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
+        final String userId = request.getUserId();
+        if (activationId != null && userId != null && !doesActivationBelongToUser(activationId, userId)) {
+            logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
+            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
     }
 
     private boolean doesActivationBelongToUser(final String activationId, final String userId) {
         return activationRepository.findById(activationId)
-                .filter(it -> it.getUserId().equals(userId))
+                .map(ActivationRecordEntity::getUserId)
+                .filter(userId::equals)
                 .isPresent();
     }
 
