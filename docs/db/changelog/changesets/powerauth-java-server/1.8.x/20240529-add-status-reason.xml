@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.8.x/20240529-add-status-reason.xml" author="Lubos Racansky">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_operation" columnName="status_reason"/>
+            </not>
+        </preConditions>
+        <comment>Add status_reason column to pa_operation table.</comment>
+        <addColumn tableName="pa_operation">
+            <column name="status_reason" type="varchar(32)" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

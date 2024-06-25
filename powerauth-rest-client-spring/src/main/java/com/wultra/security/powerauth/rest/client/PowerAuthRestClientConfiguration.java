@@ -17,6 +17,8 @@
  */
 package com.wultra.security.powerauth.rest.client;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.function.client.ExchangeFilterFunction;
 
@@ -28,213 +30,82 @@ import java.time.Duration;
  * @author Roman Strobl, roman.strobl@wultra.com
  *
  */
+@Getter @Setter
 public class PowerAuthRestClientConfiguration {
 
-    // Use 1 MB as default maximum memory size
+    /**
+     * Maximum memory size for HTTP requests in bytes. Use 1 MB as default maximum memory size.
+     */
     private int maxMemorySize = 1024 * 1024;
-    // Use 5 seconds as default connect timeout
+
+    /**
+     * Connection timeout. Use 5 seconds as default value.
+     */
     private Duration connectTimeout = Duration.ofMillis(5000);
+
+    /**
+     * The maximum duration allowed between each network-level read operations.
+     */
+    private Duration responseTimeout;
+
+    /**
+     * The options to use for configuring ConnectionProvider max idle time. {@code Null} means no max idle time.
+     */
+    private Duration maxIdleTime;
+
+    /**
+     * The options to use for configuring ConnectionProvider max life time. {@code Null} means no max life time.
+     */
+    private Duration maxLifeTime;
+
+    /**
+     * Whether HTTP proxy is enabled.
+     */
     private boolean proxyEnabled = false;
+
+    /**
+     * Proxy host.
+     */
     private String proxyHost;
+
+    /**
+     * Proxy port.
+     */
     private int proxyPort;
+
+    /**
+     * Proxy username.
+     */
     private String proxyUsername;
+
+    /**
+     * Proxy password.
+     */
     private String proxyPassword;
+
+    /**
+     * HTTP basic authentication username.
+     */
     private String powerAuthClientToken;
+
+    /**
+     * HTTP basic authentication password.
+     */
     private String powerAuthClientSecret;
+
+    /**
+     * Whether SSL certificate errors are ignored.
+     */
     private boolean acceptInvalidSslCertificate;
+
+    /**
+     * Default HTTP headers.
+     */
     private HttpHeaders defaultHttpHeaders;
+
+    /**
+     * Exchange filter function.
+     */
     private ExchangeFilterFunction filter;
-
-    /**
-     * Get maximum memory size for HTTP requests in bytes.
-     * @return Maximum memory size for HTTP requests in bytes.
-     */
-    public int getMaxMemorySize() {
-        return maxMemorySize;
-    }
-
-    /**
-     * Set maximum memory size for HTTP requests in bytes.
-     * @param maxMemorySize Maximum memory size for HTTP requests in bytes.
-     */
-    public void setMaxMemorySize(int maxMemorySize) {
-        this.maxMemorySize = maxMemorySize;
-    }
-
-    /**
-     * Get connection timeout as a Duration.
-     * @return Connection timeout as a Duration.
-     */
-    public Duration getConnectTimeout() {
-        return connectTimeout;
-    }
-
-    /**
-     * Set connection timeout as a Duration.
-     * @param connectTimeout Connection timeout as a Duration.
-     */
-    public void setConnectTimeout(Duration connectTimeout) {
-        this.connectTimeout = connectTimeout;
-    }
-
-    /**
-     * Get whether HTTP proxy is enabled.
-     * @return Whether HTTP proxy is enabled.
-     */
-    public boolean isProxyEnabled() {
-        return proxyEnabled;
-    }
-
-    /**
-     * Set whether HTTP proxy is enabled.
-     * @param proxyEnabled Whether HTTP proxy is enabled.
-     */
-    public void setProxyEnabled(boolean proxyEnabled) {
-        this.proxyEnabled = proxyEnabled;
-    }
-
-    /**
-     * Get proxy host.
-     * @return Proxy host.
-     */
-    public String getProxyHost() {
-        return proxyHost;
-    }
-
-    /**
-     * Set proxy host.
-     * @param proxyHost Proxy host.
-     */
-    public void setProxyHost(String proxyHost) {
-        this.proxyHost = proxyHost;
-    }
-
-    /**
-     * Get proxy port.
-     * @return Proxy port.
-     */
-    public int getProxyPort() {
-        return proxyPort;
-    }
-
-    /**
-     * Set proxy port.
-     * @param proxyPort Proxy port.
-     */
-    public void setProxyPort(int proxyPort) {
-        this.proxyPort = proxyPort;
-    }
-
-    /**
-     * Get proxy username.
-     * @return Proxy username.
-     */
-    public String getProxyUsername() {
-        return proxyUsername;
-    }
-
-    /**
-     * Set proxy username.
-     * @param proxyUsername Proxy username.s
-     */
-    public void setProxyUsername(String proxyUsername) {
-        this.proxyUsername = proxyUsername;
-    }
-
-    /**
-     * Get proxy password.
-     * @return Proxy password.
-     */
-    public String getProxyPassword() {
-        return proxyPassword;
-    }
-
-    /**
-     * Set proxy password.
-     * @param proxyPassword Proxy password.
-     */
-    public void setProxyPassword(String proxyPassword) {
-        this.proxyPassword = proxyPassword;
-    }
-
-    /**
-     * Get HTTP basic authentication username.
-     * @return HTTP basic authentication username.
-     */
-    public String getPowerAuthClientToken() {
-        return powerAuthClientToken;
-    }
-
-    /**
-     * Set HTTP basic authentication username.
-     * @param powerAuthClientToken HTTP basic authentication username.
-     */
-    public void setPowerAuthClientToken(String powerAuthClientToken) {
-        this.powerAuthClientToken = powerAuthClientToken;
-    }
-
-    /**
-     * Get HTTP basic authentication password.
-     * @return HTTP basic authentication password.
-     */
-    public String getPowerAuthClientSecret() {
-        return powerAuthClientSecret;
-    }
-
-    /**
-     * Set HTTP basic authentication password.
-     * @param powerAuthClientSecret HTTP basic authentication password.
-     */
-    public void setPowerAuthClientSecret(String powerAuthClientSecret) {
-        this.powerAuthClientSecret = powerAuthClientSecret;
-    }
-
-    /**
-     * Get whether SSL certificate errors are ignored.
-     * @return Whether SSL certificate errors are ignored.
-     */
-    public boolean getAcceptInvalidSslCertificate() {
-        return acceptInvalidSslCertificate;
-    }
-
-    /**
-     * Set whether SSL certificate errors are ignored.
-     * @param acceptInvalidSslCertificate Whether SSL certificate errors are ignored.
-     */
-    public void setAcceptInvalidSslCertificate(boolean acceptInvalidSslCertificate) {
-        this.acceptInvalidSslCertificate = acceptInvalidSslCertificate;
-    }
-
-    /**
-     * Get default HTTP headers.
-     * @return Default HTTP headers.
-     */
-    public HttpHeaders getDefaultHttpHeaders() {
-        return defaultHttpHeaders;
-    }
-
-    /**
-     * Set default HTTP headers.
-     * @param defaultHttpHeaders Default HTTP headers.
-     */
-    public void setDefaultHttpHeaders(HttpHeaders defaultHttpHeaders) {
-        this.defaultHttpHeaders = defaultHttpHeaders;
-    }
-
-    /**
-     * Get exchange filter function.
-     * @return Exchange filter function.
-     */
-    public ExchangeFilterFunction getFilter() {
-        return filter;
-    }
-
-    /**
-     * Set exchange filter function.
-     * @param filter Exchange filter function.
-     */
-    public void setFilter(ExchangeFilterFunction filter) {
-        this.filter = filter;
-    }
 
 }

@@ -35,10 +35,9 @@ public class RollbackingServiceException extends GenericServiceException {
      *
      * @param code             Error code.
      * @param message          Error message.
-     * @param localizedMessage Localized error message.
      */
-    public RollbackingServiceException(String code, String message, String localizedMessage) {
-        super(code, message, localizedMessage);
+    public RollbackingServiceException(String code, String message) {
+        super(code, message);
     }
 
 }

@@ -19,7 +19,7 @@ jobs:
           cache: maven
       - name: Run Maven Package Step
         run: |
-          mvn -B -U package -Dmaven.test.skip=true
+          mvn -B -U package -Dmaven.test.skip=true -DuseInternalRepo=true
         env:
           INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
           INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}

@@ -9,6 +9,13 @@ ALTER TABLE pa_activation ADD protocol VARCHAR2(32) DEFAULT 'powerauth';
 -- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::3::Roman Strobl
 ALTER TABLE pa_activation MODIFY extras VARCHAR2(4000);
 
+-- Changeset powerauth-java-server/1.7.x/20240115-add-columns-fido2::4::Lubos Racansky
+UPDATE pa_activation SET protocol = 'powerauth' WHERE protocol is null;
+
+-- Changeset powerauth-java-server/1.7.x/20240530-protocol-not-null.xml::5::Lubos Racansky
+-- Make column pa_activation.protocol not-null.
+ALTER TABLE pa_activation MODIFY protocol NOT NULL;
+
 -- Changeset powerauth-java-server/1.7.x/20240212-application-config.xml::1::Roman Strobl
 -- Create a new table pa_application_config
 CREATE TABLE pa_application_config (id INTEGER NOT NULL, application_id INTEGER NOT NULL, config_key VARCHAR2(255) NOT NULL, config_values CLOB, CONSTRAINT PK_PA_APPLICATION_CONFIG PRIMARY KEY (id), CONSTRAINT pa_app_config_app_fk FOREIGN KEY (application_id) REFERENCES pa_application(id));

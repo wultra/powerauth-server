@@ -22,13 +22,11 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AttestationStatement;
 import com.wultra.powerauth.fido2.rest.model.entity.X509Cert;
 import com.wultra.powerauth.fido2.rest.model.enumeration.AttestationType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
@@ -37,11 +35,10 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * JSON deserializer for the attestation statement.
+ * JSON deserializer for {@link AttestationStatement}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
 @Slf4j
 public class AttestationStatementDeserializer extends StdDeserializer<AttestationStatement> {
 

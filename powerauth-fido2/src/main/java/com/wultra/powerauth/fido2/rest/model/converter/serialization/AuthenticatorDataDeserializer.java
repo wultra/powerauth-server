@@ -23,7 +23,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.dataformat.cbor.databind.CBORMapper;
-import com.wultra.powerauth.fido2.errorhandling.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
 import com.wultra.powerauth.fido2.rest.model.entity.ECPoint;
 import com.wultra.powerauth.fido2.rest.model.entity.Flags;
@@ -32,26 +31,25 @@ import com.wultra.powerauth.fido2.rest.model.enumeration.CurveType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.ECKeyType;
 import com.wultra.powerauth.fido2.rest.model.enumeration.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.io.Serial;
 import java.nio.ByteBuffer;
+import java.util.Base64;
 import java.util.Map;
 
 /**
- * JSON deserializer for FIDO2 authenticator data.
+ * JSON deserializer for FIDO2 {@link AuthenticatorData}.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
 @Slf4j
 public class AuthenticatorDataDeserializer extends StdDeserializer<AuthenticatorData> {
 
     @Serial
     private static final long serialVersionUID = -7644582864083436208L;
 
-    private final CBORMapper cborMapper = new CBORMapper();
+    private static final CBORMapper CBOR_MAPPER = new CBORMapper();
 
     /**
      * No-arg deserializer constructor.
@@ -77,14 +75,35 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
      */
     @Override
     public AuthenticatorData deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws Fido2DeserializationException {
-        try {
-            final AuthenticatorData result = new AuthenticatorData();
+        final byte[] authData;
 
-            // Serialize Auth Data
-            final byte[] authData = jsonParser.getBinaryValue();
-            if (authData == null) {
-                throw new Fido2DeserializationException("JSON binary value deserialized into null.");
-            }
+        try {
+            authData = jsonParser.getBinaryValue();
+        } catch (IOException e) {
+            logger.debug(e.getMessage(), e);
+            throw new Fido2DeserializationException(e.getMessage(), e);
+        }
+
+        if (authData == null) {
+            throw new Fido2DeserializationException("JSON binary value deserialized into null.");
+        }
+
+        return deserialize(authData);
+    }
+
+    /**
+     * Deserialize authenticator data.
+     *
+     * @param authData base64 encoded authenticator data.
+     * @return authenticator data
+     * @throws Fido2DeserializationException
+     */
+    public static AuthenticatorData deserialize(final String authData) throws Fido2DeserializationException {
+        return deserialize(Base64.getDecoder().decode(authData));
+    }
+
+    private static AuthenticatorData deserialize(final byte[] authData) throws Fido2DeserializationException {
+            final AuthenticatorData result = new AuthenticatorData();
             result.setEncoded(authData);
 
             // Get RP ID Hash
@@ -122,7 +141,7 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 final byte[] credentialIdLength = new byte[2];
                 System.arraycopy(authData, 53, credentialIdLength, 0, 2);
                 final ByteBuffer wrapped = ByteBuffer.wrap(credentialIdLength); // big-endian by default
-                short credentialIdLengthValue = wrapped.getShort();
+                final short credentialIdLengthValue = wrapped.getShort();
 
                 // Get credentialId
                 final byte[] credentialId = new byte[credentialIdLengthValue];
@@ -133,7 +152,12 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 final int remainingLength = authData.length - (55 + credentialIdLengthValue);
                 final byte[] credentialPublicKey = new byte[remainingLength];
                 System.arraycopy(authData, 55 + credentialIdLengthValue, credentialPublicKey, 0, remainingLength);
-                final Map<String, Object> credentialPublicKeyMap = cborMapper.readValue(credentialPublicKey, new TypeReference<>() {});
+                final Map<String, Object> credentialPublicKeyMap;
+                try {
+                    credentialPublicKeyMap = CBOR_MAPPER.readValue(credentialPublicKey, new TypeReference<>() {});
+                } catch (IOException e) {
+                    throw new Fido2DeserializationException("Unable to deserialize credentialPublicKey.", e);
+                }
                 if (credentialPublicKeyMap == null) {
                     throw new Fido2DeserializationException("JSON credentialPublicKey deserialized into null.");
                 }
@@ -143,19 +167,19 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 if (algorithm != null && -7 == algorithm) {
                     publicKeyObject.setAlgorithm(SignatureAlgorithm.ES256);
                 } else {
-                    throw new RuntimeException("Unsupported algorithm: " + algorithm);
+                    throw new Fido2DeserializationException("Unsupported algorithm: " + algorithm);
                 }
                 final Integer curveType = (Integer) credentialPublicKeyMap.get("-1");
                 if (curveType != null && 1 == curveType) {
                     publicKeyObject.setCurveType(CurveType.P256);
                 } else {
-                    throw new RuntimeException("Unsupported curve type: " + curveType);
+                    throw new Fido2DeserializationException("Unsupported curve type: " + curveType);
                 }
                 final Integer keyType = (Integer) credentialPublicKeyMap.get("1");
                 if (keyType != null && 2 == keyType) {
                     publicKeyObject.setKeyType(ECKeyType.UNCOMPRESSED);
                 } else {
-                    throw new RuntimeException("Unsupported key type: " + keyType);
+                    throw new Fido2DeserializationException("Unsupported key type: " + keyType);
                 }
 
                 final byte[] xBytes = (byte[]) credentialPublicKeyMap.get("-2");
@@ -168,15 +192,11 @@ public class AuthenticatorDataDeserializer extends StdDeserializer<Authenticator
                 result.getAttestedCredentialData().setPublicKeyObject(publicKeyObject);
             }
             return result;
-        } catch (IOException e) {
-            logger.debug(e.getMessage(), e);
-            throw new Fido2DeserializationException(e.getMessage(), e);
-        }
     }
 
-    private boolean isFlagOn(byte flags, int position) throws IOException {
+    private static boolean isFlagOn(byte flags, int position) throws Fido2DeserializationException {
         if (position < 0 || position > 7) {
-            throw new IOException("Invalid position for flag: " + position);
+            throw new Fido2DeserializationException("Invalid position for flag: " + position);
         }
         return ((flags >> position) & 1) == 1;
     }

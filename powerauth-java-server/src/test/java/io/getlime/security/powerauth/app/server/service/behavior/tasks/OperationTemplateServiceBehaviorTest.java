@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.UUID;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -42,7 +44,7 @@ class OperationTemplateServiceBehaviorTest {
 
     @Test
     void testDuplicateOperationTemplateCreation() throws Exception {
-        final String templateName = "login";
+        final String templateName = "login_" + UUID.randomUUID();
 
         service.createOperationTemplate(createOperationTemplateCreateRequest(templateName));
         assertFalse(service.getAllTemplates().isEmpty());

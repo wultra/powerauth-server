@@ -21,8 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -35,9 +34,8 @@ import java.util.List;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
+@Slf4j
 public class KeyValueMapConverter {
-
-    private static final Logger logger = LoggerFactory.getLogger(KeyValueMapConverter.class);
 
     private final ObjectMapper objectMapper;
 

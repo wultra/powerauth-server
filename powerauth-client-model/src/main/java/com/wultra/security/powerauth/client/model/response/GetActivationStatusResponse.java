@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationProtocol;
 import lombok.Data;
 import lombok.ToString;
 
@@ -42,7 +43,7 @@ public class GetActivationStatusResponse {
     private String activationName;
     private String userId;
     private String extras;
-    private String protocol;
+    private ActivationProtocol protocol;
     private String externalId;
     private String platform;
     private String deviceInfo;

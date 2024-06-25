@@ -32,7 +32,6 @@ import java.util.List;
 public class CreateApplicationResponse {
 
     private String applicationId;
-    private String applicationName;
     private List<String> applicationRoles = new ArrayList<>();
 
 }

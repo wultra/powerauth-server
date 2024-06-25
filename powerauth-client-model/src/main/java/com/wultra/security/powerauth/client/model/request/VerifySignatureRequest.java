@@ -37,6 +37,6 @@ public class VerifySignatureRequest {
     private String signature;
     private SignatureType signatureType;
     private String signatureVersion;
-    private Long forcedSignatureVersion;
+    private Integer forcedSignatureVersion;
 
 }

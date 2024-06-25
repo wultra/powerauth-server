@@ -538,7 +538,7 @@ public interface PowerAuthClient {
      * @return Verify signature and return REST response with the verification results.
      * @throws PowerAuthClientException In case REST API call fails.
      */
-    VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException;
+    VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Integer forcedSignatureVersion) throws PowerAuthClientException;
 
     /**
      * Call the createPersonalizedOfflineSignaturePayload method of the PowerAuth 3.0 Server interface.

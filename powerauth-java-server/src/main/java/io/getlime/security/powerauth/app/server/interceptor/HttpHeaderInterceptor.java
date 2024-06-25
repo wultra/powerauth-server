@@ -19,8 +19,7 @@ package io.getlime.security.powerauth.app.server.interceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -30,9 +29,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Slf4j
 public class HttpHeaderInterceptor implements HandlerInterceptor {
-
-    private static final Logger logger = LoggerFactory.getLogger(HttpHeaderInterceptor.class);
 
     private final String correlationHeaderName;
     private final String correlationHeaderValueValidation;

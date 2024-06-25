@@ -18,6 +18,7 @@
 
 package com.wultra.powerauth.fido2.database.entity;
 
+import com.wultra.powerauth.fido2.database.entity.converter.ListToStringConverter;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -27,6 +28,7 @@ import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -52,6 +54,10 @@ public class Fido2AuthenticatorEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "signature_type", nullable = false)
     private SignatureType signatureType;
+
+    @Convert(converter = ListToStringConverter.class)
+    @Column(name = "transports", columnDefinition = "CLOB")
+    private List<String> transports;
 
     @Override
     public boolean equals(final Object o) {

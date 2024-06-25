@@ -18,6 +18,8 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -31,140 +33,51 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_application_version")
+@Getter @Setter
 public class ApplicationVersionEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -5107229264389219556L;
 
+    /**
+     * Version RID.
+     */
     @Id
     @SequenceGenerator(name = "pa_application_version", sequenceName = "pa_application_version_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_application_version")
     @Column(name = "id")
     private Long rid;
 
+    /**
+     * Associated application
+     */
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
 
+    /**
+     * Version ID.
+     */
     @Column(name = "name")
     private String id;
 
+    /**
+     * Application key.
+     */
     @Column(name = "application_key")
     private String applicationKey;
 
+    /**
+     * Application secret.
+     */
     @Column(name = "application_secret")
     private String applicationSecret;
 
+    /**
+     * Flag indicating if this version is still supported (can be used for signatures).
+     */
     @Column(name = "supported")
     private Boolean supported;
-
-    /**
-     * Get associated application
-     *
-     * @return Associated application
-     */
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    /**
-     * Set associated application
-     *
-     * @param application Associated application
-     */
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
-
-    /**
-     * Get application key
-     *
-     * @return Application key
-     */
-    public String getApplicationKey() {
-        return applicationKey;
-    }
-
-    /**
-     * Set application key
-     *
-     * @param applicationKey Application key
-     */
-    public void setApplicationKey(String applicationKey) {
-        this.applicationKey = applicationKey;
-    }
-
-    /**
-     * Get application secret
-     *
-     * @return Application secret
-     */
-    public String getApplicationSecret() {
-        return applicationSecret;
-    }
-
-    /**
-     * Set application secret
-     *
-     * @param applicationSecret Application secret
-     */
-    public void setApplicationSecret(String applicationSecret) {
-        this.applicationSecret = applicationSecret;
-    }
-
-    /**
-     * Get version ID
-     *
-     * @return version ID
-     */
-    public Long getRid() {
-        return rid;
-    }
-
-    /**
-     * Set version ID
-     *
-     * @param rid Version ID
-     */
-    public void setRid(Long rid) {
-        this.rid = rid;
-    }
-
-    /**
-     * Get version ID
-     *
-     * @return Version ID
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set version ID
-     *
-     * @param id Version ID
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Get flag indicating if this version is still supported.
-     *
-     * @return Flag indicating if this version is still supported (can be used for signatures)
-     */
-    public Boolean getSupported() {
-        return supported;
-    }
-
-    /**
-     * Set flag indicating if this version is still supported.
-     *
-     * @param supported Flag indicating if this version is still supported (can be used for signatures)
-     */
-    public void setSupported(Boolean supported) {
-        this.supported = supported;
-    }
 
     @Override
     public boolean equals(Object o) {

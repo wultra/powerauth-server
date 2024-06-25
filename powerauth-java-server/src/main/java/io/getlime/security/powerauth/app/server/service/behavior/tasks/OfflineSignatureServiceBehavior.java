@@ -18,6 +18,9 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.CreateNonPersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.CreatePersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.request.VerifyOfflineSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.CreateNonPersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.CreatePersonalizedOfflineSignaturePayloadResponse;
 import com.wultra.security.powerauth.client.model.response.VerifyOfflineSignatureResponse;
@@ -51,7 +54,8 @@ import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
@@ -69,7 +73,7 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  * @link <a href="https://github.com/wultra/powerauth-webflow/blob/develop/docs/Off-line-Signatures-QR-Code.md">Off-line Signature QR Code</a>
  */
-@Component
+@Service
 @AllArgsConstructor
 @Slf4j
 public class OfflineSignatureServiceBehavior {
@@ -86,6 +90,7 @@ public class OfflineSignatureServiceBehavior {
 
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     /**
@@ -95,10 +100,29 @@ public class OfflineSignatureServiceBehavior {
      * @return Response with the signature validation result object.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VerifyOfflineSignatureResponse verifyOfflineSignature(final VerifyOfflineSignatureParameter request)
+    @Transactional
+    public VerifyOfflineSignatureResponse verifyOfflineSignature(final VerifyOfflineSignatureRequest request)
             throws GenericServiceException {
         try {
-            return verifyOfflineSignatureImpl(request);
+            if (request.getActivationId() == null || request.getData() == null || request.getSignature() == null) {
+                logger.warn("Invalid request parameters in method verifyOfflineSignature");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            final String activationId = request.getActivationId();
+            final BigInteger componentLength = request.getComponentLength();
+            final List<SignatureType> allowedSignatureTypes = new ArrayList<>();
+            // The order of signature types is important. PowerAuth server logs first found signature type
+            // as used signature type in case signature verification fails. In case the POSSESSION_BIOMETRY signature
+            // type is allowed, additional info in signature audit contains flag BIOMETRY_ALLOWED.
+            allowedSignatureTypes.add(SignatureType.POSSESSION_KNOWLEDGE);
+            if (request.isAllowBiometry()) {
+                allowedSignatureTypes.add(SignatureType.POSSESSION_BIOMETRY);
+            }
+            final int expectedComponentLength = (componentLength != null) ? componentLength.intValue() : powerAuthServiceConfiguration.getOfflineSignatureComponentLength();
+
+            final VerifyOfflineSignatureParameter signatureParameter = convert(request, expectedComponentLength, allowedSignatureTypes, keyConvertor);
+            return verifyOfflineSignatureImpl(signatureParameter);
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
@@ -111,6 +135,15 @@ public class OfflineSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, cryptography methods are executed before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -120,24 +153,30 @@ public class OfflineSignatureServiceBehavior {
      * @return Response with data for QR code and cryptographic nonce.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final OfflineSignatureParameter request) throws GenericServiceException {
-
-        // Fetch activation details from the repository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final String activationId = request.getActivationId();
-        final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
-        if (activation == null) {
-            logger.info("Activation not found, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
-
-        activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-
-        // Proceed and compute the results
+    @Transactional
+    public CreatePersonalizedOfflineSignaturePayloadResponse createPersonalizedOfflineSignaturePayload(final CreatePersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         try {
+            if (request.getActivationId() == null || request.getData() == null) {
+                logger.warn("Invalid request parameters in method createPersonalizedOfflineSignaturePayload");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
-            final String nonce = fetchNonce(request);
+            // Fetch activation details from the repository
+            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+            final String activationId = request.getActivationId();
+            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
+            if (activation == null) {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            }
+
+            final OfflineSignatureParameter offlineSignatureParameter = convert(request);
+
+            activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
+
+            final String nonce = fetchNonce(offlineSignatureParameter);
 
             // Decrypt server private key (depending on encryption mode)
             final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
@@ -146,12 +185,12 @@ public class OfflineSignatureServiceBehavior {
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
 
             // Decode the private key - KEY_SERVER_PRIVATE is used for personalized offline signatures
-            final PrivateKey privateKey = request.getKeyConversionUtilities().convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
+            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(serverPrivateKeyBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_SERVER_PRIVATE_INDICATOR}'
             // {DATA} consist of data from request plus optional generated proximity TOTP value
             final SignatureUtils signatureUtils = new SignatureUtils();
-            final String dataPlusNonce = fetchDataAndTotp(request, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
+            final String dataPlusNonce = fetchDataAndTotp(offlineSignatureParameter, powerAuthServiceConfiguration.getProximityCheckOtpLength()) + "\n" + nonce;
             final byte[] signatureBase = (dataPlusNonce + "\n" + KEY_SERVER_PRIVATE_INDICATOR).getBytes(StandardCharsets.UTF_8);
             final byte[] ecdsaSignatureBytes = signatureUtils.computeECDSASignature(signatureBase, privateKey);
             final String ecdsaSignature = Base64.getEncoder().encodeToString(ecdsaSignatureBytes);
@@ -164,7 +203,6 @@ public class OfflineSignatureServiceBehavior {
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
-
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -177,6 +215,15 @@ public class OfflineSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -203,38 +250,43 @@ public class OfflineSignatureServiceBehavior {
 
     /**
      * Create non-personalized offline signature payload for displaying a QR code in offline mode.
-     * @param applicationId Application ID.
-     * @param data Normalized data used for offline signature verification.
-     * @param keyConversionUtilities Key convertor.
+     * @param request Request with offline signature payload.
      * @return Response with data for QR code and cryptographic nonce.
      * @throws GenericServiceException In case of a business logic error.
      */
-    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(String applicationId, String data, KeyConvertor keyConversionUtilities) throws GenericServiceException {
-        // Fetch associated master key pair data from the repository
-        final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
-        final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-        final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
-        if (applicationEntityOptional.isEmpty()) {
-            logger.warn("No application found with ID: {}", applicationId);
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
-        final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-        if (masterKeyPair == null) {
-            logger.error("No master key pair found for application ID: {}", applicationId);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-        }
-
-        // Proceed and compute the results
+    @Transactional
+    public CreateNonPersonalizedOfflineSignaturePayloadResponse createNonPersonalizedOfflineSignaturePayload(CreateNonPersonalizedOfflineSignaturePayloadRequest request) throws GenericServiceException {
         try {
+            final String applicationId = request.getApplicationId();
+            final String data = request.getData();
 
+            if (data == null) {
+                logger.warn("Invalid request parameter data in method createNonPersonalizedOfflineSignaturePayload");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Fetch associated master key pair data from the repository
+            final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
+            final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
+            final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+            if (applicationEntityOptional.isEmpty()) {
+                logger.warn("No application found with ID: {}", applicationId);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+            final MasterKeyPairEntity masterKeyPair = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+            if (masterKeyPair == null) {
+                logger.error("No master key pair found for application ID: {}", applicationId);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+            }
             // Generate nonce
             final byte[] nonceBytes = new KeyGenerator().generateRandomBytes(16);
             final String nonce = Base64.getEncoder().encodeToString(nonceBytes);
 
             // Prepare the private key - KEY_MASTER_SERVER_PRIVATE is used for non-personalized offline signatures
             final String keyPrivateBase64 = masterKeyPair.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConversionUtilities.convertBytesToPrivateKey(Base64.getDecoder().decode(keyPrivateBase64));
+            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(keyPrivateBase64));
 
             // Compute ECDSA signature of '{DATA}\n{NONCE}\n{KEY_MASTER_SERVER_PRIVATE_INDICATOR}'
             final SignatureUtils signatureUtils = new SignatureUtils();
@@ -250,7 +302,6 @@ public class OfflineSignatureServiceBehavior {
             response.setOfflineData(offlineData);
             response.setNonce(nonce);
             return response;
-
         } catch (InvalidKeySpecException | InvalidKeyException ex) {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
@@ -263,6 +314,15 @@ public class OfflineSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -492,4 +552,47 @@ public class OfflineSignatureServiceBehavior {
         response.setSignatureType(offlineSignatureRequest.getSignatureTypes().iterator().next());
         return response;
     }
+
+    private static OfflineSignatureParameter convert(final CreatePersonalizedOfflineSignaturePayloadRequest request) {
+        final var builder = OfflineSignatureParameter.builder()
+                .activationId(request.getActivationId())
+                .data(request.getData())
+                .nonce(request.getNonce());
+
+        if (request.getProximityCheck() != null) {
+            logger.debug("Proximity check enabled, activation ID: {}", request.getActivationId());
+            builder.proximityCheckSeed(request.getProximityCheck().getSeed());
+            builder.proximityCheckStepLength(Duration.ofSeconds(request.getProximityCheck().getStepLength()));
+        }
+
+        return builder.build();
+    }
+
+    private static VerifyOfflineSignatureParameter convert(
+            final VerifyOfflineSignatureRequest request,
+            final int expectedComponentLength,
+            final List<SignatureType> allowedSignatureTypes,
+            final KeyConvertor keyConvertor) {
+
+        final var builder = VerifyOfflineSignatureParameter.builder()
+                .activationId(request.getActivationId())
+                .signatureTypes(allowedSignatureTypes)
+                .signature(request.getSignature())
+                .additionalInfo(new ArrayList<>())
+                .dataString(request.getData())
+                .expectedComponentLength(expectedComponentLength)
+                .keyConversionUtilities(keyConvertor);
+
+        final var proximityCheck = request.getProximityCheck();
+        if (proximityCheck != null) {
+            logger.debug("Proximity check enabled, activation ID: {}", request.getActivationId());
+            builder.proximityCheckSeed(proximityCheck.getSeed());
+            builder.proximityCheckStepLength(Duration.ofSeconds(proximityCheck.getStepLength()));
+            builder.proximityCheckStepCount(proximityCheck.getStepCount());
+        }
+
+        return builder.build();
+    }
+
+
 }

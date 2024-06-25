@@ -62,7 +62,7 @@ public class OperationCreateRequest {
     @Schema(description = "Whether proximity check should be used, overrides configuration from operation template", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private Boolean proximityCheckEnabled;
 
-    @Schema(description = "Activation Id of a specific device", requiredMode = Schema.RequiredMode.NOT_REQUIRED, maxLength = 37)
+    @Schema(description = "Activation ID. It is possible to specify a single device (otherwise all user's activations are taken into account).", requiredMode = Schema.RequiredMode.NOT_REQUIRED, maxLength = 37)
     private String activationId;
 
 }

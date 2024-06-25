@@ -28,7 +28,7 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * Parameter object for {@link OfflineSignatureServiceBehavior#verifyOfflineSignature(VerifyOfflineSignatureParameter)}.
+ * Parameter object for offline signature verification.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */

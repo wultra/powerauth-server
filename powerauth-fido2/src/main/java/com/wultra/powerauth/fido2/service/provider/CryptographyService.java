@@ -18,7 +18,11 @@
 
 package com.wultra.powerauth.fido2.service.provider;
 
-import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.rest.model.entity.AttestationObject;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
+import com.wultra.powerauth.fido2.rest.model.entity.PublicKeyObject;
+import com.wultra.security.powerauth.fido2.model.entity.*;
 
 /**
  * Interface representing FIDO2 verification service.

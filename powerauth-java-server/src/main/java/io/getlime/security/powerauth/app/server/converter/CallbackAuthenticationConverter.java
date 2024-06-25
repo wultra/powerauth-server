@@ -22,8 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -35,9 +34,8 @@ import java.io.IOException;
  */
 @Converter
 @Component
+@Slf4j
 public class CallbackAuthenticationConverter implements AttributeConverter<CallbackUrlAuthenticationEntity, String> {
-
-    private static final Logger logger = LoggerFactory.getLogger(CallbackAuthenticationConverter.class);
 
     private final ObjectMapper objectMapper;
 

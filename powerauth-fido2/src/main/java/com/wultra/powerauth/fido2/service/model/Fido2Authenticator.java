@@ -20,6 +20,8 @@ package com.wultra.powerauth.fido2.service.model;
 
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -32,15 +34,20 @@ import java.util.UUID;
 public record Fido2Authenticator(
         UUID aaguid,
         String description,
-        SignatureType signatureType
+        SignatureType signatureType,
+        List<String> transports
 ) {
 
     public static Fido2Authenticator create(String aaguid, String description) {
-        return new Fido2Authenticator(UUID.fromString(aaguid), description, SignatureType.POSSESSION);
+        return new Fido2Authenticator(UUID.fromString(aaguid), description, SignatureType.POSSESSION, Collections.emptyList());
     }
 
     public static Fido2Authenticator create(String aaguid, String description, SignatureType signatureType) {
-        return new Fido2Authenticator(UUID.fromString(aaguid), description, signatureType);
+        return new Fido2Authenticator(UUID.fromString(aaguid), description, signatureType, Collections.emptyList());
+    }
+
+    public static Fido2Authenticator create(String aaguid, String description, SignatureType signatureType, List<String> transports) {
+        return new Fido2Authenticator(UUID.fromString(aaguid), description, signatureType, transports);
     }
 
     @Override

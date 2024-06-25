@@ -60,7 +60,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test for {@link PowerAuthController}.
+ * Test for published controllers.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */

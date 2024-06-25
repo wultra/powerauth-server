@@ -27,7 +27,7 @@
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.7.0</version>
+        <version>1.8.0-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -53,11 +53,6 @@
         </dependency>
 
         <dependency>
-            <groupId>com.fasterxml.jackson.dataformat</groupId>
-            <artifactId>jackson-dataformat-cbor</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
         </dependency>
@@ -69,10 +64,9 @@
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
         </dependency>
-
         <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
 
         <dependency>

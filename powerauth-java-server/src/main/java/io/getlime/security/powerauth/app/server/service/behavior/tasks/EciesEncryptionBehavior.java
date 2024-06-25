@@ -21,12 +21,12 @@ import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorReque
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
@@ -44,10 +44,10 @@ import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderEx
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.security.InvalidKeyException;
@@ -67,7 +67,8 @@ import java.util.Date;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class EciesEncryptionBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
@@ -80,9 +81,6 @@ public class EciesEncryptionBehavior {
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final KeyConvertor keyConvertor = new KeyConvertor();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(EciesEncryptionBehavior.class);
 
     @Autowired
     public EciesEncryptionBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator) {
@@ -103,13 +101,31 @@ public class EciesEncryptionBehavior {
      *
      * @return ECIES decryptor parameters.
      */
-    public GetEciesDecryptorResponse getEciesDecryptorParameters(GetEciesDecryptorRequest request) throws GenericServiceException {
-        if (request.getActivationId() == null) {
-            // Application scope
-            return getEciesDecryptorParametersForApplication(request);
-        } else {
-            // Activation scope
-            return getEciesDecryptorParametersForActivation(request, keyConvertor);
+    @Transactional
+    public GetEciesDecryptorResponse getEciesDecryptor(GetEciesDecryptorRequest request) throws GenericServiceException {
+        try {
+            if (request.getApplicationKey() == null || request.getEphemeralPublicKey() == null) {
+                logger.warn("Invalid request parameters in method getEciesDecryptor");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            if (request.getActivationId() == null) {
+                // Application scope
+                return getEciesDecryptorParametersForApplication(request);
+            } else {
+                // Activation scope
+                return getEciesDecryptorParametersForActivation(request, keyConvertor);
+            }
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
@@ -302,4 +318,5 @@ public class EciesEncryptionBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.GENERIC_CRYPTOGRAPHY_ERROR);
         }
     }
+
 }

@@ -23,7 +23,6 @@ import com.wultra.core.http.common.headers.UserAgent;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 

@@ -59,7 +59,7 @@ public class PowerAuthWebServiceConfiguration {
      */
     @Bean
     public PowerAuthClient powerAuthClient() {
-        PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+        final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
         config.setPowerAuthClientToken(configuration.getClientToken());
         config.setPowerAuthClientSecret(configuration.getClientSecret());
         config.setAcceptInvalidSslCertificate(configuration.isAcceptInvalidSslCertificate());

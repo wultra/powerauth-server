@@ -20,6 +20,8 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.enumeration.OperationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.ToString;
 
@@ -46,6 +48,11 @@ public class OperationDetailResponse {
     private Map<String, String> parameters;
     private Map<String, Object> additionalData;
     private OperationStatus status;
+
+    @Schema(description = "Optional details why the status has changed. The value should be sent in the form of a computer-readable code, not a free-form text.")
+    @Size(max = 32)
+    private String statusReason;
+
     private List<SignatureType> signatureType;
     private long failureCount;
     private Long maxFailureCount;

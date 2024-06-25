@@ -18,12 +18,12 @@
 package com.wultra.powerauth.fido2.rest.controller;
 
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionVerificationRequest;
-import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
-import com.wultra.powerauth.fido2.rest.model.response.AssertionVerificationResponse;
-import com.wultra.powerauth.fido2.rest.model.validator.AssertionRequestValidator;
+import com.wultra.powerauth.fido2.rest.model.converter.serialization.Fido2DeserializationException;
 import com.wultra.powerauth.fido2.service.AssertionService;
+import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
+import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,8 +31,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -48,22 +48,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("fido2/assertions")
 @Slf4j
+@AllArgsConstructor
 @Tag(name = "FIDO2 Assertions Controller", description = "API for FIDO2 assertions")
 public class AssertionController {
 
-    private final AssertionRequestValidator assertionRequestValidator;
     private final AssertionService assertionService;
-
-    /**
-     * Assertion controller constructor.
-     * @param assertionRequestValidator Assertion request validator.
-     * @param assertionService Assertion service.
-     */
-    @Autowired
-    public AssertionController(AssertionRequestValidator assertionRequestValidator, AssertionService assertionService) {
-        this.assertionRequestValidator = assertionRequestValidator;
-        this.assertionService = assertionService;
-    }
 
     /**
      * Request generating of an assertion challenge for an operation.
@@ -82,11 +71,10 @@ public class AssertionController {
     })
     @PostMapping("challenge")
     public ObjectResponse<AssertionChallengeResponse> requestAssertionChallenge(@Valid @RequestBody ObjectRequest<AssertionChallengeRequest> request) throws Exception {
-        final AssertionChallengeRequest requestObject = request.getRequestObject();
-        logger.info("AssertionChallengeRequest received, application IDs: {}", requestObject.getApplicationIds());
-        final AssertionChallengeResponse assertionChallengeResponse = assertionService.requestAssertionChallenge(requestObject);
-        logger.info("AssertionChallengeRequest succeeded, application IDs: {}", requestObject.getApplicationIds());
-        return new ObjectResponse<>(assertionChallengeResponse);
+        logger.info("AssertionChallengeRequest received: {}", request);
+        final ObjectResponse<AssertionChallengeResponse> response = new ObjectResponse<>(assertionService.requestAssertionChallenge(request.getRequestObject()));
+        logger.info("AssertionChallengeRequest succeeded: {}", response);
+        return response;
     }
 
     /**
@@ -105,16 +93,11 @@ public class AssertionController {
             @ApiResponse(responseCode = "500", description = "Unexpected server error")
     })
     @PostMapping
-    public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException {
-        final AssertionVerificationRequest requestObject = request.getRequestObject();
-        logger.info("AssertionVerificationRequest received, credential ID: {}", requestObject.getCredentialId());
-        final String error = assertionRequestValidator.validate(requestObject);
-        if (error != null) {
-            throw new Fido2AuthenticationFailedException(error);
-        }
-        final AssertionVerificationResponse signatureResponse = assertionService.authenticate(requestObject);
-        logger.info("AssertionVerificationRequest succeeded, credential ID: {}, valid: {}", requestObject.getCredentialId(), signatureResponse.isAssertionValid());
-        return new ObjectResponse<>(signatureResponse);
+    public ObjectResponse<AssertionVerificationResponse> authenticate(@Valid @RequestBody ObjectRequest<AssertionVerificationRequest> request) throws Fido2AuthenticationFailedException, Fido2DeserializationException {
+        logger.info("AssertionVerificationRequest received: {}", request);
+        final ObjectResponse<AssertionVerificationResponse> response = new ObjectResponse<>(assertionService.authenticate(request.getRequestObject()));
+        logger.info("AssertionVerificationRequest succeeded: {}", response);
+        return response;
     }
 
 }

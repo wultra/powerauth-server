@@ -93,7 +93,7 @@ public class SignatureMetadataConverter implements AttributeConverter<SignatureM
             return objectMapper.readValue(s, new TypeReference<>() {
             });
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for SignatureMetadata, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for SignatureMetadata, error: {}", ex.getMessage(), ex);
             return null;
         }
     }

@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.service.i18n;
 import io.getlime.security.powerauth.app.server.service.exceptions.ActivationRecoveryException;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.exceptions.RollbackingServiceException;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.stereotype.Service;
 
@@ -35,16 +34,13 @@ import java.util.Locale;
 @Service
 public class LocalizationProvider {
 
-    /**
-     * Create message source bean.
-     * @return Message source bean.
-     */
-    @Bean
-    public ResourceBundleMessageSource messageSource() {
+    private final ResourceBundleMessageSource messageSource;
+
+    public LocalizationProvider() {
         final ResourceBundleMessageSource source = new ResourceBundleMessageSource();
         source.setBasename("i18n/errors");
         source.setUseCodeAsDefaultMessage(true);
-        return source;
+        this.messageSource = source;
     }
 
     /**
@@ -63,72 +59,38 @@ public class LocalizationProvider {
      * @return Localized error message.
      */
     public String getLocalizedErrorMessage(String code, Locale locale) {
-        return messageSource().getMessage("ServiceError." + code, null, locale);
-    }
-
-    /**
-     * Build exception that doesn't cause transaction rollback for given error code in English.
-     * @param code Error code.
-     * @return Generic service exception.
-     */
-    public GenericServiceException buildExceptionForCode(String code) {
-        return this.buildExceptionForCode(code, Locale.ENGLISH);
+        return messageSource.getMessage("ServiceError." + code, null, locale);
     }
 
     /**
      * Build exception that doesn't cause transaction rollback for given error code and locale.
      * @param code Error code.
-     * @param locale Locale.
      * @return Generic service exception.
      */
-    public GenericServiceException buildExceptionForCode(String code, Locale locale) {
+    public GenericServiceException buildExceptionForCode(String code) {
         final String message = getLocalizedErrorMessage(code);
-        final String localizedMessage = getLocalizedErrorMessage(code, locale);
-        return new GenericServiceException(code, message, localizedMessage);
-    }
-
-    /**
-     * Build rollbacking exception for given error code in English.
-     * @param code Error code.
-     * @return Rollbacking service exception.
-     */
-    public RollbackingServiceException buildRollbackingExceptionForCode(String code) {
-        return this.buildRollbackingExceptionForCode(code, Locale.ENGLISH);
+        return new GenericServiceException(code, message);
     }
 
     /**
      * Build rollbacking exception for given error code and locale.
      * @param code Error code.
-     * @param locale Locale.
      * @return Rollbacking service exception.
      */
-    public RollbackingServiceException buildRollbackingExceptionForCode(String code, Locale locale) {
+    public RollbackingServiceException buildRollbackingExceptionForCode(String code) {
         final String message = getLocalizedErrorMessage(code);
-        final String localizedMessage = getLocalizedErrorMessage(code, locale);
-        return new RollbackingServiceException(code, message, localizedMessage);
-    }
-
-    /**
-     * Build activation recovery exception for given error code in English with current recovery PUK index parameter.
-     * @param code Error code.
-     * @param currentRecoveryPukIndex Current recovery PUK index.
-     * @return Activation recovery exception.
-     */
-    public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, int currentRecoveryPukIndex) {
-        return this.buildActivationRecoveryExceptionForCode(code, Locale.ENGLISH, currentRecoveryPukIndex);
+        return new RollbackingServiceException(code, message);
     }
 
     /**
      * Build activation recovery exception for given error code and locale with current recovery PUK index parameter.
      * @param code Error code.
-     * @param locale Locale.
      * @param currentRecoveryPukIndex Current recovery PUK index.
      * @return Activation recovery exception.
      */
-    public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, Locale locale, int currentRecoveryPukIndex) {
+    public ActivationRecoveryException buildActivationRecoveryExceptionForCode(String code, int currentRecoveryPukIndex) {
         final String message = getLocalizedErrorMessage(code);
-        final String localizedMessage = getLocalizedErrorMessage(code, locale);
-        return new ActivationRecoveryException(code, message, localizedMessage, currentRecoveryPukIndex);
+        return new ActivationRecoveryException(code, message, currentRecoveryPukIndex);
     }
 
 }

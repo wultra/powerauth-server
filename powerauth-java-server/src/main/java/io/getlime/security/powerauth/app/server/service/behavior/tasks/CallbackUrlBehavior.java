@@ -32,19 +32,19 @@ import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationPublicConverter;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -58,7 +58,8 @@ import java.util.stream.Collectors;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
@@ -71,9 +72,6 @@ public class CallbackUrlBehavior {
     private final Object restClientCacheLock = new Object();
 
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(CallbackUrlBehavior.class);
 
     /**
      * Behavior constructor.
@@ -102,45 +100,62 @@ public class CallbackUrlBehavior {
      * @return Newly created callback URL record.
      * @throws GenericServiceException Thrown when callback URL in request is malformed.
      */
+    @Transactional
     public CreateCallbackUrlResponse createCallbackUrl(CreateCallbackUrlRequest request) throws GenericServiceException {
-
-        // Check the URL format
         try {
-            new URL(request.getCallbackUrl());
-        } catch (MalformedURLException e) {
-            logger.warn("Invalid callback URL: "+request.getCallbackUrl());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
-        }
+            if (request.getName() == null) {
+                logger.warn("Invalid request parameter name in method createCallbackUrl");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
-        final String applicationId = request.getApplicationId();
-        final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
+            // Check the URL format
+            try {
+                new URL(request.getCallbackUrl());
+            } catch (MalformedURLException e) {
+                logger.warn("Invalid callback URL: {}", request.getCallbackUrl());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
+            }
 
-        if (applicationEntityOptional.isEmpty()) {
-            logger.warn("Invalid callback URL application: " + request.getApplicationId());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-        }
+            final String applicationId = request.getApplicationId();
+            final Optional<ApplicationEntity> applicationEntityOptional = applicationRepository.findById(applicationId);
 
-        final CallbackUrlEntity entity = new CallbackUrlEntity();
-        entity.setId(UUID.randomUUID().toString());
-        entity.setApplication(applicationEntityOptional.get());
-        entity.setName(request.getName());
-        entity.setType(CallbackUrlType.valueOf(request.getType()));
-        entity.setCallbackUrl(request.getCallbackUrl());
-        entity.setAttributes(request.getAttributes());
-        entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(request.getAuthentication()));
-        callbackUrlRepository.save(entity);
-        final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
-        response.setId(entity.getId());
-        response.setApplicationId(entity.getApplication().getId());
-        response.setName(entity.getName());
-        response.setCallbackUrl(entity.getCallbackUrl());
-        if (entity.getAttributes() != null) {
-            response.getAttributes().addAll(entity.getAttributes());
+            if (applicationEntityOptional.isEmpty()) {
+                logger.warn("Invalid callback URL application ID: {}", request.getApplicationId());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+
+            final CallbackUrlEntity entity = new CallbackUrlEntity();
+            entity.setId(UUID.randomUUID().toString());
+            entity.setApplication(applicationEntityOptional.get());
+            entity.setName(request.getName());
+            entity.setType(CallbackUrlType.valueOf(request.getType()));
+            entity.setCallbackUrl(request.getCallbackUrl());
+            entity.setAttributes(request.getAttributes());
+            entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(request.getAuthentication()));
+            callbackUrlRepository.save(entity);
+            final CreateCallbackUrlResponse response = new CreateCallbackUrlResponse();
+            response.setId(entity.getId());
+            response.setApplicationId(entity.getApplication().getId());
+            response.setName(entity.getName());
+            response.setCallbackUrl(entity.getCallbackUrl());
+            if (entity.getAttributes() != null) {
+                response.getAttributes().addAll(entity.getAttributes());
+            }
+            response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
-        return response;
     }
 
     /**
@@ -150,70 +165,80 @@ public class CallbackUrlBehavior {
      * @throws GenericServiceException Thrown when callback URL in request is malformed or callback URL could not be found.
      */
     public UpdateCallbackUrlResponse updateCallbackUrl(UpdateCallbackUrlRequest request) throws GenericServiceException {
-
-        if (request.getId() == null) {
-            logger.warn("Missing callback ID");
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-        }
-
-        final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
-                .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
-                .orElseThrow(() -> {
-                    // Rollback is not required, error occurs before writing to database
-                    logger.warn("Invalid callback ID: {}", request.getId());
-                    return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-                });
-
-        // Check the URL format
         try {
-            new URL(request.getCallbackUrl());
-        } catch (MalformedURLException e) {
-            logger.warn("Invalid callback URL: {}", request.getCallbackUrl());
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
-        }
+            if (request.getId() == null || request.getApplicationId() == null || request.getName() == null || request.getAttributes() == null) {
+                logger.warn("Invalid request in method updateCallbackUrl");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
 
-        evictRestClientFromCache(entity);
+            final CallbackUrlEntity entity = callbackUrlRepository.findById(request.getId())
+                    .filter(it -> it.getApplication().getId().equals(request.getApplicationId()))
+                    .orElseThrow(() -> {
+                        // Rollback is not required, error occurs before writing to database
+                        logger.warn("Invalid callback ID: {}", request.getId());
+                        return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+                    });
 
-        entity.setName(request.getName());
-        entity.setCallbackUrl(request.getCallbackUrl());
-        entity.setAttributes(request.getAttributes());
-        // Retain existing passwords in case new password is not set
-        final HttpAuthenticationPrivate authRequest = request.getAuthentication();
-        final CallbackUrlAuthenticationEntity authExisting = entity.getAuthentication();
-        if (authRequest != null) {
-            if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
-                if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
-                    authRequest.getCertificate().setKeyStorePassword(authExisting.getCertificate().getKeyStorePassword());
+            // Check the URL format
+            try {
+                new URL(request.getCallbackUrl());
+            } catch (MalformedURLException e) {
+                logger.warn("Invalid callback URL: {}", request.getCallbackUrl());
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
+            }
+
+            evictRestClientFromCache(entity);
+
+            entity.setName(request.getName());
+            entity.setCallbackUrl(request.getCallbackUrl());
+            entity.setAttributes(request.getAttributes());
+            // Retain existing passwords in case new password is not set
+            final HttpAuthenticationPrivate authRequest = request.getAuthentication();
+            final CallbackUrlAuthenticationEntity authExisting = entity.getAuthentication();
+            if (authRequest != null) {
+                if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
+                    if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
+                        authRequest.getCertificate().setKeyStorePassword(authExisting.getCertificate().getKeyStorePassword());
+                    }
+                    if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
+                        authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
+                    }
+                    if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
+                        authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
+                    }
                 }
-                if (authExisting.getCertificate().getKeyPassword() != null && authRequest.getCertificate().getKeyPassword() == null) {
-                    authRequest.getCertificate().setKeyPassword(authExisting.getCertificate().getKeyPassword());
-                }
-                if (authExisting.getCertificate().getTrustStorePassword() != null && authRequest.getCertificate().getTrustStorePassword() == null) {
-                    authRequest.getCertificate().setTrustStorePassword(authExisting.getCertificate().getTrustStorePassword());
+                if (authRequest.getHttpBasic() != null && authExisting.getHttpBasic() != null) {
+                    if (authExisting.getHttpBasic().getPassword() != null && authRequest.getHttpBasic().getPassword() == null) {
+                        authRequest.getHttpBasic().setPassword(authExisting.getHttpBasic().getPassword());
+                    }
                 }
             }
-            if (authRequest.getHttpBasic() != null && authExisting.getHttpBasic() != null) {
-                if (authExisting.getHttpBasic().getPassword() != null && authRequest.getHttpBasic().getPassword() == null) {
-                    authRequest.getHttpBasic().setPassword(authExisting.getHttpBasic().getPassword());
-                }
-            }
-        }
-        entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(authRequest));
-        callbackUrlRepository.save(entity);
+            entity.setAuthentication(authenticationPublicConverter.fromNetworkObject(authRequest));
+            callbackUrlRepository.save(entity);
 
-        final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
-        response.setId(entity.getId());
-        response.setApplicationId(entity.getApplication().getId());
-        response.setName(entity.getName());
-        response.setType(entity.getType().toString());
-        response.setCallbackUrl(entity.getCallbackUrl());
-        if (entity.getAttributes() != null) {
-            response.getAttributes().addAll(entity.getAttributes());
+            final UpdateCallbackUrlResponse response = new UpdateCallbackUrlResponse();
+            response.setId(entity.getId());
+            response.setApplicationId(entity.getApplication().getId());
+            response.setName(entity.getName());
+            response.setType(entity.getType().toString());
+            response.setCallbackUrl(entity.getCallbackUrl());
+            if (entity.getAttributes() != null) {
+                response.getAttributes().addAll(entity.getAttributes());
+            }
+            response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        response.setAuthentication(authenticationPublicConverter.toPublic(entity.getAuthentication()));
-        return response;
     }
 
     /**
@@ -221,23 +246,32 @@ public class CallbackUrlBehavior {
      * @param request Request with application ID to fetch the callback URL agains.
      * @return List of all current callback URLs.
      */
-    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) {
-        final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(request.getApplicationId());
-        final GetCallbackUrlListResponse response = new GetCallbackUrlListResponse();
-        for (CallbackUrlEntity callbackUrl: callbackUrlEntities) {
-            final CallbackUrl item = new CallbackUrl();
-            item.setId(callbackUrl.getId());
-            item.setApplicationId(callbackUrl.getApplication().getId());
-            item.setName(callbackUrl.getName());
-            item.setType(callbackUrl.getType().toString());
-            item.setCallbackUrl(callbackUrl.getCallbackUrl());
-            if (callbackUrl.getAttributes() != null) {
-                item.getAttributes().addAll(callbackUrl.getAttributes());
+    @Transactional(readOnly = true)
+    public GetCallbackUrlListResponse getCallbackUrlList(GetCallbackUrlListRequest request) throws GenericServiceException {
+        try {
+            final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdOrderByName(request.getApplicationId());
+            final GetCallbackUrlListResponse response = new GetCallbackUrlListResponse();
+            for (CallbackUrlEntity callbackUrl : callbackUrlEntities) {
+                final CallbackUrl item = new CallbackUrl();
+                item.setId(callbackUrl.getId());
+                item.setApplicationId(callbackUrl.getApplication().getId());
+                item.setName(callbackUrl.getName());
+                item.setType(callbackUrl.getType().toString());
+                item.setCallbackUrl(callbackUrl.getCallbackUrl());
+                if (callbackUrl.getAttributes() != null) {
+                    item.getAttributes().addAll(callbackUrl.getAttributes());
+                }
+                item.setAuthentication(authenticationPublicConverter.toPublic(callbackUrl.getAuthentication()));
+                response.getCallbackUrlList().add(item);
             }
-            item.setAuthentication(authenticationPublicConverter.toPublic(callbackUrl.getAuthentication()));
-            response.getCallbackUrlList().add(item);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        return response;
     }
 
     /**
@@ -245,19 +279,28 @@ public class CallbackUrlBehavior {
      * @param request Request specifying the callback URL to be removed.
      * @return Information about removal status.
      */
-    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) {
-        final RemoveCallbackUrlResponse response = new RemoveCallbackUrlResponse();
-        response.setId(request.getId());
-        final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
-        if (callbackUrlEntityOptional.isPresent()) {
-            final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-            evictRestClientFromCache(callbackEntity);
-            callbackUrlRepository.delete(callbackEntity);
-            response.setRemoved(true);
-        } else {
-            response.setRemoved(false);
+    @Transactional
+    public RemoveCallbackUrlResponse removeCallbackUrl(RemoveCallbackUrlRequest request) throws GenericServiceException {
+        try {
+            final RemoveCallbackUrlResponse response = new RemoveCallbackUrlResponse();
+            response.setId(request.getId());
+            final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
+            if (callbackUrlEntityOptional.isPresent()) {
+                final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
+                evictRestClientFromCache(callbackEntity);
+                callbackUrlRepository.delete(callbackEntity);
+                response.setRemoved(true);
+            } else {
+                response.setRemoved(false);
+            }
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        return response;
     }
 
     /**
@@ -328,9 +371,11 @@ public class CallbackUrlBehavior {
         try {
             if (operation != null && operation.getApplications() != null && !operation.getApplications().isEmpty()) {
                 for (ApplicationEntity application : operation.getApplications()) {
-                    final Iterable<CallbackUrlEntity> callbackUrlEntities = callbackUrlRepository.findByApplicationIdAndTypeOrderByName(
-                            application.getId(), CallbackUrlType.OPERATION_STATUS_CHANGE
-                    );
+                    final Iterable<CallbackUrlEntity> callbackUrlEntities = application.getCallbacks()
+                            .stream()
+                            .filter(callbackUrlEntity -> CallbackUrlType.OPERATION_STATUS_CHANGE == callbackUrlEntity.getType())
+                            .toList();
+
                     for (CallbackUrlEntity callbackUrlEntity : callbackUrlEntities) {
                         final Map<String, Object> callbackData = prepareCallbackDataOperation(callbackUrlEntity, operation);
                         notifyCallbackUrl(callbackUrlEntity, callbackData);

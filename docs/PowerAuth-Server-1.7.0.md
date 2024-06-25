@@ -2,6 +2,21 @@
 
 This guide contains instructions for migration from PowerAuth Server version `1.6.x` to version `1.7.0`.
 
+## API
+
+### Attribute `additionalData` modification
+
+In version 1.7.x, the structure of the attribute `additionalData` has changed across numerous objects:
+
+Previous versions used `Map<String, String>` to store `additionalData`, which restricted values to
+string types.
+Version 1.7.x changes `additionalData` to `Map<String, Object>`. This update allows for a more versatile data structure,
+accommodating complex objects in addition to simple string values.
+
+If your application interacts with objects containing the `additionalData` attribute and expects only string values, this
+type change may lead to runtime errors or data parsing exceptions. It is crucial to update your data handling code to
+accommodate potentially complex object structures within `additionalData`.
+
 ## Database Changes
 
 For convenience you can use liquibase for your database migration.

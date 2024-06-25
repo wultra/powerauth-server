@@ -22,7 +22,7 @@ import com.wultra.security.powerauth.client.model.request.GetApplicationDetailRe
 import com.wultra.security.powerauth.client.model.response.CreateApplicationResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,11 +43,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ActiveProfiles("test")
 class GetApplicationDetailTest {
 
-    private PowerAuthService powerAuthService;
+    private final ApplicationServiceBehavior applicationServiceBehavior;
 
     @Autowired
-    public void setPowerAuthService(PowerAuthService powerAuthService) {
-        this.powerAuthService = powerAuthService;
+    public GetApplicationDetailTest(ApplicationServiceBehavior applicationServiceBehavior) {
+        this.applicationServiceBehavior = applicationServiceBehavior;
     }
 
     @Test
@@ -56,7 +56,7 @@ class GetApplicationDetailTest {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(application.getId());
 
-        GetApplicationDetailResponse response = powerAuthService.getApplicationDetail(request);
+        GetApplicationDetailResponse response = applicationServiceBehavior.getApplicationDetail(request);
         assertEquals(application.getId(), response.getApplicationId());
     }
 
@@ -64,7 +64,7 @@ class GetApplicationDetailTest {
     public void testGetApplicationDetailByNotExistingId() {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId("NOT_EXISTING_NAME");
-        assertThrows(GenericServiceException.class, ()-> powerAuthService.getApplicationDetail(request));
+        assertThrows(GenericServiceException.class, ()-> applicationServiceBehavior.getApplicationDetail(request));
     }
 
     @Test
@@ -73,7 +73,7 @@ class GetApplicationDetailTest {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId(application.getId());
 
-        GetApplicationDetailResponse response = powerAuthService.getApplicationDetail(request);
+        GetApplicationDetailResponse response = applicationServiceBehavior.getApplicationDetail(request);
         assertEquals(application.getId(), response.getApplicationId());
     }
 
@@ -81,7 +81,7 @@ class GetApplicationDetailTest {
     public void testGetApplicationDetailByNotExistingName() {
         GetApplicationDetailRequest request = new GetApplicationDetailRequest();
         request.setApplicationId("NOT_EXISTING_NAME");
-        assertThrows(GenericServiceException.class, ()-> powerAuthService.getApplicationDetail(request));
+        assertThrows(GenericServiceException.class, ()-> applicationServiceBehavior.getApplicationDetail(request));
     }
 
     private ApplicationEntity createApplication() throws Exception {
@@ -91,7 +91,7 @@ class GetApplicationDetailTest {
     private ApplicationEntity createApplication(String applicationId) throws Exception {
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId(applicationId);
-        CreateApplicationResponse response = powerAuthService.createApplication(request);
+        CreateApplicationResponse response = applicationServiceBehavior.createApplication(request);
         // The RID is not checked in any tests
         return new ApplicationEntity(0L, response.getApplicationId(), Collections.emptyList(), Collections.emptyList());
     }

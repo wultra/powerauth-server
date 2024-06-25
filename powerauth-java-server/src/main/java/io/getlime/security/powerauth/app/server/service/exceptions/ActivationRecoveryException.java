@@ -36,11 +36,10 @@ public class ActivationRecoveryException extends GenericServiceException {
      *
      * @param code                     Error code.
      * @param message                  Error message.
-     * @param localizedMessage         Localized error message.
      * @param currentRecoveryPukIndex  Current recovery PUK index.
      */
-    public ActivationRecoveryException(String code, String message, String localizedMessage, int currentRecoveryPukIndex) {
-        super(code, message, localizedMessage);
+    public ActivationRecoveryException(String code, String message, int currentRecoveryPukIndex) {
+        super(code, message);
         this.currentRecoveryPukIndex = currentRecoveryPukIndex;
     }
 
