@@ -28,7 +28,6 @@ import net.javacrumbs.shedlock.core.LockAssert;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Task to clean expired operation, activation, and unique values.
@@ -64,7 +63,6 @@ public class CleaningTask {
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
     @SchedulerLock(name = "expireActivationsTask")
-    @Transactional
     public void expireActivations() {
         LockAssert.assertLocked();
         logger.debug("expireActivations");
