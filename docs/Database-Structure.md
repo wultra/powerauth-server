@@ -625,6 +625,7 @@ CREATE TABLE pa_fido2_authenticator (
     aaguid          VARCHAR(255)    NOT NULL,
     description     VARCHAR(255)    NOT NULL,
     signature_type  VARCHAR(255)    NOT NULL,
+    transports      VARCHAR(255),
     CONSTRAINT pa_fido2_authenticator_pkey PRIMARY KEY (aaguid)
 );
 ```
@@ -636,4 +637,5 @@ CREATE TABLE pa_fido2_authenticator (
 | aaguid         | varchar(255) | primary key | Identifier of the FIDO2 authenticator.                 |
 | description    | varchar(255) | -           | Human-readable description of the FIDO2 authenticator. |
 | signature_type | varchar(255) | -           | Signature type provided by the FIDO2 authenticator.    |
+| transport      | varchar(255) | -           | JSON array of transport hints for WebAuthn ceremonies. |
 <!-- end -->
