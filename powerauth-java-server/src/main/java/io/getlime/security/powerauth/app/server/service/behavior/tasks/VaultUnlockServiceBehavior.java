@@ -121,8 +121,6 @@ public class VaultUnlockServiceBehavior {
      */
     @Transactional
     public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws GenericServiceException {
-        // String activationId, String applicationKey, String signature, SignatureType signatureType, String signatureVersion,
-        // String signedData, EncryptedRequest encryptedRequest, KeyConvertor keyConversion
         try {
             if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
                     || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null) {
