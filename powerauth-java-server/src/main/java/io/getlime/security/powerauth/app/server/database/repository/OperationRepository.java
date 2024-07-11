@@ -54,7 +54,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
      * could not be acquired.
      *
      * @param operationId Operation ID
-     * @return Operation with given ID.
+     * @return Operation with given ID
      */
     @Query(value = "BEGIN TRANSACTION;\n" +
             "DECLARE @res INT\n" +

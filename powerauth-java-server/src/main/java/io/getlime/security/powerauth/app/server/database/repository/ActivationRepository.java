@@ -58,7 +58,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * could not be acquired.
      *
      * @param activationId Activation ID
-     * @return Activation with given ID or null if not found
+     * @return Activation with given ID
      */
     @Query(value = "BEGIN TRANSACTION;\n" +
             "DECLARE @res INT\n" +
