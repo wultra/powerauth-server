@@ -35,6 +35,7 @@ import io.getlime.security.powerauth.app.server.service.exceptions.GenericServic
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.response.UpgradeResponsePayload;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -72,6 +73,7 @@ import java.util.Date;
 public class UpgradeServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
+    private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
@@ -86,7 +88,7 @@ public class UpgradeServiceBehavior {
 
     @Autowired
     public UpgradeServiceBehavior(
-            final RepositoryCatalogue repositoryCatalogue,
+            final RepositoryCatalogue repositoryCatalogue, ActivationQueryService activationQueryService,
             final LocalizationProvider localizationProvider,
             final ServerPrivateKeyConverter serverPrivateKeyConverter,
             final ReplayVerificationService replayVerificationService,
@@ -94,6 +96,7 @@ public class UpgradeServiceBehavior {
             final ActivationHistoryServiceBehavior activationHistoryServiceBehavior) {
 
         this.repositoryCatalogue = repositoryCatalogue;
+        this.activationQueryService = activationQueryService;
         this.localizationProvider = localizationProvider;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
@@ -147,12 +150,11 @@ public class UpgradeServiceBehavior {
             }
 
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
@@ -287,12 +289,11 @@ public class UpgradeServiceBehavior {
             }
 
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 

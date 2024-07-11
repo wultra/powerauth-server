@@ -49,6 +49,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackU
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -82,9 +83,10 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
     private final AssertionChallengeConverter assertionChallengeConverter;
+    private final ActivationQueryService activationQueryService;
 
     @Autowired
-    public PowerAuthAssertionProvider(RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, OperationServiceBehavior operations, CallbackUrlBehavior callbacks, ActivationHistoryServiceBehavior activationHistory, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService, final AssertionChallengeConverter assertionChallengeConverter) {
+    public PowerAuthAssertionProvider(RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, OperationServiceBehavior operations, CallbackUrlBehavior callbacks, ActivationHistoryServiceBehavior activationHistory, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService, final AssertionChallengeConverter assertionChallengeConverter, ActivationQueryService activationQueryService) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.audit = audit;
         this.operations = operations;
@@ -93,6 +95,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         this.authenticatorProvider = authenticatorProvider;
         this.fido2AuthenticatorService = fido2AuthenticatorService;
         this.assertionChallengeConverter = assertionChallengeConverter;
+        this.activationQueryService = activationQueryService;
     }
 
     @Override
@@ -173,9 +176,12 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationFailApprovalRequest.setOperationId(operationId);
             operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
 
-            final ActivationRecordEntity activationWithLock = repositoryCatalogue.getActivationRepository().findActivationWithLock(authenticatorDetail.getActivationId());
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(authenticatorDetail.getActivationId()).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", authenticatorDetail.getActivationId());
+                return new Fido2AuthenticationFailedException("Activation not found");
+            });
 
-            handleInvalidSignatureImpl(activationWithLock, new SignatureData(), currentTimestamp);
+            handleInvalidSignatureImpl(activation, new SignatureData(), currentTimestamp);
 
             final OperationUserActionResponse approveOperation = operations.failApprovalOperation(operationFailApprovalRequest);
             final OperationDetailResponse operation = approveOperation.getOperation();

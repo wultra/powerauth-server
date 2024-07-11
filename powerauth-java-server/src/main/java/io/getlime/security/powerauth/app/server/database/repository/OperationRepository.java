@@ -45,6 +45,36 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperationWithLock(String operationId);
 
+    /**
+     * Find operation with given operation ID. This method is MSSQL-specific.
+     * The operation is locked using stored procedure sp_getapplock in exclusive mode.
+     * The lock is released automatically at the end of the transaction. Transaction isolation
+     * level READ COMMITTED is used because the lock is pessimistic, optimistic locking would
+     * cause an UPDATE conflict error. The stored procedure raises an error in case the lock
+     * could not be acquired.
+     *
+     * @param operationId Operation ID
+     * @return Operation with given ID.
+     */
+    @Query(value = "DECLARE @res INT\n" +
+            "    SET TRANSACTION ISOLATION LEVEL READ COMMITTED\n" +
+            "    EXEC @res = sp_getapplock \n" +
+            "                @Resource = ?1,\n" +
+            "                @LockMode = 'Exclusive',\n" +
+            "                @LockOwner = 'Transaction',\n" +
+            "                @LockTimeout = 60000,\n" +
+            "                @DbPrincipal = 'public'\n" +
+            "    \n" +
+            "    IF @res NOT IN (0, 1)\n" +
+            "    BEGIN\n" +
+            "        RAISERROR ('Unable to acquire operation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)\n" +
+            "    END \n" +
+            "    ELSE\n" +
+            "    BEGIN\n" +
+            "        select * from pa_operation where operation_id = ?1\n" +
+            "    END\n", nativeQuery = true)
+    Optional<OperationEntity> findOperationWithLockMSSQL(String operationId);
+
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperation(String operationId);
 

@@ -43,6 +43,7 @@ import io.getlime.security.powerauth.app.server.database.repository.OperationTem
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.OperationQueryService;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -83,6 +84,7 @@ public class OperationServiceBehavior {
     private final OperationTemplateRepository templateRepository;
     private final ApplicationRepository applicationRepository;
     private final ActivationRepository activationRepository;
+    private final OperationQueryService operationQueryService;
 
     private final AuditingServiceBehavior audit;
 
@@ -110,13 +112,14 @@ public class OperationServiceBehavior {
             CallbackUrlBehavior callbackUrlBehavior, OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
             ApplicationRepository applicationRepository,
-            ActivationRepository activationRepository,
+            ActivationRepository activationRepository, OperationQueryService operationQueryService,
             AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration) {
         this.callbackUrlBehavior = callbackUrlBehavior;
         this.operationRepository = operationRepository;
         this.templateRepository = templateRepository;
         this.applicationRepository = applicationRepository;
+        this.operationQueryService = operationQueryService;
         this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.activationRepository = activationRepository;
@@ -314,7 +317,7 @@ public class OperationServiceBehavior {
             final Map<String, Object> additionalData = request.getAdditionalData();
 
             // Check if the operation exists
-            final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
+            final Optional<OperationEntity> operationOptional = operationQueryService.findOperationForUpdate(operationId);
             if (operationOptional.isEmpty()) {
                 logger.warn("Operation was not found for ID: {}.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_APPROVE_FAILURE);
@@ -481,7 +484,7 @@ public class OperationServiceBehavior {
             final Map<String, Object> additionalData = request.getAdditionalData();
 
             // Check if the operation exists
-            final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
+            final Optional<OperationEntity> operationOptional = operationQueryService.findOperationForUpdate(operationId);
             if (operationOptional.isEmpty()) {
                 logger.warn("Operation was not found for ID: {}.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_REJECT_FAILURE);
@@ -579,7 +582,7 @@ public class OperationServiceBehavior {
             final Map<String, Object> additionalData = request.getAdditionalData();
 
             // Check if the operation exists
-            final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
+            final Optional<OperationEntity> operationOptional = operationQueryService.findOperationForUpdate(operationId);
             if (operationOptional.isEmpty()) {
                 logger.warn("Operation was not found for ID: {}.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
@@ -672,7 +675,7 @@ public class OperationServiceBehavior {
             final Map<String, Object> additionalData = request.getAdditionalData();
 
             // Check if the operation exists
-            final Optional<OperationEntity> operationOptional = operationRepository.findOperationWithLock(operationId);
+            final Optional<OperationEntity> operationOptional = operationQueryService.findOperationForUpdate(operationId);
             if (operationOptional.isEmpty()) {
                 logger.warn("Operation was not found for ID: {}.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);

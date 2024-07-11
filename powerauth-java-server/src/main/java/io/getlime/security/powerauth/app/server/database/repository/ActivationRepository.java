@@ -26,10 +26,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -46,11 +43,41 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * (DB deadlock, invalid counter value in second transaction, etc.).
      *
      * @param activationId Activation ID
-     * @return Activation with given ID or null if not found
+     * @return Activation with given ID
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
-    ActivationRecordEntity findActivationWithLock(String activationId);
+    Optional<ActivationRecordEntity> findActivationWithLock(String activationId);
+
+    /**
+     * Find activation with given activation ID. This method is MSSQL-specific.
+     * The activation is locked using stored procedure sp_getapplock in exclusive mode.
+     * The lock is released automatically at the end of the transaction. Transaction isolation
+     * level READ COMMITTED is used because the lock is pessimistic, optimistic locking would
+     * cause an UPDATE conflict error. The stored procedure raises an error in case the lock
+     * could not be acquired.
+     *
+     * @param activationId Activation ID
+     * @return Activation with given ID or null if not found
+     */
+    @Query(value = "DECLARE @res INT\n" +
+            "    SET TRANSACTION ISOLATION LEVEL READ COMMITTED\n" +
+            "    EXEC @res = sp_getapplock \n" +
+            "                @Resource = ?1,\n" +
+            "                @LockMode = 'Exclusive',\n" +
+            "                @LockOwner = 'Transaction',\n" +
+            "                @LockTimeout = 60000,\n" +
+            "                @DbPrincipal = 'public'\n" +
+            "    \n" +
+            "    IF @res NOT IN (0, 1)\n" +
+            "    BEGIN\n" +
+            "        RAISERROR ('Unable to acquire activation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)\n" +
+            "    END \n" +
+            "    ELSE\n" +
+            "    BEGIN\n" +
+            "        select * from pa_activation where activation_id = ?1\n" +
+            "    END\n", nativeQuery = true)
+    Optional<ActivationRecordEntity> findActivationWithLockMSSQL(String activationId);
 
     /**
      * Find the first activation with given activation ID.
@@ -177,13 +204,11 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
 
     /**
      * Fetch all activations that are in a given state, were expired after a specified timestamp, and are already expired according to a provided current timestamp.
-     * The activations are locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues.
      * @param states Activation states that are used for the lookup.
      * @param startingTimestamp Timestamp after which the activation was expired.
      * @param currentTimestamp Current timestamp, to identify already expired operations.
      * @return Stream of activations.
      */
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampActivationExpire >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 

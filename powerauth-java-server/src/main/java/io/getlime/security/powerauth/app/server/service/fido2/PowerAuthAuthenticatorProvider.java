@@ -43,6 +43,7 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackU
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -74,6 +75,7 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final ActivationHistoryServiceBehavior activationHistory;
     private final CallbackUrlBehavior callbacks;
     private final AuditingServiceBehavior audit;
+    private final ActivationQueryService activationQueryService;
 
     private LocalizationProvider localizationProvider;
 
@@ -82,13 +84,14 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
 
     @Autowired
-    public PowerAuthAuthenticatorProvider(RepositoryCatalogue repositoryCatalogue, ApplicationRepository applicationRepository, ActivationServiceBehavior activations, ActivationHistoryServiceBehavior activationHistory, CallbackUrlBehavior callbacks, AuditingServiceBehavior audit) {
+    public PowerAuthAuthenticatorProvider(RepositoryCatalogue repositoryCatalogue, ApplicationRepository applicationRepository, ActivationServiceBehavior activations, ActivationHistoryServiceBehavior activationHistory, CallbackUrlBehavior callbacks, AuditingServiceBehavior audit, ActivationQueryService activationQueryService) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.applicationRepository = applicationRepository;
         this.activations = activations;
         this.activationHistory = activationHistory;
         this.callbacks = callbacks;
         this.audit = audit;
+        this.activationQueryService = activationQueryService;
     }
 
     @Autowired
@@ -147,7 +150,12 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             throw new Fido2AuthenticationFailedException("Application with given ID is not present: " + applicationId);
         }
 
-        final List<Activation> activationRecordEntities = activations.findByExternalId(applicationId, credentialId);
+        final List<Activation> activationRecordEntities;
+        try {
+            activationRecordEntities = activations.findByExternalId(applicationId, credentialId);
+        } catch (GenericServiceException e) {
+            throw new Fido2AuthenticationFailedException("Activation was removed during authentication.");
+        }
         if (activationRecordEntities == null || activationRecordEntities.size() != 1) {
             throw new Fido2AuthenticationFailedException("Two authenticators with the same ID exist - ambiguous result.");
         }
@@ -195,7 +203,10 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             }
 
             // Search for activation again to acquire PESSIMISTIC_WRITE lock for activation row
-            activation = activationRepository.findActivationWithLock(activation.getActivationId());
+            activation = activationQueryService.findActivationForUpdate(authenticatorDetail.getActivationId()).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", authenticatorDetail.getActivationId());
+                return new Fido2AuthenticationFailedException("Activation not found");
+            });
             deactivatePendingActivation(timestamp, activation);
 
             // Validate that the activation is in correct state for the prepare step
