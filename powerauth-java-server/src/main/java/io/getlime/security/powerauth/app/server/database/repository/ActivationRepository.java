@@ -62,7 +62,6 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      */
     @Query(value = "BEGIN TRANSACTION;\n" +
             "DECLARE @res INT\n" +
-            "    SET TRANSACTION ISOLATION LEVEL READ COMMITTED\n" +
             "    EXEC @res = sp_getapplock \n" +
             "                @Resource = ?1,\n" +
             "                @LockMode = 'Exclusive',\n" +

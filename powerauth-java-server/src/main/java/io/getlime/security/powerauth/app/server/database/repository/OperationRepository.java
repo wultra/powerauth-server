@@ -56,8 +56,8 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
      * @param operationId Operation ID
      * @return Operation with given ID.
      */
-    @Query(value = "DECLARE @res INT\n" +
-            "    SET TRANSACTION ISOLATION LEVEL READ COMMITTED\n" +
+    @Query(value = "BEGIN TRANSACTION;\n" +
+            "DECLARE @res INT\n" +
             "    EXEC @res = sp_getapplock \n" +
             "                @Resource = ?1,\n" +
             "                @LockMode = 'Exclusive',\n" +
@@ -72,6 +72,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
             "    ELSE\n" +
             "    BEGIN\n" +
             "        select * from pa_operation where operation_id = ?1\n" +
+            "        COMMIT TRANSACTION;\n" +
             "    END\n", nativeQuery = true)
     Optional<OperationEntity> findOperationWithLockMSSQL(String operationId);
 
