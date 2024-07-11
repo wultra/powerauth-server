@@ -910,6 +910,7 @@ REST endpoint: `POST /rest/v3/signature/verify`
 | `String` | `data` | Base64 encoded data for the signature |
 | `String` | `signature` | PowerAuth signature |
 | `SignatureType` | `signatureType` | PowerAuth signature type |
+| `String` | `signatureVersion` | PowerAuth signature version |
 | `Long` | `forcedSignatureVersion` | Forced signature version used during activation upgrade |
 
 #### Response
