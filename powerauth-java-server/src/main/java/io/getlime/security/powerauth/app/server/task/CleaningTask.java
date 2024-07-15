@@ -19,6 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.task;
 
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventDispatcher;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.TemporaryKeyBehavior;
@@ -47,6 +48,8 @@ public class CleaningTask {
     private final ActivationServiceBehavior activationServiceBehavior;
 
     private final TemporaryKeyBehavior temporaryKeyBehavior;
+
+    private final CallbackUrlEventDispatcher callbackUrlEventDispatcher;
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.uniqueValueCleanup:60000}")
     @SchedulerLock(
@@ -86,6 +89,22 @@ public class CleaningTask {
         LockAssert.assertLocked();
         logger.debug("Calling scheduled expiration of temporary keys");
         temporaryKeyBehavior.expireTemporaryKeys();
+    }
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.retryFailedCallbackUrlEvent:3000}")
+    @SchedulerLock(name = "retryFailedCallbackUrlEvent")
+    public void callbackEvents() {
+        LockAssert.assertLocked();
+        logger.debug("dispatchFailedCallbackUrlEvent");
+        callbackUrlEventDispatcher.dispatchFailedCallbackUrlEvent();
+    }
+
+    @Scheduled(cron = "${powerauth.service.scheduled.job.CallbackUrlEventsCleanupCron:0 0 0 */3 * *}")
+    @SchedulerLock(name = "callbackUrlEventsCleanup")
+    public void cleanEvents() {
+        LockAssert.assertLocked();
+        logger.debug("deleteCallbackUrlEvents");
+        callbackUrlEventDispatcher.deleteCallbackUrlEventsAfterRetentionPeriod();
     }
 
 }
