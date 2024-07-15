@@ -31,3 +31,32 @@ values supported by the WebAuthn protocol, serialized as a JSON array.
 A new column `status_reason` has been added to the `pa_operation` table.
 It provides optional details why the status changed.
 The value should be sent in the form of a computer-readable code, not a free-form text.
+
+### Idempotency-Key of Callback URL Events
+
+Callback URL Events now include an `Idempotency-Key` in the HTTP request header. It is a unique key to recognize retries
+of the same request.
+
+### New Database Table for Callback Events Monitoring
+
+A new `pa_application_callback_event` table has been created to monitor Callback URL Events. This change introduces
+the additional benefit of setting a retry strategy for individual Callback URL Events and monitoring the state of each
+dispatched event. The table contains following columns:
+- `id` - Event identifier, used also as the `Idempotency-Key`.
+- `application_callback_id` - Reference for corresponding Callback URL record in the `pa_application_callback` table.
+- `status` - Current state of the Callback URL Event.
+- `timestamp_created` - Creation timestamp of the Callback URL Event.
+- `timestamp_last_call` - Timestamp of the last time the Callback URL Event was sent.
+- `timestamp_next_call` - Timestamp of the next scheduled time to send the Callback URL Event.
+- `timestamp_delete_after` - Timestamp after which the Callback URL Event record should be deleted from the table.
+- `attempts` - Number of dispatch attempts made for the Callback URL Event.
+
+### Add Columns to Configure Callback Retry Strategy
+
+New columns has been added to the `pa_application_callback` table. These columns provide additional configuration
+options for the retry strategy with an exponential backoff algorithm. Namely:
+- `max_attempts` to set the maximum number of attempts to dispatch a callback,
+- `initial_backoff` to set the initial backoff period  before the next send attempt in milliseconds, and
+- `retention_period` to set the duration for which is the callback event stored.
+
+These settings at the individual callback level overrides the global default settings at the application level.
