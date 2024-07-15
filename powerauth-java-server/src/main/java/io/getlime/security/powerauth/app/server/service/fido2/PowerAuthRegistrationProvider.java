@@ -39,6 +39,8 @@ import io.getlime.security.powerauth.app.server.database.repository.ActivationRe
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
+import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -68,14 +70,16 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
 
     private final ActivationServiceBehavior activations;
     private final ApplicationConfigServiceBehavior applicationConfig;
+    private final ActivationQueryService activationQueryService;
 
     @Autowired
-    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter, ActivationServiceBehavior activations, ApplicationConfigServiceBehavior applicationConfig) {
+    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter, ActivationServiceBehavior activations, ApplicationConfigServiceBehavior applicationConfig, ActivationQueryService activationQueryService) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.authenticatorProvider = authenticatorProvider;
         this.registrationChallengeConverter = registrationChallengeConverter;
         this.activations = activations;
         this.applicationConfig = applicationConfig;
+        this.activationQueryService = activationQueryService;
     }
 
     @Override
@@ -120,15 +124,14 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final String activationCode = split[0];
 
         // Only allow created activations to be finished
-        final ActivationRecordEntity activationRecordEntity = repositoryCatalogue.getActivationRepository()
-                .findCreatedActivationWithoutLock(applicationId, activationCode, List.of(ActivationStatus.CREATED), currentTimestamp);
+        ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, List.of(ActivationStatus.CREATED), currentTimestamp).orElseThrow(() -> {
+            logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
+            // Rollback is not required, error occurs before writing to database
+            return new Fido2AuthenticationFailedException("Activation could not be found");
+        });
 
-        if (activationRecordEntity == null) {
-            throw new Fido2AuthenticationFailedException("Activation failed");
-        }
-
-        final String activationId = activationRecordEntity.getActivationId();
-        final String userId = activationRecordEntity.getUserId();
+        final String activationId = activation.getActivationId();
+        final String userId = activation.getUserId();
 
         final RegistrationChallenge assertionChallenge = new RegistrationChallenge();
         assertionChallenge.setChallenge(challengeValue);
@@ -155,15 +158,13 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final String activationCode = split[0];
 
         final List<ActivationStatus> statuses = List.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT, ActivationStatus.ACTIVE, ActivationStatus.BLOCKED);
-        final ActivationRecordEntity activationRecordEntity = repositoryCatalogue.getActivationRepository()
-                .findCreatedActivationWithoutLock(applicationId, activationCode, statuses, currentTimestamp);
+        final ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, statuses, currentTimestamp).orElseThrow(() -> {
+            logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
+            // Rollback is not required, error occurs before writing to database
+            return new Fido2AuthenticationFailedException("Activation could not be found");
+        });
 
-        if (activationRecordEntity == null) {
-            // Registration was not completed.
-            return;
-        }
-
-        final String activationId = activationRecordEntity.getActivationId();
+        final String activationId = activation.getActivationId();
         try {
             final RemoveActivationRequest removeActivationRequest = new RemoveActivationRequest();
             removeActivationRequest.setActivationId(activationId);

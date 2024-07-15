@@ -71,10 +71,10 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
             "    END \n" +
             "    ELSE\n" +
             "    BEGIN\n" +
-            "        select * from pa_operation where operation_id = ?1\n" +
+            "        select * from pa_operation where id = ?1\n" +
             "        COMMIT TRANSACTION;\n" +
             "    END\n", nativeQuery = true)
-    Optional<OperationEntity> findOperationWithLockMSSQL(String operationId);
+    Optional<OperationEntity> findOperationWithLockMssql(String operationId);
 
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperation(String operationId);

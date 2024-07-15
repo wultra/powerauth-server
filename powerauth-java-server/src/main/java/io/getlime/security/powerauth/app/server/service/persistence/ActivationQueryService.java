@@ -18,6 +18,7 @@
 package io.getlime.security.powerauth.app.server.service.persistence;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.stereotype.Service;
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -38,12 +42,12 @@ public class ActivationQueryService {
     private static final Logger logger = LoggerFactory.getLogger(ActivationQueryService.class);
 
     private final ActivationRepository activationRepository;
-    private final DataSourceProperties dataSourceProperties;
+    private final boolean isMssql;
 
     @Autowired
     public ActivationQueryService(ActivationRepository activationRepository, DataSourceProperties dataSourceProperties) {
         this.activationRepository = activationRepository;
-        this.dataSourceProperties = dataSourceProperties;
+        isMssql = dataSourceProperties.getUrl().contains("jdbc:sqlserver");
     }
 
     /**
@@ -53,11 +57,33 @@ public class ActivationQueryService {
      */
     public Optional<ActivationRecordEntity> findActivationForUpdate(String activationId) {
         try {
-            if (dataSourceProperties.getUrl().contains("jdbc:sqlserver")) {
+            if (isMssql) {
                 // Find and lock activation using stored procedure for MSSQL
-                return activationRepository.findActivationWithLockMSSQL(activationId);
+                return activationRepository.findActivationWithLockMssql(activationId);
             }
             return activationRepository.findActivationWithLock(activationId);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * Find an activation by code without a lock. The record may be updated by another transaction.
+     * @param applicationId Application ID.
+     * @param activationCode Activation code.
+     * @param states Allowed states.
+     * @param currentTimestamp Current timestamp.
+     * @return Activation, if present.
+     */
+    public Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp) {
+        try {
+            if (isMssql) {
+                // Find and lock activation using stored procedure for MSSQL
+                final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
+                return activationRepository.findCreatedActivationWithoutLockMssql(applicationId, activationCode, statesBytes, currentTimestamp);
+            }
+            return activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, currentTimestamp);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Optional.empty();

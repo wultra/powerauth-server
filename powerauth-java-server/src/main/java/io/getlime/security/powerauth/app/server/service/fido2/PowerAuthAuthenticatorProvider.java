@@ -186,14 +186,11 @@ public class PowerAuthAuthenticatorProvider implements AuthenticatorProvider {
             // Fetch the current activation by activation code
             final Set<io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus> states = Set.of(io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
-            ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, timestamp);
-
-            // Check if the activation exists
-            if (activation == null) {
+            ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, states, timestamp).orElseThrow(() -> {
                 logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             // Make sure this is the FIDO2 authenticator
             if (activation.getProtocol() != io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol.FIDO2) {

@@ -38,12 +38,12 @@ public class OperationQueryService {
     private static final Logger logger = LoggerFactory.getLogger(OperationQueryService.class);
 
     private final OperationRepository operationRepository;
-    private final DataSourceProperties dataSourceProperties;
+    private final boolean isMssql;
 
     @Autowired
     public OperationQueryService(OperationRepository operationRepository, DataSourceProperties dataSourceProperties) {
         this.operationRepository = operationRepository;
-        this.dataSourceProperties = dataSourceProperties;
+        this.isMssql = dataSourceProperties.getUrl().contains("jdbc:sqlserver");
     }
 
     /**
@@ -53,9 +53,9 @@ public class OperationQueryService {
      */
     public Optional<OperationEntity> findOperationForUpdate(String operationId) {
         try {
-            if (dataSourceProperties.getUrl().contains("jdbc:sqlserver")) {
+            if (isMssql) {
                 // Find and lock operation using stored procedure for MSSQL
-                return operationRepository.findOperationWithLockMSSQL(operationId);
+                return operationRepository.findOperationWithLockMssql(operationId);
             }
             return operationRepository.findOperationWithLock(operationId);
         } catch (Exception ex) {

@@ -78,7 +78,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
             "        SELECT * FROM pa_activation WHERE activation_id = ?1\n" +
             "        COMMIT TRANSACTION;\n" +
             "    END\n", nativeQuery = true)
-    Optional<ActivationRecordEntity> findActivationWithLockMSSQL(String activationId);
+    Optional<ActivationRecordEntity> findActivationWithLockMssql(String activationId);
 
     /**
      * Find the first activation with given activation ID.
@@ -124,6 +124,27 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * Find the first activation associated with given application by the activation code.
      * Filter the results by activation state and make sure to apply activation time window.
      *
+     * Native query contains a workaround for MSSQL which avoids deadlock on activations by avoiding locking data.
+     * The data needs to be locked later by calling findActivationWithLockMssql().
+     *
+     * <p><b>PowerAuth protocol versions:</b>
+     * <ul>
+     *     <li>3.0</li>
+     * </ul>
+     *
+     * @param applicationId     Application ID
+     * @param activationCode    Activation code
+     * @param states            Allowed activation states
+     * @param currentTimestamp  Current timestamp
+     * @return Activation matching the search criteria or null if not found
+     */
+    @Query(value = "SELECT a.* FROM pa_activation a WITH (NOLOCK) JOIN pa_application app WITH (NOLOCK) ON app.id = a.application_id WHERE app.name = :applicationId AND a.activation_code = :activationCode AND a.activation_status IN (:states) AND a.timestamp_activation_expire > :currentTimestamp", nativeQuery = true)
+    Optional<ActivationRecordEntity> findCreatedActivationWithoutLockMssql(String applicationId, String activationCode, Collection<Byte> states, Date currentTimestamp);
+
+    /**
+     * Find the first activation associated with given application by the activation code.
+     * Filter the results by activation state and make sure to apply activation time window.
+     *
      * <p><b>PowerAuth protocol versions:</b>
      * <ul>
      *     <li>3.0</li>
@@ -136,7 +157,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Activation matching the search criteria or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode = :activationCode AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    ActivationRecordEntity findCreatedActivationWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+    Optional<ActivationRecordEntity> findCreatedActivationWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Get count of activations identified by an activation short ID associated with given application.
