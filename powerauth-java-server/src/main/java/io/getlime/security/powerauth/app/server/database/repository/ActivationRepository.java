@@ -139,7 +139,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Activation matching the search criteria or null if not found
      */
     @Query(value = "SELECT a.* FROM pa_activation a WITH (NOLOCK) JOIN pa_application app WITH (NOLOCK) ON app.id = a.application_id WHERE app.name = :applicationId AND a.activation_code = :activationCode AND a.activation_status IN (:states) AND a.timestamp_activation_expire > :currentTimestamp", nativeQuery = true)
-    Optional<ActivationRecordEntity> findCreatedActivationWithoutLockMssql(String applicationId, String activationCode, Collection<Byte> states, Date currentTimestamp);
+    Optional<ActivationRecordEntity> findActivationByCodeWithoutLockMssql(String applicationId, String activationCode, Collection<Byte> states, Date currentTimestamp);
 
     /**
      * Find the first activation associated with given application by the activation code.
@@ -157,7 +157,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Activation matching the search criteria or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode = :activationCode AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    Optional<ActivationRecordEntity> findCreatedActivationWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+    Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Get count of activations identified by an activation short ID associated with given application.

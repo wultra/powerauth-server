@@ -81,9 +81,9 @@ public class ActivationQueryService {
             if (isMssql) {
                 // Find and lock activation using stored procedure for MSSQL
                 final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
-                return activationRepository.findCreatedActivationWithoutLockMssql(applicationId, activationCode, statesBytes, currentTimestamp);
+                return activationRepository.findActivationByCodeWithoutLockMssql(applicationId, activationCode, statesBytes, currentTimestamp);
             }
-            return activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, currentTimestamp);
+            return activationRepository.findActivationByCodeWithoutLock(applicationId, activationCode, states, currentTimestamp);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Optional.empty();
