@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_application_callback_event" />
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_callback_event</comment>
+        <createTable tableName="pa_application_callback_event">
+            <column name="id" type="varchar(36)">
+                <constraints primaryKey="true" nullable="false" />
+            </column>
+            <column name="application_callback_id" type="varchar(37)">
+                <constraints nullable="false" foreignKeyName="pa_application_callback_id_fk" referencedTableName="pa_application_callback" referencedColumnNames="id" />
+            </column>
+            <column name="callback_data" type="text">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="varchar(255)" >
+                <constraints nullable="false" />
+            </column>
+            <column name="timestamp_created" type="timestamp(6)" defaultValueComputed="${now}" />
+            <column name="timestamp_last_call" type="timestamp(6)" />
+            <column name="timestamp_next_call" type="timestamp(6)" />
+            <column name="timestamp_delete_after" type="timestamp(6)" />
+            <column name="attempts" type="integer" defaultValueNumeric="0" />
+        </createTable>
+    </changeSet>
+
+    <changeSet id="2" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_application_callback" columnName="max_attempts" />
+            </not>
+        </preConditions>
+        <comment>Add max_attempts column to pa_application_callback table.</comment>
+        <addColumn tableName="pa_application_callback">
+            <column name="max_attempts" type="integer" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="3" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_application_callback" columnName="initial_backoff" />
+            </not>
+        </preConditions>
+        <comment>Add initial_backoff column to pa_application_callback table.</comment>
+        <addColumn tableName="pa_application_callback">
+            <column name="initial_backoff" type="integer" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="4" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_application_callback" columnName="retention_period" />
+            </not>
+        </preConditions>
+        <comment>Add retention_period column to pa_application_callback table.</comment>
+        <addColumn tableName="pa_application_callback">
+            <column name="retention_period" type="varchar(255)" />
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>
