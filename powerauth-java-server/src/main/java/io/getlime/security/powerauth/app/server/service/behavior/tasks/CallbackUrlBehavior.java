@@ -17,8 +17,6 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.core.rest.client.base.DefaultRestClient;
-import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
@@ -30,27 +28,27 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventDispatcher;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.ResponseEntity;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -64,14 +62,13 @@ public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
+    private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final CallbackUrlEventDispatcher callbackUrlEventDispatcher;
     private LocalizationProvider localizationProvider;
-    private PowerAuthServiceConfiguration configuration;
-
-    // Store REST clients in cache with their callback ID as a key
-    private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
-    private final Object restClientCacheLock = new Object();
 
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
+
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Behavior constructor.
@@ -79,19 +76,17 @@ public class CallbackUrlBehavior {
      * @param applicationRepository Application repository.
      */
     @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository) {
+    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository, final CallbackUrlEventRepository callbackUrlEventRepository, final CallbackUrlEventDispatcher callbackUrlEventDispatcher, final ApplicationEventPublisher eventPublisher) {
         this.callbackUrlRepository = callbackUrlRepository;
         this.applicationRepository = applicationRepository;
+        this.callbackUrlEventRepository = callbackUrlEventRepository;
+        this.callbackUrlEventDispatcher = callbackUrlEventDispatcher;
+        this.eventPublisher = eventPublisher;
     }
 
     @Autowired
     public void setLocalizationProvider(LocalizationProvider localizationProvider) {
         this.localizationProvider = localizationProvider;
-    }
-
-    @Autowired
-    public void setConfiguration(PowerAuthServiceConfiguration configuration) {
-        this.configuration = configuration;
     }
 
     /**
@@ -189,7 +184,7 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            evictRestClientFromCache(entity);
+            callbackUrlEventDispatcher.evictRestClientFromCache(entity);
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -287,7 +282,7 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                evictRestClientFromCache(callbackEntity);
+                callbackUrlEventDispatcher.evictRestClientFromCache(callbackEntity);
                 callbackUrlRepository.delete(callbackEntity);
                 response.setRemoved(true);
             } else {
@@ -458,110 +453,16 @@ public class CallbackUrlBehavior {
      * @throws RestClientException Thrown when HTTP request fails.
      */
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException {
-        final Consumer<ResponseEntity<String>> onSuccess = response -> logger.info("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
-        final Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-        final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
-        final RestClient restClient = getRestClient(callbackUrlEntity);
-        restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
-    }
+        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
+        callbackUrlEventEntity.setId(UUID.randomUUID().toString());
+        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackData(callbackData);
+        callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
+        callbackUrlEventEntity.setAttempts(0);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PENDING);
+        callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-    /**
-     * Get a rest client for a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     * @throws RestClientException Thrown when rest client initialization fails.
-     */
-    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        RestClient restClient;
-        synchronized (restClientCacheLock) {
-            restClient = restClientCache.get(cacheKey);
-            if (restClient == null) {
-                logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
-                restClient = createRestClientAndStoreInCache(callbackUrlEntity);
-            } else {
-                logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
-            }
-        }
-        return restClient;
-    }
-
-    /**
-     * Get a key for the REST client cache from a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Cache key.
-     */
-    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
-        return callbackUrlEntity.getId();
-    }
-
-    /**
-     * Create a new REST client and store it in cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     */
-    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        final RestClient restClient = initializeRestClient(callbackUrlEntity);
-        restClientCache.put(cacheKey, restClient);
-        return restClient;
-    }
-
-    /**
-     * Evict an instance from REST client cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     */
-    private void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
-        synchronized (restClientCacheLock) {
-            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
-        }
-    }
-
-    /**
-     * Initialize Rest client instance and configure it based on client configuration.
-     * @param callbackUrlEntity Callback URL entity.
-     */
-    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
-        final DefaultRestClient.Builder builder = DefaultRestClient.builder();
-        if (configuration.getHttpConnectionTimeout() != null) {
-            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
-        }
-        if (configuration.getHttpResponseTimeout() != null) {
-            builder.responseTimeout(configuration.getHttpResponseTimeout());
-        }
-        if (configuration.getHttpMaxIdleTime() != null) {
-            builder.maxIdleTime(configuration.getHttpMaxIdleTime());
-        }
-        if (configuration.getHttpProxyEnabled()) {
-            final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
-            if (configuration.getHttpProxyUsername() != null) {
-                proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
-            }
-        }
-        final CallbackUrlAuthenticationEntity authentication = callbackUrlEntity.getAuthentication();
-        final CallbackUrlAuthenticationEntity.Certificate certificateAuth = authentication.getCertificate();
-        if (certificateAuth != null && certificateAuth.isEnabled()) {
-            final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
-            if (certificateAuth.isUseCustomKeyStore()) {
-                certificateAuthBuilder.enableCustomKeyStore()
-                        .keyStoreLocation(certificateAuth.getKeyStoreLocation())
-                        .keyStorePassword(certificateAuth.getKeyStorePassword())
-                        .keyAlias(certificateAuth.getKeyAlias())
-                        .keyPassword(certificateAuth.getKeyPassword());
-            }
-            if (certificateAuth.isUseCustomTrustStore()) {
-                certificateAuthBuilder.enableCustomTruststore()
-                        .trustStoreLocation(certificateAuth.getTrustStoreLocation())
-                        .trustStorePassword(certificateAuth.getTrustStorePassword());
-            }
-        }
-        final CallbackUrlAuthenticationEntity.HttpBasic httpBasicAuth = authentication.getHttpBasic();
-        if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
-            builder.httpBasicAuth()
-                    .username(httpBasicAuth.getUsername())
-                    .password(httpBasicAuth.getPassword());
-        }
-        return builder.build();
+        eventPublisher.publishEvent(callbackUrlEventEntity);
     }
 
 }
