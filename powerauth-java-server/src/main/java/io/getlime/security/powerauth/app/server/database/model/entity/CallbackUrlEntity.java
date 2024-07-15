@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.converter.CallbackAttributeConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.CallbackUrlTypeConverter;
+import io.getlime.security.powerauth.app.server.database.model.converter.DurationConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
@@ -27,6 +28,7 @@ import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 
@@ -95,6 +97,25 @@ public class CallbackUrlEntity implements Serializable {
     @Enumerated(EnumType.STRING)
     @Column(name = "encryption_mode", nullable = false, columnDefinition = "varchar(255) default 'NO_ENCRYPTION'")
     private EncryptionMode encryptionMode;
+
+    /**
+     * Maximum number of attempts to send the callback.
+     */
+    @Column(name = "max_attempts")
+    private Integer maxAttempts;
+
+    /**
+     * Initial backoff before the next send attempt in milliseconds.
+     */
+    @Column(name = "initial_backoff")
+    private Long initialBackoff;
+
+    /**
+     * Duration for which is the callback event stored.
+     */
+    @Column(name = "retention_period")
+    @Convert(converter = DurationConverter.class)
+    private Duration retentionPeriod;
 
     @Override
     public boolean equals(Object o) {
