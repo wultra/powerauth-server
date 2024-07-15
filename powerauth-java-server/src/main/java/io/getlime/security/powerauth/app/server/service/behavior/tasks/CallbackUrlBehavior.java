@@ -17,12 +17,9 @@
  */
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
-import com.wultra.core.rest.client.base.DefaultRestClient;
-import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPrivate;
-import com.wultra.security.powerauth.client.model.entity.HttpAuthenticationPublic;
 import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
 import com.wultra.security.powerauth.client.model.request.GetCallbackUrlListRequest;
 import com.wultra.security.powerauth.client.model.request.RemoveCallbackUrlRequest;
@@ -31,39 +28,28 @@ import com.wultra.security.powerauth.client.model.response.CreateCallbackUrlResp
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.client.model.response.RemoveCallbackUrlResponse;
 import com.wultra.security.powerauth.client.model.response.UpdateCallbackUrlResponse;
-import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
-import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationConverter;
-import io.getlime.security.powerauth.app.server.converter.CallbackAuthenticationPublicConverter;
 import io.getlime.security.powerauth.app.server.database.model.entity.*;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlType;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationCryptor;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
-import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventDispatcher;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
-import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
-import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
-import org.springframework.security.oauth2.core.AuthorizationGrantType;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -78,16 +64,12 @@ public class CallbackUrlBehavior {
 
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
+    private final CallbackUrlEventRepository callbackUrlEventRepository;
+    private final CallbackUrlEventDispatcher callbackUrlEventDispatcher;
     private LocalizationProvider localizationProvider;
-    private PowerAuthServiceConfiguration configuration;
-    private CallbackAuthenticationConverter callbackAuthenticationConverter;
-    private EncryptionService encryptionService;
+    private CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
 
-    // Store REST clients in cache with their callback ID as a key
-    private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
-    private final Object restClientCacheLock = new Object();
-
-    private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -129,7 +111,7 @@ public class CallbackUrlBehavior {
             entity.setType(CallbackUrlType.valueOf(request.getType()));
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
-            final EncryptableString encrypted = encrypt(request.getAuthentication(), entity.getApplication().getId());
+            final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(request.getAuthentication(), entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
             callbackUrlRepository.save(entity);
@@ -141,7 +123,7 @@ public class CallbackUrlBehavior {
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
             }
-            response.setAuthentication(decryptToPublic(entity));
+            response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -186,14 +168,14 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            evictRestClientFromCache(entity);
+            callbackUrlEventDispatcher.evictRestClientFromCache(entity);
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
             entity.setAttributes(request.getAttributes());
             // Retain existing passwords in case new password is not set
             final HttpAuthenticationPrivate authRequest = request.getAuthentication();
-            final CallbackUrlAuthentication authExisting = decrypt(entity);
+            final CallbackUrlAuthentication authExisting = callbackUrlAuthenticationCryptor.decrypt(entity);
             if (authRequest != null) {
                 if (authRequest.getCertificate() != null && authExisting.getCertificate() != null) {
                     if (authExisting.getCertificate().getKeyStorePassword() != null && authRequest.getCertificate().getKeyStorePassword() == null) {
@@ -215,7 +197,7 @@ public class CallbackUrlBehavior {
                     authRequest.getOAuth2().setClientSecret(authExisting.getOAuth2().getClientSecret());
                 }
             }
-            final EncryptableString encrypted = encrypt(authRequest, entity.getApplication().getId());
+            final EncryptableString encrypted = callbackUrlAuthenticationCryptor.encrypt(authRequest, entity.getApplication().getId());
             entity.setAuthentication(encrypted.encryptedData());
             entity.setEncryptionMode(encrypted.encryptionMode());
             callbackUrlRepository.save(entity);
@@ -229,7 +211,7 @@ public class CallbackUrlBehavior {
             if (entity.getAttributes() != null) {
                 response.getAttributes().addAll(entity.getAttributes());
             }
-            response.setAuthentication(decryptToPublic(entity));
+            response.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(entity));
             return response;
         } catch (GenericServiceException ex) {
             // already logged
@@ -263,7 +245,7 @@ public class CallbackUrlBehavior {
                 if (callbackUrl.getAttributes() != null) {
                     item.getAttributes().addAll(callbackUrl.getAttributes());
                 }
-                item.setAuthentication(decryptToPublic(callbackUrl));
+                item.setAuthentication(callbackUrlAuthenticationCryptor.decryptToPublic(callbackUrl));
                 response.getCallbackUrlList().add(item);
             }
             return response;
@@ -289,7 +271,7 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                evictRestClientFromCache(callbackEntity);
+                callbackUrlEventDispatcher.evictRestClientFromCache(callbackEntity);
                 callbackUrlRepository.delete(callbackEntity);
                 response.setRemoved(true);
             } else {
@@ -461,160 +443,16 @@ public class CallbackUrlBehavior {
      * @throws GenericServiceException Thrown when callback configuration is wrong.
      */
     private void notifyCallbackUrl(CallbackUrlEntity callbackUrlEntity, Map<String, Object> callbackData) throws RestClientException, GenericServiceException {
-        final Consumer<ResponseEntity<String>> onSuccess = response -> logger.info("Callback succeeded, URL: {}", callbackUrlEntity.getCallbackUrl());
-        final Consumer<Throwable> onError = error -> logger.warn("Callback failed, URL: {}, error: {}", callbackUrlEntity.getCallbackUrl(), error.getMessage());
-        final ParameterizedTypeReference<String> responseType = new ParameterizedTypeReference<>(){};
-        final RestClient restClient = getRestClient(callbackUrlEntity);
-        restClient.postNonBlocking(callbackUrlEntity.getCallbackUrl(), callbackData, responseType, onSuccess, onError);
+        final CallbackUrlEventEntity callbackUrlEventEntity = new CallbackUrlEventEntity();
+        callbackUrlEventEntity.setId(UUID.randomUUID().toString());
+        callbackUrlEventEntity.setCallbackUrlEntity(callbackUrlEntity);
+        callbackUrlEventEntity.setCallbackData(callbackData);
+        callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
+        callbackUrlEventEntity.setAttempts(0);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PENDING);
+        callbackUrlEventRepository.save(callbackUrlEventEntity);
+
+        eventPublisher.publishEvent(callbackUrlEventEntity);
     }
 
-    /**
-     * Get a rest client for a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     * @throws RestClientException Thrown when rest client initialization fails.
-     * @throws GenericServiceException Thrown when callback configuration is wrong.
-     */
-    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        RestClient restClient;
-        synchronized (restClientCacheLock) {
-            restClient = restClientCache.get(cacheKey);
-            if (restClient == null) {
-                logger.debug("REST client not found in cache, initializing new REST client, callback cache key: {}", cacheKey);
-                restClient = createRestClientAndStoreInCache(callbackUrlEntity);
-            } else {
-                logger.debug("REST client found in cache, callback cache key: {}", cacheKey);
-            }
-        }
-        return restClient;
-    }
-
-    /**
-     * Get a key for the REST client cache from a callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Cache key.
-     */
-    private String getRestClientCacheKey(final CallbackUrlEntity callbackUrlEntity) {
-        return callbackUrlEntity.getId();
-    }
-
-    /**
-     * Create a new REST client and store it in cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     * @return Rest client.
-     */
-    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
-        final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
-        final RestClient restClient = initializeRestClient(callbackUrlEntity);
-        restClientCache.put(cacheKey, restClient);
-        return restClient;
-    }
-
-    /**
-     * Evict an instance from REST client cache for given callback URL entity.
-     * @param callbackUrlEntity Callback URL entity.
-     */
-    private void evictRestClientFromCache(final CallbackUrlEntity callbackUrlEntity) {
-        synchronized (restClientCacheLock) {
-            restClientCache.remove(getRestClientCacheKey(callbackUrlEntity));
-        }
-    }
-
-    /**
-     * Initialize Rest client instance and configure it based on client configuration.
-     * @param callbackUrlEntity Callback URL entity.
-     */
-    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
-        final DefaultRestClient.Builder builder = DefaultRestClient.builder();
-        if (configuration.getHttpConnectionTimeout() != null) {
-            builder.connectionTimeout(configuration.getHttpConnectionTimeout());
-        }
-        if (configuration.getHttpResponseTimeout() != null) {
-            builder.responseTimeout(configuration.getHttpResponseTimeout());
-        }
-        if (configuration.getHttpMaxIdleTime() != null) {
-            builder.maxIdleTime(configuration.getHttpMaxIdleTime());
-        }
-        if (configuration.getHttpProxyEnabled()) {
-            final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(configuration.getHttpProxyHost()).port(configuration.getHttpProxyPort());
-            if (configuration.getHttpProxyUsername() != null) {
-                proxyBuilder.username(configuration.getHttpProxyUsername()).password(configuration.getHttpProxyPassword());
-            }
-        }
-        final CallbackUrlAuthentication authentication = decrypt(callbackUrlEntity);
-        final CallbackUrlAuthentication.Certificate certificateAuth = authentication.getCertificate();
-        if (certificateAuth != null && certificateAuth.isEnabled()) {
-            final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
-            if (certificateAuth.isUseCustomKeyStore()) {
-                certificateAuthBuilder.enableCustomKeyStore()
-                        .keyStoreLocation(certificateAuth.getKeyStoreLocation())
-                        .keyStorePassword(certificateAuth.getKeyStorePassword())
-                        .keyAlias(certificateAuth.getKeyAlias())
-                        .keyPassword(certificateAuth.getKeyPassword());
-            }
-            if (certificateAuth.isUseCustomTrustStore()) {
-                certificateAuthBuilder.enableCustomTruststore()
-                        .trustStoreLocation(certificateAuth.getTrustStoreLocation())
-                        .trustStorePassword(certificateAuth.getTrustStorePassword());
-            }
-        }
-        final CallbackUrlAuthentication.HttpBasic httpBasicAuth = authentication.getHttpBasic();
-        if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
-            builder.httpBasicAuth()
-                    .username(httpBasicAuth.getUsername())
-                    .password(httpBasicAuth.getPassword());
-        }
-
-        final CallbackUrlAuthentication.OAuth2 oAuth2Config = authentication.getOAuth2();
-        if (oAuth2Config != null && oAuth2Config.isEnabled()) {
-            builder.filter(configureOAuth2ExchangeFilter(oAuth2Config, callbackUrlEntity.getId()));
-        }
-
-        return builder.build();
-    }
-
-    private static ServerOAuth2AuthorizedClientExchangeFilterFunction configureOAuth2ExchangeFilter(final CallbackUrlAuthentication.OAuth2 config, final String callbackId) {
-        logger.debug("Configuring OAuth2 for callback ID: {}", callbackId);
-        final String registrationId = "callback OAuth2";
-        final ClientRegistration clientRegistration = ClientRegistration.withRegistrationId(registrationId)
-                .tokenUri(config.getTokenUri())
-                .clientId(config.getClientId())
-                .clientSecret(config.getClientSecret())
-                .scope(config.getScope())
-                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
-                .build();
-
-        final ReactiveClientRegistrationRepository clientRegistrations = new InMemoryReactiveClientRegistrationRepository(clientRegistration);
-        final ReactiveOAuth2AuthorizedClientService clientService = new InMemoryReactiveOAuth2AuthorizedClientService(clientRegistrations);
-
-        final AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager = new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(clientRegistrations, clientService);
-        final ServerOAuth2AuthorizedClientExchangeFilterFunction oAuth2ExchangeFilterFunction = new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
-        oAuth2ExchangeFilterFunction.setDefaultClientRegistrationId(registrationId);
-        return oAuth2ExchangeFilterFunction;
-    }
-
-    private EncryptableString encrypt(final HttpAuthenticationPrivate source, final String applicationId) throws GenericServiceException {
-        final CallbackUrlAuthentication callbackAuthentication = authenticationPublicConverter.fromNetworkObject(source);
-        final String callbackAuthenticationString = callbackAuthenticationConverter.convertToDatabaseColumn(callbackAuthentication);
-        return encryptionService.encrypt(callbackAuthenticationString, createEncryptionKeyProvider(applicationId));
-    }
-
-    private CallbackUrlAuthentication decrypt(final CallbackUrlEntity entity) throws GenericServiceException {
-        final String authentication = entity.getAuthentication();
-        if (authentication == null) {
-            return new CallbackUrlAuthentication();
-        }
-        final String existingCallbackAuthenticationString = encryptionService.decrypt(authentication, entity.getEncryptionMode(), createEncryptionKeyProvider(entity.getApplication().getId()));
-        return callbackAuthenticationConverter.convertToEntityAttribute(existingCallbackAuthenticationString);
-    }
-
-    private HttpAuthenticationPublic decryptToPublic(final CallbackUrlEntity entity) throws GenericServiceException {
-        final CallbackUrlAuthentication authentication = decrypt(entity);
-        return authenticationPublicConverter.toPublic(authentication);
-    }
-
-    private static Supplier<List<String>> createEncryptionKeyProvider(final String applicationId) {
-        return () -> List.of(applicationId);
-    }
 }

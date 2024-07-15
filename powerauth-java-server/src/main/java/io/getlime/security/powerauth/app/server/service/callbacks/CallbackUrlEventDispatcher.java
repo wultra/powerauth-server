@@ -23,17 +23,26 @@ import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthCallbacksConfiguration;
 import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
+import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthentication;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlAuthenticationEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
+import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
+import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
+import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.client.registration.InMemoryReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
+import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -69,6 +78,7 @@ public class CallbackUrlEventDispatcher {
     private CallbackUrlEventRepository callbackUrlEventRepository;
     private PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration;
+    private CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
 
     // Store REST clients in cache with their callback ID as a key
     private final Map<String, RestClient> restClientCache = new ConcurrentHashMap<>();
@@ -139,7 +149,7 @@ public class CallbackUrlEventDispatcher {
                     onError);
 
             logger.debug("CallbackUrlEvent {} was dispatched.", callbackUrlEventEntity.getId());
-        } catch (RestClientException e) {
+        } catch (RestClientException | GenericServiceException e) {
             handleCallbackFailure(callbackUrlEventEntity, e);
         }
     }
@@ -228,12 +238,13 @@ public class CallbackUrlEventDispatcher {
     }
 
     /**
-     * Get a rest client for a callback url entity.
-     * @param callbackUrlEntity Callback url entity.
+     * Get a rest client for a callback URL entity.
+     * @param callbackUrlEntity Callback URL entity.
      * @return Rest client.
      * @throws RestClientException Thrown when rest client initialization fails.
+     * @throws GenericServiceException Thrown when callback configuration is wrong.
      */
-    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+    private RestClient getRestClient(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
         final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
         RestClient restClient;
         synchronized (restClientCacheLock) {
@@ -262,7 +273,7 @@ public class CallbackUrlEventDispatcher {
      * @param callbackUrlEntity Callback URL entity.
      * @return Rest client.
      */
-    private RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+    public RestClient createRestClientAndStoreInCache(final CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
         final String cacheKey = getRestClientCacheKey(callbackUrlEntity);
         final RestClient restClient = initializeRestClient(callbackUrlEntity);
         restClientCache.put(cacheKey, restClient);
@@ -283,7 +294,7 @@ public class CallbackUrlEventDispatcher {
      * Initialize Rest client instance and configure it based on client configuration.
      * @param callbackUrlEntity Callback URL entity.
      */
-    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException {
+    private RestClient initializeRestClient(CallbackUrlEntity callbackUrlEntity) throws RestClientException, GenericServiceException {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder();
         if (powerAuthServiceConfiguration.getHttpConnectionTimeout() != null) {
             builder.connectionTimeout(powerAuthServiceConfiguration.getHttpConnectionTimeout());
@@ -300,8 +311,8 @@ public class CallbackUrlEventDispatcher {
                 proxyBuilder.username(powerAuthServiceConfiguration.getHttpProxyUsername()).password(powerAuthServiceConfiguration.getHttpProxyPassword());
             }
         }
-        final CallbackUrlAuthenticationEntity authentication = callbackUrlEntity.getAuthentication();
-        final CallbackUrlAuthenticationEntity.Certificate certificateAuth = authentication.getCertificate();
+        final CallbackUrlAuthentication authentication = callbackUrlAuthenticationCryptor.decrypt(callbackUrlEntity);
+        final CallbackUrlAuthentication.Certificate certificateAuth = authentication.getCertificate();
         if (certificateAuth != null && certificateAuth.isEnabled()) {
             final DefaultRestClient.CertificateAuthBuilder certificateAuthBuilder = builder.certificateAuth();
             if (certificateAuth.isUseCustomKeyStore()) {
@@ -317,13 +328,39 @@ public class CallbackUrlEventDispatcher {
                         .trustStorePassword(certificateAuth.getTrustStorePassword());
             }
         }
-        final CallbackUrlAuthenticationEntity.HttpBasic httpBasicAuth = authentication.getHttpBasic();
+        final CallbackUrlAuthentication.HttpBasic httpBasicAuth = authentication.getHttpBasic();
         if (httpBasicAuth != null && httpBasicAuth.isEnabled()) {
             builder.httpBasicAuth()
                     .username(httpBasicAuth.getUsername())
                     .password(httpBasicAuth.getPassword());
         }
+
+        final CallbackUrlAuthentication.OAuth2 oAuth2Config = authentication.getOAuth2();
+        if (oAuth2Config != null && oAuth2Config.isEnabled()) {
+            builder.filter(configureOAuth2ExchangeFilter(oAuth2Config, callbackUrlEntity.getId()));
+        }
+
         return builder.build();
+    }
+
+    private static ServerOAuth2AuthorizedClientExchangeFilterFunction configureOAuth2ExchangeFilter(final CallbackUrlAuthentication.OAuth2 config, final String callbackId) {
+        logger.debug("Configuring OAuth2 for callback ID: {}", callbackId);
+        final String registrationId = "callback OAuth2";
+        final ClientRegistration clientRegistration = ClientRegistration.withRegistrationId(registrationId)
+                .tokenUri(config.getTokenUri())
+                .clientId(config.getClientId())
+                .clientSecret(config.getClientSecret())
+                .scope(config.getScope())
+                .authorizationGrantType(AuthorizationGrantType.CLIENT_CREDENTIALS)
+                .build();
+
+        final ReactiveClientRegistrationRepository clientRegistrations = new InMemoryReactiveClientRegistrationRepository(clientRegistration);
+        final ReactiveOAuth2AuthorizedClientService clientService = new InMemoryReactiveOAuth2AuthorizedClientService(clientRegistrations);
+
+        final AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager authorizedClientManager = new AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager(clientRegistrations, clientService);
+        final ServerOAuth2AuthorizedClientExchangeFilterFunction oAuth2ExchangeFilterFunction = new ServerOAuth2AuthorizedClientExchangeFilterFunction(authorizedClientManager);
+        oAuth2ExchangeFilterFunction.setDefaultClientRegistrationId(registrationId);
+        return oAuth2ExchangeFilterFunction;
     }
 
 }
