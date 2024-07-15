@@ -23,11 +23,13 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Callb
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.util.ProxyUtils;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Entity representing callback URL event.
@@ -73,4 +75,18 @@ public class CallbackUrlEventEntity implements Serializable {
     @Column(name = "attempts")
     private int attempts;
 
+    @Override
+    public boolean equals(final Object o) {
+        if (this == o) return true;
+        if (o == null || !this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
+
+        final CallbackUrlEventEntity that = (CallbackUrlEventEntity) o;
+        return callbackUrlEntity.equals(that.callbackUrlEntity) && callbackData.equals(that.callbackData);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(callbackUrlEntity, callbackData);
+    }
+    
 }
