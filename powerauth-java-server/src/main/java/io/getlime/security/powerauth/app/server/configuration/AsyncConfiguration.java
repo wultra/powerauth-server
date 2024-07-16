@@ -34,7 +34,7 @@ import java.util.concurrent.Executor;
 @EnableAsync
 public class AsyncConfiguration {
 
-    @Bean(name = "callbackUrlEventsThreadPoolExecutor")
+    @Bean
     public Executor callbackUrlEventsThreadPoolExecutor(final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration) {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(powerAuthCallbacksConfiguration.getThreadPoolCoreSize());
