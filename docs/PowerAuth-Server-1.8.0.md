@@ -60,6 +60,7 @@ the additional benefit of setting a retry strategy for individual Callback URL E
 dispatched event. The table contains following columns:
 - `id` - Event identifier, used also as the `Idempotency-Key`.
 - `application_callback_id` - Reference for corresponding Callback URL record in the `pa_application_callback` table.
+- `callback_data` - Data payload of the Callback URL Event.
 - `status` - Current state of the Callback URL Event.
 - `timestamp_created` - Creation timestamp of the Callback URL Event.
 - `timestamp_last_call` - Timestamp of the last time the Callback URL Event was sent.
@@ -72,7 +73,7 @@ dispatched event. The table contains following columns:
 New columns has been added to the `pa_application_callback` table. These columns provide additional configuration
 options for the retry strategy with an exponential backoff algorithm. Namely:
 - `max_attempts` to set the maximum number of attempts to dispatch a callback,
-- `initial_backoff` to set the initial backoff period  before the next send attempt in milliseconds, and
+- `initial_backoff` to set the initial backoff period before the next send attempt in milliseconds, and
 - `retention_period` to set the duration for which is the callback event stored.
 
 These settings at the individual callback level overrides the global default settings at the application level.
