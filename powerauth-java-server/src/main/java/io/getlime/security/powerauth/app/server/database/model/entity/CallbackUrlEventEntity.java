@@ -81,12 +81,12 @@ public class CallbackUrlEventEntity implements Serializable {
         if (o == null || !this.getClass().equals(ProxyUtils.getUserClass(o))) return false;
 
         final CallbackUrlEventEntity that = (CallbackUrlEventEntity) o;
-        return callbackUrlEntity.equals(that.callbackUrlEntity) && callbackData.equals(that.callbackData);
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(callbackUrlEntity, callbackData);
+        return Objects.hash(id);
     }
     
 }
