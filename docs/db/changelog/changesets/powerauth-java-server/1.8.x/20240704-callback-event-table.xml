@@ -68,4 +68,17 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="5" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="pa_application_callback_event_status_timestamp_next_call_idx"/>
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_application_callback_event(status, timestamp_next_call).</comment>
+        <createIndex tableName="pa_application_callback_event" indexName="pa_application_callback_event_status_timestamp_next_call_idx">
+            <column name="status" />
+            <column name="timestamp_next_call" />
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>
