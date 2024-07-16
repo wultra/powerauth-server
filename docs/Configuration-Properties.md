@@ -102,7 +102,7 @@ Callback URL Management API.
 | Property                                                        | Default | Note                                                                                                  |
 |-----------------------------------------------------------------|---------|-------------------------------------------------------------------------------------------------------|
 | `powerauth.service.callbacks.defaultMaxAttempts`                | `1`     | Default maximum number of dispatch attempts for a callback event.                                     |
-| `powerauth.service.callbacks.defaultRetentionPeriod`            | `3d`    | Default retention period of a callback event before deleting its record from the database table.      |
+| `powerauth.service.callbacks.defaultRetentionPeriod`            | `30d`   | Default retention period of a callback event before deleting its record from the database table.      |
 | `powerauth.service.callbacks.defaultInitialBackoffMilliseconds` | `2000`  | Default initial backoff between successive attempts of dispatching a callback event.                  |
 | `powerauth.service.callbacks.maxBackoffMilliseconds`            | `32000` | The maximum allowable backoff period between successive attempts to dispatch a callback event.        |
 | `powerauth.service.callbacks.backoffMultiplier`                 | `1.5`   | The multiplier used to calculate the backoff period.                                                  |

@@ -43,7 +43,7 @@ public class PowerAuthCallbacksConfiguration {
     /**
      * Default retention period of the event in case the corresponding Callback URL does not define any.
      */
-    private Duration defaultRetentionPeriod = Duration.ofDays(3);
+    private Duration defaultRetentionPeriod = Duration.ofDays(30);
 
     /**
      * Default initial backoff between attempts in case the corresponding Callback URL does not define any.
