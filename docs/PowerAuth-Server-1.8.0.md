@@ -68,6 +68,11 @@ dispatched event. The table contains following columns:
 - `timestamp_delete_after` - Timestamp after which the Callback URL Event record should be deleted from the table.
 - `attempts` - Number of dispatch attempts made for the Callback URL Event.
 
+The `pa_application_callback_event` table comes with following indices:
+- `pa_application_callback_event_status_timestamp_next_call_idx` on `(status, timestamp_next_call)`,
+- `pa_application_callback_event_timestamp_delete_after_idx` on `(timestamp_delete_after)`, and
+- `pa_application_callback_event_id_status_idx` on `(id, status)`.
+
 ### Add Columns to Configure Callback Retry Strategy
 
 New columns has been added to the `pa_application_callback` table. These columns provide additional configuration
