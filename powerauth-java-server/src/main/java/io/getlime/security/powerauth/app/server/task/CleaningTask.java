@@ -19,7 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.task;
 
-import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventDispatcher;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.TemporaryKeyBehavior;
@@ -49,7 +49,7 @@ public class CleaningTask {
 
     private final TemporaryKeyBehavior temporaryKeyBehavior;
 
-    private final CallbackUrlEventDispatcher callbackUrlEventDispatcher;
+    private final CallbackUrlEventService callbackUrlEventService;
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.uniqueValueCleanup:60000}")
     @SchedulerLock(
@@ -96,7 +96,7 @@ public class CleaningTask {
     public void callbackEvents() {
         LockAssert.assertLocked();
         logger.debug("dispatchFailedCallbackUrlEvent");
-        callbackUrlEventDispatcher.dispatchFailedCallbackUrlEvent();
+        callbackUrlEventService.dispatchFailedCallbackUrlEvent();
     }
 
     @Scheduled(cron = "${powerauth.service.scheduled.job.callbackUrlEventsCleanupCron:0 0 0 */3 * *}")
@@ -104,7 +104,7 @@ public class CleaningTask {
     public void cleanEvents() {
         LockAssert.assertLocked();
         logger.debug("deleteCallbackUrlEvents");
-        callbackUrlEventDispatcher.deleteCallbackUrlEventsAfterRetentionPeriod();
+        callbackUrlEventService.deleteCallbackUrlEventsAfterRetentionPeriod();
     }
 
 }

@@ -68,7 +68,7 @@ import java.util.function.Consumer;
 @Component
 @Slf4j
 @AllArgsConstructor
-public class CallbackUrlEventDispatcher {
+public class CallbackUrlEventService {
 
     /**
      * States of callback events that are eligible for being processed.

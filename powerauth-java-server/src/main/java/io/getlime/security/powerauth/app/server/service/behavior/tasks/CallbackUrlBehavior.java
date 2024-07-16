@@ -36,7 +36,7 @@ import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlE
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationCryptor;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
-import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventDispatcher;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -65,7 +65,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
     private final CallbackUrlEventRepository callbackUrlEventRepository;
-    private final CallbackUrlEventDispatcher callbackUrlEventDispatcher;
+    private final CallbackUrlEventService callbackUrlEventService;
     private LocalizationProvider localizationProvider;
     private CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
 
@@ -168,7 +168,7 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            callbackUrlEventDispatcher.evictRestClientFromCache(entity);
+            callbackUrlEventService.evictRestClientFromCache(entity);
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -271,7 +271,7 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                callbackUrlEventDispatcher.evictRestClientFromCache(callbackEntity);
+                callbackUrlEventService.evictRestClientFromCache(callbackEntity);
                 callbackUrlRepository.delete(callbackEntity);
                 response.setRemoved(true);
             } else {
