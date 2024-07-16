@@ -20,7 +20,6 @@ package io.getlime.security.powerauth.app.server.database.model.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.Objects;
@@ -31,7 +30,6 @@ import java.util.Objects;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Converter
-@Component
 public class DurationConverter implements AttributeConverter<Duration, String> {
 
     @Override
