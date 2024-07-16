@@ -182,6 +182,9 @@ Stores callback URLs - per-application endpoints that are notified whenever an a
 | attributes      | TEXT         | -                                | Callback attributes as a key-value map, serialized into JSON.                                                              |
 | authentication  | TEXT         | -                                | Callback HTTP request authentication configuration, serialized into JSON.                                                  |
 | encryption_mode | VARCHAR(255) | DEFAULT 'NO_ENCRYPTION' NOT NULL | Encryption of authentication values: `NO_ENCRYPTION` means plaintext, `AES_HMAC` for AES encryption with HMAC-based index. |
+| max_attempts | INTEGER | - | Maximum number of attempts to dispatch a callback. |
+| initial_backoff | INTEGER | - | Initial backoff period before the next send attempt in milliseconds. |
+| retention_period | VARCHAR(255) | - | Duration for which is the callback event stored formated as ISO 8601 string. |
 <!-- end -->
 
 <!-- begin database table pa_token -->
@@ -369,4 +372,23 @@ Table stores details about temporary key pairs used for data encryption.
 | private_key_base64     | varchar(255) | -                                                      | Temporary private key encoded as Base64.                                              |
 | public_key_base64      | varchar(255) | -                                                      | Temporary public key encoded as Base64.                                               |
 | timestamp_expires      | timestamp    | index                                                  | Timestamp of when the temporary key pair expires.                                     |
+
+<!-- begin database table pa_application_callback_event -->
+### Callback URL Events
+
+Table stores Callback URL Events to monitor processing of the callbacks.
+
+#### Columns
+
+| Name                    | Type         | Info                                      | Note                                                                                  |
+|-------------------------|--------------|-------------------------------------------|---------------------------------------------------------------------------------------|
+| id                      | varchar(36)  | primary key                               | Identifier of the Callback URL Event.                                                 |
+| application_callback_id | varchar(37)  | foreign key: pa\_application\_callback.id | Reference to parameters of the Callback URL Event.                                    |
+| callback_data           | text         | -                                         | Data payload of the Callback URL Event.                                               |
+| status                  | varchar(255) | -                                         | Current status of the Callback URL Event processing.                                  |
+| timestamp_created       | timestamp    | -                                         | Timestamp of the Callback URL Event creation.                                         |
+| timestamp_last_call     | timestamp    | -                                         | Timestamp of the last time the Callback URL Event was sent.                           |
+| timestamp_next_call     | timestamp    | -                                         | Timestamp of the next scheduled time to send the Callback URL Event.                  |
+| timestamp_delete_after  | timestamp    | -                                         | Timestamp after which the Callback URL Event record should be deleted from the table. |
+| attempts                | integer      | -                                         | Number of dispatch attempts made for the Callback URL Event.                          |
 <!-- end -->
