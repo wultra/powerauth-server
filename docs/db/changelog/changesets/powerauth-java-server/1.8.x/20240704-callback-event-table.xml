@@ -21,7 +21,7 @@
             <column name="callback_data" type="text">
                 <constraints nullable="false" />
             </column>
-            <column name="status" type="varchar(255)" >
+            <column name="status" type="varchar(32)" >
                 <constraints nullable="false" />
             </column>
             <column name="timestamp_created" type="timestamp(6)" defaultValueComputed="${now}" />
