@@ -233,7 +233,7 @@ public class CallbackUrlEventService {
             return Duration.ZERO;
         }
 
-        final long backoff = (long) (initialBackoff * Math.pow(multiplier, attempts-1));
+        final long backoff = (long) (initialBackoff * Math.pow(multiplier, attempts - 1));
         return Duration.ofMillis(Math.min(backoff, maxBackoffMilliseconds));
     }
 
