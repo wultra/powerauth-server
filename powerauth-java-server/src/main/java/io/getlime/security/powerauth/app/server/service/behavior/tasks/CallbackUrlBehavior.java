@@ -35,7 +35,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Callb
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
-import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventDispatcher;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
@@ -63,7 +63,7 @@ public class CallbackUrlBehavior {
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
     private final CallbackUrlEventRepository callbackUrlEventRepository;
-    private final CallbackUrlEventDispatcher callbackUrlEventDispatcher;
+    private final CallbackUrlEventService callbackUrlEventService;
     private LocalizationProvider localizationProvider;
 
     private final CallbackAuthenticationPublicConverter authenticationPublicConverter = new CallbackAuthenticationPublicConverter();
@@ -76,11 +76,11 @@ public class CallbackUrlBehavior {
      * @param applicationRepository Application repository.
      */
     @Autowired
-    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository, final CallbackUrlEventRepository callbackUrlEventRepository, final CallbackUrlEventDispatcher callbackUrlEventDispatcher, final ApplicationEventPublisher eventPublisher) {
+    public CallbackUrlBehavior(CallbackUrlRepository callbackUrlRepository, ApplicationRepository applicationRepository, final CallbackUrlEventRepository callbackUrlEventRepository, final CallbackUrlEventService callbackUrlEventService, final ApplicationEventPublisher eventPublisher) {
         this.callbackUrlRepository = callbackUrlRepository;
         this.applicationRepository = applicationRepository;
         this.callbackUrlEventRepository = callbackUrlEventRepository;
-        this.callbackUrlEventDispatcher = callbackUrlEventDispatcher;
+        this.callbackUrlEventService = callbackUrlEventService;
         this.eventPublisher = eventPublisher;
     }
 
@@ -184,7 +184,7 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            callbackUrlEventDispatcher.evictRestClientFromCache(entity);
+            callbackUrlEventService.evictRestClientFromCache(entity);
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -282,7 +282,7 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                callbackUrlEventDispatcher.evictRestClientFromCache(callbackEntity);
+                callbackUrlEventService.evictRestClientFromCache(callbackEntity);
                 callbackUrlRepository.delete(callbackEntity);
                 response.setRemoved(true);
             } else {
