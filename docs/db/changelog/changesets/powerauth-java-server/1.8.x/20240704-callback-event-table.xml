@@ -81,4 +81,16 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="6" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="pa_application_callback_event_timestamp_delete_after_idx"/>
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_application_callback_event(timestamp_delete_after).</comment>
+        <createIndex tableName="pa_application_callback_event" indexName="pa_application_callback_event_timestamp_delete_after_idx">
+            <column name="timestamp_delete_after" />
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

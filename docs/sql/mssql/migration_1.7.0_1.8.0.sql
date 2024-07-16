@@ -43,3 +43,8 @@ GO
 CREATE NONCLUSTERED INDEX pa_application_callback_event_status_timestamp_next_call_idx ON pa_application_callback_event(status, timestamp_next_call);
 GO
 
+-- Changeset powerauth-java-server/1.8.x/20240704-callback-event-table.xml::6::Jan Pesek
+-- Create a new index on pa_application_callback_event(timestamp_delete_after).
+CREATE NONCLUSTERED INDEX pa_application_callback_event_timestamp_delete_after_idx ON pa_application_callback_event(timestamp_delete_after);
+GO
+
