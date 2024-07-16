@@ -18,12 +18,6 @@
 package io.getlime.security.powerauth.app.server.service.persistence;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
-import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
-import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
@@ -32,35 +26,8 @@ import java.util.Optional;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Service
-public class OperationQueryService {
+public interface OperationQueryService {
 
-    private static final Logger logger = LoggerFactory.getLogger(OperationQueryService.class);
+    Optional<OperationEntity> findOperationForUpdate(String operationId);
 
-    private final OperationRepository operationRepository;
-    private final boolean isMssql;
-
-    @Autowired
-    public OperationQueryService(OperationRepository operationRepository, DataSourceProperties dataSourceProperties) {
-        this.operationRepository = operationRepository;
-        this.isMssql = dataSourceProperties.getUrl().contains("jdbc:sqlserver");
-    }
-
-    /**
-     * Find an operation and lock it for an update.
-     * @param operationId Activation ID.
-     * @return Locked operation, if present.
-     */
-    public Optional<OperationEntity> findOperationForUpdate(String operationId) {
-        try {
-            if (isMssql) {
-                // Find and lock operation using stored procedure for MSSQL
-                return operationRepository.findOperationWithLockMssql(operationId);
-            }
-            return operationRepository.findOperationWithLock(operationId);
-        } catch (Exception ex) {
-            logger.error("Operation query failed", ex);
-            return Optional.empty();
-        }
-    }
 }
