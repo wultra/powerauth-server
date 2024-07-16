@@ -19,6 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.configuration.conditions;
 
+import org.springframework.boot.jdbc.DatabaseDriver;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.env.Environment;
@@ -38,7 +39,7 @@ public class IsMssqlCondition implements Condition {
     public boolean matches(ConditionContext context, @NonNull AnnotatedTypeMetadata metadata) {
         final Environment environment = Objects.requireNonNull(context.getBeanFactory()).getBean(Environment.class);
         final String url = environment.getProperty("spring.datasource.url");
-        return url != null && url.contains("jdbc:sqlserver");
+        return DatabaseDriver.fromJdbcUrl(url) == DatabaseDriver.SQLSERVER;
     }
 
 }
