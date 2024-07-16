@@ -93,4 +93,17 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="7" logicalFilePath="powerauth-java-server/1.8.x/20240704-callback-event-table.xml" author="Jan Pesek">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists indexName="pa_application_callback_event_id_status_idx"/>
+            </not>
+        </preConditions>
+        <comment>Create a new index on pa_application_callback_event(id, status).</comment>
+        <createIndex tableName="pa_application_callback_event" indexName="pa_application_callback_event_id_status_idx">
+            <column name="id" />
+            <column name="status" />
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>
