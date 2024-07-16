@@ -28,5 +28,5 @@ ALTER TABLE pa_application_callback ADD initial_backoff INTEGER;
 
 -- Changeset powerauth-java-server/1.8.x/20240704-callback-event-table.xml::4::Jan Pesek
 -- Add retention_period column to pa_application_callback table.
-ALTER TABLE pa_application_callback ADD retention_period VARCHAR(255);
+ALTER TABLE pa_application_callback ADD retention_period VARCHAR(64);
 

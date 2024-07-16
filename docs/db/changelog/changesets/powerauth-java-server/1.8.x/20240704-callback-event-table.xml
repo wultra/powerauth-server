@@ -64,7 +64,7 @@
         </preConditions>
         <comment>Add retention_period column to pa_application_callback table.</comment>
         <addColumn tableName="pa_application_callback">
-            <column name="retention_period" type="varchar(255)" />
+            <column name="retention_period" type="varchar(64)" />
         </addColumn>
     </changeSet>
 
