@@ -22,6 +22,8 @@ package com.wultra.powerauth.fido2.task;
 import com.wultra.powerauth.fido2.service.CacheService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.core.LockAssert;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -37,8 +39,12 @@ public class Fido2CleaningTask {
 
     private final CacheService cacheService;
 
-    @Scheduled(fixedDelayString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
+    @SchedulerLock(
+            name = "evictFido2AuthenticatorCacheTask",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000} * 0.8)}")
     public void evictFido2AuthenticatorCache() {
+        LockAssert.assertLocked();
         logger.debug("evictFido2AuthenticatorCache");
         cacheService.evictFido2AuthenticatorCache();
     }

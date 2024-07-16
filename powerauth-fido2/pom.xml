@@ -69,6 +69,13 @@
             <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
 
+        <!-- Job Scheduling -->
+        <dependency>
+            <groupId>net.javacrumbs.shedlock</groupId>
+            <artifactId>shedlock-spring</artifactId>
+        </dependency>
+
+        <!--  Test dependencies  -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
