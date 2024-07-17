@@ -109,11 +109,11 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
         final String operationId = request.getOperationId();
 
         if (operationId == null) {
-            logger.debug("Operation ID is null, creating a new one");
+            logger.debug("Operation ID is null, creating a new operation.");
             final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
             return operations.createOperation(operationCreateRequest);
         } else {
-            logger.debug("Loading operation ID: {}", operationId);
+            logger.debug("Using the existing operation ID: {}", operationId);
             final OperationDetailRequest operationRequest = new OperationDetailRequest();
             operationRequest.setOperationId(request.getOperationId());
             return operationServiceBehavior.operationDetail(operationRequest);
