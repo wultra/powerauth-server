@@ -33,6 +33,7 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
 import com.wultra.security.powerauth.client.model.request.OperationFailApprovalRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
@@ -49,8 +50,8 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackU
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,6 +63,7 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@AllArgsConstructor
 @Slf4j
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
@@ -82,18 +84,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
     private final AssertionChallengeConverter assertionChallengeConverter;
-
-    @Autowired
-    public PowerAuthAssertionProvider(RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, OperationServiceBehavior operations, CallbackUrlBehavior callbacks, ActivationHistoryServiceBehavior activationHistory, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService, final AssertionChallengeConverter assertionChallengeConverter) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.audit = audit;
-        this.operations = operations;
-        this.callbacks = callbacks;
-        this.activationHistory = activationHistory;
-        this.authenticatorProvider = authenticatorProvider;
-        this.fido2AuthenticatorService = fido2AuthenticatorService;
-        this.assertionChallengeConverter = assertionChallengeConverter;
-    }
+    private final OperationServiceBehavior operationServiceBehavior;
 
     @Override
     @Transactional
@@ -110,9 +101,23 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             }
         }
 
-        final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
-        final OperationDetailResponse operationDetailResponse = operations.createOperation(operationCreateRequest);
+        final OperationDetailResponse operationDetailResponse = loadOrCreateOperation(request, authenticatorDetails);
         return assertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
+    }
+
+    private OperationDetailResponse loadOrCreateOperation(final AssertionChallengeRequest request, final List<AuthenticatorDetail> authenticatorDetails) throws GenericServiceException {
+        final String operationId = request.getOperationId();
+
+        if (operationId == null) {
+            logger.debug("Operation ID is null, creating a new one");
+            final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
+            return operations.createOperation(operationCreateRequest);
+        } else {
+            logger.debug("Loading operation ID: {}", operationId);
+            final OperationDetailRequest operationRequest = new OperationDetailRequest();
+            operationRequest.setOperationId(request.getOperationId());
+            return operationServiceBehavior.operationDetail(operationRequest);
+        }
     }
 
     @Override
