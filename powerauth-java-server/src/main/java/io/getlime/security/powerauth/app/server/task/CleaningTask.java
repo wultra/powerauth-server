@@ -99,7 +99,7 @@ public class CleaningTask {
         callbackUrlEventService.dispatchFailedCallbackUrlEvent();
     }
 
-    @Scheduled(cron = "${powerauth.service.scheduled.job.callbackUrlEventsCleanupCron:0 0 0 */3 * *}")
+    @Scheduled(cron = "${powerauth.service.scheduled.job.callbackUrlEventsCleanupCron:0 0 0 */1 * *}")
     @SchedulerLock(name = "callbackUrlEventsCleanup")
     public void cleanEvents() {
         LockAssert.assertLocked();
