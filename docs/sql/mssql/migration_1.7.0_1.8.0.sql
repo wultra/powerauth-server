@@ -39,8 +39,8 @@ ALTER TABLE pa_application_callback ADD retention_period varchar(64);
 GO
 
 -- Changeset powerauth-java-server/1.8.x/20240704-callback-event-table.xml::5::Jan Pesek
--- Create a new index on pa_application_callback_event(status, timestamp_next_call).
-CREATE NONCLUSTERED INDEX pa_application_callback_event_status_timestamp_next_call_idx ON pa_application_callback_event(status, timestamp_next_call);
+-- Create a new index on pa_application_callback_event(status).
+CREATE NONCLUSTERED INDEX pa_application_callback_event_status_idx ON pa_application_callback_event(status);
 GO
 
 -- Changeset powerauth-java-server/1.8.x/20240704-callback-event-table.xml::6::Jan Pesek

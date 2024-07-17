@@ -69,7 +69,7 @@ dispatched event. The table contains following columns:
 - `attempts` - Number of dispatch attempts made for the Callback URL Event.
 
 The `pa_application_callback_event` table comes with following indices:
-- `pa_application_callback_event_status_timestamp_next_call_idx` on `(status, timestamp_next_call)`,
+- `pa_application_callback_event_status_timestamp_next_call_idx` on `(status)`,
 - `pa_application_callback_event_timestamp_delete_after_idx` on `(timestamp_delete_after)`.
 
 ### Add Columns to Configure Callback Retry Strategy
