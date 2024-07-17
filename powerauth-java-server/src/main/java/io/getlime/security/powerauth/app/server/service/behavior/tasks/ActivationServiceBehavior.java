@@ -2483,7 +2483,7 @@ public class ActivationServiceBehavior {
                 try {
                     deactivatePendingActivation(currentTimestamp, activation, false);
                 } catch (GenericServiceException e) {
-                    logger.error("Activation not found, activation ID: {}", activation.getActivationId());
+                    logger.error("Activation expiration failed, activation ID: {}", activation.getActivationId());
                 }
             });
         }
