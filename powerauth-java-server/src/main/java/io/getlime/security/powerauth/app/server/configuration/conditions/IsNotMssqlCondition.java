@@ -19,27 +19,22 @@
 
 package io.getlime.security.powerauth.app.server.configuration.conditions;
 
-import org.springframework.boot.jdbc.DatabaseDriver;
-import org.springframework.context.annotation.Condition;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.env.Environment;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-import org.springframework.lang.NonNull;
-
-import java.util.Objects;
+import org.springframework.boot.autoconfigure.condition.NoneNestedConditions;
+import org.springframework.context.annotation.Conditional;
 
 /**
  * A condition that the datasource is not MSSQL.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class IsNotMssqlCondition implements Condition {
+public class IsNotMssqlCondition extends NoneNestedConditions {
 
-    @Override
-    public boolean matches(ConditionContext context, @NonNull AnnotatedTypeMetadata metadata) {
-        final Environment environment = Objects.requireNonNull(context.getBeanFactory()).getBean(Environment.class);
-        final String url = environment.getProperty("spring.datasource.url");
-        return DatabaseDriver.fromJdbcUrl(url) != DatabaseDriver.SQLSERVER;
+    public IsNotMssqlCondition() {
+        super(ConfigurationPhase.REGISTER_BEAN);
+    }
+
+    @Conditional(IsMssqlCondition.class)
+    static class IsMssql {
     }
 
 }
