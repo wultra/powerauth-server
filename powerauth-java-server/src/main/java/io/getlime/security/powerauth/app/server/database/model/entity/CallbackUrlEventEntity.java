@@ -45,7 +45,7 @@ public class CallbackUrlEventEntity implements Serializable {
     private static final long serialVersionUID = 3438887028420848470L;
 
     @Id
-    @Column(name = "id", updatable = false, nullable = false, length = 36)
+    @Column(name = "id", length = 36)
     private String id;
 
     @ManyToOne
