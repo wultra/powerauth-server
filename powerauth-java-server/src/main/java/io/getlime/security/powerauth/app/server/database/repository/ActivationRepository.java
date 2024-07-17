@@ -60,24 +60,25 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @param activationId Activation ID
      * @return Activation with given ID
      */
-    @Query(value = "BEGIN TRANSACTION;\n" +
-            "DECLARE @res INT\n" +
-            "    EXEC @res = sp_getapplock \n" +
-            "                @Resource = ?1,\n" +
-            "                @LockMode = 'Exclusive',\n" +
-            "                @LockOwner = 'Transaction',\n" +
-            "                @LockTimeout = 60000,\n" +
-            "                @DbPrincipal = 'public'\n" +
-            "    \n" +
-            "    IF @res NOT IN (0, 1)\n" +
-            "    BEGIN\n" +
-            "        RAISERROR ('Unable to acquire activation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)\n" +
-            "    END \n" +
-            "    ELSE\n" +
-            "    BEGIN\n" +
-            "        SELECT * FROM pa_activation WHERE activation_id = ?1\n" +
-            "        COMMIT TRANSACTION;\n" +
-            "    END\n", nativeQuery = true)
+    @Query(value = """
+            BEGIN TRANSACTION;
+            DECLARE @res INT
+                EXEC @res = sp_getapplock 
+                            @Resource = ?1,
+                            @LockMode = 'Exclusive',
+                            @LockOwner = 'Transaction',
+                            @LockTimeout = 60000,
+                            @DbPrincipal = 'public'
+                IF @res NOT IN (0, 1)
+                BEGIN
+                    RAISERROR ('Unable to acquire activation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)
+                END 
+                ELSE
+                BEGIN
+                    SELECT * FROM pa_activation WHERE activation_id = ?1
+                    COMMIT TRANSACTION;
+                END
+            """, nativeQuery = true)
     Optional<ActivationRecordEntity> findActivationWithLockMssql(String activationId);
 
     /**

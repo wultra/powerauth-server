@@ -56,24 +56,25 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
      * @param operationId Operation ID
      * @return Operation with given ID
      */
-    @Query(value = "BEGIN TRANSACTION;\n" +
-            "DECLARE @res INT\n" +
-            "    EXEC @res = sp_getapplock \n" +
-            "                @Resource = ?1,\n" +
-            "                @LockMode = 'Exclusive',\n" +
-            "                @LockOwner = 'Transaction',\n" +
-            "                @LockTimeout = 60000,\n" +
-            "                @DbPrincipal = 'public'\n" +
-            "    \n" +
-            "    IF @res NOT IN (0, 1)\n" +
-            "    BEGIN\n" +
-            "        RAISERROR ('Unable to acquire operation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)\n" +
-            "    END \n" +
-            "    ELSE\n" +
-            "    BEGIN\n" +
-            "        select * from pa_operation where id = ?1\n" +
-            "        COMMIT TRANSACTION;\n" +
-            "    END\n", nativeQuery = true)
+    @Query(value = """
+            BEGIN TRANSACTION;
+            DECLARE @res INT
+                EXEC @res = sp_getapplock 
+                            @Resource = ?1,
+                            @LockMode = 'Exclusive',
+                            @LockOwner = 'Transaction',
+                            @LockTimeout = 60000,
+                            @DbPrincipal = 'public'
+                IF @res NOT IN (0, 1)
+                BEGIN
+                    RAISERROR ('Unable to acquire operation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)
+                END 
+                ELSE
+                BEGIN
+                    SELECT * FROM pa_operation WHERE id = ?1
+                    COMMIT TRANSACTION;
+                END
+            """, nativeQuery = true)
     Optional<OperationEntity> findOperationWithLockMssql(String operationId);
 
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
