@@ -178,7 +178,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
 
             final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(authenticatorDetail.getActivationId()).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", authenticatorDetail.getActivationId());
-                return new Fido2AuthenticationFailedException("Activation not found");
+                return new Fido2AuthenticationFailedException("Activation with ID: %s not found".formatted(authenticatorDetail.getActivationId()));
             });
 
             handleInvalidSignatureImpl(activation, new SignatureData(), currentTimestamp);
