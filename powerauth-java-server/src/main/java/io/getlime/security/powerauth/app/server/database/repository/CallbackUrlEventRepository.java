@@ -76,7 +76,8 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
     @Modifying
     @Query("""
             DELETE FROM CallbackUrlEventEntity c
-            WHERE c.timestampDeleteAfter < :timestamp
+            WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.COMPLETED
+            AND c.timestampDeleteAfter < :timestamp
             """)
     void deleteAllAfterRetentionPeriod(LocalDateTime timestamp);
 
