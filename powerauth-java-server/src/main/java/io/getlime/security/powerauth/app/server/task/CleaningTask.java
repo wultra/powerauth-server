@@ -95,10 +95,20 @@ public class CleaningTask {
     @SchedulerLock(
             name = "retryFailedCallbackUrlEvent",
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.retryFailedCallbackUrlEvent:3000} * 0.8)}")
-    public void callbackEvents() {
+    public void dispatchFailedCallbackUrlEvents() {
         LockAssert.assertLocked();
-        logger.debug("dispatchFailedCallbackUrlEvent");
-        callbackUrlEventService.dispatchFailedCallbackUrlEvent();
+        logger.debug("dispatchFailedCallbackUrlEvents");
+        callbackUrlEventService.dispatchFailedCallbackUrlEvents();
+    }
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvent:3000}")
+    @SchedulerLock(
+            name = "dispatchPendingCallbackUrlEvent",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvent:3000} * 0.8)}")
+    public void dispatchPendingCallbackUrlEvents() {
+        LockAssert.assertLocked();
+        logger.debug("dispatchPendingCallbackUrlEvents");
+        callbackUrlEventService.dispatchPendingCallbackUrlEvents();
     }
 
     @Scheduled(cron = "${powerauth.service.scheduled.job.callbackUrlEventsCleanupCron:0 0 0 */1 * *}")

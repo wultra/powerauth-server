@@ -64,6 +64,15 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
             """)
     Stream<CallbackUrlEventEntity> findScheduledForRetry(LocalDateTime timestamp, Pageable pageable);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(value = {@QueryHint(name = JAKARTA_LOCK_TIMEOUT, value = SKIP_LOCKED)})
+    @Query("""
+            SELECT c FROM CallbackUrlEventEntity c
+            WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING
+            ORDER BY c.timestampCreated DESC
+            """)
+    Stream<CallbackUrlEventEntity> findPending(Pageable pageable);
+
     @Modifying
     @Query("""
             DELETE FROM CallbackUrlEventEntity c

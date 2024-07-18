@@ -80,16 +80,17 @@ Discuss its configuration with the [Spring Boot documentation](https://docs.spri
 
 ## Scheduled Jobs Configuration
 
-| Property                                                                    | Default         | Note                                                                                                    |
-|-----------------------------------------------------------------------------|-----------------|---------------------------------------------------------------------------------------------------------|
-| `powerauth.service.scheduled.job.operationCleanup`                          | `5000`          | Time delay in milliseconds between two consecutive tasks that expire long pending operations.           |
-| `powerauth.service.scheduled.job.expireOperationsLimit`                     | `100`           | Number of long pending operations that will be set expired in single scheduled job run.                 |
-| `powerauth.service.scheduled.job.activationsCleanup`                        | `5000`          | Time delay in milliseconds between two consecutive tasks that expire abandoned activations.             |
-| `powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds` | `3600000`       | Number of milliseconds to look back in the past when looking for abandoned activations.                 |
-| `powerauth.service.scheduled.job.uniqueValueCleanup`                        | `60000`         | Time delay in milliseconds between two consecutive tasks that delete expired unique values.             |
-| `powerauth.service.scheduled.job.retryFailedCallbackUrlEvent`               | `3000`          | Time delay in milliseconds between two consecutive tasks that try to send again failed callback events. |
-| `powerauth.service.scheduled.job.callbackUrlEventsCleanupCron`              | `0 0 0 */3 * *` | Cron schedule triggering a task to clean callback events after their retention period has expired.      |
-| `powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction`           | `3600000`       | Duration in milliseconds for which the internal cache holds details of FIDO2 Authenticator models.      |
+| Property                                                                    | Default         | Note                                                                                                                                                                   |
+|-----------------------------------------------------------------------------|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `powerauth.service.scheduled.job.operationCleanup`                          | `5000`          | Time delay in milliseconds between two consecutive tasks that expire long pending operations.                                                                          |
+| `powerauth.service.scheduled.job.expireOperationsLimit`                     | `100`           | Number of long pending operations that will be set expired in single scheduled job run.                                                                                |
+| `powerauth.service.scheduled.job.activationsCleanup`                        | `5000`          | Time delay in milliseconds between two consecutive tasks that expire abandoned activations.                                                                            |
+| `powerauth.service.scheduled.job.activationsCleanup.lookBackInMilliseconds` | `3600000`       | Number of milliseconds to look back in the past when looking for abandoned activations.                                                                                |
+| `powerauth.service.scheduled.job.uniqueValueCleanup`                        | `60000`         | Time delay in milliseconds between two consecutive tasks that delete expired unique values.                                                                            |
+| `powerauth.service.scheduled.job.retryFailedCallbackUrlEvent`               | `3000`          | Time delay in milliseconds between two consecutive tasks that try to send again failed callback events.                                                                |
+| `powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvent`           | `3000`          | Time delay in milliseconds between two consecutive tasks that try to send pending callback events that could not be dispatched immediately by callback event listener. |
+| `powerauth.service.scheduled.job.callbackUrlEventsCleanupCron`              | `0 0 0 */3 * *` | Cron schedule triggering a task to clean callback events after their retention period has expired.                                                                     |
+| `powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction`           | `3600000`       | Duration in milliseconds for which the internal cache holds details of FIDO2 Authenticator models.                                                                     |
 
 ## Callback URL Events Configuration
 
@@ -98,6 +99,10 @@ The following properties allow you to configure the maximum number of attempts a
 for dispatching a callback event. The default values are set with respect to the behavior of previous PowerAuth version.
 However, it is possible to override these defaults or configure each callback settings individually using the
 Callback URL Management API.
+
+PowerAuth dispatches a callback as soon as a change in operation or activation status is detected. This is achieved
+through a callback event listener that uses a configurable thread pool. Even if the thread pool's queue is currently
+full, the callback will eventually be dispatched.
 
 | Property                                                        | Default | Note                                                                                                  |
 |-----------------------------------------------------------------|---------|-------------------------------------------------------------------------------------------------------|
@@ -108,6 +113,8 @@ Callback URL Management API.
 | `powerauth.service.callbacks.backoffMultiplier`                 | `1.5`   | The multiplier used to calculate the backoff period.                                                  |
 | `powerauth.service.callbacks.failedCallbackUrlEventsRetryLimit` | `100`   | Maximum number of failed callback events that will be dispatched again in a single scheduled job run. |
 | `powerauth.service.callbacks.threadPoolCoreSize`                | `1`     | Number of core threads in the thread pool used by listener of new callback events.                    |
+| `powerauth.service.callbacks.threadPoolMaxSize`                 | `2`     | Maximum number of threads in the thread pool used by listener of new callback events.                 |
+| `powerauth.service.callbacks.threadPoolQueueCapacity`           | `1000`  | Queue capacity of the thread pool used by listener of new callback events.                            |
 
 The backoff period after the `N-th` attempt is calculated as follows:
 

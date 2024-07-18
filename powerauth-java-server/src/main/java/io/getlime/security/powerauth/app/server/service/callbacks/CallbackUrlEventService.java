@@ -103,9 +103,22 @@ public class CallbackUrlEventService {
      * Dispatch again Callback URL Events, that previously failed and are eligible for another attempt.
      */
     @Transactional
-    public void dispatchFailedCallbackUrlEvent() {
+    public void dispatchFailedCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getFailedCallbackUrlEventsRetryLimit());
         callbackUrlEventRepository.findScheduledForRetry(LocalDateTime.now(), pageRequest)
+                .forEach(this::dispatchEvent);
+    }
+
+    /**
+     * Dispatch Callback URL Events in pending state.
+     * <p>
+     * This method acts as a safety net to ensure that any events which were not received by the Callback URL Event
+     * listener are processed and dispatched.
+     */
+    @Transactional
+    public void dispatchPendingCallbackUrlEvents() {
+        final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
+        callbackUrlEventRepository.findPending(pageRequest)
                 .forEach(this::dispatchEvent);
     }
 

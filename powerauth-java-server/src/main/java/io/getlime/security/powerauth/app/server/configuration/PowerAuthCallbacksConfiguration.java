@@ -56,6 +56,11 @@ public class PowerAuthCallbacksConfiguration {
     private int failedCallbackUrlEventsRetryLimit = 100;
 
     /**
+     * Maximum number of long pending Callback URL Events that will be dispatched in a single scheduled job run.
+     */
+    private int pendingCallbackUrlEventsDispatchLimit = 100;
+
+    /**
      * Maximum possible backoff period between successive attempts.
      */
     private long maxBackoffMilliseconds = 32_000;
@@ -69,5 +74,15 @@ public class PowerAuthCallbacksConfiguration {
      * Number of core threads in the thread pool used by Callback URL Event listener.
      */
     private int threadPoolCoreSize = 1;
+
+    /**
+     * Maximum number of threads in the thread pool used by Callback URL Event listener.
+     */
+    private int threadPoolMaxSize = 2;
+
+    /**
+     * Queue capacity of the thread pool used by Callback URL Event listener.
+     */
+    private int threadPoolQueueCapacity = 1000;
 
 }

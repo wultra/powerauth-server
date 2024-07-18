@@ -18,6 +18,7 @@
 
 package io.getlime.security.powerauth.app.server.configuration;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -32,16 +33,16 @@ import java.util.concurrent.Executor;
  */
 @Configuration
 @EnableAsync
+@Slf4j
 public class AsyncConfiguration {
 
     @Bean
     public Executor callbackUrlEventsThreadPoolExecutor(final PowerAuthCallbacksConfiguration powerAuthCallbacksConfiguration) {
         final ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(powerAuthCallbacksConfiguration.getThreadPoolCoreSize());
-        // Practically infinite queue size (default setting), so all Callback URL Events accepted via event listener are
-        // queued. When changing to significantly smaller queue size, an event may be rejected resulting in a PENDING
-        // Callback URL Event in the outbox table never being dispatched.
-        executor.setQueueCapacity(Integer.MAX_VALUE);
+        executor.setQueueCapacity(powerAuthCallbacksConfiguration.getThreadPoolQueueCapacity());
+        executor.setMaxPoolSize(powerAuthCallbacksConfiguration.getThreadPoolMaxSize());
+        executor.setRejectedExecutionHandler((r, e) -> logger.debug("A Callback URL Event was rejected by the ThreadPoolTaskExecutor."));
         executor.initialize();
         return executor;
     }
