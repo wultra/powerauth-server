@@ -731,16 +731,14 @@ public class OperationServiceBehavior {
             final Date currentTimestamp = new Date();
             final String operationId = request.getOperationId();
 
-            // Check if the operation exists
-            final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
-            if (operationOptional.isEmpty()) {
+            final OperationEntity operation = operationRepository.findOperation(operationId).orElseThrow(() -> {
                 logger.warn("Operation was not found for ID: {}.", operationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+            });
 
             final String userId = request.getUserId();
             final OperationEntity operationEntity = expireOperation(
-                    claimOperation(operationOptional.get(), userId, currentTimestamp),
+                    claimOperation(operation, userId, currentTimestamp),
                     currentTimestamp
             );
             final OperationDetailResponse operationDetailResponse = convertFromEntityAndFillOtp(operationEntity);
