@@ -37,7 +37,7 @@ import java.security.Security;
 @SpringBootApplication
 @EnableScheduling
 @EnableCaching
-@EnableSchedulerLock(defaultLockAtMostFor = "10m")
+@EnableSchedulerLock(defaultLockAtMostFor = "60m")
 @ConfigurationPropertiesScan
 @EnableJpaRepositories(basePackages = {"io.getlime.security.powerauth.app.server", "com.wultra.powerauth.fido2"})
 @EntityScan(basePackages = {"io.getlime.security.powerauth.app.server", "com.wultra.powerauth.fido2"})
