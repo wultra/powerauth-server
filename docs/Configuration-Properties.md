@@ -89,7 +89,7 @@ Discuss its configuration with the [Spring Boot documentation](https://docs.spri
 | `powerauth.service.scheduled.job.uniqueValueCleanup`                        | `60000`         | Time delay in milliseconds between two consecutive tasks that delete expired unique values.                                                                            |
 | `powerauth.service.scheduled.job.retryFailedCallbackUrlEvent`               | `3000`          | Time delay in milliseconds between two consecutive tasks that try to send again failed callback events.                                                                |
 | `powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvent`           | `3000`          | Time delay in milliseconds between two consecutive tasks that try to send pending callback events that could not be dispatched immediately by callback event listener. |
-| `powerauth.service.scheduled.job.callbackUrlEventsCleanupCron`              | `0 0 0 */3 * *` | Cron schedule triggering a task to clean callback events after their retention period has expired.                                                                     |
+| `powerauth.service.scheduled.job.callbackUrlEventsCleanupCron`              | `0 0 0 */1 * *` | Cron schedule triggering a task to clean callback events after their retention period has expired.                                                                     |
 | `powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction`           | `3600000`       | Duration in milliseconds for which the internal cache holds details of FIDO2 Authenticator models.                                                                     |
 
 ## Callback URL Events Configuration
