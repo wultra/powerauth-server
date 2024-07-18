@@ -71,7 +71,7 @@ public interface CallbackUrlEventRepository extends CrudRepository<CallbackUrlEv
             WHERE c.status = io.getlime.security.powerauth.app.server.database.model.enumeration.CallbackUrlEventStatus.PENDING
             ORDER BY c.timestampCreated DESC
             """)
-    Stream<CallbackUrlEventEntity> findPending(Pageable pageable);
+    Stream<CallbackUrlEventEntity> findPendingWithLock(Pageable pageable);
 
     @Modifying
     @Query("""
