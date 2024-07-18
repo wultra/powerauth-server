@@ -34,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.oauth2.client.AuthorizedClientServiceReactiveOAuth2AuthorizedClientManager;
 import org.springframework.security.oauth2.client.InMemoryReactiveOAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.ReactiveOAuth2AuthorizedClientService;
@@ -43,11 +42,8 @@ import org.springframework.security.oauth2.client.registration.InMemoryReactiveC
 import org.springframework.security.oauth2.client.registration.ReactiveClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.reactive.function.client.ServerOAuth2AuthorizedClientExchangeFilterFunction;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.event.TransactionPhase;
-import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -65,7 +61,7 @@ import java.util.function.Consumer;
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@Component
+@Service
 @Slf4j
 @AllArgsConstructor
 public class CallbackUrlEventService {
@@ -85,17 +81,15 @@ public class CallbackUrlEventService {
     private final Object restClientCacheLock = new Object();
 
     /**
-     * Listener to react immediately to a newly created Callback URL Event that should be instantly dispatched.
-     * @param publishedEvent Callback URL Event to dispatch.
+     * Dispatch a pending Callback URL Event.
+     * @param callbackUrlEventEntity Callback URL Event to dispatch.
      */
-    @Async("callbackUrlEventsThreadPoolExecutor")
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
-    public void handlePendingCallbackUrlEvent(final CallbackUrlEventEntity publishedEvent) {
-        callbackUrlEventRepository.findPendingByIdWithTryLock(publishedEvent.getId())
+    @Transactional
+    public void dispatchPendingCallbackUrlEvent(final CallbackUrlEventEntity callbackUrlEventEntity) {
+        callbackUrlEventRepository.findPendingByIdWithTryLock(callbackUrlEventEntity.getId())
                 .ifPresentOrElse(
                         this::dispatchEvent,
-                        () -> logger.debug("Published CallbackUrlEvent {} is no longer waiting to be processed.", publishedEvent.getId())
+                        () -> logger.debug("Published CallbackUrlEvent {} is no longer waiting to be processed.", callbackUrlEventEntity.getId())
                 );
     }
 
@@ -118,7 +112,7 @@ public class CallbackUrlEventService {
     @Transactional
     public void dispatchPendingCallbackUrlEvents() {
         final PageRequest pageRequest = PageRequest.of(0, powerAuthCallbacksConfiguration.getPendingCallbackUrlEventsDispatchLimit());
-        callbackUrlEventRepository.findPending(pageRequest)
+        callbackUrlEventRepository.findPendingWithLock(pageRequest)
                 .forEach(this::dispatchEvent);
     }
 
