@@ -54,6 +54,7 @@ or get the tool from their [releases page](https://github.com/schemacrawler/Sche
 the SchemaCrawler diagram generation depends on `graphviz`, which is available via `brew` package manager.
 
 To install graphviz and download SchemaCrawler run:
+
 ```shell
 SC_VERSION='16.21.4' && \
 brew install graphviz && \
@@ -65,6 +66,7 @@ mv "schemacrawler-${SC_VERSION}-distribution" schema_crawler
 
 There are two config files for the SchemaCrawler, which should be modified.
 To modify the configuration, run:
+
 ```shell
 SC_CONFIG_DIR="./schema_crawler/_schemacrawler/config" && \
 SC_CONFIG='
@@ -82,6 +84,7 @@ echo "$SC_COLORMAP" >> "${SC_CONFIG_DIR}/schemacrawler.colormap.properties"
 ```
 
 Then to generate the schema diagram, run following:
+
 ```shell
 ./schema_crawler/_schemacrawler/bin/schemacrawler.sh \
   --server=postgresql \
