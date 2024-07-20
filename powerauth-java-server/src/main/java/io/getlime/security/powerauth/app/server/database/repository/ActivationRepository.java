@@ -50,38 +50,6 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     Optional<ActivationRecordEntity> findActivationWithLock(String activationId);
 
     /**
-     * Find activation with given activation ID. This method is MSSQL-specific.
-     * The activation is locked using stored procedure sp_getapplock in exclusive mode.
-     * The lock is released automatically at the end of the outermost transaction.
-     * Transaction isolation level READ COMMITTED is used because the lock is pessimistic.
-     * The stored procedure raises an error in case the lock
-     * could not be acquired.
-     *
-     * @param activationId Activation ID
-     * @return Activation with given ID
-     */
-    @Query(value = """
-            BEGIN TRANSACTION;
-            DECLARE @res INT
-                EXEC @res = sp_getapplock 
-                            @Resource = ?1,
-                            @LockMode = 'Exclusive',
-                            @LockOwner = 'Transaction',
-                            @LockTimeout = 60000,
-                            @DbPrincipal = 'public'
-                IF @res NOT IN (0, 1)
-                BEGIN
-                    RAISERROR ('Unable to acquire activation lock, error %d, transaction count %d', 16, 1, @res, @@trancount)
-                END 
-                ELSE
-                BEGIN
-                    SELECT * FROM pa_activation WHERE activation_id = ?1
-                    COMMIT TRANSACTION;
-                END
-            """, nativeQuery = true)
-    Optional<ActivationRecordEntity> findActivationWithLockMssql(String activationId);
-
-    /**
      * Find the first activation with given activation ID.
      * The activation record is not locked in DB.
      *
@@ -120,27 +88,6 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return List of activations for given user and application
      */
     List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusIn(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable);
-
-    /**
-     * Find the first activation associated with given application by the activation code.
-     * Filter the results by activation state and make sure to apply activation time window.
-     *
-     * Native query contains a workaround for MSSQL which avoids deadlock on activations by avoiding locking data.
-     * The data needs to be locked later by calling findActivationWithLockMssql().
-     *
-     * <p><b>PowerAuth protocol versions:</b>
-     * <ul>
-     *     <li>3.0</li>
-     * </ul>
-     *
-     * @param applicationId     Application ID
-     * @param activationCode    Activation code
-     * @param states            Allowed activation states
-     * @param currentTimestamp  Current timestamp
-     * @return Activation matching the search criteria or null if not found
-     */
-    @Query(value = "SELECT a.* FROM pa_activation a WITH (NOLOCK) JOIN pa_application app WITH (NOLOCK) ON app.id = a.application_id WHERE app.name = :applicationId AND a.activation_code = :activationCode AND a.activation_status IN (:states) AND a.timestamp_activation_expire > :currentTimestamp", nativeQuery = true)
-    Optional<ActivationRecordEntity> findActivationByCodeWithoutLockMssql(String applicationId, String activationCode, Collection<Byte> states, Date currentTimestamp);
 
     /**
      * Find the first activation associated with given application by the activation code.

@@ -19,7 +19,7 @@ package io.getlime.security.powerauth.app.server.service.persistence;
 
 import io.getlime.security.powerauth.app.server.configuration.conditions.IsMssqlCondition;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
-import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.mssql.OperationRepositoryMssql;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +39,10 @@ public class OperationQueryServiceMssql implements OperationQueryService {
 
     private static final Logger logger = LoggerFactory.getLogger(OperationQueryServiceMssql.class);
 
-    private final OperationRepository operationRepository;
+    private final OperationRepositoryMssql operationRepository;
 
     @Autowired
-    public OperationQueryServiceMssql(OperationRepository operationRepository) {
+    public OperationQueryServiceMssql(OperationRepositoryMssql operationRepository) {
         this.operationRepository = operationRepository;
     }
 

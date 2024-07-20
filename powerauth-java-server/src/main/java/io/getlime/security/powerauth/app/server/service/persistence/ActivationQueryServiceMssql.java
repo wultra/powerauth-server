@@ -20,10 +20,8 @@ package io.getlime.security.powerauth.app.server.service.persistence;
 import io.getlime.security.powerauth.app.server.configuration.conditions.IsMssqlCondition;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
+import io.getlime.security.powerauth.app.server.database.repository.mssql.ActivationRepositoryMssql;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
@@ -43,10 +41,10 @@ import java.util.Optional;
 @Conditional(IsMssqlCondition.class)
 public class ActivationQueryServiceMssql implements ActivationQueryService {
 
-    private final ActivationRepository activationRepository;
+    private final ActivationRepositoryMssql activationRepository;
 
     @Autowired
-    public ActivationQueryServiceMssql(ActivationRepository activationRepository) {
+    public ActivationQueryServiceMssql(ActivationRepositoryMssql activationRepository) {
         this.activationRepository = activationRepository;
     }
 
