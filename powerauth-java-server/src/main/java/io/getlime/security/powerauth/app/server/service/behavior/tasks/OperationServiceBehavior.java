@@ -737,7 +737,7 @@ public class OperationServiceBehavior {
             final Date currentTimestamp = new Date();
             final String operationId = request.getOperationId();
 
-            final OperationEntity operation = operationQueryService.findOperationWithoutLock(operationId).orElseThrow(() -> {
+            final OperationEntity operation = operationQueryService.findOperationForUpdate(operationId).orElseThrow(() -> {
                 logger.warn("Operation was not found for ID: {}", operationId);
                 return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
             });
