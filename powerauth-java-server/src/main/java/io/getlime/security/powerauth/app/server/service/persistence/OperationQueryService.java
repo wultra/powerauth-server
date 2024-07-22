@@ -18,8 +18,12 @@
 package io.getlime.security.powerauth.app.server.service.persistence;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
+import org.springframework.data.domain.Pageable;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Service for operation queries with pessimistic locking.
@@ -29,5 +33,15 @@ import java.util.Optional;
 public interface OperationQueryService {
 
     Optional<OperationEntity> findOperationForUpdate(String operationId);
+
+    Optional<OperationEntity> findOperationWithoutLock(String operationId);
+
+    Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
+
+    Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
+
+    Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds, final Pageable pageable);
+
+    Stream<OperationEntity> findExpiredPendingOperations(Date timestamp, Pageable pageable);
 
 }

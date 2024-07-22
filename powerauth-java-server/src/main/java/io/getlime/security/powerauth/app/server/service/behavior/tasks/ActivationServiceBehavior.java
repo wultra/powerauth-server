@@ -278,14 +278,11 @@ public class ActivationServiceBehavior {
             // Generate timestamp in advance
             final Date timestamp = new Date();
 
-            // Get the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
             final List<ActivationRecordEntity> activationsList;
             if (applicationId == null) {
-                activationsList = activationRepository.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
+                activationsList = activationQueryService.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
             } else {
-                activationsList = activationRepository.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
+                activationsList = activationQueryService.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
             }
 
             final GetActivationListForUserResponse response = new GetActivationListForUserResponse();
@@ -399,7 +396,7 @@ public class ActivationServiceBehavior {
             } else {
                 statuses.add(activationStatus);
             }
-            final List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
+            final List<ActivationRecordEntity> activationsList = activationQueryService.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
             if (activationsList.isEmpty()) {
                 return response;
             }
@@ -527,17 +524,17 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Get the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
             // Prepare key generator
             final KeyGenerator keyGenerator = new KeyGenerator();
 
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
+            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
             // Check if the activation exists
-            if (activation != null) {
+            if (activationOptional.isPresent()) {
 
+                final ActivationRecordEntity activation = activationOptional.get();
                 // Deactivate old pending activations first
                 deactivatePendingActivation(timestamp, activation, false);
 
@@ -2433,7 +2430,7 @@ public class ActivationServiceBehavior {
 
     public List<Activation> findByExternalId(String applicationId, String externalId) throws GenericServiceException {
         final Date timestamp = new Date();
-        final List<ActivationRecordEntity> activationsList = repositoryCatalogue.getActivationRepository().findByExternalId(applicationId, externalId);
+        final List<ActivationRecordEntity> activationsList = activationQueryService.findByExternalId(applicationId, externalId);
 
         final List<Activation> result = new ArrayList<>();
 
@@ -2475,9 +2472,8 @@ public class ActivationServiceBehavior {
         final Date currentTimestamp = new Date();
         final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
         logger.debug("Running scheduled task for expiring activations");
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final Set<ActivationStatus> activationStatuses = Set.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
-        try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
+        try (final Stream<ActivationRecordEntity> abandonedActivations = activationQueryService.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
                 try {

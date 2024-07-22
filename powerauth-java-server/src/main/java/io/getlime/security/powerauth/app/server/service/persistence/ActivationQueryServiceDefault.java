@@ -25,11 +25,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Service for activation queries with pessimistic locking, default implementation.
@@ -60,6 +60,36 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
     }
 
     @Override
+    public Optional<ActivationRecordEntity> findActivationWithoutLock(String activationId) {
+        try {
+            return activationRepository.findActivationWithoutLock(activationId);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<ActivationRecordEntity> findByUserIdAndActivationStatusIn(String userId, Set<ActivationStatus> activationStatuses, Pageable pageable) {
+        try {
+            return activationRepository.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusIn(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable) {
+        try {
+            return activationRepository.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
     public Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp) {
         try {
             return activationRepository.findActivationByCodeWithoutLock(applicationId, activationCode, states, currentTimestamp);
@@ -68,4 +98,35 @@ public class ActivationQueryServiceDefault implements ActivationQueryService {
             return Optional.empty();
         }
     }
+
+    @Override
+    public List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states) {
+        try {
+            return activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, states);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp) {
+        try {
+            return activationRepository.findAbandonedActivations(states, startingTimestamp, currentTimestamp);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId) {
+        try {
+            return activationRepository.findByExternalId(applicationId, externalId);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
 }

@@ -81,12 +81,11 @@ public class ActivationFlagsServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
             final ListActivationFlagsResponse response = new ListActivationFlagsResponse();
             response.setActivationId(activationId);
             response.getActivationFlags().addAll(activation.getFlags());

@@ -26,10 +26,10 @@ import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -44,6 +44,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.Optional;
 
 /**
  * Behavior class implementing the asymmetric (ECDSA) signature validation related processes. The
@@ -55,8 +56,8 @@ import java.util.Base64;
 @Slf4j
 public class AsymmetricSignatureServiceBehavior {
 
-    private final ActivationRepository activationRepository;
     private final LocalizationProvider localizationProvider;
+    private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
 
     private final SignatureUtils signatureUtils = new SignatureUtils();
@@ -65,9 +66,9 @@ public class AsymmetricSignatureServiceBehavior {
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     @Autowired
-    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider, ActivationContextValidator activationValidator, ServerPrivateKeyConverter serverPrivateKeyConverter) {
-        this.activationRepository = activationRepository;
+    public AsymmetricSignatureServiceBehavior(LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ActivationContextValidator activationValidator, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.localizationProvider = localizationProvider;
+        this.activationQueryService = activationQueryService;
         this.activationValidator = activationValidator;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
@@ -90,11 +91,10 @@ public class AsymmetricSignatureServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.warn("Activation used when computing ECDSA signature does not exist, activation ID: {}", activationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
             final ActivationStatus activationStatus = activation.getActivationStatus();
@@ -161,13 +161,14 @@ public class AsymmetricSignatureServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
-            if (activation == null) {
+            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
+            if (activationOptional.isEmpty()) {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
                 return VerifyECDSASignatureResponse.builder()
                         .signatureValid(false)
                         .build();
             }
+            final ActivationRecordEntity activation = activationOptional.get();
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
             final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());

@@ -167,12 +167,11 @@ public class OfflineSignatureServiceBehavior {
             // Fetch activation details from the repository
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final String activationId = request.getActivationId();
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             final OfflineSignatureParameter offlineSignatureParameter = convert(request);
 

@@ -24,12 +24,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
- * Service for operation queries with pessimistic locking.
+ * Service for operation queries.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -59,4 +63,55 @@ public class OperationQueryServiceDefault implements OperationQueryService {
             return Optional.empty();
         }
     }
+
+    @Override
+    public Optional<OperationEntity> findOperationWithoutLock(String operationId) {
+        try {
+            return operationRepository.findOperationWithoutLock(operationId);
+        } catch (Exception ex) {
+            logger.error("Operation query failed", ex);
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, Pageable pageable) {
+        try {
+            return operationRepository.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable);
+        } catch (Exception ex) {
+            logger.error("Operation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, Pageable pageable) {
+        try {
+            return operationRepository.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable);
+        } catch (Exception ex) {
+            logger.error("Operation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds, Pageable pageable) {
+        try {
+            return operationRepository.findOperationsByExternalId(externalId, applicationIds, pageable);
+        } catch (Exception ex) {
+            logger.error("Operation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public Stream<OperationEntity> findExpiredPendingOperations(Date timestamp, Pageable pageable) {
+        try {
+            return operationRepository.findExpiredPendingOperations(timestamp, pageable);
+        } catch (Exception ex) {
+            logger.error("Operation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
 }

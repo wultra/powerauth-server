@@ -43,6 +43,7 @@ import io.getlime.security.powerauth.app.server.database.repository.OperationTem
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.persistence.OperationQueryService;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -85,6 +86,7 @@ public class OperationServiceBehavior {
     private final ApplicationRepository applicationRepository;
     private final ActivationRepository activationRepository;
     private final OperationQueryService operationQueryService;
+    private final ActivationQueryService activationQueryService;
 
     private final AuditingServiceBehavior audit;
 
@@ -112,7 +114,7 @@ public class OperationServiceBehavior {
             CallbackUrlBehavior callbackUrlBehavior, OperationRepository operationRepository,
             OperationTemplateRepository templateRepository,
             ApplicationRepository applicationRepository,
-            ActivationRepository activationRepository, OperationQueryService operationQueryService,
+            ActivationRepository activationRepository, OperationQueryService operationQueryService, ActivationQueryService activationQueryService,
             AuditingServiceBehavior audit,
             PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration) {
         this.callbackUrlBehavior = callbackUrlBehavior;
@@ -120,6 +122,7 @@ public class OperationServiceBehavior {
         this.templateRepository = templateRepository;
         this.applicationRepository = applicationRepository;
         this.operationQueryService = operationQueryService;
+        this.activationQueryService = activationQueryService;
         this.audit = audit;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.activationRepository = activationRepository;
@@ -185,7 +188,7 @@ public class OperationServiceBehavior {
             String operationId = null;
             for (int i = 0; i < powerAuthServiceConfiguration.getGenerateOperationIterations(); i++) {
                 final String tmpOperationId = UUID.randomUUID().toString();
-                final Optional<OperationEntity> tmpTokenOptional = operationRepository.findOperation(tmpOperationId);
+                final Optional<OperationEntity> tmpTokenOptional = operationQueryService.findOperationWithoutLock(tmpOperationId);
                 if (tmpTokenOptional.isEmpty()) {
                     operationId = tmpOperationId;
                     break;
@@ -735,7 +738,7 @@ public class OperationServiceBehavior {
             final String operationId = request.getOperationId();
 
             // Check if the operation exists
-            final Optional<OperationEntity> operationOptional = operationRepository.findOperation(operationId);
+            final Optional<OperationEntity> operationOptional = operationQueryService.findOperationWithoutLock(operationId);
             if (operationOptional.isEmpty()) {
                 logger.warn("Operation was not found for ID: {}.", operationId);
                 throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
@@ -786,10 +789,15 @@ public class OperationServiceBehavior {
             final List<String> activationFlags = fetchActivationFlags(activationId);
 
             final OperationListResponse result = new OperationListResponse();
-            try (final Stream<OperationEntity> operationsForUser = operationRepository.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, operationListRequest.pageable())) {
+            try (final Stream<OperationEntity> operationsForUser = operationQueryService.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, operationListRequest.pageable())) {
                 operationsForUser.forEach(op -> {
-                    final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
-                    result.add(convertFromEntity(operationEntity));
+                    final OperationEntity operationEntity;
+                    try {
+                        operationEntity = expireOperation(op, currentTimestamp);
+                        result.add(convertFromEntity(operationEntity));
+                    } catch (GenericServiceException e) {
+                        logger.error("Operation expiration failed, operation ID: {}", op.getId());
+                    }
                 });
             }
             return result;
@@ -830,13 +838,18 @@ public class OperationServiceBehavior {
             final List<String> activationFlags = fetchActivationFlags(activationId);
 
             final OperationListResponse result = new OperationListResponse();
-            try (final Stream<OperationEntity> operationsForUser = operationRepository.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, operationListRequest.pageable())) {
+            try (final Stream<OperationEntity> operationsForUser = operationQueryService.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags.isEmpty() ? null : activationFlags, operationListRequest.pageable())) {
                 operationsForUser.forEach(op -> {
-                    final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
-                    // Skip operation that just expired
-                    if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
-                        final OperationDetailResponse operationDetail = convertFromEntityAndFillOtp(operationEntity);
-                        result.add(operationDetail);
+                    final OperationEntity operationEntity;
+                    try {
+                        operationEntity = expireOperation(op, currentTimestamp);
+                        // Skip operation that just expired
+                        if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())) {
+                            final OperationDetailResponse operationDetail = convertFromEntityAndFillOtp(operationEntity);
+                            result.add(operationDetail);
+                        }
+                    } catch (GenericServiceException e) {
+                        logger.error("Operation expiration failed, operation ID: {}", op.getId());
                     }
                 });
             }
@@ -880,10 +893,15 @@ public class OperationServiceBehavior {
             }
 
             final OperationListResponse result = new OperationListResponse();
-            try (final Stream<OperationEntity> operationsByExternalId = operationRepository.findOperationsByExternalId(externalId, applicationIds, requestWithExternalId.pageable())) {
+            try (final Stream<OperationEntity> operationsByExternalId = operationQueryService.findOperationsByExternalId(externalId, applicationIds, requestWithExternalId.pageable())) {
                 operationsByExternalId.forEach(op -> {
-                    final OperationEntity operationEntity = expireOperation(op, currentTimestamp);
-                    result.add(convertFromEntity(operationEntity));
+                    final OperationEntity operationEntity;
+                    try {
+                        operationEntity = expireOperation(op, currentTimestamp);
+                        result.add(convertFromEntity(operationEntity));
+                    } catch (GenericServiceException e) {
+                        logger.error("Operation expiration failed, operation ID: {}", op.getId());
+                    }
                 });
             }
             return result;
@@ -962,13 +980,17 @@ public class OperationServiceBehavior {
         return source;
     }
 
-    private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) {
+    private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) throws GenericServiceException {
         // Operation is still pending and timestamp is after the expiration.
         if (OperationStatusDo.PENDING.equals(source.getStatus())
                 && source.getTimestampExpires().before(currentTimestamp)) {
-            logger.info("Operation {} expired.", source.getId());
-            source.setStatus(OperationStatusDo.EXPIRED);
-            final OperationEntity savedEntity = operationRepository.save(source);
+            OperationEntity operationEntity = operationQueryService.findOperationForUpdate(source.getId()).orElseThrow(() -> {
+                logger.warn("Operation was removed, ID: {}.", source.getId());
+                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+            });
+            logger.info("Operation {} expired.", operationEntity.getId());
+            operationEntity.setStatus(OperationStatusDo.EXPIRED);
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             return savedEntity;
         }
@@ -1135,9 +1157,9 @@ public class OperationServiceBehavior {
     private List<String> fetchActivationFlags(String activationId) {
         if (activationId != null) {
             logger.debug("Searching for operations with activationId: {}", activationId);
-            final ActivationRecordEntity activationRecord = activationRepository.findActivationWithoutLock(activationId);
-            if (activationRecord != null) {
-                final List<String> flags = activationRecord.getFlags();
+            final Optional<ActivationRecordEntity> activationRecord = activationQueryService.findActivationWithoutLock(activationId);
+            if (activationRecord.isPresent()) {
+                final List<String> flags = activationRecord.get().getFlags();
                 return flags != null ? flags : Collections.emptyList();
             }
         }
@@ -1172,8 +1194,14 @@ public class OperationServiceBehavior {
         logger.debug("Running scheduled task for expiring operations");
 
         final PageRequest pageRequest = PageRequest.of(0, powerAuthServiceConfiguration.getExpireOperationsLimit());
-        try (final Stream<OperationEntity> pendingOperations = operationRepository.findExpiredPendingOperations(currentTimestamp, pageRequest)) {
-            pendingOperations.forEach(op -> expireOperation(op, currentTimestamp));
+        try (final Stream<OperationEntity> pendingOperations = operationQueryService.findExpiredPendingOperations(currentTimestamp, pageRequest)) {
+            pendingOperations.forEach(op -> {
+                try {
+                    expireOperation(op, currentTimestamp);
+                } catch (GenericServiceException e) {
+                    logger.error("Operation expiration failed, operation ID: {}", op.getId());
+                }
+            });
         }
     }
 

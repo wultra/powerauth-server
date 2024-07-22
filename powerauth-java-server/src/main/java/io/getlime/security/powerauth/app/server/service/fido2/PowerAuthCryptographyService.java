@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.database.model.entity.Activation
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
@@ -61,11 +62,13 @@ public class PowerAuthCryptographyService implements CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ActivationRepository activationRepository;
+    private final ActivationQueryService activationQueryService;
     private final ApplicationConfigRepository applicationConfigRepository;
     private final Fido2CertificateValidator certificateValidator;
 
-    public PowerAuthCryptographyService(ActivationRepository activationRepository, ApplicationConfigRepository applicationConfigRepository, Fido2CertificateValidator certificateValidator) {
+    public PowerAuthCryptographyService(ActivationRepository activationRepository, ActivationQueryService activationQueryService, ApplicationConfigRepository applicationConfigRepository, Fido2CertificateValidator certificateValidator) {
         this.activationRepository = activationRepository;
+        this.activationQueryService = activationQueryService;
         this.applicationConfigRepository = applicationConfigRepository;
         this.certificateValidator = certificateValidator;
     }
@@ -120,7 +123,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
     }
 
     private boolean checkAndPersistCounter(String applicationId, String credentialId, int signCount) {
-        final List<ActivationRecordEntity> activations = activationRepository.findByExternalId(applicationId, credentialId);
+        final List<ActivationRecordEntity> activations = activationQueryService.findByExternalId(applicationId, credentialId);
         if (activations.isEmpty()) {
             logger.warn("Activation not found, external ID: {}", credentialId);
             return false;

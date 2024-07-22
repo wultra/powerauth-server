@@ -21,10 +21,14 @@ package io.getlime.security.powerauth.app.server.database.repository.mssql;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * Database repository for the operations.
@@ -65,5 +69,59 @@ public interface OperationRepositoryMssql extends OperationRepository {
                 END
             """, nativeQuery = true)
     Optional<OperationEntity> findOperationWithLockMssql(String operationId);
+
+    @Query(value = "SELECT * FROM pa_operation WITH (NOLOCK) WHERE id = :operationId", nativeQuery = true)
+    Optional<OperationEntity> findOperationWithoutLockMssql(String operationId);
+
+    @Query(value = """
+        SELECT * FROM pa_operation o WITH (NOLOCK)
+        WHERE o.id IN (
+            SELECT o.id FROM pa_operation o WITH (NOLOCK)
+            INNER JOIN pa_operation_application oa WITH (NOLOCK) ON o.id = oa.operation_id
+            INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
+            WHERE o.user_id = :userId
+            AND a.id IN :applicationIds
+            AND (:activationId IS NULL OR o.activation_id IS NULL OR o.activation_id = :activationId)
+            AND (:activationFlags IS NULL OR o.activation_flag IS NULL OR o.activation_flag IN :activationFlags)
+        )
+        ORDER BY o.timestamp_created DESC
+        """, nativeQuery = true)
+    Stream<OperationEntity> findAllOperationsForUserMssql(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
+
+    @Query(value = """
+        SELECT * FROM pa_operation o WITH (NOLOCK)
+        WHERE o.id IN (
+            SELECT o.id FROM pa_operation o WITH (NOLOCK)
+            INNER JOIN pa_operation_application oa WITH (NOLOCK) ON o.id = oa.operation_id
+            INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
+            WHERE o.user_id = :userId
+            AND a.id IN :applicationIds
+            AND o.status = 'PENDING'
+            AND (:activationId IS NULL OR o.activation_id IS NULL OR o.activation_id = :activationId)
+            AND (:activationFlags IS NULL OR o.activation_flag IS NULL OR o.activation_flag IN :activationFlags)
+        )
+        ORDER BY o.timestamp_created DESC
+        """, nativeQuery = true)
+    Stream<OperationEntity> findPendingOperationsForUserMssql(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
+
+    @Query(value = """
+        SELECT o.* FROM pa_operation o WITH (NOLOCK)
+        WHERE o.id IN (
+            SELECT o.id FROM pa_operation o WITH (NOLOCK)
+            INNER JOIN pa_operation_application oa WITH (NOLOCK) ON o.id = oa.operation_id
+            INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
+            WHERE o.external_id = :externalId
+            AND a.id IN :applicationIds
+        )
+        ORDER BY o.timestamp_created DESC
+        """, nativeQuery = true)
+    Stream<OperationEntity> findOperationsByExternalIdMssql(String externalId, List<String> applicationIds, final Pageable pageable);
+
+    @Query(value = """
+            SELECT * FROM pa_operation o WITH (NOLOCK)
+            WHERE o.timestamp_expires < :timestamp
+            AND o.status = 'PENDING'
+            """, nativeQuery = true)
+    Stream<OperationEntity> findExpiredPendingOperationsMssql(Date timestamp, Pageable pageable);
 
 }

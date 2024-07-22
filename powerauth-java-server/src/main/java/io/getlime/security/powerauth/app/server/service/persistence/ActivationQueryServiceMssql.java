@@ -24,12 +24,11 @@ import io.getlime.security.powerauth.app.server.database.repository.mssql.Activa
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * Service for activation queries with pessimistic locking, MSSQL implementation.
@@ -59,6 +58,37 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     }
 
     @Override
+    public Optional<ActivationRecordEntity> findActivationWithoutLock(String activationId) {
+        try {
+            return activationRepository.findActivationWithoutLockMssql(activationId);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<ActivationRecordEntity> findByUserIdAndActivationStatusIn(String userId, Set<ActivationStatus> states, Pageable pageable) {
+        try {
+            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
+            return activationRepository.findByUserIdAndActivationStatusInMssql(userId, statesBytes, pageable);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusIn(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable) {
+        try {
+            return activationRepository.findByApplicationIdAndUserIdAndActivationStatusInMssql(applicationId, userId, activationStatuses, pageable);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
     public Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp) {
         try {
             final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
@@ -68,4 +98,37 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
             return Optional.empty();
         }
     }
+
+    @Override
+    public List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states) {
+        try {
+            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
+            return activationRepository.lookupActivationsMssql(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statesBytes);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp) {
+        try {
+            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
+            return activationRepository.findAbandonedActivationsMssql(statesBytes, startingTimestamp, currentTimestamp);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Stream.empty();
+        }
+    }
+
+    @Override
+    public List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId) {
+        try {
+            return activationRepository.findByExternalIdMssql(applicationId, externalId);
+        } catch (Exception ex) {
+            logger.error("Activation query failed", ex);
+            return Collections.emptyList();
+        }
+    }
+
 }

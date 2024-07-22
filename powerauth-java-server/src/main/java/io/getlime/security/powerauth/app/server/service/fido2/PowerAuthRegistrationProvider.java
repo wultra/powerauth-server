@@ -207,8 +207,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
             }
         }
 
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final List<ActivationRecordEntity> existingActivations = activationRepository.findByExternalId(applicationId, credentialId);
+        final List<ActivationRecordEntity> existingActivations = activationQueryService.findByExternalId(applicationId, credentialId);
         if (!existingActivations.isEmpty()) {
             logger.warn("Rejected duplicate external ID for registration, application ID: {}, external ID: {}", applicationId, credentialId);
             return false;

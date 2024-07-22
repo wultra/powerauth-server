@@ -57,7 +57,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Activation with given ID or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
-    ActivationRecordEntity findActivationWithoutLock(String activationId);
+    Optional<ActivationRecordEntity> findActivationWithoutLock(String activationId);
 
     /**
      * Get count of activations with given activation ID.
@@ -140,25 +140,6 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
         }
         return getActivationCountByActivationIdShort(applicationId, activationCode.substring(0, 11));
     }
-
-    /**
-     * Find the first activation associated with given application by the activation ID short.
-     * Filter the results by activation state and make sure to apply activation time window.
-     *
-     * <p><b>PowerAuth protocol versions:</b>
-     * <ul>
-     *     <li>2.0</li>
-     *     <li>2.1</li>
-     * </ul>
-     *
-     * @param applicationId     Application ID
-     * @param activationIdShort Short activation ID
-     * @param states            Allowed activation states
-     * @param currentTimestamp  Current timestamp
-     * @return Activation matching the search criteria or null if not found
-     */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort% AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    ActivationRecordEntity findCreatedActivationByShortIdWithoutLock(String applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Find all activations which match the query criteria.
