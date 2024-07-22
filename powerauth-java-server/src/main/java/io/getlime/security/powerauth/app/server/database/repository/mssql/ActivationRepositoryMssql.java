@@ -141,7 +141,8 @@ public interface ActivationRepositoryMssql extends JpaRepository<ActivationRecor
      */
     @Query(value = """
             SELECT * FROM pa_activation a WITH (NOLOCK)
-            WHERE a.application_id = :applicationId
+            JOIN pa_application app WITH (NOLOCK) ON app.id = a.application_id
+            WHERE app.name = :applicationId
             AND a.user_id = :userId
             AND a.activation_status IN (:states)
             ORDER BY a.timestamp_created DESC
@@ -164,8 +165,9 @@ public interface ActivationRepositoryMssql extends JpaRepository<ActivationRecor
      */
     @Query(value = """
             SELECT * FROM pa_activation a WITH (NOLOCK)
+            JOIN pa_application app WITH (NOLOCK) ON app.id = a.application_id
             WHERE a.user_id IN (:userIds)
-            AND (:#{#applicationIds == null ? 1 : 0} = 1 OR a.application_id IN (:applicationIds))
+            AND (:#{#applicationIds == null ? 1 : 0} = 1 OR app.name IN (:applicationIds))
             AND a.timestamp_last_used < :timestampLastUsedBefore
             AND a.timestamp_last_used >= :timestampLastUsedAfter
             AND a.activation_status IN (:states)
@@ -203,7 +205,8 @@ public interface ActivationRepositoryMssql extends JpaRepository<ActivationRecor
      */
     @Query(value = """
             SELECT * FROM pa_activation a WITH (NOLOCK)
-            WHERE a.application_id = :applicationId
+            JOIN pa_application app WITH (NOLOCK) ON app.id = a.application_id
+            WHERE app.name = :applicationId
             AND a.external_id = :externalId
             """, nativeQuery = true)
     List<ActivationRecordEntity> findByExternalIdMssql(String applicationId, String externalId);

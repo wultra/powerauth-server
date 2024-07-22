@@ -83,7 +83,7 @@ public interface OperationRepositoryMssql extends JpaRepository<OperationEntity,
             INNER JOIN pa_operation_application oa WITH (NOLOCK) ON o.id = oa.operation_id
             INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
             WHERE o.user_id = :userId
-            AND a.id IN :applicationIds
+            AND a.name IN :applicationIds
             AND (:activationId IS NULL OR o.activation_id IS NULL OR o.activation_id = :activationId)
             AND (:activationFlags IS NULL OR o.activation_flag IS NULL OR o.activation_flag IN :activationFlags)
         )
@@ -98,7 +98,7 @@ public interface OperationRepositoryMssql extends JpaRepository<OperationEntity,
             INNER JOIN pa_operation_application oa WITH (NOLOCK) ON o.id = oa.operation_id
             INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
             WHERE o.user_id = :userId
-            AND a.id IN :applicationIds
+            AND a.name IN :applicationIds
             AND o.status = 0
             AND (:activationId IS NULL OR o.activation_id IS NULL OR o.activation_id = :activationId)
             AND (:activationFlags IS NULL OR o.activation_flag IS NULL OR o.activation_flag IN :activationFlags)
@@ -114,7 +114,7 @@ public interface OperationRepositoryMssql extends JpaRepository<OperationEntity,
             INNER JOIN pa_operation_application oa WITH (NOLOCK) ON o.id = oa.operation_id
             INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
             WHERE o.external_id = :externalId
-            AND a.id IN :applicationIds
+            AND a.name IN :applicationIds
         )
         ORDER BY o.timestamp_created DESC
         """, nativeQuery = true)
