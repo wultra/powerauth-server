@@ -18,14 +18,14 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
+import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.fido2.model.entity.Credential;
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,6 +35,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.*;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.anEmptyMap;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -89,7 +91,7 @@ class AssertionChallengeConverterTest {
         assertEquals("application", createRequest.getApplications().get(0));
         assertEquals("payment", createRequest.getTemplateName());
         assertEquals("10", createRequest.getParameters().get("amount"));
-        assertNull(createRequest.getAdditionalData());
+        assertThat(createRequest.getAdditionalData(), anEmptyMap());
     }
 
     @Test

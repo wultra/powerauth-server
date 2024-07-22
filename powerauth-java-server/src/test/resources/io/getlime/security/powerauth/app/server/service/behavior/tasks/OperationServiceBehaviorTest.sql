@@ -1,6 +1,7 @@
 INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration, proximity_check_enabled) VALUES
     (100, 'test-template', 'test-template', 'A2', 'POSSESSION_KNOWLEDGE', 5, 300, false),
-    (101, 'test-template-proximity-check', 'test-template', 'A2', 'POSSESSION_KNOWLEDGE', 5, 300, true);
+    (101, 'test-template-proximity-check', 'test-template', 'A2', 'POSSESSION_KNOWLEDGE', 5, 300, true),
+    (102, 'test-template-text', 'test-template', 'A0*T${text}', 'POSSESSION_KNOWLEDGE', 5, 300, false);
 
 INSERT INTO pa_application (id, name) VALUES
     (21, 'PA_Tests');
