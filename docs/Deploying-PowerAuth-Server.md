@@ -234,6 +234,25 @@ spring.jpa.hibernate.ddl-auto=none
 spring.datasource.jndi-name=java:/jdbc/powerauth
 ```
 
+### Deploying on MSSQL Database
+
+The MSSQL database must run in SNAPSHOT transaction isolation mode for PowerAuth server.
+
+In case of a different transactions mode, database deadlocks can occur frequently.
+
+You can enable the mode using following query:
+
+```sql
+ALTER DATABASE [powerauth_database] SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE [powerauth_database] SET READ_COMMITTED_SNAPSHOT ON;
+```
+
+The SNAPSHOT transaction isolation level is enforced automatically on application startup using following query:
+
+```sql
+SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+```
+
 ### Deploying On JBoss / Wildfly
 
 Follow the extra instructions in chapter [Deploying PowerAuth Server on JBoss / Wildfly](./Deploying-Wildfly.md).

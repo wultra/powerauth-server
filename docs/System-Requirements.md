@@ -38,8 +38,7 @@ PowerAuth supports any JPA2 compatible database, and it is tested with:
 
 - Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
-
-Note that MSSQL database is not supported due to unreliable row locking.
+- MSSQL 2019 or newer
 
 When deploying the PowerAuth Server, please follow the specifics of your application server.
 
