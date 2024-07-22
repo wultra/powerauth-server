@@ -17,9 +17,12 @@
  */
 package io.getlime.security.powerauth.app.server.database.repository.mssql;
 
+import io.getlime.security.powerauth.app.server.configuration.conditions.IsMssqlCondition;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -32,7 +35,8 @@ import java.util.stream.Stream;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Repository
-public interface ActivationRepositoryMssql {
+@Conditional(IsMssqlCondition.class)
+public interface ActivationRepositoryMssql extends JpaRepository<ActivationRecordEntity, Long> {
 
     /**
      * Find activation with given activation ID. This method is MSSQL-specific.
@@ -117,7 +121,7 @@ public interface ActivationRepositoryMssql {
     @Query(value = """
             SELECT * FROM pa_activation a WITH (NOLOCK)
             WHERE a.user_id = :userId
-            AND a.activation_status IN (:activationStatuses)
+            AND a.activation_status IN (:states)
             ORDER BY a.timestamp_created DESC
             OFFSET :#{#pageable.offset} ROWS FETCH NEXT :#{#pageable.pageSize} ROWS ONLY
             """, nativeQuery = true)
@@ -131,7 +135,7 @@ public interface ActivationRepositoryMssql {
      *
      * @param applicationId      Application ID
      * @param userId             User ID
-     * @param activationStatuses Statuses according to which activations should be filtered.
+     * @param states Statuses according to which activations should be filtered.
      * @param pageable           pageable context
      * @return List of activations for given user and application
      */
@@ -139,11 +143,11 @@ public interface ActivationRepositoryMssql {
             SELECT * FROM pa_activation a WITH (NOLOCK)
             WHERE a.application_id = :applicationId
             AND a.user_id = :userId
-            AND a.activation_status IN (:activationStatuses)
+            AND a.activation_status IN (:states)
             ORDER BY a.timestamp_created DESC
             OFFSET :#{#pageable.offset} ROWS FETCH NEXT :#{#pageable.pageSize} ROWS ONLY
             """, nativeQuery = true)
-    List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusInMssql(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable);
+    List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusInMssql(String applicationId, String userId, Set<ActivationStatus> states, Pageable pageable);
 
     /**
      * Find all activations which match the query criteria.

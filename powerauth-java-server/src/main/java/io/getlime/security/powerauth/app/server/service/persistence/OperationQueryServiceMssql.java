@@ -87,7 +87,7 @@ public class OperationQueryServiceMssql implements OperationQueryService {
     @Override
     public Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, Pageable pageable) {
         try {
-            return operationRepository.findAllOperationsForUserMssql(userId, applicationIds, activationId, activationFlags, pageable);
+            return operationRepository.findPendingOperationsForUserMssql(userId, applicationIds, activationId, activationFlags, pageable);
         } catch (Exception ex) {
             logger.error("Operation query failed", ex);
             return Stream.empty();

@@ -19,9 +19,11 @@
 package io.getlime.security.powerauth.app.server.database.repository.mssql;
 
 
+import io.getlime.security.powerauth.app.server.configuration.conditions.IsMssqlCondition;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
-import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +38,8 @@ import java.util.stream.Stream;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Repository
-public interface OperationRepositoryMssql extends OperationRepository {
+@Conditional(IsMssqlCondition.class)
+public interface OperationRepositoryMssql extends JpaRepository<OperationEntity, Long> {
 
     /**
      * Find operation with given operation ID. This method is MSSQL-specific.
@@ -96,7 +99,7 @@ public interface OperationRepositoryMssql extends OperationRepository {
             INNER JOIN pa_application a WITH (NOLOCK) ON oa.application_id = a.id
             WHERE o.user_id = :userId
             AND a.id IN :applicationIds
-            AND o.status = 'PENDING'
+            AND o.status = 0
             AND (:activationId IS NULL OR o.activation_id IS NULL OR o.activation_id = :activationId)
             AND (:activationFlags IS NULL OR o.activation_flag IS NULL OR o.activation_flag IN :activationFlags)
         )
@@ -120,7 +123,7 @@ public interface OperationRepositoryMssql extends OperationRepository {
     @Query(value = """
             SELECT * FROM pa_operation o WITH (NOLOCK)
             WHERE o.timestamp_expires < :timestamp
-            AND o.status = 'PENDING'
+            AND o.status = 0
             """, nativeQuery = true)
     Stream<OperationEntity> findExpiredPendingOperationsMssql(Date timestamp, Pageable pageable);
 

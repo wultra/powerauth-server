@@ -138,11 +138,11 @@ public class ActivationServiceBehavior {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration, ReplayVerificationService eciesreplayPersistenceService, ActivationContextValidator activationValidator, ActivationQueryService activationQueryService, ObjectMapper objectMapper) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, PowerAuthPageableConfiguration powerAuthPageableConfiguration, ReplayVerificationService eciesReplayPersistenceService, ActivationContextValidator activationValidator, ActivationQueryService activationQueryService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.powerAuthPageableConfiguration = powerAuthPageableConfiguration;
-        this.replayVerificationService = eciesreplayPersistenceService;
+        this.replayVerificationService = eciesReplayPersistenceService;
         this.activationValidator = activationValidator;
         this.activationQueryService = activationQueryService;
         this.objectMapper = objectMapper;
