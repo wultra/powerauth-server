@@ -8,8 +8,7 @@ Following databases are supported:
 
 - Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
-
-Note that MSSQL database is not supported.
+- MSSQL 2019 or newer
 
 ## Downloading PowerAuth Server WAR
 
