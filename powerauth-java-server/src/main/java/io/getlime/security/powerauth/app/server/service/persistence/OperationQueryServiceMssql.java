@@ -67,7 +67,7 @@ public class OperationQueryServiceMssql implements OperationQueryService {
     @Override
     public Optional<OperationEntity> findOperationWithoutLock(String operationId) {
         try {
-            return operationRepository.findOperationWithoutLockMssql(operationId);
+            return operationRepository.findOperationWithoutLock(operationId);
         } catch (Exception ex) {
             logger.error("Operation query failed", ex);
             return Optional.empty();
@@ -77,7 +77,7 @@ public class OperationQueryServiceMssql implements OperationQueryService {
     @Override
     public Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, Pageable pageable) {
         try {
-            return operationRepository.findAllOperationsForUserMssql(userId, applicationIds, activationId, activationFlags, pageable);
+            return operationRepository.findAllOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable);
         } catch (Exception ex) {
             logger.error("Operation query failed", ex);
             return Stream.empty();
@@ -87,7 +87,7 @@ public class OperationQueryServiceMssql implements OperationQueryService {
     @Override
     public Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, Pageable pageable) {
         try {
-            return operationRepository.findPendingOperationsForUserMssql(userId, applicationIds, activationId, activationFlags, pageable);
+            return operationRepository.findPendingOperationsForUser(userId, applicationIds, activationId, activationFlags, pageable);
         } catch (Exception ex) {
             logger.error("Operation query failed", ex);
             return Stream.empty();
@@ -97,7 +97,7 @@ public class OperationQueryServiceMssql implements OperationQueryService {
     @Override
     public Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds, Pageable pageable) {
         try {
-            return operationRepository.findOperationsByExternalIdMssql(externalId, applicationIds, pageable);
+            return operationRepository.findOperationsByExternalId(externalId, applicationIds, pageable);
         } catch (Exception ex) {
             logger.error("Operation query failed", ex);
             return Stream.empty();
@@ -107,7 +107,7 @@ public class OperationQueryServiceMssql implements OperationQueryService {
     @Override
     public Stream<OperationEntity> findExpiredPendingOperations(Date timestamp, Pageable pageable) {
         try {
-            return operationRepository.findExpiredPendingOperationsMssql(timestamp, pageable);
+            return operationRepository.findExpiredPendingOperations(timestamp, pageable);
         } catch (Exception ex) {
             logger.error("Operation query failed", ex);
             return Stream.empty();

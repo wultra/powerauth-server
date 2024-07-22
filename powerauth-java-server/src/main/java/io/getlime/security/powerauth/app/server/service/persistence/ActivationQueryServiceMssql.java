@@ -60,7 +60,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public Optional<ActivationRecordEntity> findActivationWithoutLock(String activationId) {
         try {
-            return activationRepository.findActivationWithoutLockMssql(activationId);
+            return activationRepository.findActivationWithoutLock(activationId);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Optional.empty();
@@ -70,8 +70,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public List<ActivationRecordEntity> findByUserIdAndActivationStatusIn(String userId, Set<ActivationStatus> states, Pageable pageable) {
         try {
-            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
-            return activationRepository.findByUserIdAndActivationStatusInMssql(userId, statesBytes, pageable);
+            return activationRepository.findByUserIdAndActivationStatusIn(userId, states, pageable);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Collections.emptyList();
@@ -81,7 +80,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public List<ActivationRecordEntity> findByApplicationIdAndUserIdAndActivationStatusIn(String applicationId, String userId, Set<ActivationStatus> activationStatuses, Pageable pageable) {
         try {
-            return activationRepository.findByApplicationIdAndUserIdAndActivationStatusInMssql(applicationId, userId, activationStatuses, pageable);
+            return activationRepository.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Collections.emptyList();
@@ -91,8 +90,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp) {
         try {
-            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
-            return activationRepository.findActivationByCodeWithoutLockMssql(applicationId, activationCode, statesBytes, currentTimestamp);
+            return activationRepository.findActivationByCodeWithoutLock(applicationId, activationCode, states, currentTimestamp);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Optional.empty();
@@ -102,8 +100,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public List<ActivationRecordEntity> lookupActivations(Collection<String> userIds, Collection<String> applicationIds, Date timestampLastUsedBefore, Date timestampLastUsedAfter, Collection<ActivationStatus> states) {
         try {
-            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
-            return activationRepository.lookupActivationsMssql(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statesBytes);
+            return activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, states);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Collections.emptyList();
@@ -113,8 +110,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp) {
         try {
-            final List<Byte> statesBytes = states.stream().map(ActivationStatus::getByte).toList();
-            return activationRepository.findAbandonedActivationsMssql(statesBytes, startingTimestamp, currentTimestamp);
+            return activationRepository.findAbandonedActivations(states, startingTimestamp, currentTimestamp);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Stream.empty();
@@ -124,7 +120,7 @@ public class ActivationQueryServiceMssql implements ActivationQueryService {
     @Override
     public List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId) {
         try {
-            return activationRepository.findByExternalIdMssql(applicationId, externalId);
+            return activationRepository.findByExternalId(applicationId, externalId);
         } catch (Exception ex) {
             logger.error("Activation query failed", ex);
             return Collections.emptyList();
