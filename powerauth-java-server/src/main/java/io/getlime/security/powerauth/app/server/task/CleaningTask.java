@@ -46,7 +46,9 @@ public class CleaningTask {
     private final ActivationServiceBehavior activationServiceBehavior;
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.uniqueValueCleanup:60000}")
-    @SchedulerLock(name = "expireUniqueValuesTask")
+    @SchedulerLock(
+            name = "expireUniqueValuesTask",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.uniqueValueCleanup:60000} * 0.8)}")
     public void deleteExpiredUniqueValues() {
         LockAssert.assertLocked();
         logger.debug("deleteExpiredUniqueValues");
@@ -54,7 +56,9 @@ public class CleaningTask {
     }
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.operationCleanup:5000}")
-    @SchedulerLock(name = "expireOperationsTask")
+    @SchedulerLock(
+            name = "expireOperationsTask",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.operationCleanup:5000} * 0.8)}")
     public void expireOperations() {
         LockAssert.assertLocked();
         logger.debug("expireOperations");
@@ -62,7 +66,9 @@ public class CleaningTask {
     }
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.activationsCleanup:5000}")
-    @SchedulerLock(name = "expireActivationsTask")
+    @SchedulerLock(
+            name = "expireActivationsTask",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.activationsCleanup:5000} * 0.8)}")
     public void expireActivations() {
         LockAssert.assertLocked();
         logger.debug("expireActivations");

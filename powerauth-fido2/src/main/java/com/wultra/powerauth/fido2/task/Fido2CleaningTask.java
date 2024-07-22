@@ -37,7 +37,7 @@ public class Fido2CleaningTask {
 
     private final CacheService cacheService;
 
-    @Scheduled(fixedDelayString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.fido2AuthenticatorCacheEviction:3600000}")
     public void evictFido2AuthenticatorCache() {
         logger.debug("evictFido2AuthenticatorCache");
         cacheService.evictFido2AuthenticatorCache();

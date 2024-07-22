@@ -22,3 +22,5 @@ dist/
 
 ### JRebel
 rebel.xml
+
+docs-private/schema_crawler/

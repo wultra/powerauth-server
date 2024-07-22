@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.fido2.model.request;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
@@ -40,6 +41,10 @@ public class AssertionChallengeRequest {
     @NotEmpty
     private List<@NotBlank String> applicationIds;
     private String externalId;
+
+    @Schema(description = "Operation which the assertion should be associated with. If `null`, a new operation is created.")
+    private String operationId;
+
     @NotBlank
     private String templateName;
     @JsonSetter(nulls = Nulls.SKIP)
