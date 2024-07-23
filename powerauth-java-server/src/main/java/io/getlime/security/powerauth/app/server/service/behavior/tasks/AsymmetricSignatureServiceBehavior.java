@@ -18,23 +18,23 @@
 package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
+import java.util.Optional;
 
 /**
  * Behavior class implementing the asymmetric (ECDSA) signature validation related processes. The
@@ -42,22 +42,21 @@ import java.util.Base64;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class AsymmetricSignatureServiceBehavior {
 
-    private final ActivationRepository activationRepository;
     private final LocalizationProvider localizationProvider;
+    private final ActivationQueryService activationQueryService;
     private final ActivationContextValidator activationValidator;
 
     private final SignatureUtils signatureUtils = new SignatureUtils();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(AsymmetricSignatureServiceBehavior.class);
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public AsymmetricSignatureServiceBehavior(ActivationRepository activationRepository, LocalizationProvider localizationProvider, ActivationContextValidator activationValidator) {
-        this.activationRepository = activationRepository;
+    public AsymmetricSignatureServiceBehavior(LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ActivationContextValidator activationValidator) {
         this.localizationProvider = localizationProvider;
+        this.activationQueryService = activationQueryService;
         this.activationValidator = activationValidator;
     }
 
@@ -72,14 +71,22 @@ public class AsymmetricSignatureServiceBehavior {
      */
     public boolean verifyECDSASignature(String activationId, String data, String signature, KeyConvertor keyConversionUtilities) throws GenericServiceException {
         try {
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
-            if (activation == null) {
+            if (activationId == null || data == null || signature == null) {
+                logger.warn("Invalid request parameters in method verifyECDSASignature");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
+            if (activationOptional.isEmpty()) {
                 logger.warn("Activation used when verifying ECDSA signature does not exist, activation ID: {}", activationId);
                 return false;
             }
+            final ActivationRecordEntity activation = activationOptional.get();
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
-            byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            PublicKey devicePublicKey = keyConversionUtilities.convertBytesToPublicKey(devicePublicKeyData);
+
+            final byte[] devicePublicKeyData = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyData);
             return signatureUtils.validateECDSASignature(Base64.getDecoder().decode(data), Base64.getDecoder().decode(signature), devicePublicKey);
         } catch (InvalidKeyException | InvalidKeySpecException ex) {
             logger.error(ex.getMessage(), ex);
@@ -93,6 +100,15 @@ public class AsymmetricSignatureServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, database is not used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
 
     }

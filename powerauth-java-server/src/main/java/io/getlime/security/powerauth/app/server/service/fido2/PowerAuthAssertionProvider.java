@@ -22,7 +22,10 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
-import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
 import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
@@ -42,10 +45,12 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Activ
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +62,7 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@AllArgsConstructor
 @Slf4j
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
@@ -74,15 +80,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final AuditingServiceBehavior audit;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
-
-    @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService) {
-        this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.audit = audit;
-        this.authenticatorProvider = authenticatorProvider;
-        this.fido2AuthenticatorService = fido2AuthenticatorService;
-    }
+    private final ActivationQueryService activationQueryService;
 
     @Override
     @Transactional
@@ -162,9 +160,12 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationFailApprovalRequest.setOperationId(operationId);
             operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
 
-            final ActivationRecordEntity activationWithLock = repositoryCatalogue.getActivationRepository().findActivationWithLock(authenticatorDetail.getActivationId());
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(authenticatorDetail.getActivationId()).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", authenticatorDetail.getActivationId());
+                return new Fido2AuthenticationFailedException("Activation with ID: %s not found".formatted(authenticatorDetail.getActivationId()));
+            });
 
-            handleInvalidSignatureImpl(activationWithLock, new SignatureData(), currentTimestamp);
+            handleInvalidSignatureImpl(activation, new SignatureData(), currentTimestamp);
 
             final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().failApprovalOperation(operationFailApprovalRequest);
             final OperationDetailResponse operation = approveOperation.getOperation();

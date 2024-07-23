@@ -26,10 +26,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -46,11 +43,11 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * (DB deadlock, invalid counter value in second transaction, etc.).
      *
      * @param activationId Activation ID
-     * @return Activation with given ID or null if not found
+     * @return Activation with given ID
      */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
-    ActivationRecordEntity findActivationWithLock(String activationId);
+    Optional<ActivationRecordEntity> findActivationWithLock(String activationId);
 
     /**
      * Find the first activation with given activation ID.
@@ -60,7 +57,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Activation with given ID or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationId = :activationId")
-    ActivationRecordEntity findActivationWithoutLock(String activationId);
+    Optional<ActivationRecordEntity> findActivationWithoutLock(String activationId);
 
     /**
      * Get count of activations with given activation ID.
@@ -108,7 +105,7 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
      * @return Activation matching the search criteria or null if not found
      */
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode = :activationCode AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    ActivationRecordEntity findCreatedActivationWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
+    Optional<ActivationRecordEntity> findActivationByCodeWithoutLock(String applicationId, String activationCode, Collection<ActivationStatus> states, Date currentTimestamp);
 
     /**
      * Get count of activations identified by an activation short ID associated with given application.
@@ -145,25 +142,6 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
     }
 
     /**
-     * Find the first activation associated with given application by the activation ID short.
-     * Filter the results by activation state and make sure to apply activation time window.
-     *
-     * <p><b>PowerAuth protocol versions:</b>
-     * <ul>
-     *     <li>2.0</li>
-     *     <li>2.1</li>
-     * </ul>
-     *
-     * @param applicationId     Application ID
-     * @param activationIdShort Short activation ID
-     * @param states            Allowed activation states
-     * @param currentTimestamp  Current timestamp
-     * @return Activation matching the search criteria or null if not found
-     */
-    @Query("SELECT a FROM ActivationRecordEntity a WHERE a.application.id = :applicationId AND a.activationCode LIKE :activationIdShort% AND a.activationStatus IN :states AND a.timestampActivationExpire > :currentTimestamp")
-    ActivationRecordEntity findCreatedActivationByShortIdWithoutLock(String applicationId, String activationIdShort, Collection<ActivationStatus> states, Date currentTimestamp);
-
-    /**
      * Find all activations which match the query criteria.
      * @param userIds List of user IDs, at least one user ID should be specified.
      * @param applicationIds List of application IDs, use null value for all applications.
@@ -177,13 +155,11 @@ public interface ActivationRepository extends JpaRepository<ActivationRecordEnti
 
     /**
      * Fetch all activations that are in a given state, were expired after a specified timestamp, and are already expired according to a provided current timestamp.
-     * The activations are locked in DB in PESSIMISTIC_WRITE mode to avoid concurrency issues.
      * @param states Activation states that are used for the lookup.
      * @param startingTimestamp Timestamp after which the activation was expired.
      * @param currentTimestamp Current timestamp, to identify already expired operations.
      * @return Stream of activations.
      */
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM ActivationRecordEntity a WHERE a.activationStatus IN :states AND a.timestampActivationExpire >= :startingTimestamp AND a.timestampActivationExpire < :currentTimestamp")
     Stream<ActivationRecordEntity> findAbandonedActivations(Collection<ActivationStatus> states, Date startingTimestamp, Date currentTimestamp);
 

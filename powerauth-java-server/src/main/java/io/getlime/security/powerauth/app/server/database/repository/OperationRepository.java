@@ -46,7 +46,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
     Optional<OperationEntity> findOperationWithLock(String operationId);
 
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
-    Optional<OperationEntity> findOperation(String operationId);
+    Optional<OperationEntity> findOperationWithoutLock(String operationId);
 
     @Query("""
             SELECT o FROM OperationEntity o WHERE o.id IN (SELECT o.id FROM OperationEntity o INNER JOIN o.applications a

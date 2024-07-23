@@ -33,18 +33,23 @@ import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_AAGUIDS;
 import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.CONFIG_KEY_ALLOWED_ATTESTATION_FMT;
@@ -61,13 +66,22 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
     private final RepositoryCatalogue repositoryCatalogue;
     private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
+    private final RegistrationChallengeConverter registrationChallengeConverter;
+
+    private final ActivationServiceBehavior activations;
+    private final ApplicationConfigServiceBehavior applicationConfig;
+    private final ActivationQueryService activationQueryService;
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final ServiceBehaviorCatalogue serviceBehaviorCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider) {
+    public PowerAuthRegistrationProvider(final RepositoryCatalogue repositoryCatalogue, final ServiceBehaviorCatalogue serviceBehaviorCatalogue, final PowerAuthAuthenticatorProvider authenticatorProvider, final RegistrationChallengeConverter registrationChallengeConverter, ActivationServiceBehavior activations, ApplicationConfigServiceBehavior applicationConfig, ActivationQueryService activationQueryService) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
         this.authenticatorProvider = authenticatorProvider;
+        this.registrationChallengeConverter = registrationChallengeConverter;
+        this.activations = activations;
+        this.applicationConfig = applicationConfig;
+        this.activationQueryService = activationQueryService;
     }
 
     @Override
@@ -108,15 +122,14 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final String activationCode = split[0];
 
         // Only allow created activations to be finished
-        final ActivationRecordEntity activationRecordEntity = repositoryCatalogue.getActivationRepository()
-                .findCreatedActivationWithoutLock(applicationId, activationCode, List.of(ActivationStatus.CREATED), currentTimestamp);
+        ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, List.of(ActivationStatus.CREATED), currentTimestamp).orElseThrow(() -> {
+            logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
+            // Rollback is not required, error occurs before writing to database
+            return new Fido2AuthenticationFailedException("Activation failed");
+        });
 
-        if (activationRecordEntity == null) {
-            throw new Fido2AuthenticationFailedException("Activation failed");
-        }
-
-        final String activationId = activationRecordEntity.getActivationId();
-        final String userId = activationRecordEntity.getUserId();
+        final String activationId = activation.getActivationId();
+        final String userId = activation.getUserId();
 
         final RegistrationChallenge assertionChallenge = new RegistrationChallenge();
         assertionChallenge.setChallenge(challengeValue);
@@ -143,15 +156,13 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
         final String activationCode = split[0];
 
         final List<ActivationStatus> statuses = List.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT, ActivationStatus.ACTIVE, ActivationStatus.BLOCKED);
-        final ActivationRecordEntity activationRecordEntity = repositoryCatalogue.getActivationRepository()
-                .findCreatedActivationWithoutLock(applicationId, activationCode, statuses, currentTimestamp);
+        final ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, statuses, currentTimestamp).orElseThrow(() -> {
+            logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
+            // Rollback is not required, error occurs before writing to database
+            return new Fido2AuthenticationFailedException("Activation could not be found");
+        });
 
-        if (activationRecordEntity == null) {
-            // Registration was not completed.
-            return;
-        }
-
-        final String activationId = activationRecordEntity.getActivationId();
+        final String activationId = activation.getActivationId();
         try {
             serviceBehaviorCatalogue.getActivationServiceBehavior().removeActivation(activationId, null, true);
         } catch (GenericServiceException e) {
@@ -192,8 +203,7 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
             }
         }
 
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final List<ActivationRecordEntity> existingActivations = activationRepository.findByExternalId(applicationId, credentialId);
+        final List<ActivationRecordEntity> existingActivations = activationQueryService.findByExternalId(applicationId, credentialId);
         if (!existingActivations.isEmpty()) {
             logger.warn("Rejected duplicate external ID for registration, application ID: {}, external ID: {}", applicationId, credentialId);
             return false;

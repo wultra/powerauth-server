@@ -29,6 +29,7 @@ import io.getlime.security.powerauth.app.server.database.repository.ActivationRe
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,12 +52,14 @@ public class ActivationFlagsServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
+    private final ActivationQueryService activationQueryService;
     private final AuditingServiceBehavior audit;
 
     @Autowired
-    public ActivationFlagsServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, AuditingServiceBehavior audit) {
+    public ActivationFlagsServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, AuditingServiceBehavior audit) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
+        this.activationQueryService = activationQueryService;
         this.audit = audit;
     }
 
@@ -72,12 +75,11 @@ public class ActivationFlagsServiceBehavior {
             // Rollback is not required, error occurs before writing to database
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
-        if (activation == null) {
+        final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() ->{
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
         final ListActivationFlagsResponse response = new ListActivationFlagsResponse();
         response.setActivationId(activationId);
         response.getActivationFlags().addAll(activation.getFlags());
@@ -98,12 +100,11 @@ public class ActivationFlagsServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-        if (activation == null) {
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() ->{
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
         final List<String> currentFlags = activation.getFlags();
         final List<String> newFlags = activationFlags.stream().filter(flag -> !currentFlags.contains(flag)).collect(Collectors.toList());
         if (!newFlags.isEmpty()) { // only in case there are new flags
@@ -141,12 +142,11 @@ public class ActivationFlagsServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-        if (activation == null) {
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() ->{
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AuditType.ACTIVATION.getCode())
                 .param("activationId", activationId)
@@ -178,12 +178,11 @@ public class ActivationFlagsServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
         final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-        if (activation == null) {
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() ->{
             logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
         final AuditDetail auditDetail = AuditDetail.builder()
                 .type(AuditType.ACTIVATION.getCode())
                 .param("activationId", activationId)

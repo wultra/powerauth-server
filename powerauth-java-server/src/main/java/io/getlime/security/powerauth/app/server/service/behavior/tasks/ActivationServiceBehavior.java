@@ -42,6 +42,7 @@ import io.getlime.security.powerauth.app.server.service.model.ActivationRecovery
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.app.server.service.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -113,6 +114,8 @@ public class ActivationServiceBehavior {
 
     private final ActivationContextValidator activationValidator;
 
+    private final ActivationQueryService activationQueryService;
+
     // Prepare converters
     private final ActivationStatusConverter activationStatusConverter = new ActivationStatusConverter();
     private final ActivationOtpValidationConverter activationOtpValidationConverter = new ActivationOtpValidationConverter();
@@ -129,11 +132,12 @@ public class ActivationServiceBehavior {
     private static final Logger logger = LoggerFactory.getLogger(ActivationServiceBehavior.class);
 
     @Autowired
-    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ReplayVerificationService eciesreplayPersistenceService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
+    public ActivationServiceBehavior(RepositoryCatalogue repositoryCatalogue, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ReplayVerificationService eciesReplayPersistenceService, ActivationContextValidator activationValidator, ActivationQueryService activationQueryService, ObjectMapper objectMapper) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
-        this.replayVerificationService = eciesreplayPersistenceService;
+        this.replayVerificationService = eciesReplayPersistenceService;
         this.activationValidator = activationValidator;
+        this.activationQueryService = activationQueryService;
         this.objectMapper = objectMapper;
     }
 
@@ -172,12 +176,16 @@ public class ActivationServiceBehavior {
      * @param timestamp  Timestamp to check activations against.
      * @param activation Activation to check.
      */
-    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) {
-        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+    private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) throws GenericServiceException {
+        if ((activation.getActivationStatus() == ActivationStatus.CREATED || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             logger.info("Deactivating pending activation, activation ID: {}", activation.getActivationId());
             if (!isActivationLocked) {
                 // Make sure activation is locked until the end of transaction in case it was not locked yet
-                activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activation.getActivationId());
+                final String activationId = activation.getActivationId();
+                activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                    logger.info("Activation not found, activation ID: {}", activationId);
+                    return localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                });
             }
             removeActivationInternal(activation, null, true);
         }
@@ -249,19 +257,19 @@ public class ActivationServiceBehavior {
      *         activation is represented as an {@link Activation} object. The response also includes the user ID associated
      *         with the activations.
      */
-    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Set<Protocols> protocols, Pageable pageable, Set<ActivationStatus> activationStatuses) {
+    @Transactional
+    public GetActivationListForUserResponse getActivationList(String applicationId, String userId, Set<Protocols> protocols, Pageable pageable, Set<ActivationStatus> activationStatuses) throws GenericServiceException {
 
         // Generate timestamp in advance
         final Date timestamp = new Date();
 
-        // Get the repository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
 
         final List<ActivationRecordEntity> activationsList;
         if (applicationId == null) {
-            activationsList = activationRepository.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
+            activationsList = activationQueryService.findByUserIdAndActivationStatusIn(userId, activationStatuses, pageable);
         } else {
-            activationsList = activationRepository.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
+            activationsList = activationQueryService.findByApplicationIdAndUserIdAndActivationStatusIn(applicationId, userId, activationStatuses, pageable);
         }
 
         final GetActivationListForUserResponse response = new GetActivationListForUserResponse();
@@ -327,7 +335,7 @@ public class ActivationServiceBehavior {
         } else {
             statuses.add(activationStatus);
         }
-        final List<ActivationRecordEntity> activationsList = activationRepository.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
+        final List<ActivationRecordEntity> activationsList = activationQueryService.lookupActivations(userIds, applicationIds, timestampLastUsedBefore, timestampLastUsedAfter, statuses);
         if (activationsList.isEmpty()) {
             return response;
         }
@@ -380,17 +388,25 @@ public class ActivationServiceBehavior {
      */
     public UpdateStatusForActivationsResponse updateStatusForActivation(List<String> activationIds, ActivationStatus activationStatus) {
         final UpdateStatusForActivationsResponse response = new UpdateStatusForActivationsResponse();
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
+
 
         activationIds.forEach(activationId -> {
-            final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+            try {
+                    final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                        logger.info("Activation not found, activation ID: {}", activationId);
+                        return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                    });
             if (!activation.getActivationStatus().equals(activationStatus)) {
                 // Update activation status, persist change and notify callback listeners
                 activation.setActivationStatus(activationStatus);
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation);
                 callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
             }
-        });
+        }catch (GenericServiceException e) {
+                    // Avoid double logging for non-existent activations
+                    logger.debug(e.getMessage(), e);
+                }
+            });
 
         response.setUpdated(true);
 
@@ -412,17 +428,17 @@ public class ActivationServiceBehavior {
             final Date timestamp = new Date();
 
             // Get the repository
-            final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final MasterKeyPairRepository masterKeyPairRepository = repositoryCatalogue.getMasterKeyPairRepository();
 
             // Prepare key generator
             final KeyGenerator keyGenerator = new KeyGenerator();
 
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
+            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
             // Check if the activation exists
-            if (activation != null) {
+            if (activationOptional.isPresent()) {
 
+                final ActivationRecordEntity activation = activationOptional.get();
                 // Deactivate old pending activations first
                 deactivatePendingActivation(timestamp, activation, false);
 
@@ -952,17 +968,21 @@ public class ActivationServiceBehavior {
             // Fetch the current activation by activation code
             final Set<ActivationStatus> states = Set.of(ActivationStatus.CREATED);
             // Search for activation without lock to avoid potential deadlocks
-            ActivationRecordEntity activation = activationRepository.findCreatedActivationWithoutLock(applicationId, activationCode, states, timestamp);
-
-            // Make sure to deactivate the activation if it is expired
-            if (activation == null) {
+            ActivationRecordEntity activation = activationQueryService.findActivationByCodeWithoutLock(applicationId, activationCode, states, timestamp).orElseThrow(() -> {
                 logger.warn("Activation with activation code: {} could not be obtained. It either does not exist or it already expired.", activationCode);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             // Search for activation again to acquire PESSIMISTIC_WRITE lock for activation row
-            activation = activationRepository.findActivationWithLock(activation.getActivationId());
+            final String activationId = activation.getActivationId();
+            activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
+
+            // Make sure to deactivate the activation if it is expired
             deactivatePendingActivation(timestamp, activation, true);
 
             // Validate that the activation is in correct state for the prepare step
@@ -1135,13 +1155,11 @@ public class ActivationServiceBehavior {
             // Create an activation record and obtain the activation database record
             final InitActivationResponse initResponse = this.initActivation(Protocols.POWERAUTH, applicationId, userId, maxFailureCount, activationExpireTimestamp, activationOtpValidation, activationOtp, null, keyConversion);
             final String activationId = initResponse.getActivationId();
-            final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-
-            if (activation == null) { // should not happen, activation was just created above via "init" call
-                logger.warn("Activation not found for activation ID: {}", activationId);
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                logger.warn("Activation not found, activation ID: {}", activationId);
                 // The whole transaction is rolled back in case of this unexpected state
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildRollbackingExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             // Make sure to deactivate the activation if it is expired
             deactivatePendingActivation(timestamp, activation, true);
@@ -1301,17 +1319,12 @@ public class ActivationServiceBehavior {
      */
     public CommitActivationResponse commitActivation(String activationId, String externalUserId, String activationOtp) throws GenericServiceException {
 
-        // Get the repository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
-        // Find activation
-        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-        if (activation == null) {
-            // Activation does not exist
-            logger.info("Activation does not exist, activation ID: {}", activationId);
+        //  Find activation
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+            logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
 
         // Get current timestamp
         final Date timestamp = new Date();
@@ -1365,13 +1378,11 @@ public class ActivationServiceBehavior {
      */
     public UpdateActivationNameResponse updateActivationName(final UpdateActivationNameRequest request) throws GenericServiceException {
         final String activationId = request.getActivationId();
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-        if (activation == null) {
-            logger.info("Activation ID: {} does not exist.", activationId);
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() ->{
+            logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
 
         final List<ActivationStatus> notAllowedStatuses = List.of(ActivationStatus.CREATED, ActivationStatus.REMOVED, ActivationStatus.BLOCKED);
         final ActivationStatus activationStatus = activation.getActivationStatus();
@@ -1413,17 +1424,12 @@ public class ActivationServiceBehavior {
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
         }
 
-        // Get the repository
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
-
-        // Find activation
-        final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
-        if (activation == null) {
-            // Activation does not exist
-            logger.info("Activation does not exist, activation ID: {}", activationId);
+        //  Find activation
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+            logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
 
         // Get current timestamp
         final Date timestamp = new Date();
@@ -1571,14 +1577,29 @@ public class ActivationServiceBehavior {
      * @return Response with confirmation of removal.
      * @throws GenericServiceException In case activation does not exist.
      */
+    @Transactional
     public RemoveActivationResponse removeActivation(String activationId, String externalUserId, boolean revokeRecoveryCodes) throws GenericServiceException {
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-        if (activation != null) { // does the record even exist?
+        try {
+            if (activationId == null) {
+                logger.warn("Invalid request parameter activationId in method removeActivation");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Rollback is not required, error occurs before writing to database
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
             return removeActivation(activation, externalUserId, revokeRecoveryCodes);
-        } else {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage(), ex.getLocalizedMessage());
         }
     }
 
@@ -1609,21 +1630,20 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public BlockActivationResponse blockActivation(String activationId, String reason, String externalUserId) throws GenericServiceException {
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-        if (activation == null) {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() ->{
+            logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
 
-        // does the record even exist, is it in correct state?
-        // early null check done above, no null check needed here
-        if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+        // is activation in correct state?
+
+        if (activation.getActivationStatus()== ActivationStatus.ACTIVE) {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(Objects.requireNonNullElse(reason, AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED));
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-        } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
+        } else if (activation.getActivationStatus() != ActivationStatus.BLOCKED) {
             // In case activation status is not ACTIVE or BLOCKED, throw an exception
             logger.info("Activation cannot be blocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
             // Rollback is not required, database is not used for writing
@@ -1645,23 +1665,22 @@ public class ActivationServiceBehavior {
      * @throws GenericServiceException In case activation does not exist.
      */
     public UnblockActivationResponse unblockActivation(String activationId, String externalUserId) throws GenericServiceException {
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
-        if (activation == null) {
-            logger.info("Activation does not exist, activation ID: {}", activationId);
+        final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() ->{
+            logger.info("Activation not found, activation ID: {}", activationId);
             // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-        }
+            return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+        });
 
-        // does the record even exist, is it in correct state?
-        // early null check done above, no null check needed here
-        if (activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
+        // is activationit in correct state?
+
+        if (activation.getActivationStatus()== ActivationStatus.BLOCKED) {
             // Update and store new activation
             activation.setActivationStatus(ActivationStatus.ACTIVE);
             activation.setBlockedReason(null);
             activation.setFailedAttempts(0L);
             activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
             callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-        } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+        } else if (activation.getActivationStatus() != ActivationStatus.ACTIVE) {
             // In case activation status is not BLOCKED or ACTIVE, throw an exception
             logger.info("Activation cannot be unblocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
             // Rollback is not required, database is not used for writing
@@ -1866,18 +1885,16 @@ public class ActivationServiceBehavior {
             final List<String> activationFlags = new ArrayList<>();
             final String recoveryCodeEntityActivationId = recoveryCodeEntity.getActivationId();
             if (recoveryCodeEntityActivationId != null) {
-                final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(recoveryCodeEntityActivationId);
-                if (activation != null) { // does the record even exist?
-                    final List<String> originalActivationFlags = activation.getFlags();
-                    if (originalActivationFlags != null) {
-                        activationFlags.addAll(originalActivationFlags);
-                    }
-                    removeActivation(activation, null, true);
-                } else {
-                    logger.info("Activation does not exist, activation ID: {}", recoveryCodeEntityActivationId);
-                    // Rollback is not required, database is not used for writing
-                    throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(recoveryCodeEntityActivationId).orElseThrow(() -> {
+                    logger.info("Activation not found, activation ID: {}", recoveryCodeEntityActivationId);
+                    // Exception must not be rollbacking, otherwise the data saved into DB would be lost.
+                    return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+                });
+                final List<String> originalActivationFlags = activation.getFlags();
+                if (originalActivationFlags != null) {
+                    activationFlags.addAll(originalActivationFlags);
                 }
+                removeActivation(activation, null, true);
             }
 
             // Persist recovery code changes
@@ -1899,7 +1916,11 @@ public class ActivationServiceBehavior {
                     activationFlags.isEmpty() ? null : activationFlags,
                     keyConversion);
             final String activationId = initResponse.getActivationId();
-            final ActivationRecordEntity activation = activationRepository.findActivationWithLock(activationId);
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(activationId).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", activationId);
+                // Exception must not be rollbacking, otherwise the data saved into DB would be lost.
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             // Validate created activation
             validateCreatedActivation(activation, application, true);
@@ -2149,9 +2170,9 @@ public class ActivationServiceBehavior {
         }
     }
 
-    public List<Activation> findByExternalId(String applicationId, String externalId) {
+    public List<Activation> findByExternalId(String applicationId, String externalId) throws GenericServiceException {
         final Date timestamp = new Date();
-        final List<ActivationRecordEntity> activationsList = repositoryCatalogue.getActivationRepository().findByExternalId(applicationId, externalId);
+        final List<ActivationRecordEntity> activationsList = activationQueryService.findByExternalId(applicationId, externalId);
 
         final List<Activation> result = new ArrayList<>();
 
@@ -2198,12 +2219,15 @@ public class ActivationServiceBehavior {
         final Date currentTimestamp = new Date();
         final Date lookBackTimestamp = new Date(currentTimestamp.getTime() - powerAuthServiceConfiguration.getActivationsCleanupLookBackInMilliseconds());
         logger.debug("Running scheduled task for expiring activations");
-        final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
         final Set<ActivationStatus> activationStatuses = Set.of(ActivationStatus.CREATED, ActivationStatus.PENDING_COMMIT);
-        try (final Stream<ActivationRecordEntity> abandonedActivations = activationRepository.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
+        try (final Stream<ActivationRecordEntity> abandonedActivations = activationQueryService.findAbandonedActivations(activationStatuses, lookBackTimestamp, currentTimestamp)) {
             abandonedActivations.forEach(activation -> {
                 logger.info("Removing abandoned activation with ID: {}", activation.getActivationId());
-                deactivatePendingActivation(currentTimestamp, activation, true);
+                try {
+                    deactivatePendingActivation(currentTimestamp, activation, false);
+                } catch (GenericServiceException e) {
+                    logger.error("Activation expiration failed, activation ID: {}", activation.getActivationId());
+                }
             });
         }
     }
