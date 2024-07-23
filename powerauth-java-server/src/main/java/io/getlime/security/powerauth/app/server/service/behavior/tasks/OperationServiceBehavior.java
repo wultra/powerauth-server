@@ -977,21 +977,23 @@ public class OperationServiceBehavior {
         return source;
     }
 
-    private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) throws GenericServiceException {
+    private OperationEntity expireOperation(OperationEntity operationEntity, Date currentTimestamp) throws GenericServiceException {
         // Operation is still pending and timestamp is after the expiration.
-        if (OperationStatusDo.PENDING.equals(source.getStatus())
-                && source.getTimestampExpires().before(currentTimestamp)) {
-            OperationEntity operationEntity = operationQueryService.findOperationForUpdate(source.getId()).orElseThrow(() -> {
-                logger.warn("Operation was removed, ID: {}.", source.getId());
-                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
-            });
+        if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())
+                && operationEntity.getTimestampExpires().before(currentTimestamp)) {
+//            OperationEntity operationEntity = operationQueryService.findOperationForUpdate(source.getId()).orElseThrow(() -> {
+//                logger.warn("Operation was removed, ID: {}.", source.getId());
+//                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
+//            });
             operationEntity.setStatus(OperationStatusDo.EXPIRED);
-            logger.info("Operation expired, ID: {}", operationEntity.getId());
-            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
-            callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
-            return savedEntity;
+//            Let the operation be expired only by background service
+//
+//            logger.info("Operation expired, ID: {}", operationEntity.getId());
+//            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+//            callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
+            return operationEntity;
         }
-        return source;
+        return operationEntity;
     }
 
     private boolean factorsAcceptable(@NotNull OperationEntity operation, PowerAuthSignatureTypes usedFactor) {
@@ -1195,6 +1197,7 @@ public class OperationServiceBehavior {
             final List<OperationEntity> updatedEntities = pendingOperations.peek(operationEntity -> {
                 operationEntity.setStatus(OperationStatusDo.EXPIRED);
                 logger.info("Operation expired, ID: {}", operationEntity.getId());
+                callbackUrlBehavior.notifyCallbackListenersOnOperationChange(operationEntity);
             }).toList();
             operationRepository.saveAll(updatedEntities);
             operationRepository.flush();
