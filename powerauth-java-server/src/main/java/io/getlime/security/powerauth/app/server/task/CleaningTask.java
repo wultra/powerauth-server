@@ -61,7 +61,7 @@ public class CleaningTask {
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.operationCleanup:5000} * 0.8)}")
     public void expireOperations() {
         LockAssert.assertLocked();
-        logger.info("Calling scheduled expiration of operations");
+        logger.debug("Calling scheduled expiration of operations");
         operationServiceBehavior.expireOperations();
     }
 
@@ -71,7 +71,7 @@ public class CleaningTask {
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.activationsCleanup:5000} * 0.8)}")
     public void expireActivations() {
         LockAssert.assertLocked();
-        logger.info("Calling scheduled expiration of activations");
+        logger.debug("Calling scheduled expiration of activations");
         activationServiceBehavior.expireActivations();
     }
 

@@ -1192,13 +1192,12 @@ public class OperationServiceBehavior {
 
         final PageRequest pageRequest = PageRequest.of(0, powerAuthServiceConfiguration.getExpireOperationsLimit());
         try (final Stream<OperationEntity> pendingOperations = operationQueryService.findExpiredPendingOperations(currentTimestamp, pageRequest)) {
-            pendingOperations.forEach(op -> {
-                try {
-                    expireOperation(op, currentTimestamp);
-                } catch (GenericServiceException e) {
-                    logger.error("Operation expiration failed, operation ID: {}", op.getId());
-                }
-            });
+            final List<OperationEntity> updatedEntities = pendingOperations.peek(operationEntity -> {
+                operationEntity.setStatus(OperationStatusDo.EXPIRED);
+                logger.info("Operation expired, ID: {}", operationEntity.getId());
+            }).toList();
+            operationRepository.saveAll(updatedEntities);
+            operationRepository.flush();
         }
     }
 
