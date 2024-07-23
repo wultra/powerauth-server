@@ -14,17 +14,7 @@ See the overall database schema:
 
 ## ShedLock
 
-The PowerAuth Server uses ShedLock to synchronize scheduled operations. You need to create appropriate DB table, i.e.:
-
-```sql
-CREATE TABLE shedlock (
-    name VARCHAR(64) NOT NULL PRIMARY KEY,
-    lock_until TIMESTAMP NOT NULL,
-    locked_at TIMESTAMP NOT NULL,
-    locked_by VARCHAR(255) NOT NULL
-);
-```
-
+The PowerAuth Server uses ShedLock to synchronize scheduled operations.
 See the [SchedLock documentation](https://github.com/lukas-krecan/ShedLock#jdbctemplate) for the details.
 
 ## Table Documentation
@@ -35,17 +25,6 @@ This chapter explains individual tables and their columns. The column types are 
 ### Applications Table
 
 Stores applications used in the PowerAuth Server.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_application
-(
-    id                          INTEGER NOT NULL PRIMARY KEY,
-    name                        VARCHAR(255) NOT NULL,
-    roles                       VARCHAR(255)
-);
-```
 
 #### Columns
 
@@ -59,20 +38,6 @@ CREATE TABLE pa_application
 ### Application Versions Table
 
 Stores application versions for the applications stored in `pa_application` table.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_application_version
-(
-    id                 INTEGER NOT NULL PRIMARY KEY,
-    application_id     INTEGER NOT NULL,
-    application_key    VARCHAR(255),
-    application_secret VARCHAR(255),
-    name               VARCHAR(255),
-    supported          BOOLEAN
-);
-```
 
 #### Columns
 
@@ -91,18 +56,6 @@ CREATE TABLE pa_application_version
 
 Stores configurations for the applications stored in `pa_application` table.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_application_config
-(
-    id                 INTEGER NOT NULL PRIMARY KEY,
-    application_id     INTEGER NOT NULL,
-    config_key         VARCHAR(255) NOT NULL,
-    config_values      TEXT
-);
-```
-
 #### Columns
 
 | Name | Type | Info | Note                                                                                                                                    |
@@ -117,43 +70,6 @@ CREATE TABLE pa_application_config
 ### Activations Table
 
 Stores activations. Activation is a unit associating signature / transport and encryption keys to a specific user and application.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_activation
-(
-    activation_id                 VARCHAR(37) NOT NULL PRIMARY KEY,
-    application_id                INTEGER NOT NULL,
-    user_id                       VARCHAR(255) NOT NULL,
-    activation_name               VARCHAR(255),
-    activation_code               VARCHAR(255),
-    activation_status             INTEGER NOT NULL,
-    activation_otp                VARCHAR(255),
-    activation_otp_validation     INTEGER DEFAULT 0 NOT NULL,
-    blocked_reason                VARCHAR(255),
-    counter                       INTEGER NOT NULL,
-    ctr_data                      VARCHAR(255),
-    device_public_key_base64      VARCHAR(255),
-    extras                        VARCHAR(4000),
-    platform                      VARCHAR(255),
-    device_info                   VARCHAR(255),
-    flags                         VARCHAR(255),
-    external_id                   VARCHAR(255),
-    protocol                      VARCHAR(32) DEFAULT 'powerauth' NOT NULL,
-    failed_attempts               INTEGER NOT NULL,
-    max_failed_attempts           INTEGER DEFAULT 5 NOT NULL,
-    server_private_key_base64     VARCHAR(255) NOT NULL,
-    server_private_key_encryption INTEGER DEFAULT 0 NOT NULL,
-    server_public_key_base64      VARCHAR(255) NOT NULL,
-    timestamp_activation_expire   TIMESTAMP (6) NOT NULL,
-    timestamp_created             TIMESTAMP (6) NOT NULL,
-    timestamp_last_used           TIMESTAMP (6) NOT NULL,
-    timestamp_last_change         TIMESTAMP (6),
-    master_keypair_id             INTEGER,
-    version                       INTEGER DEFAULT 2
-);
-```
 
 #### Columns
 
@@ -195,20 +111,6 @@ CREATE TABLE pa_activation
 
 Stores master key pairs associated with applications and used during the activation process.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_master_keypair
-(
-    id                            INTEGER NOT NULL PRIMARY KEY,
-    application_id                INTEGER NOT NULL,
-    master_key_private_base64     VARCHAR(255) NOT NULL,
-    master_key_public_base64      VARCHAR(255) NOT NULL,
-    name                          VARCHAR(255),
-    timestamp_created             TIMESTAMP (6) NOT NULL
-);
-```
-
 #### Columns
 
 | Name | Type | Info | Note |
@@ -225,30 +127,6 @@ CREATE TABLE pa_master_keypair
 ### Signature Audit Records Table
 
 Stores the records with values used for attempts for the signature validation.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_signature_audit
-(
-    id                  BIGINT NOT NULL PRIMARY KEY,
-    activation_id       VARCHAR(37) NOT NULL,
-    activation_counter  INTEGER NOT NULL,
-    activation_ctr_data VARCHAR(255),
-    activation_status   INTEGER,
-    additional_info     VARCHAR(255),
-    data_base64         TEXT,
-    note                VARCHAR(255),
-    signature_type      VARCHAR(255) NOT NULL,
-    signature           VARCHAR(255) NOT NULL,
-    signature_metadata  TEXT,
-    signature_data_body TEXT,
-    timestamp_created   TIMESTAMP (6) NOT NULL,
-    valid               BOOLEAN,
-    version             INTEGER DEFAULT 2,
-    signature_version   VARCHAR(255)
-);
-```
 
 #### Columns
 
@@ -276,18 +154,6 @@ CREATE TABLE pa_signature_audit
 
 Stores credentials for applications that integrate with PowerAuth Server.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_integration
-(
-    id                 VARCHAR(37) NOT NULL PRIMARY KEY,
-    name               VARCHAR(255),
-    client_token       VARCHAR(37) NOT NULL,
-    client_secret      VARCHAR(37) NOT NULL
-);
-```
-
 #### Columns
 
 | Name | Type | Info | Note |
@@ -302,21 +168,6 @@ CREATE TABLE pa_integration
 ### Application Callback URL Table
 
 Stores callback URLs - per-application endpoints that are notified whenever an activation or operation status changes.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_application_callback
-(
-    id                 VARCHAR(37) NOT NULL PRIMARY KEY,
-    application_id     INTEGER NOT NULL,
-    name               VARCHAR(255),
-    callback_url       VARCHAR(1024),
-    type               VARCHAR(64) DEFAULT 'ACTIVATION_STATUS_CHANGE' NOT NULL,
-    attributes         VARCHAR(1024),
-    authentication     TEXT
-);
-```
 
 #### Columns
 
@@ -336,19 +187,6 @@ CREATE TABLE pa_application_callback
 
 Stores tokens used for token-based authentication.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_token
-(
-    token_id           VARCHAR(37) NOT NULL PRIMARY KEY,
-    token_secret       VARCHAR(255) NOT NULL,
-    activation_id      VARCHAR(255) NOT NULL,
-    signature_type     VARCHAR(255) NOT NULL,
-    timestamp_created  TIMESTAMP (6) NOT NULL
-);
-```
-
 #### Columns
 
 | Name | Type | Info | Note |
@@ -364,21 +202,6 @@ CREATE TABLE pa_token
 ### Activation History Table
 
 Stores a log of activation changes.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_activation_history
-(
-    id                 BIGINT NOT NULL PRIMARY KEY,
-    activation_id      VARCHAR(37) NOT NULL,
-    activation_status  INTEGER,
-    event_reason       VARCHAR(255),
-    external_user_id   VARCHAR(255),
-    timestamp_created  TIMESTAMP (6) NOT NULL,
-    activation_version INTEGER
-);
-```
 
 #### Columns
 
@@ -397,24 +220,6 @@ CREATE TABLE pa_activation_history
 ### Recovery Code Table
 
 Stores information about recovery codes.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_recovery_code (
-    id                    BIGINT NOT NULL PRIMARY KEY,
-    recovery_code         VARCHAR(23) NOT NULL,
-    application_id        INTEGER NOT NULL,
-    user_id               VARCHAR(255) NOT NULL,
-    activation_id         VARCHAR(37),
-    status                INTEGER NOT NULL,
-    failed_attempts       INTEGER DEFAULT 0 NOT NULL,
-    max_failed_attempts   INTEGER DEFAULT 10 NOT NULL,
-    timestamp_created     TIMESTAMP (6) NOT NULL,
-    timestamp_last_used   TIMESTAMP (6),
-    timestamp_last_change TIMESTAMP (6)
-);
-```
 
 #### Columns
 
@@ -438,20 +243,6 @@ CREATE TABLE pa_recovery_code (
 
 Stores information about recovery PUKs.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_recovery_puk (
-    id                    BIGINT NOT NULL PRIMARY KEY,
-    recovery_code_id      BIGINT NOT NULL,
-    puk                   VARCHAR(255),
-    puk_encryption        INTEGER DEFAULT 0 NOT NULL,
-    puk_index             BIGINT NOT NULL,
-    status                INTEGER NOT NULL,
-    timestamp_last_change TIMESTAMP (6)
-);
-```
-
 #### Columns
 
 | Name | Type | Info | Note |
@@ -469,22 +260,6 @@ CREATE TABLE pa_recovery_puk (
 ### Recovery Configuration Table
 
 Stores configuration of activation recovery and recovery postcards.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_recovery_config (
-    id                              INTEGER NOT NULL PRIMARY KEY,
-    application_id                  INTEGER NOT NULL,
-    activation_recovery_enabled     BOOLEAN NOT NULL DEFAULT FALSE,
-    recovery_postcard_enabled       BOOLEAN NOT NULL DEFAULT FALSE,
-    allow_multiple_recovery_codes   BOOLEAN NOT NULL DEFAULT FALSE,
-    postcard_private_key_base64     VARCHAR(255),
-    postcard_public_key_base64      VARCHAR(255),
-    remote_public_key_base64        VARCHAR(255),
-    postcard_priv_key_encryption    INTEGER DEFAULT 0 NOT NULL
-);
-```
 
 #### Columns
 
@@ -504,32 +279,6 @@ CREATE TABLE pa_recovery_config (
 ### Operations
 
 Table stores operations, i.e., the login attempts or payment approvals, that are created in external systems.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_operation (
-    id                    VARCHAR(37) NOT NULL PRIMARY KEY,
-    user_id               VARCHAR(255) NOT NULL,
-    external_id           VARCHAR(255),
-    activation_flag       VARCHAR(255),
-    operation_type        VARCHAR(255) NOT NULL,
-    template_name         VARCHAR(255),
-    data                  TEXT NOT NULL,
-    parameters            TEXT,
-    additional_data       TEXT,
-    status                INTEGER NOT NULL,
-    status_reason         VARCHAR(32),
-    signature_type        VARCHAR(255) NOT NULL,
-    failure_count         BIGINT DEFAULT 0 NOT NULL,
-    max_failure_count     BIGINT NOT NULL,
-    timestamp_created     TIMESTAMP NOT NULL,
-    timestamp_expires     TIMESTAMP NOT NULL,
-    timestamp_finalized   TIMESTAMP,
-    risk_flags            VARCHAR(255),
-    totp_seed             VARCHAR(24)
-);
-```
 
 #### Columns
 
@@ -559,22 +308,6 @@ CREATE TABLE pa_operation (
 
 Table stores operation templates that are used while creating the operations.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_operation_template (
-    id                      BIGINT       NOT NULL PRIMARY KEY,
-    template_name           VARCHAR(255) NOT NULL,
-    operation_type          VARCHAR(255) NOT NULL,
-    data_template           VARCHAR(255) NOT NULL,
-    signature_type          VARCHAR(255) NOT NULL,
-    max_failure_count       BIGINT       NOT NULL,
-    expiration              BIGINT       NOT NULL,
-    risk_flags              VARCHAR(255),
-    proximity_check_enabled BOOLEAN      NOT NULL DEFAULT FALSE
-);
-```
-
 #### Columns
 
 | Name                    | Type         | Info        | Note                                                                             |
@@ -595,16 +328,6 @@ CREATE TABLE pa_operation_template (
 
 Table stores operations, i.e., the login attempts or payment approvals, that are created in external systems.
 
-#### Schema
-
-```sql
-CREATE TABLE pa_operation_application (
-    application_id BIGINT     NOT NULL,
-    operation_id   VARCHAR(37) NOT NULL,
-    CONSTRAINT pa_operation_application_pk PRIMARY KEY (application_id, operation_id)
-);
-```
-
 #### Columns
 
 | Name | Type | Info | Note |
@@ -617,18 +340,6 @@ CREATE TABLE pa_operation_application (
 ### FIDO2 Authenticators
 
 Table stores details about FIDO2 Authenticators.
-
-#### Schema
-
-```sql
-CREATE TABLE pa_fido2_authenticator (
-    aaguid          VARCHAR(255)    NOT NULL,
-    description     VARCHAR(255)    NOT NULL,
-    signature_type  VARCHAR(255)    NOT NULL,
-    transports      VARCHAR(255),
-    CONSTRAINT pa_fido2_authenticator_pkey PRIMARY KEY (aaguid)
-);
-```
 
 #### Columns
 
