@@ -43,6 +43,7 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OfflineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.config.DecimalSignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -84,6 +85,7 @@ public class OfflineSignatureServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
+    private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final ActivationContextValidator activationValidator;
@@ -165,12 +167,11 @@ public class OfflineSignatureServiceBehavior {
             // Fetch activation details from the repository
             final ActivationRepository activationRepository = repositoryCatalogue.getActivationRepository();
             final String activationId = request.getActivationId();
-            final ActivationRecordEntity activation = activationRepository.findActivationWithoutLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.info("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             final OfflineSignatureParameter offlineSignatureParameter = convert(request);
 
@@ -343,58 +344,54 @@ public class OfflineSignatureServiceBehavior {
         // Prepare current timestamp in advance
         final Date currentTimestamp = new Date();
 
-        // Fetch related activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationForUpdate(activationId);
+        if (activationOptional.isEmpty()) {
+            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
+        }
 
-        // Only validate signature for existing ACTIVE activation records
-        if (activation != null) {
+        final ActivationRecordEntity activation = activationOptional.get();
 
-            // If case of proximity check enabled, there are more signatures to validate
-            final List<OfflineSignatureRequest> offlineSignatureRequests = createOfflineSignatureRequests(request);
+        // If case of proximity check enabled, there are more signatures to validate
+        final List<OfflineSignatureRequest> offlineSignatureRequests = createOfflineSignatureRequests(request);
 
-            if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
+        if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
-                // Double-check that there are at least some remaining attempts
-                if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
-                    signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, offlineSignatureRequests.get(0), currentTimestamp);
-                    return invalidStateResponse(activationId, activation.getActivationStatus());
-                }
+            // Double-check that there are at least some remaining attempts
+            if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
+                signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, offlineSignatureRequests.get(0), currentTimestamp);
+                return invalidStateResponse(activationId, activation.getActivationStatus());
+            }
 
-                SignatureResponse verificationResponse = new SignatureResponse();
-                OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest();
-                for (OfflineSignatureRequest item :offlineSignatureRequests) {
-                    verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, item, request.getKeyConversionUtilities());
-                    offlineSignatureRequest = item;
-                    if (verificationResponse.isSignatureValid()) {
-                        break;
-                    }
-                }
-
-                // Check if the signature is valid
+            SignatureResponse verificationResponse = new SignatureResponse();
+            OfflineSignatureRequest offlineSignatureRequest = new OfflineSignatureRequest();
+            for (OfflineSignatureRequest item : offlineSignatureRequests) {
+                verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, item, request.getKeyConversionUtilities());
+                offlineSignatureRequest = item;
                 if (verificationResponse.isSignatureValid()) {
-
-                    signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
-
-                    return validSignatureResponse(activation, verificationResponse.getUsedSignatureType());
-
-                } else {
-
-                    signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
-
-                    return invalidSignatureResponse(activation, offlineSignatureRequest);
-
+                    break;
                 }
+            }
+
+            // Check if the signature is valid
+            if (verificationResponse.isSignatureValid()) {
+
+                signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
+
+                return validSignatureResponse(activation, verificationResponse.getUsedSignatureType());
+
             } else {
 
-                signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, offlineSignatureRequests.get(0), currentTimestamp);
+                signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, offlineSignatureRequest, currentTimestamp);
 
-                // return the data
-                return invalidStateResponse(activationId, activation.getActivationStatus());
+                return invalidSignatureResponse(activation, offlineSignatureRequest);
 
             }
-        } else { // Activation does not exist
+        } else {
 
-            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
+            signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, offlineSignatureRequests.get(0), currentTimestamp);
+
+            // return the data
+            return invalidStateResponse(activationId, activation.getActivationStatus());
 
         }
     }

@@ -41,6 +41,7 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.ConfirmRecoveryRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.ConfirmRecoveryResponsePayload;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -88,6 +89,7 @@ public class RecoveryServiceBehavior {
     private final LocalizationProvider localizationProvider;
     private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
     private final RepositoryCatalogue repositoryCatalogue;
+    private final ActivationQueryService activationQueryService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final RecoveryPrivateKeyConverter recoveryPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
@@ -109,12 +111,13 @@ public class RecoveryServiceBehavior {
 
     @Autowired
     public RecoveryServiceBehavior(LocalizationProvider localizationProvider,
-                                   PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue,
+                                   PowerAuthServiceConfiguration powerAuthServiceConfiguration, RepositoryCatalogue repositoryCatalogue, ActivationQueryService activationQueryService,
                                    ServerPrivateKeyConverter serverPrivateKeyConverter, RecoveryPrivateKeyConverter recoveryPrivateKeyConverter,
                                    ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper, RecoveryPukConverter recoveryPukConverter) {
         this.localizationProvider = localizationProvider;
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.repositoryCatalogue = repositoryCatalogue;
+        this.activationQueryService = activationQueryService;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.recoveryPrivateKeyConverter = recoveryPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
@@ -314,12 +317,11 @@ public class RecoveryServiceBehavior {
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
 
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(activationId).orElseThrow(() -> {
                 logger.warn("Activation not found, activation ID: {}", activationId);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             // Build and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(

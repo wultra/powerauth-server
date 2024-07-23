@@ -50,6 +50,8 @@ import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackU
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -84,6 +86,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
     private final AssertionChallengeConverter assertionChallengeConverter;
+    private final ActivationQueryService activationQueryService;
     private final OperationServiceBehavior operationServiceBehavior;
 
     @Override
@@ -178,9 +181,12 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationFailApprovalRequest.setOperationId(operationId);
             operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
 
-            final ActivationRecordEntity activationWithLock = repositoryCatalogue.getActivationRepository().findActivationWithLock(authenticatorDetail.getActivationId());
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(authenticatorDetail.getActivationId()).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", authenticatorDetail.getActivationId());
+                return new Fido2AuthenticationFailedException("Activation with ID: %s not found".formatted(authenticatorDetail.getActivationId()));
+            });
 
-            handleInvalidSignatureImpl(activationWithLock, new SignatureData(), currentTimestamp);
+            handleInvalidSignatureImpl(activation, new SignatureData(), currentTimestamp);
 
             final OperationUserActionResponse approveOperation = operations.failApprovalOperation(operationFailApprovalRequest);
             final OperationDetailResponse operation = approveOperation.getOperation();

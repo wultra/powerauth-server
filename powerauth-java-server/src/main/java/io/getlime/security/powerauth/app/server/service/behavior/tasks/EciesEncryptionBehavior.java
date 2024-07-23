@@ -31,6 +31,7 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Uniqu
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -73,6 +74,7 @@ public class EciesEncryptionBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
+    private final ActivationQueryService activationQueryService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
@@ -83,9 +85,10 @@ public class EciesEncryptionBehavior {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public EciesEncryptionBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator) {
+    public EciesEncryptionBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
+        this.activationQueryService = activationQueryService;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
         this.activationValidator = activationValidator;
@@ -227,12 +230,11 @@ public class EciesEncryptionBehavior {
         }
         try {
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(request.getActivationId());
-            if (activation == null) {
+            final ActivationRecordEntity activation = activationQueryService.findActivationWithoutLock(request.getActivationId()).orElseThrow(() -> {
                 logger.info("Activation does not exist, activation ID: {}", request.getActivationId());
                 // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
-            }
+                return localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_NOT_FOUND);
+            });
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 

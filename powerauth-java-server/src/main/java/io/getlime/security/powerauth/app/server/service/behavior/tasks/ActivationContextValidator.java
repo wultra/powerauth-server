@@ -58,7 +58,7 @@ public class ActivationContextValidator {
      */
     public void validateActiveStatus(final ActivationStatus activationStatus, final String activationId, final LocalizationProvider localizationProvider) throws GenericServiceException {
         // Check if the activation is in correct state
-        if (!ActivationStatus.ACTIVE.equals(activationStatus)) {
+        if (activationStatus != ActivationStatus.ACTIVE) {
             logger.info("Activation is not ACTIVE, activation ID: {}", activationId);
             throw localizationProvider.buildExceptionForCode(ServiceError.ACTIVATION_INCORRECT_STATE);
         }

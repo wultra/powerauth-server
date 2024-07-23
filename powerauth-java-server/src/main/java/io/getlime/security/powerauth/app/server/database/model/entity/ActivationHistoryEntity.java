@@ -85,7 +85,7 @@ public class ActivationHistoryEntity implements Serializable {
     private Date timestampCreated;
 
     /**
-     * Current {@link ActivationRecordEntity#getVersion()} specified whenever an activation history event is audited.
+     * Current {@link ActivationRecordEntity#version} specified whenever an activation history event is audited.
      * PowerAuth protocol major version for activation.
      */
     @Column(name = "activation_version")

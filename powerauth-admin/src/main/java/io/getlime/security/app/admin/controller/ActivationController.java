@@ -195,7 +195,7 @@ public class ActivationController {
             }
             model.put("history", trimmedActivationHistoryItems);
 
-            if (activation.getActivationStatus().equals(ActivationStatus.CREATED)) {
+            if (activation.getActivationStatus() == ActivationStatus.CREATED) {
                 String activationSignature = activation.getActivationSignature();
                 model.put("activationCode", activation.getActivationCode());
                 model.put("activationSignature", activationSignature);

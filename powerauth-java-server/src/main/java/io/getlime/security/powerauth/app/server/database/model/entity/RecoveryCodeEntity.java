@@ -194,7 +194,7 @@ public class RecoveryCodeEntity implements Serializable {
     public String toString() {
         return "RecoveryCodeEntity{"
                 + "id=" + id
-                + ", application=" + application.toString()
+                + ", applicationId=" + application.getId()
                 + ", userId=" + userId
                 + ", activationId=" + activationId
                 + ", status=" + status

@@ -40,6 +40,7 @@ import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvide
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -84,6 +85,7 @@ public class VaultUnlockServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
+    private final ActivationQueryService activationQueryService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
@@ -98,9 +100,10 @@ public class VaultUnlockServiceBehavior {
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
+        this.activationQueryService = activationQueryService;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
         this.replayVerificationService = replayVerificationService;
         this.activationValidator = activationValidator;
@@ -162,15 +165,17 @@ public class VaultUnlockServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
+            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
             // Check if the activation is in correct state
-            if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+            if (activationOptional.isEmpty() || activationOptional.get().getActivationStatus() != ActivationStatus.ACTIVE) {
                 // Return response with invalid signature flag when activation is not valid
                 VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
+
+            final ActivationRecordEntity activation = activationOptional.get();
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 

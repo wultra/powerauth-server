@@ -88,7 +88,7 @@ class OperationServiceBehaviorTest {
         request.setUserId(USER_ID);
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        final Optional<OperationEntity> savedEntity = operationRepository.findOperation(operationDetailResponse.getId());
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId());
 
         assertTrue(savedEntity.isPresent());
         assertEquals(ACTIVATION_ID, savedEntity.get().getActivationId());
@@ -179,8 +179,8 @@ class OperationServiceBehaviorTest {
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
         assertEquals("test-user", savedEntity.getUserId());
     }
@@ -198,8 +198,8 @@ class OperationServiceBehaviorTest {
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
 
         OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
@@ -227,8 +227,8 @@ class OperationServiceBehaviorTest {
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
 
         OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
@@ -257,8 +257,8 @@ class OperationServiceBehaviorTest {
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
 
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
@@ -270,7 +270,7 @@ class OperationServiceBehaviorTest {
         operationApproveRequest.setData("A2");
 
         final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
-        final OperationEntity updatedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        final OperationEntity updatedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.APPROVAL_FAILED, operationUserActionResponse.getResult());
@@ -290,8 +290,8 @@ class OperationServiceBehaviorTest {
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity entity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity entity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertEquals(ACTIVATION_ID, entity.getActivationId());
         entity.setFailureCount(4L);
 

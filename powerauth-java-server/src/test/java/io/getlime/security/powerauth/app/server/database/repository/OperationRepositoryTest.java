@@ -63,7 +63,7 @@ class OperationRepositoryTest {
      */
     @Test
     void testFindOperationById() {
-        final Optional<OperationEntity> operation = operationRepository.findOperation("0f038bac-6c94-45eb-b3a9-f92e809e8ea4");
+        final Optional<OperationEntity> operation = operationRepository.findOperationWithoutLock("0f038bac-6c94-45eb-b3a9-f92e809e8ea4");
         assertTrue(operation.isPresent());
     }
 
@@ -92,8 +92,8 @@ class OperationRepositoryTest {
      */
     @Test
     void testFindOperationsWithActivationFlagFilter() {
-        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(ACTIVATION_ID1).getFlags();
-        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(ACTIVATION_ID2).getFlags();
+        final List<String> activationFlags1 = activationRepository.findActivationWithoutLock(ACTIVATION_ID1).get().getFlags();
+        final List<String> activationFlags2 = activationRepository.findActivationWithoutLock(ACTIVATION_ID2).get().getFlags();
         final List<String> nonExistingFlags = List.of("NOT_EXISTING");
         final List<OperationEntity> operations1 = operationRepository.
                 findAllOperationsForUser(USER_ID, APPLICATION_IDS, null, activationFlags1, PAGEABLE).toList();

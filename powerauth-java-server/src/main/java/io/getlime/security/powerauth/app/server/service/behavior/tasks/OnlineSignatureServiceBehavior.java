@@ -32,6 +32,7 @@ import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.signature.OnlineSignatureRequest;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureResponse;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -49,6 +50,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Behavior class implementing the signature validation related processes. The class separates the
@@ -62,6 +64,7 @@ public class OnlineSignatureServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final SignatureSharedServiceBehavior signatureSharedServiceBehavior;
+    private final ActivationQueryService activationQueryService;
     private final LocalizationProvider localizationProvider;
 
     // Prepare converters
@@ -69,9 +72,10 @@ public class OnlineSignatureServiceBehavior {
     private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
-    public OnlineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, SignatureSharedServiceBehavior signatureSharedServiceBehavior, LocalizationProvider localizationProvider) {
+    public OnlineSignatureServiceBehavior(RepositoryCatalogue repositoryCatalogue, SignatureSharedServiceBehavior signatureSharedServiceBehavior, ActivationQueryService activationQueryService, LocalizationProvider localizationProvider) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.signatureSharedServiceBehavior = signatureSharedServiceBehavior;
+        this.activationQueryService = activationQueryService;
         this.localizationProvider = localizationProvider;
     }
 
@@ -155,73 +159,70 @@ public class OnlineSignatureServiceBehavior {
         final Date currentTimestamp = new Date();
 
         // Fetch related activation
-        final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithLock(activationId);
+        final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationForUpdate(activationId);
+        if (activationOptional.isEmpty()) {
+            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
+        }
+        final ActivationRecordEntity activation = activationOptional.get();
 
-        // Only validate signature for existing ACTIVE activation records
-        if (activation != null) {
+        final Long applicationId = activation.getApplication().getRid();
 
-            final Long applicationId = activation.getApplication().getRid();
+        // Convert signature version to expected signature format.
+        final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
+        final SignatureConfiguration signatureConfiguration = SignatureConfiguration.forFormat(signatureFormat);
 
-            // Convert signature version to expected signature format.
-            final PowerAuthSignatureFormat signatureFormat = PowerAuthSignatureFormat.getFormatForSignatureVersion(signatureVersion);
-            final SignatureConfiguration signatureConfiguration = SignatureConfiguration.forFormat(signatureFormat);
+        // Check the activation - application relationship and version support
+        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
 
-            // Check the activation - application relationship and version support
-            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
-
-            if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getRid(), applicationId)) {
-                logger.warn("Application version is incorrect, application key: {}", applicationKey);
-                // Get the data and append application KEY in this case, just for auditing reasons
-                final byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
-                final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, signatureVersion, additionalInfo, forcedSignatureVersion);
-                final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
-                signatureSharedServiceBehavior.handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
-
-                // return the data
-                return invalidStateResponse(activationId, activation.getActivationStatus());
-            }
-
-            final byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
+        if (applicationVersion == null || !applicationVersion.getSupported() || !Objects.equals(applicationVersion.getApplication().getRid(), applicationId)) {
+            logger.warn("Application version is incorrect, application key: {}", applicationKey);
+            // Get the data and append application KEY in this case, just for auditing reasons
+            final byte[] data = (dataString + "&" + applicationKey).getBytes(StandardCharsets.UTF_8);
             final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, signatureVersion, additionalInfo, forcedSignatureVersion);
             final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
+            signatureSharedServiceBehavior.handleInvalidApplicationVersion(activation, signatureRequest, currentTimestamp);
 
-            if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
+            // return the data
+            return invalidStateResponse(activationId, activation.getActivationStatus());
+        }
 
-                // Double-check that there are at least some remaining attempts
-                if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
-                    signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, signatureRequest, currentTimestamp);
-                    return invalidStateResponse(activationId, activation.getActivationStatus());
-                }
+        final byte[] data = (dataString + "&" + applicationVersion.getApplicationSecret()).getBytes(StandardCharsets.UTF_8);
+        final SignatureData signatureData = new SignatureData(data, signature, signatureConfiguration, signatureVersion, additionalInfo, forcedSignatureVersion);
+        final OnlineSignatureRequest signatureRequest = new OnlineSignatureRequest(signatureData, signatureType);
 
-                final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, signatureRequest, keyConversionUtilities);
+        if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
 
-                // Check if the signature is valid
-                if (verificationResponse.isSignatureValid()) {
+            // Double-check that there are at least some remaining attempts
+            if (activation.getFailedAttempts() >= activation.getMaxFailedAttempts()) { // ... otherwise, the activation should be already blocked
+                signatureSharedServiceBehavior.handleInactiveActivationWithMismatchSignature(activation, signatureRequest, currentTimestamp);
+                return invalidStateResponse(activationId, activation.getActivationStatus());
+            }
 
-                    signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
+            final SignatureResponse verificationResponse = signatureSharedServiceBehavior.verifySignature(activation, signatureRequest, keyConversionUtilities);
 
-                    return validSignatureResponse(activation,  verificationResponse.getUsedSignatureType());
+            // Check if the signature is valid
+            if (verificationResponse.isSignatureValid()) {
 
-                } else {
+                signatureSharedServiceBehavior.handleValidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
 
-                    signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
+                return validSignatureResponse(activation, verificationResponse.getUsedSignatureType());
 
-                    return invalidSignatureResponse(activation, signatureRequest);
-
-                }
             } else {
 
-                signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, signatureRequest, currentTimestamp);
+                signatureSharedServiceBehavior.handleInvalidSignature(activation, verificationResponse, signatureRequest, currentTimestamp);
 
-                // return the data
-                return invalidStateResponse(activationId, activation.getActivationStatus());
+                return invalidSignatureResponse(activation, signatureRequest);
 
             }
-        } else { // Activation does not exist
+        } else {
 
-            return invalidStateResponse(activationId, ActivationStatus.REMOVED);
+            signatureSharedServiceBehavior.handleInactiveActivationSignature(activation, signatureRequest, currentTimestamp);
+
+            // return the data
+            return invalidStateResponse(activationId, activation.getActivationStatus());
 
         }
+
     }
 
     /**
