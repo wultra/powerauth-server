@@ -26,6 +26,15 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
  * @param serverPrivateKeyBase64 Base64-encoded server private key.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) {
+public record ServerPrivateKey(EncryptionMode encryptionMode, String serverPrivateKeyBase64) implements Encryptable {
 
+    @Override
+    public EncryptionMode getEncryptionMode() {
+        return encryptionMode;
+    }
+
+    @Override
+    public String getEncryptedData() {
+        return serverPrivateKeyBase64;
+    }
 }
