@@ -248,7 +248,8 @@ public class OperationServiceBehavior {
                     .build();
             audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
-            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            logger.info("Operation created with ID: {}", operationId);
+            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             return convertFromEntityAndFillOtp(savedEntity);
         } catch (GenericServiceException ex) {
@@ -362,7 +363,8 @@ public class OperationServiceBehavior {
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation approved with ID: {}", operationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -395,11 +397,10 @@ public class OperationServiceBehavior {
                     operationEntity.setFailureCount(failureCount);
                     operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+                    final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                     callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                     final AuditDetail auditDetail = AuditDetail.builder()
                             .type(AuditType.OPERATION.getCode())
@@ -429,11 +430,10 @@ public class OperationServiceBehavior {
                     operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
                     operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+                    final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                     callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                     final AuditDetail auditDetail = AuditDetail.builder()
                             .type(AuditType.OPERATION.getCode())
@@ -518,11 +518,10 @@ public class OperationServiceBehavior {
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
@@ -607,11 +606,10 @@ public class OperationServiceBehavior {
                 operationEntity.setFailureCount(failureCount);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
@@ -632,11 +630,10 @@ public class OperationServiceBehavior {
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
@@ -696,12 +693,11 @@ public class OperationServiceBehavior {
             operationEntity.setStatusReason(request.getStatusReason());
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
+            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
             extendAndSetOperationDetailData(operationDetailResponse);
-
-            logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
@@ -969,9 +965,9 @@ public class OperationServiceBehavior {
                 final String operationId = source.getId();
                 final String expectedUserId = source.getUserId();
                 if (expectedUserId == null) {
-                    logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
                     source.setUserId(userId);
-                    return operationRepository.save(source);
+                    logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
+                    return operationRepository.saveAndFlush(source);
                 } else if (!expectedUserId.equals(userId)) {
                     logger.warn("Operation ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
                     throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
@@ -989,9 +985,9 @@ public class OperationServiceBehavior {
                 logger.warn("Operation was removed, ID: {}.", source.getId());
                 return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
             });
-            logger.info("Operation {} expired.", operationEntity.getId());
             operationEntity.setStatus(OperationStatusDo.EXPIRED);
-            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            logger.info("Operation expired, ID: {}", operationEntity.getId());
+            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             return savedEntity;
         }
