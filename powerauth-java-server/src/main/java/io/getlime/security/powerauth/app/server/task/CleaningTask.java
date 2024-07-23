@@ -51,7 +51,7 @@ public class CleaningTask {
             lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.uniqueValueCleanup:60000} * 0.8)}")
     public void deleteExpiredUniqueValues() {
         LockAssert.assertLocked();
-        logger.debug("deleteExpiredUniqueValues");
+        logger.debug("Calling scheduled expiration of unique values");
         replayPersistenceService.deleteExpiredUniqueValues();
     }
 
