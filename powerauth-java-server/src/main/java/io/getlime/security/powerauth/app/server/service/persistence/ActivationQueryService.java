@@ -107,5 +107,4 @@ public interface ActivationQueryService {
      */
     List<ActivationRecordEntity> findByExternalId(String applicationId, String externalId);
 
-
 }

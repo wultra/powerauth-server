@@ -32,16 +32,57 @@ import java.util.stream.Stream;
  */
 public interface OperationQueryService {
 
+    /**
+     * Find an operation and lock it using a pessimistic lock for an update (may be database specific).
+     * @param operationId Activation ID.
+     * @return Locked operation, if present.
+     */
     Optional<OperationEntity> findOperationForUpdate(String operationId);
 
+    /**
+     * Find an operation without locking it.
+     * @param operationId Activation ID.
+     * @return Locked operation, if present.
+     */
     Optional<OperationEntity> findOperationWithoutLock(String operationId);
 
+    /**
+     * Find all operations with search criteria.
+     * @param userId User identifier.
+     * @param applicationIds Application identifiers.
+     * @param activationId Activation identifier.
+     * @param activationFlags Activation flags.
+     * @param pageable Pageable.
+     * @return Stream of operations.
+     */
     Stream<OperationEntity> findAllOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
 
+    /**
+     * Find pending operations with search criteria.
+     * @param userId User identifier.
+     * @param applicationIds Application identifiers.
+     * @param activationId Activation identifier.
+     * @param activationFlags Activation flags.
+     * @param pageable Pageable.
+     * @return Stream of operations.
+     */
     Stream<OperationEntity> findPendingOperationsForUser(String userId, List<String> applicationIds, String activationId, List<String> activationFlags, final Pageable pageable);
 
+    /**
+     * Find operations by an external identifier.
+     * @param externalId External identifier.
+     * @param applicationIds Application identifiers.
+     * @param pageable Pageable.
+     * @return Stream of operations.
+     */
     Stream<OperationEntity> findOperationsByExternalId(String externalId, List<String> applicationIds, final Pageable pageable);
 
+    /**
+     * Find expired pending operations.
+     * @param timestamp Timestamp.
+     * @param pageable Pageable.
+     * @return Stream of operations.
+     */
     Stream<OperationEntity> findExpiredPendingOperations(Date timestamp, Pageable pageable);
 
 }

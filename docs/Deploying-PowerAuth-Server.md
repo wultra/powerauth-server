@@ -235,9 +235,9 @@ spring.datasource.jndi-name=java:/jdbc/powerauth
 
 ### Deploying on MSSQL Database
 
-The MSSQL database must run in SNAPSHOT transaction isolation mode for PowerAuth server.
-
-In case of a different transactions mode, database deadlocks can occur frequently.
+<!-- begin box warning -->
+The MSSQL database must run in SNAPSHOT transaction isolation mode for PowerAuth server. In case of a different transactions mode, database deadlocks can occur frequently.
+<!-- end -->
 
 You can enable the mode using following query:
 

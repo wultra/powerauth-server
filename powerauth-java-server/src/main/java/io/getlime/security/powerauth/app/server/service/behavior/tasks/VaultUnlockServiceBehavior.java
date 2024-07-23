@@ -168,7 +168,7 @@ public class VaultUnlockServiceBehavior {
             final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
             // Check if the activation is in correct state
-            if (activationOptional.isEmpty() || !ActivationStatus.ACTIVE.equals(activationOptional.get().getActivationStatus())) {
+            if (activationOptional.isEmpty() || activationOptional.get().getActivationStatus() != ActivationStatus.ACTIVE) {
                 // Return response with invalid signature flag when activation is not valid
                 VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);

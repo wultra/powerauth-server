@@ -184,7 +184,7 @@ public class ActivationServiceBehavior {
      * @param activation Activation to check.
      */
     private void deactivatePendingActivation(Date timestamp, ActivationRecordEntity activation, boolean isActivationLocked) throws GenericServiceException {
-        if ((activation.getActivationStatus().equals(ActivationStatus.CREATED) || activation.getActivationStatus().equals(ActivationStatus.PENDING_COMMIT)) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
+        if ((activation.getActivationStatus() == ActivationStatus.CREATED || activation.getActivationStatus() == ActivationStatus.PENDING_COMMIT) && (timestamp.getTime() > activation.getTimestampActivationExpire().getTime())) {
             logger.info("Deactivating pending activation, activation ID: {}", activation.getActivationId());
             if (!isActivationLocked) {
                 // Make sure activation is locked until the end of transaction in case it was not locked yet
@@ -1852,12 +1852,12 @@ public class ActivationServiceBehavior {
             });
 
             // is activation in correct state?
-            if (activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+            if (activation.getActivationStatus() == ActivationStatus.ACTIVE) {
                 activation.setActivationStatus(ActivationStatus.BLOCKED);
                 activation.setBlockedReason(Objects.requireNonNullElse(reason, AdditionalInformation.Reason.BLOCKED_REASON_NOT_SPECIFIED));
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
                 callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-            } else if (!activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
+            } else if (activation.getActivationStatus() != ActivationStatus.BLOCKED) {
                 // In case activation status is not ACTIVE or BLOCKED, throw an exception
                 logger.info("Activation cannot be blocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
                 // Rollback is not required, database is not used for writing
@@ -1906,14 +1906,14 @@ public class ActivationServiceBehavior {
             });
 
             // is activation it in correct state?
-            if (activation.getActivationStatus().equals(ActivationStatus.BLOCKED)) {
+            if (activation.getActivationStatus() == ActivationStatus.BLOCKED) {
                 // Update and store new activation
                 activation.setActivationStatus(ActivationStatus.ACTIVE);
                 activation.setBlockedReason(null);
                 activation.setFailedAttempts(0L);
                 activationHistoryServiceBehavior.saveActivationAndLogChange(activation, externalUserId);
                 callbackUrlBehavior.notifyCallbackListenersOnActivationChange(activation);
-            } else if (!activation.getActivationStatus().equals(ActivationStatus.ACTIVE)) {
+            } else if (activation.getActivationStatus() != ActivationStatus.ACTIVE) {
                 // In case activation status is not BLOCKED or ACTIVE, throw an exception
                 logger.info("Activation cannot be unblocked due to invalid status, activation ID: {}, status: {}", activationId, activation.getActivationStatus());
                 // Rollback is not required, database is not used for writing

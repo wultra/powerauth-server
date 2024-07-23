@@ -794,6 +794,7 @@ public class OperationServiceBehavior {
                         operationEntity = expireOperation(op, currentTimestamp);
                         result.add(convertFromEntity(operationEntity));
                     } catch (GenericServiceException e) {
+                        logger.debug(e.getMessage(), e);
                         logger.error("Operation expiration failed, operation ID: {}", op.getId());
                     }
                 });
@@ -847,6 +848,7 @@ public class OperationServiceBehavior {
                             result.add(operationDetail);
                         }
                     } catch (GenericServiceException e) {
+                        logger.debug(e.getMessage(), e);
                         logger.error("Operation expiration failed, operation ID: {}", op.getId());
                     }
                 });
@@ -898,6 +900,7 @@ public class OperationServiceBehavior {
                         operationEntity = expireOperation(op, currentTimestamp);
                         result.add(convertFromEntity(operationEntity));
                     } catch (GenericServiceException e) {
+                        logger.debug(e.getMessage(), e);
                         logger.error("Operation expiration failed, operation ID: {}", op.getId());
                     }
                 });
