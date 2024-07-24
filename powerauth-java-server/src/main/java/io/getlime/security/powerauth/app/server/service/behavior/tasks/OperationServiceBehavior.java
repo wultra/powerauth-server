@@ -985,7 +985,6 @@ public class OperationServiceBehavior {
             // because two concurrent UPDATE queries can be executed at the same time.
             // The status in the database may be updated few seconds later for this reason.
             operationEntity.setStatus(OperationStatusDo.EXPIRED);
-            return operationEntity;
         }
         return operationEntity;
     }
