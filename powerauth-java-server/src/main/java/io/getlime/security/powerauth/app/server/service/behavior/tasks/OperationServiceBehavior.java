@@ -62,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -78,6 +79,11 @@ public class OperationServiceBehavior {
     private static final String PROXIMITY_OTP = "proximity_otp";
     private static final String ATTR_USER_AGENT = "userAgent";
     private static final String ATTR_DEVICE = "device";
+
+    /**
+     * All characters with ASCII code < 32 (except 10 line feed) are forbidden (e.g. \t should not be in the string).
+     */
+    private static final Pattern PATTERN_FORBIDDEN_ASCII = Pattern.compile(".*[\\x00-\\x09\\x0B-\\x1F].*");
 
     private final CallbackUrlBehavior callbackUrlBehavior;
 
@@ -147,8 +153,8 @@ public class OperationServiceBehavior {
             final String activationFlag = request.getActivationFlag();
             final String templateName = request.getTemplateName();
             final Date timestampExpiresRequest = request.getTimestampExpires();
-            final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
-            final Map<String, Object> additionalData = request.getAdditionalData() != null ? request.getAdditionalData() : new LinkedHashMap<>();
+            final Map<String, String> parameters = request.getParameters();
+            final Map<String, Object> additionalData = request.getAdditionalData();
             final String externalId = request.getExternalId();
             final String activationId = request.getActivationId();
 
@@ -201,7 +207,7 @@ public class OperationServiceBehavior {
             }
 
             // Build operation data
-            final StringSubstitutor sub = new StringSubstitutor(parameters);
+            final StringSubstitutor sub = new StringSubstitutor(escapeParameters(parameters));
             final String operationData = sub.replace(templateEntity.getDataTemplate());
 
             // Create a new operation
@@ -263,6 +269,20 @@ public class OperationServiceBehavior {
         }
     }
 
+    private static Map<String, String> escapeParameters(final Map<String, String> source) {
+        return source.entrySet().stream()
+                .map(OperationServiceBehavior::escapeParameter)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Map.Entry<String, String> escapeParameter(final Map.Entry<String, String> source) {
+        final String escapedValue = source.getValue()
+                .replace("\\", "\\\\")
+                .replace("*", "\\*")
+                .replace("\n", "\\n");
+        return Map.entry(source.getKey(), escapedValue);
+    }
+
     private String fetchUserId(final OperationCreateRequest request) throws GenericServiceException {
         if (request.getUserId() != null) {
             return request.getUserId();
@@ -286,6 +306,12 @@ public class OperationServiceBehavior {
         if (activationId != null && userId != null && !doesActivationBelongToUser(activationId, userId)) {
             logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        for (final String parameterValue : request.getParameters().values()) {
+            if (PATTERN_FORBIDDEN_ASCII.matcher(parameterValue).find()) {
+                logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameterValue);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
         }
     }
 
