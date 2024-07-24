@@ -28,11 +28,10 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Base64;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for encryption and decryption of recovery private keys.
+ * Tests for {@link RecoveryPrivateKeyConverter}.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -50,27 +49,32 @@ class RecoveryPrivateKeyConverterTest {
     }
 
     @Test
-    public void testFromDbValueNoEncryption() throws Exception {
+    void testFromDbValueNoEncryption() throws Exception {
         final RecoveryPrivateKey recoveryPrivateKeyEncrypted = new RecoveryPrivateKey(EncryptionMode.NO_ENCRYPTION, RECOVERY_PRIVATE_KEY_PLAIN);
-        String recoveryPrivateKeyActual = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 1);
+        final String recoveryPrivateKeyActual = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 1);
+
         assertEquals(RECOVERY_PRIVATE_KEY_PLAIN, recoveryPrivateKeyActual);
     }
 
     @Test
-    public void testEncryptionAndDecryptionSuccess() throws Exception {
-        byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(RECOVERY_PRIVATE_KEY_PLAIN);
-        RecoveryPrivateKey recoveryPrivateKeyEncrypted = recoveryPrivateKeyConverter.toDBValue(recoveryPrivateKeyBytes,1);
-        String recoveryPrivateKeyActual = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 1);
+    void testEncryptionAndDecryptionSuccess() throws Exception {
+        final byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(RECOVERY_PRIVATE_KEY_PLAIN);
+        final RecoveryPrivateKey recoveryPrivateKeyEncrypted = recoveryPrivateKeyConverter.toDBValue(recoveryPrivateKeyBytes, 1);
+
+        assertEquals(EncryptionMode.AES_HMAC, recoveryPrivateKeyEncrypted.getEncryptionMode());
+        assertNotEquals(RECOVERY_PRIVATE_KEY_PLAIN, recoveryPrivateKeyEncrypted.getEncryptedData());
+
+        final String recoveryPrivateKeyActual = recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 1);
         assertEquals(RECOVERY_PRIVATE_KEY_PLAIN, recoveryPrivateKeyActual);
     }
 
     @Test
-    public void testEncryptionAndDecryptionDifferentApplicationFail() {
-        assertThrows(GenericServiceException.class, ()-> {
-            byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(RECOVERY_PRIVATE_KEY_PLAIN);
-            RecoveryPrivateKey recoveryPrivateKeyEncrypted = recoveryPrivateKeyConverter.toDBValue(recoveryPrivateKeyBytes, 1);
-            recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 2);
-        });
+    void testEncryptionAndDecryptionDifferentApplicationFail() throws Exception {
+        final byte[] recoveryPrivateKeyBytes = Base64.getDecoder().decode(RECOVERY_PRIVATE_KEY_PLAIN);
+        final RecoveryPrivateKey recoveryPrivateKeyEncrypted = recoveryPrivateKeyConverter.toDBValue(recoveryPrivateKeyBytes, 1);
+
+        assertThrows(GenericServiceException.class, () ->
+                recoveryPrivateKeyConverter.fromDBValue(recoveryPrivateKeyEncrypted, 2));
     }
 
 }
