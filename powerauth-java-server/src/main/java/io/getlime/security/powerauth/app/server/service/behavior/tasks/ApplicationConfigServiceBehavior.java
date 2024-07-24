@@ -32,8 +32,9 @@ import io.getlime.security.powerauth.app.server.database.repository.ApplicationR
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
+import io.getlime.security.powerauth.app.server.service.persistence.ApplicationConfigService;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +52,7 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class ApplicationConfigServiceBehavior {
 
     private static final String CONFIG_KEY_OAUTH2_PROVIDERS = "oauth2_providers";
@@ -60,17 +62,7 @@ public class ApplicationConfigServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
-
-    /**
-     * Behaviour class constructor.
-     * @param repositoryCatalogue Repository catalogue.
-     * @param localizationProvider Localization provider.
-     */
-    @Autowired
-    public ApplicationConfigServiceBehavior(final RepositoryCatalogue repositoryCatalogue, final LocalizationProvider localizationProvider) {
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.localizationProvider = localizationProvider;
-    }
+    private final ApplicationConfigService applicationConfigService;
 
     /**
      * Get application configuration.
@@ -87,14 +79,14 @@ public class ApplicationConfigServiceBehavior {
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
-            final List<ApplicationConfigEntity> applicationConfigs = repositoryCatalogue.getApplicationConfigRepository().findByApplicationId(applicationId);
+            final List<ApplicationConfigService.ApplicationConfig> applicationConfigs = applicationConfigService.findByApplicationId(applicationId);
             final GetApplicationConfigResponse response = new GetApplicationConfigResponse();
             response.setApplicationId(applicationId);
             final List<ApplicationConfigurationItem> responseConfigs = new ArrayList<>();
             applicationConfigs.forEach(config -> {
                 final ApplicationConfigurationItem item = new ApplicationConfigurationItem();
-                item.setKey(config.getKey());
-                item.setValues(config.getValues());
+                item.setKey(config.key());
+                item.setValues(config.values());
                 responseConfigs.add(item);
             });
             response.setApplicationConfigs(responseConfigs);
@@ -124,28 +116,21 @@ public class ApplicationConfigServiceBehavior {
             }
             validateConfigKey(key);
             final ApplicationRepository appRepository = repositoryCatalogue.getApplicationRepository();
-            final Optional<ApplicationEntity> appOptional = appRepository.findById(applicationId);
-            if (appOptional.isEmpty()) {
+            final ApplicationEntity application = appRepository.findById(applicationId).orElseThrow(() -> {
                 logger.info("Application not found, application ID: {}", applicationId);
                 // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
-            }
-            final ApplicationEntity appEntity = appOptional.get();
-            final ApplicationConfigRepository configRepository = repositoryCatalogue.getApplicationConfigRepository();
-            final List<ApplicationConfigEntity> configs = configRepository.findByApplicationId(applicationId);
-            final Optional<ApplicationConfigEntity> matchedConfig = configs.stream()
-                    .filter(config -> config.getKey().equals(key))
-                    .findFirst();
-            matchedConfig.ifPresentOrElse(config -> {
-                config.setValues(values);
-                configRepository.save(config);
-            }, () -> {
-                final ApplicationConfigEntity config = new ApplicationConfigEntity();
-                config.setApplication(appEntity);
-                config.setKey(key);
-                config.setValues(values);
-                configRepository.save(config);
+                return localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
             });
+            final Optional<ApplicationConfigService.ApplicationConfig> matchedConfig = applicationConfigService.findByApplicationId(applicationId).stream()
+                    .filter(config -> config.key().equals(key))
+                    .findFirst();
+            if (matchedConfig.isPresent()) {
+                final ApplicationConfigService.ApplicationConfig existing = matchedConfig.get();
+                applicationConfigService.createOrUpdate(new ApplicationConfigService.ApplicationConfig(existing.id(), existing.application(), existing.key(), values));
+            } else {
+                applicationConfigService.createOrUpdate(new ApplicationConfigService.ApplicationConfig(null, application, key, values));
+            }
+
             final CreateApplicationConfigResponse response = new CreateApplicationConfigResponse();
             response.setApplicationId(applicationId);
             response.setKey(key);

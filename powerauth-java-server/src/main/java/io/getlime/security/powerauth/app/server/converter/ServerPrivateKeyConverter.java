@@ -17,17 +17,16 @@
  */
 package io.getlime.security.powerauth.app.server.converter;
 
-import java.util.Base64;
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
-import io.getlime.security.powerauth.app.server.service.encryption.Encryptable;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableData;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.Base64;
+import java.util.List;
 
 /**
  * Converter for server private key which handles key encryption and decryption in case it is configured.
@@ -69,8 +68,8 @@ public class ServerPrivateKeyConverter {
      * @throws GenericServiceException Thrown when server private key encryption fails.
      */
     public ServerPrivateKey toDBValue(final byte[] serverPrivateKey, final String userId, final String activationId) throws GenericServiceException {
-        final Encryptable encryptable = encryptionService.encrypt(serverPrivateKey, createSecretKeyDerivationInput(userId, activationId));
-        return new ServerPrivateKey(encryptable.getEncryptionMode(), convert(encryptable.getEncryptedData()));
+        final EncryptableData encryptable = encryptionService.encrypt(serverPrivateKey, createSecretKeyDerivationInput(userId, activationId));
+        return new ServerPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
     private static String convert(final byte[] source) {

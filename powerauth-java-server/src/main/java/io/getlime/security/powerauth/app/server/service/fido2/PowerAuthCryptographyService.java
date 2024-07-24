@@ -24,14 +24,15 @@ import com.wultra.powerauth.fido2.service.provider.CryptographyService;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
 import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+import io.getlime.security.powerauth.app.server.service.persistence.ApplicationConfigService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
 import io.getlime.security.powerauth.crypto.lib.util.Hash;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -58,20 +59,14 @@ import static com.wultra.powerauth.fido2.rest.model.enumeration.Fido2ConfigKeys.
  */
 @Service
 @Slf4j
+@AllArgsConstructor
 public class PowerAuthCryptographyService implements CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ActivationRepository activationRepository;
     private final ActivationQueryService activationQueryService;
-    private final ApplicationConfigRepository applicationConfigRepository;
+    private final ApplicationConfigService applicationConfigService;
     private final Fido2CertificateValidator certificateValidator;
-
-    public PowerAuthCryptographyService(ActivationRepository activationRepository, ActivationQueryService activationQueryService, ApplicationConfigRepository applicationConfigRepository, Fido2CertificateValidator certificateValidator) {
-        this.activationRepository = activationRepository;
-        this.activationQueryService = activationQueryService;
-        this.applicationConfigRepository = applicationConfigRepository;
-        this.certificateValidator = certificateValidator;
-    }
 
     public boolean verifySignatureForAssertion(String applicationId, String credentialId, CollectedClientData clientDataJSON, AuthenticatorData authData, byte[] signature, AuthenticatorDetail authenticatorDetail) throws GenericCryptoException, InvalidKeySpecException, CryptoProviderException, InvalidKeyException {
         if (!checkAndPersistCounter(applicationId, credentialId, authData.getSignCount())) {
@@ -251,9 +246,9 @@ public class PowerAuthCryptographyService implements CryptographyService {
      */
     private List<X509Certificate> getRootCaCerts(String applicationId) throws CertificateException {
         final CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
-        return applicationConfigRepository.findByApplicationIdAndKey(applicationId, CONFIG_KEY_ROOT_CA_CERTS)
+        return applicationConfigService.findByApplicationIdAndKey(applicationId, CONFIG_KEY_ROOT_CA_CERTS)
                 .map(applicationConfig ->
-                        applicationConfig.getValues().stream()
+                        applicationConfig.values().stream()
                                 .filter(String.class::isInstance)
                                 .map(String.class::cast)
                                 .map(certPem -> {

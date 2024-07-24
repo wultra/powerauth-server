@@ -19,7 +19,9 @@
 package com.wultra.security.powerauth.client.model.request;
 
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +32,16 @@ import java.util.List;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CreateApplicationConfigRequest {
 
     @NotBlank
     private String applicationId;
+
     @NotBlank
     private String key;
+
     private List<Object> values = new ArrayList<>();
 
 }

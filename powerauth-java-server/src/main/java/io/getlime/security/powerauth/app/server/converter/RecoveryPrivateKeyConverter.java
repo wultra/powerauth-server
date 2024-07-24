@@ -17,17 +17,16 @@
  */
 package io.getlime.security.powerauth.app.server.converter;
 
-import java.util.Base64;
-import java.util.List;
-
-import org.springframework.stereotype.Component;
-
 import io.getlime.security.powerauth.app.server.database.model.RecoveryPrivateKey;
-import io.getlime.security.powerauth.app.server.service.encryption.Encryptable;
+import io.getlime.security.powerauth.app.server.service.encryption.EncryptableData;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptionService;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+import java.util.Base64;
+import java.util.List;
 
 /**
  * Converter for recovery postcard private key which handles key encryption and decryption in case it is configured.
@@ -67,8 +66,8 @@ public class RecoveryPrivateKeyConverter {
      * @throws GenericServiceException Thrown when recovery postcard private key encryption fails.
      */
     public RecoveryPrivateKey toDBValue(byte[] recoveryPrivateKey, long applicationRid) throws GenericServiceException {
-        final Encryptable encryptable = encryptionService.encrypt(recoveryPrivateKey, createSecretKeyDerivationInput(applicationRid));
-        return new RecoveryPrivateKey(encryptable.getEncryptionMode(), convert(encryptable.getEncryptedData()));
+        final EncryptableData encryptable = encryptionService.encrypt(recoveryPrivateKey, createSecretKeyDerivationInput(applicationRid));
+        return new RecoveryPrivateKey(encryptable.encryptionMode(), convert(encryptable.encryptedData()));
     }
 
     private static String convert(final byte[] source) {
