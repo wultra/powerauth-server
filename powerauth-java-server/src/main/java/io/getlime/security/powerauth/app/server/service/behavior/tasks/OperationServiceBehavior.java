@@ -981,16 +981,10 @@ public class OperationServiceBehavior {
         // Operation is still pending and timestamp is after the expiration.
         if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())
                 && operationEntity.getTimestampExpires().before(currentTimestamp)) {
-//            OperationEntity operationEntity = operationQueryService.findOperationForUpdate(source.getId()).orElseThrow(() -> {
-//                logger.warn("Operation was removed, ID: {}.", source.getId());
-//                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
-//            });
+            // Operation status is persisted only using background service to avoid database deadlocks,
+            // because two concurrent UPDATE queries can be executed at the same time.
+            // The status in the database may be updated few seconds later for this reason.
             operationEntity.setStatus(OperationStatusDo.EXPIRED);
-//            Let the operation be expired only by background service
-//
-//            logger.info("Operation expired, ID: {}", operationEntity.getId());
-//            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
-//            callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             return operationEntity;
         }
         return operationEntity;
