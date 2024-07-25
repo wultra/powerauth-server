@@ -36,6 +36,7 @@ public class CreateActivationRequest {
     private boolean generateRecoveryCodes = true;
     private Long maxFailureCount;
     private String applicationKey;
+    private String temporaryKeyId;
     private String ephemeralPublicKey;
     private String encryptedData;
     private String mac;

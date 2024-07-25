@@ -111,8 +111,8 @@ public class ActivationServiceBehavior {
     private final RepositoryCatalogue repositoryCatalogue;
 
     private CallbackUrlBehavior callbackUrlBehavior;
-
     private ActivationHistoryServiceBehavior activationHistoryServiceBehavior;
+    private TemporaryKeyBehavior temporaryKeyBehavior;
 
     private LocalizationProvider localizationProvider;
 
@@ -1006,6 +1006,7 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final boolean shouldGenerateRecoveryCodes = request.isGenerateRecoveryCodes();
             final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
@@ -1047,14 +1048,6 @@ public class ActivationServiceBehavior {
             }
             final String applicationId = application.getId();
 
-            // Get master server private key
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
@@ -1066,13 +1059,27 @@ public class ActivationServiceBehavior {
                         protocolVersion);
             }
 
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey;
+            if (temporaryKeyId == null) {
+                // Get master server private key
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                if (masterKeyPairEntity == null) {
+                    logger.error("Missing key pair for application ID: {}", applicationId);
+                    // Rollback is not required, error occurs before writing to database
+                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+
+                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            } else {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            }
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(protocolVersion, applicationKey, null),
+                    new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
                     new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
@@ -1250,6 +1257,7 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final String activationOtp = request.getActivationOtp();
             final String protocolVersion = request.getProtocolVersion();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
@@ -1317,14 +1325,6 @@ public class ActivationServiceBehavior {
 
             validateCreatedActivation(activation, application, true);
 
-            // Get master server private key
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationId);
-                // Master key pair is missing, rollback this transaction
-                throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
             if (encryptedRequest.getTimestamp() != null) {
                 // Check request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
@@ -1336,13 +1336,25 @@ public class ActivationServiceBehavior {
                         protocolVersion);
             }
 
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey;
+            if (temporaryKeyId == null) {
+                // Get master server private key
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                if (masterKeyPairEntity == null) {
+                    logger.error("Missing key pair for application ID: {}", applicationId);
+                    // Master key pair is missing, rollback this transaction
+                    throw localizationProvider.buildRollbackingExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            } else {
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId);
+            }
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(protocolVersion, applicationKey, null),
+                    new EncryptorParameters(protocolVersion, applicationKey, null, temporaryKeyId),
                     new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 
@@ -1958,6 +1970,7 @@ public class ActivationServiceBehavior {
             final String applicationKey = request.getApplicationKey();
             final Long maxFailureCount = request.getMaxFailureCount();
             final String activationOtp = request.getActivationOtp();
+            final String temporaryKeyId = request.getTemporaryKeyId();
 
             // Prepare and validate encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
@@ -2005,14 +2018,6 @@ public class ActivationServiceBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
 
-            // Get master server private key
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
-            if (masterKeyPairEntity == null) {
-                logger.error("Missing key pair for application ID: {}", applicationId);
-                // Rollback is not required, error occurs before writing to database
-                throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
-            }
-
             if (encryptedRequest.getTimestamp() != null) {
                 // Check ECIES request for replay attacks and persist unique value from request
                 replayVerificationService.checkAndPersistUniqueValue(
@@ -2024,13 +2029,26 @@ public class ActivationServiceBehavior {
                         version);
             }
 
-            final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            final PrivateKey privateKey;
+            if (temporaryKeyId == null) {
+                // Get master server private key
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationId);
+                if (masterKeyPairEntity == null) {
+                    logger.error("Missing key pair for application ID: {}", applicationId);
+                    // Rollback is not required, error occurs before writing to database
+                    throw localizationProvider.buildExceptionForCode(ServiceError.NO_MASTER_SERVER_KEYPAIR);
+                }
+                final String masterPrivateKeyBase64 = masterKeyPairEntity.getMasterKeyPrivateBase64();
+                privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterPrivateKeyBase64));
+            } else {
+                // Get temporary private key
+                privateKey = temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey);
+            }
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.ACTIVATION_LAYER_2,
-                    new EncryptorParameters(version, applicationKey, null),
+                    new EncryptorParameters(version, applicationKey, null, temporaryKeyId),
                     new ServerEncryptorSecrets(privateKey, applicationVersion.getApplicationSecret())
             );
 

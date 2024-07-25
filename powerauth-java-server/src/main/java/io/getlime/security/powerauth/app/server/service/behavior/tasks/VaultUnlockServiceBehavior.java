@@ -98,9 +98,10 @@ public class VaultUnlockServiceBehavior {
     private final ObjectMapper objectMapper;
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
     private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
+    private final TemporaryKeyBehavior temporaryKeyBehavior;
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior, TemporaryKeyBehavior temporaryKeyBehavior) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
         this.activationQueryService = activationQueryService;
@@ -110,6 +111,7 @@ public class VaultUnlockServiceBehavior {
         this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.objectMapper = objectMapper;
         this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
+        this.temporaryKeyBehavior = temporaryKeyBehavior;
     }
 
     /**
@@ -139,6 +141,8 @@ public class VaultUnlockServiceBehavior {
             final SignatureType signatureType = request.getSignatureType();
             final String signatureVersion = request.getSignatureVersion();
             final String signedData = request.getSignedData();
+            final String temporaryKeyId = request.getTemporaryKeyId();
+
             // Build encrypted request
             final EncryptedRequest encryptedRequest = new EncryptedRequest(
                     request.getEphemeralPublicKey(),
@@ -179,14 +183,6 @@ public class VaultUnlockServiceBehavior {
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
-            // Get the server private key, decrypt it if required
-            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
-            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
-            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
-            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
-            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
-
             // Get application version
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
             // Check if application version is valid
@@ -209,17 +205,28 @@ public class VaultUnlockServiceBehavior {
                         signatureVersion);
             }
 
+            // Get the server private key, decrypt it if required
+            final String serverPrivateKeyFromEntity = activation.getServerPrivateKeyBase64();
+            final EncryptionMode serverPrivateKeyEncryptionMode = activation.getServerPrivateKeyEncryption();
+            final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
+            final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
+            final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
+
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
             final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
             final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
+            // Get temporary or server key, depending on availability
+            final PrivateKey encryptorPrivateKey = (temporaryKeyId != null) ? temporaryKeyBehavior.temporaryPrivateKey(temporaryKeyId, applicationKey, activationId) : serverPrivateKey;
+
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
                     EncryptorId.VAULT_UNLOCK,
-                    new EncryptorParameters(signatureVersion, applicationKey, activationId),
-                    new ServerEncryptorSecrets(serverPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
+                    new EncryptorParameters(signatureVersion, applicationKey, activationId, temporaryKeyId),
+                    new ServerEncryptorSecrets(encryptorPrivateKey, applicationVersion.getApplicationSecret(), transportKeyBytes)
             );
             // Decrypt request to obtain vault unlock reason
             final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);

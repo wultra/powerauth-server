@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-java-server/1.8.x/20240718-add-temporary-keys.xml" author="Petr Dvorak">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_temporary_key"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_temporary_key</comment>
+        <createTable tableName="pa_temporary_key">
+            <column name="id" type="varchar(255)">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="app_key" type="varchar(255)" />
+            <column name="activation_id" type="integer" defaultValue="0" />
+            <column name="private_key_encryption" type="integer" defaultValue="0">
+                <constraints nullable="false" />
+            </column>
+            <column name="private_key_base64" type="varchar(255)" />
+            <column name="public_key_base64" type="varchar(255)" />
+            <column name="timestamp_expires" type="timestamp" />
+        </createTable>
+    </changeSet>
+
+
+</databaseChangeLog>

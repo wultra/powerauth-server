@@ -997,7 +997,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
 
     @Override
     public GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                       String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException {
+                                                       String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException {
         final GetEciesDecryptorRequest request = new GetEciesDecryptorRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);
@@ -1005,6 +1005,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
         request.setNonce(nonce);
         request.setProtocolVersion(protocolVersion);
         request.setTimestamp(timestamp);
+        request.setTemporaryKeyId(temporaryKeyId);
         return getEciesDecryptor(request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP);
     }
 

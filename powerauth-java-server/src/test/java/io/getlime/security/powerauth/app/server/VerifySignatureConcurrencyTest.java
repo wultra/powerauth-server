@@ -89,7 +89,7 @@ public class VerifySignatureConcurrencyTest {
         final String applicationKey = createApplicationVersionResponse.getApplicationKey();
         final ClientEncryptor clientEncryptor = encryptorFactory.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, applicationKey, null),
+                new EncryptorParameters(version, applicationKey, null, null),
                 new ClientEncryptorSecrets(masterPublicKey, createApplicationVersionResponse.getApplicationSecret())
         );
 

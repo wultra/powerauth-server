@@ -1362,11 +1362,12 @@ public interface PowerAuthClient {
      * @param nonce              ECIES nonce.
      * @param protocolVersion    Crypto protocol version.
      * @param timestamp          Unix timestamp in milliseconds for ECIES.
+     * @param temporaryKeyId     Temporary Key ID.
      * @return ECIES decryptor parameters.
      * @throws PowerAuthClientException In case REST API call fails.
      */
     GetEciesDecryptorResponse getEciesDecryptor(String activationId, String applicationKey, String ephemeralPublicKey,
-                                                String nonce, String protocolVersion, Long timestamp) throws PowerAuthClientException;
+                                                String nonce, String protocolVersion, Long timestamp, String temporaryKeyId) throws PowerAuthClientException;
 
     /**
      * Start upgrade of activations to version 3.

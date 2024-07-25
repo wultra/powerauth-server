@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="PowerAuthServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
-    <option name="ACTIVE_PROFILES" value="dev" />
+    <option name="ACTIVE_PROFILES" value="dev,liquibase" />
     <option name="DEBUG_MODE" value="true" />
     <module name="powerauth-java-server" />
     <option name="SPRING_BOOT_MAIN_CLASS" value="io.getlime.security.powerauth.app.server.Application" />
