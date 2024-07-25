@@ -109,7 +109,7 @@ public class RecoveryController {
     }
 
     /**
-     * Get the recovery configuration.
+     * Get the recovery configuration or create a new one if it does not exist yet.
      *
      * @param request Get recovery configuration request.
      * @return Get recovery configuration response.
