@@ -22,9 +22,9 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  * @implSpec Oracle does not support {@code DISTINCT} on {@code CLOB} so subselects have to be used.
  */
 @Repository
-public interface OperationRepository extends CrudRepository<OperationEntity, String> {
+public interface OperationRepository extends JpaRepository<OperationEntity, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
