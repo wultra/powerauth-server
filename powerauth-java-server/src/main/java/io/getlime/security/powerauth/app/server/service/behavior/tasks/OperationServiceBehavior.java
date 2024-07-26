@@ -62,6 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -78,6 +79,11 @@ public class OperationServiceBehavior {
     private static final String PROXIMITY_OTP = "proximity_otp";
     private static final String ATTR_USER_AGENT = "userAgent";
     private static final String ATTR_DEVICE = "device";
+
+    /**
+     * All characters with ASCII code < 32 (except 10 line feed) are forbidden (e.g. \t should not be in the string).
+     */
+    private static final Pattern PATTERN_FORBIDDEN_ASCII = Pattern.compile(".*[\\x00-\\x09\\x0B-\\x1F].*");
 
     private final CallbackUrlBehavior callbackUrlBehavior;
 
@@ -147,8 +153,8 @@ public class OperationServiceBehavior {
             final String activationFlag = request.getActivationFlag();
             final String templateName = request.getTemplateName();
             final Date timestampExpiresRequest = request.getTimestampExpires();
-            final Map<String, String> parameters = request.getParameters() != null ? request.getParameters() : new LinkedHashMap<>();
-            final Map<String, Object> additionalData = request.getAdditionalData() != null ? request.getAdditionalData() : new LinkedHashMap<>();
+            final Map<String, String> parameters = request.getParameters();
+            final Map<String, Object> additionalData = request.getAdditionalData();
             final String externalId = request.getExternalId();
             final String activationId = request.getActivationId();
 
@@ -201,7 +207,7 @@ public class OperationServiceBehavior {
             }
 
             // Build operation data
-            final StringSubstitutor sub = new StringSubstitutor(parameters);
+            final StringSubstitutor sub = new StringSubstitutor(escapeParameters(parameters));
             final String operationData = sub.replace(templateEntity.getDataTemplate());
 
             // Create a new operation
@@ -248,7 +254,8 @@ public class OperationServiceBehavior {
                     .build();
             audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
-            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            logger.info("Operation created with ID: {}", operationId);
+            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             return convertFromEntityAndFillOtp(savedEntity);
         } catch (GenericServiceException ex) {
@@ -261,6 +268,20 @@ public class OperationServiceBehavior {
             logger.error("Unknown error occurred", ex);
             throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
+    }
+
+    private static Map<String, String> escapeParameters(final Map<String, String> source) {
+        return source.entrySet().stream()
+                .map(OperationServiceBehavior::escapeParameter)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Map.Entry<String, String> escapeParameter(final Map.Entry<String, String> source) {
+        final String escapedValue = source.getValue()
+                .replace("\\", "\\\\")
+                .replace("*", "\\*")
+                .replace("\n", "\\n");
+        return Map.entry(source.getKey(), escapedValue);
     }
 
     private String fetchUserId(final OperationCreateRequest request) throws GenericServiceException {
@@ -286,6 +307,12 @@ public class OperationServiceBehavior {
         if (activationId != null && userId != null && !doesActivationBelongToUser(activationId, userId)) {
             logger.warn("Activation ID: {} does not belong to user ID: {}", activationId, userId);
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+        }
+        for (final String parameterValue : request.getParameters().values()) {
+            if (PATTERN_FORBIDDEN_ASCII.matcher(parameterValue).find()) {
+                logger.warn("TEXT parameter value: '{}' contains invalid characters.", parameterValue);
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
         }
     }
 
@@ -362,7 +389,8 @@ public class OperationServiceBehavior {
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation approved with ID: {}", operationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -395,11 +423,10 @@ public class OperationServiceBehavior {
                     operationEntity.setFailureCount(failureCount);
                     operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+                    final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                     callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                     final AuditDetail auditDetail = AuditDetail.builder()
                             .type(AuditType.OPERATION.getCode())
@@ -429,11 +456,10 @@ public class OperationServiceBehavior {
                     operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
                     operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                    logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+                    final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                     callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                    logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                     final AuditDetail auditDetail = AuditDetail.builder()
                             .type(AuditType.OPERATION.getCode())
@@ -518,11 +544,10 @@ public class OperationServiceBehavior {
                 operationEntity.setTimestampFinalized(currentTimestamp);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
@@ -607,11 +632,10 @@ public class OperationServiceBehavior {
                 operationEntity.setFailureCount(failureCount);
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
@@ -632,11 +656,10 @@ public class OperationServiceBehavior {
                 operationEntity.setFailureCount(maxFailureCount); // just in case, set the failure count to max value
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-                final OperationEntity savedEntity = operationRepository.save(operationEntity);
+                logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
+                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
-
-                logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
 
                 final AuditDetail auditDetail = AuditDetail.builder()
                         .type(AuditType.OPERATION.getCode())
@@ -696,12 +719,11 @@ public class OperationServiceBehavior {
             operationEntity.setStatusReason(request.getStatusReason());
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
-            final OperationEntity savedEntity = operationRepository.save(operationEntity);
+            logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
+            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
             extendAndSetOperationDetailData(operationDetailResponse);
-
-            logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
 
             final AuditDetail auditDetail = AuditDetail.builder()
                     .type(AuditType.OPERATION.getCode())
@@ -969,9 +991,9 @@ public class OperationServiceBehavior {
                 final String operationId = source.getId();
                 final String expectedUserId = source.getUserId();
                 if (expectedUserId == null) {
-                    logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
                     source.setUserId(userId);
-                    return operationRepository.save(source);
+                    logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
+                    return operationRepository.saveAndFlush(source);
                 } else if (!expectedUserId.equals(userId)) {
                     logger.warn("Operation ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
                     throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
@@ -981,21 +1003,16 @@ public class OperationServiceBehavior {
         return source;
     }
 
-    private OperationEntity expireOperation(OperationEntity source, Date currentTimestamp) throws GenericServiceException {
+    private OperationEntity expireOperation(OperationEntity operationEntity, Date currentTimestamp) throws GenericServiceException {
         // Operation is still pending and timestamp is after the expiration.
-        if (OperationStatusDo.PENDING.equals(source.getStatus())
-                && source.getTimestampExpires().before(currentTimestamp)) {
-            OperationEntity operationEntity = operationQueryService.findOperationForUpdate(source.getId()).orElseThrow(() -> {
-                logger.warn("Operation was removed, ID: {}.", source.getId());
-                return localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
-            });
-            logger.info("Operation {} expired.", operationEntity.getId());
+        if (OperationStatusDo.PENDING.equals(operationEntity.getStatus())
+                && operationEntity.getTimestampExpires().before(currentTimestamp)) {
+            // Operation status is persisted only using background service to avoid database deadlocks,
+            // because two concurrent UPDATE queries can be executed at the same time.
+            // The status in the database may be updated few seconds later for this reason.
             operationEntity.setStatus(OperationStatusDo.EXPIRED);
-            final OperationEntity savedEntity = operationRepository.save(operationEntity);
-            callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
-            return savedEntity;
         }
-        return source;
+        return operationEntity;
     }
 
     private boolean factorsAcceptable(@NotNull OperationEntity operation, PowerAuthSignatureTypes usedFactor) {
@@ -1196,13 +1213,14 @@ public class OperationServiceBehavior {
 
         final PageRequest pageRequest = PageRequest.of(0, powerAuthServiceConfiguration.getExpireOperationsLimit());
         try (final Stream<OperationEntity> pendingOperations = operationQueryService.findExpiredPendingOperations(currentTimestamp, pageRequest)) {
-            pendingOperations.forEach(op -> {
-                try {
-                    expireOperation(op, currentTimestamp);
-                } catch (GenericServiceException e) {
-                    logger.error("Operation expiration failed, operation ID: {}", op.getId());
-                }
-            });
+            final List<OperationEntity> updatedEntities = pendingOperations.map(operationEntity -> {
+                operationEntity.setStatus(OperationStatusDo.EXPIRED);
+                logger.info("Operation expired, ID: {}", operationEntity.getId());
+                callbackUrlBehavior.notifyCallbackListenersOnOperationChange(operationEntity);
+                return operationEntity;
+            }).toList();
+            operationRepository.saveAll(updatedEntities);
+            operationRepository.flush();
         }
     }
 

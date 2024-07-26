@@ -674,15 +674,16 @@ public class RecoveryServiceBehavior {
     }
 
     /**
-     * Get recovery configuration.
+     * Get recovery configuration or create a new one if it does not exist yet.
+     *
      * @param request Get recovery configuration request.
      * @return Get recovery configuration response.
      * @throws GenericServiceException In case of any error.
      */
-    @Transactional(readOnly = true)
+    @Transactional
     public GetRecoveryConfigResponse getRecoveryConfig(GetRecoveryConfigRequest request) throws GenericServiceException {
         try {
-            String applicationId = request.getApplicationId();
+            final String applicationId = request.getApplicationId();
 
             if (applicationId == null) {
                 logger.warn("Invalid request parameter applicationId in method getRecoveryConfig");
@@ -692,16 +693,14 @@ public class RecoveryServiceBehavior {
 
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
             final RecoveryConfigRepository recoveryConfigRepository = repositoryCatalogue.getRecoveryConfigRepository();
-            final Optional<ApplicationEntity> applicationOptional = applicationRepository.findById(applicationId);
-            if (applicationOptional.isEmpty()) {
+            final ApplicationEntity applicationEntity = applicationRepository.findById(applicationId).orElseThrow(() -> {
                 logger.warn("Application does not exist, application ID: {}", applicationId);
                 // Rollback is not required, database is not used for writing
-                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
-            }
-            final ApplicationEntity applicationEntity = applicationOptional.get();
+                return localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            });
             RecoveryConfigEntity recoveryConfigEntity = recoveryConfigRepository.findByApplicationId(applicationEntity.getId());
             if (recoveryConfigEntity == null) {
-                // Configuration does not exist yet, create it
+                logger.debug("Recovery configuration does not exist yet, create it, application ID: {}", applicationId);
                 recoveryConfigEntity = new RecoveryConfigEntity();
                 recoveryConfigEntity.setApplication(applicationEntity);
                 recoveryConfigEntity.setActivationRecoveryEnabled(false);
@@ -710,7 +709,7 @@ public class RecoveryServiceBehavior {
                 recoveryConfigEntity.setPrivateKeyEncryption(EncryptionMode.NO_ENCRYPTION);
                 recoveryConfigRepository.save(recoveryConfigEntity);
             }
-            GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
+            final GetRecoveryConfigResponse response = new GetRecoveryConfigResponse();
             response.setApplicationId(applicationId);
             response.setActivationRecoveryEnabled(recoveryConfigEntity.isActivationRecoveryEnabled());
             response.setRecoveryPostcardEnabled(recoveryConfigEntity.getRecoveryPostcardEnabled());

@@ -185,6 +185,35 @@ class OperationServiceBehaviorTest {
         assertEquals("test-user", savedEntity.getUserId());
     }
 
+    @Test
+    void testCreateOperation_invalidParameterTextCharacters() {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+        // All characters with ASCII code < 32 (except line feed) are forbidden (e.g. \t should not be in the string)
+        request.getParameters().put("TEXT", "foo\thoo");
+
+        assertThrows(GenericServiceException.class, () -> operationService.createOperation(request));
+    }
+
+    @Test
+    void testCreateOperation_escapeTextCharacters() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template-text");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+        request.getParameters().put("text", """
+                \\foo*hoo
+                new-line""");
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperationWithLock(operationDetailResponse.getId());
+        assertTrue(savedEntity.isPresent());
+
+        assertEquals("A0*T\\\\foo\\*hoo\\nnew-line", savedEntity.get().getData());
+    }
+
     /**
      * Tests the approval of an operation with a matching activation ID.
      * Verifies that the operation is successfully approved when the provided activation ID matches the stored one.

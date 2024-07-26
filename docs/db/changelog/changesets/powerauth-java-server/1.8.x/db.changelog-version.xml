@@ -7,6 +7,7 @@
     <include file="20240424-index-expire-status.xml" relativeToChangelogFile="true" />
     <include file="20240517-fido2-authenticator-transports.xml" relativeToChangelogFile="true" />
     <include file="20240529-add-status-reason.xml" relativeToChangelogFile="true" />
+    <include file="20240625-add-tag-1.8.0.xml" relativeToChangelogFile="true" />
     <include file="20240718-add-temporary-keys.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>
