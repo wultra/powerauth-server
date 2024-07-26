@@ -1535,4 +1535,16 @@ public class PowerAuthRestClient implements PowerAuthClient {
         return getApplicationConfig(request);
     }
 
+    @Override
+    public TemporaryPublicKeyResponse fetchTemporaryPublicKey(TemporaryPublicKeyRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        return callV3RestApi("/keystore/create", request, queryParams, httpHeaders, TemporaryPublicKeyResponse.class);
+    }
+
+    @Override
+    public RemoveTemporaryPublicKeyResponse removeTemporaryPublicKey(String id, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+        final RemoveTemporaryPublicKeyRequest request = new RemoveTemporaryPublicKeyRequest();
+        request.setId(id);
+        return callV3RestApi("/keystore/remove", request, queryParams, httpHeaders, RemoveTemporaryPublicKeyResponse.class);
+    }
+
 }
