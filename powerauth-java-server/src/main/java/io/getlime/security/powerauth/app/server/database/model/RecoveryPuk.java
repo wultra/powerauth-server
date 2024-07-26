@@ -26,15 +26,6 @@ import io.getlime.security.powerauth.app.server.database.model.enumeration.Encry
  * @param pukHash        PUK hash, encrypted if speciefied by key encryption mode.
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public record RecoveryPuk(EncryptionMode encryptionMode, String pukHash) implements Encryptable {
+public record RecoveryPuk(EncryptionMode encryptionMode, String pukHash) {
 
-    @Override
-    public EncryptionMode getEncryptionMode() {
-        return encryptionMode;
-    }
-
-    @Override
-    public String getEncryptedData() {
-        return pukHash;
-    }
 }
