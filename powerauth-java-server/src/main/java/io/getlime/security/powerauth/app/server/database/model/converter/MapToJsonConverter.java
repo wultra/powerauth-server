@@ -23,8 +23,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -38,9 +37,8 @@ import java.util.Map;
  */
 @Converter
 @Component
+@Slf4j
 public class MapToJsonConverter implements AttributeConverter<Map<String, Object>, String> {
-
-    private static final Logger logger = LoggerFactory.getLogger(MapToJsonConverter.class);
 
     private static final String EMPTY_PARAMS = "{}";
 
@@ -62,7 +60,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, Object
         try {
             return objectMapper.writeValueAsString(parameters);
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for operation parameters, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for operation parameters, error: {}", ex.getMessage(), ex);
             return EMPTY_PARAMS;
         }
     }
@@ -75,7 +73,7 @@ public class MapToJsonConverter implements AttributeConverter<Map<String, Object
         try {
             return objectMapper.readValue(s, new TypeReference<>(){});
         } catch (JsonProcessingException ex) {
-            logger.warn("Conversion failed for operation parameters, error: " + ex.getMessage(), ex);
+            logger.warn("Conversion failed for operation parameters, error: {}", ex.getMessage(), ex);
             return new HashMap<>();
         }
     }

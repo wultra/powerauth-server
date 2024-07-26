@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.client.model.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.ToString;
 
@@ -29,12 +30,21 @@ import lombok.ToString;
 @Data
 public class ValidateTokenRequest {
 
+    @NotNull
     private String tokenId;
+
     @ToString.Exclude
+    @NotNull
     private String tokenDigest;
+
+    @NotNull
     @ToString.Exclude
     private String nonce;
+
+    @NotNull
     private String protocolVersion;
+
+    @NotNull
     private long timestamp;
 
 }

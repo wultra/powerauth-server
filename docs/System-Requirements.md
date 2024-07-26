@@ -31,15 +31,14 @@ It is suggested to deploy PowerAuth in its own Java Servlet Container.
 PowerAuth Server is currently tested with following container technologies supporting Jakarta EE 9:
 
 - Apache Tomcat 10.x or newer
-- Wildfly 23 or newer
+- Wildfly 27 or newer
 - JBoss EAP 8 or newer
 
 PowerAuth supports any JPA2 compatible database, and it is tested with:
 
 - Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
-
-Note that MSSQL database is not supported due to unreliable row locking.
+- MSSQL 2019 or newer
 
 When deploying the PowerAuth Server, please follow the specifics of your application server.
 

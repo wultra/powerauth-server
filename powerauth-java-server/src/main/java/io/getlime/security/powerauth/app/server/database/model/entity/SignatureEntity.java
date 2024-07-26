@@ -22,6 +22,8 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Activat
 import io.getlime.security.powerauth.app.server.database.model.converter.SignatureMetadataConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -35,407 +37,113 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_signature_audit")
+@Getter @Setter
 public class SignatureEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1930424474990335368L;
 
+    /**
+     * Record ID.
+     */
     @Id
     @SequenceGenerator(name = "pa_signature_audit", sequenceName = "pa_signature_audit_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_signature_audit")
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Related activation.
+     */
     @ManyToOne
     @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
+    /**
+     * Activation counter value.
+     */
     @Column(name = "activation_counter", nullable = false)
     private Long activationCounter;
 
+    /**
+     * Base64 encoded activation counter data.
+     */
     @Column(name = "activation_ctr_data")
     private String activationCtrDataBase64;
 
+    /**
+     * Activation status.
+     */
     @Column(name = "activation_status")
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
+    /**
+     * Additional information related to this signature.
+     */
     @Column(name = "additional_info")
     private String additionalInfo;
 
+    /**
+     * Base64 encoded data that entered the signature.
+     */
     @Column(name = "data_base64", updatable = false)
     private String dataBase64;
 
+    /**
+     * Requested signature version.
+     */
     @Column(name = "signature_version", updatable = false)
     private String signatureVersion;
 
+    /**
+     * Signature type.
+     */
     @Column(name = "signature_type", nullable = false, updatable = false)
     private String signatureType;
 
+    /**
+     * Signature.
+     */
     @Column(name = "signature", nullable = false, updatable = false)
     private String signature;
 
+    /**
+     * Signature metadata associated with this signature.
+     */
     @Column(name = "signature_metadata")
     @Convert(converter = SignatureMetadataConverter.class)
     private SignatureMetadata signatureMetadata;
 
+    /**
+     * Signature data body.
+     */
     @Column(name = "signature_data_body", updatable = false)
     private String signatureDataBody;
 
+    /**
+     * Signature audit record note.
+     */
     @Column(name = "note", updatable = false)
     private String note;
 
+    /**
+     * Whether the signature was valid or not.
+     */
     @Column(name = "valid", nullable = false, updatable = false)
     private Boolean valid;
 
+    /**
+     * Signature version.
+     */
     @Column(name = "version", nullable = false)
     private Integer version;
 
+    /**
+     * Created timestamp.
+     */
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
-
-    /**
-     * No-arg constructor.
-     */
-    public SignatureEntity() {
-    }
-
-    /**
-     * Constructor with all properties.
-     *
-     * @param id                      Signature audit item record ID.
-     * @param activation              Associated activation, or null if no related activation was found.
-     * @param activationCounter       Activation counter at the time of signature computation attempt, or 0 if activation is null.
-     * @param activationCtrDataBase64 Activation counter data at the time of signature computation attempt, or null if only numeric counter is used.
-     * @param activationStatus        Activation status at the time of signature computation attempt.
-     * @param dataBase64              Data that were sent alongside the signature.
-     * @param signatureVersion        Requested signature version.
-     * @param signatureType           Requested signature type.
-     * @param signature               Signature value.
-     * @param signatureMetadata       Metadata related to the signature.
-     * @param signatureDataBody       Signature data body.
-     * @param additionalInfo          Additional information related to this signature.
-     * @param note                    Signature audit log note, with more information about the log reason.
-     * @param valid                   True if the signature was valid, false otherwise.
-     * @param timestampCreated        Created timestamp.
-     * @param version                 Version of the signature entity.
-     */
-    public SignatureEntity(
-            Long id,
-            ActivationRecordEntity activation,
-            Long activationCounter,
-            String activationCtrDataBase64,
-            ActivationStatus activationStatus,
-            String dataBase64,
-            String signatureVersion,
-            String signatureType,
-            String signature,
-            SignatureMetadata signatureMetadata,
-            String signatureDataBody,
-            String additionalInfo,
-            String note,
-            Boolean valid,
-            Date timestampCreated,
-            Integer version) {
-        this.id = id;
-        this.activation = activation;
-        this.activationCounter = activationCounter;
-        this.activationCtrDataBase64 = activationCtrDataBase64;
-        this.activationStatus = activationStatus;
-        this.dataBase64 = dataBase64;
-        this.signatureVersion = signatureVersion;
-        this.signatureType = signatureType;
-        this.signature = signature;
-        this.signatureMetadata = signatureMetadata;
-        this.signatureDataBody = signatureDataBody;
-        this.additionalInfo = additionalInfo;
-        this.note = note;
-        this.valid = valid;
-        this.version = version;
-        this.timestampCreated = timestampCreated;
-    }
-
-    /**
-     * Get record ID.
-     *
-     * @return Record ID.
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set record ID.
-     *
-     * @param id Record ID.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Get related activation.
-     *
-     * @return Related activation.
-     */
-    public ActivationRecordEntity getActivation() {
-        return activation;
-    }
-
-    /**
-     * Set related activation.
-     *
-     * @param activation Related activation.
-     */
-    public void setActivation(ActivationRecordEntity activation) {
-        this.activation = activation;
-    }
-
-    /**
-     * Get activation counter value.
-     *
-     * @return Activation counter value.
-     */
-    public Long getActivationCounter() {
-        return activationCounter;
-    }
-
-    /**
-     * Set activation counter value.
-     *
-     * @param activationCounter Activation counter value.
-     */
-    public void setActivationCounter(Long activationCounter) {
-        this.activationCounter = activationCounter;
-    }
-
-    /**
-     * Get Base64 encoded activation counter data.
-     * @return Activation counter data.
-     */
-    public String getActivationCtrDataBase64() {
-        return activationCtrDataBase64;
-    }
-
-    /**
-     * Set Base64 encoded activation counter data.
-     * @param activationCtrDataBase64 Activation counter data.
-     */
-    public void setActivationCtrDataBase64(String activationCtrDataBase64) {
-        this.activationCtrDataBase64 = activationCtrDataBase64;
-    }
-
-    /**
-     * Get activation status.
-     *
-     * @return Activation status.
-     */
-    public ActivationStatus getActivationStatus() {
-        return activationStatus;
-    }
-
-    /**
-     * Set activation status.
-     *
-     * @param activationStatus Activation status.
-     */
-    public void setActivationStatus(ActivationStatus activationStatus) {
-        this.activationStatus = activationStatus;
-    }
-
-    /**
-     * Get Base64 encoded data that entered the signature.
-     *
-     * @return Base64 encoded data that entered the signature.
-     */
-    public String getDataBase64() {
-        return dataBase64;
-    }
-
-    /**
-     * Set Base64 encoded data that entered the signature.
-     *
-     * @param dataBase64 Base64 encoded data that entered the signature.
-     */
-    public void setDataBase64(String dataBase64) {
-        this.dataBase64 = dataBase64;
-    }
-
-    /**
-     * Get signature audit record note.
-     *
-     * @return Signature audit record note.
-     */
-    public String getNote() {
-        return note;
-    }
-
-    /**
-     * Set signature audit record note.
-     *
-     * @param note Signature audit record note.
-     */
-    public void setNote(String note) {
-        this.note = note;
-    }
-
-    /**
-     * Get requested signature version.
-     *
-     * @return Requested signature version.
-     */
-    public String getSignatureVersion() {
-        return this.signatureVersion;
-    }
-
-    /**
-     * Set requested signature version.
-     *
-     * @param signatureVersion Requested signature version.
-     */
-    public void setSignatureVersion(String signatureVersion) {
-        this.signatureVersion = signatureVersion;
-    }
-
-    /**
-     * Get signature type.
-     *
-     * @return Signature type.
-     */
-    public String getSignatureType() {
-        return signatureType;
-    }
-
-    /**
-     * Set signature type.
-     *
-     * @param signatureType Signature type.
-     */
-    public void setSignatureType(String signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    /**
-     * Get signature.
-     *
-     * @return Signature.
-     */
-    public String getSignature() {
-        return signature;
-    }
-
-    /**
-     * Set signature.
-     *
-     * @param signature Signature.
-     */
-    public void setSignature(String signature) {
-        this.signature = signature;
-    }
-
-    /**
-     * Get the signature metadata associated with this signature.
-     *
-     * @return Signature metadata.
-     */
-    public SignatureMetadata getSignatureMetadata() {
-        return signatureMetadata;
-    }
-
-    /**
-     * Set the signature metadata associated with this signature.
-     *
-     * @param signatureMetadata Metadata related to the signature.
-     */
-    public void setSignatureMetadata(SignatureMetadata signatureMetadata) {
-        this.signatureMetadata = signatureMetadata;
-    }
-
-    /**
-     * Get signature data body.
-     *
-     * @return Signature data body.
-     */
-    public String getSignatureDataBody() {
-        return signatureDataBody;
-    }
-
-    /**
-     * Set signature data body.
-     *
-     * @param signatureDataBody Signature data body.
-     */
-    public void setSignatureDataBody(String signatureDataBody) {
-        this.signatureDataBody = signatureDataBody;
-    }
-
-    /**
-     * Get additional information related to this signature.
-     * @return Additional information.
-     */
-    public String getAdditionalInfo() {
-        return additionalInfo;
-    }
-
-    /**
-     * Set additional information related to this signature.
-     * @param additionalInfo Additional information.
-     */
-    public void setAdditionalInfo(String additionalInfo) {
-        this.additionalInfo = additionalInfo;
-    }
-
-    /**
-     * Get if the signature was valid or not.
-     *
-     * @return Signature evaluation result.
-     */
-    public Boolean getValid() {
-        return valid;
-    }
-
-    /**
-     * Set value based on if the signature was valid or not.
-     *
-     * @param valid Signature evaluation result.
-     */
-    public void setValid(Boolean valid) {
-        this.valid = valid;
-    }
-
-    /**
-     * Get signature version.
-     * @return Signature version.
-     */
-    public Integer getVersion() {
-        return version;
-    }
-
-    /**
-     * Set signature version.
-     * @param version Signature version.
-     */
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    /**
-     * Get created timestamp.
-     *
-     * @return Created timestamp.
-     */
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    /**
-     * Set created timestamp.
-     *
-     * @param timestampCreated Created timestamp.
-     */
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
 
     @Override
     public int hashCode() {

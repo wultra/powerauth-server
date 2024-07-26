@@ -18,8 +18,9 @@
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
-
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -32,217 +33,70 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_recovery_config")
+@Getter @Setter
 public class RecoveryConfigEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -6333795855186594869L;
 
+    /**
+     * Master key pair ID
+     */
     @Id
     @SequenceGenerator(name = "pa_recovery_config", sequenceName = "pa_recovery_config_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_config")
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Whether activation recovery is enabled.
+     */
     @Column(name = "activation_recovery_enabled", nullable = false)
     private boolean activationRecoveryEnabled;
 
+    /**
+     * Whether recovery postcard is enabled.
+     */
     @Column(name = "recovery_postcard_enabled", nullable = false)
     private Boolean recoveryPostcardEnabled;
 
+    /**
+     * Whether multiple recovery codes per user are allowed.
+     */
     @Column(name = "allow_multiple_recovery_codes", nullable = false)
     private Boolean allowMultipleRecoveryCodes;
 
+    /**
+     * Base64 encoded local recovery postcard private key.
+     */
     @Column(name = "postcard_private_key_base64")
     private String recoveryPostcardPrivateKeyBase64;
 
+    /**
+     * Base64 encoded local recovery postcard public key.
+     */
     @Column(name = "postcard_public_key_base64")
     private String recoveryPostcardPublicKeyBase64;
 
+    /**
+     * Base64 encoded remote recovery postcard public key.
+     */
     @Column(name = "remote_public_key_base64")
     private String remotePostcardPublicKeyBase64;
 
+    /**
+     * Recovery postcard private key encryption mode.
+     */
     @Column(name = "postcard_priv_key_encryption", nullable = false)
     @Enumerated
     private EncryptionMode privateKeyEncryption;
 
+    /**
+     * Associated application.
+     */
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
-
-    /**
-     * No-arg constructor
-     */
-    public RecoveryConfigEntity() {
-    }
-
-    /**
-     * Constructor with all details.
-     * @param id Recovery config ID.
-     * @param activationRecoveryEnabled Whether activation recovery is enabled.
-     * @param recoveryPostcardEnabled Whether recovery postcard is enabled.
-     * @param allowMultipleRecoveryCodes Whether multiple recovery codes per user are allowed.
-     * @param recoveryPostcardPrivateKeyBase64 Base64 encoded local recovery postcard private key.
-     * @param recoveryPostcardPublicKeyBase64 Base64 encoded local recovery postcard public key.
-     * @param remotePostcardPublicKeyBase64 Base64 encoded remote recovery postcard public key.
-     */
-    public RecoveryConfigEntity(Long id, boolean activationRecoveryEnabled, Boolean recoveryPostcardEnabled, Boolean allowMultipleRecoveryCodes, String recoveryPostcardPrivateKeyBase64, String recoveryPostcardPublicKeyBase64, String remotePostcardPublicKeyBase64, EncryptionMode recoveryPrivateKeyEncryptionBase64) {
-        this.id = id;
-        this.activationRecoveryEnabled = activationRecoveryEnabled;
-        this.recoveryPostcardEnabled = recoveryPostcardEnabled;
-        this.allowMultipleRecoveryCodes = allowMultipleRecoveryCodes;
-        this.recoveryPostcardPrivateKeyBase64 = recoveryPostcardPrivateKeyBase64;
-        this.recoveryPostcardPublicKeyBase64 = recoveryPostcardPublicKeyBase64;
-        this.remotePostcardPublicKeyBase64 = remotePostcardPublicKeyBase64;
-        this.privateKeyEncryption = recoveryPrivateKeyEncryptionBase64;
-    }
-
-    /**
-     * Get master key pair ID
-     *
-     * @return Master key pair ID
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set master key pair ID
-     *
-     * @param id Master key pair ID
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Return whether activation recovery is enabled.
-     * @return Whether activation recovery is enabled.
-     */
-    public boolean isActivationRecoveryEnabled() {
-        return activationRecoveryEnabled;
-    }
-
-    /**
-     * Set whether activation recovery is enabled.
-     * @param activationRecoveryEnabled Whether activation recovery is enabled.
-     */
-    public void setActivationRecoveryEnabled(Boolean activationRecoveryEnabled) {
-        this.activationRecoveryEnabled = activationRecoveryEnabled;
-    }
-
-    /**
-     * Get whether recovery postcard is enabled.
-     * @return Whether recovery postcard is enabled.
-     */
-    public Boolean getRecoveryPostcardEnabled() {
-        return recoveryPostcardEnabled;
-    }
-
-    /**
-     * Set whether recovery postcard is enabled.
-     * @param recoveryPostcardEnabled Whether recovery postcard is enabled.
-     */
-    public void setRecoveryPostcardEnabled(Boolean recoveryPostcardEnabled) {
-        this.recoveryPostcardEnabled = recoveryPostcardEnabled;
-    }
-
-    /**
-     * Get whether multiple recovery codes per user are allowed.
-     * @return Whether multiple recovery codes per user are allowed.
-     */
-    public Boolean getAllowMultipleRecoveryCodes() {
-        return allowMultipleRecoveryCodes;
-    }
-
-    /**
-     * Set whether multiple recovery codes per user are allowed.
-     * @param allowMultipleRecoveryCodes Whether multiple recovery codes per user are allowed.
-     */
-    public void setAllowMultipleRecoveryCodes(Boolean allowMultipleRecoveryCodes) {
-        this.allowMultipleRecoveryCodes = allowMultipleRecoveryCodes;
-    }
-
-    /**
-     * Get Base64 encoded local recovery postcard private key.
-     * @return Base64 encoded local recovery postcard private key.
-     */
-    public String getRecoveryPostcardPrivateKeyBase64() {
-        return recoveryPostcardPrivateKeyBase64;
-    }
-
-    /**
-     * Set Base64 encoded local recovery postcard private key.
-     * @param recoveryPostcardPrivateKeyBase64 Base64 encoded local recovery postcard private key.
-     */
-    public void setRecoveryPostcardPrivateKeyBase64(String recoveryPostcardPrivateKeyBase64) {
-        this.recoveryPostcardPrivateKeyBase64 = recoveryPostcardPrivateKeyBase64;
-    }
-
-    /**
-     * Get Base64 encoded local recovery postcard public key.
-     * @return Base64 encoded local recovery postcard public key.
-     */
-    public String getRecoveryPostcardPublicKeyBase64() {
-        return recoveryPostcardPublicKeyBase64;
-    }
-
-    /**
-     * Set Base64 encoded local recovery postcard public key.
-     * @param recoveryPostcardPublicKeyBase64 Base64 encoded local recovery postcard public key.
-     */
-    public void setRecoveryPostcardPublicKeyBase64(String recoveryPostcardPublicKeyBase64) {
-        this.recoveryPostcardPublicKeyBase64 = recoveryPostcardPublicKeyBase64;
-    }
-
-    /**
-     *  Get Base64 encoded remote recovery postcard public key.
-     * @return Base64 encoded remote recovery postcard public key.
-     */
-    public String getRemotePostcardPublicKeyBase64() {
-        return remotePostcardPublicKeyBase64;
-    }
-
-    /**
-     * Set Base64 encoded remote recovery postcard public key.
-     * @param remotePostcardPublicKeyBase64 Base64 encoded remote recovery postcard public key.
-     */
-    public void setRemotePostcardPublicKeyBase64(String remotePostcardPublicKeyBase64) {
-        this.remotePostcardPublicKeyBase64 = remotePostcardPublicKeyBase64;
-    }
-
-    /**
-     * Get recovery postcard private key encryption mode.
-     * @return Recovery postcard private key encryption mode.
-     */
-    public EncryptionMode getPrivateKeyEncryption() {
-        return privateKeyEncryption;
-    }
-
-    /**
-     * Set recovery postcard private key encryption mode.
-     * @param privateKeyEncryptionBase64 Recovery postcard private key encryption mode.
-     */
-    public void setPrivateKeyEncryption(EncryptionMode privateKeyEncryptionBase64) {
-        this.privateKeyEncryption = privateKeyEncryptionBase64;
-    }
-
-    /**
-     * Get associated application.
-     *
-     * @return Associated application
-     */
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    /**
-     * Set associated application.
-     *
-     * @param application Associated application
-     */
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
 
     @Override
     public int hashCode() {

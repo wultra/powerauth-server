@@ -79,8 +79,11 @@ public class PowerAuthRestClient implements PowerAuthClient {
      */
     public PowerAuthRestClient(String baseUrl, PowerAuthRestClientConfiguration config) throws PowerAuthClientException {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
-                .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
+                .acceptInvalidCertificate(config.isAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
+                .responseTimeout(config.getResponseTimeout())
+                .maxIdleTime(config.getMaxIdleTime())
+                .maxLifeTime(config.getMaxLifeTime())
                 .maxInMemorySize(config.getMaxMemorySize());
         if (config.isProxyEnabled()) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(config.getProxyHost()).port(config.getProxyPort());
@@ -478,7 +481,7 @@ public class PowerAuthRestClient implements PowerAuthClient {
     }
 
     @Override
-    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Long forcedSignatureVersion) throws PowerAuthClientException {
+    public VerifySignatureResponse verifySignature(String activationId, String applicationKey, String data, String signature, SignatureType signatureType, String signatureVersion, Integer forcedSignatureVersion) throws PowerAuthClientException {
         final VerifySignatureRequest request = new VerifySignatureRequest();
         request.setActivationId(activationId);
         request.setApplicationKey(applicationKey);

@@ -22,8 +22,9 @@ import com.wultra.core.audit.base.model.AuditDetail;
 import com.wultra.core.audit.base.model.AuditLevel;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.converter.AssertionChallengeConverter;
-import com.wultra.powerauth.fido2.rest.model.entity.*;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
+import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
+import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
 import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
 import com.wultra.powerauth.fido2.service.provider.AssertionProvider;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
@@ -32,20 +33,27 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.enumeration.UserActionResult;
 import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
 import com.wultra.security.powerauth.client.model.request.OperationFailApprovalRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationHistoryServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.AuditingServiceBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.CallbackUrlBehavior;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.model.signature.SignatureData;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
+
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,6 +65,7 @@ import java.util.*;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@AllArgsConstructor
 @Slf4j
 public class PowerAuthAssertionProvider implements AssertionProvider {
 
@@ -69,20 +78,16 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
     private static final String ATTR_ORIGIN = "origin";
     private static final String ATTR_TOP_ORIGIN = "topOrigin";
 
-    private final ServiceBehaviorCatalogue serviceBehaviorCatalogue;
     private final RepositoryCatalogue repositoryCatalogue;
     private final AuditingServiceBehavior audit;
+    private final OperationServiceBehavior operations;
+    private final CallbackUrlBehavior callbacks;
+    private final ActivationHistoryServiceBehavior activationHistory;
     private final PowerAuthAuthenticatorProvider authenticatorProvider;
     private final Fido2AuthenticatorService fido2AuthenticatorService;
-
-    @Autowired
-    public PowerAuthAssertionProvider(ServiceBehaviorCatalogue serviceBehaviorCatalogue, RepositoryCatalogue repositoryCatalogue, AuditingServiceBehavior audit, PowerAuthAuthenticatorProvider authenticatorProvider, Fido2AuthenticatorService fido2AuthenticatorService) {
-        this.serviceBehaviorCatalogue = serviceBehaviorCatalogue;
-        this.repositoryCatalogue = repositoryCatalogue;
-        this.audit = audit;
-        this.authenticatorProvider = authenticatorProvider;
-        this.fido2AuthenticatorService = fido2AuthenticatorService;
-    }
+    private final AssertionChallengeConverter assertionChallengeConverter;
+    private final ActivationQueryService activationQueryService;
+    private final OperationServiceBehavior operationServiceBehavior;
 
     @Override
     @Transactional
@@ -99,9 +104,23 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             }
         }
 
-        final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
-        final OperationDetailResponse operationDetailResponse = serviceBehaviorCatalogue.getOperationBehavior().createOperation(operationCreateRequest);
-        return AssertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
+        final OperationDetailResponse operationDetailResponse = loadOrCreateOperation(request, authenticatorDetails);
+        return assertionChallengeConverter.convertAssertionChallengeFromOperationDetail(operationDetailResponse, authenticatorDetails);
+    }
+
+    private OperationDetailResponse loadOrCreateOperation(final AssertionChallengeRequest request, final List<AuthenticatorDetail> authenticatorDetails) throws GenericServiceException {
+        final String operationId = request.getOperationId();
+
+        if (operationId == null) {
+            logger.debug("Operation ID is null, creating a new operation.");
+            final OperationCreateRequest operationCreateRequest = AssertionChallengeConverter.convertAssertionRequestToOperationRequest(request, authenticatorDetails);
+            return operations.createOperation(operationCreateRequest);
+        } else {
+            logger.debug("Using the existing operation ID: {}", operationId);
+            final OperationDetailRequest operationRequest = new OperationDetailRequest();
+            operationRequest.setOperationId(request.getOperationId());
+            return operationServiceBehavior.operationDetail(operationRequest);
+        }
     }
 
     @Override
@@ -123,7 +142,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationApproveRequest.setUserId(authenticatorDetail.getUserId());
             operationApproveRequest.setSignatureType(supportedSignatureType(authenticatorDetail, authenticatorData.getFlags().isUserVerified()));
             operationApproveRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
-            final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().attemptApproveOperation(operationApproveRequest, (operationEntity, request) -> {
+            final OperationUserActionResponse approveOperation = operations.attemptApproveOperation(operationApproveRequest, (operationEntity, request) -> {
                 @SuppressWarnings("unchecked")
                 final List<String> allowCredentials = (List<String>) operationEntity.getAdditionalData().get(ATTR_ALLOW_CREDENTIALS);
                 final String credentialId = (String) request.getAdditionalData().get(ATTR_CREDENTIAL_ID);
@@ -162,11 +181,14 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             operationFailApprovalRequest.setOperationId(operationId);
             operationFailApprovalRequest.getAdditionalData().putAll(prepareAdditionalData(authenticatorDetail, authenticatorData, clientDataJSON));
 
-            final ActivationRecordEntity activationWithLock = repositoryCatalogue.getActivationRepository().findActivationWithLock(authenticatorDetail.getActivationId());
+            final ActivationRecordEntity activation = activationQueryService.findActivationForUpdate(authenticatorDetail.getActivationId()).orElseThrow(() -> {
+                logger.info("Activation not found, activation ID: {}", authenticatorDetail.getActivationId());
+                return new Fido2AuthenticationFailedException("Activation with ID: %s not found".formatted(authenticatorDetail.getActivationId()));
+            });
 
-            handleInvalidSignatureImpl(activationWithLock, new SignatureData(), currentTimestamp);
+            handleInvalidSignatureImpl(activation, new SignatureData(), currentTimestamp);
 
-            final OperationUserActionResponse approveOperation = serviceBehaviorCatalogue.getOperationBehavior().failApprovalOperation(operationFailApprovalRequest);
+            final OperationUserActionResponse approveOperation = operations.failApprovalOperation(operationFailApprovalRequest);
             final OperationDetailResponse operation = approveOperation.getOperation();
             auditAssertionResult(authenticatorDetail, approveOperation.getResult());
             handleStatus(operation.getStatus());
@@ -221,7 +243,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             activation.setActivationStatus(ActivationStatus.BLOCKED);
             activation.setBlockedReason(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
             // Save the activation and log change
-            serviceBehaviorCatalogue.getActivationHistoryServiceBehavior().saveActivationAndLogChange(activation);
+            activationHistory.saveActivationAndLogChange(activation);
             final KeyValue entry = new KeyValue();
             entry.setKey(AdditionalInformation.Key.BLOCKED_REASON);
             entry.setValue(AdditionalInformation.Reason.BLOCKED_REASON_MAX_FAILED_ATTEMPTS);
@@ -230,15 +252,15 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             notifyCallbackListeners = true;
         } else {
             // Save the activation
-            activationRepository.save(activation);
+            activationRepository.saveAndFlush(activation);
         }
 
         // Create the audit log record.
-        serviceBehaviorCatalogue.getAuditingServiceBehavior().logSignatureAuditRecord(activationDto, signatureData, SignatureType.POSSESSION_KNOWLEDGE,false, null, "signature_does_not_match", currentTimestamp);
+        audit.logSignatureAuditRecord(activationDto, signatureData, SignatureType.POSSESSION_KNOWLEDGE,false, null, "signature_does_not_match", currentTimestamp);
 
         // Notify callback listeners, if needed
         if (notifyCallbackListeners) {
-            serviceBehaviorCatalogue.getCallbackUrlBehavior().notifyCallbackListenersOnActivationChange(activation);
+            callbacks.notifyCallbackListenersOnActivationChange(activation);
         }
     }
 

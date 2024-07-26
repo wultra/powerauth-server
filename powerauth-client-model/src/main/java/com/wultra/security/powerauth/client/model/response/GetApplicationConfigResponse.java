@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.client.model.response;
 
 import com.wultra.security.powerauth.client.model.entity.ApplicationConfigurationItem;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,7 @@ import java.util.List;
 public class GetApplicationConfigResponse {
 
     private String applicationId;
+    @ToString.Exclude
     private List<ApplicationConfigurationItem> applicationConfigs = new ArrayList<>();
 
 }

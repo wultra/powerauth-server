@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.util.ProxyUtils;
 
@@ -35,171 +37,62 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_activation_history")
-@ToString
+@Getter @Setter @ToString
 public class ActivationHistoryEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -8232192926562045920L;
 
+    /**
+     * Record ID.
+     */
     @Id
     @SequenceGenerator(name = "pa_activation_history", sequenceName = "pa_activation_history_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_activation_history")
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Related activation.
+     */
     @ManyToOne
     @JoinColumn(name = "activation_id", referencedColumnName = "activation_id", updatable = false)
     private ActivationRecordEntity activation;
 
+    /**
+     * Activation status.
+     */
     @Column(name = "activation_status")
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
+    /**
+     * Reason why activation history record was created.
+     */
     @Column(name = "event_reason")
     private String eventReason;
 
+    /**
+     * User ID of user who caused last activation change. {@code null} value is returned if activation owner caused the change.
+     */
     @Column(name = "external_user_id")
     private String externalUserId;
 
+    /**
+     * Created timestamp.
+     */
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
     /**
-     * Current {@link ActivationRecordEntity#getVersion()} specified whenever an activation history event is audited.
+     * Current {@link ActivationRecordEntity#version} specified whenever an activation history event is audited.
+     * PowerAuth protocol major version for activation.
      */
     @Column(name = "activation_version")
     private Integer activationVersion;
 
     @Column(name = "activation_name")
     private String activationName;
-
-    /**
-     * Get record ID.
-     *
-     * @return Record ID.
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set record ID.
-     *
-     * @param id Record ID.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Get related activation.
-     *
-     * @return Related activation.
-     */
-    public ActivationRecordEntity getActivation() {
-        return activation;
-    }
-
-    /**
-     * Set related activation.
-     *
-     * @param activation Related activation.
-     */
-    public void setActivation(ActivationRecordEntity activation) {
-        this.activation = activation;
-    }
-
-    /**
-     * Get activation status.
-     *
-     * @return Activation status.
-     */
-    public ActivationStatus getActivationStatus() {
-        return activationStatus;
-    }
-
-    /**
-     * Set activation status.
-     *
-     * @param activationStatus Activation status.
-     */
-    public void setActivationStatus(ActivationStatus activationStatus) {
-        this.activationStatus = activationStatus;
-    }
-
-    /**
-     * Get reason why activation history record was created.
-     * @return Reason why activation history record was created.
-     */
-    public String getEventReason() {
-        return eventReason;
-    }
-
-    /**
-     * Set reason why activation history record was created.
-     * @param eventReason Reason why activation history record was created.
-     */
-    public void setEventReason(String eventReason) {
-        this.eventReason = eventReason;
-    }
-
-    /**
-     * Get user ID of user who caused last activation change. Null value is returned if activation owner caused the change.
-     * @return User ID of user who caused last activation change.
-     */
-    public String getExternalUserId() {
-        return externalUserId;
-    }
-
-    /**
-     * Set user ID of user who caused last activation change. Null value is returned if activation owner caused the change.
-     * @param externalUserId User ID of user who caused last activation change.
-     */
-    public void setExternalUserId(String externalUserId) {
-        this.externalUserId = externalUserId;
-    }
-
-    /**
-     * Get created timestamp.
-     *
-     * @return Created timestamp.
-     */
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    /**
-     * Set created timestamp.
-     *
-     * @param timestampCreated Created timestamp.
-     */
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
-
-    /**
-     * Get PowerAuth protocol major version for activation.
-     * @return PowerAuth protocol major version.
-     */
-    public Integer getActivationVersion() {
-        return activationVersion;
-    }
-
-    /**
-     * Set PowerAuth protocol major version for activation.
-     * @param version PowerAuth protocol major version.
-     */
-    public void setActivationVersion(Integer version) {
-        this.activationVersion = version;
-    }
-
-    public String getActivationName() {
-        return activationName;
-    }
-
-    public void setActivationName(final String activationName) {
-        this.activationName = activationName;
-    }
 
     @Override
     public boolean equals(final Object o) {

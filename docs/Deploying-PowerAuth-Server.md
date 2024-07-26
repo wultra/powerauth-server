@@ -8,8 +8,7 @@ Following databases are supported:
 
 - Oracle Database 11g, 12c, 19c, or 21c or
 - PostgreSQL 9.5.4 or newer, or
-
-Note that MSSQL database is not supported.
+- MSSQL 2019 or newer
 
 ## Downloading PowerAuth Server WAR
 
@@ -232,6 +231,25 @@ spring.datasource.password=
 spring.jpa.database-platform=
 spring.jpa.hibernate.ddl-auto=none
 spring.datasource.jndi-name=java:/jdbc/powerauth
+```
+
+### Deploying on MSSQL Database
+
+<!-- begin box warning -->
+The MSSQL database must run in SNAPSHOT transaction isolation mode for PowerAuth server. In case of a different transactions mode, database deadlocks can occur frequently.
+<!-- end -->
+
+You can enable the mode using following query:
+
+```sql
+ALTER DATABASE [powerauth_database] SET ALLOW_SNAPSHOT_ISOLATION ON;
+ALTER DATABASE [powerauth_database] SET READ_COMMITTED_SNAPSHOT ON;
+```
+
+The SNAPSHOT transaction isolation level is enforced automatically on application startup using following query:
+
+```sql
+SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
 ```
 
 ### Deploying On JBoss / Wildfly

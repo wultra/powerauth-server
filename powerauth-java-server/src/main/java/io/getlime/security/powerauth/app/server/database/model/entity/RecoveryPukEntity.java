@@ -21,6 +21,8 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Recover
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryPukStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -34,181 +36,59 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_recovery_puk")
+@Getter @Setter
 public class RecoveryPukEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1836238476585497799L;
 
+    /**
+     * Recovery PUK entity ID.
+     */
     @Id
     @SequenceGenerator(name = "pa_recovery_puk", sequenceName = "pa_recovery_puk_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_puk")
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Recovery code for which this PUK is defined.
+     */
     @ManyToOne
     @JoinColumn(name = "recovery_code_id", referencedColumnName = "id", nullable = false, updatable = false)
     private RecoveryCodeEntity recoveryCode;
 
+    /**
+     * PUK value.
+     */
     @Column(name = "puk", nullable = false)
     private String puk;
 
+    /**
+     * PUK encryption mode.
+     */
     @Column(name = "puk_encryption", nullable = false)
     @Enumerated
     private EncryptionMode pukEncryption;
 
+    /**
+     * PUK index.
+     */
     @Column(name = "puk_index", nullable = false, updatable = false)
     private Long pukIndex;
 
+    /**
+     * PUK status.
+     */
     @Column(name = "status", nullable = false)
     @Convert(converter = RecoveryPukStatusConverter.class)
     private RecoveryPukStatus status;
 
+    /**
+     * Timestamp of last status change.
+     */
     @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
-
-    /**
-     * No-arg constructor.
-     */
-    public RecoveryPukEntity() {
-    }
-
-    /**
-     * Constructor with all parameters.
-     *
-     * @param id Recovery PUK ID.
-     * @param recoveryCode Recovery code.
-     * @param puk PUK value.
-     * @param pukIndex PUK index.
-     * @param status PUK status.
-     * @param timestampLastChange Last change timestamp.
-     */
-    public RecoveryPukEntity(Long id,
-                             RecoveryCodeEntity recoveryCode,
-                             String puk,
-                             EncryptionMode pukEncryption,
-                             Long pukIndex,
-                             RecoveryPukStatus status,
-                             Date timestampLastChange) {
-        this.id = id;
-        this.recoveryCode = recoveryCode;
-        this.puk = puk;
-        this.pukEncryption = pukEncryption;
-        this.pukIndex = pukIndex;
-        this.status = status;
-        this.timestampLastChange = timestampLastChange;
-    }
-
-    /**
-     * Get recovery PUK entity ID.
-     * @return Recovery PUK entity ID.
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set recovery PUK entity ID.
-     * @param id Recoverz PUK entity ID.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Get recovery code for which this PUK is defined.
-     * @return Recovery code.
-     */
-    public RecoveryCodeEntity getRecoveryCode() {
-        return recoveryCode;
-    }
-
-    /**
-     * Set recovery code for which this PUK is defined.
-     * @param recoveryCode Recovery code.
-     */
-    public void setRecoveryCode(RecoveryCodeEntity recoveryCode) {
-        this.recoveryCode = recoveryCode;
-    }
-
-    /**
-     * Get PUK value.
-     * @return PUK value.
-     */
-    public String getPuk() {
-        return puk;
-    }
-
-    /**
-     * Set PUK value.
-     * @param puk PUK value.
-     */
-    public void setPuk(String puk) {
-        this.puk = puk;
-    }
-
-    /**
-     * Get PUK encryption mode.
-     * @return PUK encryption mode.
-     */
-    public EncryptionMode getPukEncryption() {
-        return pukEncryption;
-    }
-
-    /**
-     * Set PUK encryption mode.
-     * @param pukEncryption PUK encryption mode.
-     */
-    public void setPukEncryption(EncryptionMode pukEncryption) {
-        this.pukEncryption = pukEncryption;
-    }
-
-    /**
-     * Get PUK index.
-     * @return PUK index.
-     */
-    public Long getPukIndex() {
-        return pukIndex;
-    }
-
-    /**
-     * Set PUK index.
-     * @param pukIndex PUK index.
-     */
-    public void setPukIndex(Long pukIndex) {
-        this.pukIndex = pukIndex;
-    }
-
-    /**
-     * Get PUK status.
-     * @return PUK status.
-     */
-    public RecoveryPukStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * Set PUK status.
-     * @param status PUK status.
-     */
-    public void setStatus(RecoveryPukStatus status) {
-        this.status = status;
-    }
-
-    /**
-     * Get timestamp of last status change.
-     * @return Timestamp of last status change.
-     */
-    public Date getTimestampLastChange() {
-        return timestampLastChange;
-    }
-
-    /**
-     * Set timestamp of last status change.
-     * @param timestampLastChange Timestamp of last status change.
-     */
-    public void setTimestampLastChange(Date timestampLastChange) {
-        this.timestampLastChange = timestampLastChange;
-    }
 
     @Override
     public int hashCode() {

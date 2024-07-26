@@ -24,6 +24,8 @@ import io.getlime.security.powerauth.app.server.database.model.converter.Signatu
 import io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -36,18 +38,28 @@ import java.util.*;
  */
 @Entity
 @Table(name = "pa_operation")
+@Getter @Setter
 public class OperationEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = -5284589668386509303L;
 
+    /**
+     * Operation ID.
+     */
     @Id
     @Column(name = "id", updatable = false, length = 37)
     private String id;
 
+    /**
+     * User ID.
+     */
     @Column(name = "user_id")
     private String userId;
 
+    /**
+     * Applications.
+     */
     @ManyToMany
     @JoinTable(
             name = "pa_operation_application",
@@ -56,52 +68,104 @@ public class OperationEntity implements Serializable {
     )
     private List<ApplicationEntity> applications;
 
+    /**
+     * External ID.
+     */
     @Column(name = "external_id")
     private String externalId;
 
+    /**
+     * Activation flag required to be present.
+     */
     @Column(name = "activation_flag")
     private String activationFlag;
 
+    /**
+     * Operation type.
+     */
     @Column(name = "operation_type", nullable = false)
     private String operationType;
 
+    /**
+     * Template name used when creating this operation.
+     */
     @Column(name = "template_name", nullable = false)
     private String templateName;
 
+    /**
+     * Operation data.
+     */
     @Column(name = "data", nullable = false)
     private String data;
 
+    /**
+     * Operation parameters.
+     */
     @Column(name = "parameters")
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, String> parameters = new HashMap<>();
 
+    /**
+     * Operation additional data set on operation approval or reject.
+     */
     @Column(name = "additional_data")
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, Object> additionalData = new HashMap<>();
 
+    /**
+     * Operation status.
+     */
     @Column(name = "status", nullable = false)
     @Convert(converter = OperationStatusDoConverter.class)
     private OperationStatusDo status;
 
+    /**
+     * Optional details why the status has changed.
+     * The value should be sent in the form of a computer-readable code, not a free-form text.
+     */
+    @Column(name = "status_reason", length = 32)
+    private String statusReason;
+
+    /**
+     * Signature types.
+     */
     @Column(name = "signature_type", nullable = false)
     @Convert(converter = SignatureTypeConverter.class)
     private PowerAuthSignatureTypes[] signatureType;
 
+    /**
+     * Failure count.
+     */
     @Column(name = "failure_count", nullable = false)
     private Long failureCount;
 
+    /**
+     * Maximum allowed failure count.
+     */
     @Column(name = "max_failure_count", nullable = false)
     private Long maxFailureCount;
 
+    /**
+     * Timestamp created.
+     */
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
+    /**
+     * Timestamp when operation expired.
+     */
     @Column(name = "timestamp_expires", nullable = false)
     private Date timestampExpires;
 
+    /**
+     * Timestamp in which the operation was finalized (moved from PENDING state).
+     */
     @Column(name = "timestamp_finalized")
     private Date timestampFinalized;
 
+    /**
+     * The risk flags.
+     */
     @Column(name = "risk_flags")
     private String riskFlags;
 
@@ -116,332 +180,6 @@ public class OperationEntity implements Serializable {
      */
     @Column(name = "activation_id")
     private String activationId;
-
-    /**
-     * Get operation ID.
-     * @return Operation ID.
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * Set operation ID.
-     * @param id Operation ID.
-     */
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    /**
-     * Get user ID.
-     * @return User ID.
-     */
-    public String getUserId() {
-        return userId;
-    }
-
-    /**
-     * Set user ID.
-     * @param userId User ID.
-     */
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    /**
-     * Get application.
-     * @return Application.
-     */
-    public List<ApplicationEntity> getApplications() {
-        return applications;
-    }
-
-    /**
-     * Set application ID.
-     * @param applications Applications.
-     */
-    public void setApplications(List<ApplicationEntity> applications) {
-        this.applications = applications;
-    }
-
-    /**
-     * Get external ID.
-     * @return External ID.
-     */
-    public String getExternalId() {
-        return externalId;
-    }
-
-    /**
-     * Set external ID.
-     * @param externalId External ID.
-     */
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    /**
-     * Get activation flag required to be present.
-     * @return Activation flag.
-     */
-    public String getActivationFlag() {
-        return activationFlag;
-    }
-
-    /**
-     * Set activation flag required to be present.
-     * @param activationFlag Activation flag.
-     */
-    public void setActivationFlag(String activationFlag) {
-        this.activationFlag = activationFlag;
-    }
-
-    /**
-     * Get operation type.
-     * @return Operation type.
-     */
-    public String getOperationType() {
-        return operationType;
-    }
-
-    /**
-     * Set operation type.
-     * @param operationType Operation type.
-     */
-    public void setOperationType(String operationType) {
-        this.operationType = operationType;
-    }
-
-    /**
-     * Get template name used when creating this operation.
-     * @return Template name.
-     */
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    /**
-     * Set template name used when creating this operation.
-     * @param templateName Template name.
-     */
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    /**
-     * Get operation data.
-     * @return Operation data.
-     */
-    public String getData() {
-        return data;
-    }
-
-    /**
-     * Set operation data.
-     * @param data Operation data.
-     */
-    public void setData(String data) {
-        this.data = data;
-    }
-
-    /**
-     * Get operation parameters.
-     * @return Operation parameters.
-     */
-    public Map<String, String> getParameters() {
-        return parameters;
-    }
-
-    /**
-     * Set operation parameters.
-     * @param parameters Operation parameters.
-     */
-    public void setParameters(Map<String, String> parameters) {
-        this.parameters = parameters;
-    }
-
-    /**
-     * Get operation additional data set on operation approval or reject.
-     * @return Additional data.
-     */
-    public Map<String, Object> getAdditionalData() {
-        return additionalData;
-    }
-
-    /**
-     * Set operation additional data set on operation approval or reject.
-     * @param additionalData Additional data.
-     */
-    public void setAdditionalData(Map<String, Object> additionalData) {
-        this.additionalData = additionalData;
-    }
-
-    /**
-     * Get operation status.
-     * @return Operation status.
-     */
-    public OperationStatusDo getStatus() {
-        return status;
-    }
-
-    /**
-     * Set operation status.
-     * @param status Operation status.
-     */
-    public void setStatus(OperationStatusDo status) {
-        this.status = status;
-    }
-
-    /**
-     * Get signature type.
-     * @return Signature type.
-     */
-    public PowerAuthSignatureTypes[] getSignatureType() {
-        return signatureType;
-    }
-
-    /**
-     * Set signature type.
-     * @param signatureType Signature type.
-     */
-    public void setSignatureType(PowerAuthSignatureTypes[] signatureType) {
-        this.signatureType = signatureType;
-    }
-
-    /**
-     * Get failure count.
-     * @return Failure count.
-     */
-    public Long getFailureCount() {
-        return failureCount;
-    }
-
-    /**
-     * Set failure count.
-     * @param failureCount Failure count.
-     */
-    public void setFailureCount(Long failureCount) {
-        this.failureCount = failureCount;
-    }
-
-    /**
-     * Get maximum allowed failure count.
-     * @return Maximum allowed failure count.
-     */
-    public Long getMaxFailureCount() {
-        return maxFailureCount;
-    }
-
-    /**
-     * Set maximum allowed failure count.
-     * @param maxFailureCount Maximum allowed failure count.
-     */
-    public void setMaxFailureCount(Long maxFailureCount) {
-        this.maxFailureCount = maxFailureCount;
-    }
-
-    /**
-     * Get timestamp created.
-     * @return Timestamp created.
-     */
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    /**
-     * Set timestamp created.
-     * @param timestampCreated Timestamp created.
-     */
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
-
-    /**
-     * Get timestamp when operation expired.
-     * @return Timestamp when operation expires.
-     */
-    public Date getTimestampExpires() {
-        return timestampExpires;
-    }
-
-    /**
-     * Get timestamp when operation expired.
-     * @param timestampExpires Timestamp when operation expires.
-     */
-    public void setTimestampExpires(Date timestampExpires) {
-        this.timestampExpires = timestampExpires;
-    }
-
-    /**
-     * Get timestamp in which the operation was finalized (moved from PENDING state).
-     * @return Timestamp when operation was finalized.
-     */
-    public Date getTimestampFinalized() {
-        return timestampFinalized;
-    }
-
-    /**
-     * Set timestamp in which the operation was finalized (moved from PENDING state).
-     * @param timestampFinalized Timestamp when operation was finalized.
-     */
-    public void setTimestampFinalized(Date timestampFinalized) {
-        this.timestampFinalized = timestampFinalized;
-    }
-
-    /**
-     * Get risk flags.
-     *
-     * @return Risk flags.
-     */
-    public String getRiskFlags() {
-        return riskFlags;
-    }
-
-    /**
-     * Set risk flags.
-     *
-     * @param riskFlags Risk flags.
-     */
-    public void setRiskFlags(String riskFlags) {
-        this.riskFlags = riskFlags;
-    }
-
-    /**
-     * Get TOTP seed, base64 encoded.
-     *
-     * @return TOTP seed.
-     */
-    public String getTotpSeed() {
-        return totpSeed;
-    }
-
-    /**
-     * Set TOTP sees, base64 encoded.
-     *
-     * @param totpSeed TOTP seed.
-     */
-    public void setTotpSeed(String totpSeed) {
-        this.totpSeed = totpSeed;
-    }
-
-    /**
-     * Get the activation ID.
-     *
-     * @return Activation ID.
-     */
-    public String getActivationId() {
-        return activationId;
-    }
-
-    /**
-     * Set the activation ID.
-     *
-     * @param activationId Activation ID to set.
-     */
-    public void setActivationId(String activationId) {
-        this.activationId = activationId;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -481,6 +219,7 @@ public class OperationEntity implements Serializable {
                 ", parameters=" + parameters +
                 ", additionalData=" + additionalData +
                 ", status=" + status +
+                ", status_reason=" + statusReason +
                 ", signatureType=" + Arrays.toString(signatureType) +
                 ", failureCount=" + failureCount +
                 ", maxFailureCount=" + maxFailureCount +

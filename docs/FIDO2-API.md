@@ -84,7 +84,7 @@ List of authenticators for provided user and application.
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute           | Type       | Description                                                 |
 |---------------------|------------|-------------------------------------------------------------|
@@ -149,7 +149,7 @@ Challenge for new FIDO2 authenticator registration.
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute           | Type       | Description                                                 |
 |---------------------|------------|-------------------------------------------------------------|
@@ -253,7 +253,7 @@ A new FIDO2 authenticator registration.
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute           | Type       | Description                                                 |
 |---------------------|------------|-------------------------------------------------------------|
@@ -297,6 +297,7 @@ FIDO2 assertions are backed by PowerAuth operations. This means you can use temp
     "userId": "string",
     "externalId": "string",
     "templateName": "string",
+    "operationId": "string",
     "parameters": {
       "additionalProp1": "string",
       "additionalProp2": "string",
@@ -308,13 +309,14 @@ FIDO2 assertions are backed by PowerAuth operations. This means you can use temp
 
 ##### Request Params
 
-| Attribute                                                        | Type                 | Description                                                           |
-|------------------------------------------------------------------|----------------------|-----------------------------------------------------------------------|
-| `applicationIds`<span class="required" title="Required">*</span> | `String[]`           | Applications that are capable of approving the operation.             |
-| `userId`                                                         | `String`             | User with which the assertion should be associated with. Can be null. |
-| `externalId`                                                     | `String`             | Link to transaction in other system (i.e., core system transaction).  |
-| `templateName`<span class="required" title="Required">*</span>   | `String`             | Template on which this assertion should be based.                     |
-| `parameters`                                                     | `Map<String,String>` | Template parameters.                                                  |
+| Attribute                                                        | Type                 | Description                                                                                          |
+|------------------------------------------------------------------|----------------------|------------------------------------------------------------------------------------------------------|
+| `applicationIds`<span class="required" title="Required">*</span> | `String[]`           | Applications that are capable of approving the operation.                                            |
+| `userId`                                                         | `String`             | User with which the assertion should be associated with. Can be null.                                |
+| `externalId`                                                     | `String`             | Link to transaction in other system (i.e., core system transaction).                                 |
+| `templateName`<span class="required" title="Required">*</span>   | `String`             | Template on which this assertion should be based.                                                    |
+| `operationId`                                                    | `String`             | Operation which the assertion should be associated with. If `null`, a new operation is created. |
+| `parameters`                                                     | `Map<String,String>` | Template parameters.                                                                                 |
 
 #### Response 200
 
@@ -344,7 +346,7 @@ If the challenge is successfully created, API returns the following response:
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute                                                        | Type                 | Description                                                                     |
 |------------------------------------------------------------------|----------------------|---------------------------------------------------------------------------------|
@@ -433,7 +435,7 @@ If the challenge is successfully verified, API returns the following response:
 }
 ```
 
-##### Response Params
+##### Description of Response Params
 
 | Attribute                                                        | Type       | Description                                                                         |
 |------------------------------------------------------------------|------------|-------------------------------------------------------------------------------------|

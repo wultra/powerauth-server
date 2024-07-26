@@ -28,6 +28,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -78,6 +80,7 @@ class Fido2AuthenticatorServiceTest {
         assertEquals(aaguid, authenticator.aaguid());
         assertEquals("Wultra Authenticator 1", authenticator.description());
         assertEquals(SignatureType.POSSESSION_KNOWLEDGE, authenticator.signatureType());
+        assertEquals(List.of("usb"), authenticator.transports());
     }
 
     @Test
@@ -90,6 +93,7 @@ class Fido2AuthenticatorServiceTest {
         assertEquals(aaguid, authenticator.aaguid());
         assertEquals("Unknown FIDO2 Authenticator", authenticator.description());
         assertEquals(SignatureType.POSSESSION, authenticator.signatureType());
+        assertEquals(Collections.emptyList(), authenticator.transports());
     }
 
     @Test
@@ -98,6 +102,7 @@ class Fido2AuthenticatorServiceTest {
         assertNull(authenticator.aaguid());
         assertEquals("Unknown FIDO2 Authenticator", authenticator.description());
         assertEquals(SignatureType.POSSESSION, authenticator.signatureType());
+        assertEquals(Collections.emptyList(), authenticator.transports());
     }
 
 }

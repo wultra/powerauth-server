@@ -19,11 +19,14 @@
 package io.getlime.security.powerauth.app.server.service.fido2;
 
 import com.wultra.powerauth.fido2.rest.model.entity.*;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.powerauth.fido2.service.provider.CryptographyService;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationConfigEntity;
 import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationConfigRepository;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
@@ -59,11 +62,13 @@ public class PowerAuthCryptographyService implements CryptographyService {
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ActivationRepository activationRepository;
+    private final ActivationQueryService activationQueryService;
     private final ApplicationConfigRepository applicationConfigRepository;
     private final Fido2CertificateValidator certificateValidator;
 
-    public PowerAuthCryptographyService(ActivationRepository activationRepository, ApplicationConfigRepository applicationConfigRepository, Fido2CertificateValidator certificateValidator) {
+    public PowerAuthCryptographyService(ActivationRepository activationRepository, ActivationQueryService activationQueryService, ApplicationConfigRepository applicationConfigRepository, Fido2CertificateValidator certificateValidator) {
         this.activationRepository = activationRepository;
+        this.activationQueryService = activationQueryService;
         this.applicationConfigRepository = applicationConfigRepository;
         this.certificateValidator = certificateValidator;
     }
@@ -74,7 +79,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
         }
         byte[] dataSuffix = null;
         final String aaguid = (String) authenticatorDetail.getExtras().get("aaguid");
-        if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
+        if (Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
             dataSuffix = getOperationDataBytes(clientDataJSON.getChallenge());
             if (dataSuffix == null) {
                 logger.debug("Visual challenge expected, but no data found to append.");
@@ -118,7 +123,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
     }
 
     private boolean checkAndPersistCounter(String applicationId, String credentialId, int signCount) {
-        final List<ActivationRecordEntity> activations = activationRepository.findByExternalId(applicationId, credentialId);
+        final List<ActivationRecordEntity> activations = activationQueryService.findByExternalId(applicationId, credentialId);
         if (activations.isEmpty()) {
             logger.warn("Activation not found, external ID: {}", credentialId);
             return false;
@@ -136,7 +141,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
             return false;
         }
         activation.setCounter((long) signCount);
-        activationRepository.save(activation);
+        activationRepository.saveAndFlush(activation);
         return true;
     }
 
@@ -265,9 +270,9 @@ public class PowerAuthCryptographyService implements CryptographyService {
     }
 
     /**
-     * Convert {@link java.security.spec.ECPoint} from JavaSecurity to {@link com.wultra.powerauth.fido2.rest.model.entity.ECPoint}.
+     * Convert {@link java.security.spec.ECPoint} from JavaSecurity to {@link ECPoint}.
      * @param p {@link java.security.spec.ECPoint} from Java Security.
-     * @return {@link com.wultra.powerauth.fido2.rest.model.entity.ECPoint}
+     * @return {@link ECPoint}
      */
     private ECPoint convertPoint(java.security.spec.ECPoint p) {
         final ECPoint result = new ECPoint();

@@ -21,23 +21,26 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.KeyValue;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.VaultUnlockRequest;
+import com.wultra.security.powerauth.client.model.request.VerifySignatureRequest;
 import com.wultra.security.powerauth.client.model.response.VaultUnlockResponse;
 import com.wultra.security.powerauth.client.model.response.VerifySignatureResponse;
+import io.getlime.security.powerauth.app.server.configuration.PowerAuthServiceConfiguration;
 import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.AdditionalInformation;
-import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
-import io.getlime.security.powerauth.app.server.service.behavior.ServiceBehaviorCatalogue;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import io.getlime.security.powerauth.app.server.service.model.request.VaultUnlockRequestPayload;
 import io.getlime.security.powerauth.app.server.service.model.response.VaultUnlockResponsePayload;
+import io.getlime.security.powerauth.app.server.service.persistence.ActivationQueryService;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayVerificationService;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
@@ -47,16 +50,15 @@ import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRespons
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
-import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import io.getlime.security.powerauth.crypto.server.vault.PowerAuthServerVault;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
@@ -77,35 +79,37 @@ import java.util.*;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class VaultUnlockServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
+    private final ActivationQueryService activationQueryService;
     private final ServerPrivateKeyConverter serverPrivateKeyConverter;
-    private final ServiceBehaviorCatalogue behavior;
     private final ReplayVerificationService replayVerificationService;
     private final ActivationContextValidator activationValidator;
+    private final PowerAuthServiceConfiguration powerAuthServiceConfiguration;
 
     // Helper classes
     private final EncryptorFactory encryptorFactory = new EncryptorFactory();
-    private final KeyGenerator keyGenerator = new KeyGenerator();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
     private final PowerAuthServerVault powerAuthServerVault = new PowerAuthServerVault();
     private final ObjectMapper objectMapper;
     private final PowerAuthServerKeyFactory powerAuthServerKeyFactory = new PowerAuthServerKeyFactory();
-
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(VaultUnlockServiceBehavior.class);
+    private final OnlineSignatureServiceBehavior onlineSignatureServiceBehavior;
 
     @Autowired
-    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ServerPrivateKeyConverter serverPrivateKeyConverter, ServiceBehaviorCatalogue behavior, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, ObjectMapper objectMapper) {
+    public VaultUnlockServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider, ActivationQueryService activationQueryService, ServerPrivateKeyConverter serverPrivateKeyConverter, ReplayVerificationService replayVerificationService, ActivationContextValidator activationValidator, PowerAuthServiceConfiguration powerAuthServiceConfiguration, ObjectMapper objectMapper, OnlineSignatureServiceBehavior onlineSignatureServiceBehavior) {
         this.repositoryCatalogue = repositoryCatalogue;
         this.localizationProvider = localizationProvider;
+        this.activationQueryService = activationQueryService;
         this.serverPrivateKeyConverter = serverPrivateKeyConverter;
-        this.behavior = behavior;
         this.replayVerificationService = replayVerificationService;
         this.activationValidator = activationValidator;
+        this.powerAuthServiceConfiguration = powerAuthServiceConfiguration;
         this.objectMapper = objectMapper;
+        this.onlineSignatureServiceBehavior = onlineSignatureServiceBehavior;
     }
 
     /**
@@ -114,35 +118,64 @@ public class VaultUnlockServiceBehavior {
      * To indicate the signature validation result, 'isSignatureValid' boolean is passed as one of the
      * method parameters.
      *
-     * @param activationId           Activation ID.
-     * @param applicationKey         Application key.
-     * @param signature              PowerAuth signature.
-     * @param signatureType          PowerAuth signature type.
-     * @param signatureVersion       PowerAuth signature version.
-     * @param encryptedRequest       Encrypted request data.
-     * @param keyConversion          Key conversion utilities.
+     * @param request Vault unlock request.
      * @return Vault unlock response with a properly encrypted vault unlock key.
      * @throws GenericServiceException In case server private key decryption fails.
      */
-    public VaultUnlockResponse unlockVault(String activationId, String applicationKey, String signature, SignatureType signatureType, String signatureVersion,
-                                           String signedData, EncryptedRequest encryptedRequest, KeyConvertor keyConversion)
-            throws GenericServiceException {
+    @Transactional
+    public VaultUnlockResponse unlockVault(VaultUnlockRequest request) throws GenericServiceException {
         try {
+            if (request.getActivationId() == null || request.getApplicationKey() == null || request.getSignature() == null
+                    || request.getSignatureType() == null || request.getSignatureVersion() == null || request.getSignedData() == null) {
+                logger.warn("Invalid request parameters in method vaultUnlock");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            // Get request data
+            final String activationId = request.getActivationId();
+            final String applicationKey = request.getApplicationKey();
+            final String signature = request.getSignature();
+            final SignatureType signatureType = request.getSignatureType();
+            final String signatureVersion = request.getSignatureVersion();
+            final String signedData = request.getSignedData();
+            // Build encrypted request
+            final EncryptedRequest encryptedRequest = new EncryptedRequest(
+                    request.getEphemeralPublicKey(),
+                    request.getEncryptedData(),
+                    request.getMac(),
+                    request.getNonce(),
+                    request.getTimestamp()
+            );
+
+            // The only allowed signature type is POSESSION_KNOWLEDGE to prevent attacks with weaker signature types
+            if (!signatureType.equals(SignatureType.POSSESSION_KNOWLEDGE)) {
+                // POSSESSION_BIOMETRY can also be used, but must be explicitly allowed in the configuration.
+                if (!(signatureType.equals(SignatureType.POSSESSION_BIOMETRY) &&
+                        powerAuthServiceConfiguration.isSecureVaultBiometricAuthenticationEnabled())) {
+                    logger.warn("Invalid signature type: {}", signatureType);
+                    // Rollback is not required, error occurs before writing to database
+                    throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_SIGNATURE);
+                }
+            }
+
             if (!encryptorFactory.getRequestResponseValidator(signatureVersion).validateEncryptedRequest(encryptedRequest)) {
                 logger.warn("Invalid encrypted request parameters in method vaultUnlock");
                 // Rollback is not required, error occurs before writing to database
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
             }
             // Lookup the activation
-            final ActivationRecordEntity activation = repositoryCatalogue.getActivationRepository().findActivationWithoutLock(activationId);
+            final Optional<ActivationRecordEntity> activationOptional = activationQueryService.findActivationWithoutLock(activationId);
 
             // Check if the activation is in correct state
-            if (activation == null || !ActivationStatus.ACTIVE.equals(activation.getActivationStatus())) {
+            if (activationOptional.isEmpty() || activationOptional.get().getActivationStatus() != ActivationStatus.ACTIVE) {
                 // Return response with invalid signature flag when activation is not valid
                 VaultUnlockResponse response = new VaultUnlockResponse();
                 response.setSignatureValid(false);
                 return response;
             }
+
+            final ActivationRecordEntity activation = activationOptional.get();
 
             activationValidator.validatePowerAuthProtocol(activation.getProtocol(), localizationProvider);
 
@@ -152,7 +185,7 @@ public class VaultUnlockServiceBehavior {
             final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(serverPrivateKeyEncryptionMode, serverPrivateKeyFromEntity);
             final String serverPrivateKeyBase64 = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activationId);
             final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(serverPrivateKeyBase64);
-            final PrivateKey serverPrivateKey = keyConversion.convertBytesToPrivateKey(serverPrivateKeyBytes);
+            final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
 
             // Get application version
             final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
@@ -178,9 +211,9 @@ public class VaultUnlockServiceBehavior {
 
             // Get application secret and transport key used in sharedInfo2 parameter of ECIES
             final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
-            final PublicKey devicePublicKey = keyConversion.convertBytesToPublicKey(devicePublicKeyBytes);
+            final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
             final SecretKey transportKey = powerAuthServerKeyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
-            final byte[] transportKeyBytes = keyConversion.convertSharedSecretKeyToBytes(transportKey);
+            final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
 
             // Get server encryptor
             final ServerEncryptor serverEncryptor = encryptorFactory.getServerEncryptor(
@@ -192,9 +225,9 @@ public class VaultUnlockServiceBehavior {
             final byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
 
             // Convert JSON data to vault unlock request object
-            VaultUnlockRequestPayload request;
+            VaultUnlockRequestPayload vaultUnlockRequest;
             try {
-                request = objectMapper.readValue(decryptedData, VaultUnlockRequestPayload.class);
+                vaultUnlockRequest = objectMapper.readValue(decryptedData, VaultUnlockRequestPayload.class);
             } catch (IOException ex) {
                 logger.warn("Invalid vault unlock request, activation ID: {}", activationId);
                 // Return response with invalid signature flag when request format is not valid
@@ -203,7 +236,7 @@ public class VaultUnlockServiceBehavior {
                 return response;
             }
 
-            final String reason = request.getReason();
+            final String reason = vaultUnlockRequest.getReason();
 
             if (reason != null && !reason.matches("[A-Za-z0-9_\\-.]{3,255}")) {
                 logger.warn("Invalid vault unlock reason: {}", reason);
@@ -220,8 +253,14 @@ public class VaultUnlockServiceBehavior {
             additionalInformationList.add(entry);
 
             // Verify the signature
-            final VerifySignatureResponse signatureResponse = behavior.getOnlineSignatureServiceBehavior().verifySignature(activationId, signatureType,
-                    signature, signatureVersion, additionalInformationList, signedData, applicationKey, null, keyConversion);
+            final VerifySignatureRequest verifySignatureRequest = new VerifySignatureRequest();
+            verifySignatureRequest.setActivationId(activationId);
+            verifySignatureRequest.setSignatureType(signatureType);
+            verifySignatureRequest.setSignature(signature);
+            verifySignatureRequest.setData(signedData);
+            verifySignatureRequest.setApplicationKey(applicationKey);
+            verifySignatureRequest.setSignatureVersion(signatureVersion);
+            final VerifySignatureResponse signatureResponse = onlineSignatureServiceBehavior.verifySignature(verifySignatureRequest, additionalInformationList);
 
             final VaultUnlockResponsePayload responsePayload = new VaultUnlockResponsePayload();
 
@@ -276,6 +315,15 @@ public class VaultUnlockServiceBehavior {
             // The only possible error could occur while generating ECIES response after signature validation,
             // however this logic is well tested and should not fail.
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 

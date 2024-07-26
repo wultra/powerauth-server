@@ -24,13 +24,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorAssertionResponse;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorParameters;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.error.PowerAuthError;
-import com.wultra.security.powerauth.client.model.request.fido2.*;
-import com.wultra.security.powerauth.client.model.response.fido2.*;
+import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAssertionResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthError;
+import com.wultra.security.powerauth.fido2.model.request.*;
+import com.wultra.security.powerauth.fido2.model.response.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.slf4j.Logger;
@@ -64,8 +64,8 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      *
      * @param baseUrl BASE URL of REST endpoints.
      */
-    public PowerAuthFido2RestClient(String baseUrl) throws PowerAuthClientException {
-        this(baseUrl, new PowerAuthRestClientConfiguration());
+    public PowerAuthFido2RestClient(String baseUrl) throws PowerAuthFido2Exception {
+        this(baseUrl, new PowerAuthFido2RestClientConfiguration());
     }
 
     /**
@@ -73,10 +73,13 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      *
      * @param baseUrl Base URL of REST endpoints.
      */
-    public PowerAuthFido2RestClient(String baseUrl, PowerAuthRestClientConfiguration config) throws PowerAuthClientException {
+    public PowerAuthFido2RestClient(String baseUrl, PowerAuthFido2RestClientConfiguration config) throws PowerAuthFido2Exception {
         final DefaultRestClient.Builder builder = DefaultRestClient.builder().baseUrl(baseUrl)
-                .acceptInvalidCertificate(config.getAcceptInvalidSslCertificate())
+                .acceptInvalidCertificate(config.isAcceptInvalidSslCertificate())
                 .connectionTimeout(config.getConnectTimeout())
+                .responseTimeout(config.getResponseTimeout())
+                .maxIdleTime(config.getMaxIdleTime())
+                .maxLifeTime(config.getMaxLifeTime())
                 .maxInMemorySize(config.getMaxMemorySize());
         if (config.isProxyEnabled()) {
             final DefaultRestClient.ProxyBuilder proxyBuilder = builder.proxy().host(config.getProxyHost()).port(config.getProxyPort());
@@ -96,7 +99,7 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
         try {
             restClient = builder.build();
         } catch (RestClientException ex) {
-            throw new PowerAuthClientException("REST client initialization failed, error: " + ex.getMessage(), ex);
+            throw new PowerAuthFido2Exception("REST client initialization failed, error: " + ex.getMessage(), ex);
         }
     }
 
@@ -110,7 +113,7 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
      * @param responseType Response type.
      * @return Response.
      */
-    private <T> T callFido2RestApi(String path, Object request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders, Class<T> responseType) throws PowerAuthClientException {
+    private <T> T callFido2RestApi(String path, Object request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders, Class<T> responseType) throws PowerAuthFido2Exception {
         final ObjectRequest<?> objectRequest = new ObjectRequest<>(request);
         try {
             final ObjectResponse<T> objectResponse = restClient.postObject(PA_REST_FIDO2_PREFIX + path, objectRequest, queryParams, httpHeaders, responseType);
@@ -129,42 +132,42 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
                 handleBadRequestError(ex);
             }
             // Error handling for generic HTTP errors
-            throw new PowerAuthClientException(ex.getMessage(), ex);
+            throw new PowerAuthFido2Exception(ex.getMessage(), ex);
         }
     }
 
     /**
      * Handle the HTTP response with BAD_REQUEST status code.
      * @param ex Exception which captured the error.
-     * @throws PowerAuthClientException PowerAuth client exception.
+     * @throws PowerAuthFido2Exception PowerAuth client exception.
      */
-    private void handleBadRequestError(RestClientException ex) throws PowerAuthClientException {
+    private void handleBadRequestError(RestClientException ex) throws PowerAuthFido2Exception {
         // Try to parse exception into PowerAuthError model class
         try {
             final TypeReference<ObjectResponse<PowerAuthError>> typeReference = new TypeReference<>(){};
             final ObjectResponse<PowerAuthError> error = objectMapper.readValue(ex.getResponse(), typeReference);
             if (error == null || error.getResponseObject() == null) {
-                throw new PowerAuthClientException("Invalid response object");
+                throw new PowerAuthFido2Exception("Invalid response object");
             }
-            throw new PowerAuthClientException(error.getResponseObject().getMessage(), ex, error.getResponseObject());
+            throw new PowerAuthFido2Exception(error.getResponseObject().getMessage(), ex, error.getResponseObject());
         } catch (IOException ex2) {
             // Parsing failed, return a regular error
-            throw new PowerAuthClientException(ex.getMessage(), ex);
+            throw new PowerAuthFido2Exception(ex.getMessage(), ex);
         }
     }
 
     @Override
-    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request) throws PowerAuthClientException {
+    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request) throws PowerAuthFido2Exception {
         return callFido2RestApi("/registrations/list", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, RegisteredAuthenticatorsResponse.class);
     }
 
     @Override
-    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(RegisteredAuthenticatorsRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthFido2Exception {
         return callFido2RestApi("/registrations/list", request, queryParams, httpHeaders, RegisteredAuthenticatorsResponse.class);
     }
 
     @Override
-    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(String userId, String applicationId) throws PowerAuthClientException {
+    public RegisteredAuthenticatorsResponse getRegisteredAuthenticatorList(String userId, String applicationId) throws PowerAuthFido2Exception {
         final RegisteredAuthenticatorsRequest request = new RegisteredAuthenticatorsRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -172,17 +175,17 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     }
 
     @Override
-    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws PowerAuthClientException {
+    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request) throws PowerAuthFido2Exception {
         return callFido2RestApi("/registrations/challenge", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, RegistrationChallengeResponse.class);
     }
 
     @Override
-    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+    public RegistrationChallengeResponse requestRegistrationChallenge(RegistrationChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthFido2Exception {
         return callFido2RestApi("/registrations/challenge", request, queryParams, httpHeaders, RegistrationChallengeResponse.class);
     }
 
     @Override
-    public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws PowerAuthClientException {
+    public RegistrationChallengeResponse requestRegistrationChallenge(String userId, String applicationId) throws PowerAuthFido2Exception {
         final RegistrationChallengeRequest request = new RegistrationChallengeRequest();
         request.setUserId(userId);
         request.setApplicationId(applicationId);
@@ -190,17 +193,17 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     }
 
     @Override
-    public RegistrationResponse register(RegistrationRequest request) throws PowerAuthClientException {
+    public RegistrationResponse register(RegistrationRequest request) throws PowerAuthFido2Exception {
         return callFido2RestApi("/registrations", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, RegistrationResponse.class);
     }
 
     @Override
-    public RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+    public RegistrationResponse register(RegistrationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthFido2Exception {
         return callFido2RestApi("/registrations", request, queryParams, httpHeaders, RegistrationResponse.class);
     }
 
     @Override
-    public RegistrationResponse register(String applicationId, String activationName, String expectedChallenge, AuthenticatorParameters authenticatorParameters) throws PowerAuthClientException {
+    public RegistrationResponse register(String applicationId, String activationName, String expectedChallenge, AuthenticatorParameters authenticatorParameters) throws PowerAuthFido2Exception {
         RegistrationRequest request = new RegistrationRequest();
         request.setApplicationId(applicationId);
         request.setActivationName(activationName);
@@ -210,35 +213,35 @@ public class PowerAuthFido2RestClient implements PowerAuthFido2Client {
     }
 
     @Override
-    public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws PowerAuthClientException {
+    public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request) throws PowerAuthFido2Exception {
         return callFido2RestApi("/assertions/challenge", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, AssertionChallengeResponse.class);
     }
 
     @Override
-    public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+    public AssertionChallengeResponse requestAssertionChallenge(AssertionChallengeRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthFido2Exception {
         return callFido2RestApi("/assertions/challenge", request, queryParams, httpHeaders, AssertionChallengeResponse.class);
     }
 
     @Override
-    public AssertionChallengeResponse requestAssertionChallenge(List<String> applicationIds, String externalId, String operationType, Map<String, String> parameters) throws PowerAuthClientException {
+    public AssertionChallengeResponse requestAssertionChallenge(List<String> applicationIds, String externalId, String operationType, Map<String, String> parameters) throws PowerAuthFido2Exception {
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
         return callFido2RestApi("/assertions/challenge", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, AssertionChallengeResponse.class);
     }
 
     @Override
-    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request) throws PowerAuthClientException {
+    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request) throws PowerAuthFido2Exception {
         return callFido2RestApi("/assertions", request, EMPTY_MULTI_MAP, EMPTY_MULTI_MAP, AssertionVerificationResponse.class);
     }
 
     @Override
-    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthClientException {
+    public AssertionVerificationResponse authenticate(AssertionVerificationRequest request, MultiValueMap<String, String> queryParams, MultiValueMap<String, String> httpHeaders) throws PowerAuthFido2Exception {
         return callFido2RestApi("/assertions", request, queryParams, httpHeaders, AssertionVerificationResponse.class);
     }
 
     @Override
     public AssertionVerificationResponse authenticate(String id, String type, String authenticatorAttachment, AuthenticatorAssertionResponse response,
                                                       String applicationId, String relyingPartyId, List<String> allowedOrigins, List<String> allowedTopOrigins,
-                                                      boolean requiresUserVerification, String expectedChallenge) throws PowerAuthClientException {
+                                                      boolean requiresUserVerification, String expectedChallenge) throws PowerAuthFido2Exception {
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
         request.setCredentialId(id);
         request.setType(type);

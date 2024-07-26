@@ -27,8 +27,5 @@ import lombok.Data;
  */
 @Data
 public class GetApplicationDetailRequest {
-
     private String applicationId;
-    private String applicationName;
-
 }

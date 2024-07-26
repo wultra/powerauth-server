@@ -19,6 +19,7 @@ package io.getlime.security.powerauth.app.server.service.behavior.tasks;
 
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
@@ -33,10 +34,10 @@ import io.getlime.security.powerauth.app.server.service.util.SdkConfigurationSer
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
@@ -52,14 +53,14 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Component
+@Service
+@Slf4j
 public class ApplicationServiceBehavior {
 
     private final RepositoryCatalogue repositoryCatalogue;
     private final LocalizationProvider localizationProvider;
 
-    // Prepare logger
-    private static final Logger logger = LoggerFactory.getLogger(ApplicationServiceBehavior.class);
+    private final KeyConvertor keyConvertor = new KeyConvertor();
 
     @Autowired
     public ApplicationServiceBehavior(RepositoryCatalogue repositoryCatalogue, LocalizationProvider localizationProvider) {
@@ -70,13 +71,29 @@ public class ApplicationServiceBehavior {
     /**
      * Get application details by ID.
      *
-     * @param applicationId Application ID
+     * @param request Request with application ID
      * @return Response with application details
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public GetApplicationDetailResponse getApplicationDetail(String applicationId) throws GenericServiceException {
-        final ApplicationEntity application = findApplicationById(applicationId);
-        return createApplicationDetailResponse(application);
+    @Transactional
+    public GetApplicationDetailResponse getApplicationDetail(GetApplicationDetailRequest request) throws GenericServiceException {
+        try {
+            final String applicationId = request.getApplicationId();
+            if (applicationId == null) {
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            final ApplicationEntity application = findApplicationById(applicationId);
+            return createApplicationDetailResponse(application);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
     }
 
     private GetApplicationDetailResponse createApplicationDetailResponse(ApplicationEntity application) throws GenericServiceException {
@@ -114,21 +131,39 @@ public class ApplicationServiceBehavior {
     /**
      * Lookup application based on version app key.
      *
-     * @param appKey Application version key (APP_KEY).
+     * @param request Request with application version key (APP_KEY).
      * @return Response with application details
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(String appKey) throws GenericServiceException {
-        final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(appKey);
-        if (applicationVersion == null) {
-            logger.warn("Application version is incorrect, application key: {}", appKey);
-            // Rollback is not required, database is not used for writing
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+    @Transactional
+    public LookupApplicationByAppKeyResponse lookupApplicationByAppKey(LookupApplicationByAppKeyRequest request) throws GenericServiceException {
+        try {
+            final String applicationKey = request.getApplicationKey();
+            if (applicationKey == null) {
+                logger.warn("Invalid request parameter applicationKey in method lookupApplicationByAppKey");
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            final ApplicationVersionEntity applicationVersion = repositoryCatalogue.getApplicationVersionRepository().findByApplicationKey(applicationKey);
+            if (applicationVersion == null) {
+                logger.warn("Application version is incorrect, application key: {}", applicationKey);
+                // Rollback is not required, database is not used for writing
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_APPLICATION);
+            }
+            final ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
+            final LookupApplicationByAppKeyResponse response = new LookupApplicationByAppKeyResponse();
+            response.setApplicationId(application.getId());
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-        final ApplicationEntity application = findApplicationById(applicationVersion.getApplication().getId());
-        final LookupApplicationByAppKeyResponse response = new LookupApplicationByAppKeyResponse();
-        response.setApplicationId(application.getId());
-        return response;
     }
 
     /**
@@ -136,40 +171,55 @@ public class ApplicationServiceBehavior {
      *
      * @return List of applications.
      */
-    public GetApplicationListResponse getApplicationList() {
+    @Transactional
+    public GetApplicationListResponse getApplicationList() throws GenericServiceException {
+        try {
+            final Iterable<ApplicationEntity> result = repositoryCatalogue.getApplicationRepository().findAll();
 
-        final Iterable<ApplicationEntity> result = repositoryCatalogue.getApplicationRepository().findAll();
+            final GetApplicationListResponse response = new GetApplicationListResponse();
 
-        final GetApplicationListResponse response = new GetApplicationListResponse();
+            for (ApplicationEntity application : result) {
+                final Application app = new Application();
+                app.setApplicationId(application.getId());
+                app.getApplicationRoles().addAll(application.getRoles());
+                response.getApplications().add(app);
+            }
 
-        for (ApplicationEntity application : result) {
-            final Application app = new Application();
-            app.setApplicationId(application.getId());
-            app.getApplicationRoles().addAll(application.getRoles());
-            response.getApplications().add(app);
+            return response;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-
-        return response;
     }
 
     /**
      * Create a new application with given name.
      *
-     * @param id Application ID
-     * @param keyConversionUtilities Utility class for the key conversion
+     * @param request Request with application ID
      * @return Response with new application information
      * @throws GenericServiceException In case cryptography provider is initialized incorrectly.
      */
-    public CreateApplicationResponse createApplication(String id, KeyConvertor keyConversionUtilities) throws GenericServiceException {
+    @Transactional
+    public CreateApplicationResponse createApplication(CreateApplicationRequest request) throws GenericServiceException {
         try {
+            final String applicationId = request.getApplicationId();
+            if (applicationId == null) {
+                logger.warn("Invalid request parameter applicationId in method createApplication");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
             // Check application duplicity
             final ApplicationRepository applicationRepository = repositoryCatalogue.getApplicationRepository();
-            if (applicationRepository.findById(id).isPresent()) {
+            if (applicationRepository.findById(applicationId).isPresent()) {
                 throw localizationProvider.buildExceptionForCode(ServiceError.DUPLICATE_APPLICATION);
             }
 
             ApplicationEntity application = new ApplicationEntity();
-            application.setId(id);
+            application.setId(applicationId);
             application = applicationRepository.save(application);
 
             final KeyGenerator keyGen = new KeyGenerator();
@@ -184,10 +234,10 @@ public class ApplicationServiceBehavior {
             // Generate the default master key pair
             final MasterKeyPairEntity keyPair = new MasterKeyPairEntity();
             keyPair.setApplication(application);
-            keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(keyConversionUtilities.convertPrivateKeyToBytes(privateKey)));
-            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConversionUtilities.convertPublicKeyToBytes(publicKey)));
+            keyPair.setMasterKeyPrivateBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPrivateKeyToBytes(privateKey)));
+            keyPair.setMasterKeyPublicBase64(Base64.getEncoder().encodeToString(keyConvertor.convertPublicKeyToBytes(publicKey)));
             keyPair.setTimestampCreated(new Date());
-            keyPair.setName(id + " Default Keypair");
+            keyPair.setName(applicationId + " Default Keypair");
             repositoryCatalogue.getMasterKeyPairRepository().save(keyPair);
 
             // Create the default application version
@@ -207,101 +257,162 @@ public class ApplicationServiceBehavior {
             logger.error(ex.getMessage(), ex);
             // Rollback is not required, exception can be triggered only before database is used for writing
             throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
     }
 
     /**
      * Create a new application version
      *
-     * @param applicationId Application ID
-     * @param applicationVersionId   Application version ID
+     * @param request Request with application ID and version name.
      * @return Response with new version information
      * @throws GenericServiceException Thrown when application does not exist.
      */
-    public CreateApplicationVersionResponse createApplicationVersion(String applicationId, String applicationVersionId) throws GenericServiceException {
-
-        final ApplicationEntity application = findApplicationById(applicationId);
-
-        // Check for duplicate application
-        for (ApplicationVersionEntity applicationVersionEntity : application.getVersions()) {
-            final String applicationVersionEntityId = applicationVersionEntity.getId();
-            if (applicationVersionEntityId != null && applicationVersionEntityId.equals(applicationVersionId)) {
-                logger.warn("Duplicate application version ID: {} for application ID: {}", applicationVersionId, applicationId);
-                throw localizationProvider.buildExceptionForCode(ServiceError.DUPLICATE_APPLICATION);
-            }
-        }
-
-        final KeyGenerator keyGen = new KeyGenerator();
-        final byte[] applicationKeyBytes;
-        final byte[] applicationSecretBytes;
+    @Transactional
+    public CreateApplicationVersionResponse createApplicationVersion(CreateApplicationVersionRequest request) throws GenericServiceException {
         try {
-            applicationKeyBytes = keyGen.generateRandomBytes(16);
-            applicationSecretBytes = keyGen.generateRandomBytes(16);
-        } catch (CryptoProviderException ex) {
-            logger.error(ex.getMessage(), ex);
-            // Rollback is not required, error occurs before writing to database
-            throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+            logger.info("CreateApplicationVersionRequest received: {}", request);
+            final String applicationId = request.getApplicationId();
+            final String applicationVersionId = request.getApplicationVersionId();
+            if (applicationId == null) {
+                logger.warn("Invalid request parameter applicationId in method createApplicationVersion");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+            if (applicationVersionId == null) {
+                logger.warn("Invalid request parameter applicationVersionId in method createApplicationVersion");
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_REQUEST);
+            }
+
+            final ApplicationEntity application = findApplicationById(applicationId);
+
+            // Check for duplicate application
+            for (ApplicationVersionEntity applicationVersionEntity : application.getVersions()) {
+                final String applicationVersionEntityId = applicationVersionEntity.getId();
+                if (applicationVersionEntityId != null && applicationVersionEntityId.equals(applicationVersionId)) {
+                    logger.warn("Duplicate application version ID: {} for application ID: {}", applicationVersionId, applicationId);
+                    throw localizationProvider.buildExceptionForCode(ServiceError.DUPLICATE_APPLICATION);
+                }
+            }
+
+            final KeyGenerator keyGen = new KeyGenerator();
+            final byte[] applicationKeyBytes;
+            final byte[] applicationSecretBytes;
+            try {
+                applicationKeyBytes = keyGen.generateRandomBytes(16);
+                applicationSecretBytes = keyGen.generateRandomBytes(16);
+            } catch (CryptoProviderException ex) {
+                logger.error(ex.getMessage(), ex);
+                // Rollback is not required, error occurs before writing to database
+                throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_CRYPTO_PROVIDER);
+            }
+
+            ApplicationVersionEntity version = new ApplicationVersionEntity();
+            version.setApplication(application);
+            version.setId(applicationVersionId);
+            version.setSupported(true);
+            version.setApplicationKey(Base64.getEncoder().encodeToString(applicationKeyBytes));
+            version.setApplicationSecret(Base64.getEncoder().encodeToString(applicationSecretBytes));
+            version = repositoryCatalogue.getApplicationVersionRepository().save(version);
+
+            final CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();
+            response.setApplicationVersionId(version.getId());
+            response.setApplicationKey(version.getApplicationKey());
+            response.setApplicationSecret(version.getApplicationSecret());
+            response.setSupported(version.getSupported());
+
+            logger.info("CreateApplicationVersionRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
         }
-
-        ApplicationVersionEntity version = new ApplicationVersionEntity();
-        version.setApplication(application);
-        version.setId(applicationVersionId);
-        version.setSupported(true);
-        version.setApplicationKey(Base64.getEncoder().encodeToString(applicationKeyBytes));
-        version.setApplicationSecret(Base64.getEncoder().encodeToString(applicationSecretBytes));
-        version = repositoryCatalogue.getApplicationVersionRepository().save(version);
-
-        final CreateApplicationVersionResponse response = new CreateApplicationVersionResponse();
-        response.setApplicationVersionId(version.getId());
-        response.setApplicationKey(version.getApplicationKey());
-        response.setApplicationSecret(version.getApplicationSecret());
-        response.setSupported(version.getSupported());
-
-        return response;
     }
 
     /**
      * Mark a version with given ID as unsupported
      *
-     * @param appId Application ID.
-     * @param versionId Version ID
+     * @param request Request with app ID and app version ID.
      * @return Response confirming the operation
      * @throws GenericServiceException Thrown when application version does not exist.
      */
-    public UnsupportApplicationVersionResponse unsupportApplicationVersion(String appId, String versionId) throws GenericServiceException {
+    @Transactional
+    public UnsupportApplicationVersionResponse unsupportApplicationVersion(UnsupportApplicationVersionRequest request) throws GenericServiceException {
+        try {
+            logger.info("UnsupportApplicationVersionRequest received: {}", request);
+            final String applicationId = request.getApplicationId();
+            final String applicationVersionId = request.getApplicationVersionId();
+            ApplicationVersionEntity version = findApplicationVersion(applicationId, applicationVersionId);
+            version.setSupported(false);
+            version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-        ApplicationVersionEntity version = findApplicationVersion(appId, versionId);
+            final UnsupportApplicationVersionResponse response = new UnsupportApplicationVersionResponse();
+            response.setApplicationVersionId(version.getId());
+            response.setSupported(version.getSupported());
 
-        version.setSupported(false);
-        version = repositoryCatalogue.getApplicationVersionRepository().save(version);
-
-        final UnsupportApplicationVersionResponse response = new UnsupportApplicationVersionResponse();
-        response.setApplicationVersionId(version.getId());
-        response.setSupported(version.getSupported());
-
-        return response;
+            logger.info("UnsupportApplicationVersionRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
     }
 
     /**
      * Mark a version with given ID as supported
      *
-     * @param appId Application ID.
-     * @param versionId Version ID
+     * @param request Request with app ID and app version ID.
      * @return Response confirming the operation
      * @throws GenericServiceException Thrown when application version does not exist.
      */
-    public SupportApplicationVersionResponse supportApplicationVersion(String appId, String versionId) throws GenericServiceException {
+    @Transactional
+    public SupportApplicationVersionResponse supportApplicationVersion(SupportApplicationVersionRequest request) throws GenericServiceException {
+        try {
+            logger.info("SupportApplicationVersionRequest received: {}", request);
+            final String applicationId = request.getApplicationId();
+            final String applicationVersionId = request.getApplicationVersionId();
+            ApplicationVersionEntity version = findApplicationVersion(applicationId, applicationVersionId);
 
-        ApplicationVersionEntity version = findApplicationVersion(appId, versionId);
+            version.setSupported(true);
+            version = repositoryCatalogue.getApplicationVersionRepository().save(version);
 
-        version.setSupported(true);
-        version = repositoryCatalogue.getApplicationVersionRepository().save(version);
+            final SupportApplicationVersionResponse response = new SupportApplicationVersionResponse();
+            response.setApplicationVersionId(version.getId());
+            response.setSupported(version.getSupported());
 
-        final SupportApplicationVersionResponse response = new SupportApplicationVersionResponse();
-        response.setApplicationVersionId(version.getId());
-        response.setSupported(version.getSupported());
-
-        return response;
+            logger.info("SupportApplicationVersionRequest succeeded");
+            return response;
+        } catch (GenericServiceException ex) {
+            // already logged
+            throw ex;
+        } catch (RuntimeException ex) {
+            logger.error("Runtime exception or error occurred, transaction will be rolled back", ex);
+            throw ex;
+        } catch (Exception ex) {
+            logger.error("Unknown error occurred", ex);
+            throw new GenericServiceException(ServiceError.UNKNOWN_ERROR, ex.getMessage());
+        }
     }
 
     /**

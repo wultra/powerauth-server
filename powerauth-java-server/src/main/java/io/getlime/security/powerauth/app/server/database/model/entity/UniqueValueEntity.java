@@ -19,6 +19,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.UniqueValueType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -32,6 +34,7 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_unique_value")
+@Getter @Setter
 public class UniqueValueEntity implements Serializable {
 
     @Serial
@@ -47,30 +50,6 @@ public class UniqueValueEntity implements Serializable {
 
     @Column(name = "timestamp_expires", nullable = false, updatable = false)
     private Date timestampExpires;
-
-    public String getUniqueValue() {
-        return uniqueValue;
-    }
-
-    public void setUniqueValue(String uniqueValue) {
-        this.uniqueValue = uniqueValue;
-    }
-
-    public UniqueValueType getType() {
-        return type;
-    }
-
-    public void setType(UniqueValueType type) {
-        this.type = type;
-    }
-
-    public Date getTimestampExpires() {
-        return timestampExpires;
-    }
-
-    public void setTimestampExpires(Date timestampExpires) {
-        this.timestampExpires = timestampExpires;
-    }
 
     @Override
     public boolean equals(Object o) {

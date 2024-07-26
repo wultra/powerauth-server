@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.app.server.database.repository.UniqueValueR
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Date;
@@ -78,7 +79,7 @@ public class ReplayPersistenceService {
             uniqueValueRepository.save(uniqueVal);
             return true;
         } catch (Exception ex) {
-            logger.warn("Could not persist unique value: " + uniqueValue, ex);
+            logger.warn("Could not persist unique value: {}", uniqueValue, ex);
             return false;
         }
     }
@@ -86,8 +87,9 @@ public class ReplayPersistenceService {
     /**
      * Remove expired unique values in the database.
      */
+    @Transactional
     public void deleteExpiredUniqueValues() {
-        int expiredCount = uniqueValueRepository.deleteAllByTimestampExpiresBefore(Date.from(Instant.now()));
+        final int expiredCount = uniqueValueRepository.deleteExpiredValues(new Date());
         logger.debug("Removed {} expired unique values", expiredCount);
     }
 }

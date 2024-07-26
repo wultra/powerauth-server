@@ -17,13 +17,17 @@
  */
 package io.getlime.security.powerauth.app.server.database.model.entity;
 
+import io.getlime.security.powerauth.app.server.converter.ActivationProtocolConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationFlagConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationOtpValidationConverter;
 import io.getlime.security.powerauth.app.server.database.model.converter.ActivationStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationOtpValidation;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationProtocol;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -39,633 +43,205 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_activation")
+@Getter @Setter
 public class ActivationRecordEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 7512286634644851705L;
 
+    /**
+     * Activation ID.
+     */
     @Id
     @Column(name = "activation_id", length = 37)
     private String activationId;
 
+    /**
+     * Activation code.
+     */
     @Column(name = "activation_code", nullable = false, updatable = false)
     private String activationCode;
 
+    /**
+     * Activation OTP validation.
+     */
     @Column(name = "activation_otp_validation", nullable = false)
     @Convert(converter = ActivationOtpValidationConverter.class)
     private ActivationOtpValidation activationOtpValidation;
 
+    /**
+     * Activation OTP.
+     */
     @Column(name = "activation_otp")
     private String activationOtp;
 
+    /**
+     * External ID.
+     */
     @Column(name = "external_id")
     private String externalId;
 
+    /**
+     * User ID.
+     */
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
+    /**
+     * Activation name.
+     */
     @Column(name = "activation_name")
     private String activationName;
 
+    /**
+     * Extra parameter.
+     */
     @Column(name = "extras", columnDefinition = "CLOB")
     private String extras;
 
-    @Column(name = "protocol")
-    private String protocol;
+    /**
+     * Protocol.
+     */
+    @Convert(converter = ActivationProtocolConverter.class)
+    @Column(name = "protocol", nullable = false, columnDefinition = "varchar(32) default 'powerauth'")
+    private ActivationProtocol protocol;
 
+    /**
+     * User device platform.
+     */
     @Column(name = "platform")
     private String platform;
 
+    /**
+     * User device information.
+     */
     @Column(name = "device_info")
     private String deviceInfo;
 
+    /**
+     * Activation flags.
+     */
     @Column(name = "flags")
     @Convert(converter = ActivationFlagConverter.class)
     private final List<String> flags = new ArrayList<>();
 
+    /**
+     * Base64 encoded server private key.
+     */
     @Column(name = "server_private_key_base64", nullable = false)
     private String serverPrivateKeyBase64;
 
+    /**
+     * Base64 encoded server public key
+     */
     @Column(name = "server_public_key_base64", nullable = false)
     private String serverPublicKeyBase64;
 
+    /**
+     * Base64 encoded device public key
+     */
     @Column(name = "device_public_key_base64")
     private String devicePublicKeyBase64;
 
+    /**
+     * Counter value.
+     */
     @Column(name = "counter", nullable = false)
     private Long counter;
 
+    /**
+     * Base64 encoded counter data.
+     */
     @Column(name = "ctr_data")
     private String ctrDataBase64;
 
+    /**
+     * Current number of failed attempts.
+     */
     @Column(name = "failed_attempts", nullable = false)
     private Long failedAttempts;
 
+    /**
+     * Maximum allowed number of failed attempts.
+     */
     @Column(name = "max_failed_attempts", nullable = false)
     private Long maxFailedAttempts;
 
+    /**
+     * Created timestamp.
+     */
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
+    /**
+     * Timestamp of activation completion expiration - application must turn
+     *  from CREATED to ACTIVE state before this moment, or else it will turn REMOVED
+     *  on next access.
+     */
     @Column(name = "timestamp_activation_expire", nullable = false)
     private Date timestampActivationExpire;
 
+    /**
+     * Timestamp of the last signature calculation.
+     */
     @Column(name = "timestamp_last_used", nullable = false)
     private Date timestampLastUsed;
 
+    /**
+     * Timestamp of the last activation status change.
+     */
     @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
 
+    /**
+     * Activation status.
+     */
     @Column(name = "activation_status", nullable = false)
     @Convert(converter = ActivationStatusConverter.class)
     private ActivationStatus activationStatus;
 
+    /**
+     * Reason why activation is blocked.
+     */
     @Column(name = "blocked_reason")
     private String blockedReason;
 
+    /**
+     * Mode of server private key encryption {@code (0 = NO_ENCRYPTION, 1 = AES_HMAC)}.
+     */
     @Column(name = "server_private_key_encryption", nullable = false)
     @Enumerated
     private EncryptionMode serverPrivateKeyEncryption;
 
+    /**
+     * PowerAuth protocol major version for activation.
+     */
     // Version must be nullable, it is not known yet during init activation step
     @Column(name = "version")
     private Integer version;
 
+    /**
+     * Associated application instance. Each activation is strongly associated with a single application.
+     */
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false)
     private ApplicationEntity application;
 
+    /**
+     * Associated master key pair.
+     * While master key pair is associated with an application by default, it must also be associated with an activation when a new activation is
+     * created so that it is strongly bound with the activation.
+     */
     @ManyToOne
     @JoinColumn(name = "master_keypair_id", referencedColumnName = "id", nullable = false)
     private MasterKeyPairEntity masterKeyPair;
 
+    /**
+     * Activation history.
+     */
     @OneToMany(mappedBy = "activation", cascade = CascadeType.ALL)
     @OrderBy("timestampCreated")
     private final List<ActivationHistoryEntity> activationHistory = new ArrayList<>();
-
-    /**
-     * No-arg constructor.
-     */
-    public ActivationRecordEntity() {
-    }
-
-    /**
-     * Get activation ID.
-     *
-     * @return Activation ID.
-     */
-    public String getActivationId() {
-        return activationId;
-    }
-
-    /**
-     * Set activation ID.
-     *
-     * @param activationId Activation ID.
-     */
-    public void setActivationId(String activationId) {
-        this.activationId = activationId;
-    }
-
-    /**
-     * Get activation code.
-     *
-     * @return Activation code.
-     */
-    public String getActivationCode() {
-        return activationCode;
-    }
-
-    /**
-     * Set activation code.
-     *
-     * @param activationCode Activation code.
-     */
-    public void setActivationCode(String activationCode) {
-        this.activationCode = activationCode;
-    }
-
-    /**
-     * Get activation OTP validation.
-     *
-     * @return Activation OTP validation.
-     */
-    public ActivationOtpValidation getActivationOtpValidation() {
-        return activationOtpValidation;
-    }
-
-    /**
-     * Set activation OTP validation.
-     *
-     * @param activationOtpValidation Activation OTP validation.
-     */
-    public void setActivationOtpValidation(ActivationOtpValidation activationOtpValidation) {
-        this.activationOtpValidation = activationOtpValidation;
-    }
-
-    /**
-     * Get activation OTP.
-     *
-     * @return Activation OTP.
-     */
-    public String getActivationOtp() {
-        return activationOtp;
-    }
-
-    /**
-     * Set activation OTP.
-     *
-     * @param activationOtp Activation OTP.
-     */
-    public void setActivationOtp(String activationOtp) {
-        this.activationOtp = activationOtp;
-    }
-
-    /**
-     * Get external ID.
-     *
-     * @return External ID.
-     */
-    public String getExternalId() {
-        return externalId;
-    }
-
-    /**
-     * Set external ID.
-     *
-     * @param externalId External ID.
-     */
-    public void setExternalId(String externalId) {
-        this.externalId = externalId;
-    }
-
-    /**
-     * Get user ID
-     *
-     * @return User ID
-     */
-    public String getUserId() {
-        return userId;
-    }
-
-    /**
-     * Set user ID
-     *
-     * @param userId User ID
-     */
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    /**
-     * Get activation name
-     *
-     * @return Activation name
-     */
-    public String getActivationName() {
-        return activationName;
-    }
-
-    /**
-     * Set activation name
-     *
-     * @param activationName Activation name
-     */
-    public void setActivationName(String activationName) {
-        this.activationName = activationName;
-    }
-
-    /**
-     * Get extra parameter
-     *
-     * @return Extra parameter
-     */
-    public String getExtras() {
-        return extras;
-    }
-
-    /**
-     * Set extra parameter
-     *
-     * @param extras Extra parameter
-     */
-    public void setExtras(String extras) {
-        this.extras = extras;
-    }
-
-    /**
-     * Get protocol.
-     *
-     * @return Protocol.
-     */
-    public String getProtocol() {
-        return protocol;
-    }
-
-    /**
-     * Set protocol.
-     *
-     * @param protocol protocol.
-     */
-    public void setProtocol(String protocol) {
-        this.protocol = protocol;
-    }
-
-    /**
-     * Get user device platform.
-     * @return User device platform.
-     */
-    public String getPlatform() {
-        return platform;
-    }
-
-    /**
-     * Set user device platform.
-     * @param platform User device platform.
-     */
-    public void setPlatform(String platform) {
-        this.platform = platform;
-    }
-
-    /**
-     * Get user device information.
-     * @return User device information.
-     */
-    public String getDeviceInfo() {
-        return deviceInfo;
-    }
-
-    /**
-     * Set user device information.
-     * @param deviceInfo User device information.
-     */
-    public void setDeviceInfo(String deviceInfo) {
-        this.deviceInfo = deviceInfo;
-    }
-
-    /**
-     * Get activation flags.
-     * @return Activation flags.
-     */
-    public List<String> getFlags() {
-        return flags;
-    }
-
-    /**
-     * Get Base64 encoded server private key
-     *
-     * @return Base64 encoded server private key
-     */
-    public String getServerPrivateKeyBase64() {
-        return serverPrivateKeyBase64;
-    }
-
-    /**
-     * Set Base64 encoded server private key.
-     *
-     * @param serverPrivateKeyBase64 Base64 encoded server private key.
-     */
-    public void setServerPrivateKeyBase64(String serverPrivateKeyBase64) {
-        this.serverPrivateKeyBase64 = serverPrivateKeyBase64;
-    }
-
-    /**
-     * Get Base64 encoded server public key
-     *
-     * @return Base64 encoded server public key
-     */
-    public String getServerPublicKeyBase64() {
-        return serverPublicKeyBase64;
-    }
-
-    /**
-     * Set Base64 encoded server public key
-     *
-     * @param serverPublicKeyBase64 Base64 encoded server public key
-     */
-    public void setServerPublicKeyBase64(String serverPublicKeyBase64) {
-        this.serverPublicKeyBase64 = serverPublicKeyBase64;
-    }
-
-    /**
-     * Get Base64 encoded device public key
-     *
-     * @return Base64 encoded device public key
-     */
-    public String getDevicePublicKeyBase64() {
-        return devicePublicKeyBase64;
-    }
-
-    /**
-     * Set Base64 encoded device public key
-     *
-     * @param devicePublicKeyBase64 Base64 encoded device public key
-     */
-    public void setDevicePublicKeyBase64(String devicePublicKeyBase64) {
-        this.devicePublicKeyBase64 = devicePublicKeyBase64;
-    }
-
-    /**
-     * Get counter value
-     *
-     * @return Counter
-     */
-    public Long getCounter() {
-        return counter;
-    }
-
-    /**
-     * Set counter value
-     *
-     * @param counter Counter
-     */
-    public void setCounter(Long counter) {
-        this.counter = counter;
-    }
-
-    /**
-     * Get Base64 encoded counter data.
-     *
-     * @return Counter data.
-     */
-    public String getCtrDataBase64() {
-        return ctrDataBase64;
-    }
-
-    /**
-     * Set Base64 encoded counter data.
-     *
-     * @param ctrDataBase64 Counter data.
-     */
-    public void setCtrDataBase64(String ctrDataBase64) {
-        this.ctrDataBase64 = ctrDataBase64;
-    }
-
-    /**
-     * Get current number of failed attempts
-     *
-     * @return Failed attempts
-     */
-    public Long getFailedAttempts() {
-        return failedAttempts;
-    }
-
-    /**
-     * Set current number of failed attempts
-     *
-     * @param failedAttempts Failed attempts
-     */
-    public void setFailedAttempts(Long failedAttempts) {
-        this.failedAttempts = failedAttempts;
-    }
-
-    /**
-     * Get maximum allowed number of failed attempts
-     *
-     * @return Max. amount of allowed failed attempts
-     */
-    public Long getMaxFailedAttempts() {
-        return maxFailedAttempts;
-    }
-
-    /**
-     * Set maximum allowed number of failed attempts
-     *
-     * @param maxFailedAttempts Max. amount of allowed failed attempts
-     */
-    public void setMaxFailedAttempts(Long maxFailedAttempts) {
-        this.maxFailedAttempts = maxFailedAttempts;
-    }
-
-    /**
-     * Get created timestamp
-     *
-     * @return Created timestamp
-     */
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    /**
-     * Set created timestamp
-     *
-     * @param timestampCreated Created timestamp
-     */
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
-
-    /**
-     * Get timestamp of activation completion expiration - application must turn
-     * from CREATED to ACTIVE state before this moment, or else it will turn REMOVED
-     * on next access.
-     *
-     * @return Timestamp of activation completion expiration.
-     */
-    public Date getTimestampActivationExpire() {
-        return timestampActivationExpire;
-    }
-
-    /**
-     * Set timestamp of activation completion expiration - application must turn
-     * from CREATED to ACTIVE state before this moment, or else it will turn REMOVED
-     * on next access.
-     *
-     * @param timestampActivationExpire Timestamp of activation completion expiration.
-     */
-    public void setTimestampActivationExpire(Date timestampActivationExpire) {
-        this.timestampActivationExpire = timestampActivationExpire;
-    }
-
-    /**
-     * Get timestamp of the last signature calculation
-     *
-     * @return Timestamp of the last signature calculation
-     */
-    public Date getTimestampLastUsed() {
-        return timestampLastUsed;
-    }
-
-    /**
-     * Set timestamp of the last signature calculation
-     *
-     * @param timestampLastUsed timestamp of the last signature calculation
-     */
-    public void setTimestampLastUsed(Date timestampLastUsed) {
-        this.timestampLastUsed = timestampLastUsed;
-    }
-
-    /**
-     * Get timestamp of the last activation status change
-     * @return Timestamp of the last activation status change
-     */
-    public Date getTimestampLastChange() {
-        return timestampLastChange;
-    }
-
-    /**
-     * Set timestamp of the last activation status change
-     * @param timestampLastChange Timestamp of the last activation status change
-     */
-    public void setTimestampLastChange(Date timestampLastChange) {
-        this.timestampLastChange = timestampLastChange;
-    }
-
-    /**
-     * Get activation status.
-     *
-     * @return Activation status, value of {@link ActivationStatus}
-     */
-    public ActivationStatus getActivationStatus() {
-        return activationStatus;
-    }
-
-    /**
-     * Set activation status.
-     *
-     * @param activationStatus Activation status, value of {@link ActivationStatus}
-     */
-    public void setActivationStatus(ActivationStatus activationStatus) {
-        this.activationStatus = activationStatus;
-    }
-
-    /**
-     * Get reason why activation is blocked.
-     * @return Reason why activation is blocked.
-     */
-    public String getBlockedReason() {
-        return blockedReason;
-    }
-
-    /**
-     * Set reason why activation is blocked.
-     * @param blockedReason Reason why activation is blocked.
-     */
-    public void setBlockedReason(String blockedReason) {
-        this.blockedReason = blockedReason;
-    }
-
-    /**
-     * Get mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
-     * @return Mode of server private key encryption.
-     */
-    public EncryptionMode getServerPrivateKeyEncryption() {
-        return serverPrivateKeyEncryption;
-    }
-
-    /**
-     * Set mode of server private key encryption (0 = NO_ENCRYPTION, 1 = AES_HMAC).
-     * @param serverPrivateKeyEncryption Mode of server private key encryption.
-     */
-    public void setServerPrivateKeyEncryption(EncryptionMode serverPrivateKeyEncryption) {
-        this.serverPrivateKeyEncryption = serverPrivateKeyEncryption;
-    }
-
-    /**
-     * Get PowerAuth protocol major version for activation.
-     * @return PowerAuth protocol major version.
-     */
-    public Integer getVersion() {
-        return version;
-    }
-
-    /**
-     * Set PowerAuth protocol major version for activation.
-     * @param version PowerAuth protocol major version.
-     */
-    public void setVersion(Integer version) {
-        this.version = version;
-    }
-
-    /**
-     * Get associated application instance. Each activation is strongly associated with
-     * a single application.
-     *
-     * @return Associated application, instance of {@link ApplicationEntity}
-     */
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    /**
-     * Set associated application instance. Each activation is strongly associated with
-     * a single application.
-     *
-     * @param application Associated application, instance of {@link ApplicationEntity}
-     */
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
-
-    /**
-     * Get associated master key pair. While master key pair is associated with an application
-     * by default, it must also be associated with an activation when a new activation is
-     * created so that it is strongly bound with the activation.
-     *
-     * @return Master Key Pair.
-     */
-    public MasterKeyPairEntity getMasterKeyPair() {
-        return masterKeyPair;
-    }
-
-    /**
-     * Set associated master key pair. While master key pair is associated with an application
-     * by default, it must also be associated with an activation when a new activation is
-     * created so that it is strongly bound with the activation.
-     *
-     * @param masterKeyPair Master Key Pair.
-     */
-    public void setMasterKeyPair(MasterKeyPairEntity masterKeyPair) {
-        this.masterKeyPair = masterKeyPair;
-    }
-
-    /**
-     * Get activation history.
-     * @return Activation history.
-     */
-    public List<ActivationHistoryEntity> getActivationHistory() {
-        return activationHistory;
-    }
 
     @Override
     public int hashCode() {

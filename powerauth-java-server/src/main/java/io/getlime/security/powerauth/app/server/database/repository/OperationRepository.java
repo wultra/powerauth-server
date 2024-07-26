@@ -22,9 +22,9 @@ package io.getlime.security.powerauth.app.server.database.repository;
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.Date;
@@ -39,14 +39,14 @@ import java.util.stream.Stream;
  * @implSpec Oracle does not support {@code DISTINCT} on {@code CLOB} so subselects have to be used.
  */
 @Repository
-public interface OperationRepository extends CrudRepository<OperationEntity, String> {
+public interface OperationRepository extends JpaRepository<OperationEntity, String> {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
     Optional<OperationEntity> findOperationWithLock(String operationId);
 
     @Query("SELECT o FROM OperationEntity o WHERE o.id = :operationId")
-    Optional<OperationEntity> findOperation(String operationId);
+    Optional<OperationEntity> findOperationWithoutLock(String operationId);
 
     @Query("""
             SELECT o FROM OperationEntity o WHERE o.id IN (SELECT o.id FROM OperationEntity o INNER JOIN o.applications a
@@ -81,8 +81,7 @@ public interface OperationRepository extends CrudRepository<OperationEntity, Str
             SELECT o FROM OperationEntity o 
             WHERE o.timestampExpires < :timestamp
             AND o.status = io.getlime.security.powerauth.app.server.database.model.enumeration.OperationStatusDo.PENDING
-            ORDER BY o.timestampCreated
             """)
-    Stream<OperationEntity> findExpiredPendingOperations(Date timestamp);
+    Stream<OperationEntity> findExpiredPendingOperations(Date timestamp, Pageable pageable);
 
 }

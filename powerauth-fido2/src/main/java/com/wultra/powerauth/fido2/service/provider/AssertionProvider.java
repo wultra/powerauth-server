@@ -21,9 +21,9 @@ package com.wultra.powerauth.fido2.service.provider;
 import com.wultra.powerauth.fido2.errorhandling.Fido2AuthenticationFailedException;
 import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
 import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorData;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
 import com.wultra.powerauth.fido2.rest.model.entity.CollectedClientData;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 
 /**
  * Interface with methods responsible for assertion verification.

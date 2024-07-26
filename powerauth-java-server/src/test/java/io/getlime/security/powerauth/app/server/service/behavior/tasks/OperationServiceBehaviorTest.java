@@ -27,7 +27,6 @@ import com.wultra.security.powerauth.client.model.response.OperationUserActionRe
 import io.getlime.security.powerauth.app.server.database.model.entity.OperationEntity;
 import io.getlime.security.powerauth.app.server.database.repository.OperationRepository;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
-import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,7 +41,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test for {@link OperationServiceBehavior}.
@@ -56,7 +54,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 class OperationServiceBehaviorTest {
 
     private static final String APP_ID = UUID.randomUUID().toString();
-    private static final String TEMPLATE_NAME = "login_" + UUID.randomUUID().toString();
+    private static final String TEMPLATE_NAME = "login_" + UUID.randomUUID();
+
+    // values defined in OperationServiceBehaviorTest.sql
+    private static final String ACTIVATION_ID = "68c5ca56-b419-4653-949f-49061a4be886";
+    private static final String USER_ID = "testUser";
 
     private final OperationServiceBehavior operationService;
     private final OperationTemplateServiceBehavior templateService;
@@ -78,16 +80,91 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation is correctly created and stored with the provided activation ID.
      */
     @Test
-    void testCreateOperationWithActivationId() throws GenericServiceException {
+    void testCreateOperationWithActivationId() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
+        request.setActivationId(ACTIVATION_ID);
+        request.setApplications(List.of(APP_ID));
         request.setTemplateName("test-template");
+        request.setUserId(USER_ID);
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId());
+
+        assertTrue(savedEntity.isPresent());
+        assertEquals(ACTIVATION_ID, savedEntity.get().getActivationId());
+        assertNull(operationDetailResponse.getProximityOtp());
+        assertEquals(USER_ID, savedEntity.get().getUserId());
+    }
+
+    @Test
+    void testCreateOperationWithoutActivationIdAndExplicitProximityCheck() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+        request.setProximityCheckEnabled(true);
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        assertNotNull(operationDetailResponse.getProximityOtp());
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationDetailResponse.getId());
+
+        final OperationDetailResponse operationDetail = operationService.operationDetail(detailRequest);
+        assertNotNull(operationDetail);
+        assertNotNull(operationDetail.getProximityOtp());
+        assertNull(operationDetail.getActivationId());
+        assertEquals("test-user", operationDetail.getUserId());
+    }
+
+    @Test
+    void testCreateOperationWithoutActivationIdAndImplicitProximityCheck() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template-proximity-check");
+        request.setApplications(List.of(APP_ID));
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        assertEquals("testActivationId", savedEntity.getActivationId());
+        assertNotNull(operationDetailResponse.getProximityOtp());
+
+        final OperationDetailRequest detailRequest = new OperationDetailRequest();
+        detailRequest.setOperationId(operationDetailResponse.getId());
+
+        final OperationDetailResponse operationDetail = operationService.operationDetail(detailRequest);
+        assertNotNull(operationDetail);
+        assertNotNull(operationDetail.getProximityOtp());
+        assertNull(operationDetail.getActivationId());
+        assertEquals("test-user", operationDetail.getUserId());
+    }
+
+    @Test
+    void testCreateOperationWithActivationIdButInvalidUser() {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setApplications(List.of(APP_ID));
+        request.setActivationId(ACTIVATION_ID);
+        request.setTemplateName("test-template");
+        request.setUserId("invalid-user"); // different userId from ActivationRecordEntity#userId
+
+        final GenericServiceException thrown = assertThrows(GenericServiceException.class, () ->
+                operationService.createOperation(request));
+        assertEquals("ERR0024", thrown.getCode());
+    }
+
+    @Test
+    void testCreateOperationWithActivationIdButMissingUser() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setApplications(List.of(APP_ID));
+        request.setActivationId(ACTIVATION_ID);
+        request.setTemplateName("test-template");
+        request.setUserId(null); // validating that user ID is missing but filled from activation later on
+
+        final OperationDetailResponse result = operationService.createOperation(request);
+
+        assertNotNull(result.getId());
+        assertEquals(ACTIVATION_ID, result.getActivationId());
+        assertEquals(1, result.getApplications().size());
+        assertEquals(APP_ID, result.getApplications().get(0));
+        assertEquals("testUser", result.getUserId());
     }
 
     /**
@@ -95,15 +172,46 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation is correctly created and stored without an activation ID.
      */
     @Test
-    void testCreateOperationWithoutActivationId() throws GenericServiceException {
+    void testCreateOperationWithoutActivationId() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
+        request.setApplications(List.of(APP_ID));
         request.setUserId("test-user");
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
+        assertEquals("test-user", savedEntity.getUserId());
+    }
+
+    @Test
+    void testCreateOperation_invalidParameterTextCharacters() {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+        // All characters with ASCII code < 32 (except line feed) are forbidden (e.g. \t should not be in the string)
+        request.getParameters().put("TEXT", "foo\thoo");
+
+        assertThrows(GenericServiceException.class, () -> operationService.createOperation(request));
+    }
+
+    @Test
+    void testCreateOperation_escapeTextCharacters() throws Exception {
+        final OperationCreateRequest request = new OperationCreateRequest();
+        request.setTemplateName("test-template-text");
+        request.setApplications(List.of(APP_ID));
+        request.setUserId("test-user");
+        request.getParameters().put("text", """
+                \\foo*hoo
+                new-line""");
+
+        final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
+        final Optional<OperationEntity> savedEntity = operationRepository.findOperationWithLock(operationDetailResponse.getId());
+        assertTrue(savedEntity.isPresent());
+
+        assertEquals("A0*T\\\\foo\\*hoo\\nnew-line", savedEntity.get().getData());
     }
 
     /**
@@ -111,17 +219,17 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation is successfully approved when the provided activation ID matches the stored one.
      */
     @Test
-    void testApproveOperationWithMatchingActivationIdSuccess() throws GenericServiceException {
+    void testApproveOperationWithMatchingActivationIdSuccess() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
+        request.setActivationId(ACTIVATION_ID);
         request.setTemplateName("test-template");
-        request.setUserId("test-user");
+        request.setUserId(USER_ID);
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", savedEntity.getActivationId());
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
+        assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
 
         OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(savedEntity.getId());
@@ -141,15 +249,15 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation is successfully approved even without an activation ID.
      */
     @Test
-    void testApproveOperationEntityWithoutActivationIdSuccess() throws GenericServiceException {
+    void testApproveOperationEntityWithoutActivationIdSuccess() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
         request.setTemplateName("test-template");
         request.setUserId("test-user");
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
         assertNull(savedEntity.getActivationId());
 
         OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
@@ -170,17 +278,17 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation approval fails when the provided activation ID does not match the stored one.
      */
     @Test
-    void testApproveOperationWithoutMatchingActivationIdFailure() throws GenericServiceException {
+    void testApproveOperationWithoutMatchingActivationIdFailure() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
+        request.setActivationId(ACTIVATION_ID);
         request.setTemplateName("test-template");
-        request.setUserId("test-user");
+        request.setUserId(USER_ID);
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", savedEntity.getActivationId());
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
+        assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
 
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
         operationApproveRequest.setOperationId(savedEntity.getId());
@@ -191,8 +299,8 @@ class OperationServiceBehaviorTest {
         operationApproveRequest.setData("A2");
 
         final OperationUserActionResponse operationUserActionResponse = operationService.attemptApproveOperation(operationApproveRequest);
-        final OperationEntity updatedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", savedEntity.getActivationId());
+        final OperationEntity updatedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
+        assertEquals(ACTIVATION_ID, savedEntity.getActivationId());
         assertNotNull(operationUserActionResponse);
         assertEquals(UserActionResult.APPROVAL_FAILED, operationUserActionResponse.getResult());
         assertEquals(1, updatedEntity.getFailureCount());
@@ -203,17 +311,17 @@ class OperationServiceBehaviorTest {
      * Verifies that the operation fails completely when the provided activation ID does not match and maximum failure attempts are reached.
      */
     @Test
-    void testApproveOperationWithoutMatchingActivationIdFailureMax() throws GenericServiceException {
+    void testApproveOperationWithoutMatchingActivationIdFailureMax() throws Exception {
         final OperationCreateRequest request = new OperationCreateRequest();
-        request.setActivationId("testActivationId");
+        request.setActivationId(ACTIVATION_ID);
         request.setTemplateName("test-template");
-        request.setUserId("test-user");
+        request.setUserId(USER_ID);
         request.setApplications(Collections.singletonList(APP_ID));
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity entity = operationRepository.findOperation(operationDetailResponse.getId()).get();
-        assertEquals("testActivationId", entity.getActivationId());
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity entity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
+        assertEquals(ACTIVATION_ID, entity.getActivationId());
         entity.setFailureCount(4L);
 
         final OperationApproveRequest operationApproveRequest = new OperationApproveRequest();
@@ -234,21 +342,28 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindAllOperationsForUserWithFilters() throws Exception {
-        final String userId = "testUser";
         final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
         final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId1);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
         final OperationListResponse operationListResponse1 = operationService.findAllOperationsForUser(request1);
 
         assertNotNull(operationListResponse1);
         assertEquals(2, operationListResponse1.size());
 
-        final OperationServiceBehavior.OperationListRequest request2 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId2, pageable);
+        final OperationListForUserRequest request2 = new OperationListForUserRequest();
+        request2.setUserId(USER_ID);
+        request2.setApplications(applicationIds);
+        request2.setActivationId(activationId2);
+        request2.setPageNumber(pageable.getPageNumber());
+        request2.setPageSize(pageable.getPageSize());
         final OperationListResponse operationListResponse2 = operationService.findAllOperationsForUser(request2);
 
         assertNotNull(operationListResponse2);
@@ -260,13 +375,16 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindAllOperationsForUserWithoutFilters() throws Exception {
-        final String userId = "testUser";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+
+        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request1);
 
         assertNotNull(operationListResponse);
         assertEquals(7, operationListResponse.size());
@@ -277,12 +395,14 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindAllOperationsForUserPageable() throws Exception {
-        final String userId = "testUser";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable1 = PageRequest.of(0, 2);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable1);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable1.getPageNumber());
+        request1.setPageSize(pageable1.getPageSize());
         final OperationListResponse operationListResponse1 = operationService.findAllOperationsForUser(request1);
 
         assertNotNull(operationListResponse1);
@@ -290,8 +410,12 @@ class OperationServiceBehaviorTest {
 
         final Pageable pageable2 = PageRequest.of(1, 2);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable2);
+        final OperationListForUserRequest request = new OperationListForUserRequest();
+        request.setUserId(USER_ID);
+        request.setApplications(applicationIds);
+        request.setPageNumber(pageable2.getPageNumber());
+        request.setPageSize(pageable2.getPageSize());
+
         final OperationListResponse operationListResponse2 = operationService.findAllOperationsForUser(request);
 
         assertNotNull(operationListResponse2);
@@ -307,13 +431,15 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindAllOperationsForUserSorting() throws Exception {
-        final String userId = "testUser";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 2);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findAllOperationsForUser(request1);
 
         assertTrue(operationListResponse.get(0).getTimestampCreated().after(operationListResponse.get(1).getTimestampCreated()));
         final Calendar calendar = Calendar.getInstance();
@@ -326,16 +452,19 @@ class OperationServiceBehaviorTest {
      * Tests the scenario when an application does not exist in the database.
      */
     @Test
-    void testFindAllOperationsForUserApplicationNotExisting() throws Exception {
-        final String userId = "testUser";
+    void testFindAllOperationsForUserApplicationNotExisting() {
         final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
         final List<String> applicationIds = List.of("NOT_EXISTING");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId1);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
 
-        assertThrows(GenericServiceException.class, () -> operationService.findAllOperationsForUser(request));
+        assertThrows(GenericServiceException.class, () -> operationService.findAllOperationsForUser(request1));
     }
 
     /**
@@ -343,18 +472,20 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindAPendingOperationsForUserWithFilters() throws Exception {
-        final String userId = "testUser";
-        final String activationId1 = "e43a5dec-afea-4a10-a80b-b2183399f16b";
-        final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
+        final String activationId = "e43a5dec-afea-4a10-a80b-b2183399f16b";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
-        final OperationListResponse operationListResponse1 = operationService.findPendingOperationsForUser(request1);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
-        assertNotNull(operationListResponse1);
-        assertEquals(0, operationListResponse1.size());
+        assertNotNull(operationListResponse);
+        assertEquals(0, operationListResponse.size());
     }
 
     /**
@@ -362,13 +493,15 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindPendingOperationsForUserWithoutFilters() throws Exception {
-        final String userId = "testUser";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse);
         assertEquals(2, operationListResponse.size());
@@ -379,12 +512,14 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindPendingOperationsForUserPageable() throws Exception {
-        final String userId = "testUser";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable1 = PageRequest.of(0, 1);
 
-        final OperationServiceBehavior.OperationListRequest request1 =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable1);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable1.getPageNumber());
+        request1.setPageSize(pageable1.getPageSize());
         final OperationListResponse operationListResponse1 = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse1);
@@ -392,8 +527,11 @@ class OperationServiceBehaviorTest {
 
         final Pageable pageable2 = PageRequest.of(1, 1);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable2);
+        final OperationListForUserRequest request = new OperationListForUserRequest();
+        request.setUserId(USER_ID);
+        request.setApplications(applicationIds);
+        request.setPageNumber(pageable2.getPageNumber());
+        request.setPageSize(pageable2.getPageSize());
         final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request);
 
         assertNotNull(operationListResponse2);
@@ -409,13 +547,15 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindPendingOperationsForUserSorting() throws Exception {
-        final String userId = "testUser";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 2);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, null, pageable);
-        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
+        final OperationListResponse operationListResponse = operationService.findPendingOperationsForUser(request1);
 
         assertTrue(operationListResponse.get(0).getTimestampCreated().after(operationListResponse.get(1).getTimestampCreated()));
         final Calendar calendar = Calendar.getInstance();
@@ -429,15 +569,18 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindPendingOperationsForUserApplicationNotExisting() throws Exception {
-        final String userId = "testUser";
         final String activationId1 = "68c5ca56-b419-4653-949f-49061a4be886";
         final List<String> applicationIds = List.of("NOT_EXISTING");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId1, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId1);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
 
-        assertThrows(GenericServiceException.class, () -> operationService.findPendingOperationsForUser(request));
+        assertThrows(GenericServiceException.class, () -> operationService.findPendingOperationsForUser(request1));
     }
 
     /**
@@ -445,15 +588,18 @@ class OperationServiceBehaviorTest {
      */
     @Test
     void testFindPendingOperationsForUserExpiredOperation() throws Exception {
-        final String userId = "testUser";
         final String activationId2 = "68c5ca56-b419-4653-949f-49061a4be886";
         final List<String> applicationIds = List.of("PA_Tests");
         final Pageable pageable = PageRequest.of(0, 10);
 
-        final OperationServiceBehavior.OperationListRequest request =
-                new OperationServiceBehavior.OperationListRequest(userId, applicationIds, activationId2, pageable);
+        final OperationListForUserRequest request1 = new OperationListForUserRequest();
+        request1.setUserId(USER_ID);
+        request1.setApplications(applicationIds);
+        request1.setActivationId(activationId2);
+        request1.setPageNumber(pageable.getPageNumber());
+        request1.setPageSize(pageable.getPageSize());
 
-        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request);
+        final OperationListResponse operationListResponse2 = operationService.findPendingOperationsForUser(request1);
 
         assertNotNull(operationListResponse2);
         assertEquals(1, operationListResponse2.size());
@@ -468,7 +614,7 @@ class OperationServiceBehaviorTest {
         detailRequest.setOperationId(operationId);
         detailRequest.setUserId(userId);
         // Check operation claim
-        assertEquals(userId, operationService.getOperation(detailRequest).getUserId());
+        assertEquals(userId, operationService.operationDetail(detailRequest).getUserId());
     }
 
     @Test
@@ -478,7 +624,7 @@ class OperationServiceBehaviorTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operationId);
 
-        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+        final OperationDetailResponse detailResponse = operationService.operationDetail(detailRequest);
         final String totp = detailResponse.getProximityOtp();
         assertNotNull(totp);
 
@@ -497,7 +643,7 @@ class OperationServiceBehaviorTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
 
-        final String totp = operationService.getOperation(detailRequest).getProximityOtp();
+        final String totp = operationService.operationDetail(detailRequest).getProximityOtp();
         assertNotNull(totp);
 
         final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
@@ -547,7 +693,7 @@ class OperationServiceBehaviorTest {
 
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
-        final OperationDetailResponse detailResponse = operationService.getOperation(detailRequest);
+        final OperationDetailResponse detailResponse = operationService.operationDetail(detailRequest);
 
         assertNotNull(detailResponse.getAdditionalData().get("device"));
         assertEquals(expectedDevice, detailResponse.getAdditionalData().get("device"));
@@ -557,7 +703,9 @@ class OperationServiceBehaviorTest {
         boolean appExists = applicationService.getApplicationList().getApplications().stream()
                 .anyMatch(app -> app.getApplicationId().equals(APP_ID));
         if (!appExists) {
-            applicationService.createApplication(APP_ID, new KeyConvertor());
+            final CreateApplicationRequest request = new CreateApplicationRequest();
+            request.setApplicationId(APP_ID);
+            applicationService.createApplication(request);
         }
     }
 

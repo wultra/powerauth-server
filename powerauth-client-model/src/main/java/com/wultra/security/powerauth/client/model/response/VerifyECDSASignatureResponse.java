@@ -18,16 +18,19 @@
 
 package com.wultra.security.powerauth.client.model.response;
 
-import lombok.Data;
+import lombok.*;
+import lombok.extern.jackson.Jacksonized;
 
 /**
  * Model class representing response with ECDSA signature verification results.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Data
+@Builder
+@Getter @ToString @EqualsAndHashCode
+@Jacksonized
 public class VerifyECDSASignatureResponse {
 
-    private boolean signatureValid;
+    private final boolean signatureValid;
 
 }

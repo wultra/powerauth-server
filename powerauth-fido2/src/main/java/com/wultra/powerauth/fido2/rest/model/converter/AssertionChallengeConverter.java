@@ -18,15 +18,21 @@
 
 package com.wultra.powerauth.fido2.rest.model.converter;
 
-import com.wultra.powerauth.fido2.rest.model.entity.AllowCredentials;
-import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
-import com.wultra.powerauth.fido2.rest.model.entity.AuthenticatorDetail;
-import com.wultra.powerauth.fido2.rest.model.entity.Fido2DefaultAuthenticators;
-import com.wultra.powerauth.fido2.rest.model.request.AssertionChallengeRequest;
-import com.wultra.powerauth.fido2.rest.model.response.AssertionChallengeResponse;
+import com.wultra.powerauth.fido2.service.Fido2AuthenticatorService;
+import com.wultra.powerauth.fido2.service.model.Fido2Authenticator;
+import com.wultra.powerauth.fido2.service.model.Fido2DefaultAuthenticators;
 import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
+import com.wultra.security.powerauth.fido2.model.entity.Credential;
+import com.wultra.powerauth.fido2.rest.model.entity.AssertionChallenge;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
+import io.getlime.security.powerauth.crypto.lib.util.ByteUtils;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -36,14 +42,14 @@ import java.util.*;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Component
+@AllArgsConstructor
 @Slf4j
 public class AssertionChallengeConverter {
 
     private static final String ATTR_ALLOW_CREDENTIALS = "allowCredentials";
 
-    private AssertionChallengeConverter() {
-        throw new IllegalStateException("Should not be instantiated");
-    }
+    private final Fido2AuthenticatorService fido2AuthenticatorService;
 
     /**
      * Convert a new assertion challenge response from a provided challenge.
@@ -78,6 +84,7 @@ public class AssertionChallengeConverter {
         destination.setUserId(source.getUserId());
         destination.setApplications(source.getApplicationIds());
         destination.setTemplateName(source.getTemplateName());
+        destination.setExternalId(source.getExternalId());
         destination.getParameters().putAll(source.getParameters());
 
         //TODO: Use relation to activation ID instead of additional data
@@ -98,7 +105,7 @@ public class AssertionChallengeConverter {
      * @param authenticatorDetails Add authenticator details to be assigned with the challenge. If null or empty, all are allowed.
      * @return Assertion challenge
      */
-    public static AssertionChallenge convertAssertionChallengeFromOperationDetail(OperationDetailResponse source, List<AuthenticatorDetail> authenticatorDetails) {
+    public AssertionChallenge convertAssertionChallengeFromOperationDetail(OperationDetailResponse source, List<AuthenticatorDetail> authenticatorDetails) {
         final AssertionChallenge destination = new AssertionChallenge();
         destination.setUserId(source.getUserId());
         destination.setApplicationIds(source.getApplications());
@@ -107,31 +114,29 @@ public class AssertionChallengeConverter {
         destination.setMaxFailedAttempts(source.getMaxFailureCount());
 
         if (authenticatorDetails != null && !authenticatorDetails.isEmpty()) {
-            final List<AllowCredentials> allowCredentials = new ArrayList<>();
-            boolean hasWultraModel = false;
+            final List<Credential> allowCredentials = new ArrayList<>();
             for (AuthenticatorDetail ad: authenticatorDetails) {
 
                 @SuppressWarnings("unchecked")
-                final List<String> transports = (List<String>) ad.getExtras().get("transports");
+                List<String> transports = (List<String>) ad.getExtras().get("transports");
                 final String aaguid = (String) ad.getExtras().get("aaguid");
 
-                final byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
-                if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
-                    hasWultraModel = true;
+                if (CollectionUtils.isEmpty(transports)) {
+                    final Fido2Authenticator model = fido2AuthenticatorService.findByAaguid(UUID.fromString(aaguid));
+                    transports = CollectionUtils.isEmpty(model.transports()) ? Collections.emptyList() : model.transports();
                 }
 
-                final AllowCredentials ac = AllowCredentials.builder()
+                byte[] credentialId = Base64.getDecoder().decode(ad.getCredentialId());
+                if (aaguid != null && Fido2DefaultAuthenticators.isWultraModel(aaguid)) {
+                    final byte[] operationDataBytes = source.getData().getBytes(StandardCharsets.UTF_8);
+                    credentialId = ByteUtils.concat(credentialId, operationDataBytes);
+                }
+
+                final Credential credential = Credential.builder()
                         .credentialId(credentialId)
                         .transports(transports)
                         .build();
-                allowCredentials.add(ac);
-            }
-            if (hasWultraModel) {
-                final byte[] credentialId = source.getData().getBytes(StandardCharsets.UTF_8);
-                final AllowCredentials ac = AllowCredentials.builder()
-                        .credentialId(credentialId)
-                        .build();
-                allowCredentials.add(ac);
+                allowCredentials.add(credential);
             }
             destination.setAllowCredentials(allowCredentials);
         }

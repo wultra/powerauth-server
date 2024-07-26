@@ -28,7 +28,7 @@
     <parent>
         <groupId>io.getlime.security</groupId>
         <artifactId>powerauth-server-parent</artifactId>
-        <version>1.7.0</version>
+        <version>1.8.0</version>
     </parent>
 
     <dependencies>
@@ -36,6 +36,10 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-client-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-fido2-model</artifactId>
         </dependency>
         <dependency>
             <groupId>io.getlime.core</groupId>

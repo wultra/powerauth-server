@@ -18,7 +18,7 @@
 package io.getlime.security.powerauth.app.server;
 
 import com.wultra.security.powerauth.client.model.request.CreateApplicationRequest;
-import io.getlime.security.powerauth.app.server.service.PowerAuthService;
+import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +39,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @ActiveProfiles("test")
 class CreateApplicationTest {
 
-    private PowerAuthService powerAuthService;
+    private ApplicationServiceBehavior applicationServiceBehavior;
 
     @Autowired
-    public void setPowerAuthService(PowerAuthService powerAuthService) {
-        this.powerAuthService = powerAuthService;
+    public void setPowerAuthService(ApplicationServiceBehavior applicationServiceBehavior) {
+        this.applicationServiceBehavior = applicationServiceBehavior;
     }
 
     @Test
@@ -51,8 +51,8 @@ class CreateApplicationTest {
         String testId = UUID.randomUUID().toString();
         CreateApplicationRequest request = new CreateApplicationRequest();
         request.setApplicationId(testId);
-        assertDoesNotThrow(() -> powerAuthService.createApplication(request));
-        assertThrows(GenericServiceException.class, () -> powerAuthService.createApplication(request));
+        assertDoesNotThrow(() -> applicationServiceBehavior.createApplication(request));
+        assertThrows(GenericServiceException.class, () -> applicationServiceBehavior.createApplication(request));
     }
 
 }

@@ -20,6 +20,8 @@ package io.getlime.security.powerauth.app.server.database.model.entity;
 import io.getlime.security.powerauth.app.server.database.model.converter.RecoveryCodeStatusConverter;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.RecoveryCodeStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -35,121 +37,89 @@ import java.util.Objects;
  */
 @Entity
 @Table(name = "pa_recovery_code")
+@Getter @Setter
 public class RecoveryCodeEntity implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 3356659945010116930L;
 
+    /**
+     * Recovery code entity ID.
+     */
     @Id
     @SequenceGenerator(name = "pa_recovery_code", sequenceName = "pa_recovery_code_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.AUTO, generator = "pa_recovery_code")
     @Column(name = "id")
     private Long id;
 
+    /**
+     * Recovery code.
+     */
     @Column(name = "recovery_code", nullable = false, updatable = false)
     private String recoveryCode;
 
+    /**
+     * Application.
+     */
     @ManyToOne
     @JoinColumn(name = "application_id", referencedColumnName = "id", nullable = false, updatable = false)
     private ApplicationEntity application;
 
+    /**
+     * User ID.
+     */
     @Column(name = "user_id", nullable = false, updatable = false)
     private String userId;
 
+    /**
+     * Activation ID.
+     */
     @Column(name = "activation_id")
     private String activationId;
 
+    /**
+     * Recovery code status.
+     */
     @Column(name = "status", nullable = false)
     @Convert(converter = RecoveryCodeStatusConverter.class)
     private RecoveryCodeStatus status;
 
+    /**
+     * Failed attempts.
+     */
     @Column(name = "failed_attempts", nullable = false)
     private Long failedAttempts;
 
+    /**
+     * Maximum failed attempts.
+     */
     @Column(name = "max_failed_attempts", nullable = false)
     private Long maxFailedAttempts;
 
+    /**
+     * Timestamp when recovery code was created.
+     */
     @Column(name = "timestamp_created", nullable = false)
     private Date timestampCreated;
 
+    /**
+     * Timestamp when recovery code was used last time.
+     */
     @Column(name = "timestamp_last_used")
     private Date timestampLastUsed;
 
+    /**
+     * Timestamp when recovery code status changed last time.
+     */
     @Column(name = "timestamp_last_change")
     private Date timestampLastChange;
 
+    /**
+     * Recovery PUKs.
+     */
     @OneToMany(mappedBy = "recoveryCode", cascade = CascadeType.ALL)
     @OrderBy("pukIndex")
     private final List<RecoveryPukEntity> recoveryPuks = new ArrayList<>();
-
-    /**
-     * No-arg constructor.
-     */
-    public RecoveryCodeEntity() {
-    }
-
-    /**
-     * Constructor with all parameters.
-     *
-     * @param id Recovery code ID.
-     * @param recoveryCode Recovery code.
-     * @param application Application.
-     * @param userId User ID.
-     * @param activationId Activation ID.
-     * @param status Recovery code status.
-     * @param failedAttempts Failed attempts.
-     * @param maxFailedAttempts Maximum failed attempts.
-     * @param timestampCreated Created timestamp.
-     * @param timestampLastUsed Last usage timestamp.
-     * @param timestampLastChange Last change timestamp.
-     */
-    public RecoveryCodeEntity(Long id,
-                              String recoveryCode,
-                              ApplicationEntity application,
-                              String userId,
-                              String activationId,
-                              RecoveryCodeStatus status,
-                              Long failedAttempts,
-                              Long maxFailedAttempts,
-                              Date timestampCreated,
-                              Date timestampLastUsed,
-                              Date timestampLastChange) {
-        this.id = id;
-        this.recoveryCode = recoveryCode;
-        this.application = application;
-        this.userId = userId;
-        this.activationId = activationId;
-        this.status = status;
-        this.failedAttempts = failedAttempts;
-        this.maxFailedAttempts = maxFailedAttempts;
-        this.timestampCreated = timestampCreated;
-        this.timestampLastUsed = timestampLastUsed;
-        this.timestampLastChange = timestampLastChange;
-    }
-
-    /**
-     * Get recovery code entity ID.
-     * @return Recovery code entity ID.
-     */
-    public Long getId() {
-        return id;
-    }
-
-    /**
-     * Set recovery code entity ID.
-     * @param id Recovery code entity ID.
-     */
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    /**
-     * Get recovery code.
-     * @return Recovery code.
-     */
-    public String getRecoveryCode() {
-        return recoveryCode;
-    }
 
     /**
      * Get masked recovery code.
@@ -160,166 +130,6 @@ public class RecoveryCodeEntity implements Serializable {
             return "";
         }
         return "XXXXX-XXXXX-XXXXX-" + recoveryCode.substring(18);
-    }
-
-    /**
-     * Set recovery code.
-     * @param recoveryCode Recovery code.
-     */
-    public void setRecoveryCode(String recoveryCode) {
-        this.recoveryCode = recoveryCode;
-    }
-
-    /**
-     * Get application.
-     * @return Application.
-     */
-    public ApplicationEntity getApplication() {
-        return application;
-    }
-
-    /**
-     * Set application.
-     * @param application Application.
-     */
-    public void setApplication(ApplicationEntity application) {
-        this.application = application;
-    }
-
-    /**
-     * Get user ID.
-     * @return User ID.
-     */
-    public String getUserId() {
-        return userId;
-    }
-
-    /**
-     * Set user ID.
-     * @param userId User ID.
-     */
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    /**
-     * Get activation ID.
-     * @return Activation ID.
-     */
-    public String getActivationId() {
-        return activationId;
-    }
-
-    /**
-     * Set activation ID.
-     * @param activationId Activation ID.
-     */
-    public void setActivationId(String activationId) {
-        this.activationId = activationId;
-    }
-
-    /**
-     * Get recovery code status.
-     * @return Recovery code status.
-     */
-    public RecoveryCodeStatus getStatus() {
-        return status;
-    }
-
-    /**
-     * Set recovery code status.
-     * @param status Recovery code status.
-     */
-    public void setStatus(RecoveryCodeStatus status) {
-        this.status = status;
-    }
-
-    /**
-     * Get failed attempts.
-     * @return Failed attempts.
-     */
-    public Long getFailedAttempts() {
-        return failedAttempts;
-    }
-
-    /**
-     * Set failed attempts.
-     * @param failedAttempts Failed attempts.
-     */
-    public void setFailedAttempts(Long failedAttempts) {
-        this.failedAttempts = failedAttempts;
-    }
-
-    /**
-     * Get maximum failed attempts.
-     * @return Maximum failed attempts.
-     */
-    public Long getMaxFailedAttempts() {
-        return maxFailedAttempts;
-    }
-
-    /**
-     * Set maximum failed attempts.
-     * @param maxFailedAttempts Maximum failed attempts.
-     */
-    public void setMaxFailedAttempts(Long maxFailedAttempts) {
-        this.maxFailedAttempts = maxFailedAttempts;
-    }
-
-    /**
-     * Get timestamp when recovery code was created.
-     * @return Timestamp when recovery code was created.
-     */
-    public Date getTimestampCreated() {
-        return timestampCreated;
-    }
-
-    /**
-     * Set timestamp when recovery code was created.
-     * @param timestampCreated Timestamp when recovery code was created.
-     */
-    public void setTimestampCreated(Date timestampCreated) {
-        this.timestampCreated = timestampCreated;
-    }
-
-    /**
-     * Get timestamp when recovery code was used last time.
-     * @return Timestamp when recovery code was used last time.
-     */
-    public Date getTimestampLastUsed() {
-        return timestampLastUsed;
-    }
-
-    /**
-     * Set timestamp when recovery code was used last time.
-     * @param timestampLastUsed Timestamp when recovery code was used last time.
-     */
-    public void setTimestampLastUsed(Date timestampLastUsed) {
-        this.timestampLastUsed = timestampLastUsed;
-    }
-
-    /**
-     * Get timestamp when recovery code status changed last time.
-     * @return Timestamp when recovery code status changed last time.
-     */
-    public Date getTimestampLastChange() {
-        return timestampLastChange;
-    }
-
-    /**
-     * Set timestamp when recovery code status changed last time.
-     * @param timestampLastChange Timestamp when recovery code status changed last time.
-     */
-    public void setTimestampLastChange(Date timestampLastChange) {
-        this.timestampLastChange = timestampLastChange;
-    }
-
-    /**
-     * Get recovery PUKs.
-     * @return Recovery PUKs.
-     */
-    public List<RecoveryPukEntity> getRecoveryPuks() {
-        return recoveryPuks;
     }
 
     @Override
@@ -384,7 +194,7 @@ public class RecoveryCodeEntity implements Serializable {
     public String toString() {
         return "RecoveryCodeEntity{"
                 + "id=" + id
-                + ", application=" + application.toString()
+                + ", applicationId=" + application.getId()
                 + ", userId=" + userId
                 + ", activationId=" + activationId
                 + ", status=" + status
