@@ -46,7 +46,7 @@ public class TemporaryKeyEntity implements Serializable {
     /**
      * App key identifier.
      */
-    @Column(name = "app_key", updatable = false)
+    @Column(name = "application_key", updatable = false)
     private String appKey;
 
     /**

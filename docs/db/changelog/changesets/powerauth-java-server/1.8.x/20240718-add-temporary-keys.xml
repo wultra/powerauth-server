@@ -11,17 +11,25 @@
         </preConditions>
         <comment>Create a new table pa_temporary_key</comment>
         <createTable tableName="pa_temporary_key">
-            <column name="id" type="varchar(255)">
+            <column name="id" type="varchar(37)">
                 <constraints primaryKey="true" />
             </column>
-            <column name="app_key" type="varchar(255)" />
-            <column name="activation_id" type="integer" defaultValue="0" />
+            <column name="application_key" type="varchar(32)">
+                <constraints nullable="false" />
+            </column>
+            <column name="activation_id" type="varchar(37)" defaultValue="0" />
             <column name="private_key_encryption" type="integer" defaultValue="0">
                 <constraints nullable="false" />
             </column>
-            <column name="private_key_base64" type="varchar(255)" />
-            <column name="public_key_base64" type="varchar(255)" />
-            <column name="timestamp_expires" type="timestamp" />
+            <column name="private_key_base64" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="public_key_base64" type="varchar(255)">
+                <constraints nullable="false" />
+            </column>
+            <column name="timestamp_expires" type="timestamp">
+                <constraints nullable="false" />
+            </column>
         </createTable>
     </changeSet>
 
