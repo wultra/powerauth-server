@@ -30,12 +30,16 @@ import com.wultra.security.powerauth.client.model.request.RemoveTemporaryPublicK
 import com.wultra.security.powerauth.client.model.request.TemporaryPublicKeyRequest;
 import com.wultra.security.powerauth.client.model.response.RemoveTemporaryPublicKeyResponse;
 import com.wultra.security.powerauth.client.model.response.TemporaryPublicKeyResponse;
+import io.getlime.security.powerauth.app.server.converter.ServerPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.converter.TemporaryPrivateKeyConverter;
 import io.getlime.security.powerauth.app.server.database.model.ServerPrivateKey;
+import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationVersionEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.MasterKeyPairEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.TemporaryKeyEntity;
+import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
+import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.database.repository.ApplicationVersionRepository;
 import io.getlime.security.powerauth.app.server.database.repository.MasterKeyPairRepository;
 import io.getlime.security.powerauth.app.server.database.repository.TemporaryKeyRepository;
@@ -46,6 +50,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import io.getlime.security.powerauth.crypto.server.keyfactory.PowerAuthServerKeyFactory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,20 +81,25 @@ public class TemporaryKeyBehavior {
 
     private final LocalizationProvider localizationProvider;
     private final ApplicationVersionRepository applicationVersionRepository;
+    private final ActivationRepository activationRepository;
     private final MasterKeyPairRepository masterKeyPairRepository;
     private final TemporaryKeyRepository temporaryKeyRepository;
     private final TemporaryPrivateKeyConverter temporaryPrivateKeyConverter;
+    private final ServerPrivateKeyConverter serverPrivateKeyConverter;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final KeyGenerator keyGenerator = new KeyGenerator();
+    private final PowerAuthServerKeyFactory keyFactory = new PowerAuthServerKeyFactory();
 
     @Autowired
-    public TemporaryKeyBehavior(LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, MasterKeyPairRepository masterKeyPairRepository, TemporaryKeyRepository temporaryKeyRepository, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter) {
+    public TemporaryKeyBehavior(LocalizationProvider localizationProvider, ApplicationVersionRepository applicationVersionRepository, ActivationRepository activationRepository, MasterKeyPairRepository masterKeyPairRepository, TemporaryKeyRepository temporaryKeyRepository, TemporaryPrivateKeyConverter temporaryPrivateKeyConverter, ServerPrivateKeyConverter serverPrivateKeyConverter) {
         this.localizationProvider = localizationProvider;
         this.applicationVersionRepository = applicationVersionRepository;
+        this.activationRepository = activationRepository;
         this.masterKeyPairRepository = masterKeyPairRepository;
         this.temporaryKeyRepository = temporaryKeyRepository;
         this.temporaryPrivateKeyConverter = temporaryPrivateKeyConverter;
+        this.serverPrivateKeyConverter = serverPrivateKeyConverter;
     }
 
     @Transactional
@@ -222,28 +232,63 @@ public class TemporaryKeyBehavior {
         return null;
     }
 
-    private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException {
-        if (requestClaims.getAppKey() != null && requestClaims.getActivationId() == null) {
+    private TemporaryKeyResult obtainTemporaryKeyResult(TemporaryPublicKeyRequestClaims requestClaims) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, GenericServiceException, InvalidKeyException {
+        if (requestClaims.getAppKey() != null) {
             final ApplicationVersionEntity applicationVersionEntity = applicationVersionRepository.findByApplicationKey(requestClaims.getAppKey());
+            if (applicationVersionEntity == null || !applicationVersionEntity.getSupported()) {
+                throw new IllegalArgumentException("App version with provided app key not found.");
+            }
             final String applicationSecret = applicationVersionEntity.getApplicationSecret();
+            if (requestClaims.getActivationId() == null) {
 
-            final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
+                final MasterKeyPairEntity masterKeyPairEntity = masterKeyPairRepository.findFirstByApplicationIdOrderByTimestampCreatedDesc(applicationVersionEntity.getApplication().getId());
 
-            final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPrivateBase64()));
-            final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPublicBase64()));
+                final PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPrivateBase64()));
+                final PublicKey publicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(masterKeyPairEntity.getMasterKeyPublicBase64()));
 
-            byte[] secretKeyBytes = Base64.getDecoder().decode(applicationSecret);
+                final byte[] secretKeyBytes = Base64.getDecoder().decode(applicationSecret);
 
-            final TemporaryKeyResult result = new TemporaryKeyResult();
-            result.setSecretKeyBytes(secretKeyBytes);
-            result.setPrivateKey(privateKey);
-            result.setPublicKey(publicKey);
-            return result;
-        } else if (requestClaims.getAppKey() == null && requestClaims.getActivationId() != null) {
-            // TODO: Activation scope
-            throw new UnsupportedOperationException();
+                final TemporaryKeyResult result = new TemporaryKeyResult();
+                result.setSecretKeyBytes(secretKeyBytes);
+                result.setPrivateKey(privateKey);
+                result.setPublicKey(publicKey);
+                return result;
+            } else {
+
+                final String appId = applicationVersionEntity.getApplication().getId();
+
+                final Optional<ActivationRecordEntity> activationWithoutLock = activationRepository.findActivationWithoutLock(requestClaims.getActivationId());
+                if (activationWithoutLock.isEmpty()) {
+                    throw new IllegalArgumentException("Activation ID not found.");
+                }
+                final ActivationRecordEntity activation = activationWithoutLock.get();
+                if (activation.getActivationStatus() != ActivationStatus.ACTIVE || !appId.equals(activation.getApplication().getId())) {
+                    throw new IllegalArgumentException("Activation ID not found.");
+                }
+
+                final EncryptionMode encryptionMode = activation.getServerPrivateKeyEncryption();
+                final String serverPrivateKeyBase64 = activation.getServerPrivateKeyBase64();
+                final ServerPrivateKey serverPrivateKeyEncrypted = new ServerPrivateKey(encryptionMode, serverPrivateKeyBase64);
+                String decryptedServerPrivateKey = serverPrivateKeyConverter.fromDBValue(serverPrivateKeyEncrypted, activation.getUserId(), activation.getActivationId());
+                final byte[] serverPrivateKeyBytes = Base64.getDecoder().decode(decryptedServerPrivateKey);
+                final PrivateKey serverPrivateKey = keyConvertor.convertBytesToPrivateKey(serverPrivateKeyBytes);
+
+                final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+                final PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
+
+                final byte[] devicePublicKeyBytes = Base64.getDecoder().decode(activation.getDevicePublicKeyBase64());
+                final PublicKey devicePublicKey = keyConvertor.convertBytesToPublicKey(devicePublicKeyBytes);
+                final SecretKey transportKey = keyFactory.deriveTransportKey(serverPrivateKey, devicePublicKey);
+                final byte[] transportKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportKey);
+
+                final TemporaryKeyResult result = new TemporaryKeyResult();
+                result.setSecretKeyBytes(transportKeyBytes);
+                result.setPrivateKey(serverPrivateKey);
+                result.setPublicKey(serverPublicKey);
+                return result;
+            }
          } else {
-            throw new IllegalArgumentException("Either app key or activation ID must be specified.");
+            throw new IllegalArgumentException("App key must be specified.");
          }
     }
 
