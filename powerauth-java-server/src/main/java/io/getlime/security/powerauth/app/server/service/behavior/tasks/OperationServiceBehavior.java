@@ -1187,10 +1187,11 @@ public class OperationServiceBehavior {
 
         final PageRequest pageRequest = PageRequest.of(0, powerAuthServiceConfiguration.getExpireOperationsLimit());
         try (final Stream<OperationEntity> pendingOperations = operationQueryService.findExpiredPendingOperations(currentTimestamp, pageRequest)) {
-            final List<OperationEntity> updatedEntities = pendingOperations.peek(operationEntity -> {
+            final List<OperationEntity> updatedEntities = pendingOperations.map(operationEntity -> {
                 operationEntity.setStatus(OperationStatusDo.EXPIRED);
                 logger.info("Operation expired, ID: {}", operationEntity.getId());
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(operationEntity);
+                return operationEntity;
             }).toList();
             operationRepository.saveAll(updatedEntities);
             operationRepository.flush();
