@@ -2211,4 +2211,20 @@ public interface PowerAuthClient {
      */
     GetApplicationConfigResponse getApplicationConfig(String applicationId) throws PowerAuthClientException;
 
+    /**
+     * Fetch a new temporary public key.
+     * @param request Requested public key parameters.
+     * @return Requested public key.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    TemporaryPublicKeyResponse fetchTemporaryPublicKey(TemporaryPublicKeyRequest request) throws PowerAuthClientException;
+
+    /**
+     * Remove a temporary public key.
+     * @param id ID of the temporary public key to remove.
+     * @return Response with removal result.
+     * @throws PowerAuthClientException In case REST API call fails.
+     */
+    RemoveTemporaryPublicKeyResponse fetchTemporaryPublicKey(String id) throws PowerAuthClientException;
+
 }
