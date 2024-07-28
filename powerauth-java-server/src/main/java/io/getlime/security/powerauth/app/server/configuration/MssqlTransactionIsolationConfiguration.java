@@ -20,14 +20,13 @@
 package io.getlime.security.powerauth.app.server.configuration;
 
 import io.getlime.security.powerauth.app.server.configuration.conditions.IsMssqlCondition;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
+import lombok.extern.slf4j.Slf4j;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Before;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Configuration of READ_COMMITTED_SNAPSHOT transaction isolation level for MSSQL.
@@ -35,21 +34,18 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
+@Aspect
+@Slf4j
 @Conditional(IsMssqlCondition.class)
-public class MssqlTransactionIsolationConfiguration implements ApplicationRunner {
-
-    @PersistenceContext
-    private EntityManager entityManager;
+public class MssqlTransactionIsolationConfiguration {
 
     @Autowired
-    public MssqlTransactionIsolationConfiguration(EntityManager entityManager) {
-        this.entityManager = entityManager;
-    }
+    private JdbcTemplate jdbcTemplate;
 
-    @Override
-    @Transactional
-    public void run(ApplicationArguments args) throws Exception {
-        entityManager.createNativeQuery("SET TRANSACTION ISOLATION LEVEL SNAPSHOT").executeUpdate();
+    @Before("@annotation(org.springframework.transaction.annotation.Transactional)")
+    public void setTransactionIsolationLevel() {
+        logger.debug("Calling SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
+        jdbcTemplate.execute("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
     }
 
 }
