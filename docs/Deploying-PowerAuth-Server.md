@@ -246,10 +246,10 @@ ALTER DATABASE [powerauth_database] SET ALLOW_SNAPSHOT_ISOLATION ON;
 ALTER DATABASE [powerauth_database] SET READ_COMMITTED_SNAPSHOT ON;
 ```
 
-The SNAPSHOT transaction isolation level is enforced automatically on application startup using following query:
+The SNAPSHOT transaction isolation level needs to be enforced using following setting on each database connection in application configuration:
 
-```sql
-SET TRANSACTION ISOLATION LEVEL SNAPSHOT;
+```properties
+spring.datasource.hikari.connection-init-sql=SET TRANSACTION ISOLATION LEVEL SNAPSHOT
 ```
 
 ### Deploying On JBoss / Wildfly
