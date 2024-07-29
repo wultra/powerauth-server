@@ -52,7 +52,7 @@ public class MssqlIsolationConfiguration {
             @Override
             public Object postProcessAfterInitialization(@NonNull Object bean, @NonNull String beanName) throws BeansException {
                 if (bean instanceof HikariDataSource hikariDataSource) {
-                    logger.debug("Setting initialization SQL: SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
+                    logger.info("Setting initialization SQL: SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
                     hikariDataSource.setConnectionInitSql("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
                 }
                 return bean;
