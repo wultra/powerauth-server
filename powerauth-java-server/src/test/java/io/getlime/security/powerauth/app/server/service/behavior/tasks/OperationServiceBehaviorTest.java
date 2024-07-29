@@ -208,8 +208,8 @@ class OperationServiceBehaviorTest {
                 new-line""");
 
         final OperationDetailResponse operationDetailResponse = operationService.createOperation(request);
-        assertTrue(operationRepository.findOperation(operationDetailResponse.getId()).isPresent());
-        final OperationEntity savedEntity = operationRepository.findOperation(operationDetailResponse.getId()).get();
+        assertTrue(operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).isPresent());
+        final OperationEntity savedEntity = operationRepository.findOperationWithoutLock(operationDetailResponse.getId()).get();
 
         assertEquals("A0*T\\\\foo\\*hoo\\nnew-line", savedEntity.getData());
     }
