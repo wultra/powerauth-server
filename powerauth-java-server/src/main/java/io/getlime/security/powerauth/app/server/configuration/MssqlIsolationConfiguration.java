@@ -27,6 +27,7 @@ import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.lang.NonNull;
 
 /**
@@ -36,11 +37,12 @@ import org.springframework.lang.NonNull;
  */
 @Configuration
 @Slf4j
+@EnableAspectJAutoProxy
 @Conditional(IsMssqlCondition.class)
 public class MssqlIsolationConfiguration {
 
     @Bean
-    public BeanPostProcessor dataSourcePostProcessor() {
+    public static BeanPostProcessor dataSourcePostProcessor() {
         return new BeanPostProcessor() {
             @Override
             public Object postProcessBeforeInitialization(@NonNull Object bean, @NonNull String beanName) throws BeansException {
