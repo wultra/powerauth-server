@@ -144,7 +144,7 @@ public class ActivationFlagsServiceBehavior {
                 Collections.sort(allFlags);
                 activation.getFlags().clear();
                 activation.getFlags().addAll(allFlags);
-                activationRepository.saveAndFlush(activation);
+                activationRepository.save(activation);
             }
             final AddActivationFlagsResponse response = new AddActivationFlagsResponse();
             response.setActivationId(activationId);
@@ -198,7 +198,7 @@ public class ActivationFlagsServiceBehavior {
             Collections.sort(activationFlags);
             activation.getFlags().clear();
             activation.getFlags().addAll(activationFlags);
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
 
             final UpdateActivationFlagsResponse response = new UpdateActivationFlagsResponse();
             response.setActivationId(activationId);
@@ -250,7 +250,7 @@ public class ActivationFlagsServiceBehavior {
                     .build();
             audit.log(AuditLevel.INFO, "Removing activation flags: {} from activation {}", auditDetail, activationFlags, activationId);
             activation.getFlags().removeAll(activationFlags);
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
 
             final RemoveActivationFlagsResponse response = new RemoveActivationFlagsResponse();
             response.setActivationId(activationId);

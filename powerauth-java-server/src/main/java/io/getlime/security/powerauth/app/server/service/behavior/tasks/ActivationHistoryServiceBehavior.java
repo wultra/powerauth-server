@@ -110,7 +110,7 @@ public class ActivationHistoryServiceBehavior {
 
         activation.getActivationHistory().add(activationHistoryEntity);
         // ActivationHistoryEntity is persisted together with activation using Cascade.ALL on ActivationEntity
-        activationRepository.saveAndFlush(activation);
+        activationRepository.save(activation);
 
         logAuditItem(activation, externalUserId, historyEventReason);
 
