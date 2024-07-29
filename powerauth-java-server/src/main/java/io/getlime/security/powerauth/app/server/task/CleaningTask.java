@@ -19,6 +19,7 @@
 
 package io.getlime.security.powerauth.app.server.task;
 
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.OperationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.replay.ReplayPersistenceService;
@@ -44,6 +45,8 @@ public class CleaningTask {
     private final OperationServiceBehavior operationServiceBehavior;
 
     private final ActivationServiceBehavior activationServiceBehavior;
+
+    private final CallbackUrlEventService callbackUrlEventService;
 
     @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.uniqueValueCleanup:60000}")
     @SchedulerLock(
@@ -73,6 +76,34 @@ public class CleaningTask {
         LockAssert.assertLocked();
         logger.debug("Calling scheduled expiration of activations");
         activationServiceBehavior.expireActivations();
+    }
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.retryFailedCallbackUrlEvent:3000}")
+    @SchedulerLock(
+            name = "retryFailedCallbackUrlEvent",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.retryFailedCallbackUrlEvent:3000} * 0.8)}")
+    public void dispatchFailedCallbackUrlEvents() {
+        LockAssert.assertLocked();
+        logger.debug("dispatchFailedCallbackUrlEvents");
+        callbackUrlEventService.dispatchFailedCallbackUrlEvents();
+    }
+
+    @Scheduled(fixedRateString = "${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvent:3000}")
+    @SchedulerLock(
+            name = "dispatchPendingCallbackUrlEvent",
+            lockAtLeastFor = "#{T(java.lang.Math).round(${powerauth.service.scheduled.job.dispatchPendingCallbackUrlEvent:3000} * 0.8)}")
+    public void dispatchPendingCallbackUrlEvents() {
+        LockAssert.assertLocked();
+        logger.debug("dispatchPendingCallbackUrlEvents");
+        callbackUrlEventService.dispatchPendingCallbackUrlEvents();
+    }
+
+    @Scheduled(cron = "${powerauth.service.scheduled.job.callbackUrlEventsCleanupCron:0 0 0 */1 * *}")
+    @SchedulerLock(name = "callbackUrlEventsCleanup")
+    public void cleanEvents() {
+        LockAssert.assertLocked();
+        logger.debug("deleteCallbackUrlEvents");
+        callbackUrlEventService.deleteCallbackUrlEventsAfterRetentionPeriod();
     }
 
 }
