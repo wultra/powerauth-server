@@ -382,11 +382,11 @@ public class SignatureSharedServiceBehavior {
                 notifyCallbackListeners = true;
             } else {
                 // Save the activation
-                activationRepository.saveAndFlush(activation);
+                activationRepository.save(activation);
             }
         } else {
             // Save the activation
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
         }
 
         // Create the audit log record
@@ -430,7 +430,7 @@ public class SignatureSharedServiceBehavior {
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Save the activation
-        activationRepository.saveAndFlush(activation);
+        activationRepository.save(activation);
 
         // Create the audit log record with activation values of ctrDataBase64 and counter before calculating next ones.
         auditingServiceBehavior.logSignatureAuditRecord(activationDto, signatureData, verificationResponse.getUsedSignatureType(), true, verificationResponse.getForcedSignatureVersion(), "signature_ok", currentTimestamp);
@@ -486,7 +486,7 @@ public class SignatureSharedServiceBehavior {
             notifyCallbackListeners = true;
         } else {
             // Save the activation
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
         }
 
         // Create the audit log record.
@@ -514,7 +514,7 @@ public class SignatureSharedServiceBehavior {
         activation.setTimestampLastUsed(currentTimestamp);
 
         // Save the activation
-        activationRepository.saveAndFlush(activation);
+        activationRepository.save(activation);
 
         // Create the audit log record
         final AuditingServiceBehavior.ActivationRecordDto activationDto = createActivationDtoFrom(activation);

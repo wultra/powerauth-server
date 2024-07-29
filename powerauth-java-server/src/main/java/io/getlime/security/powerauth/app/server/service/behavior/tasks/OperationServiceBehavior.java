@@ -255,7 +255,7 @@ public class OperationServiceBehavior {
             audit.log(AuditLevel.INFO, "Operation created with ID: {}", auditDetail, operationId);
 
             logger.info("Operation created with ID: {}", operationId);
-            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             return convertFromEntityAndFillOtp(savedEntity);
         } catch (GenericServiceException ex) {
@@ -390,7 +390,7 @@ public class OperationServiceBehavior {
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                 logger.info("Operation approved with ID: {}", operationId);
-                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+                final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -424,7 +424,7 @@ public class OperationServiceBehavior {
                     operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                     logger.info("Operation approval failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
-                    final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
                     callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -457,7 +457,7 @@ public class OperationServiceBehavior {
                     operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                     logger.info("Operation failed for operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
-                    final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+                    final OperationEntity savedEntity = operationRepository.save(operationEntity);
                     callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                     final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -545,7 +545,7 @@ public class OperationServiceBehavior {
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                 logger.info("Operation rejected operation ID: {}, user ID: {}, application ID: {}.", operationId, userId, applicationId);
-                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+                final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -633,7 +633,7 @@ public class OperationServiceBehavior {
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                 logger.info("Operation approval failed via explicit server call for operation ID: {}.", operationId);
-                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+                final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -657,7 +657,7 @@ public class OperationServiceBehavior {
                 operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
                 logger.info("Operation approval permanently failed via explicit server call for operation ID: {}.", operationId);
-                final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+                final OperationEntity savedEntity = operationRepository.save(operationEntity);
                 callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
                 final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
 
@@ -720,7 +720,7 @@ public class OperationServiceBehavior {
             operationEntity.setAdditionalData(mapMerge(operationEntity.getAdditionalData(), additionalData));
 
             logger.info("Operation canceled via explicit server call for operation ID: {}.", operationId);
-            final OperationEntity savedEntity = operationRepository.saveAndFlush(operationEntity);
+            final OperationEntity savedEntity = operationRepository.save(operationEntity);
             callbackUrlBehavior.notifyCallbackListenersOnOperationChange(savedEntity);
             final OperationDetailResponse operationDetailResponse = convertFromEntity(savedEntity);
             extendAndSetOperationDetailData(operationDetailResponse);
@@ -993,7 +993,7 @@ public class OperationServiceBehavior {
                 if (expectedUserId == null) {
                     source.setUserId(userId);
                     logger.info("Operation ID: {} will be assigned to the user {}.", operationId, userId);
-                    return operationRepository.saveAndFlush(source);
+                    return operationRepository.save(source);
                 } else if (!expectedUserId.equals(userId)) {
                     logger.warn("Operation ID: {}, was accessed by user: {}, while previously assigned to user: {}.", operationId, userId, expectedUserId);
                     throw localizationProvider.buildExceptionForCode(ServiceError.OPERATION_NOT_FOUND);
