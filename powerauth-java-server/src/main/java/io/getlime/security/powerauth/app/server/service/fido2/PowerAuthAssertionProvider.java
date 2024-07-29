@@ -252,7 +252,7 @@ public class PowerAuthAssertionProvider implements AssertionProvider {
             notifyCallbackListeners = true;
         } else {
             // Save the activation
-            activationRepository.saveAndFlush(activation);
+            activationRepository.save(activation);
         }
 
         // Create the audit log record.
