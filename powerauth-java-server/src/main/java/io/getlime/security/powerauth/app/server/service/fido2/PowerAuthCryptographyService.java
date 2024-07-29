@@ -141,7 +141,7 @@ public class PowerAuthCryptographyService implements CryptographyService {
             return false;
         }
         activation.setCounter((long) signCount);
-        activationRepository.saveAndFlush(activation);
+        activationRepository.save(activation);
         return true;
     }
 
