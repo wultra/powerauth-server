@@ -1,6 +1,6 @@
 /*
  * PowerAuth Server and related software components
- * Copyright (C) 2019 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,17 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package io.getlime.security.powerauth.app.server.database.model;
+package io.getlime.security.powerauth.app.server.service.encryption;
 
 import io.getlime.security.powerauth.app.server.database.model.enumeration.EncryptionMode;
 
 /**
- * Compound value of recovery PUK. PUK hash can be stored encrypted or decrypted based on key encryption mode.
+ * A generic wrapper for encryption, keeping both the mode and the data.
  *
- * @param encryptionMode Key encryption mode.
- * @param pukHash        PUK hash, encrypted if specified by key encryption mode.
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-public record RecoveryPuk(EncryptionMode encryptionMode, String pukHash) {
+public interface Encryptable {
 
+    /**
+     * Return encryption mode.
+     * <p>
+     * Determine format of {@link #getEncryptedData()}.
+     *
+     * @return encryption mode
+     */
+    EncryptionMode getEncryptionMode();
+
+    /**
+     * Return the data.
+     * <p>
+     * May be plain or encrypted. Depends on {@link #getEncryptionMode()}.
+     *
+     * @return encrypted or plain data
+     */
+    byte[] getEncryptedData();
 }
