@@ -15,12 +15,20 @@
 
 Database changes are driven by Liquibase.
 
-This is an example how to manually check the Liquibase status.
+This is an example how to invoke Liquibase.
 Important and fixed parameter is `changelog-file`.
 Others (like URL, username, password) depend on your environment.
 
+To list all undeployed changesets run this `status` command. 
+
 ```shell
 liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --url=jdbc:postgresql://localhost:5432/powerauth --username=powerauth status
+```
+
+To apply the changesets run this `update` command.
+
+```shell
+liquibase --changelog-file=./docs/db/changelog/changesets/powerauth-java-server/db.changelog-module.xml --url=jdbc:postgresql://localhost:5432/powerauth-liquibase --username=powerauth update
 ```
 
 To generate SQL script run this command.
