@@ -30,5 +30,6 @@ import java.util.Map;
 public record CallbackUrlEvent(
         String callbackUrlEventEntityId,
         Map<String, Object> callbackData,
-        CallbackUrlEventConfiguration callbackUrlEventConfiguration
+        String callbackUrl,
+        String restClientCacheKey
 ) { }

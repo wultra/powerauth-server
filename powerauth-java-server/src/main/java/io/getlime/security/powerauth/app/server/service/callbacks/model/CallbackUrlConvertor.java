@@ -18,7 +18,6 @@
 
 package io.getlime.security.powerauth.app.server.service.callbacks.model;
 
-import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.CallbackUrlEventEntity;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -34,15 +33,8 @@ public class CallbackUrlConvertor {
         return CallbackUrlEvent.builder()
                 .callbackUrlEventEntityId(callbackUrlEventEntity.getId())
                 .callbackData(callbackUrlEventEntity.getCallbackData())
-                .callbackUrlEventConfiguration(convert(callbackUrlEventEntity.getCallbackUrlEntity()))
-                .build();
-    }
-
-    public static CallbackUrlEventConfiguration convert(final CallbackUrlEntity callbackUrlEntity) {
-        return CallbackUrlEventConfiguration.builder()
-                .callbackUrlEntityId(callbackUrlEntity.getId())
-                .callbackUrl(callbackUrlEntity.getCallbackUrl())
-                .authentication(callbackUrlEntity.getAuthentication())
+                .callbackUrl(callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl())
+                .restClientCacheKey(callbackUrlEventEntity.getCallbackUrlEntity().getId())
                 .build();
     }
 

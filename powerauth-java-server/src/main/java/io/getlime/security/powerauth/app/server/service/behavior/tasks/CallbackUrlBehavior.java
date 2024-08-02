@@ -35,14 +35,18 @@ import io.getlime.security.powerauth.app.server.database.repository.ApplicationR
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlEventRepository;
 import io.getlime.security.powerauth.app.server.database.repository.CallbackUrlRepository;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlAuthenticationCryptor;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlRestClientManager;
 import io.getlime.security.powerauth.app.server.service.encryption.EncryptableString;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlEvent;
+import io.getlime.security.powerauth.app.server.service.callbacks.model.CallbackUrlConvertor;
+import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventQueueService;
 import io.getlime.security.powerauth.app.server.service.callbacks.CallbackUrlEventService;
+import io.getlime.security.powerauth.app.server.service.util.TransactionUtils;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
 import io.getlime.security.powerauth.app.server.service.i18n.LocalizationProvider;
 import io.getlime.security.powerauth.app.server.service.model.ServiceError;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +54,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.stream.Collectors;
 
 /**
@@ -65,11 +70,10 @@ public class CallbackUrlBehavior {
     private final CallbackUrlRepository callbackUrlRepository;
     private final ApplicationRepository applicationRepository;
     private final CallbackUrlEventRepository callbackUrlEventRepository;
-    private final CallbackUrlEventService callbackUrlEventService;
+    private final CallbackUrlEventQueueService callbackUrlEventQueueService;
     private LocalizationProvider localizationProvider;
-    private CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
-
-    private final ApplicationEventPublisher eventPublisher;
+    private final CallbackUrlAuthenticationCryptor callbackUrlAuthenticationCryptor;
+    private final CallbackUrlRestClientManager callbackUrlRestClientManager;
 
     /**
      * Creates a new callback URL record for application with given ID.
@@ -168,7 +172,7 @@ public class CallbackUrlBehavior {
                 throw localizationProvider.buildExceptionForCode(ServiceError.INVALID_URL_FORMAT);
             }
 
-            callbackUrlEventService.evictRestClientFromCache(entity);
+            callbackUrlRestClientManager.evictRestClientFromCache(entity);
 
             entity.setName(request.getName());
             entity.setCallbackUrl(request.getCallbackUrl());
@@ -271,7 +275,7 @@ public class CallbackUrlBehavior {
             final Optional<CallbackUrlEntity> callbackUrlEntityOptional = callbackUrlRepository.findById(request.getId());
             if (callbackUrlEntityOptional.isPresent()) {
                 final CallbackUrlEntity callbackEntity = callbackUrlEntityOptional.get();
-                callbackUrlEventService.evictRestClientFromCache(callbackEntity);
+                callbackUrlRestClientManager.evictRestClientFromCache(callbackEntity);
                 callbackUrlRepository.delete(callbackEntity);
                 response.setRemoved(true);
             } else {
@@ -449,10 +453,27 @@ public class CallbackUrlBehavior {
         callbackUrlEventEntity.setCallbackData(callbackData);
         callbackUrlEventEntity.setTimestampCreated(LocalDateTime.now());
         callbackUrlEventEntity.setAttempts(0);
-        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.PENDING);
+        callbackUrlEventEntity.setStatus(CallbackUrlEventStatus.INSTANT);
         callbackUrlEventRepository.save(callbackUrlEventEntity);
 
-        eventPublisher.publishEvent(callbackUrlEventEntity);
+        final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
+        TransactionUtils.executeAfterTransactionCommits(
+                () -> enqueue(callbackUrlEvent)
+        );
+    }
+
+    /**
+     * Try to submit a Callback URL Event to a task executor.
+     * If rejected, enqueue the Callback URL Event to a database.
+     * @param callbackUrlEvent Callback URL Event to enqueue
+     */
+    private void enqueue(final CallbackUrlEvent callbackUrlEvent) {
+        try {
+            callbackUrlEventQueueService.submitToExecutor(callbackUrlEvent);
+        } catch (RejectedExecutionException e) {
+            logger.debug("CallbackUrlEventEntity was rejected by the executor: callbackUrlEntityId={}", callbackUrlEvent.callbackUrlEventEntityId());
+            callbackUrlEventQueueService.enqueueToDatabase(callbackUrlEvent);
+        }
     }
 
 }
