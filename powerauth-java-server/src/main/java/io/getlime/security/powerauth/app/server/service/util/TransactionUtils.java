@@ -44,4 +44,22 @@ public class TransactionUtils {
         });
     }
 
+    /**
+     * Execute task after current transaction commits or else run other task.
+     * @param onCommit Task to execute on commit.
+     * @param onError Task to execute otherwise.
+     */
+    public static void executeAfterTransactionCommitsOrElse(final Runnable onCommit, final Runnable onError) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCompletion(final int status) {
+                if (status == TransactionSynchronization.STATUS_COMMITTED) {
+                    onCommit.run();
+                } else {
+                    onError.run();
+                }
+            }
+        });
+    }
+
 }

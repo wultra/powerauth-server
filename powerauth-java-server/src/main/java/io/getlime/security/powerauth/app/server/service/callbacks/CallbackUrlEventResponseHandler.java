@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
@@ -53,7 +54,7 @@ public class CallbackUrlEventResponseHandler {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleSuccess(final CallbackUrlEvent callbackUrlEvent) {
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                        .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its successful response handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
+                        .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its success handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
 
         logger.info("Callback succeeded, URL={}, callbackEventId={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId());
 
@@ -72,7 +73,7 @@ public class CallbackUrlEventResponseHandler {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void handleFailure(final CallbackUrlEvent callbackUrlEvent, final Throwable error) {
         final CallbackUrlEventEntity callbackUrlEventEntity = callbackUrlEventRepository.findById(callbackUrlEvent.callbackUrlEventEntityId())
-                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its failed response handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
+                .orElseThrow(() -> new IllegalStateException("Callback Url Event was not found in database during its failure handling: callbackUrlEventId=" + callbackUrlEvent.callbackUrlEventEntityId()));
 
         logger.info("Callback failed, URL={}, callbackEventId={}, error={}", callbackUrlEventEntity.getCallbackUrlEntity().getCallbackUrl(), callbackUrlEventEntity.getId(), error.getMessage());
 
@@ -83,7 +84,8 @@ public class CallbackUrlEventResponseHandler {
         if (attemptsMade < maxAttempts) {
             final long initialBackoff = Objects.requireNonNullElse(callbackUrlEntity.getInitialBackoff(), powerAuthCallbacksConfiguration.getDefaultInitialBackoffMilliseconds());
             final Duration backoffPeriod = calculateExponentialBackoffPeriod(callbackUrlEventEntity.getAttempts(), initialBackoff, powerAuthCallbacksConfiguration.getBackoffMultiplier(), powerAuthCallbacksConfiguration.getMaxBackoffMilliseconds());
-            callbackUrlEventEntity.setTimestampNextCall(callbackUrlEventEntity.getTimestampLastCall().plus(backoffPeriod));
+            final LocalDateTime timestampLastCall = Objects.requireNonNullElse(callbackUrlEventEntity.getTimestampLastCall(), LocalDateTime.now());
+            callbackUrlEventEntity.setTimestampNextCall(timestampLastCall.plus(backoffPeriod));
         } else {
             final Duration retentionPeriod = Objects.requireNonNullElse(callbackUrlEventEntity.getCallbackUrlEntity().getRetentionPeriod(), powerAuthCallbacksConfiguration.getDefaultRetentionPeriod());
             callbackUrlEventEntity.setTimestampDeleteAfter(callbackUrlEventEntity.getTimestampCreated().plus(retentionPeriod));
