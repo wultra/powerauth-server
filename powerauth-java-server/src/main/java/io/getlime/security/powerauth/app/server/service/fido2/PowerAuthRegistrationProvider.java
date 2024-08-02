@@ -35,7 +35,6 @@ import io.getlime.security.powerauth.app.server.database.RepositoryCatalogue;
 import io.getlime.security.powerauth.app.server.database.model.entity.ActivationRecordEntity;
 import io.getlime.security.powerauth.app.server.database.model.entity.ApplicationEntity;
 import io.getlime.security.powerauth.app.server.database.model.enumeration.ActivationStatus;
-import io.getlime.security.powerauth.app.server.database.repository.ActivationRepository;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ActivationServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.behavior.tasks.ApplicationConfigServiceBehavior;
 import io.getlime.security.powerauth.app.server.service.exceptions.GenericServiceException;
@@ -188,8 +187,11 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
                 .findFirst();
 
         if (configFmt.isPresent()) {
-            List<String> allowedFmts = configFmt.get().getValues();
-            if (!allowedFmts.contains(attestationFormat)) {
+            final boolean attestationRejected = configFmt.get().getValues().stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .noneMatch(attestationFormat::equals);
+            if (attestationRejected) {
                 logger.warn("Rejected attestation format for FIDO2 registration: {}", attestationFormat);
                 return false;
             }
@@ -200,8 +202,11 @@ public class PowerAuthRegistrationProvider implements RegistrationProvider {
                 .findFirst();
 
         if (configAaguids.isPresent()) {
-            List<String> allowedAaguids = configAaguids.get().getValues();
-            if (!allowedAaguids.contains(aaguidStr)) {
+            final boolean aaguidRejected = configAaguids.get().getValues().stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .noneMatch(aaguidStr::equals);
+            if (aaguidRejected) {
                 logger.warn("Rejected AAGUID value for FIDO2 registration: {}", aaguidStr);
                 return false;
             }

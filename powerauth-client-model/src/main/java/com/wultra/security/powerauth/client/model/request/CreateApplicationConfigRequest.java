@@ -36,6 +36,6 @@ public class CreateApplicationConfigRequest {
     private String applicationId;
     @NotBlank
     private String key;
-    private List<String> values = new ArrayList<>();
+    private List<Object> values = new ArrayList<>();
 
 }

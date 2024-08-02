@@ -371,7 +371,7 @@ REST endpoint: `POST /rest/v3/application/config/detail`
 
 The `ApplicationConfigurationItem` record contains following parameters: 
   - `String key` - configuration key name
-  - `List<String> values` - configuration values 
+  - `List<Object> values` - configuration values 
 
 ### Method 'createApplicationConfig'
 
@@ -383,11 +383,11 @@ REST endpoint: `POST /rest/v3/application/config/create`
 
 `CreateApplicationConfigRequest`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `applicationId` | An identifier of an application |
-| `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values serialized as JSON array |
+| Type           | Name            | Description                                               |
+|----------------|-----------------|-----------------------------------------------------------|
+| `String`       | `applicationId` | An identifier of an application                           |
+| `String`       | `key`           | Application configuration key name                        |
+| `List<Object>` | `values`        | Application configuration values serialized as JSON array |
 
 Following configuration keys are accepted:
 - `fido2_attestation_fmt_allowed` - list of allowed attestation formats for FIDO2 registrations, unset value means all attestation formats are allowed
@@ -398,11 +398,11 @@ Following configuration keys are accepted:
 
 `CreateApplicationConfigResponse`
 
-| Type     | Name | Description |
-|----------|------|-------------|
-| `String` | `applicationId` | An identifier of an application |
-| `String` | `key` | Application configuration key name |
-| `List<String>` | `values` | Application configuration values |
+| Type           | Name            | Description                        |
+|----------------|-----------------|------------------------------------|
+| `String`       | `applicationId` | An identifier of an application    |
+| `String`       | `key`           | Application configuration key name |
+| `List<Object>` | `values`        | Application configuration values   |
 
 ### Method 'removeApplicationConfig'
 

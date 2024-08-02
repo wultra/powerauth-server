@@ -110,7 +110,7 @@ public class ApplicationConfigServiceBehavior {
         try {
             final String applicationId = request.getApplicationId();
             final String key = request.getKey();
-            final List<String> values = request.getValues();
+            final List<Object> values = request.getValues();
             if (applicationId == null) {
                 logger.warn("Invalid application ID in createApplicationConfig");
                 // Rollback is not required, error occurs before writing to database
