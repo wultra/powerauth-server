@@ -56,11 +56,11 @@ public class CallbackUrlEventEntity implements Serializable {
     @Convert(converter = MapToJsonConverter.class)
     private Map<String, Object> callbackData;
 
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
     private CallbackUrlEventStatus status;
 
-    @Column(name = "timestamp_created")
+    @Column(name = "timestamp_created", nullable = false)
     private LocalDateTime timestampCreated;
 
     @Column(name = "timestamp_last_call")
@@ -72,7 +72,7 @@ public class CallbackUrlEventEntity implements Serializable {
     @Column(name = "timestamp_delete_after")
     private LocalDateTime timestampDeleteAfter;
 
-    @Column(name = "attempts")
+    @Column(name = "attempts", nullable = false)
     private int attempts;
 
     @Override
