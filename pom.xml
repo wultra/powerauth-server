@@ -96,11 +96,11 @@
         <swagger-annotations-jakarta.version>2.2.22</swagger-annotations-jakarta.version>
 
         <!-- Scheduled Job Dependencies -->
-        <shedlock.version>5.13.0</shedlock.version>
+        <shedlock.version>5.14.0</shedlock.version>
 
         <!-- Other Dependencies -->
         <commons-text.version>1.12.0</commons-text.version>
-        <logstash.version>7.4</logstash.version>
+        <logstash.version>8.0</logstash.version>
         <equalsverifier.version>3.16.1</equalsverifier.version>
         <zxing.version>3.5.3</zxing.version>
 
