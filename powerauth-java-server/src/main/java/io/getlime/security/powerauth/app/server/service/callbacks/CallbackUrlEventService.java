@@ -136,8 +136,9 @@ public class CallbackUrlEventService {
         callbackUrlEventRepository.save(callbackUrlEventEntity);
 
         final CallbackUrlEvent callbackUrlEvent = CallbackUrlConvertor.convert(callbackUrlEventEntity);
-        TransactionUtils.executeAfterTransactionCommits(
-                () -> postCallback(callbackUrlEvent)
+        TransactionUtils.executeAfterTransactionCommitsOrElse(
+                () -> postCallback(callbackUrlEvent),
+                () -> callbackUrlEventResponseHandler.handleFailure(callbackUrlEvent, new RuntimeException("Transaction failure during dispatching the Callback URL Event."))
         );
     }
 
